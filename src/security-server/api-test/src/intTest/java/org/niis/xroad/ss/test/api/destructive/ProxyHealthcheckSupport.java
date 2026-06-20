@@ -39,6 +39,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * Shared polling helpers for proxy healthcheck assertions on the destructive-lifecycle lane.
  */
+@SuppressWarnings("checkstyle:magicnumber")
 final class ProxyHealthcheckSupport {
 
     private static final String HEALTHCHECK_PATH = "/q/health";

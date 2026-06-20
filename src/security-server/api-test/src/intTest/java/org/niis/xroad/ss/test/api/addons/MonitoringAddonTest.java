@@ -45,6 +45,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 import static org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory.given;
 
 @DisplayName("Monitoring addon scenarios")
+@SuppressWarnings("checkstyle:magicnumber")
 class MonitoringAddonTest extends SsApiTest {
 
     private static final String PROXY = SsApiTestContainerSetup.PROXY;

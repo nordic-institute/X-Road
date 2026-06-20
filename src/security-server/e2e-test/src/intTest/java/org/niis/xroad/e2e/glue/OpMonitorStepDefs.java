@@ -54,7 +54,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
+@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection", "checkstyle:magicnumber"})
 public class OpMonitorStepDefs extends BaseE2EStepDefs {
 
     private static final String OPERATIONAL_DATA_JSON = "operational-monitoring-data.json.gz";

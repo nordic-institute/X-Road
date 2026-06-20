@@ -86,7 +86,8 @@ class DiagnosticsConnectionTest extends SsApiTest {
     }
 
     @Test
-    @DisplayName("Other-SS REST connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK with a server.clientproxy-family error code")
+    @DisplayName("Other-SS REST connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK "
+            + "with a server.clientproxy-family error code")
     void otherSecurityServerConnectionTestCanBeRun(SsBaselineSeeder seeder) {
         var diag = new DiagnosticsAdminClient(seeder.newSession());
 
@@ -118,7 +119,8 @@ class DiagnosticsConnectionTest extends SsApiTest {
     }
 
     @Test
-    @DisplayName("Management-SS SOAP connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK with a server.clientproxy-family error code")
+    @DisplayName("Management-SS SOAP connection test for DEV:COM:1234 → DEV:COM:1234:MANAGEMENT reports non-OK "
+            + "with a server.clientproxy-family error code")
     void managementSecurityServerTestFails(SsBaselineSeeder seeder) {
         var diag = new DiagnosticsAdminClient(seeder.newSession());
 

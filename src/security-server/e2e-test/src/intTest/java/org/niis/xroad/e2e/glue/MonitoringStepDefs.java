@@ -48,7 +48,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
+@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection", "checkstyle:magicnumber"})
 public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Autowired

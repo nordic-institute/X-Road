@@ -36,8 +36,6 @@ import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.ss.test.api.admin.ServiceDescriptionsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
