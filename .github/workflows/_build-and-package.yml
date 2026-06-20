@@ -197,11 +197,11 @@ jobs:
           path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload ss-system-test
+      - name: Upload ss-api-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ss-system-test-jar
-          path: src/security-server/system-test/build/libs/security-server-system-test-1.0.jar
+          name: ss-api-test-jar
+          path: src/security-server/api-test/build/libs/security-server-api-test-1.0.jar
           compression-level: '0'
 
       - name: Upload cs-system-test

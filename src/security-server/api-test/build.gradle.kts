@@ -89,6 +89,15 @@ tasks.named<Checkstyle>("checkstyleIntTest") {
     dependsOn(provider { tasks.named("copyMainComposeFile") })
 }
 
+intTestShadowJar {
+    archiveBaseName("security-server-api-test")
+    mainClass("org.niis.xroad.ss.test.api.ConsoleApiTestRunner")
+}
+
+tasks.named("shadowJar") {
+    dependsOn(copyMainComposeFile)
+}
+
 archUnit {
     setSkip(true)
 }

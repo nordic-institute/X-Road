@@ -89,7 +89,7 @@ type `kubernetes.io/basic-auth`, ExternalName Service alias to the CNPG
 ## 5. Compose → Helm parity table
 
 This table is the **canonical anti-drift artefact**. Every compose
-service in `core/src/security-server/system-test/src/intTest/resources/compose.systemtest.ds.yaml`
+service in `core/src/security-server/api-test/src/intTest/resources/compose.api.ds.yaml`
 MUST map to a Helm template; every env var, port, probe, and
 `depends_on` edge MUST be reflected in the corresponding Helm template.
 

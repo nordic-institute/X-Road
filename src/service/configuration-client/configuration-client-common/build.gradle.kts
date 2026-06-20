@@ -11,6 +11,9 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.wiremock.standalone)
 
+  testImplementation(project(":central-server:admin-service:core-api"))
+  testImplementation(project(":central-server:admin-service:globalconf-generator"))
+
 }
 
 
