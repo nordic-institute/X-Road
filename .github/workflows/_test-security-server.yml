@@ -141,6 +141,10 @@ jobs:
         working-directory: ./src
         run: pnpm install --frozen-lockfile
 
+      - name: Generate OpenAPI types
+        working-directory: ./src
+        run: pnpm -r run generate-types
+
       - name: Cache Playwright browsers
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
