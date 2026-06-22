@@ -33,7 +33,7 @@ import io.restassured.http.Method;
 import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matcher;
-import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.e2e.E2eEnvironment;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
@@ -48,7 +48,7 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.niis.xroad.e2e.EnvSetup.DS_CONTROL_PLANE;
+import static org.niis.xroad.e2e.E2eEnvironment.DS_CONTROL_PLANE;
 
 public class DsStepDefs extends BaseE2EStepDefs {
 
@@ -90,14 +90,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """;
 
-        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/assets").formatted(mapping.host(), mapping.port(), participantContext);
         sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
 
     @Step("Policy definition allowing only {string} is created in participant context {string} on {string}")
     public void policyDefinitionIsCreated(String consumerDid, String participantContext, String server) {
-        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
 
         // Register a CEL expression that checks the consumer's DID
         String celRequest = """
@@ -168,7 +168,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ]
                 }
                 """;
-        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+        var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/contractdefinitions").formatted(mapping.host(), mapping.port(), participantContext);
         sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
@@ -178,7 +178,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     @Step("Catalog can be retrieved using participant context {string} on {string} from {string} on {string}")
     public void catalogCanBeRetrievedUsingParticipantContextFrom(String consumerParticipantContext, String consumerEnv,
                                                                  String providerDid, String providerEnv) {
-        String providerCpHost = providerEnv + "-ds-control-plane";
+        String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
         String request = """
                 {
                     "@context": [
@@ -189,7 +189,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
-                """.formatted(providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
+                """.formatted(providerDid, providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/catalog/request".formatted(consumerParticipantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(consumerParticipantContext), request, HttpStatus.SC_OK);
 
@@ -200,7 +200,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     @Step("Contract negotiation is initiated using participant context {string} on {string} with provider {string} on {string}")
     public void contractNegotiationIsInitiated(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
-        String providerCpHost = providerEnv + "-ds-control-plane";
+        String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
 
         String request = """
                 {
@@ -223,7 +223,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "permission": %s
                     }
                 }
-                """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL,
+                """.formatted(providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL,
                 providerDid, offerId, providerDid, targetAssetId, permissionJson);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/contractnegotiations".formatted(participantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
@@ -253,7 +253,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     @Step("Transfer process is started using participant context {string} on {string} with provider {string} on {string}")
     public void transferProcessIsStarted(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
-        String providerCpHost = providerEnv + "-ds-control-plane";
+        String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
         String request = """
                 {
                     "@context": [
@@ -270,7 +270,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "type": "HttpProxy"
                     }
                 }
-                """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL, providerDid, contractAgreementId);
+                """.formatted(providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL, providerDid, contractAgreementId);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/transferprocesses".formatted(participantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
 
@@ -303,7 +303,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     @Step("Asset access response is retrieved on {string}")
     public void assetAccessResponseIsRetrieved(String consumerEnv) {
-        var mapping = envSetup.getContainerMapping(consumerEnv, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+        var mapping = envSetup.getContainerMapping(consumerEnv, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         String url = "https://%s:%d/api/management/v3/edrs/%s/dataaddress"
                 .formatted(mapping.host(), mapping.port(), transferProcessId);
         var response = sendGetRequest(url, ControlPlaneAuthTokens.forContext("xrd-" + consumerEnv), HttpStatus.SC_OK);
@@ -315,14 +315,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
     @Step("Asset access is acquired via control plane API for context {string} on {string} from {string} on {string} for asset {string}")
     public void assetAccessIsAcquiredViaControlPlaneApi(
             String participantContext, String consumerEnv, String providerDid, String providerEnv, String assetId) {
-        String providerCpHost = providerEnv + "-ds-control-plane";
+        String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
         String request = """
                 {
                     "assetId": "%s",
                     "counterPartyId": "%s",
                     "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1"
                 }
-                """.formatted(assetId, providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
+                """.formatted(assetId, providerDid, providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
 
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
@@ -390,7 +390,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     private String getControlPlaneBaseUrl(String env) {
-        var mapping = envSetup.getContainerMapping(env, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
+        var mapping = envSetup.getContainerMapping(env, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         return MGMT_BASE_URL.formatted(mapping.host(), mapping.port());
     }
 
@@ -407,7 +407,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     private String issuerCredentialsBaseUrl(String issuerEnv) {
-        var mapping = envSetup.getContainerMapping(issuerEnv, EnvSetup.DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
+        var mapping = envSetup.getContainerMapping(issuerEnv, E2eEnvironment.DS_ISSUER_SERVICE, E2eEnvironment.Port.ISSUER_SERVICE_ADMIN);
         return "https://%s:%d/api/admin/v1alpha/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
     }
 

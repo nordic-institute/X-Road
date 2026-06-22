@@ -30,7 +30,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
-import org.springframework.stereotype.Component;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.ContainerState;
@@ -47,9 +46,11 @@ import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.common.vault.VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
+/**
+ * Docker Compose-based implementation of the e2e environment.
+ */
 @Slf4j
-@Component
-public class EnvSetup extends BaseComposeSetup {
+public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment, ComposeContainerOps {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
     private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
@@ -78,14 +79,11 @@ public class EnvSetup extends BaseComposeSetup {
     public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
     private static final String XROAD_NETWORK = "xroad-network";
 
-    public static final String DB_MESSAGELOG = "db-messagelog";
-    public static final String HURL = "hurl";
-
     private ComposeContainer envSs0;
     private ComposeContainer envSs1;
     private ComposeContainer envAux;
 
-    public EnvSetup(TestFrameworkCoreProperties coreProperties) {
+    public ComposeEnvSetup(TestFrameworkCoreProperties coreProperties) {
         super(coreProperties);
     }
 
@@ -125,15 +123,53 @@ public class EnvSetup extends BaseComposeSetup {
         return null;
     }
 
+    @Override
+    public boolean isInitialized() {
+        return envAux.getContainerByServiceName(HURL)
+                .map(container -> !container.isRunning())
+                .orElse(false);
+    }
+
+    @Override
+    public String peerControlPlaneHost(String env) {
+        return env + "-ds-control-plane";
+    }
+
+    @Override
+    public E2eEnvironment.ContainerMapping getContainerMapping(String env, String service, int port) {
+        var environment = mapEnvironment(env);
+        return new E2eEnvironment.ContainerMapping(
+                environment.getServiceHost(service, port),
+                environment.getServicePort(service, port)
+        );
+    }
+
+    @Override
+    public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
+        return mapEnvironment(env).getContainerByServiceName(serviceName);
+    }
+
+    /**
+     * Returns the Docker container name for the named service in the given environment.
+     */
+    public String getContainerName(String env, String container) {
+        return getContainerName(mapEnvironment(env), container);
+    }
+
+    private String getContainerName(ComposeContainer environment, String container) {
+        return environment.getContainerByServiceName(container)
+                .map(c -> c.getContainerInfo().getName().substring(1)).orElseThrow();
+    }
+
     private void ensureDsHttpsKeystoreVolume() {
         var dockerClient = DockerClientFactory.lazyClient();
         dockerClient.createVolumeCmd().withName(DS_HTTPS_KEYSTORE_VOLUME).exec();
         log.info("Ensured external docker volume {} exists", DS_HTTPS_KEYSTORE_VOLUME);
     }
 
-    private void connectToExternalNetwork(ComposeContainer env, List<String> serviceNames, String envName) {
+    private void connectToExternalNetwork(ComposeContainer environment, List<String> serviceNames, String envName) {
         for (String serviceName : serviceNames) {
-            var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
+            var containerState = environment.getContainerByServiceName(serviceName).orElseThrow();
             var dockerClient = containerState.getDockerClient();
 
             String networkId = dockerClient.listNetworksCmd().exec().stream()
@@ -166,7 +202,7 @@ public class EnvSetup extends BaseComposeSetup {
 
         features.forEach(f -> files.add(getComposeFilePath(f.getComposeFile())));
 
-        var env = new ComposeContainer(name + "-", files)
+        var environment = new ComposeContainer(name + "-", files)
                 .withEnv("ENV_PREFIX", name + "-")
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
                 .withEnv("DSP_MGMT_CONTEXT", "true")
@@ -186,26 +222,26 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
-            env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
+            environment.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
         }
 
         if (features.contains(Feature.OP_MONITOR)) {
             env.withLogConsumer(OP_MONITOR_SERVICE, createLogConsumer(name, OP_MONITOR_SERVICE));
         }
 
-        env.start();
+        environment.start();
 
         List<String> services = new ArrayList<>(List.of(UI, PROXY, CONFIGURATION_CLIENT, SIGNER));
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             services.add(SOFTTOKEN_SIGNER);
         }
-        connectToExternalNetwork(env, services, name);
+        connectToExternalNetwork(environment, services, name);
 
         if (features.contains(Feature.MESSAGE_LOG_ENCRYPTION)) {
-            importPublicKeysToBao(env);
+            importPublicKeysToBao(environment);
         }
 
-        return env;
+        return environment;
     }
 
     private File getComposeFilePath(String fileName) {
@@ -213,19 +249,10 @@ public class EnvSetup extends BaseComposeSetup {
     }
 
     @SneakyThrows
-    private void importPublicKeysToBao(ComposeContainer env) {
-        var container = env.getContainerByServiceName(OPENBAO).orElseThrow();
+    private void importPublicKeysToBao(ComposeContainer environment) {
+        var container = environment.getContainerByServiceName(OPENBAO).orElseThrow();
         container.execInContainer("bao", "write", "xrd-secret/" + MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH,
                 "payload=@/gpg-keys/public-keys.asc");
-    }
-
-    public String getContainerName(String env, String container) {
-        return getContainerName(mapEnvironment(env), container);
-    }
-
-    private String getContainerName(ComposeContainer env, String container) {
-        return env.getContainerByServiceName(container)
-                .map(c -> c.getContainerInfo().getName().substring(1)).orElseThrow();
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -259,18 +286,6 @@ public class EnvSetup extends BaseComposeSetup {
         }
     }
 
-    public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
-        return mapEnvironment(env).getContainerByServiceName(serviceName);
-    }
-
-    public ContainerMapping getContainerMapping(String env, String serviceName, int originalPort) {
-        ComposeContainer environment = mapEnvironment(env);
-        return new ContainerMapping(
-                environment.getServiceHost(serviceName, originalPort),
-                environment.getServicePort(serviceName, originalPort)
-        );
-    }
-
     private ComposeContainer mapEnvironment(String name) {
         return switch (name) {
             case "ss0" -> envSs0;
@@ -278,18 +293,6 @@ public class EnvSetup extends BaseComposeSetup {
             case "aux" -> envAux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
-    }
-
-    public static class Port {
-        public static final int UI = 4000;
-        public static final int PROXY = 8080;
-        public static final int DB = 5432;
-        public static final int CONTROL_PLANE_MANAGEMENT = 8182;
-        public static final int CONTROL_PLANE_PROTOCOL = 8183;
-        public static final int IDENTITY_HUB_IDENTITY = 7182;
-        public static final int IDENTITY_HUB_STS = 7184;
-        public static final int ISSUER_SERVICE_IDENTITY = 6182;
-        public static final int ISSUER_SERVICE_ADMIN = 6186;
     }
 
     enum Feature {

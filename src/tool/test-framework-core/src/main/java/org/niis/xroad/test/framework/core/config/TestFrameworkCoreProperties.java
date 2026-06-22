@@ -57,6 +57,10 @@ public interface TestFrameworkCoreProperties {
     @WithName("allure")
     Allure allure();
 
+    @WithDefault("compose")
+    @WithName("env-mode")
+    String envMode();
+
     @WithName("component-scan")
     ComponentScan componentScan();
 

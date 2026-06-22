@@ -30,7 +30,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.e2e.E2eEnvironment;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -47,7 +47,7 @@ public class TestDatabaseService implements DisposableBean {
     private final Map<String, NamedParameterJdbcTemplate> messagelogTemplates = new HashMap<>();
 
     @Autowired
-    private EnvSetup envSetup;
+    private E2eEnvironment envSetup;
 
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate(String env) {
@@ -55,7 +55,7 @@ public class TestDatabaseService implements DisposableBean {
         if (existing != null) {
             return existing;
         }
-        var dataSource = createDataSource(env, EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
+        var dataSource = createDataSource(env, E2eEnvironment.DB_MESSAGELOG, "messagelog", "messagelog");
         var template = new NamedParameterJdbcTemplate(dataSource);
         messagelogDataSources.put(env, dataSource);
         messagelogTemplates.put(env, template);
@@ -74,7 +74,7 @@ public class TestDatabaseService implements DisposableBean {
     }
 
     private String getJdbcUrl(String env, String service, String database) {
-        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.DB);
+        var mapping = envSetup.getContainerMapping(env, service, E2eEnvironment.Port.DB);
         return String.format("jdbc:postgresql://%s:%d/%s",
                 mapping.host(),
                 mapping.port(),

@@ -94,6 +94,38 @@ tasks.register<Test>("e2eTest") {
   }
 }
 
+tasks.register<Test>("e2eTestLxd") {
+  dependsOn(provider { tasks.named("compileIntTestJava") })
+  useJUnitPlatform()
+
+  description = "Runs e2e tests against a pre-provisioned LXD environment."
+  group = "verification"
+
+  testClassesDirs = sourceSets["intTest"].output.classesDirs
+  classpath = sourceSets["intTest"].runtimeClasspath
+
+  val systemTestArgs = mutableListOf(
+    "-XX:MaxMetaspaceSize=200m",
+    "-Dtest-framework.env-mode=lxd",
+    "-Dtest-framework.cucumber.filter-tags=not @Skip and not @compose-only"
+  )
+
+  if (project.hasProperty("e2eTestServeReport")) {
+    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("e2eTestServeReport")}"
+  }
+
+  jvmArgs(systemTestArgs)
+
+  maxHeapSize = "256m"
+
+  testLogging {
+    showStackTraces = true
+    showExceptions = true
+    showCauses = true
+    showStandardStreams = true
+  }
+}
+
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
   dependsOn(provider { tasks.named("copyComposeFiles") })

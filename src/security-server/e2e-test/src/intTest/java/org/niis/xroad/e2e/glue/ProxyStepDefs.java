@@ -34,11 +34,13 @@ import io.restassured.response.ValidatableResponseOptions;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.e2e.ComposeContainerOps;
+import org.niis.xroad.e2e.E2eEnvironment;
 import org.niis.xroad.e2e.database.TestDatabaseService;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.testcontainers.containers.Container;
@@ -72,12 +74,14 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     private TestDatabaseService testDatabaseService;
     @Autowired
     private TestFrameworkCoreProperties coreProperties;
+    @Autowired
+    private ObjectProvider<ComposeContainerOps> containerOpsProvider;
 
     private ValidatableResponseOptions<?, ?> response;
 
     @Step("SOAP request is sent to {string} {string}")
     public void requestSoapIsSentToProxy(String env, String service, DocString docString) {
-        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, E2eEnvironment.Port.PROXY);
 
         response = given()
                 .config(RestAssured.config()
@@ -106,7 +110,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("REST request is sent to {string} {string}")
     public void requestRestIsSentToProxy(String env, String service, DocString docString) {
-        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, E2eEnvironment.Port.PROXY);
 
         response = given()
                 .body(docString.getContent())
@@ -118,7 +122,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("REST request targeted at {string} API endpoint is sent to {string} {string}")
     public void requestOpenapiRestIsSentToProxy(String apiEndpoint, String env, String service) {
-        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, E2eEnvironment.Port.PROXY);
 
         response = given()
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -130,7 +134,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("message log {string} is triggered on {string}")
     public void messageLogCommandIsExecuted(String command, String env) throws IOException, InterruptedException {
-        var container = envSetup.getContainerByServiceName(env, "message-log-cli").orElseThrow();
+        var container = containerOpsProvider.getObject().getContainerByServiceName(env, "message-log-cli").orElseThrow();
         var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
                 + " -Dquarkus.profile=containerized"
                 + " -jar /opt/app/quarkus-run.jar " + command
@@ -144,7 +148,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("Global configuration is fetched from {string}'s {string} for messagelog verification")
     public void globalConfIsFetchedForMessagelogValidation(String env, String service) throws IOException {
-        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, E2eEnvironment.Port.PROXY);
 
         try (var zis = new ZipInputStream(given()
                 .get("http://%s:%s/verificationconf".formatted(mapping.host(), mapping.port()))
@@ -165,7 +169,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     private String downloadMessageLogArchives(String env, String service, String serverPath, String localDir) {
         Files.createDirectories(Paths.get(localDir));
         var localCompressedArchivesPath = localDir + "/messagelog-archives.tar.gz";
-        var container = envSetup.getContainerByServiceName(env, service).orElseThrow();
+        var container = containerOpsProvider.getObject().getContainerByServiceName(env, service).orElseThrow();
         container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", serverPath, ".");
         container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
         container.execInContainer("rm", "/tmp/messagelog-archives.tar.gz");
@@ -234,7 +238,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
         String outputDir = "/tmp/" + UUID.randomUUID();
 
-        var container = envSetup.getContainerByServiceName(env, "message-log-cli").orElseThrow();
+        var container = containerOpsProvider.getObject().getContainerByServiceName(env, "message-log-cli").orElseThrow();
         Container.ExecResult execResult = container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
                 filePrefix, keyfile, "secret", outputDir);
 
@@ -261,7 +265,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
         String outputDir = "/tmp/" + UUID.randomUUID();
 
-        var container = envSetup.getContainerByServiceName(env, "message-log-cli").orElseThrow();
+        var container = containerOpsProvider.getObject().getContainerByServiceName(env, "message-log-cli").orElseThrow();
         container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
                 filePrefix, keyfile, "secret", outputDir);
 

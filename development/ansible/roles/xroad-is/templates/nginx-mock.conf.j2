@@ -4,7 +4,7 @@ server {
 
 
     location = /integration/mock_1 {
-        add_header Content-Type "application/json" always;
+        default_type application/json;
         add_header mock-response "true" always;
 
         if ($request_method = 'PUT') {

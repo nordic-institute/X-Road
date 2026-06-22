@@ -23,20 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.glue;
+package org.niis.xroad.e2e;
 
-import io.cucumber.java.en.Step;
-import lombok.extern.slf4j.Slf4j;
+import org.testcontainers.containers.ContainerState;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.Optional;
 
-@Slf4j
-@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
-public class CsInitStepDefs extends BaseE2EStepDefs {
+/**
+ * Docker-specific container operations used by Compose-only scenarios.
+ */
+public interface ComposeContainerOps {
 
-    @SuppressWarnings("squid:S5960")
-    @Step("Environment is initialized")
-    public void csIsInitialized() {
-        assertTrue(envSetup.isInitialized());
-    }
+    /**
+     * Returns the running container for the named service within the given environment.
+     */
+    Optional<ContainerState> getContainerByServiceName(String env, String serviceName);
 }
