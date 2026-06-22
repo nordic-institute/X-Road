@@ -111,6 +111,14 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
         env.getContainerByServiceName(NGINX).orElseThrow()
                 .copyFileToContainer(nginxFiles, "/var/lib");
         execInContainer(AUXILIARY_SERVICE, "/etc/xroad/backup-keys/init_backup_encryption.sh");
+    }
+
+    /**
+     * Provisions the DSP participant stack. Must run after the baseline SIGN certificate is seeded:
+     * the Identity Hub signs the {@code xroadMemberClaim} via the signer at credential-request time,
+     * which requires the owner member's SIGN cert to be present.
+     */
+    public void bootstrapDsp() {
         new DspBootstrap(this).bootstrap();
     }
 

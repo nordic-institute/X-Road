@@ -53,6 +53,7 @@ public class SsApiStackSessionListener implements LauncherSessionListener {
         setup.start();
         seeder = new SsBaselineSeeder(setup);
         seeder.ensureBaseline();
+        setup.bootstrapDsp();
     }
 
     @Override
