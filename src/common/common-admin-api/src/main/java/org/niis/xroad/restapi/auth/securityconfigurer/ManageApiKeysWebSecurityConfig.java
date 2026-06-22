@@ -71,7 +71,7 @@ public class ManageApiKeysWebSecurityConfig {
                 )
                 .httpBasic(Customizer.withDefaults())
                 .anonymous(AbstractHttpConfigurer::disable)
-                .headers(headerPolicyDirectives("default-src 'none'"))
+                .headers(headerPolicyDirectives("default-src 'none'; frame-ancestors 'none'"))
                 .csrf(customizer -> customizer
                         .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
                         .requireCsrfProtectionMatcher(ManageApiKeysWebSecurityConfig::sessionExists)

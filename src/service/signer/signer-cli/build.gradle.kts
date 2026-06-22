@@ -16,6 +16,8 @@ dependencies {
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:rpc-quarkus"))
 
+  implementation(libs.logback.classic)
+
   testImplementation(libs.quarkus.junit5)
   testImplementation(libs.mockito.jupiter)
 }

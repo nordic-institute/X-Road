@@ -56,6 +56,8 @@ class AssetIndexServerConfStoreTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
     private static final String MGMT_PARTICIPANT_CONTEXT_ID = "xroad-provider-mgmt";
+    private static final StoreEnumerationCache<Asset> DISABLED_CACHE =
+            new StoreEnumerationCache<>(false, 60, 1000, "test");
 
     @Mock
     private ServerConfProvider serverConfProvider;
@@ -86,7 +88,7 @@ class AssetIndexServerConfStoreTest {
     void setUp() {
         assetIndex = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                noBuiltins());
+                noBuiltins(), DISABLED_CACHE);
     }
 
     private BuiltinServiceCatalog allBuiltins() {
@@ -378,7 +380,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsIncludesBuiltinsWhenNoServerconfServices() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
@@ -392,7 +394,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsBuiltinsTaggedWithMgmtContext() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
@@ -405,7 +407,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsBuiltinsNeverTaggedWithHostContext() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
@@ -418,7 +420,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsHostCtxFilterExcludesBuiltins() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var hostSpec = QuerySpec.Builder.newInstance()
@@ -434,7 +436,7 @@ class AssetIndexServerConfStoreTest {
     void findByIdReturnsBuiltinAsset() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.findById(builtinAssetId);
@@ -448,7 +450,7 @@ class AssetIndexServerConfStoreTest {
     void findByIdReturnsNullForUnknownBuiltinServiceCode() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
 
         var result = store.findById("DEV:GOV:1111:nonExistentService");
 
@@ -460,7 +462,7 @@ class AssetIndexServerConfStoreTest {
     void resolveForAssetReturnsDataAddressForBuiltin() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.resolveForAsset(builtinAssetId);
@@ -479,7 +481,7 @@ class AssetIndexServerConfStoreTest {
     void resolveForAssetReturnsNullForDisabledBuiltin() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                noBuiltins());
+                noBuiltins(), DISABLED_CACHE);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.resolveForAsset(builtinAssetId);
@@ -518,7 +520,7 @@ class AssetIndexServerConfStoreTest {
     void countAssetsIncludesBuiltins() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins());
+                allBuiltins(), DISABLED_CACHE);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var count = store.countAssets(List.of());

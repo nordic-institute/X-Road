@@ -80,6 +80,11 @@ public class SelenideConfiguration {
         Configuration.fastSetValue = selenideProperties.fastSetValue();
         Configuration.selectorMode = SelectorMode.valueOf(selenideProperties.selectorMode());
         Configuration.assertionMode = AssertionMode.valueOf(selenideProperties.assertionMode());
+        // FOLDER (Selenium Grid download API over the mapped WebDriver HTTP port), not CDP:
+        // against a remote/testcontainers browser the CDP WebSocket URL is the container's
+        // internal IP (se:cdp ws://<container-ip>:4444), unreachable from the host, so CDP
+        // downloads fail with "JdkWebSocket initial request execution error". Grid downloads
+        // are already enabled via ChromeOptions.setEnableDownloads(true) above.
         Configuration.fileDownload = FileDownloadMode.CDP;
         Configuration.webdriverLogsEnabled = selenideProperties.webdriverLogsEnabled();
         Configuration.headless = selenideProperties.headless();

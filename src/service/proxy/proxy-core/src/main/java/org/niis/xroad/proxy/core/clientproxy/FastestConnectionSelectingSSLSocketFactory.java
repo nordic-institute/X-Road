@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +37,7 @@ import org.niis.xroad.proxy.core.clientproxy.FastestSocketSelector.SocketInfo;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -48,11 +47,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.PROXY_TLS_PROTOCOLS;
 
 /**
  * This is a custom SSL socket factory that connects to the fastest target
@@ -73,6 +73,10 @@ public class FastestConnectionSelectingSSLSocketFactory
      */
     public static final String ID_TARGETS = "ee.ria.xroad.serverproxy.targets";
     /**
+     * The identifier of the selected target address for the HttpContext attributes map.
+     */
+    public static final String ID_SELECTED_TARGET = "ee.ria.xroad.serverproxy.selected-target";
+    /**
      * The timeout when connecting to previously selected "fastest" provider
      */
     public static final int CACHED_TIMEOUT = 5000;
@@ -84,17 +88,21 @@ public class FastestConnectionSelectingSSLSocketFactory
     private final AuthTrustVerifier authTrustVerifier;
     private final SSLSocketFactory socketfactory;
 
-    private final Cache<CacheKey, URI> selectedHosts;
+    private final Cache<CacheKey, URI> selectedHostsCache;
     private final boolean cachingEnabled;
     private final ProxyProperties proxyProperties;
+    private final UnusableAddressTracker unusableAddressTracker;
 
     public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLSocketFactory socketfactory,
-                                                      ProxyProperties proxyProperties) {
+                                                      ProxyProperties proxyProperties,
+                                                      UnusableAddressTracker unusableAddressTracker) {
         super(socketfactory, null, proxyProperties.xroadTlsCiphers(), (HostnameVerifier) null);
         this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = socketfactory;
-        this.selectedHosts = CacheBuilder.newBuilder()
-                .expireAfterWrite(proxyProperties.clientProxy().clientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
+        this.unusableAddressTracker = unusableAddressTracker;
+        this.selectedHostsCache = CacheBuilder.newBuilder()
+                .expireAfterWrite(Duration
+                        .ofSeconds(proxyProperties.clientProxy().clientProxyFastestConnectingSslUriCachePeriod()))
                 .maximumSize(CACHE_MAXIMUM_SIZE)
                 .build();
         this.cachingEnabled = proxyProperties.clientProxy().clientProxyFastestConnectingSslUriCachePeriod() > 0;
@@ -113,8 +121,13 @@ public class FastestConnectionSelectingSSLSocketFactory
         // Discard dummy socket.
         closeQuietly(socket);
 
-        // Read target addresses from the context.
+        // Read target addresses from the context, excluding addresses with recent failures.
         final URI[] addressesFromContext = getAddressesFromContext(context);
+        final URI[] usableAddresses = unusableAddressTracker.filterUsable(addressesFromContext);
+        if (usableAddresses.length == 0) {
+            throw couldNotConnectException(addressesFromContext,
+                    new SSLHandshakeException("All target hosts are in failure cooldown"));
+        }
         final boolean useCache = cachingEnabled && (addressesFromContext.length > 1);
         final FastestSocketSelector selector = new FastestSocketSelector();
 
@@ -129,7 +142,12 @@ public class FastestConnectionSelectingSSLSocketFactory
         // If URI cache is enabled, check for a previously selected host, avoiding the selection process.
         if (useCache) {
             cacheKey = new CacheKey(addressesFromContext);
-            cachedURI = selectedHosts.getIfPresent(cacheKey);
+            cachedURI = selectedHostsCache.getIfPresent(cacheKey);
+
+            if (cachedURI != null && unusableAddressTracker.isUnusable(cachedURI)) {
+                selectedHostsCache.asMap().remove(cacheKey, cachedURI);
+                cachedURI = null;
+            }
 
             if (cachedURI != null) {
                 log.info("Using provider URI '{}' from cache", cachedURI);
@@ -138,7 +156,7 @@ public class FastestConnectionSelectingSSLSocketFactory
         }
 
         if (selector.isEmpty()) {
-            selector.addAll(addressesFromContext);
+            selector.addAll(usableAddresses);
         }
 
         Exception deferredException = null;
@@ -155,10 +173,11 @@ public class FastestConnectionSelectingSSLSocketFactory
                 configureSocket(sslSocket);
                 log.trace("Connected to {}", selectedSocket.getUri());
                 updateOpMonitoringData(context, selectedSocket);
+                context.setAttribute(ID_SELECTED_TARGET, selectedSocket.getUri());
 
                 if (useCache && cachedURI == null) {
                     log.info("Storing the fastest provider URI '{}' to cache", selectedSocket.getUri());
-                    selectedHosts.put(cacheKey, selectedSocket.getUri());
+                    selectedHostsCache.put(cacheKey, selectedSocket.getUri());
                 }
                 return sslSocket;
             } catch (IOException | RuntimeException e) {
@@ -171,8 +190,8 @@ public class FastestConnectionSelectingSSLSocketFactory
                     log.warn("Failed to connect", e);
                 }
                 if (cachedURI != null) {
-                    selectedHosts.asMap().remove(cacheKey, cachedURI);
-                    selector.addAll(addressesFromContext);
+                    selectedHostsCache.asMap().remove(cacheKey, cachedURI);
+                    selector.addAll(usableAddresses);
                     selector.remove(cachedURI);
                     cachedURI = null;
                     connectTimeout = timeout;
@@ -192,7 +211,7 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) {
-        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledProtocols(PROXY_TLS_PROTOCOLS);
         socket.setEnabledCipherSuites(proxyProperties.xroadTlsCiphers());
     }
 

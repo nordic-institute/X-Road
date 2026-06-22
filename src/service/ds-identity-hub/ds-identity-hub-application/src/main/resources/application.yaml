@@ -1,6 +1,10 @@
 quarkus:
   application:
     name: ds-identity-hub
+  arc:
+    unremovable-types:
+      - org.niis.xroad.signer.client.SignerRpcClient
+      - org.niis.xroad.signer.client.SignerSignClient
   config:
     locations:
       - xroad-common.yaml

@@ -8,6 +8,10 @@ dependencies {
   intTestImplementation(project(":central-server:admin-service:api-client"))
   intTestImplementation(testFixtures(project(":common:common-management-request")))
   intTestImplementation(project(":tool:test-framework-core"))
+
+  intTestImplementation(project(":tool:liquibase-executor"))
+  intTestImplementation(libs.liquibase.core)
+  intTestImplementation(libs.postgresql)
 }
 
 intTestComposeEnv {

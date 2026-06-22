@@ -5,9 +5,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
-    logicalFilePath="serverconf/006-configuration-properties.xml">
+    logicalFilePath="configuration-properties/001-configuration-properties.xml">
 
-    <changeSet author="niis" id="006-create-set-timestamps-function">
+    <changeSet author="niis" id="001-create-set-timestamps-function">
         <sql splitStatements="false"><![CDATA[
             CREATE OR REPLACE FUNCTION set_timestamps()
             RETURNS TRIGGER
@@ -26,7 +26,7 @@
             ]]></sql>
     </changeSet>
 
-    <changeSet author="niis" id="006-configuration-properties">
+    <changeSet author="niis" id="001-configuration-properties">
         <createTable tableName="configuration_properties">
             <column name="id" autoIncrement="true" type="SERIAL">
                 <constraints primaryKey="true"/>

@@ -44,7 +44,7 @@ testSelenide = "7.16.1"
 shadowPlugin = "9.4.1"
 owaspDependencyCheck = "12.2.2"
 edc = "0.17.0"
-dataplane-sdk = "0.0.7-SNAPSHOT"
+nimbus = "10.7"
 opentelemetry-javaagent = "2.28.1"
 opentelemetry-sdk-testing = "1.62.0"
 
@@ -344,6 +344,9 @@ edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi
 edc-spi-validator = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
+edc-spi-jwt = { module = "org.eclipse.edc:jwt-spi", version.ref = "edc" }
+edc-spi-keys = { module = "org.eclipse.edc:keys-spi", version.ref = "edc" }
+edc-lib-token = { module = "org.eclipse.edc:token-lib", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
 edc-spi-edr = { module = "org.eclipse.edc:edr-store-spi", version.ref = "edc" }
@@ -351,6 +354,8 @@ edc-spi-auth = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant-context-spi", version.ref = "edc" }
 edc-ih-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+edc-spi-identityhub = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
+edc-spi-identityhub-dcp = { module = "org.eclipse.edc:dcp-spi", version.ref = "edc" }
 edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 
 # EDC Lib modules
@@ -378,6 +383,10 @@ edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-oauth2-bom", versi
 edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", version.ref = "edc" }
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
+edc-issuerservice-issuance-spi = { module = "org.eclipse.edc:issuerservice-issuance-spi", version.ref = "edc" }
+edc-issuerservice-holder-spi = { module = "org.eclipse.edc:issuerservice-holder-spi", version.ref = "edc" }
+
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version = "5.0.1" }

@@ -40,6 +40,7 @@ dependencies {
 
   implementation(libs.springBoot.starterJetty)
   implementation(libs.springBoot.starterSecurity)
+  implementation(project(":common:common-db"))
   implementation(project(":lib:properties-spring"))
   implementation(libs.logback.classic)
 

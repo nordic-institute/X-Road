@@ -59,7 +59,7 @@ class XRoadClientIdConstraintFunctionTest {
 
     @Test
     void evaluateEqOperatorWithMatchingClientIdReturnsTrue() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "CS:ORG:1234", permission, context);
 
@@ -68,7 +68,7 @@ class XRoadClientIdConstraintFunctionTest {
 
     @Test
     void evaluateEqOperatorWithNonMatchingClientIdReturnsFalse() {
-        var context = contextWithMember("CS:ORG:9999");
+        var context = contextWithMember("CS", "ORG", "9999");
 
         boolean result = function.evaluate(Operator.EQ, "CS:ORG:1234", permission, context);
 
@@ -77,7 +77,7 @@ class XRoadClientIdConstraintFunctionTest {
 
     @Test
     void evaluateUnsupportedOperatorReturnsFalse() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.NEQ, "CS:ORG:1234", permission, context);
 
@@ -87,7 +87,7 @@ class XRoadClientIdConstraintFunctionTest {
 
     @Test
     void evaluateNonStringRightValueReturnsFalse() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, Integer.valueOf(42), permission, context);
 
@@ -95,8 +95,11 @@ class XRoadClientIdConstraintFunctionTest {
         assertThat(context.getProblems()).isNotEmpty();
     }
 
-    private CatalogPolicyContext contextWithMember(String memberId) {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of("xrd:memberIdentifier", memberId));
+    private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {
+        var agent = new ParticipantAgent("test-id", Map.of(), Map.of(
+                "xrd:xroadInstance", xroadInstance,
+                "xrd:memberClass", memberClass,
+                "xrd:memberCode", memberCode));
         return new CatalogPolicyContext(agent);
     }
 }

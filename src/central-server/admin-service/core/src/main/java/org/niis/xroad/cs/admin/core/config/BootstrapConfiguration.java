@@ -43,8 +43,12 @@ import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.vault.core.VaultTemplate;
 
 @Import({SpringGlobalConfConfig.class,
@@ -69,13 +73,12 @@ public class BootstrapConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(
-            value = "xroad.admin-service.rate-limit-enabled",
-            havingValue = "true", matchIfMissing = true)
+    @Conditional(RateLimitEnabledCondition.class)
     public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(AdminServiceProperties properties) {
         var filter = new IpThrottlingFilter(properties);
         var bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        bean.addUrlPatterns(IpThrottlingFilter.ADMIN_UI_PATTERNS);
         return bean;
     }
 
@@ -90,5 +93,21 @@ public class BootstrapConfiguration {
     VaultKeyClient noopVaultKeyClient() {
         return new NoopVaultKeyClient();
     }
-}
 
+    static class RateLimitEnabledCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            var env = context.getEnvironment();
+            boolean enabled = env.getProperty("xroad.admin-service.rate-limit-enabled", Boolean.class, true);
+            if (!enabled) {
+                return false;
+            }
+            int perSecond = env.getProperty(
+                    "xroad.admin-service.rate-limit-requests-per-second", Integer.class, 0);
+            int perMinute = env.getProperty(
+                    "xroad.admin-service.rate-limit-requests-per-minute", Integer.class, 0);
+            return perSecond > 0 || perMinute > 0;
+        }
+    }
+}

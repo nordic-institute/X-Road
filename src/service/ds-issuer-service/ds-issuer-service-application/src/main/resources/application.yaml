@@ -9,7 +9,10 @@ quarkus:
     level: INFO
     category:
       "EDC-MONITOR":
-        level: DEBUG
+        level: TRACE
+  arc:
+    unremovable-types:
+      - org.niis.xroad.globalconf.GlobalConfProvider
 
 "%native":
   quarkus:
@@ -53,6 +56,9 @@ web:
 
 edc:
   hostname: ${HOSTNAME}
+  issuance:
+    anonymous:
+      allowed: true # Bypass mandatory creation of a holder as X-Road credential issuance trust model doesn't require it
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"

@@ -32,6 +32,7 @@ import io.restassured.http.ContentType;
 import io.restassured.http.Method;
 import io.restassured.response.ValidatableResponse;
 import org.apache.http.HttpStatus;
+import org.hamcrest.Matcher;
 import org.niis.xroad.e2e.EnvSetup;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -43,6 +44,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.Method.GET;
 import static io.restassured.http.Method.POST;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.niis.xroad.e2e.EnvSetup.DS_CONTROL_PLANE;
@@ -52,6 +55,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private static final String MGMT_BASE_URL = "https://%s:%d/api/management/v5beta/participants";
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
+    private static final int MEMBER_ID_PART_COUNT = 3;
 
     private String offerId;
     private String targetAssetId;
@@ -87,7 +91,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
         var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/assets").formatted(mapping.host(), mapping.port(), participantContext);
-        sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
 
     @Step("Policy definition allowing only {string} is created in participant context {string} on {string}")
@@ -110,7 +114,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(consumerDid);
         String celUrl = "https://%s:%d/api/management/v5beta/celexpressions".formatted(mapping.host(), mapping.port());
-        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, HttpStatus.SC_OK);
+        sendRequest(POST, celUrl, ControlPlaneAuthTokens.PROVISIONER, celRequest, CREATED_OR_MANAGED);
 
         // Create policy with constraint referencing the CEL expression
         String request = """
@@ -139,7 +143,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """;
         String url = (MGMT_BASE_URL + "/%s/policydefinitions").formatted(mapping.host(), mapping.port(), participantContext);
-        sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
 
     @Step("Contract definition is created in participant context {string} on {string}")
@@ -165,7 +169,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 """;
         var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/contractdefinitions").formatted(mapping.host(), mapping.port(), participantContext);
-        sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
 
     // --- Cross-server DSP protocol operations ---
@@ -173,7 +177,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     @Step("Catalog can be retrieved using participant context {string} on {string} from {string} on {string}")
     public void catalogCanBeRetrievedUsingParticipantContextFrom(String consumerParticipantContext, String consumerEnv,
                                                                  String providerDid, String providerEnv) {
-        String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
+        String providerCpHost = providerEnv + "-ds-control-plane";
         String request = """
                 {
                     "@context": [
@@ -181,12 +185,12 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
                     "protocol": "dataspace-protocol-http:2025-1"
                 }
                 """.formatted(providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/catalog/request".formatted(consumerParticipantContext);
-        var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(consumerParticipantContext), request, HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
         extractNecessaryPropertiesFromCatalog(body);
@@ -195,7 +199,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     @Step("Contract negotiation is initiated using participant context {string} on {string} with provider {string} on {string}")
     public void contractNegotiationIsInitiated(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
-        String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
+        String providerCpHost = providerEnv + "-ds-control-plane";
 
         String request = """
                 {
@@ -203,11 +207,14 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ContractRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
                     "counterPartyId": "%s",
                     "protocol": "dataspace-protocol-http:2025-1",
                     "policy": {
-                        "@context": "http://www.w3.org/ns/odrl.jsonld",
+                        "@context": [
+                            "http://www.w3.org/ns/odrl.jsonld",
+                            {"xroad": "https://x-road.eu/edc/v1/"}
+                        ],
                         "@type": "Offer",
                         "@id": "%s",
                         "assigner": "%s",
@@ -218,7 +225,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL,
                 providerDid, offerId, providerDid, targetAssetId, permissionJson);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/contractnegotiations".formatted(participantContext);
-        var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
         negotiationId = (String) body.get("@id");
@@ -233,26 +240,26 @@ public class DsStepDefs extends BaseE2EStepDefs {
         await().atMost(POLL_TIMEOUT)
                 .pollInterval(POLL_INTERVAL)
                 .untilAsserted(() -> {
-                    var response = doGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK);
+                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
                     Map<String, Object> body = response.extract().body().as(Map.class);
                     assertEquals(state, body.get("state"));
                     contractAgreementId = (String) body.get("contractAgreementId");
                     assertNotNull(contractAgreementId, "Contract agreement ID should be present when finalized");
                 });
-        testReportService.attachJson("Contract Negotiation", doGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK)
-                .extract().body().asString());
+        testReportService.attachJson("Contract Negotiation",
+                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
     }
 
     @Step("Transfer process is started using participant context {string} on {string} with provider {string} on {string}")
     public void transferProcessIsStarted(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
-        String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
+        String providerCpHost = providerEnv + "-ds-control-plane";
         String request = """
                 {
                     "@context": [
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "TransferRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
                     "counterPartyId": "%s",
                     "protocol": "dataspace-protocol-http:2025-1",
                     "contractId": "%s",
@@ -264,7 +271,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """.formatted(providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL, providerDid, contractAgreementId);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/transferprocesses".formatted(participantContext);
-        var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
         transferProcessId = (String) body.get("@id");
@@ -275,24 +282,30 @@ public class DsStepDefs extends BaseE2EStepDefs {
     public void transferProcessIsCompleted(String processState, String participantContext, String consumerEnv) {
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/transferprocesses/%s".formatted(participantContext, transferProcessId);
+        awaitResourceState(url, participantContext, processState, "Transfer Process");
+    }
 
-        await().atMost(POLL_TIMEOUT)
-                .pollInterval(POLL_INTERVAL)
-                .untilAsserted(() -> {
-                    var response = doGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK);
-                    Map<String, Object> body = response.extract().body().as(Map.class);
-                    assertEquals(processState, body.get("state"));
-                });
-        testReportService.attachJson("Transfer Process", doGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK)
-                .extract().body().asString());
+    @Step("Credential for X-Road member {string} is revoked at the issuer on {string}")
+    public void credentialForMemberIsRevoked(String memberId, String issuerEnv) {
+        String base = issuerCredentialsBaseUrl(issuerEnv);
+        String credentialId = findIssuedCredentialId(base, memberId);
+        assertNotNull(credentialId, "Issuer should hold an issued credential for member " + memberId);
+        sendRequest(POST, base + "/%s/revoke".formatted(credentialId), IssuerAuthTokens.PARTICIPANT, "", REVOKE_ACCEPTED);
+    }
+
+    @Step("Contract negotiation reaches terminal state {string} using participant context {string} on {string}")
+    public void contractNegotiationReachesTerminalState(String state, String participantContext, String consumerEnv) {
+        String url = getControlPlaneBaseUrl(consumerEnv)
+                + "/%s/contractnegotiations/%s".formatted(participantContext, negotiationId);
+        awaitResourceState(url, participantContext, state, "Contract Negotiation");
     }
 
     @Step("Asset access response is retrieved on {string}")
     public void assetAccessResponseIsRetrieved(String consumerEnv) {
         var mapping = envSetup.getContainerMapping(consumerEnv, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
-        String url = "http://%s:%d/api/management/v4beta/edrs/%s/dataaddress"
+        String url = "https://%s:%d/api/management/v3/edrs/%s/dataaddress"
                 .formatted(mapping.host(), mapping.port(), transferProcessId);
-        var response = sendGetRequest(url, ControlPlaneAuthTokens.PARTICIPANT, HttpStatus.SC_OK);
+        var response = sendGetRequest(url, ControlPlaneAuthTokens.forContext("xrd-" + consumerEnv), HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
         assertNotNull(body.get("endpoint"), "Asset access response should contain an endpoint");
@@ -301,17 +314,17 @@ public class DsStepDefs extends BaseE2EStepDefs {
     @Step("Asset access is acquired via control plane API for context {string} on {string} from {string} on {string} for asset {string}")
     public void assetAccessIsAcquiredViaControlPlaneApi(
             String participantContext, String consumerEnv, String providerDid, String providerEnv, String assetId) {
-        String providerCpHost = envSetup.getContainerName(providerEnv, DS_CONTROL_PLANE);
+        String providerCpHost = providerEnv + "-ds-control-plane";
         String request = """
                 {
                     "assetId": "%s",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/test-part-ctx/2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1"
                 }
                 """.formatted(assetId, providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
 
-        var response = sendRequest(POST, url, ControlPlaneAuthTokens.PARTICIPANT, request, HttpStatus.SC_OK);
+        var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
         Map<String, Object> body = response.extract().body().as(Map.class);
         assertNotNull(body.get("https://w3id.org/edc/v0.0.1/ns/endpoint"), "Asset access response should contain an endpoint");
     }
@@ -330,6 +343,29 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 .then()
                 .log().all()
                 .statusCode(expectedStatusCode);
+        testReportService.attachJson("Response", response.extract().body().asString());
+        return response;
+    }
+
+    // Asset/policy/contract definitions are read-only when auto-provisioned from ServerConf,
+    // so a create returns either 200 (created) or 409 (already managed).
+    private static final Matcher<Integer> CREATED_OR_MANAGED = anyOf(is(HttpStatus.SC_OK), is(HttpStatus.SC_CONFLICT));
+
+    // Issuer revoke returns 204 (No Content) on success; tolerate 200 across EDC patch versions.
+    private static final Matcher<Integer> REVOKE_ACCEPTED = anyOf(is(HttpStatus.SC_OK), is(HttpStatus.SC_NO_CONTENT));
+
+    private ValidatableResponse sendRequest(Method method, String url, String token, String body, Matcher<Integer> statusMatcher) {
+        testReportService.attachJson(method + " " + url, body);
+        var response = given()
+                .relaxedHTTPSValidation()
+                .log().all()
+                .auth().oauth2(token)
+                .contentType(ContentType.JSON)
+                .body(body)
+                .request(method, url)
+                .then()
+                .log().all()
+                .statusCode(statusMatcher);
         testReportService.attachJson("Response", response.extract().body().asString());
         return response;
     }
@@ -355,6 +391,55 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private String getControlPlaneBaseUrl(String env) {
         var mapping = envSetup.getContainerMapping(env, DS_CONTROL_PLANE, EnvSetup.Port.CONTROL_PLANE_MANAGEMENT);
         return MGMT_BASE_URL.formatted(mapping.host(), mapping.port());
+    }
+
+    private void awaitResourceState(String url, String participantContext, String expectedState, String reportName) {
+        await().atMost(POLL_TIMEOUT)
+                .pollInterval(POLL_INTERVAL)
+                .untilAsserted(() -> {
+                    var response = doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK);
+                    Map<String, Object> body = response.extract().body().as(Map.class);
+                    assertEquals(expectedState, body.get("state"));
+                });
+        testReportService.attachJson(reportName,
+                doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
+    }
+
+    private String issuerCredentialsBaseUrl(String issuerEnv) {
+        var mapping = envSetup.getContainerMapping(issuerEnv, EnvSetup.DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
+        return "https://%s:%d/api/admin/v1alpha/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
+    }
+
+    @SuppressWarnings("unchecked")
+    private String findIssuedCredentialId(String credentialsBaseUrl, String memberId) {
+        var response = sendRequest(POST, credentialsBaseUrl + "/query", IssuerAuthTokens.PARTICIPANT, "{}", HttpStatus.SC_OK);
+        List<Map<String, Object>> resources = response.extract().body().as(List.class);
+        return resources.stream()
+                .filter(resource -> hasMemberIdentifier(resource, memberId))
+                .map(resource -> (String) resource.get("id"))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean hasMemberIdentifier(Map<String, Object> resource, String memberId) {
+        if (!(resource.get("credential") instanceof Map<?, ?> credential)) {
+            return false;
+        }
+        Object subjectObj = ((Map<String, Object>) credential).get("credentialSubject");
+        List<Map<String, Object>> subjects = switch (subjectObj) {
+            case List<?> list -> (List<Map<String, Object>>) list;
+            case Map<?, ?> single -> List.of((Map<String, Object>) single);
+            case null, default -> List.of();
+        };
+        var parts = memberId.split(":");
+        if (parts.length != MEMBER_ID_PART_COUNT) {
+            return false;
+        }
+        return subjects.stream().anyMatch(subject ->
+                parts[0].equals(subject.get("xroadInstance"))
+                        && parts[1].equals(subject.get("memberClass"))
+                        && parts[2].equals(subject.get("memberCode")));
     }
 
     @SuppressWarnings("unchecked")
@@ -387,7 +472,6 @@ public class DsStepDefs extends BaseE2EStepDefs {
         if (permission == null) {
             permission = dataset.get("odrl:permission");
         }
-
         permissionJson = JsonMapper.builder().build().writeValueAsString(permission);
     }
 
@@ -403,13 +487,44 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 + "Dz3BcyyJT7WLvAHp6Pk0SdHmFhA5ctvXfra4-ZkfUUudXklOEe-8Jj42v2EjF0woUk9nHoNYA_ca2Gi3kHtJrpHhR4_3Ab7KU046-p0dF5"
                 + "bVLLhYh3HEg-71R0tO9eytzbHkMZMY353aKF0bUqK4UrKnstDT55yo5j5oLpP0xGA9KGai6Kg";
 
-        static final String PARTICIPANT = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1Y"
-                + "Tc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTU"
-                + "wZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOiJ0ZXN0LXBhc"
-                + "nQtY3R4Iiwic2NvcGUiOiJtYW5hZ2VtZW50LWFwaTp3cml0ZSBtYW5hZ2VtZW50LWFwaTpyZWFkIn0.i7YQln4cjB2xXT5X5Nl48wys-me-HAP"
-                + "jfdiVEyRAB-thKDTqODHksijPQFVMQnb5FppbUHdYiO_G2JYBwFYk36fWhpBveRKRMBaurKZZS5tXAV7bsGr9z1jcEUM45tF__kZLCV9VZ0IRp"
-                + "ni4B4_AP7vc0YUqLyJ7WZXQfP-N2bBYPf8loi3No_AFEFI7mcknuxOp_oZnD6jRmwjeCdih_Nu-9rNsCpa3BM6L_EozzK3Y61X7D7cWXU7xCtG"
-                + "YDcYoRka8AtBTlihXPah3lbTRKwGP1IBDZzfKqSOZDDZK2g8Em3GjuOp6_sOsVL0UwAqlZZiMfyGnPaIkACtszimIjw";
+        // Participant-role tokens bound to each SS's control-plane participant context (xrd-ss0 / xrd-ss1).
+        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
+                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
+                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczAiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
+                + "oieHJkLXNzMCIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.L6PuH7KMc-LCktTGDkKvkmmJbsiR9"
+                + "ugjsnR6_vDiidSSKkja8Lx5C8ZKibiLC3ooFofNB0VvFXYL5hkya8487xHIZqUmlLiUIjXYQzmjaeMZPa_nPai4BMtL1wNZOk-TuyE-5rMNK8u1a"
+                + "ikxFB82LW1qSR0eixoMIg6PD-xTlSCetWOfaFhprBBrucjUxpfqJqMbEl6MAtCE37uwamMwqR2WqS-GFuwUsM-5z1XFZnDedVBRSpUi_p5IYTdjI"
+                + "XQULGOn8JCklwNt3yQqWUEpenCGNW3WQm5huUjlDH2LAePXFfrd7EhWl0nWuu4PPcVayrtAKtdXIikRu-VkfAnSqA";
+
+        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
+                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
+                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczEiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
+                + "oieHJkLXNzMSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.kYZXfJCy-9Wg_Ej0mK3kXu7XHtW9_"
+                + "WV1yZ_CAwLSV9srpjXXo2rtz6lVx7dFYGmKZRuBZ0tN8qhSesPknYKimvPZhqKZIUwa7EkohQLPWy5_SkkDKUD-i6-ppH6UqksSQhGE46XETaDt4"
+                + "aqH34Jh8Ewk4j8K_IeyGmoWpzC150hNlGOgDd6xh5wD0_tP4UpN6QweEMgno1-LT-2FLzVRPwTENafUC7BlZLjWSMuueZ02-tkvlHVcLesgr07EB"
+                + "e7fh6XFzFSpbf1hsRUlSJWfnvA5ccBPhOq9aY8xOYFeThklSZhmW0N9M55QDaxAaVXrMdX6s3o-qWt-uXHj9Yax6A";
+
+        static String forContext(String participantContext) {
+            return switch (participantContext) {
+                case "xrd-ss0" -> PARTICIPANT_SS0;
+                case "xrd-ss1" -> PARTICIPANT_SS1;
+                default -> throw new IllegalArgumentException("No participant token for context: " + participantContext);
+            };
+        }
+    }
+
+    // Issuer admin API token: participant role bound to the "issuer" participant context
+    // (scope: issuer-admin-api:write issuer-admin-api:read), signed by mock-jwks-server.
+    // Credential management endpoints require the participant-scoped token, not the provisioner one.
+    static class IssuerAuthTokens {
+        static final String PARTICIPANT = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YT"
+                + "c0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZD"
+                + "M1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOi"
+                + "Jpc3N1ZXIiLCJzY29wZSI6Imlzc3Vlci1hZG1pbi1hcGk6d3JpdGUgaXNzdWVyLWFkbWluLWFwaTpyZWFkIn0.dwRKoVpIwSO0DKX6YD"
+                + "QDVT-9ssYH4L93Iaea9PA4QISUIZZwvF-UvYPzvNHJ3VpJOQgSK35h-dMxbQ3aEdCs7dAV-3i0DKH4k1TNtV1ObDFcHIJ3d9Rl21Ob-U"
+                + "2K7Gj1zy9qDRE6_hh32Gc6xiXKWicy4wQkzN6Lsi1yyayLJlCHiCjPDrjneYl81c2lRrSJ2tsN6XYPvNE7ctjAnk9ubCu8j7od7XTGNp"
+                + "fcwblsr2PX1W6Il-vtCh8hWyZgOxn-NN4FU8Q6rHVMQ7bwaLXbw93mz3A4jvu_i3ID6PLnRGkWZEt3QiHIBwPUzCJ8PWgDem-BO7ck6G"
+                + "qvYvH64m1bYw";
     }
 
 }

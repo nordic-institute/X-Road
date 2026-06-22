@@ -211,8 +211,8 @@ export default defineComponent({
     if (this.selectedInstance) {
       try {
         this.subsystemsLoading = true;await this.fetchAllSubsystems(this.selectedInstance);
-      this.localAllSubsystems = this.allSubsystems.map((c: Client) => ({ ...c }));
-      this.selectedTargetSubsystemId = this.managementService || '';} finally {
+        this.localAllSubsystems = this.allSubsystems.map((c: Client) => ({ ...c }));
+        this.selectedTargetSubsystemId = this.managementService || '';} finally {
         this.subsystemsLoading = false;
       }
     }

@@ -120,4 +120,4 @@ edc:
         membership:
           id: "membership-scope"
           type: "DEFAULT"
-          value: "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
+          value: "org.eclipse.dspace.dcp.vc.type:XRoadMembershipCredential:read"

@@ -336,7 +336,7 @@
     "traffic": {
       "client": "Klient",
       "date": "Kuupäev",
-      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring).",
+      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks lubage operatiivandmete jälgimine turvaserveri konfiguratsioonis.",
       "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
       "exchangeRole": "Roll",
       "exchangeRoleInfo": "Teenusepakkuja või Klient",
@@ -506,12 +506,18 @@
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",
     "software_token_init_failed": "Tarkvaralise krüptomooduli lähtestamine ebaõnnestus",
+    "ssl_authentication_failed": "SSL-i autentimine ebaõnnestus",
     "timestamping_service_already_configured": "Ajatempli teenus on juba konfigureeritud",
     "timestamping_service_not_found": "Ajatempli teenust ei leitud",
     "token": {
       "malformed_csr": "CSR andmete vorming on vale"
     },
     "token_not_active": "Krüptomoodul pole aktiivne",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Võrguühenduse viga: operatiivandmete jälgimine pole saadaval"
+      }
+    },
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
     "url_already_exists": "URL on juba olemas",
     "warnings_detected": "Tuvastati hoiatused",

@@ -336,7 +336,7 @@
     "traffic": {
       "client": "Cliente",
       "date": "Data",
-      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring).",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, habilite o monitoramento de dados operacionais na configuração do Servidor de Segurança.",
       "disabledTitle": "Monitoramento de dados operacionais desativado",
       "exchangeRole": "Função de troca",
       "exchangeRoleInfo": "Produtor ou Consumidor",
@@ -506,12 +506,18 @@
     "service_not_found": "Serviço não encontrado",
     "sign_cert_not_supported": "Certificado de assinatura não suportado",
     "software_token_init_failed": "Falha ao inicializar o token de software",
+    "ssl_authentication_failed": "Falha na autenticação SSL",
     "timestamping_service_already_configured": "Serviço de carimbo de tempo já configurado",
     "timestamping_service_not_found": "Serviço de carimbo de tempo não encontrado",
     "token": {
       "malformed_csr": "Dados do CSR malformados"
     },
     "token_not_active": "Token não está ativo",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Erro de rede: o monitoramento de dados operacionais não está disponível"
+      }
+    },
     "unsupported_openapi_version": "Versão OpenAPI não suportada. Apenas 3.0.x e 3.1.0 são aceitas.",
     "url_already_exists": "URL já existe",
     "warnings_detected": "Avisos detectados",

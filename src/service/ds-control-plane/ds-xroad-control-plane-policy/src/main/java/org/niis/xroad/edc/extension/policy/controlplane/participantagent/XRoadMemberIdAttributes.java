@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.policy.controlplane.participantagent;
 
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -36,28 +37,32 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
-import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_IDENTIFIER_ATTRIBUTE;
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_INSTANCE_ATTRIBUTE;
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_CLASS_ATTRIBUTE;
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_CODE_ATTRIBUTE;
 
 /**
- * {@link ParticipantAgentServiceExtension} that extracts the X-Road member identifier from a
- * validated {@code MembershipCredential} in the DCP claim token and maps it to the participant-agent
- * attribute {@value PolicyContextHelper#XRD_MEMBER_IDENTIFIER_ATTRIBUTE}.
+ * {@link ParticipantAgentServiceExtension} that extracts the X-Road member identity from a validated
+ * {@code XRoadMembershipCredential} in the DCP claim token and exposes it as participant-agent attributes.
  *
- * <p>The credential is expected to carry {@code credentialSubject.xrdMemberIdentifier} in
- * colon-separated form ({@code INSTANCE:CLASS:CODE}), set by the issuer service from the holder's
- * registered {@code xrdMemberIdentifier} property.
+ * <p>The credential carries the identity as the separate {@code credentialSubject} claims
+ * {@code xroadInstance}, {@code memberClass} and {@code memberCode}, set by the issuer service from
+ * the verified X-Road sign certificate. They are surfaced verbatim as the participant-agent
+ * attributes {@code xrd:xroadInstance}, {@code xrd:memberClass} and {@code xrd:memberCode}; the
+ * X-Road constraint functions assemble the {@link ee.ria.xroad.common.identifier.ClientId} from them
+ * via {@code PolicyContextHelper}.
  *
- * <p>If no {@code MembershipCredential} is present, or the field is absent/null, an empty map is
- * returned — no exception is thrown. Existing VCs issued before the issuer upgrade will therefore
- * keep returning empty until reissued (backward-compatible additive change).
+ * <p>If no {@code XRoadMembershipCredential} is present, or any of the three claims is absent/blank, an
+ * empty map is returned — no exception is thrown.
  */
 @Slf4j
 class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
 
-    static final String MEMBERSHIP_CREDENTIAL_TYPE = "MembershipCredential";
-    static final String XRD_MEMBER_IDENTIFIER_CLAIM = "xrdMemberIdentifier";
+    static final String MEMBERSHIP_CREDENTIAL_TYPE = "XRoadMembershipCredential";
+    static final String XROAD_INSTANCE_CLAIM = "xroadInstance";
+    static final String MEMBER_CLASS_CLAIM = "memberClass";
+    static final String MEMBER_CODE_CLAIM = "memberCode";
 
     @Override
     @NotNull
@@ -67,36 +72,55 @@ class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
                 token.getClaims().keySet(),
                 vcList == null ? -1 : vcList.size(),
                 vcList == null ? "<null>" : vcList.stream().map(o -> o == null ? "null" : o.getClass().getName()).toList());
-        var result = extractMemberIdentifier(vcList)
-                .map(value -> Map.of(XRD_MEMBER_IDENTIFIER_ATTRIBUTE, value))
-                .orElse(Map.of());
+        var result = extractMemberAttributes(vcList);
         log.debug("attributesFor: result={}", result);
         return result;
     }
 
-    private Optional<String> extractMemberIdentifier(List<?> vcList) {
+    private Map<String, String> extractMemberAttributes(List<?> vcList) {
         // EDC's DcpDefaultServicesExtension.defaultClaimTokenFunction stuffs the
         // list of VerifiablePresentation.getCredentials() (i.e. VerifiableCredential,
         // NOT VerifiableCredentialContainer) under the "vc" claim key.
         if (vcList == null) {
-            return Optional.empty();
+            return Map.of();
         }
         return vcList.stream()
                 .filter(VerifiableCredential.class::isInstance)
                 .map(VerifiableCredential.class::cast)
-                .peek(vc -> log.debug("extractMemberIdentifier: candidate vc types={} subjects={}",
+                .peek(vc -> log.debug("extractMemberAttributes: candidate vc types={} subjects={}",
                         vc.getType(), vc.getCredentialSubject().size()))
-                .filter(this::isMembershipCredential)
+                .filter(this::isXRoadMembershipCredential)
                 .flatMap(credential -> credential.getCredentialSubject().stream())
-                .peek(subject -> log.debug("extractMemberIdentifier: subject claims={}", subject.getClaims().keySet()))
-                .map(subject -> subject.getClaim("", XRD_MEMBER_IDENTIFIER_CLAIM))
+                .peek(subject -> log.debug("extractMemberAttributes: subject claims={}", subject.getClaims().keySet()))
+                .map(this::toMemberAttributes)
                 .filter(Objects::nonNull)
-                .map(Object::toString)
-                .filter(value -> !value.isBlank())
-                .findFirst();
+                .findFirst()
+                .orElse(Map.of());
     }
 
-    private boolean isMembershipCredential(VerifiableCredential credential) {
+    private Map<String, String> toMemberAttributes(CredentialSubject subject) {
+        var xroadInstance = stringClaim(subject, XROAD_INSTANCE_CLAIM);
+        var memberClass = stringClaim(subject, MEMBER_CLASS_CLAIM);
+        var memberCode = stringClaim(subject, MEMBER_CODE_CLAIM);
+        if (xroadInstance == null || memberClass == null || memberCode == null) {
+            return null;
+        }
+        return Map.of(
+                XRD_INSTANCE_ATTRIBUTE, xroadInstance,
+                XRD_MEMBER_CLASS_ATTRIBUTE, memberClass,
+                XRD_MEMBER_CODE_ATTRIBUTE, memberCode);
+    }
+
+    private static String stringClaim(CredentialSubject subject, String key) {
+        var value = subject.getClaim("", key);
+        if (value == null) {
+            return null;
+        }
+        var asString = value.toString();
+        return asString.isBlank() ? null : asString;
+    }
+
+    private boolean isXRoadMembershipCredential(VerifiableCredential credential) {
         return credential.getType().contains(MEMBERSHIP_CREDENTIAL_TYPE);
     }
 }
