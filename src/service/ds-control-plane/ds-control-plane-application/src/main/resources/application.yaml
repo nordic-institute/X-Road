@@ -75,10 +75,6 @@ edc:
       api:
         secret:
           path: /v1/xrd-ds-secret
-  encryption:
-    aes:
-      key:
-        alias: ds-aes-key
   component:
     id: DSP-compatibility-test
   transfer:

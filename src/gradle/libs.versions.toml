@@ -285,7 +285,6 @@ edc-core-mgmtapi-jsonschema = { module = "org.eclipse.edc:management-api-schema-
 edc-mgmtapi-v5 = { module = "org.eclipse.edc:management-api-v5", version.ref = "edc" }
 edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
 edc-mgmtapi-authz = { module = "org.eclipse.edc:management-api-authorization", version.ref = "edc" }
-edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
 edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }

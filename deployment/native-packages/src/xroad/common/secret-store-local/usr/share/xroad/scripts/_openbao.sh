@@ -251,44 +251,6 @@ configure_kv() {
   return 0
 }
 
-# Seed a 32-byte AES key (base64-encoded) at xrd-ds-secret/ds/<alias> when
-# absent. Idempotent: skips when an existing value is present so package
-# upgrades / re-runs don't rotate the key under live services.
-# WIP / DEV: production rotation should be operator-driven via OpenBao audit-
-# logged workflows, not generated on first boot of each host.
-seed_ds_aes_key() {
-  local addr="${1:-$BAO_ADDR}"
-  local token="${2:-$BAO_TOKEN}"
-  local alias="${3:-ds-aes-key}"
-
-  local existing
-  existing=$(curl -s -k -o /dev/null -w "%{http_code}" \
-    -H "X-Vault-Token: $token" \
-    "$addr/v1/xrd-ds-secret/data/ds/${alias}")
-  if [ "$existing" = "200" ]; then
-    echo "[OPENBAO] AES key xrd-ds-secret/ds/${alias} already present; skipping"
-    return 0
-  fi
-
-  # openssl is absent from minimal images (e.g. the k8s init Job container) —
-  # fall back to /dev/urandom. 32 bytes base64-encode to exactly 44 chars;
-  # anything else means generation silently failed, so abort instead of
-  # seeding an unusable empty key.
-  local key_b64
-  key_b64=$({ openssl rand 32 2>/dev/null || head -c 32 /dev/urandom; } | base64 | tr -d '\n')
-  if [ "${#key_b64}" -ne 44 ]; then
-    echo "[OPENBAO] Failed to generate AES key material" >&2
-    return 1
-  fi
-
-  bao_api "POST" "$addr" "/v1/xrd-ds-secret/data/ds/${alias}" \
-    "$(jq -nc --arg v "$key_b64" '{data:{content:$v}}')" \
-    "$token" "Seeding AES encryption key (${alias})" || return 1
-
-  echo "[OPENBAO] AES key seed completed"
-  return 0
-}
-
 create_token() {
   local addr="${1:-$BAO_ADDR}"
   local token="${2:-$BAO_TOKEN}"
