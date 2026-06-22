@@ -28,13 +28,15 @@ package org.niis.xroad.ss.test.api;
 
 import org.junit.platform.console.ConsoleLauncher;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.ClasspathResourceExtractor;
 
 /**
  * Fat-jar entry point for the Security Server API test suite.
  * Activates the SmallRye {@code cli} profile so working/resource dirs resolve to
  * {@code test-framework-working-dir/} (matching the {@code %cli} stanza in
- * {@code test-automation.yaml}), then launches the JUnit Platform Console Launcher
- * against {@link SsApiPhasedSuite}.
+ * {@code test-automation.yaml}), extracts the compose files and their host-mounted
+ * directories from the jar into the resource dir, then launches the JUnit Platform
+ * Console Launcher against {@link SsApiPhasedSuite}.
  */
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ConsoleApiTestRunner {
@@ -43,6 +45,14 @@ public class ConsoleApiTestRunner {
         System.setProperty("smallrye.config.profile", "cli");
 
         var props = ApiTestConfigSource.getInstance().getCoreProperties();
+
+        ClasspathResourceExtractor.extract(props.resourceDir(),
+                "compose.main.yaml",
+                "compose.api.yaml",
+                "compose.api.ds.yaml",
+                ".env",
+                "container-files/",
+                "nginx-container-files/");
 
         ConsoleLauncher.main(
                 "execute",
