@@ -16,6 +16,7 @@ yarn-error.log*
 
 # Generated type definitions
 src/openapi-types
+src/openapi-msw-paths.d.ts
 
 # Editor directories and files
 .idea
