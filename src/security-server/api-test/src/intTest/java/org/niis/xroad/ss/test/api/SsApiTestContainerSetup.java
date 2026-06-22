@@ -65,6 +65,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
         super(coreProperties);
     }
 
+    @Override
     protected String composeProjectName() {
         return "ss-api-";
     }

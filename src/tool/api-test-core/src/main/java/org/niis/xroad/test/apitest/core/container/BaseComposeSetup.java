@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.test.apitest.core.container;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.model.Frame;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +36,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.logging.ComposeLoggerFactory;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -40,6 +44,7 @@ import org.testcontainers.utility.MountableFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -61,6 +66,10 @@ import static org.niis.xroad.test.apitest.core.logging.ComposeLoggerFactory.CONT
 public abstract class BaseComposeSetup {
 
     private static final int EXEC_TIMEOUT_SECONDS = 20;
+    private static final int LOG_CAPTURE_TIMEOUT_SECONDS = 15;
+    private static final int LOG_CAPTURE_TAIL_LINES = 2000;
+    private static final String COMPOSE_PROJECT_LABEL = "com.docker.compose.project";
+    private static final String COMPOSE_SERVICE_LABEL = "com.docker.compose.service";
     private static final Duration DEFAULT_GRACE_PERIOD = Duration.ofSeconds(5);
 
     protected final ApiTestCoreProperties coreProperties;
@@ -74,7 +83,13 @@ public abstract class BaseComposeSetup {
     @SneakyThrows
     public void start() {
         env = initEnv();
-        env.start();
+        try {
+            env.start();
+        } catch (Throwable t) {
+            log.error("Compose stack failed to start; capturing container logs before propagating", t);
+            captureContainerLogsOnFailure();
+            throw t;
+        }
 
         dockerStatsMonitor = new DockerStatsMonitor();
         dockerStatsMonitor.start();
@@ -88,6 +103,68 @@ public abstract class BaseComposeSetup {
      */
     protected ComposeContainer initEnv() {
         throw new UnsupportedOperationException("initEnv() not implemented");
+    }
+
+    /**
+     * Compose project identifier passed to the {@link ComposeContainer}. Used to match this stack's
+     * containers when capturing logs after a startup failure.
+     */
+    protected abstract String composeProjectName();
+
+    /**
+     * Dumps the logs of every container in this compose stack to the same
+     * {@code container-logs/<service>--test-automation.log} files the live {@link Slf4jLogConsumer}s use.
+     * Testcontainers only streams those consumers once {@code compose up} succeeds, so on a failed start
+     * (e.g. a service never becomes healthy) they stay empty; this one-shot {@code docker logs} pull fills
+     * the same files so the failure is diagnosable from CI artifacts.
+     */
+    private void captureContainerLogsOnFailure() {
+        try {
+            DockerClient dockerClient = DockerClientFactory.instance().client();
+            Path logsDir = Path.of(coreProperties.workingDir(), CONTAINER_LOGS_DIR);
+            Files.createDirectories(logsDir);
+
+            int captured = 0;
+            for (var container : dockerClient.listContainersCmd().withShowAll(true).exec()) {
+                var labels = container.getLabels();
+                if (labels == null || !startsWith(labels.get(COMPOSE_PROJECT_LABEL), composeProjectName())) {
+                    continue;
+                }
+                String service = labels.get(COMPOSE_SERVICE_LABEL);
+                if (service == null) {
+                    continue;
+                }
+                captureContainerLog(dockerClient, container.getId(), logsDir.resolve(service + "--test-automation.log"));
+                captured++;
+            }
+            log.info("Captured startup-failure logs for {} containers to {}", captured, logsDir);
+        } catch (Exception e) {
+            log.warn("Failed to capture container logs after startup failure", e);
+        }
+    }
+
+    private static boolean startsWith(String value, String prefix) {
+        return value != null && value.startsWith(prefix);
+    }
+
+    private void captureContainerLog(DockerClient dockerClient, String containerId, Path target) {
+        var content = new StringBuilder();
+        try {
+            dockerClient.logContainerCmd(containerId)
+                    .withStdOut(true)
+                    .withStdErr(true)
+                    .withTail(LOG_CAPTURE_TAIL_LINES)
+                    .exec(new ResultCallback.Adapter<Frame>() {
+                        @Override
+                        public void onNext(Frame frame) {
+                            content.append(new String(frame.getPayload(), StandardCharsets.UTF_8));
+                        }
+                    })
+                    .awaitCompletion(LOG_CAPTURE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Files.writeString(target, content.toString());
+        } catch (Exception e) {
+            log.warn("Failed to capture logs for container {}", containerId, e);
+        }
     }
 
     /**
