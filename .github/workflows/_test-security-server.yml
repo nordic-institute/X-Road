@@ -120,7 +120,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898f0534b8dd3 # v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: '10'
 
