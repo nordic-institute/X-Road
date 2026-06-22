@@ -169,7 +169,7 @@ public class EnvSetup extends BaseComposeSetup {
         var env = new ComposeContainer(name + "-", files)
                 .withEnv("ENV_PREFIX", name + "-")
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
-                .withEnv("DSP_MGMT_CONTEXT", "ss0".equals(name) ? "true" : "false")
+                .withEnv("DSP_MGMT_CONTEXT", "true")
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())

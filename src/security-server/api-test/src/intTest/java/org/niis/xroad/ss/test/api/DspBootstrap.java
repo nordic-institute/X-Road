@@ -36,7 +36,9 @@ import static org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory.gi
 
 /**
  * Provisions the single-SS DSP participant stack in the api-test tier using RestAssured.
- * Mirrors the 16-step system-test {@code DspBootstrap} but replaces Feign with RestAssured.
+ * Follows the anonymous-holder credential model: the issuer auto-creates a holder per requesting
+ * DID, and the X-Road member identity is carried on the Identity Hub participant context
+ * ({@code additionalProperties.xroadMemberId}), mirroring {@code DataspaceProvisioningService}.
  * Idempotent: tolerates HTTP 4xx (conflict on re-run), throws on HTTP 5xx.
  */
 @Slf4j
@@ -48,7 +50,7 @@ class DspBootstrap {
     private static final String IH_DID_MGMT = "did:web:ds-identity-hub%3A7183:mgmt";
     private static final String PARTICIPANT_ID = "ss0";
     private static final String PARTICIPANT_ID_MGMT = "ss0-mgmt";
-    private static final String MEMBER_ID = "DEV:COM:1234";
+    private static final String MEMBER_ID = "DEV/COM/1234";
     private static final String MEMBERSHIP_CREDENTIAL_REQUEST = "xroad-membership-credential-request";
     private static final String MEMBERSHIP_MGMT_CREDENTIAL_REQUEST = "xroad-membership-mgmt-credential-request";
 
@@ -60,8 +62,6 @@ class DspBootstrap {
 
     void bootstrap() {
         provisionIssuerParticipantContext();
-        createIssuerHolder();
-        createIssuerHolderMgmt();
         createAttestationDefinition();
         createCredentialDefinition();
         awaitIssuerDidPublished();
@@ -109,56 +109,6 @@ class DspBootstrap {
         tolerateConflict("1.1 issuer participant context", response.statusCode());
     }
 
-    private void createIssuerHolder() {
-        log.info("DSP bootstrap step 1.2: create ss0 holder in issuer");
-        var body = """
-                {
-                    "did": "%s",
-                    "holderId": "%s",
-                    "name": "SS0 Holder (dev mock)",
-                    "properties": {
-                        "membershipType": "X-Road",
-                        "xrdMemberIdentifier": "%s"
-                    }
-                }
-                """.formatted(IH_DID, IH_DID, MEMBER_ID);
-        var response = givenSilent()
-                .header("Authorization", DspAuthTokens.IS_PARTICIPANT)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(body)
-                .post(issuerServiceAdminUrl("/participants/issuer/holders"))
-                .then()
-                .extract()
-                .response();
-        tolerateConflict("1.2 ss0 holder", response.statusCode());
-    }
-
-    private void createIssuerHolderMgmt() {
-        log.info("DSP bootstrap step 1.3a: create ss0-mgmt holder in issuer");
-        var body = """
-                {
-                    "did": "%s",
-                    "holderId": "%s",
-                    "name": "SS0 Mgmt Holder (dev mock)",
-                    "properties": {
-                        "membershipType": "X-Road",
-                        "xrdMemberIdentifier": "%s"
-                    }
-                }
-                """.formatted(IH_DID_MGMT, IH_DID_MGMT, MEMBER_ID);
-        var response = givenSilent()
-                .header("Authorization", DspAuthTokens.IS_PARTICIPANT)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(body)
-                .post(issuerServiceAdminUrl("/participants/issuer/holders"))
-                .then()
-                .extract()
-                .response();
-        tolerateConflict("1.3a ss0-mgmt holder", response.statusCode());
-    }
-
     private void createAttestationDefinition() {
         log.info("DSP bootstrap step 1.4: create attestation definition");
         var body = """
@@ -185,17 +135,19 @@ class DspBootstrap {
         var body = """
                 {
                     "attestations": ["xroad-membership-attestation-definition"],
-                    "credentialType": "MembershipCredential",
+                    "credentialType": "XRoadMembershipCredential",
                     "id": "xroad-membership-credential-definition",
                     "jsonSchema": "{}",
-                    "jsonSchemaUrl": "https://example.com/schema/MembershipCredential.json",
+                    "jsonSchemaUrl": "https://example.com/schema/XRoadMembershipCredential.json",
                     "mappings": [
                         {"input": "membershipType", "output": "credentialSubject.membershipType", "required": "true"},
-                        {"input": "xrdMemberIdentifier", "output": "credentialSubject.xrdMemberIdentifier", "required": "true"}
+                        {"input": "xroadInstance", "output": "credentialSubject.xroadInstance", "required": "true"},
+                        {"input": "memberClass", "output": "credentialSubject.memberClass", "required": "true"},
+                        {"input": "memberCode", "output": "credentialSubject.memberCode", "required": "true"}
                     ],
                     "rules": [],
                     "format": "VC1_0_JWT",
-                    "validity": "604800"
+                    "validity": "2592000"
                 }
                 """;
         var response = givenSilent()
@@ -240,6 +192,7 @@ class DspBootstrap {
                         "id": "%s-credential-service"
                     }],
                     "active": true,
+                    "additionalProperties": { "xroadMemberId": "%s" },
                     "participantContextId": "%s",
                     "did": "%s",
                     "key": {
@@ -248,7 +201,7 @@ class DspBootstrap {
                         "keyGeneratorParams": { "algorithm": "EdDSA" }
                     }
                 }
-                """.formatted(PARTICIPANT_ID, IH_DID, PARTICIPANT_ID, IH_DID, IH_DID, IH_DID);
+                """.formatted(PARTICIPANT_ID, IH_DID, MEMBER_ID, PARTICIPANT_ID, IH_DID, IH_DID, IH_DID);
         var response = givenSilent()
                 .header("Authorization", DspAuthTokens.IH_PROVISIONER)
                 .contentType("application/json")
@@ -268,7 +221,7 @@ class DspBootstrap {
                     "issuerDid": "%s",
                     "holderPid": "xroad-membership-credential-request",
                     "credentials": [
-                        { "format": "VC1_0_JWT", "type": "MembershipCredential", "id": "xroad-membership-credential-definition" }
+                        { "format": "VC1_0_JWT", "type": "XRoadMembershipCredential", "id": "xroad-membership-credential-definition" }
                     ]
                 }
                 """.formatted(ISSUER_DID);
@@ -300,6 +253,7 @@ class DspBootstrap {
                         "id": "%s-credential-service"
                     }],
                     "active": true,
+                    "additionalProperties": { "xroadMemberId": "%s" },
                     "participantContextId": "%s",
                     "did": "%s",
                     "key": {
@@ -308,7 +262,7 @@ class DspBootstrap {
                         "keyGeneratorParams": { "algorithm": "EdDSA" }
                     }
                 }
-                """.formatted(PARTICIPANT_ID_MGMT, IH_DID_MGMT, PARTICIPANT_ID_MGMT, IH_DID_MGMT, IH_DID_MGMT, IH_DID_MGMT);
+                """.formatted(PARTICIPANT_ID_MGMT, IH_DID_MGMT, MEMBER_ID, PARTICIPANT_ID_MGMT, IH_DID_MGMT, IH_DID_MGMT, IH_DID_MGMT);
         var response = givenSilent()
                 .header("Authorization", DspAuthTokens.IH_PROVISIONER)
                 .contentType("application/json")
@@ -328,7 +282,7 @@ class DspBootstrap {
                     "issuerDid": "%s",
                     "holderPid": "%s",
                     "credentials": [
-                        { "format": "VC1_0_JWT", "type": "MembershipCredential", "id": "xroad-membership-credential-definition" }
+                        { "format": "VC1_0_JWT", "type": "XRoadMembershipCredential", "id": "xroad-membership-credential-definition" }
                     ]
                 }
                 """.formatted(ISSUER_DID, MEMBERSHIP_MGMT_CREDENTIAL_REQUEST);
