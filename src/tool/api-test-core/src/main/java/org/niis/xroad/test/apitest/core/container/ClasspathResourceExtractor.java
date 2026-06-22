@@ -81,6 +81,7 @@ public final class ClasspathResourceExtractor {
             Path targetPath = targetDir.resolve(resourcePath);
             Files.createDirectories(targetPath.getParent());
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            restoreExecutableBit(targetPath);
             log.debug("Extracted file: {} -> {}", resourcePath, targetPath);
         }
     }
@@ -108,10 +109,22 @@ public final class ClasspathResourceExtractor {
                         Path targetPath = targetDir.resolve(resourcePath).resolve(relativePath);
                         Files.createDirectories(targetPath.getParent());
                         Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                        restoreExecutableBit(targetPath);
                         log.debug("Extracted jar resource: {} -> {}", entryName, targetPath);
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Restores the executable bit on shell scripts. The classpath/jar stream carries no Unix file mode,
+     * so scripts extracted from the jar arrive non-executable; volumes that mount them and run them
+     * (e.g. the backup-keys init script invoked via {@code docker exec}) need {@code +x} restored.
+     */
+    private static void restoreExecutableBit(Path target) {
+        if (target.getFileName().toString().endsWith(".sh") && !target.toFile().setExecutable(true, false)) {
+            log.warn("Failed to set executable bit on {}", target);
         }
     }
 
