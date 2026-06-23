@@ -41,9 +41,15 @@ warn "using packageVersion $SNAPSHOT"
 DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$DIR"
 
-mkdir -p build/xroad/redhat
-rm -rf build/xroad/redhat
-cp -a src/xroad/redhat build/xroad
+RHEL_VER="$(rpm -E %rhel 2>/dev/null)"
+if ! [[ "$RHEL_VER" =~ ^[0-9]+$ ]]; then
+  RHEL_VER="$(. /etc/os-release && echo "${VERSION_ID%%.*}")"
+fi
+REDHAT_BUILD="build/xroad/redhat-el${RHEL_VER}"
+
+mkdir -p build/xroad
+rm -rf "$REDHAT_BUILD"
+cp -a src/xroad/redhat "$REDHAT_BUILD"
 
 if [[ -z "$SNAPSHOT" ]]; then
   macro_snapshot=()
@@ -53,7 +59,7 @@ else
   compress=w1.gzdio
 fi
 
-ROOT=${DIR}/build/xroad/redhat
+ROOT=${DIR}/${REDHAT_BUILD}
 
 HOST_ARCH="$(uname -m)"
 if [[ "$HOST_ARCH" == "x86_64" ]]; then
