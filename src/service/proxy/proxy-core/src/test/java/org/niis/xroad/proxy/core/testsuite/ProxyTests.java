@@ -190,7 +190,7 @@ class ProxyTests {
     private Stream<DynamicTest> createDynamicTests(List<MessageTestCase> testCasesToRun) {
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),
-                        () -> assertTimeoutPreemptively(Duration.ofSeconds(60), () -> {
+                        () -> assertTimeoutPreemptively(Duration.ofMillis(testCase.getClientTimeout()), () -> {
                             try {
                                 assertTrue(testCase.execute(ctx));
                             } finally {
