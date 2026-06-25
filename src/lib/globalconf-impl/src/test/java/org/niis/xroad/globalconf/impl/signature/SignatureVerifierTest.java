@@ -27,6 +27,7 @@ package org.niis.xroad.globalconf.impl.signature;
 
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -61,6 +63,7 @@ import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mockStatic;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_SIGNATURE_VALUE;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
@@ -361,6 +364,35 @@ class SignatureVerifierTest {
                     .hasMessageContaining(INVALID_SIGNATURE_VALUE.code());
         }
 
+    }
+
+    @Nested
+    class HashChainErrorBoundary {
+
+        @Test
+        void stackOverflowErrorTranslatesToMalformedSignatureFault() throws Exception {
+            var injected = new StackOverflowError();
+            try (MockedStatic<HashChainVerifier> mock = mockStatic(HashChainVerifier.class)) {
+                mock.when(() -> HashChainVerifier.verify(
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any()))
+                        .thenThrow(injected);
+
+                var resolver = new Resolver()
+                        .withHashChain("src/test/signatures/hash-chain-1.xml")
+                        .withMessage("src/test/signatures/message-1.xml");
+                var verifier = createSignatureVerifier(
+                        "src/test/signatures/batch-sig.xml",
+                        "src/test/signatures/hash-chain-result.xml",
+                        resolver);
+
+                assertThatThrownBy(() -> verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE))
+                        .isInstanceOf(XrdRuntimeException.class)
+                        .hasMessageContaining(MALFORMED_SIGNATURE.code())
+                        .hasCause(injected);
+            }
+        }
     }
 
     private SignatureVerifier createSignatureVerifier(String signaturePath) throws Exception {
