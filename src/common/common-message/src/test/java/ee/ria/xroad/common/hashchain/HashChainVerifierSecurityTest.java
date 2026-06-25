@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -103,9 +104,11 @@ class HashChainVerifierSecurityTest {
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
                 .isInstanceOf(XrdRuntimeException.class)
-                .extracting(e -> ((XrdRuntimeException) e).getCode())
-                .asString()
-                .endsWith(MALFORMED_HASH_CHAIN.code());
+                .satisfies(e -> {
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    assertThat(xre.getMessage()).contains("maximum depth");
+                });
     }
 
     @Test
@@ -115,9 +118,11 @@ class HashChainVerifierSecurityTest {
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
                 .isInstanceOf(XrdRuntimeException.class)
-                .extracting(e -> ((XrdRuntimeException) e).getCode())
-                .asString()
-                .endsWith(MALFORMED_HASH_CHAIN.code());
+                .satisfies(e -> {
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    assertThat(xre.getMessage()).contains("maximum depth");
+                });
     }
 
     @Test
@@ -177,20 +182,33 @@ class HashChainVerifierSecurityTest {
         return sb.toString();
     }
 
-    private static String buildLinearChain(int stepCount) {
+    /**
+     * Builds a hash chain with {@code stepCount} steps where the children of each step are supplied by
+     * {@code childrenForStep.apply(stepIndex, stepCount)}. Callers pass a lambda that returns the raw XML
+     * children for a given step index; when the returned string is empty the step gets no children (caller
+     * must supply a leaf value via {@link #appendLeafValue} if needed).
+     */
+    private static String buildStepChain(int stepCount, BiFunction<Integer, Integer, String> childrenForStep) {
         var sb = new StringBuilder();
         appendChainHeader(sb);
         for (int i = 0; i < stepCount; i++) {
             sb.append("<ns2:HashStep id=\"STEP").append(i).append("\">");
-            if (i < stepCount - 1) {
-                sb.append("<ns2:StepRef URI=\"#STEP").append(i + 1).append("\"/>");
-            } else {
-                appendLeafValue(sb);
-            }
+            sb.append(childrenForStep.apply(i, stepCount));
             sb.append("</ns2:HashStep>");
         }
         sb.append("</ns2:HashChain>");
         return sb.toString();
+    }
+
+    private static String buildLinearChain(int stepCount) {
+        return buildStepChain(stepCount, (i, total) -> {
+            if (i < total - 1) {
+                return "<ns2:StepRef URI=\"#STEP" + (i + 1) + "\"/>";
+            }
+            var sb = new StringBuilder();
+            appendLeafValue(sb);
+            return sb.toString();
+        });
     }
 
     /**
@@ -198,20 +216,19 @@ class HashChainVerifierSecurityTest {
      * Trips MAX_STEPS at depth 2 — cannot be confused with MAX_DEPTH.
      */
     private static String buildShallowWideChain(int leafCount) {
-        var sb = new StringBuilder();
-        appendChainHeader(sb);
-        sb.append("<ns2:HashStep id=\"STEP0\">");
-        for (int i = 1; i <= leafCount; i++) {
-            sb.append("<ns2:StepRef URI=\"#STEP").append(i).append("\"/>");
-        }
-        sb.append("</ns2:HashStep>");
-        for (int i = 1; i <= leafCount; i++) {
-            sb.append("<ns2:HashStep id=\"STEP").append(i).append("\">");
+        int totalSteps = leafCount + 1;
+        return buildStepChain(totalSteps, (i, total) -> {
+            if (i == 0) {
+                var sb = new StringBuilder();
+                for (int j = 1; j <= leafCount; j++) {
+                    sb.append("<ns2:StepRef URI=\"#STEP").append(j).append("\"/>");
+                }
+                return sb.toString();
+            }
+            var sb = new StringBuilder();
             appendLeafValue(sb);
-            sb.append("</ns2:HashStep>");
-        }
-        sb.append("</ns2:HashChain>");
-        return sb.toString();
+            return sb.toString();
+        });
     }
 
     /**
@@ -220,35 +237,30 @@ class HashChainVerifierSecurityTest {
      * Without memoization: each repetition would re-resolve the leaf, hitting MAX_STEPS.
      */
     private static String buildShallowRepeatChain(int repetitions) {
-        var sb = new StringBuilder();
-        appendChainHeader(sb);
-        sb.append("<ns2:HashStep id=\"STEP0\">");
-        for (int i = 0; i < repetitions; i++) {
-            sb.append("<ns2:StepRef URI=\"#STEP1\"/>");
-        }
-        sb.append("</ns2:HashStep>");
-        sb.append("<ns2:HashStep id=\"STEP1\">");
-        appendLeafValue(sb);
-        sb.append("</ns2:HashStep>");
-        sb.append("</ns2:HashChain>");
-        return sb.toString();
+        return buildStepChain(2, (i, total) -> {
+            if (i == 0) {
+                var sb = new StringBuilder();
+                for (int j = 0; j < repetitions; j++) {
+                    sb.append("<ns2:StepRef URI=\"#STEP1\"/>");
+                }
+                return sb.toString();
+            }
+            var sb = new StringBuilder();
+            appendLeafValue(sb);
+            return sb.toString();
+        });
     }
 
     private static String buildDeepDoubleRefChain(int stepCount) {
-        var sb = new StringBuilder();
-        appendChainHeader(sb);
-        for (int i = 0; i < stepCount; i++) {
-            sb.append("<ns2:HashStep id=\"STEP").append(i).append("\">");
-            if (i < stepCount - 1) {
-                sb.append("<ns2:StepRef URI=\"#STEP").append(i + 1).append("\"/>");
-                sb.append("<ns2:StepRef URI=\"#STEP").append(i + 1).append("\"/>");
-            } else {
-                appendLeafValue(sb);
+        return buildStepChain(stepCount, (i, total) -> {
+            if (i < total - 1) {
+                return "<ns2:StepRef URI=\"#STEP" + (i + 1) + "\"/>"
+                        + "<ns2:StepRef URI=\"#STEP" + (i + 1) + "\"/>";
             }
-            sb.append("</ns2:HashStep>");
-        }
-        sb.append("</ns2:HashChain>");
-        return sb.toString();
+            var sb = new StringBuilder();
+            appendLeafValue(sb);
+            return sb.toString();
+        });
     }
 
     private static void appendChainHeader(StringBuilder sb) {

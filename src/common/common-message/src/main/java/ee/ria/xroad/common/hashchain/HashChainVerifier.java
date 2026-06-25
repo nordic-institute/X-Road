@@ -261,7 +261,8 @@ public final class HashChainVerifier {
             throws JAXBException, IOException, ParserConfigurationException, SAXException, XMLSecurityException {
         log.trace("resolveHashStep({})", uri);
 
-        String fullUri = buildFullUri(uri, currentChain);
+        var uriParts = splitUri(uri);
+        String fullUri = buildFullUri(uriParts, currentChain);
 
         byte[] memoized = resolvedSteps.get(fullUri);
         if (memoized != null) {
@@ -285,7 +286,7 @@ public final class HashChainVerifier {
         activePath.add(fullUri);
         totalStepsResolved++;
         try {
-            Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uri, currentChain);
+            Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uriParts, currentChain);
 
             List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
 
@@ -308,23 +309,32 @@ public final class HashChainVerifier {
         }
     }
 
-    private String buildFullUri(String uri, HashChainType currentChain) {
+    /**
+     * Splits {@code uri} into (base, fragment) on the first {@code #}. Returns {@code null} fragment
+     * when there is no {@code #}, and empty string base when the URI is fragment-only.
+     */
+    private static Pair<String, String> splitUri(String uri) {
         int hashIndex = uri.indexOf('#');
         if (hashIndex < 0) {
-            return uri;
+            return new ImmutablePair<>(uri, null);
         }
-        String baseUri = uri.substring(0, hashIndex);
-        if (!baseUri.isEmpty()) {
-            return uri;
+        return new ImmutablePair<>(uri.substring(0, hashIndex), uri.substring(hashIndex + 1));
+    }
+
+    private String buildFullUri(Pair<String, String> uriParts, HashChainType currentChain) {
+        String base = uriParts.getLeft();
+        String fragment = uriParts.getRight();
+        if (fragment == null || !base.isEmpty()) {
+            return base + (fragment != null ? "#" + fragment : "");
         }
         if (currentChain == null) {
-            return uri;
+            return "#" + fragment;
         }
         String chainBase = chainBaseUris.get(currentChain);
         if (chainBase == null) {
-            return uri;
+            throw new IllegalStateException("Chain base URI missing for a parsed chain — invariant violated");
         }
-        return chainBase + uri;
+        return chainBase + "#" + fragment;
     }
 
     /**
@@ -465,23 +475,16 @@ public final class HashChainVerifier {
     }
 
     /**
-     * Retrieve hash step based on the URI.
+     * Retrieve hash step based on pre-split URI parts (base, fragment).
      */
-    private Pair<HashStepType, HashChainType> fetchHashStep(String uri, HashChainType currentChain)
+    private Pair<HashStepType, HashChainType> fetchHashStep(Pair<String, String> uriParts, HashChainType currentChain)
             throws JAXBException, IOException, ParserConfigurationException, SAXException {
-        // Find the fragment separator.
-        int hashIndex = uri.indexOf('#');
+        String baseUri = uriParts.getLeft();
+        String fragment = uriParts.getRight();
+        String rawUri = baseUri + (fragment != null ? "#" + fragment : "");
 
-        if (hashIndex < 0) {
-            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(uri));
-        }
-
-        String baseUri = uri.substring(0, hashIndex);
-        String fragment = uri.substring(hashIndex + 1);
-
-        if (fragment.isEmpty()) {
-            // Hash step must be indicated by a fragment in a hash chain.
-            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(uri));
+        if (fragment == null || fragment.isEmpty()) {
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(rawUri));
         }
 
         HashChainType hashChain;
@@ -492,15 +495,13 @@ public final class HashChainVerifier {
             hashChain = getHashChain(baseUri);
         }
 
-        // Found the hash chain. Look for a step with given ID.
         for (HashStepType step : hashChain.getHashStep()) {
             if (fragment.equals(step.getId())) {
                 return new ImmutablePair<>(step, hashChain);
             }
         }
 
-        // No hash step with given fragment ID found.
-        throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(uri));
+        throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(rawUri));
     }
 
     private HashChainType getHashChain(String uri) throws IOException, JAXBException, ParserConfigurationException, SAXException {
