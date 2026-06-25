@@ -252,7 +252,7 @@ public class GlobalConfChecker {
     }
 
     private String getCostTypeString(CostType costType) {
-        return costType == null ? null : costType.name();
+        return costType == null ? CostType.UNDEFINED.name() : costType.name();
     }
 
     private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
