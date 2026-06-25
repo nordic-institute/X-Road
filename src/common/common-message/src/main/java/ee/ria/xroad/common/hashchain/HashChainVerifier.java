@@ -60,6 +60,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,6 +87,21 @@ public final class HashChainVerifier {
 
     private static final String INVALID_HASH_STEP_URI_MSG = "Invalid hash step URI: %s";
 
+    /**
+     * Maximum recursion depth for hash-step resolution. HashChainBuilder produces chains of depth ceil(log2(N))
+     * for an N-message batch; depth 64 already covers a batch of 2^64 messages, many orders of magnitude above
+     * any realistic deployment. The cap exists solely to reject crafted deep chains and is never reached by
+     * legitimate traffic.
+     */
+    static final int MAX_DEPTH = 64;
+
+    /**
+     * Maximum total number of hash steps resolved in a single verification. A legitimate chain is linear with
+     * one step per tree level, so even a million-message batch resolves at most ~20 steps. 1024 is ~50x that
+     * ceiling and is unreachable by any chain HashChainBuilder can produce.
+     */
+    static final int MAX_STEPS = 1024;
+
     private static final SAXParserFactory SAX_PARSER_FACTORY;
 
     private static final Schema HASH_CHAIN_SCHEMA = createSchema("hashchain.xsd");
@@ -111,6 +127,30 @@ public final class HashChainVerifier {
      * Map from URI to contents.
      */
     private final Map<String, HashChainType> hashChainCache = new HashMap<>();
+
+    /**
+     * Tracks the base URI for each parsed chain, allowing full-URI key construction for memoization.
+     */
+    private final Map<HashChainType, String> chainBaseUris = new IdentityHashMap<>();
+
+    /**
+     * Memoizes resolved step results keyed by full URI (base + "#" + fragment). Prevents exponential
+     * re-resolution when the same step is referenced multiple times in a tree. Keyed by the full URI
+     * rather than the bare fragment so steps with identical IDs in different chain documents do not collide.
+     */
+    private final Map<String, byte[]> resolvedSteps = new HashMap<>();
+
+    /**
+     * Tracks the set of step URIs on the active resolution path for cycle detection.
+     * A URI is added on entry to resolveHashStep and removed in a finally block on exit.
+     */
+    private final Set<String> activePath = new HashSet<>();
+
+    /**
+     * Running count of hash steps resolved in this verification. Guards against exponential fan-out
+     * that memoization alone cannot prevent across steps.
+     */
+    private int totalStepsResolved;
 
     /**
      * Records set of inputs that were used by the hash chain calculation.
@@ -207,18 +247,65 @@ public final class HashChainVerifier {
             throws JAXBException, IOException, ParserConfigurationException, SAXException, XMLSecurityException {
         log.trace("resolveHashStep({})", uri);
 
-        Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uri, currentChain);
+        String fullUri = buildFullUri(uri, currentChain);
 
-        List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
-
-        DigestValue[] digests = new DigestValue[values.size()];
-
-        // Calculate digests of all the individual values in the hash step
-        for (int i = 0; i < digests.length; ++i) {
-            digests[i] = resolveValue(values.get(i), hashStep.getRight());
+        byte[] memoized = resolvedSteps.get(fullUri);
+        if (memoized != null) {
+            return memoized;
         }
 
-        return DigestList.concatDigests(digests);
+        if (activePath.contains(fullUri)) {
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, "Cycle detected in hash chain at step: %s".formatted(fullUri));
+        }
+
+        if (activePath.size() >= MAX_DEPTH) {
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
+                    "Hash chain exceeds maximum depth of %d".formatted(MAX_DEPTH));
+        }
+
+        if (totalStepsResolved >= MAX_STEPS) {
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
+                    "Hash chain exceeds maximum step count of %d".formatted(MAX_STEPS));
+        }
+
+        activePath.add(fullUri);
+        totalStepsResolved++;
+        try {
+            Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uri, currentChain);
+
+            List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
+
+            DigestValue[] digests = new DigestValue[values.size()];
+
+            for (int i = 0; i < digests.length; ++i) {
+                digests[i] = resolveValue(values.get(i), hashStep.getRight());
+            }
+
+            byte[] result = DigestList.concatDigests(digests);
+            resolvedSteps.put(fullUri, result);
+            return result;
+        } finally {
+            activePath.remove(fullUri);
+        }
+    }
+
+    private String buildFullUri(String uri, HashChainType currentChain) {
+        int hashIndex = uri.indexOf('#');
+        if (hashIndex < 0) {
+            return uri;
+        }
+        String baseUri = uri.substring(0, hashIndex);
+        if (!baseUri.isEmpty()) {
+            return uri;
+        }
+        if (currentChain == null) {
+            return uri;
+        }
+        String chainBase = chainBaseUris.get(currentChain);
+        if (chainBase == null) {
+            return uri;
+        }
+        return chainBase + uri;
     }
 
     /**
@@ -409,6 +496,7 @@ public final class HashChainVerifier {
 
             ret = parseHashChain(is);
             hashChainCache.put(uri, ret);
+            chainBaseUris.put(ret, uri);
         }
 
         return ret;
