@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -66,6 +68,7 @@ import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Tests the signature verifier.
@@ -84,6 +87,7 @@ class SignatureVerifierTest {
     private static final ClientId CONSUMER_ID = createClientId("consumer");
 
     private GlobalConfProvider globalConfProvider;
+
     @BeforeAll
     public static void init() {
         TestSecurityUtil.initSecurity();
@@ -364,6 +368,35 @@ class SignatureVerifierTest {
                     .hasMessageContaining(X_INVALID_SIGNATURE_VALUE);
         }
 
+    }
+
+    @Nested
+    class HashChainErrorBoundary {
+
+        @Test
+        void stackOverflowErrorTranslatesToMalformedSignatureFault() throws Exception {
+            var injected = new StackOverflowError();
+            try (MockedStatic<HashChainVerifier> mock = mockStatic(HashChainVerifier.class)) {
+                mock.when(() -> HashChainVerifier.verify(
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any()))
+                        .thenThrow(injected);
+
+                var resolver = new Resolver()
+                        .withHashChain("src/test/signatures/hash-chain-1.xml")
+                        .withMessage("src/test/signatures/message-1.xml");
+                var verifier = createSignatureVerifier(
+                        "src/test/signatures/batch-sig.xml",
+                        "src/test/signatures/hash-chain-result.xml",
+                        resolver);
+
+                assertThatThrownBy(() -> verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE))
+                        .isInstanceOf(CodedException.class)
+                        .hasMessageContaining(X_MALFORMED_SIGNATURE)
+                        .hasCause(injected);
+            }
+        }
     }
 
     private SignatureVerifier createSignatureVerifier(String signaturePath) throws Exception {
