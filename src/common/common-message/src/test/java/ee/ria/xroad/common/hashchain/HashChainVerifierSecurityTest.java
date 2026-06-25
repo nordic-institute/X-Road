@@ -111,6 +111,20 @@ class HashChainVerifierSecurityTest {
     }
 
     @Test
+    void singleStepExceedingMaxValuesIsRejectedAsMalformed() {
+        String chain = buildSingleStepWideValueChain(HashChainVerifier.MAX_VALUES + 1);
+        String result = buildResult(CHAIN_URI + "#STEP0");
+
+        assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> {
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    assertThat(xre.getMessage()).contains("value count");
+                });
+    }
+
+    @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void repeatedReferencesToSameStepAreMemoized() {
         String chain = buildShallowRepeatChain(WIDE_FANOUT);
@@ -121,6 +135,22 @@ class HashChainVerifierSecurityTest {
                 .satisfies(e -> {
                     assertThat(((XrdRuntimeException) e).getMessage()).doesNotContain("step count");
                 });
+    }
+
+    /**
+     * Depth-1 chain: a single root step containing {@code valueCount} HashValue children.
+     * Trips MAX_VALUES without any recursion — cannot be confused with MAX_DEPTH or MAX_STEPS.
+     */
+    private static String buildSingleStepWideValueChain(int valueCount) {
+        var sb = new StringBuilder();
+        appendChainHeader(sb);
+        sb.append("<ns2:HashStep id=\"STEP0\">");
+        for (int i = 0; i < valueCount; i++) {
+            appendLeafValue(sb);
+        }
+        sb.append("</ns2:HashStep>");
+        sb.append("</ns2:HashChain>");
+        return sb.toString();
     }
 
     private static String buildLinearChain(int stepCount) {

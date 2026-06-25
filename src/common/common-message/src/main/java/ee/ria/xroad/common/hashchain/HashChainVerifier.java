@@ -102,6 +102,14 @@ public final class HashChainVerifier {
      */
     static final int MAX_STEPS = 1024;
 
+    /**
+     * Maximum cumulative number of values (HashValue, DataRef, StepRef) resolved across all steps in a single
+     * verification. HashChainBuilder emits ~2 values per step (one StepRef + one HashValue), so a million-message
+     * batch produces at most ~40 values. 10 000 is ~250x that ceiling and is unreachable by any chain
+     * HashChainBuilder can produce; it exists solely to reject crafted documents with very wide per-step value lists.
+     */
+    static final int MAX_VALUES = 10_000;
+
     private static final SAXParserFactory SAX_PARSER_FACTORY;
 
     private static final Schema HASH_CHAIN_SCHEMA = createSchema("hashchain.xsd");
@@ -151,6 +159,12 @@ public final class HashChainVerifier {
      * that memoization alone cannot prevent across steps.
      */
     private int totalStepsResolved;
+
+    /**
+     * Running count of values (HashValue, DataRef, StepRef) resolved across all steps in this verification.
+     * Bounds total digest work regardless of how values are distributed across steps.
+     */
+    private int totalValuesResolved;
 
     /**
      * Records set of inputs that were used by the hash chain calculation.
@@ -278,6 +292,11 @@ public final class HashChainVerifier {
             DigestValue[] digests = new DigestValue[values.size()];
 
             for (int i = 0; i < digests.length; ++i) {
+                totalValuesResolved++;
+                if (totalValuesResolved > MAX_VALUES) {
+                    throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
+                            "Hash chain exceeds maximum value count of %d".formatted(MAX_VALUES));
+                }
                 digests[i] = resolveValue(values.get(i), hashStep.getRight());
             }
 
