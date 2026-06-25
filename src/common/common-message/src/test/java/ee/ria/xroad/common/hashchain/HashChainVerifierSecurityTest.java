@@ -71,9 +71,33 @@ class HashChainVerifierSecurityTest {
                 .endsWith(MALFORMED_HASH_CHAIN.code());
     }
 
+    /**
+     * Pins per-step memoization: a double-StepRef chain of depth D (D &lt; MAX_DEPTH) where 2^D &gt; MAX_STEPS.
+     * Without memoization the doubled references re-resolve shared subtrees, exceeding MAX_STEPS and triggering the
+     * step-count error. With memoization each step resolves once (~D times total), so no step-count rejection occurs.
+     * Remove memoization and this test flips to a step-count failure.
+     */
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
-    void deepDoubleReferenceChainIsRejectedQuickly() {
+    void subDepthDoubleReferenceChainCompletesWithoutStepCountRejectionPinningMemoization() {
+        // Smallest D where 2^D > MAX_STEPS; with memoization resolves in ~D steps, not 2^D.
+        int d = 0;
+        while ((1L << d) <= HashChainVerifier.MAX_STEPS) {
+            d++;
+        }
+        assertThat(d).as("D must be below MAX_DEPTH for this test to pin memoization").isLessThan(HashChainVerifier.MAX_DEPTH);
+
+        String chain = buildDeepDoubleRefChain(d);
+        String result = buildResult(CHAIN_URI + "#STEP0");
+
+        assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getMessage()).doesNotContain("step count"));
+    }
+
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void doubleReferenceChainExceedingMaxDepthIsRejectedAsMalformed() {
         String chain = buildDeepDoubleRefChain(HashChainVerifier.MAX_DEPTH + 1);
         String result = buildResult(CHAIN_URI + "#STEP0");
 
