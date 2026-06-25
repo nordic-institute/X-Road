@@ -151,7 +151,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "FI", "http://foo.bar.baz")))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER.code()));
     }
 
     /**
