@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -43,14 +44,20 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+import static ee.ria.xroad.proxy.protocol.ProxyMessageDecoder.MAX_HASHCHAIN_PART_BYTES;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -295,6 +302,77 @@ public class ProxyMessageDecoderTest {
         decoder.parse(getMessage("invalid-contenttype-signature.request"));
 
         assertNull(callback.getSignature());
+    }
+
+    /**
+     * Test to ensure a hashchain/hashchainresult part within the size cap is accepted.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void hashChainPartWithinCapDecodes() throws Exception {
+        String boundary = "testboundary123";
+        String contentType = MimeUtils.mpMixedContentType(boundary);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
+        decoder.parse(buildHashChainMessage(boundary, "x".repeat(100), "y".repeat(100)));
+        assertNotNull(callback.getSignature());
+    }
+
+    /**
+     * Test to ensure an oversized hashchainresult part is rejected as a clean fault, not OOM.
+     */
+    @Test
+    public void oversizedHashChainResultPartIsRejected() {
+        String boundary = "testboundary123";
+        String contentType = MimeUtils.mpMixedContentType(boundary);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
+        String oversized = "x".repeat((int) MAX_HASHCHAIN_PART_BYTES + 1);
+        CodedException ex = assertThrows(CodedException.class,
+                () -> decoder.parse(buildHashChainMessage(boundary, oversized, "y".repeat(100))));
+
+        assertEquals(X_IO_ERROR, ex.getFaultCode());
+    }
+
+    private static InputStream buildHashChainMessage(String boundary, String hashChainResult, String hashChain) {
+        var soap = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <SOAP-ENV:Envelope
+                        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                        xmlns:id="http://x-road.eu/xsd/identifiers">
+                    <SOAP-ENV:Header>
+                        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+                        <xroad:client id:objectType="MEMBER">
+                            <id:xRoadInstance>EE</id:xRoadInstance>
+                            <id:memberClass>BUSINESS</id:memberClass>
+                            <id:memberCode>consumer</id:memberCode>
+                        </xroad:client>
+                        <xroad:service id:objectType="SERVICE">
+                            <id:xRoadInstance>EE</id:xRoadInstance>
+                            <id:memberClass>BUSINESS</id:memberClass>
+                            <id:memberCode>producer</id:memberCode>
+                            <id:serviceCode>getState</id:serviceCode>
+                        </xroad:service>
+                        <xroad:userId>EE:PIN:abc4567</xroad:userId>
+                        <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
+                        <xroad:issue/>
+                    </SOAP-ENV:Header>
+                    <SOAP-ENV:Body><xroad:getState>a</xroad:getState></SOAP-ENV:Body>
+                </SOAP-ENV:Envelope>""";
+        var msg = "--" + boundary + "\r\n"
+                + "Content-Type: text/xml\r\n\r\n"
+                + soap + "\r\n"
+                + "--" + boundary + "\r\n"
+                + "Content-Type: " + MimeTypes.HASH_CHAIN_RESULT + "\r\n\r\n"
+                + hashChainResult + "\r\n"
+                + "--" + boundary + "\r\n"
+                + "Content-Type: " + MimeTypes.HASH_CHAIN + "\r\n\r\n"
+                + hashChain + "\r\n"
+                + "--" + boundary + "\r\n"
+                + "Content-Type: " + MimeTypes.SIGNATURE_BDOC + "\r\n\r\n"
+                + "<sig/>\r\n"
+                + "--" + boundary + "--\r\n";
+        return new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
     }
 
     private ProxyMessageDecoder createDecoder(String contentType) {

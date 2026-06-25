@@ -55,6 +55,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,10 +75,35 @@ import static ee.ria.xroad.common.util.SchemaValidator.createSchema;
 @Slf4j
 public final class HashChainVerifier {
 
-    /** For accessing JAXB functionality. Shared between all the verifiers. */
+    /**
+     * For accessing JAXB functionality. Shared between all the verifiers.
+     */
     private static JAXBContext jaxbCtx;
 
     private static final String INVALID_HASH_STEP_URI_MSG = "Invalid hash step URI: %s";
+
+    /**
+     * Maximum recursion depth for hash-step resolution. HashChainBuilder produces chains of depth ceil(log2(N))
+     * for an N-message batch; depth 64 already covers a batch of 2^64 messages, many orders of magnitude above
+     * any realistic deployment. The cap exists solely to reject crafted deep chains and is never reached by
+     * legitimate traffic.
+     */
+    static final int MAX_DEPTH = 64;
+
+    /**
+     * Maximum total number of hash steps resolved in a single verification. A legitimate chain is linear with
+     * one step per tree level, so even a million-message batch resolves at most ~20 steps. 1024 is ~50x that
+     * ceiling and is unreachable by any chain HashChainBuilder can produce.
+     */
+    static final int MAX_STEPS = 1024;
+
+    /**
+     * Maximum cumulative number of values (HashValue, DataRef, StepRef) resolved across all steps in a single
+     * verification. HashChainBuilder emits ~2 values per step (one StepRef + one HashValue), so a million-message
+     * batch produces at most ~40 values. 10 000 is ~250x that ceiling and is unreachable by any chain
+     * HashChainBuilder can produce; it exists solely to reject crafted documents with very wide per-step value lists.
+     */
+    static final int MAX_VALUES = 10_000;
 
     private static final SAXParserFactory SAX_PARSER_FACTORY;
 
@@ -95,30 +121,63 @@ public final class HashChainVerifier {
         }
     }
 
-    private InputStream hashChainResultXml;
-    private HashChainReferenceResolver referenceResolver;
-    private Map<String, DigestValue> inputs;
+    private final InputStream hashChainResultXml;
+    private final HashChainReferenceResolver referenceResolver;
+    private final Map<String, DigestValue> inputs;
 
     /**
      * Caches already retrieved and parsed hash chains.
      * Map from URI to contents.
      */
-    private Map<String, HashChainType> hashChainCache = new HashMap<>();
+    private final Map<String, HashChainType> hashChainCache = new HashMap<>();
 
-    /** Records set of inputs that were used by the hash chain calculation. */
-    private Set<String> usedInputs = new HashSet<>();
+    /**
+     * Tracks the base URI for each parsed chain, allowing full-URI key construction for memoization.
+     */
+    private final Map<HashChainType, String> chainBaseUris = new IdentityHashMap<>();
+
+    /**
+     * Memoizes resolved step results keyed by full URI (base + "#" + fragment). Prevents exponential
+     * re-resolution when the same step is referenced multiple times in a tree. Keyed by the full URI
+     * rather than the bare fragment so steps with identical IDs in different chain documents do not collide.
+     */
+    private final Map<String, byte[]> resolvedSteps = new HashMap<>();
+
+    /**
+     * Tracks the set of step URIs on the active resolution path for cycle detection.
+     * A URI is added on entry to resolveHashStep and removed in a finally block on exit.
+     */
+    private final Set<String> activePath = new HashSet<>();
+
+    /**
+     * Running count of hash steps resolved in this verification. Guards against exponential fan-out
+     * that memoization alone cannot prevent across steps.
+     */
+    private int totalStepsResolved;
+
+    /**
+     * Running count of values (HashValue, DataRef, StepRef) resolved across all steps in this verification.
+     * Bounds total digest work regardless of how values are distributed across steps.
+     */
+    private int totalValuesResolved;
+
+    /**
+     * Records set of inputs that were used by the hash chain calculation.
+     */
+    private final Set<String> usedInputs = new HashSet<>();
 
     /**
      * Verifies a set of inputs with respect to hash chain result.
      * Silently returns when all the inputs are correctly referenced by the hash chain. Throws exception on error.
+     *
      * @param hashChainResultXml hash chain result that is the starting point of the verification.
-     * @param referenceResolver used to resolve references from hash chain result and hash chains.
-     *         The resolver is not called for file names that are given as inputs that have the target present.
-     * @param inputs set of inputs that are to be verified with respect to the hash chain result.
-     *         All the inputs must be referenced by the hash chain in order to the verification to succeed.
-     *         The parameter should contain mapping from file names to input hashes. The Input object (key value) can be
-     *         null,
-     *         in which case the reference resolver is used to download the input data for hashing.
+     * @param referenceResolver  used to resolve references from hash chain result and hash chains.
+     *                           The resolver is not called for file names that are given as inputs that have the target present.
+     * @param inputs             set of inputs that are to be verified with respect to the hash chain result.
+     *                           All the inputs must be referenced by the hash chain in order to the verification to succeed.
+     *                           The parameter should contain mapping from file names to input hashes. The Input object (key value) can be
+     *                           null,
+     *                           in which case the reference resolver is used to download the input data for hashing.
      * @throws Exception in case of any errors
      */
     public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
@@ -189,26 +248,91 @@ public final class HashChainVerifier {
 
     /**
      * Downloads hash step, calculates all the values and concatenates the results to DigestList data structure.
+     *
      * @return DER-encoding of the DigestList data structure.
      */
     private byte[] resolveHashStep(String uri, HashChainType currentChain) throws Exception {
         log.trace("resolveHashStep({})", uri);
 
-        Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uri, currentChain);
+        var uriParts = splitUri(uri);
+        String fullUri = buildFullUri(uriParts, currentChain);
 
-        List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
-
-        DigestValue[] digests = new DigestValue[values.size()];
-
-        // Calculate digests of all the individual values in the hash step
-        for (int i = 0; i < digests.length; ++i) {
-            digests[i] = resolveValue(values.get(i), hashStep.getRight());
+        byte[] memoized = resolvedSteps.get(fullUri);
+        if (memoized != null) {
+            return memoized;
         }
 
-        return DigestList.concatDigests(digests);
+        if (activePath.contains(fullUri)) {
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Cycle detected in hash chain at step: %s".formatted(fullUri));
+        }
+
+        if (activePath.size() >= MAX_DEPTH) {
+            throw new CodedException(X_MALFORMED_HASH_CHAIN,
+                    "Hash chain exceeds maximum depth of %d".formatted(MAX_DEPTH));
+        }
+
+        if (totalStepsResolved >= MAX_STEPS) {
+            throw new CodedException(X_MALFORMED_HASH_CHAIN,
+                    "Hash chain exceeds maximum step count of %d".formatted(MAX_STEPS));
+        }
+
+        activePath.add(fullUri);
+        totalStepsResolved++;
+        try {
+            Pair<HashStepType, HashChainType> hashStep = fetchHashStep(uriParts, currentChain);
+
+            List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
+
+            DigestValue[] digests = new DigestValue[values.size()];
+
+            for (int i = 0; i < digests.length; ++i) {
+                totalValuesResolved++;
+                if (totalValuesResolved > MAX_VALUES) {
+                    throw new CodedException(X_MALFORMED_HASH_CHAIN,
+                            "Hash chain exceeds maximum value count of %d".formatted(MAX_VALUES));
+                }
+                digests[i] = resolveValue(values.get(i), hashStep.getRight());
+            }
+
+            byte[] result = DigestList.concatDigests(digests);
+            resolvedSteps.put(fullUri, result);
+            return result;
+        } finally {
+            activePath.remove(fullUri);
+        }
     }
 
-    /** Calculates digest of the value in a hash step. */
+    /**
+     * Splits {@code uri} into (base, fragment) on the first {@code #}. Returns {@code null} fragment
+     * when there is no {@code #}, and empty string base when the URI is fragment-only.
+     */
+    private static Pair<String, String> splitUri(String uri) {
+        int hashIndex = uri.indexOf('#');
+        if (hashIndex < 0) {
+            return new ImmutablePair<>(uri, null);
+        }
+        return new ImmutablePair<>(uri.substring(0, hashIndex), uri.substring(hashIndex + 1));
+    }
+
+    private String buildFullUri(Pair<String, String> uriParts, HashChainType currentChain) {
+        String base = uriParts.getLeft();
+        String fragment = uriParts.getRight();
+        if (fragment == null || !base.isEmpty()) {
+            return base + (fragment != null ? "#" + fragment : "");
+        }
+        if (currentChain == null) {
+            return "#" + fragment;
+        }
+        String chainBase = chainBaseUris.get(currentChain);
+        if (chainBase == null) {
+            throw new IllegalStateException("Chain base URI missing for a parsed chain — invariant violated");
+        }
+        return chainBase + "#" + fragment;
+    }
+
+    /**
+     * Calculates digest of the value in a hash step.
+     */
     private DigestValue resolveValue(AbstractValueType value, HashChainType currentChain) throws Exception {
         log.trace("resolveValue({})", value);
 
@@ -287,7 +411,9 @@ public final class HashChainVerifier {
         return new DigestValue(digestMethodUri, digest);
     }
 
-    /** Returns DigestValue from input if it exactly matches the reference. */
+    /**
+     * Returns DigestValue from input if it exactly matches the reference.
+     */
     private DigestValue getMatchingInputHash(DataRefType dataRef, HashChainType currentChain) {
         DigestValue inputDigest = inputs.get(dataRef.getURI());
 
@@ -303,7 +429,9 @@ public final class HashChainVerifier {
         return inputs.containsKey(dataRef.getURI());
     }
 
-    /** Downloads data from the URI and runs transforms on it. */
+    /**
+     * Downloads data from the URI and runs transforms on it.
+     */
     private InputStream performTransforms(String uri, TransformsType transforms) throws Exception {
         log.trace("performTransforms({}, {})", uri, transforms);
 
@@ -335,21 +463,17 @@ public final class HashChainVerifier {
         }
     }
 
-    /** Retrieve hash step based on the URI. */
-    private Pair<HashStepType, HashChainType> fetchHashStep(String uri, HashChainType currentChain) throws Exception {
-        // Find the fragment separator.
-        int hashIndex = uri.indexOf('#');
+    /**
+     * Retrieve hash step based on pre-split URI parts (base, fragment).
+     */
+    private Pair<HashStepType, HashChainType> fetchHashStep(Pair<String, String> uriParts, HashChainType currentChain)
+            throws Exception {
+        String baseUri = uriParts.getLeft();
+        String fragment = uriParts.getRight();
+        String rawUri = baseUri + (fragment != null ? "#" + fragment : "");
 
-        if (hashIndex < 0) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
-        }
-
-        String baseUri = uri.substring(0, hashIndex);
-        String fragment = uri.substring(hashIndex + 1);
-
-        if (fragment.isEmpty()) {
-            // Hash step must be indicated by a fragment in a hash chain.
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
+        if (fragment == null || fragment.isEmpty()) {
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(rawUri));
         }
 
         HashChainType hashChain;
@@ -360,15 +484,13 @@ public final class HashChainVerifier {
             hashChain = getHashChain(baseUri);
         }
 
-        // Found the hash chain. Look for a step with given ID.
         for (HashStepType step : hashChain.getHashStep()) {
             if (fragment.equals(step.getId())) {
                 return new ImmutablePair<>(step, hashChain);
             }
         }
 
-        // No hash step with given fragment ID found.
-        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
+        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, rawUri);
     }
 
     private HashChainType getHashChain(String uri) throws Exception {
@@ -383,6 +505,7 @@ public final class HashChainVerifier {
 
             ret = parseHashChain(is);
             hashChainCache.put(uri, ret);
+            chainBaseUris.put(ret, uri);
         }
 
         return ret;
