@@ -27,6 +27,8 @@ package org.niis.xroad.confclient.common.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.common.domain.ConfigurationFile;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 
@@ -56,13 +58,23 @@ public class FileNameProviderImpl implements FileNameProvider {
                             : file.getContentLocation()).getFileName().toString();
         };
 
-        return Paths.get(globalConfigurationDirectory,
-                escapeInstanceIdentifier(file.getInstanceIdentifier()),
-                fileName);
+        return resolveWithinGlobalConf(escapeInstanceIdentifier(file.getInstanceIdentifier()), fileName);
     }
 
     @Override
     public Path getConfigurationDirectory(String instanceIdentifier) {
-        return Paths.get(globalConfigurationDirectory, escapeInstanceIdentifier(instanceIdentifier));
+        return resolveWithinGlobalConf(escapeInstanceIdentifier(instanceIdentifier));
+    }
+
+    private Path resolveWithinGlobalConf(String... segments) {
+        Path root = Paths.get(globalConfigurationDirectory).normalize();
+        Path resolved = Paths.get(globalConfigurationDirectory, segments).normalize();
+        if (!resolved.startsWith(root)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
+                    .details("Resolved configuration path %s escapes global configuration directory %s"
+                            .formatted(resolved, root))
+                    .build();
+        }
+        return resolved;
     }
 }
