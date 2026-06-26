@@ -174,7 +174,6 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
-                .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
@@ -287,6 +286,16 @@ public class EnvSetup extends BaseComposeSetup {
 
     public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
         return mapEnvironment(env).getContainerByServiceName(serviceName);
+    }
+
+    @SneakyThrows
+    public String execMessagelogSql(String env, String sql) {
+        var container = getContainerByServiceName(env, DB_MESSAGELOG).orElseThrow();
+        var result = container.execInContainer("psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("psql query on %s failed: %s".formatted(env, result.getStderr()));
+        }
+        return result.getStdout().trim();
     }
 
     public ContainerMapping getContainerMapping(String env, String serviceName, int originalPort) {
