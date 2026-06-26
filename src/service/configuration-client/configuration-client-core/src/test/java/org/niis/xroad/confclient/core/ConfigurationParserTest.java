@@ -120,6 +120,20 @@ class ConfigurationParserTest {
     }
 
     /**
+     * Test to ensure the parser rejects a validly-signed part whose instance identifier
+     * does not match the source that delivered it (cross-instance configuration poisoning).
+     */
+    @Test
+    void parseConfRejectsPartFromForeignInstance() {
+        assertThatThrownBy(() ->
+                parse("src/test/resources/test-conf-simple",
+                        getConfigurationSource(
+                                TestCertUtil.getConsumer().certChain[0],
+                                "FI", "http://foo.bar.baz")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+    }
+
+    /**
      * Test to ensure the parser will fail on an invalid signature.
      */
     @Test
