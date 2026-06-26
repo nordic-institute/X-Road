@@ -52,10 +52,7 @@ public class FileNameProviderImpl implements FileNameProvider {
         String fileName = switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS -> FILE_NAME_PRIVATE_PARAMETERS;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS -> FILE_NAME_SHARED_PARAMETERS;
-            default -> Paths.get(
-                    !StringUtils.isBlank(file.getContentFileName())
-                            ? file.getContentFileName()
-                            : file.getContentLocation()).getFileName().toString();
+            default -> resolveContentFileName(file);
         };
 
         return resolveWithinGlobalConf(escapeInstanceIdentifier(file.getInstanceIdentifier()), fileName);
@@ -64,6 +61,21 @@ public class FileNameProviderImpl implements FileNameProvider {
     @Override
     public Path getConfigurationDirectory(String instanceIdentifier) {
         return resolveWithinGlobalConf(escapeInstanceIdentifier(instanceIdentifier));
+    }
+
+    private String resolveContentFileName(ConfigurationFile file) {
+        String source = !StringUtils.isBlank(file.getContentFileName())
+                ? file.getContentFileName()
+                : file.getContentLocation();
+        Path name = Paths.get(source).getFileName();
+        String fileName = name != null ? name.toString() : "";
+        if (StringUtils.isBlank(fileName) || ".".equals(fileName) || "..".equals(fileName)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE)
+                    .details("Configuration part %s declares an invalid file name derived from %s".formatted(file, source))
+                    .metadataItems(file.getContentLocation())
+                    .build();
+        }
+        return fileName;
     }
 
     private Path resolveWithinGlobalConf(String... segments) {

@@ -76,6 +76,22 @@ class FileNameProviderImplTest {
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
     }
 
+    @Test
+    void contentLocationWithoutFileNameIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE));
+    }
+
+    @Test
+    void traversalFileNameIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("..")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE));
+    }
+
     private static ConfigurationFile sharedParamsPart(String instanceIdentifier) {
         Map<String, String> headers = new HashMap<>();
         headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
@@ -83,6 +99,15 @@ class FileNameProviderImplTest {
         headers.put(HEADER_CONTENT_LOCATION, "/%s/shared-params.xml".formatted(instanceIdentifier));
         headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
         headers.put(HEADER_CONTENT_IDENTIFIER, "SHARED-PARAMETERS; instance='%s'".formatted(instanceIdentifier));
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private static ConfigurationFile genericPart(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
         return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 }
