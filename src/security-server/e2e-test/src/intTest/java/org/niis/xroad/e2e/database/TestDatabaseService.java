@@ -43,6 +43,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
+    private static final long INITIALIZATION_FAIL_TIMEOUT_MS = 30_000;
+
     private final Map<String, HikariDataSource> messagelogDataSources = new HashMap<>();
     private final Map<String, NamedParameterJdbcTemplate> messagelogTemplates = new HashMap<>();
 
@@ -70,12 +72,13 @@ public class TestDatabaseService implements DisposableBean {
         config.setMaximumPoolSize(1);
         config.setMinimumIdle(1);
         config.setConnectionTestQuery("SELECT 1");
+        config.setInitializationFailTimeout(INITIALIZATION_FAIL_TIMEOUT_MS);
         return new HikariDataSource(config);
     }
 
     private String getJdbcUrl(String env, String service, String database) {
         var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.DB);
-        return String.format("jdbc:postgresql://%s:%d/%s",
+        return String.format("jdbc:postgresql://%s:%d/%s?sslmode=disable",
                 mapping.host(),
                 mapping.port(),
                 database);
