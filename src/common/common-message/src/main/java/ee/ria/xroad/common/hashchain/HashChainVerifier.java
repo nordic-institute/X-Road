@@ -270,16 +270,16 @@ public final class HashChainVerifier {
         }
 
         if (activePath.contains(fullUri)) {
-            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, "Cycle detected in hash chain at step: %s".formatted(fullUri));
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Cycle detected in hash chain at step: %s".formatted(fullUri));
         }
 
         if (activePath.size() >= MAX_DEPTH) {
-            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
+            throw new CodedException(X_MALFORMED_HASH_CHAIN,
                     "Hash chain exceeds maximum depth of %d".formatted(MAX_DEPTH));
         }
 
         if (totalStepsResolved >= MAX_STEPS) {
-            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
+            throw new CodedException(X_MALFORMED_HASH_CHAIN,
                     "Hash chain exceeds maximum step count of %d".formatted(MAX_STEPS));
         }
 
@@ -502,7 +502,7 @@ public final class HashChainVerifier {
         }
 
         // No hash step with given fragment ID found.
-        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, uri);
+        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, rawUri);
     }
 
     private HashChainType getHashChain(String uri) throws IOException, JAXBException, ParserConfigurationException, SAXException {
