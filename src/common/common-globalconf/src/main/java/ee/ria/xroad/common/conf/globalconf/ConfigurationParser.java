@@ -113,6 +113,7 @@ public class ConfigurationParser {
         }
 
         verifyIntegrity();
+        verifyPartInstanceIdentifiers();
 
         return configuration;
     }
@@ -135,6 +136,21 @@ public class ConfigurationParser {
 
     private String getInstanceIdentifier() {
         return configuration.getLocation().getInstanceIdentifier();
+    }
+
+    private void verifyPartInstanceIdentifiers() {
+        String sourceInstanceIdentifier = getInstanceIdentifier();
+        for (ConfigurationFile file : configuration.getFiles()) {
+            String partInstanceIdentifier = file.getInstanceIdentifier();
+            if (!StringUtils.isBlank(partInstanceIdentifier)
+                    && !partInstanceIdentifier.equals(sourceInstanceIdentifier)) {
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
+                        .details(("Configuration part %s delivered by source instance %s declares foreign instance "
+                                + "identifier %s").formatted(file, sourceInstanceIdentifier, partInstanceIdentifier))
+                        .metadataItems(file.getContentLocation())
+                        .build();
+            }
+        }
     }
 
     /**

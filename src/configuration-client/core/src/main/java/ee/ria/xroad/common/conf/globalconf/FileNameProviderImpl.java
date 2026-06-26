@@ -54,13 +54,23 @@ public class FileNameProviderImpl implements FileNameProvider {
                             : file.getContentLocation()).getFileName().toString();
         };
 
-        return Paths.get(globalConfigurationDirectory,
-                escapeInstanceIdentifier(file.getInstanceIdentifier()),
-                fileName);
+        return resolveWithinGlobalConf(escapeInstanceIdentifier(file.getInstanceIdentifier()), fileName);
     }
 
     @Override
     public Path getConfigurationDirectory(String instanceIdentifier) {
-        return Paths.get(globalConfigurationDirectory, escapeInstanceIdentifier(instanceIdentifier));
+        return resolveWithinGlobalConf(escapeInstanceIdentifier(instanceIdentifier));
+    }
+
+    private Path resolveWithinGlobalConf(String... segments) {
+        Path root = Paths.get(globalConfigurationDirectory).normalize();
+        Path resolved = Paths.get(globalConfigurationDirectory, segments).normalize();
+        if (!resolved.startsWith(root)) {
+            throw new CodedException(ErrorCodes.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
+                    .details("Resolved configuration path %s escapes global configuration directory %s"
+                            .formatted(resolved, root))
+                    .build();
+        }
+        return resolved;
     }
 }
