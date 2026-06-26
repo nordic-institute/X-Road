@@ -29,21 +29,28 @@ package org.niis.xroad.e2e.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.EnvSetup;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.awaitility.Awaitility.await;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private static final long INITIALIZATION_FAIL_TIMEOUT_MS = 30_000;
+    private static final long INITIALIZATION_FAIL_TIMEOUT_MS = 5_000;
+    private static final Duration CONNECT_TIMEOUT = Duration.ofMinutes(3);
+    private static final Duration CONNECT_POLL_INTERVAL = Duration.ofSeconds(2);
 
     private final Map<String, HikariDataSource> messagelogDataSources = new HashMap<>();
     private final Map<String, NamedParameterJdbcTemplate> messagelogTemplates = new HashMap<>();
@@ -51,17 +58,30 @@ public class TestDatabaseService implements DisposableBean {
     @Autowired
     private EnvSetup envSetup;
 
-    @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate(String env) {
         var existing = messagelogTemplates.get(env);
         if (existing != null) {
             return existing;
         }
-        var dataSource = createDataSource(env, EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
+        var dataSource = connectWithRetry(env);
         var template = new NamedParameterJdbcTemplate(dataSource);
         messagelogDataSources.put(env, dataSource);
         messagelogTemplates.put(env, template);
         return template;
+    }
+
+    private HikariDataSource connectWithRetry(String env) {
+        var ref = new AtomicReference<HikariDataSource>();
+        await()
+                .atMost(CONNECT_TIMEOUT)
+                .pollInterval(CONNECT_POLL_INTERVAL)
+                .ignoreExceptions()
+                .until(() -> {
+                    log.info("Connecting to {} messagelog DB..", env);
+                    ref.set(createDataSource(env, EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog"));
+                    return true;
+                });
+        return ref.get();
     }
 
     private HikariDataSource createDataSource(String env, String service, String database, String username) {

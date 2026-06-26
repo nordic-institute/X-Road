@@ -132,7 +132,8 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
         Awaitility.await()
                 .pollDelay(Duration.ofSeconds(1))
                 .pollInterval(Duration.ofSeconds(2))
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(60))
+                .ignoreExceptions()
                 .until(() -> {
                     var rows = testDatabaseService.getMessagelogTemplate(env)
                             .queryForList(

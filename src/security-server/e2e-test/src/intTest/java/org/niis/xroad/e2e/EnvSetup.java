@@ -175,6 +175,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
+                .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
