@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.RequiredArgsConstructor;
@@ -144,11 +145,9 @@ public class ConfigurationParser {
             String partInstanceIdentifier = file.getInstanceIdentifier();
             if (!StringUtils.isBlank(partInstanceIdentifier)
                     && !partInstanceIdentifier.equals(sourceInstanceIdentifier)) {
-                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
-                        .details(("Configuration part %s delivered by source instance %s declares foreign instance "
-                                + "identifier %s").formatted(file, sourceInstanceIdentifier, partInstanceIdentifier))
-                        .metadataItems(file.getContentLocation())
-                        .build();
+                throw new CodedException(ErrorCodes.X_MALFORMED_GLOBALCONF,
+                        ("Configuration part %s delivered by source instance %s declares foreign instance "
+                                + "identifier %s").formatted(file, sourceInstanceIdentifier, partInstanceIdentifier));
             }
         }
     }
