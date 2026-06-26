@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.confclient.core;
 
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
@@ -130,7 +131,7 @@ class ConfigurationParserTest {
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
                                 "FI", "http://foo.bar.baz")))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
     }
 
     /**

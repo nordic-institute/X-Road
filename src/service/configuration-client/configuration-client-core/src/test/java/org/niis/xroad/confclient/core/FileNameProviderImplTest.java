@@ -23,12 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.common.service;
+package org.niis.xroad.confclient.core;
+
+import ee.ria.xroad.common.ErrorCodes;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.confclient.common.domain.ConfigurationFile;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
-import static ee.ria.xroad.common.TestExceptionUtils.xrdRuntimeException;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
@@ -66,7 +65,7 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getFileName(sharedParamsPart("..")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
     }
 
     @Test
@@ -74,7 +73,23 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getConfigurationDirectory(".."))
-                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
+    }
+
+    @Test
+    void contentLocationWithoutFileNameIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/")))
+                .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
+    }
+
+    @Test
+    void traversalFileNameIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("..")))
+                .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
     }
 
     private static ConfigurationFile sharedParamsPart(String instanceIdentifier) {
@@ -84,6 +99,15 @@ class FileNameProviderImplTest {
         headers.put(HEADER_CONTENT_LOCATION, "/%s/shared-params.xml".formatted(instanceIdentifier));
         headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
         headers.put(HEADER_CONTENT_IDENTIFIER, "SHARED-PARAMETERS; instance='%s'".formatted(instanceIdentifier));
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private static ConfigurationFile genericPart(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
         return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 }
