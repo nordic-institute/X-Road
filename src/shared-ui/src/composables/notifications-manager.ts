@@ -89,7 +89,7 @@ export function useNotifications(): NotificationManager {
       addTranslatedErrorMessage(container.notifications, message);
     },
     addError(errorObject: unknown, config = {}) {
-      addError(container.notifications, errorObject, config.navigate ? routingContext : undefined, config);
+      addError(container.notifications, errorObject, config.navigate ? routingContext : undefined, config).catch(() => {});
     },
     addTranslatedSuccessMessage(message: string, preserve: boolean = false): void {
       addTranslatedSuccessMessage(container.notifications, message, preserve);

@@ -21,8 +21,8 @@ on:
         type: string
 
 jobs:
-  test-ss-system:
-    name: ss-system-test
+  test-ss-api:
+    name: ss-api-test
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
@@ -30,16 +30,16 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: start-measurement
-          label: 'ss-system-test'
+          label: 'ss-api-test'
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Download ss-system-test
+      - name: Download ss-api-test
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: ss-system-test-jar
+          name: ss-api-test-jar
 
       - name: Setup Java
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
@@ -58,23 +58,23 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
-          label: 'ss-system-test setup'
+          label: 'ss-api-test setup'
 
-      - name: Run ss-system-test
-        run: java -jar security-server-system-test-1.0.jar
+      - name: Run ss-api-test
+        run: java -jar security-server-api-test-1.0.jar
 
       - name: Log storage
         if: always()
         uses: ./.github/actions/log-storage
         with:
-          label: 'ss-system-test storage'
+          label: 'ss-api-test storage'
           show-docker-images: 'true'
 
       - name: Test measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
-          label: 'ss-system-test'
+          label: 'ss-api-test'
 
       - name: Test report
         env:
@@ -82,20 +82,105 @@ jobs:
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: success() || failure()
         with:
-          name: ss-system-test
+          name: ss-api-test
           path: test-framework-working-dir/test-results/TEST-*.xml
           reporter: java-junit
 
-      - name: Upload ss-system-test report
+      - name: Upload ss-api-test report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: ss-system-test-report-${{ github.run_number }}
+          name: ss-api-test-report-${{ github.run_number }}
           path: |
             test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
-            test-framework-working-dir/selenide-failures/*.png
+
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
+        with:
+          task: display-results
+          display-badge: false
+          display-table: true
+          pr-comment: false
+
+  test-ss-ui:
+    name: ss-ui-integration-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
+        with:
+          task: start-measurement
+          label: 'ss-ui-integration-test'
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: '10'
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: src/pnpm-lock.yaml
+
+      - name: Setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
+        with:
+          task: get-measurement
+          label: 'ss-ui-integration-test setup'
+
+      - name: Install dependencies
+        working-directory: ./src
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate OpenAPI types
+        working-directory: ./src
+        run: pnpm -r run generate-types
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('src/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright Chromium
+        working-directory: ./src
+        run: pnpm exec playwright install chromium
+
+      - name: Run ss-ui-integration-test
+        working-directory: ./src
+        run: pnpm run test-ss
+
+      - name: Test report
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        if: success() || failure()
+        with:
+          name: ss-ui-integration-test
+          path: src/security-server/admin-service/ui/tests/results/vitest-junit.xml
+          reporter: java-junit
+
+      - name: Upload ss-ui-integration-test report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: ss-ui-integration-test-report-${{ github.run_number }}
+          path: src/security-server/admin-service/ui/tests/results/vitest-junit.xml
+
+      - name: Test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
+        with:
+          task: get-measurement
+          label: 'ss-ui-integration-test'
 
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0

@@ -2,7 +2,7 @@
 Dataspace mock-jwks-server JWKS public-key ConfigMap.
 
 Ships a single key `public_key.json` (verbatim copy of
-`core/src/security-server/system-test/src/intTest/resources/container-files/jwks/public_key.json`)
+`core/src/security-server/api-test/src/intTest/resources/container-files/jwks/public_key.json`)
 mounted read-only at `/jwks` on the mock-jwks-server Pod — mirroring the
 compose volume `./container-files/jwks/:/jwks` for the dev-profile JWKS
 endpoint.
@@ -27,5 +27,5 @@ metadata:
     {{- include "xroad.dsp.labels" . | nindent 4 }}
     app: xroad-mock-jwks-server
 data:
-  public_key.json: {{ required "files/jwks/public_key.json must exist inside the chart (copy from core/src/security-server/system-test/src/intTest/resources/container-files/jwks/public_key.json)" (.Files.Get "files/jwks/public_key.json") | quote }}
+  public_key.json: {{ required "files/jwks/public_key.json must exist inside the chart (copy from core/src/security-server/api-test/src/intTest/resources/container-files/jwks/public_key.json)" (.Files.Get "files/jwks/public_key.json") | quote }}
 {{- end }}

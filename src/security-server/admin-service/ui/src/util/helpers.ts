@@ -79,7 +79,7 @@ export function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'c
   }
   const effectiveFileName = suggestedFileName === undefined ? defaultFileName : suggestedFileName;
   const blob = new Blob([response.data], {
-    type: response.headers['content-type'],
+    type: response.headers['content-type'] as string | undefined,
   });
 
   // Create a link to DOM and click it. This will trigger the browser to start file download.

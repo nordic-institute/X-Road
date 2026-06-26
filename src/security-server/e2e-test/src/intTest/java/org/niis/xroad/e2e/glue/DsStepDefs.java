@@ -56,6 +56,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
     private static final Duration POLL_TIMEOUT = Duration.ofMinutes(2);
     private static final int MEMBER_ID_PART_COUNT = 3;
+    private static final String MGMT_HOLDER_DID_SUFFIX = ":mgmt";
 
     private String offerId;
     private String targetAssetId;
@@ -416,30 +417,39 @@ public class DsStepDefs extends BaseE2EStepDefs {
         List<Map<String, Object>> resources = response.extract().body().as(List.class);
         return resources.stream()
                 .filter(resource -> hasMemberIdentifier(resource, memberId))
+                .filter(resource -> !isManagementHolder(resource))
                 .map(resource -> (String) resource.get("id"))
                 .findFirst()
                 .orElse(null);
     }
 
-    @SuppressWarnings("unchecked")
+    private boolean isManagementHolder(Map<String, Object> resource) {
+        return credentialSubjects(resource).stream()
+                .anyMatch(subject -> subject.get("id") instanceof String subjectId && subjectId.endsWith(MGMT_HOLDER_DID_SUFFIX));
+    }
+
     private boolean hasMemberIdentifier(Map<String, Object> resource, String memberId) {
-        if (!(resource.get("credential") instanceof Map<?, ?> credential)) {
-            return false;
-        }
-        Object subjectObj = ((Map<String, Object>) credential).get("credentialSubject");
-        List<Map<String, Object>> subjects = switch (subjectObj) {
-            case List<?> list -> (List<Map<String, Object>>) list;
-            case Map<?, ?> single -> List.of((Map<String, Object>) single);
-            case null, default -> List.of();
-        };
         var parts = memberId.split(":");
         if (parts.length != MEMBER_ID_PART_COUNT) {
             return false;
         }
-        return subjects.stream().anyMatch(subject ->
+        return credentialSubjects(resource).stream().anyMatch(subject ->
                 parts[0].equals(subject.get("xroadInstance"))
                         && parts[1].equals(subject.get("memberClass"))
                         && parts[2].equals(subject.get("memberCode")));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> credentialSubjects(Map<String, Object> resource) {
+        if (!(resource.get("credential") instanceof Map<?, ?> credential)) {
+            return List.of();
+        }
+        Object subjectObj = ((Map<String, Object>) credential).get("credentialSubject");
+        return switch (subjectObj) {
+            case List<?> list -> (List<Map<String, Object>>) list;
+            case Map<?, ?> single -> List.of((Map<String, Object>) single);
+            case null, default -> List.of();
+        };
     }
 
     @SuppressWarnings("unchecked")
