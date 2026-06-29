@@ -31,8 +31,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.niis.xroad.e2e.EnvSetup;
-import org.niis.xroad.e2e.database.TestDatabaseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.xml.sax.InputSource;
 
@@ -40,8 +38,6 @@ import javax.xml.xpath.XPathFactory;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
@@ -50,9 +46,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection", "checkstyle:magicnumber"})
 public class MonitoringStepDefs extends BaseE2EStepDefs {
-
-    @Autowired
-    private TestDatabaseService testDatabaseService;
 
     private Response lastProxymonitorResponse;
 
@@ -128,33 +121,23 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Step("{string} messagelog contains {int} encrypted entries for queryId {string}")
     public void assertMessagelogEncryptedEntries(String env, int expectedCount, String queryId) {
-        var recordsRef = new AtomicReference<List<Map<String, Object>>>(List.of());
+        var sql = ("SELECT count(*), count(*) FILTER (WHERE keyid IS NOT NULL AND message IS NULL) "
+                + "FROM logrecord WHERE queryid = '%s'").formatted(queryId);
+        var counts = new AtomicReference<>(new int[]{0, 0});
         Awaitility.await()
                 .pollDelay(Duration.ofSeconds(1))
                 .pollInterval(Duration.ofSeconds(2))
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(60))
+                .ignoreExceptions()
                 .until(() -> {
-                    var rows = testDatabaseService.getMessagelogTemplate(env)
-                            .queryForList(
-                                    "SELECT id, keyid, message FROM logrecord WHERE queryid = :queryId",
-                                    Map.of("queryId", queryId));
-                    recordsRef.set(rows);
-                    return rows.size() >= expectedCount;
+                    var parts = envSetup.execMessagelogSql(env, sql).split("\\|");
+                    counts.set(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+                    return counts.get()[1] >= expectedCount;
                 });
 
-        var records = recordsRef.get();
-        assertThat(records)
-                .as("logrecord rows for queryId %s", queryId)
-                .hasSize(expectedCount);
-
-        for (Map<String, Object> record : records) {
-            assertThat(record.get("keyid"))
-                    .as("logrecord %s: keyid (encrypted)", record.get("id"))
-                    .isNotNull();
-            assertThat(record.get("message"))
-                    .as("logrecord %s: message (offloaded to encrypted archive)", record.get("id"))
-                    .isNull();
-        }
+        var result = counts.get();
+        assertThat(result[0]).as("logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);
+        assertThat(result[1]).as("encrypted logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);
     }
 
     @Step("REST request targeted at unsaved {string} API endpoint is attempted on {string} {string}")

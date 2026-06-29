@@ -35,7 +35,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.e2e.EnvSetup;
-import org.niis.xroad.e2e.database.TestDatabaseService;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
@@ -50,7 +49,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,8 +66,6 @@ import static org.hamcrest.Matchers.matchesPattern;
 public class ProxyStepDefs extends BaseE2EStepDefs {
     private static final String HEADER_CLIENT_ID = "x-road-client";
 
-    @Autowired
-    private TestDatabaseService testDatabaseService;
     @Autowired
     private TestFrameworkCoreProperties coreProperties;
 
@@ -222,9 +218,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("{string} contains {int} messagelog entries")
     public void messageLogContainsNEntries(String env, int expectedCount) {
-        String sql = "SELECT COUNT(id) FROM logrecord";
-        final Integer recordsCount = testDatabaseService.getMessagelogTemplate(env)
-                .queryForObject(sql, Map.of(), Integer.class);
+        var recordsCount = Integer.parseInt(envSetup.execMessagelogSql(env, "SELECT COUNT(id) FROM logrecord"));
         assertThat(recordsCount).isEqualTo(expectedCount);
     }
 
