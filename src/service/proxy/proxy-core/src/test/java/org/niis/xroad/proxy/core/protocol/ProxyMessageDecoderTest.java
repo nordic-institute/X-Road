@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.protocol;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.crypto.Digests;
@@ -50,10 +51,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder.MAX_HASHCHAIN_PART_BYTES;
 
 /**
  * Tests to verify correct proxy message decoder behavior.
@@ -238,7 +243,7 @@ public class ProxyMessageDecoderTest {
      */
     @Test
     public void invalidOcsp() throws Exception {
-        thrown.expectError(ErrorCodes.X_IO_ERROR);
+        thrown.expectError(X_IO_ERROR);
 
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
@@ -322,9 +327,9 @@ public class ProxyMessageDecoderTest {
         String contentType = MimeUtils.mpMixedContentType(boundary);
         ProxyMessageDecoder decoder = createDecoder(contentType);
         String oversized = "x".repeat((int) MAX_HASHCHAIN_PART_BYTES + 1);
-        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
+        CodedException ex = assertThrows(CodedException.class,
                 () -> decoder.parse(buildHashChainMessage(boundary, oversized, "y".repeat(100))));
-        assertEquals(IO_ERROR.code(), ex.getErrorCode());
+        assertEquals(X_IO_ERROR, ex.getFaultCode());
     }
 
     private static InputStream buildHashChainMessage(String boundary, String hashChainResult, String hashChain) {
