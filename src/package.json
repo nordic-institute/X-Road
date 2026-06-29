@@ -43,7 +43,7 @@
     "sass-loader": "^16.0.8",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12",
+    "vite": "^8.0.16",
     "@vitest/browser": "4.1.8",
     "@vitest/browser-playwright": "4.1.6",
     "msw": "^2.14.6",
