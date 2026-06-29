@@ -70,6 +70,17 @@
 # TEMPORARY (dataspaces dev): remove once packaging ships these as debconf
 #   answerable questions / real STS-issued tokens.
 # ---------------------------------------------------------------------------
+- name: ensure local.yaml exists with proxy-ui-api root for the dataspace block
+  copy:
+    dest: /etc/xroad/conf.d/local.yaml
+    force: false
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      xroad:
+        proxy-ui-api:
+
 - name: preseed proxy-ui-api dataspace provisioning config into local.yaml
   blockinfile:
     path: /etc/xroad/conf.d/local.yaml

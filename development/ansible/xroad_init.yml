@@ -17,6 +17,13 @@
         - (variant is defined and variant == "ee")
         - ansible_facts['os_family'] == "RedHat"
 
+- hosts: ca_servers
+  become: true
+  become_user: root
+  roles:
+    - role: xroad-ca
+      tags: ["ca"]
+
 - hosts: cs_servers
   become: true
   become_user: root
@@ -52,10 +59,3 @@
     - vars_files/remote_repo.yml
     - vars_files/ss_database.yml
     - vars_files/base.yml
-
-- hosts: ca_servers
-  become: true
-  become_user: root
-  roles:
-    - role: xroad-ca
-      tags: ["ca"]
