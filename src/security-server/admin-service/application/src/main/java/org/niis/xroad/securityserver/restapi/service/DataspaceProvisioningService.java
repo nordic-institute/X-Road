@@ -30,37 +30,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import java.io.IOException;
 import java.net.URI;
-import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +43,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Provisions this security server's data space participant contexts (IdentityHub + Control Plane)
- * and issues their X-Road membership credentials.
+ * and issues their X-Road membership credentials, over X-Road gRPC.
  *
  * <p>For each participant context (the host context, plus the MANAGEMENT context when enabled) the service
  * creates the IdentityHub participant context, the Control Plane participant context and its STS-bound config,
@@ -86,10 +61,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 @RequiredArgsConstructor
 public class DataspaceProvisioningService {
 
-    private static final String IDENTITY_API = "/api/identity/v1alpha/participants";
-    private static final String MANAGEMENT_API = "/api/management/v5beta/participants";
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
-    private static final String BEARER = "Bearer ";
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
@@ -103,6 +75,7 @@ public class DataspaceProvisioningService {
 
     private final AdminServiceProperties adminServiceProperties;
     private final ServerConfService serverConfService;
+    private final DataspaceProvisioningClient provisioningClient;
 
     /**
      * Ensures every configured participant context is provisioned and holds a membership credential.
@@ -121,20 +94,13 @@ public class DataspaceProvisioningService {
         String identityHubHost = hostOf(ds.getIdentityHubUrl());
 
         boolean allIssued = true;
-        try (CloseableHttpClient client = createHttpClient(ds)) {
-            for (String participantId : participantContexts(ds)) {
-                ensureParticipantContext(client, ds, participantId, identityHubHost, memberId);
-                String status = ensureCredential(client, ds, participantId);
-                log.info("Data space credential status for participant {}: {}", participantId, status);
-                if (!STATUS_ISSUED.equals(status)) {
-                    allIssued = false;
-                }
+        for (String participantId : participantContexts(ds)) {
+            ensureParticipantContext(ds, participantId, identityHubHost, memberId);
+            String status = ensureCredential(ds, participantId);
+            log.info("Data space credential status for participant {}: {}", participantId, status);
+            if (!STATUS_ISSUED.equals(status)) {
+                allIssued = false;
             }
-        } catch (IOException e) {
-            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
-                    .cause(e)
-                    .details("Error during data space provisioning")
-                    .build();
         }
         return allIssued ? STATUS_ISSUED : STATUS_PENDING;
     }
@@ -148,12 +114,11 @@ public class DataspaceProvisioningService {
         return participantIds;
     }
 
-    private void ensureParticipantContext(CloseableHttpClient client, Dataspace ds, String participantId,
-                                          String identityHubHost, String memberId) {
+    private void ensureParticipantContext(Dataspace ds, String participantId, String identityHubHost, String memberId) {
         String did = didFor(identityHubHost, participantId);
-        createIdentityHubContext(client, ds, participantId, did, identityHubHost, memberId);
-        createControlPlaneContext(client, ds, participantId, did);
-        createControlPlaneContextConfig(client, ds, participantId, did, identityHubHost);
+        createIdentityHubContext(participantId, did, identityHubHost, memberId);
+        provisioningClient.createControlPlaneParticipantContext(participantId, did);
+        provisioningClient.putControlPlaneParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
 
     private String didFor(String identityHubHost, String participantId) {
@@ -161,87 +126,17 @@ public class DataspaceProvisioningService {
         return participantId.endsWith(MANAGEMENT_CONTEXT_SUFFIX) ? did + ":mgmt" : did;
     }
 
-    private void createIdentityHubContext(CloseableHttpClient client, Dataspace ds, String participantId, String did,
-                                          String identityHubHost, String memberId) {
-        String credentialService = "https://%s:%d/api/credentials/v1/participants/%s"
+    private void createIdentityHubContext(String participantId, String did, String identityHubHost, String memberId) {
+        String credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s"
                 .formatted(identityHubHost, CREDENTIAL_PORT, participantId);
-        String body = """
-                {
-                    "roles": [],
-                    "serviceEndpoints": [{
-                        "type": "CredentialService",
-                        "serviceEndpoint": "%s",
-                        "id": "%s-credential-service"
-                    }],
-                    "active": true,
-                    "additionalProperties": { "xroadMemberId": "%s" },
-                    "participantContextId": "%s",
-                    "did": "%s",
-                    "key": {
-                        "keyId": "%s#key-1",
-                        "privateKeyAlias": "%s-key",
-                        "keyGeneratorParams": { "algorithm": "EdDSA" }
-                    }
-                }""".formatted(credentialService, did, memberId, participantId, did, did, did);
-        HttpPost post = new HttpPost(ds.getIdentityHubUrl() + IDENTITY_API);
-        post.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getIdentityToken());
-        post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
-        executeWrite(client, post, "IH participant context " + participantId);
+        String keyId = did + "#key-1";
+        String privateKeyAlias = participantId + "-key";
+        provisioningClient.createIdentityHubParticipantContext(participantId, did, memberId, credentialServiceUrl, keyId,
+                privateKeyAlias);
     }
 
-    private void createControlPlaneContext(CloseableHttpClient client, Dataspace ds, String participantId, String did) {
-        String body = """
-                {
-                    "@context": ["https://w3id.org/edc/connector/management/v2"],
-                    "@type": "ParticipantContext",
-                    "identity": "%s",
-                    "@id": "%s"
-                }""".formatted(did, participantId);
-        HttpPost post = new HttpPost(ds.getControlPlaneUrl() + MANAGEMENT_API);
-        post.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getControlPlaneToken());
-        post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
-        executeWrite(client, post, "CP participant context " + participantId);
-    }
-
-    private void createControlPlaneContextConfig(CloseableHttpClient client, Dataspace ds, String participantId,
-                                                 String did, String identityHubHost) {
-        String stsTokenUrl = "https://%s:%d/api/sts/token".formatted(identityHubHost, STS_PORT);
-        String body = """
-                {
-                    "@context": ["https://w3id.org/edc/connector/management/v2"],
-                    "@type": "ParticipantContextConfig",
-                    "entries": {
-                        "edc.participant.id": "%s",
-                        "edc.participant.did": "%s",
-                        "edc.iam.sts.oauth.token.url": "%s",
-                        "edc.iam.sts.oauth.client.id": "%s",
-                        "edc.iam.sts.oauth.client.secret.alias": "%s-sts-client-secret"
-                    },
-                    "privateEntries": {}
-                }""".formatted(did, did, stsTokenUrl, did, participantId);
-        HttpPut put = new HttpPut(ds.getControlPlaneUrl() + MANAGEMENT_API + "/" + participantId + "/config");
-        put.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getControlPlaneToken());
-        put.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
-        executeWrite(client, put, "CP participant context config " + participantId);
-    }
-
-    private void executeWrite(CloseableHttpClient client, HttpUriRequest request, String label) {
-        try (CloseableHttpResponse response = client.execute(request)) {
-            int code = response.getStatusLine().getStatusCode();
-            String body = readBody(response);
-            if (code >= HttpStatus.SC_BAD_REQUEST) {
-                log.warn("DSP provisioning '{}' -> HTTP {} (tolerated). Body: {}", label, code, body);
-            } else {
-                log.info("DSP provisioning '{}' -> HTTP {}", label, code);
-            }
-        } catch (IOException e) {
-            log.warn("DSP provisioning '{}' failed: {}", label, e.getMessage());
-        }
-    }
-
-    private static String readBody(CloseableHttpResponse response) throws IOException {
-        var entity = response.getEntity();
-        return entity == null ? "" : EntityUtils.toString(entity);
+    private String stsTokenUrl(String identityHubHost) {
+        return "https://%s:%d/api/sts/token".formatted(identityHubHost, STS_PORT);
     }
 
     private String memberIdSlashForm() {
@@ -253,13 +148,14 @@ public class DataspaceProvisioningService {
         return URI.create(url).getHost();
     }
 
-    private String ensureCredential(CloseableHttpClient client, Dataspace ds, String participantId) {
+    private String ensureCredential(Dataspace ds, String participantId) {
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             String holderPid = holderPid(participantId, slot);
-            String state = fetchRequestState(client, ds, participantId, holderPid);
+            String state = provisioningClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
-                submitRequest(client, ds, participantId, holderPid);
-                state = pollUntilSettled(client, ds, participantId, holderPid);
+                provisioningClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
+                        ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
+                state = pollUntilSettled(ds, participantId, holderPid);
             }
             if (STATE_ISSUED.equals(state)) {
                 return STATUS_ISSUED;
@@ -279,51 +175,18 @@ public class DataspaceProvisioningService {
         return slot == 0 ? base : base + "-" + slot;
     }
 
-    private String pollUntilSettled(CloseableHttpClient client, Dataspace ds, String participantId, String holderPid) {
+    private String pollUntilSettled(Dataspace ds, String participantId, String holderPid) {
         long deadline = System.currentTimeMillis() + ds.getPollTimeoutMillis();
-        String state = fetchRequestState(client, ds, participantId, holderPid);
+        String state = provisioningClient.getCredentialRequestState(participantId, holderPid);
         while (!isTerminal(state) && System.currentTimeMillis() < deadline) {
             sleep(ds.getPollIntervalMillis());
-            state = fetchRequestState(client, ds, participantId, holderPid);
+            state = provisioningClient.getCredentialRequestState(participantId, holderPid);
         }
         return state;
     }
 
     private boolean isTerminal(String state) {
         return STATE_ISSUED.equals(state) || STATE_ERROR.equals(state);
-    }
-
-    private String fetchRequestState(CloseableHttpClient client, Dataspace ds, String participantId, String holderPid) {
-        String url = ds.getIdentityHubUrl() + IDENTITY_API + "/" + participantId + "/credentials/request/" + holderPid;
-        HttpGet get = new HttpGet(url);
-        get.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getIdentityToken());
-        try (CloseableHttpResponse response = client.execute(get)) {
-            int code = response.getStatusLine().getStatusCode();
-            if (code == HttpStatus.SC_NOT_FOUND) {
-                return null;
-            }
-            String body = readBody(response);
-            if (code >= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-                log.warn("IdentityHub returned {} for credential request {}/{}: {}", code, participantId, holderPid, body);
-                return null;
-            }
-            JsonNode json = JsonMapper.builder().build().readTree(body);
-            return json.has("status") ? json.get("status").asString() : null;
-        } catch (IOException e) {
-            log.warn("Error fetching credential request {}/{}: {}", participantId, holderPid, e.getMessage());
-            return null;
-        }
-    }
-
-    private void submitRequest(CloseableHttpClient client, Dataspace ds, String participantId, String holderPid) {
-        String url = ds.getIdentityHubUrl() + IDENTITY_API + "/" + participantId + "/credentials/request";
-        String body = """
-                {"issuerDid":"%s","holderPid":"%s","credentials":[{"format":"%s","type":"%s","id":"%s"}]}"""
-                .formatted(ds.getIssuerDid(), holderPid, CREDENTIAL_FORMAT, CREDENTIAL_TYPE, ds.getCredentialDefinitionId());
-        HttpPost post = new HttpPost(url);
-        post.addHeader(HttpHeaders.AUTHORIZATION, BEARER + ds.getIdentityToken());
-        post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
-        executeWrite(client, post, "credential request " + holderPid + " for " + participantId);
     }
 
     private void sleep(long millis) {
@@ -334,48 +197,6 @@ public class DataspaceProvisioningService {
             throw XrdRuntimeException.systemException(INTERNAL_ERROR)
                     .cause(e)
                     .details("Interrupted while polling data space credential request")
-                    .build();
-        }
-    }
-
-    @SuppressWarnings("java:S4830") // co-located internal traffic to the data space components, addressed by service name
-    private CloseableHttpClient createHttpClient(Dataspace ds) {
-        try {
-            TrustManager trustAll = new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(X509Certificate[] chain, String authType) {
-                    // not used by a client
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] chain, String authType) {
-                    // co-located data space components are trusted
-                }
-
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[]{};
-                }
-            };
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{trustAll}, new SecureRandom());
-
-            int timeout = ds.getRequestTimeoutMillis();
-            RequestConfig requestConfig = RequestConfig.custom()
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout)
-                    .setSocketTimeout(timeout)
-                    .build();
-
-            return HttpClients.custom()
-                    .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE))
-                    .setDefaultRequestConfig(requestConfig)
-                    .disableAutomaticRetries()
-                    .build();
-        } catch (GeneralSecurityException e) {
-            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
-                    .cause(e)
-                    .details("Unable to initialize data space provisioning client")
                     .build();
         }
     }

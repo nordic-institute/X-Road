@@ -354,6 +354,8 @@ edc-spi-identityhub-participantcontext = { module = "org.eclipse.edc:participant
 edc-ih-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
 edc-spi-identityhub = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
+edc-spi-identityhub-vc = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
+edc-spi-identityhub-holdercredentialrequest = { module = "org.eclipse.edc:holder-credential-request-spi", version.ref = "edc" }
 edc-spi-identityhub-dcp = { module = "org.eclipse.edc:dcp-spi", version.ref = "edc" }
 edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 

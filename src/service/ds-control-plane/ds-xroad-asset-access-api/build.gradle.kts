@@ -16,6 +16,7 @@ dependencies {
 
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   implementation(project(":lib:rpc-core"))
+  implementation(project(":lib:bootstrap-edc-quarkus"))
 
   api(libs.edc.lib.controlplane.transform)
 

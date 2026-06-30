@@ -2743,6 +2743,28 @@ paths:
       summary: update the server address
       tags:
         - system
+  /system/dataspace-issuer-provisioning:
+    post:
+      operationId: provisionDataspaceIssuer
+      summary: provision the data space issuer
+      description: <h3>Administrator triggers data space issuer setup (issuer participant context, attestation and credential definitions) over X-Road gRPC. Idempotent - re-invoking tolerates already-existing definitions and reports the current status.</h3>
+      tags:
+        - system
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataspaceProvisioningStatus'
+          description: data space issuer provisioning status
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/status:
     get:
       operationId: getSystemStatus
@@ -4505,6 +4527,14 @@ components:
           $ref: '#/components/schemas/HighAvailabilityStatus'
         initialization_status:
           $ref: '#/components/schemas/InitializationStatus'
+      type: object
+    DataspaceProvisioningStatus:
+      description: aggregate status of data space issuer provisioning
+      properties:
+        status:
+          type: string
+          description: ISSUED when complete, PENDING while in progress
+          example: ISSUED
       type: object
     TimestampingService:
       allOf:
