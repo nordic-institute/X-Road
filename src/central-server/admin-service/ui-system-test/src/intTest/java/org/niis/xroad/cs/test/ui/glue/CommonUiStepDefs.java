@@ -29,8 +29,8 @@ import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.test.framework.core.ui.utils.SeleniumUtils;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v145.network.Network;
-import org.openqa.selenium.devtools.v145.network.model.ConnectionType;
+import org.openqa.selenium.devtools.v146.network.Network;
+import org.openqa.selenium.devtools.v146.network.model.ConnectionType;
 
 import java.util.Optional;
 
