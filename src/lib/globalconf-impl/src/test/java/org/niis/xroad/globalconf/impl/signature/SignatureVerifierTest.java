@@ -332,6 +332,8 @@ class SignatureVerifierTest {
     @Nested
     class NonBatchSignature {
         private static final String NON_BATCH_SIG = "src/test/signatures/non-batch-sig/signatures.xml";
+        private static final String NON_BATCH_SIG_MESSAGE_NOT_REFERENCED =
+                "src/test/signatures/non-batch-sig/signatures-message-not-referenced.xml";
         private static final Date VALIDATION_DATE = createDate(9, 6, 2024);
 
         static final ClientId DEV_CLIENT = ClientId.Conf.create("DEV", "COM", "4321");
@@ -368,6 +370,35 @@ class SignatureVerifierTest {
             assertThatThrownBy(() -> verifier.verify(DEV_CLIENT, VALIDATION_DATE))
                     .isInstanceOf(CodedException.class)
                     .hasMessageContaining(X_INVALID_SIGNATURE_VALUE);
+        }
+
+        @Test
+        void failOnPartNotCoveredBySignature() throws Exception {
+            byte[] injected = "attacker-injected-unsigned-content".getBytes(StandardCharsets.UTF_8);
+
+            List<MessagePart> hashes = new ArrayList<>();
+            hashes.add(new MessagePart(MESSAGE, SHA512, calculateDigest(SHA512, messageBytes), messageBytes));
+            hashes.add(new MessagePart(attachmentOfIdx(1), SHA512, calculateDigest(SHA512, attachmentBytes), null));
+            // attachment2 is not referenced by the signature
+            hashes.add(new MessagePart(attachmentOfIdx(2), SHA512, calculateDigest(SHA512, injected), null));
+
+            SignatureVerifier verifier = createSignatureVerifier(NON_BATCH_SIG);
+            verifier.addParts(hashes);
+
+            assertThatThrownBy(() -> verifier.verify(DEV_CLIENT, VALIDATION_DATE))
+                    .isInstanceOf(CodedException.class)
+                    .hasMessageContaining(X_MALFORMED_SIGNATURE)
+                    .hasMessageContaining(attachmentOfIdx(2));
+        }
+
+        @Test
+        void failOnMessageNotReferenced() throws Exception {
+            SignatureVerifier verifier = createSignatureVerifier(NON_BATCH_SIG_MESSAGE_NOT_REFERENCED);
+
+            assertThatThrownBy(() -> verifier.verify(DEV_CLIENT, VALIDATION_DATE))
+                    .isInstanceOf(CodedException.class)
+                    .hasMessageContaining(X_MALFORMED_SIGNATURE)
+                    .hasMessageContaining(MESSAGE);
         }
 
     }
