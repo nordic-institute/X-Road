@@ -327,6 +327,8 @@ class SignatureVerifierTest {
     @Nested
     class NonBatchSignature {
         private static final String NON_BATCH_SIG = "src/test/signatures/non-batch-sig/signatures.xml";
+        private static final String NON_BATCH_SIG_MESSAGE_NOT_REFERENCED =
+                "src/test/signatures/non-batch-sig/signatures-message-not-referenced.xml";
         private static final Date VALIDATION_DATE = createDate(9, 6, 2024);
 
         static final ClientId DEV_CLIENT = ClientId.Conf.create("DEV", "COM", "4321");
@@ -381,6 +383,16 @@ class SignatureVerifierTest {
                     .isInstanceOf(XrdRuntimeException.class)
                     .hasMessageContaining(MALFORMED_SIGNATURE.code())
                     .hasMessageContaining(attachmentOfIdx(2));
+        }
+
+        @Test
+        void failOnMessageNotReferenced() throws Exception {
+            SignatureVerifier verifier = createSignatureVerifier(NON_BATCH_SIG_MESSAGE_NOT_REFERENCED);
+
+            assertThatThrownBy(() -> verifier.verify(DEV_CLIENT, VALIDATION_DATE))
+                    .isInstanceOf(XrdRuntimeException.class)
+                    .hasMessageContaining(MALFORMED_SIGNATURE.code())
+                    .hasMessageContaining(MESSAGE);
         }
 
     }
