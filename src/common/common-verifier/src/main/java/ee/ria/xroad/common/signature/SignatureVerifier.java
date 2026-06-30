@@ -279,10 +279,13 @@ public class SignatureVerifier {
             verifySchema();
         }
 
-        // if this is a batch signature, verify the hash chain
+        // if this is a batch signature, verify the hash chain,
+        // otherwise ensure that the signature directly covers the message and every supplied part
         if (hashChainResult != null
                 && signature.references(SIG_HASH_CHAIN_RESULT)) {
             verifyHashChain();
+        } else {
+            verifyMessagePartsReferenced();
         }
 
         // proceed with verifying the signature
@@ -298,6 +301,20 @@ public class SignatureVerifier {
         Node signatureNode =
                 signature.getDocument().getDocumentElement().getFirstChild();
         SignatureSchemaValidator.validate(new DOMSource(signatureNode));
+    }
+
+    private void verifyMessagePartsReferenced() throws Exception {
+        if (!signature.references(MessageFileNames.MESSAGE)) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Signature does not reference '%s'", MessageFileNames.MESSAGE);
+        }
+
+        for (MessagePart part : parts) {
+            if (!signature.references(part.getName())) {
+                throw new CodedException(X_MALFORMED_SIGNATURE,
+                        "Message part '%s' is not covered by the signature", part.getName());
+            }
+        }
     }
 
     private void verifyHashChain() throws Exception {
