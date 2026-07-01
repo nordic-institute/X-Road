@@ -51,6 +51,7 @@ import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
 import java.io.IOException;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HTTP_METHOD;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
@@ -116,7 +117,7 @@ public class ClientSoapMessageHandler extends HandlerBase {
                 errorMessage = "Request processing error";
             } else {
                 errorMessage = "Request processing error (" + e.getDetails() + ")";
-                if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
+                if (!e.originatesFrom(ErrorOrigin.CLIENT) && !e.getCode().startsWith(SERVER_SERVERPROXY_X)) {
                     exception = e.withPrefix(SERVER_CLIENTPROXY_X);
                 }
             }

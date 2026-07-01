@@ -36,6 +36,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
@@ -58,33 +60,34 @@ class DspLegacyErrorMapperTest {
 
     static Stream<Arguments> dspToLegacyMappings() {
         return Stream.of(
-                Arguments.of(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
-                Arguments.of(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
-                Arguments.of(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
-                Arguments.of(DSP_ACQUISITION_FAILED, IO_ERROR),
-                Arguments.of(DSP_DATASET_NOT_FOUND, UNKNOWN_MEMBER),
-                Arguments.of(DSP_OFFERS_NOT_FOUND, UNKNOWN_MEMBER),
-                Arguments.of(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED),
-                Arguments.of(DSP_DATAADDRESS_INVALID, SERVICE_FAILED),
-                Arguments.of(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
-                Arguments.of(DSP_TRANSFER_FAILED, SERVICE_FAILED),
-                Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR)
+                Arguments.of(DSP_CATALOG_FETCH_FAILED, SERVER_SERVERPROXY_X, IO_ERROR),
+                Arguments.of(DSP_CATALOG_PARSE_FAILED, SERVER_SERVERPROXY_X, IO_ERROR),
+                Arguments.of(DSP_ACQUISITION_TIMEOUT, SERVER_SERVERPROXY_X, IO_ERROR),
+                Arguments.of(DSP_ACQUISITION_FAILED, SERVER_SERVERPROXY_X, IO_ERROR),
+                Arguments.of(DSP_DATASET_NOT_FOUND, SERVER_CLIENTPROXY_X, UNKNOWN_MEMBER),
+                Arguments.of(DSP_OFFERS_NOT_FOUND, SERVER_CLIENTPROXY_X, UNKNOWN_MEMBER),
+                Arguments.of(DSP_PULL_DISTRIBUTION_MISSING, SERVER_CLIENTPROXY_X, SERVICE_FAILED),
+                Arguments.of(DSP_DATAADDRESS_INVALID, SERVER_CLIENTPROXY_X, SERVICE_FAILED),
+                Arguments.of(DSP_NEGOTIATION_FAILED, SERVER_SERVERPROXY_X, SERVICE_FAILED),
+                Arguments.of(DSP_TRANSFER_FAILED, SERVER_SERVERPROXY_X, SERVICE_FAILED),
+                Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, SERVER_SERVERPROXY_X, INTERNAL_ERROR)
         );
     }
 
     @ParameterizedTest
     @MethodSource("dspToLegacyMappings")
-    void dspCodeMapsToExpectedLegacyCode(ErrorCode dspCode, ErrorCode expectedLegacy) {
+    void dspCodeMapsToExpectedLegacyCode(ErrorCode dspCode, String expectedPrefix, ErrorCode expectedLegacy) {
         var ex = dspExceptionWithDoublePrefix(dspCode);
 
         var result = DspLegacyErrorMapper.toLegacy(ex);
 
         assertThat(result.isCausedBy(expectedLegacy)).isTrue();
+        assertThat(result.getCode()).isEqualTo(expectedPrefix + "." + expectedLegacy.code());
     }
 
     @ParameterizedTest
     @MethodSource("dspToLegacyMappings")
-    void dspCodeOriginalCodePrependedToMetadata(ErrorCode dspCode, ErrorCode ignoredLegacy) {
+    void dspCodeOriginalCodePrependedToMetadata(ErrorCode dspCode) {
         var ex = dspExceptionWithDoublePrefix(dspCode, "existing-meta");
 
         var result = DspLegacyErrorMapper.toLegacy(ex);
@@ -96,7 +99,7 @@ class DspLegacyErrorMapperTest {
 
     @ParameterizedTest
     @MethodSource("dspToLegacyMappings")
-    void dspCodeOriginalMetadataOrderPreserved(ErrorCode dspCode, ErrorCode ignoredLegacy) {
+    void dspCodeOriginalMetadataOrderPreserved(ErrorCode dspCode) {
         var ex = dspExceptionWithDoublePrefix(dspCode, "meta-a", "meta-b");
 
         var result = DspLegacyErrorMapper.toLegacy(ex);
@@ -107,7 +110,7 @@ class DspLegacyErrorMapperTest {
 
     @ParameterizedTest
     @MethodSource("dspToLegacyMappings")
-    void dspCodeIdentifierAndDetailsSurviveMapping(ErrorCode dspCode, ErrorCode ignoredLegacy) {
+    void dspCodeIdentifierAndDetailsSurviveMapping(ErrorCode dspCode) {
         var doublePrefix = buildDoublePrefixException(dspCode, "some detail", "fixed-uuid");
 
         var result = DspLegacyErrorMapper.toLegacy(doublePrefix);

@@ -65,6 +65,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
@@ -127,7 +128,7 @@ public class ClientRestMessageHandler extends HandlerBase {
                 errorMessage = "Request processing error";
             } else {
                 errorMessage = "Request processing error (" + e.getDetails() + ")";
-                if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
+                if (!e.originatesFrom(ErrorOrigin.CLIENT) && !e.getCode().startsWith(SERVER_SERVERPROXY_X)) {
                     exception = e.withPrefix(SERVER_CLIENTPROXY_X);
                 }
             }

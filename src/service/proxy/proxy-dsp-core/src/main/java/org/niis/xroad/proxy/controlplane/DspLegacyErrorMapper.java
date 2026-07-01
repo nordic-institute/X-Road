@@ -27,6 +27,7 @@
 package org.niis.xroad.proxy.controlplane;
 
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.exception.DeviationBuilder;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
@@ -34,6 +35,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeExceptionBuilder;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static java.util.Map.entry;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
@@ -64,18 +67,19 @@ class DspLegacyErrorMapper {
 
     private static final String DATASPACE_SEGMENT = "dataspace.";
 
-    private static final Map<ErrorCode, ErrorCode> DSP_TO_LEGACY = Map.ofEntries(
-            entry(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
-            entry(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
-            entry(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
-            entry(DSP_ACQUISITION_FAILED, IO_ERROR),
-            entry(DSP_DATASET_NOT_FOUND, UNKNOWN_MEMBER),
-            entry(DSP_OFFERS_NOT_FOUND, UNKNOWN_MEMBER),
-            entry(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED),
-            entry(DSP_DATAADDRESS_INVALID, SERVICE_FAILED),
-            entry(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
-            entry(DSP_TRANSFER_FAILED, SERVICE_FAILED),
-            entry(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR));
+    private static final Map<ErrorCode, DeviationBuilder.ErrorDeviationBuilder> DSP_TO_LEGACY = Map.ofEntries(
+            entry(DSP_CATALOG_FETCH_FAILED, combineWithOriginPrefix(SERVER_SERVERPROXY_X, IO_ERROR)),
+            entry(DSP_CATALOG_PARSE_FAILED, combineWithOriginPrefix(SERVER_SERVERPROXY_X, IO_ERROR)),
+            entry(DSP_ACQUISITION_TIMEOUT, combineWithOriginPrefix(SERVER_SERVERPROXY_X, IO_ERROR)),
+            entry(DSP_ACQUISITION_FAILED, combineWithOriginPrefix(SERVER_SERVERPROXY_X, IO_ERROR)),
+            entry(DSP_DATASET_NOT_FOUND, combineWithOriginPrefix(SERVER_CLIENTPROXY_X, UNKNOWN_MEMBER)),
+            entry(DSP_OFFERS_NOT_FOUND, combineWithOriginPrefix(SERVER_CLIENTPROXY_X, UNKNOWN_MEMBER)),
+            entry(DSP_PULL_DISTRIBUTION_MISSING, combineWithOriginPrefix(SERVER_CLIENTPROXY_X, SERVICE_FAILED)),
+            entry(DSP_DATAADDRESS_INVALID, combineWithOriginPrefix(SERVER_CLIENTPROXY_X, SERVICE_FAILED)),
+            entry(DSP_NEGOTIATION_FAILED, combineWithOriginPrefix(SERVER_SERVERPROXY_X, SERVICE_FAILED)),
+            entry(DSP_TRANSFER_FAILED, combineWithOriginPrefix(SERVER_SERVERPROXY_X, SERVICE_FAILED)),
+            entry(DSP_PARTICIPANT_CONTEXT_FAILED, combineWithOriginPrefix(SERVER_SERVERPROXY_X, INTERNAL_ERROR))
+    );
 
     static XrdRuntimeException toLegacy(XrdRuntimeException ex) {
         var dspCode = extractDspCode(ex.getErrorCode());
@@ -104,5 +108,9 @@ class DspLegacyErrorMapper {
     private static String extractDspCode(String errorCode) {
         int idx = errorCode.lastIndexOf(DATASPACE_SEGMENT);
         return idx < 0 ? null : errorCode.substring(idx + DATASPACE_SEGMENT.length());
+    }
+
+    private static DeviationBuilder.ErrorDeviationBuilder combineWithOriginPrefix(String prefix, ErrorCode errorCode) {
+        return ErrorCode.withCode(prefix + "." + errorCode.code());
     }
 }

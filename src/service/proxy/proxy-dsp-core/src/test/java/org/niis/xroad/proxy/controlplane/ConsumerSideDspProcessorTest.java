@@ -231,8 +231,10 @@ class ConsumerSideDspProcessorTest {
         // last — either A or B.
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()))
+                .satisfies(ex -> {
+                    assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(((XrdRuntimeException) ex).getCode()).isEqualTo("server.serverproxy.io_error");
+                })
                 .hasMessageContaining("candidate security servers failed")
                 .satisfies(ex -> assertThat(ex.getCause()).isIn(failureA, failureB));
     }
@@ -260,8 +262,10 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()))
+                .satisfies(ex -> {
+                    assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(((XrdRuntimeException) ex).getCode()).isEqualTo("server.serverproxy.io_error");
+                })
                 .hasMessageContaining("candidate security servers failed");
 
         verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
@@ -332,8 +336,10 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()));
+                .satisfies(ex -> {
+                    assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(((XrdRuntimeException) ex).getCode()).isEqualTo("server.serverproxy.io_error");
+                });
     }
 
     @Test
@@ -343,8 +349,10 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.UNKNOWN_MEMBER.code()));
+                .satisfies(ex -> {
+                    assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue();
+                    assertThat(((XrdRuntimeException) ex).getCode()).isEqualTo("server.clientproxy.unknown_member");
+                });
 
         verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
     }
@@ -360,8 +368,10 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()));
+                .satisfies(ex -> {
+                    assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(((XrdRuntimeException) ex).getCode()).isEqualTo("server.serverproxy.io_error");
+                });
     }
 
     @Test
