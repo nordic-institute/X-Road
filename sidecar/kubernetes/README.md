@@ -4,11 +4,18 @@ This directory contains Kubernetes manifests for deploying the X-Road Security S
 
 ## Deployment Variants
 
-| Manifest | Database | Secrets | Use Case |
-|----------|----------|---------|----------|
-| `security-server-sidecar.yaml` | Local (embedded) | Inline values | Development / testing |
-| `security-server-sidecar-slim.yaml` | Local (embedded) | Inline values | Development / testing (slim image) |
-| `security-server-sidecar-external-db.yaml` | External (RDS, Cloud SQL, etc.) | Kubernetes Secrets | Production |
+| Manifest | Image | Database | Secrets | Use Case |
+|----------|-------|----------|---------|----------|
+| `security-server-sidecar-local.yaml` | Configurable (`{{IMAGE_TAG}}`) | External (template placeholders) | Inline values | CI / automated testing with `.yaml.template` scripts |
+| `security-server-sidecar.yaml` | Full (`8.0.0`) | External (template placeholders) | Inline values | Development / testing (full image) |
+| `security-server-sidecar-slim.yaml` | Slim (`8.0.0-slim`) | External (template placeholders) | Inline values | Development / testing (slim image) |
+| `security-server-sidecar-external-db.yaml` | Full | External (RDS, Cloud SQL, etc.) | Kubernetes Secrets | Production |
+
+> **Note:** The `security-server-sidecar.yaml`, `security-server-sidecar-slim.yaml`, and
+> `security-server-sidecar-local.yaml` manifests contain `{{...}}` template placeholders
+> that must be replaced before deployment — either manually or using the companion
+> `.yaml.template` scripts. For production use with proper secrets management, use
+> `security-server-sidecar-external-db.yaml`.
 
 ## Production Deployment with External Database
 
@@ -150,6 +157,7 @@ kubectl rollout status deployment/security-server-sidecar --timeout=300s
 
 ## Other Files
 
-- `security-server-sidecar-local.yaml` — Local database variant (for development)
+- `security-server-sidecar.yaml.template` — Shell script to render `security-server-sidecar.yaml` with provided values
+- `security-server-sidecar-slim.yaml.template` — Shell script to render the slim variant with provided values
 - `grant-user-access-to-cluster.sh` — Helper script for cluster RBAC
 - `testRequest.xml` — Sample X-Road SOAP request for testing
