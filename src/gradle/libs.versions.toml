@@ -29,6 +29,7 @@ archUnitPlugin = "4.0.0"
 checkstyle = "10.22.0"
 jacoco = "0.8.12"
 owaspDependencyCheck = "12.2.2"
+tomcat = "10.1.55"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -132,6 +133,10 @@ lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding"
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
+
+tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
+tomcat-embed-websocket = { module = "org.apache.tomcat.embed:tomcat-embed-websocket", version.ref = "tomcat" }
+tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.ref = "tomcat" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.1" }
