@@ -1,5 +1,6 @@
 name: Build and Test
 on:
+  workflow_dispatch:
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
@@ -94,6 +95,21 @@ jobs:
       sha: ${{ github.sha }}
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
+  # Spike: provisions the native-lxd-stack from the packages built above and
+  # reports per-phase timing. Runs on PRs and manual dispatch to gather timing
+  # data. NOTE: continue-on-error is unsupported on reusable-workflow caller
+  # jobs, so a failed/slow provision WILL mark the PR checks red — narrow this
+  # `if` back to workflow_dispatch once timing is captured.
+  provision-lxd:
+    name: lxd-provision
+    needs: build-and-package
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/_provision-lxd.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
 
   build-summary:
     name: Build Summary

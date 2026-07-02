@@ -1,0 +1,152 @@
+name: Provision LXD
+
+# Spike workflow: provision the native-lxd-stack environment from pre-built
+# DEB/RPM packages on a GitHub-hosted runner and report how long each phase
+# takes. It does NOT run the e2e suite — its only output is a timing breakdown
+# that tells us whether LXD provisioning in CI is fast enough to be worth
+# wiring the e2e run on top of it.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+
+jobs:
+  provision-lxd:
+    name: lxd-provision
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      ANSIBLE_CONFIG: config/ansible.cfg
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Download resolute (Ubuntu 26.04) packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-ubuntu26.04
+          path: deployment/native-packages/build/ubuntu26.04
+
+      - name: Download noble (Ubuntu 24.04) packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-ubuntu24.04
+          path: deployment/native-packages/build/ubuntu24.04
+
+      - name: Download RHEL 9 packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-rhel9
+          path: deployment/native-packages/build/rhel/9
+
+      - name: Install Ansible and LXD tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible jq
+          ansible-galaxy collection install community.general ansible.posix
+          # LXD ships preinstalled via snap on ubuntu-24.04 runners; ensure it is ready.
+          sudo snap install lxd 2>/dev/null || true
+          sudo lxd waitready --timeout 60
+
+      # lxdbr0 must sit on 10.10.10.1/24 — that is the dnsmasq address the
+      # native-lxd-stack networking scripts and *.lxd resolution assume.
+      - name: Initialize LXD
+        run: |
+          start=$(date +%s)
+          cat <<'EOF' | sudo lxd init --preseed
+          config: {}
+          networks:
+          - name: lxdbr0
+            type: bridge
+            config:
+              ipv4.address: 10.10.10.1/24
+              ipv4.nat: "true"
+              ipv6.address: none
+          storage_pools:
+          - name: default
+            driver: dir
+          profiles:
+          - name: default
+            devices:
+              eth0:
+                name: eth0
+                network: lxdbr0
+                type: nic
+              root:
+                path: /
+                pool: default
+                type: disk
+          EOF
+          sudo usermod -aG lxd "$USER"
+          echo "INIT_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Configure *.lxd host DNS
+        working-directory: ./development/native-lxd-stack
+        continue-on-error: true
+        run: sg lxd -c "./scripts/setup-linux-net.sh apply"
+
+      - name: Cache base images
+        working-directory: ./development/native-lxd-stack
+        run: |
+          start=$(date +%s)
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo"
+          echo "CACHE_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Provision containers
+        working-directory: ./development/native-lxd-stack
+        run: |
+          start=$(date +%s)
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false"
+          echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Initialize federation (hurl)
+        working-directory: ./development/native-lxd-stack
+        run: |
+          start=$(date +%s)
+          sg lxd -c "lxc exec xrd-hurl -- bash -c 'cd /opt/hurl && ./run-hurl.sh'"
+          echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Timing summary
+        if: always()
+        run: |
+          {
+            echo "# LXD provisioning timing"
+            echo ""
+            echo "| Phase | Duration |"
+            echo "|-------|----------|"
+            echo "| LXD init | ${INIT_SECS:-n/a}s |"
+            echo "| Cache base images | ${CACHE_SECS:-n/a}s |"
+            echo "| Provision containers | ${PROVISION_SECS:-n/a}s |"
+            echo "| Federation init (hurl) | ${HURL_SECS:-n/a}s |"
+            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} ))
+            echo "| **Total** | **${total}s** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Container state
+        if: always()
+        run: sg lxd -c "lxc list" || true
+
+      - name: Collect container logs
+        if: always()
+        run: |
+          mkdir -p lxd-logs
+          for c in $(sg lxd -c "lxc list -c n --format csv" 2>/dev/null); do
+            sg lxd -c "lxc exec $c -- journalctl --no-pager" > "lxd-logs/$c.log" 2>&1 || true
+          done
+
+      - name: Upload container logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-provision-logs-${{ github.run_number }}
+          path: lxd-logs/
+          if-no-files-found: ignore

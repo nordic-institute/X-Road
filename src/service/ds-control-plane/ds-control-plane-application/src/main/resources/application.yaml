@@ -62,6 +62,8 @@ xroad:
 
 edc:
   hostname: ${HOSTNAME:localhost}
+  encryption:
+    strict: false # no AES key is provisioned; participant config private entries are stored unencrypted
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"

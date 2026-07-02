@@ -248,10 +248,17 @@ jobs:
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: |
-          ./build_packages.sh -d -r rpm-el9 --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
+        run: ./build_packages.sh -d -r rpm-el9 --package-only
+
+      - name: Upload RHEL9 packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-packages-rhel9
+          path: deployment/native-packages/build/rhel/9
+          compression-level: '0'
+
+      - name: Free RHEL9 packages
+        run: rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
 
       - name: Build RHEL10 packages
         working-directory: ./src
@@ -268,10 +275,17 @@ jobs:
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: |
-          ./build_packages.sh -d -r noble --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
+        run: ./build_packages.sh -d -r noble --package-only
+
+      - name: Upload Ubuntu 24.04 (Noble) packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-packages-ubuntu24.04
+          path: deployment/native-packages/build/ubuntu24.04
+          compression-level: '0'
+
+      - name: Free Ubuntu 24.04 (Noble) packages
+        run: rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
 
       - name: Build Ubuntu 26.04 (Resolute) packages
         working-directory: ./src
@@ -279,6 +293,13 @@ jobs:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: ./build_packages.sh -d -r resolute --package-only
+
+      - name: Upload Ubuntu 26.04 (Resolute) packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-packages-ubuntu26.04
+          path: deployment/native-packages/build/ubuntu26.04
+          compression-level: '0'
 
       - name: Build and push Central Server dev image
         working-directory: ./development/docker/central-server

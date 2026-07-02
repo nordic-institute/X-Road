@@ -56,6 +56,8 @@ web:
 
 edc:
   hostname: ${HOSTNAME}
+  encryption:
+    strict: false # no AES key is provisioned; participant config private entries are stored unencrypted
   issuance:
     anonymous:
       allowed: true # Bypass mandatory creation of a holder as X-Road credential issuance trust model doesn't require it
