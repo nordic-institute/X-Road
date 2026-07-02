@@ -1,5 +1,13 @@
 # Change Log
 
+## 7.8.2 - 2026-07-02
+- XRDDEV-3236: Security Server fails to handle missing TSP cost type from older Central Server global configuration 
+- XRDDEV-3237: As a Security Manager I want that the Apache CFX library is updated to version 4.2.2 so that the version that's used doesn't include any known critical vulnerabilities 
+- XRDDEV-3238: As a Security Manager I want to fix the bug bounty finding so that the implementation is secure 
+- XRDDEV-3244: As a Security Manager I want to fix the bug bounty finding so that the implementation is secure 
+- XRDDEV-3256: As a Security Manager I want to fix a security issue so that the implementation is secure 
+- XRDDEV-3259: As a Security Manager I want to fix a security issue so that the implementation is secure
+
 ## 7.8.1 - 2026-06-16
 - XRDDEV-3071: As a Developer I want to review our rate-limiting functionality to make sure it works
 - XRDDEV-3108: Security Server: proxy_ui_api_access.log not created in version 7.8.0
