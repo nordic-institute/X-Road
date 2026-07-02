@@ -34,7 +34,7 @@ import io.restassured.response.Response;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.e2e.E2eEnvironment;
 import org.niis.xroad.opmonitor.core.OperationalDataRecord;
 import org.niis.xroad.opmonitor.core.OperationalDataRecords;
 import org.w3c.dom.Element;
@@ -68,7 +68,7 @@ public class OpMonitorStepDefs extends BaseE2EStepDefs {
     @Step("getSecurityServerOperationalData request is sent to {string}")
     public void sendGetSecurityServerOperationalData(String env) {
         Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
-        var mapping = envSetup.getContainerMapping(env, "proxy", EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, "proxy", E2eEnvironment.Port.PROXY);
         lastOpMonitorResponse = given()
                 .header("Content-Type", "text/xml")
                 .body(buildOperationalDataRequestBody())
@@ -78,7 +78,7 @@ public class OpMonitorStepDefs extends BaseE2EStepDefs {
     @Step("getSecurityServerHealthData request is sent to {string}")
     public void sendGetSecurityServerHealthData(String env) {
         Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
-        var mapping = envSetup.getContainerMapping(env, "proxy", EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, "proxy", E2eEnvironment.Port.PROXY);
         lastOpMonitorResponse = given()
                 .header("Content-Type", "text/xml")
                 .body(buildHealthDataRequestBody())

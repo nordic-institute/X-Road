@@ -38,4 +38,10 @@ public interface ComposeContainerOps {
      * Returns the running container for the named service within the given environment.
      */
     Optional<ContainerState> getContainerByServiceName(String env, String serviceName);
+
+    /**
+     * Runs an SQL statement against the messagelog database of the given environment
+     * and returns psql's unaligned tuple-only output.
+     */
+    String execMessagelogSql(String env, String sql);
 }

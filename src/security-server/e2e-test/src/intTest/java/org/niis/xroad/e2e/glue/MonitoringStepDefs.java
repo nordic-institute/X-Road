@@ -30,8 +30,9 @@ import io.restassured.response.Response;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.niis.xroad.e2e.EnvSetup;
-import org.niis.xroad.e2e.database.TestDatabaseService;
+import org.niis.xroad.e2e.ComposeContainerOps;
+import org.niis.xroad.e2e.E2eEnvironment;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.xml.sax.InputSource;
@@ -40,8 +41,6 @@ import javax.xml.xpath.XPathFactory;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.RestAssured.given;
@@ -52,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Autowired
-    private TestDatabaseService testDatabaseService;
+    private ObjectProvider<ComposeContainerOps> containerOpsProvider;
 
     private Response lastProxymonitorResponse;
 
@@ -63,7 +62,7 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
             case "ss1" -> "DEV:COM:4321";
             default -> throw new IllegalArgumentException("Unknown env for owner client: " + env);
         };
-        var mapping = envSetup.getContainerMapping(env, "ui", EnvSetup.Port.UI);
+        var mapping = envSetup.getContainerMapping(env, "ui", E2eEnvironment.Port.UI);
         var baseUrl = "https://%s:%s".formatted(mapping.host(), mapping.port());
 
         var loginResponse = given()
@@ -90,7 +89,7 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Step("proxymonitor getSecurityServerMetrics request is sent to {string} with queryId {string}")
     public void sendProxymonitorRequest(String env, String queryId) {
-        var mapping = envSetup.getContainerMapping(env, "proxy", EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, "proxy", E2eEnvironment.Port.PROXY);
         lastProxymonitorResponse = given()
                 .header("Content-Type", "text/xml")
                 .body(buildMetricsRequestBody(queryId, null))
@@ -99,7 +98,7 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Step("proxymonitor getSecurityServerMetrics request for metric {string} is sent to {string} with queryId {string}")
     public void sendProxymonitorRequestForMetric(String metricName, String env, String queryId) {
-        var mapping = envSetup.getContainerMapping(env, "proxy", EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, "proxy", E2eEnvironment.Port.PROXY);
         lastProxymonitorResponse = given()
                 .header("Content-Type", "text/xml")
                 .body(buildMetricsRequestBody(queryId, metricName))
@@ -128,38 +127,28 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Step("{string} messagelog contains {int} encrypted entries for queryId {string}")
     public void assertMessagelogEncryptedEntries(String env, int expectedCount, String queryId) {
-        var recordsRef = new AtomicReference<List<Map<String, Object>>>(List.of());
+        var sql = ("SELECT count(*), count(*) FILTER (WHERE keyid IS NOT NULL AND message IS NULL) "
+                + "FROM logrecord WHERE queryid = '%s'").formatted(queryId);
+        var counts = new AtomicReference<>(new int[]{0, 0});
         Awaitility.await()
                 .pollDelay(Duration.ofSeconds(1))
                 .pollInterval(Duration.ofSeconds(2))
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(60))
+                .ignoreExceptions()
                 .until(() -> {
-                    var rows = testDatabaseService.getMessagelogTemplate(env)
-                            .queryForList(
-                                    "SELECT id, keyid, message FROM logrecord WHERE queryid = :queryId",
-                                    Map.of("queryId", queryId));
-                    recordsRef.set(rows);
-                    return rows.size() >= expectedCount;
+                    var parts = containerOpsProvider.getObject().execMessagelogSql(env, sql).split("\\|");
+                    counts.set(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+                    return counts.get()[1] >= expectedCount;
                 });
 
-        var records = recordsRef.get();
-        assertThat(records)
-                .as("logrecord rows for queryId %s", queryId)
-                .hasSize(expectedCount);
-
-        for (Map<String, Object> record : records) {
-            assertThat(record.get("keyid"))
-                    .as("logrecord %s: keyid (encrypted)", record.get("id"))
-                    .isNotNull();
-            assertThat(record.get("message"))
-                    .as("logrecord %s: message (offloaded to encrypted archive)", record.get("id"))
-                    .isNull();
-        }
+        var result = counts.get();
+        assertThat(result[0]).as("logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);
+        assertThat(result[1]).as("encrypted logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);
     }
 
     @Step("REST request targeted at unsaved {string} API endpoint is attempted on {string} {string}")
     public void attemptUnsavedRestEndpoint(String apiPath, String env, String service) {
-        var mapping = envSetup.getContainerMapping(env, service, EnvSetup.Port.PROXY);
+        var mapping = envSetup.getContainerMapping(env, service, E2eEnvironment.Port.PROXY);
         try {
             given()
                     .header("Content-Type", "application/json")
