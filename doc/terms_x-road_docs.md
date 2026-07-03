@@ -362,6 +362,10 @@ Participant.
 
 In X-Road context, a Connector Code replaces the concept previously known as a Security Server Code.
 
+#### Formal Structure
+
+Connector Identifier = Participant Identifier + Connector Code
+
 ## 8 Technical Terms
 
 **CA** -- Certification Authority\
