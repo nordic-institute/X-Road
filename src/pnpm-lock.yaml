@@ -105,8 +105,8 @@ importers:
         specifier: ^1.101.0
         version: 1.101.0
       sass-loader:
-        specifier: ^16.0.8
-        version: 16.0.8(sass@1.101.0)
+        specifier: ^17.0.0
+        version: 17.0.0(sass@1.101.0)
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -2398,9 +2398,6 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  neo-async@2.6.2:
-    resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
-
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
@@ -2709,19 +2706,16 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  sass-loader@16.0.8:
-    resolution: {integrity: sha512-hcov4ZwZJIGbEuyNr9EmiTmZueyrxSToE6GOzoZnq5JM7ecRO7ttyvilPn+VmRsqiP16+VYZzVnGZj/hzZgKBA==}
-    engines: {node: '>= 18.12.0'}
+  sass-loader@17.0.0:
+    resolution: {integrity: sha512-0Ybm8ohBQ9LcrycVrFQp/KQBNX5a3Wda9/smS0mE/xLffzEnwvV8nykOzrbiSWNzTE3IB/jiXx8O4QmDPG2+Gw==}
+    engines: {node: '>= 22.11.0'}
     peerDependencies:
       '@rspack/core': 0.x || ^1.0.0 || ^2.0.0-0
-      node-sass: ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
       sass: ^1.3.0
       sass-embedded: '*'
       webpack: ^5.0.0
     peerDependenciesMeta:
       '@rspack/core':
-        optional: true
-      node-sass:
         optional: true
       sass:
         optional: true
@@ -5512,8 +5506,6 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  neo-async@2.6.2: {}
-
   node-addon-api@7.1.1:
     optional: true
 
@@ -5810,9 +5802,7 @@ snapshots:
   safer-buffer@2.1.2:
     optional: true
 
-  sass-loader@16.0.8(sass@1.101.0):
-    dependencies:
-      neo-async: 2.6.2
+  sass-loader@17.0.0(sass@1.101.0):
     optionalDependencies:
       sass: 1.101.0
 
