@@ -89,6 +89,16 @@ jobs:
           sudo usermod -aG lxd "$USER"
           echo "INIT_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      # Docker on the hosted runner sets the iptables FORWARD policy to DROP,
+      # which kills all egress from lxdbr0 containers (DHCP/DNS still work —
+      # they are host INPUT, not forwarded). Let bridge traffic through.
+      - name: Allow LXD egress past Docker's FORWARD DROP policy
+        run: |
+          sudo iptables -S FORWARD | head -3
+          sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT \
+            && sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT \
+            || sudo iptables -P FORWARD ACCEPT
+
       - name: Configure *.lxd host DNS
         working-directory: ./development/native-lxd-stack
         continue-on-error: true
