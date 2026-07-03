@@ -123,6 +123,7 @@ commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.20.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.21.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
+commons-fileupload = { module = "commons-fileupload:commons-fileupload", version = "1.6.0" }
 
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swaggerParser" }
 swagger-parserV3 = { module = "io.swagger.parser.v3:swagger-parser-v3", version.ref = "swaggerParser" }
