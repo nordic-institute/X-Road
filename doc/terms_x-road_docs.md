@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 0.11  
+Version: 0.12  
 Doc. ID:  TA-TERMS
 
 ## Version history
@@ -20,6 +20,7 @@ Doc. ID:  TA-TERMS
 | 17.04.2023 | 0.9     | Remove central services support                                                                                                                                  | Justas Samuolis  |
 | 11.11.2025 | 0.10    | Drop JMX                                                                                                                                                         | Justas Samuolis  |
 | 27.02.2026 | 0.11    | Dataspace-aligned terminology, simplified model                                                                                                                  | Petteri Kivimäki |
+| 03.07.2026 | 0.12    | Rename Participant Agent to Connector; add Decentralized Claims Protocol                                                                                         | Petteri Kivimäki |
 ## Table of Contents
 
 <!-- toc -->
@@ -28,7 +29,7 @@ Doc. ID:  TA-TERMS
 - [1 Dataspace](#1-dataspace)
 - [2 Governance and Roles](#2-governance-and-roles)
 - [3 Participants of the Dataspace](#3-participants-of-the-dataspace)
-- [4 Trust Services](4#-trust-services)
+- [4 Trust Services](#4-trust-services)
 - [5 Data Sharing Concepts](#5-data-sharing-concepts)
 - [6 Technical Components](#6-technical-components)
 - [7 Identifier Structure](#7-identifier-structure)
@@ -38,8 +39,8 @@ Doc. ID:  TA-TERMS
 
 ## License
 
-This document is licensed under the Creative Commons Attribution-ShareAlike 
-3.0 Unported License. To view a copy of this license, 
+This document is licensed under the Creative Commons Attribution-ShareAlike
+3.0 Unported License. To view a copy of this license,
 visit http://creativecommons.org/licenses/by-sa/3.0/
 
 ## 1 Dataspace
@@ -80,8 +81,8 @@ Dataspace governance operates.
 
 ### Trust Framework
 
-A composition of policies, rules, standards, and procedures designed 
-for trust decisions in Dataspaces based on assurances. Trust Framework 
+A composition of policies, rules, standards, and procedures designed
+for trust decisions in Dataspaces based on assurances. Trust Framework
 is part of the Dataspace Governance Framework.
 
 ## 3 Participants of the Dataspace
@@ -108,19 +109,19 @@ A Participant that requests access to an offered Dataset.
 
 ## 4 Trust Services
 
-Trust Services provide cryptographic assurance mechanisms that support 
+Trust Services provide cryptographic assurance mechanisms that support
 authentication, integrity, and non-repudiation within the Dataspace.
 
 ### Trust Anchor
 
-A Trust Anchor is an entity accredited by the Dataspace Governance Authority 
-to formally confirm that certain requirements, properties, or conditions 
+A Trust Anchor is an entity accredited by the Dataspace Governance Authority
+to formally confirm that certain requirements, properties, or conditions
 are met.
 
-Trust Anchors issue attestations that other Participants in the Dataspace 
+Trust Anchors issue attestations that other Participants in the Dataspace
 can rely on as trustworthy statements about specific claims.
 
-A Trust Anchor may be a Certificate Authority (CA) or another approved 
+A Trust Anchor may be a Certificate Authority (CA) or another approved
 authority authorised to issue such attestations.
 
 ### Certification Authority (CA)
@@ -132,21 +133,21 @@ enables verification of authenticity and integrity.
 
 ### Approved Certification Service Provider
 
-A Certification Authority approved by the Dataspace Governance Authority 
+A Certification Authority approved by the Dataspace Governance Authority
 to issue certificates used within the Dataspace.
 
 An Approved Certification Service Provider may provide:
 
-- Authentication certificates for Participant Agents
+- Authentication certificates for Connectors
 - Sign certificates for Participants
 - Certificate status validation services (OCSP)
 
-Within X-Road, an Approved Certification Service Provider acts as a Trust Anchor. It 
+Within X-Road, an Approved Certification Service Provider acts as a Trust Anchor. It
 may be a Root CA or an intermediate CA.
 
 ### Validation service (OCSP)
 
-A service that provides real-time validation of the status of digital 
+A service that provides real-time validation of the status of digital
 certificates. It confirms whether a certificate is valid, revoked, or expired.
 
 The service is provided by an Approved Certification Service Provider.
@@ -155,20 +156,20 @@ The service is provided by an Approved Certification Service Provider.
 
 An entity that issues cryptographic timestamps.
 
-Timestamps provide verifiable proof that specific data existed at 
+Timestamps provide verifiable proof that specific data existed at
 a certain point in time and prevent backdating.
 
 ### Approved Timestamp Service Provider
 
-A Timestamping Authority approved by the Dataspace Governance Authority 
+A Timestamping Authority approved by the Dataspace Governance Authority
 to provide timestamp services within the Dataspace.
 
 Within X-Road, an Approved Timestamping Authority acts as a Trust Anchor.
 
 ### Timestamp
 
-Data in electronic form that binds other data to a particular time, 
-establishing evidence that the bound data existed at that time (EU No 910/2014).
+Data in electronic form that binds other data to a particular time,
+establishing evidence that the bound data existed at that time (EU No 910/2014).
 
 ## 5 Data Sharing Concepts
 
@@ -205,7 +206,16 @@ under an Agreement.
 ### Dataspace Protocol
 
 A set of messages and message sequences enabling interaction between
-Participant Agents in a Dataspace.
+Connectors in a Dataspace.
+
+### Decentralized Claims Protocol
+
+A protocol that operates as an overlay to the Dataspace Protocol for
+conveying Participant identities and verifiable credentials, and for
+establishing trust in a decentralized way.
+
+It supports issuing, storing and presenting Verifiable Credentials using
+multiple trust anchors, without relying on third-party verification.
 
 ### Data Sharing Contract
 
@@ -214,26 +224,26 @@ terms and conditions for data sharing.
 
 ## 6 Technical Components
 
-### Participant Agent
+### Connector
 
 A technical system that performs operations and interactions in a
 Dataspace on behalf of a Participant.
 
-A Participant Agent:
+A Connector:
 
-- Implements Dataspace Protocols
+- Implements the Dataspace Protocol (DSP) and Decentralized Claims Protocol (DCP)
 - Manages Contract Negotiation and Transfer Processes
 - Enables Dataset sharing
 
-The term Connector may be used as an equivalent term in Dataspace
-Protocol contexts.
+In the Dataspace Protocol, a Connector is a Participant Agent that performs
+Contract Negotiation and Transfer Process operations.
 
-In X-Road context, a Participant Agent replaces the component previously known as a Security Server.
+In X-Road context, a Connector replaces the component previously known as a Security Server.
 
 ### Registry
 
 A system that maintains the authoritative state of Participants and
-their Participant Agents within a Dataspace.
+their Connectors within a Dataspace.
 
 In X-Road context, a Registry replaces the component previously known as a Central Server.
 
@@ -245,15 +255,15 @@ In X-Road context, a Registry Proxy replaces the component previously known as a
 
 ### Information System
 
-A technical system operated by a Participant that processes, stores, 
+A technical system operated by a Participant that processes, stores,
 or manages data and supports the Participant’s activities.
 
-An Information System may act as a Provider, a Consumer, or both within 
-a Dataspace by exposing or consuming Datasets through one or more 
+An Information System may act as a Provider, a Consumer, or both within
+a Dataspace by exposing or consuming Datasets through one or more
 Subsystems.
 
-An Information System may consist of multiple technical components 
-and may expose one or more Subsystems that are independently identifiable 
+An Information System may consist of multiple technical components
+and may expose one or more Subsystems that are independently identifiable
 within a Dataspace.
 
 #### Subsystem
@@ -261,7 +271,7 @@ within a Dataspace.
 A logical part of a Participant's information system that is
 independently identifiable within the Dataspace. A Subsystem must
 be registered in the Dataspace Registry and is used as a client
-on a Participant Agent to consume and/or provide Datasets.
+on a Connector to consume and/or provide Datasets.
 
 Subsystem is an X-Road-specific concept and has no direct dataspace
 equivalent.
@@ -333,24 +343,24 @@ A code uniquely identifying a Subsystem within a Participant.
 
 Subsystem Identifier = Participant Identifier + Subsystem Code
 
-### Participant Agent Identifier
+### Connector Identifier
 
-Uniquely identifies a Participant Agent within a Dataspace.
+Uniquely identifies a Connector within a Dataspace.
 
 It consists of:
 
 - Participant Identifier
-- Agent Code
+- Connector Code
 
-In X-Road context, a Participant Agent Identifier replaces the 
+In X-Road context, a Connector Identifier replaces the
 concept previously known as a Security Server Identifier.
 
-#### Agent Code
+#### Connector Code
 
-A code uniquely identifying a Participant Agent under a specific
+A code uniquely identifying a Connector under a specific
 Participant.
 
-In X-Road context, an Agent Code  replaces the concept previously known as a Security Server Code.
+In X-Road context, a Connector Code replaces the concept previously known as a Security Server Code.
 
 ## 8 Technical Terms
 
