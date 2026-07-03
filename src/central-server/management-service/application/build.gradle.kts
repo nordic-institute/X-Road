@@ -25,6 +25,7 @@ tasks.bootJar {
 
 dependencies {
   implementation(platform(libs.springCloud.bom))
+  implementation(enforcedPlatform(libs.jetty.bom))
 
   implementation(project(":central-server:management-service:core")) {
     exclude(module = "spring-boot-starter-tomcat")

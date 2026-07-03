@@ -6,7 +6,7 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.33"
-jetty = "12.0.27"
+jetty = "12.0.33"
 jaxb = "4.0.5"
 hibernate = "6.6.13.Final"
 mapstruct = "1.6.3"
@@ -35,6 +35,7 @@ tomcat = "10.1.55"
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
 metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
 
+jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version.ref = "jetty" }
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
@@ -140,7 +141,7 @@ tomcat-embed-el = { module = "org.apache.tomcat.embed:tomcat-embed-el", version.
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.1" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.7" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.11" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.32.0" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
