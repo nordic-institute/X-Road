@@ -1,10 +1,14 @@
-name: Provision LXD
+name: LXD e2e
 
-# Spike workflow: provision the native-lxd-stack environment from pre-built
-# DEB/RPM packages on a GitHub-hosted runner and report how long each phase
-# takes. It does NOT run the e2e suite — its only output is a timing breakdown
-# that tells us whether LXD provisioning in CI is fast enough to be worth
-# wiring the e2e run on top of it.
+# Provisions the native-lxd-stack from pre-built DEB/RPM package artifacts,
+# bootstraps the federation via hurl, then runs the Security Server e2e suite
+# in LXD mode (not @Skip and not @compose-only) and publishes results.
+#
+# To narrow this job back to manual dispatch only, change the `if` in the
+# provision-lxd caller in build.yaml from:
+#   github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+# to:
+#   github.event_name == 'workflow_dispatch'
 
 on:
   workflow_call:
@@ -19,10 +23,10 @@ on:
         type: string
 
 jobs:
-  provision-lxd:
-    name: lxd-provision
+  lxd-e2e:
+    name: lxd-e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       ANSIBLE_CONFIG: config/ansible.cfg
     steps:
@@ -101,7 +105,6 @@ jobs:
 
       - name: Configure *.lxd host DNS
         working-directory: ./development/native-lxd-stack
-        continue-on-error: true
         run: sg lxd -c "./scripts/setup-linux-net.sh apply"
 
       - name: Cache base images
@@ -125,11 +128,51 @@ jobs:
           sg lxd -c "lxc exec xrd-hurl -- bash -c 'cd /opt/hurl && ./run-hurl.sh'"
           echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      - name: Download e2e-test JAR
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: e2e-test-jar
+
+      - name: Setup Java
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Run e2e tests (LXD mode)
+        run: |
+          start=$(date +%s)
+          java \
+            -Dtest-framework.env-mode=lxd \
+            "-Dtest-framework.cucumber.filter-tags=not @Skip and not @compose-only" \
+            -jar e2e-test-1.0.jar
+          echo "E2E_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        if: success() || failure()
+        with:
+          name: e2e-test-lxd
+          path: test-framework-working-dir/test-results/TEST-*.xml
+          reporter: java-junit
+
+      - name: Upload e2e-test-lxd report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: e2e-test-lxd-report-${{ github.run_number }}
+          path: |
+            test-framework-working-dir/allure-report/index.html
+            test-framework-working-dir/test-automation-exec.log
+          if-no-files-found: ignore
+
       - name: Timing summary
         if: always()
         run: |
           {
-            echo "# LXD provisioning timing"
+            echo "# LXD e2e timing"
             echo ""
             echo "| Phase | Duration |"
             echo "|-------|----------|"
@@ -137,7 +180,8 @@ jobs:
             echo "| Cache base images | ${CACHE_SECS:-n/a}s |"
             echo "| Provision containers | ${PROVISION_SECS:-n/a}s |"
             echo "| Federation init (hurl) | ${HURL_SECS:-n/a}s |"
-            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} ))
+            echo "| e2e suite (LXD mode) | ${E2E_SECS:-n/a}s |"
+            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} + ${E2E_SECS:-0} ))
             echo "| **Total** | **${total}s** |"
           } >> "$GITHUB_STEP_SUMMARY"
 
