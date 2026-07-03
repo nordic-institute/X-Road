@@ -41,7 +41,7 @@ import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
-import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
+import org.eclipse.edc.token.rules.JtiValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.niis.xroad.globalconf.GlobalConfProvider;

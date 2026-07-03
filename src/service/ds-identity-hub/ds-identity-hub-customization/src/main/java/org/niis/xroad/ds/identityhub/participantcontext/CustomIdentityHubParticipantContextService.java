@@ -151,14 +151,14 @@ class CustomIdentityHubParticipantContextService extends IdentityHubParticipantC
         var apiKeyAlias = ofNullable(manifest.getApiKeyAlias()).orElse("%s-%s".formatted(manifest.getParticipantContextId(), API_KEY_ALIAS_SUFFIX));
         var context = IdentityHubParticipantContext.Builder.newInstance()
                 .participantContextId(manifest.getParticipantContextId())
-                .roles(manifest.getRoles())
+                .scopes(manifest.getScopes())
                 .did(manifest.getDid())
                 .apiTokenAlias(apiKeyAlias)
                 // This whole class is just to edit this single line
                 .state(manifest.isActive() ? ParticipantContextState.ACTIVATED : ParticipantContextState.CREATED)
                 .properties(manifest.getAdditionalProperties());
-        if (manifest.getRoles().isEmpty()) {
-            context.roles(List.of("participant"));
+        if (manifest.getScopes().isEmpty()) {
+            context.scopes(List.of("participant"));
         }
 
         return context.build();
