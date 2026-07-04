@@ -84,7 +84,7 @@ export const useBackups = defineStore('backups', {
         .then((resp) => saveResponseAsFile(resp, fileName));
     },
     async restoreBackup(fileName: string) {
-      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {})
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, undefined)
         .then((resp) => {
           useAppState().restarting("backup.restoreFromBackup.restarting.message");
           pollSessionStatus(POLL_SESSION_DELAY_ON_RESTART)

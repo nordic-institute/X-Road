@@ -30,6 +30,11 @@
     "vue-router": "^5.0.6",
     "vuetify": "^4.0.7"
   },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "openapi-msw": "^2.0.0"
+  },
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",

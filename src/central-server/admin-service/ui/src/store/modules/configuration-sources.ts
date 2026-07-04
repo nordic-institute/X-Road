@@ -124,7 +124,7 @@ export const useConfigurationSource = defineStore('configurationSource', {
     },
     async recreateConfigurationAnchor(configurationType: ConfigurationType) {
       return axios
-        .put<ConfigurationAnchor>(baseUrl(configurationType, 'anchor', 're-create'), {})
+        .put<ConfigurationAnchor>(baseUrl(configurationType, 'anchor', 're-create'), undefined)
         .then((resp) => (this.getSource(configurationType).anchor = resp.data));
     },
   },

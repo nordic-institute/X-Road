@@ -27,7 +27,7 @@
 
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
+import { CertificateDetails, GenerateSystemCertificateRequestData } from '@/openapi-types';
 import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
 
 export const useTlsCertificate = defineStore('tls-certificate', {
@@ -39,12 +39,13 @@ export const useTlsCertificate = defineStore('tls-certificate', {
       return api.get<CertificateDetails>('/system/certificate').then((res) => res.data);
     },
     async generateCsr(distinguishedName: string) {
-      return api.post('/system/certificate/csr', { name: distinguishedName }, { responseType: 'json' }).then((res) => {
+      const body: GenerateSystemCertificateRequestData['body'] = { name: distinguishedName };
+      return api.post('/system/certificate/csr', body, { responseType: 'json' }).then((res) => {
         saveResponseAsFile(res, 'request.csr');
       });
     },
     async generateKey() {
-      return api.post('/system/certificate', {});
+      return api.post('/system/certificate', undefined);
     },
     async uploadCertificate(file: File) {
       return api.post('/system/certificate/import', buildFileFormData('certificate', file), multipartFormDataConfig());
