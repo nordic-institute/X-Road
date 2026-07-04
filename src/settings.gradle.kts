@@ -191,6 +191,7 @@ include("central-server:admin-service:infra-jpa")
 include("central-server:admin-service:globalconf-generator")
 include("central-server:admin-service:ui-system-test")
 include("central-server:admin-service:int-test")
+include("central-server:admin-service:api-test")
 include("central-server:admin-service:api-client")
 
 include("central-server:management-service")

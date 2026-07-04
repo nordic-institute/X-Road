@@ -26,64 +26,37 @@
  */
 package org.niis.xroad.ss.test.api;
 
-import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.platform.launcher.LauncherSession;
-import org.junit.platform.launcher.LauncherSessionListener;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
-import org.niis.xroad.test.apitest.core.report.AllureReportHook;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
 /**
- * Boots the Security Server stack once per JVM launcher session and tears it down when the session
- * closes. Registered via SPI so the stack is available before any suite or test class runs.
- * {@link ApiStackExtension} reads the stack via {@link #getSetup()} and {@link #getSeeder()}.
+ * Boots the Security Server stack once per JVM launcher session. Registered via SPI so the stack is
+ * available before any suite or test class runs.
  */
 @Slf4j
-public class SsApiStackSessionListener implements LauncherSessionListener {
-
-    private static volatile SsApiTestContainerSetup setup;
-    private static volatile SsBaselineSeeder seeder;
+public class SsApiStackSessionListener extends AbstractApiStackSessionListener {
 
     @Override
-    public void launcherSessionOpened(@Nonnull LauncherSession session) {
+    protected BaseComposeSetup buildAndStartSetup() {
         var properties = ApiTestConfigSource.getInstance().getCoreProperties();
-        setup = new SsApiTestContainerSetup(properties);
+        var setup = new SsApiTestContainerSetup(properties);
         log.info("Starting browserless Security Server stack");
         setup.start();
-        seeder = new SsBaselineSeeder(setup);
-        seeder.ensureBaseline();
-        setup.bootstrapDsp();
+        return setup;
     }
 
     @Override
-    public void launcherSessionClosed(@Nonnull LauncherSession session) {
-        AllureReportHook.generateReport();
-        if (setup != null) {
-            log.info("Stopping browserless Security Server stack");
-            setup.stop();
-            setup = null;
-            seeder = null;
-        }
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        var seeder = new SsBaselineSeeder((SsApiTestContainerSetup) setup);
+        seeder.ensureBaseline();
+        return seeder;
     }
 
-    static SsApiTestContainerSetup getSetup() {
-        var s = setup;
-        if (s == null) {
-            throw new IllegalStateException(
-                    "Security Server stack not started — SsApiStackSessionListener was not invoked. "
-                            + "Ensure META-INF/services/org.junit.platform.launcher.LauncherSessionListener is on the classpath.");
-        }
-        return s;
-    }
-
-    static SsBaselineSeeder getSeeder() {
-        var s = seeder;
-        if (s == null) {
-            throw new IllegalStateException(
-                    "Security Server stack not started — SsApiStackSessionListener was not invoked. "
-                            + "Ensure META-INF/services/org.junit.platform.launcher.LauncherSessionListener is on the classpath.");
-        }
-        return s;
+    @Override
+    protected void afterBaseline(BaseComposeSetup setup) {
+        ((SsApiTestContainerSetup) setup).bootstrapDsp();
     }
 }

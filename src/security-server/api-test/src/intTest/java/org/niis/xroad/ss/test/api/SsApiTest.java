@@ -27,6 +27,7 @@
 package org.niis.xroad.ss.test.api;
 
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 
 /**
  * Base class for API tests. Boots the warm browserless Security Server stack once per JVM;
