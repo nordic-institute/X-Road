@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.confclient.core;
 
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
@@ -117,6 +118,20 @@ class ConfigurationParserTest {
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(codedException(X_INVALID_SIGNATURE_VALUE));
+    }
+
+    /**
+     * Test to ensure the parser rejects a validly-signed part whose instance identifier
+     * does not match the source that delivered it (cross-instance configuration poisoning).
+     */
+    @Test
+    void parseConfRejectsPartFromForeignInstance() {
+        assertThatThrownBy(() ->
+                parse("src/test/resources/test-conf-simple",
+                        getConfigurationSource(
+                                TestCertUtil.getConsumer().certChain[0],
+                                "FI", "http://foo.bar.baz")))
+                .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
     }
 
     /**

@@ -22,6 +22,7 @@ dependencies {
   annotationProcessor(platform(libs.springBoot.bom))
   implementation(platform(libs.springBoot.bom))
   implementation(platform(libs.springCloud.bom))
+  implementation(enforcedPlatform(libs.jetty.bom))
 
   annotationProcessor("org.springframework:spring-context-indexer")
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

@@ -1,5 +1,12 @@
 # Change Log
 
+## 7.7.3 - 2026-07-03
+- XRDDEV-3237: Fix a vulnerability in the Apache CXF library by updating it to version 4.2.2. X-Road was not affected because the vulnerable classes are not used in its implementation.
+- XRDDEV-3238: Fix a batch signature-related security vulnerability in the Security Server.
+- XRDDEV-3244: Fix a global configuration-related security vulnerability in the Security Server.
+- XRDDEV-3256: Fix a global configuration-related security vulnerability in the Configuration Proxy.
+- XRDDEV-3259: Fix an issue with non-batch signature verification in the Security Server.
+
 ## 7.7.2 - 2026-03-12
 - XRDDEV-3071: As a Developer I want to review our rate-limiting functionality to make sure it works
 - XRDDEV-3109: Signer-console logging not configured (logs not written to signer-console.log or audit.log)

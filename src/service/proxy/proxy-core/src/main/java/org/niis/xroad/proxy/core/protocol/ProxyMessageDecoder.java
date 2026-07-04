@@ -44,6 +44,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.james.mime4j.MimeException;
@@ -86,6 +87,13 @@ public class ProxyMessageDecoder {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyMessageDecoder.class);
+
+    /**
+     * Maximum accepted byte size for a single hashchain or hashchainresult MIME part. Hash chains are logarithmic in
+     * batch size (depth ~21 for a million messages), so the largest legitimate part is a few KB. 1 MB is roughly
+     * 100x that upper bound, leaving ample room for any real-world chain while capping adversarial input.
+     */
+    static final long MAX_HASHCHAIN_PART_BYTES = 1_048_576L;
 
     private final ProxyMessageConsumer callback;
 
@@ -486,7 +494,7 @@ public class ProxyMessageDecoder {
         try {
             LOG.trace("handleHashChainResult()");
 
-            String hashChainResult = IOUtils.toString(is, UTF_8);
+            String hashChainResult = readBoundedHashChainPart(is);
             LOG.trace("HashChainResult: {}", hashChainResult);
 
             signature = new SignatureData(null, hashChainResult, null);
@@ -499,7 +507,7 @@ public class ProxyMessageDecoder {
         try {
             LOG.trace("handleHashChain()");
 
-            String hashChain = IOUtils.toString(is, UTF_8);
+            String hashChain = readBoundedHashChainPart(is);
             LOG.trace("HashChain: {}", hashChain);
 
             signature = new SignatureData(null, signature.getHashChainResult(),
@@ -507,6 +515,18 @@ public class ProxyMessageDecoder {
         } catch (Exception e) {
             throw translateException(e);
         }
+    }
+
+    private static String readBoundedHashChainPart(InputStream is) throws IOException {
+        var bounded = BoundedInputStream.builder()
+                .setInputStream(is)
+                .setMaxCount(MAX_HASHCHAIN_PART_BYTES + 1)
+                .get();
+        var content = IOUtils.toString(bounded, UTF_8);
+        if (bounded.getCount() > MAX_HASHCHAIN_PART_BYTES) {
+            throw new IOException("Hash-chain part size exceeds limit of %d bytes".formatted(MAX_HASHCHAIN_PART_BYTES));
+        }
+        return content;
     }
 
     @SuppressWarnings("fallthrough")

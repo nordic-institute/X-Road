@@ -39,6 +39,12 @@ dependencies {
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:op-monitor:op-monitor-client"))
 
+  constraints {
+    implementation(libs.tomcat.embed.core)
+    implementation(libs.tomcat.embed.websocket)
+    implementation(libs.tomcat.embed.el)
+  }
+
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
