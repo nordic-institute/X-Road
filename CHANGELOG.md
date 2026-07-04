@@ -1,5 +1,13 @@
 # Change Log
 
+## 7.8.2 - 2026-07-03
+- XRDDEV-3236: Fix an issue with timestamping service cost type handling in Security Server version 7.8.1. The issue caused a backward compatibility issue between Security Server version 7.8.1 and Central Server versions earlier than 7.8.0.
+- XRDDEV-3237: Fix a vulnerability in the Apache CXF library by updating it to version 4.2.2. X-Road was not affected because the vulnerable classes are not used in its implementation.
+- XRDDEV-3238: Fix a batch signature-related security vulnerability in the Security Server.
+- XRDDEV-3244: Fix a global configuration-related security vulnerability in the Security Server.
+- XRDDEV-3256: Fix a global configuration-related security vulnerability in the Configuration Proxy.
+- XRDDEV-3259: Fix an issue with non-batch signature verification in the Security Server.
+
 ## 7.8.1 - 2026-06-16
 - XRDDEV-3071: As a Developer I want to review our rate-limiting functionality to make sure it works
 - XRDDEV-3108: Security Server: proxy_ui_api_access.log not created in version 7.8.0
