@@ -1140,6 +1140,8 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
   ]
 }
 
+HTTP 201
+
 # Enable soap service on ss0
 PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_service_service_id}}/enable
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
