@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.confproxy.util;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
@@ -59,9 +60,11 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -329,13 +332,25 @@ public class OutputBuilder implements AutoCloseable {
      */
     private FileOutputStream createFileOutputStream(final Path targetPath, final ConfigurationPartMetadata metadata)
             throws IOException {
-        Path filepath = targetPath.resolve(Paths.get(metadata.getInstanceIdentifier(), metadata.getContentLocation()));
+        Path filepath = resolveWithinTargetDir(targetPath, metadata.getInstanceIdentifier(),
+                metadata.getContentLocation());
         Files.createDirectories(filepath.getParent());
         Path newFile = Files.createFile(filepath);
 
         log.debug("Copying file '{}' to directory '{}'", newFile.toAbsolutePath(), targetPath);
 
         return new FileOutputStream(newFile.toAbsolutePath().toFile());
+    }
+
+    static Path resolveWithinTargetDir(Path root, String... segments) {
+        Path normalizedRoot = root.normalize();
+        Path resolved = normalizedRoot.resolve(Paths.get(segments[0], Arrays.copyOfRange(segments, 1, segments.length)))
+                .normalize();
+        if (!resolved.startsWith(normalizedRoot)) {
+            throw new CodedException(X_MALFORMED_GLOBALCONF,
+                    "Resolved configuration part path %s escapes output directory %s", resolved, normalizedRoot);
+        }
+        return resolved;
     }
 
     /**
@@ -350,8 +365,8 @@ public class OutputBuilder implements AutoCloseable {
     private void appendFileContent(final MultipartEncoder encoder, final String instance,
                                    final ConfigurationPartMetadata metadata, final InputStream inputStream) throws Exception {
         try {
-            Path contentLocation = Paths.get(instance, timestamp, metadata.getInstanceIdentifier(),
-                    metadata.getContentLocation());
+            Path contentLocation = resolveWithinTargetDir(Paths.get(instance, timestamp),
+                    metadata.getInstanceIdentifier(), metadata.getContentLocation());
 
             encoder.startPart(MimeTypes.BINARY,
                     new String[]{

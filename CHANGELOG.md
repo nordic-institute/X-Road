@@ -1,5 +1,12 @@
 # Change Log
 
+## 7.6.4 - 2026-07-03
+- XRDDEV-3237: Fix a vulnerability in the Apache CXF library by updating it to version 4.2.2. X-Road was not affected because the vulnerable classes are not used in its implementation.
+- XRDDEV-3238: Fix a batch signature-related security vulnerability in the Security Server.
+- XRDDEV-3244: Fix a global configuration-related security vulnerability in the Security Server.
+- XRDDEV-3256: Fix a global configuration-related security vulnerability in the Configuration Proxy.
+- XRDDEV-3259: Fix an issue with non-batch signature verification in the Security Server.
+
 ## 7.6.3 - 2025-12-23
 - XRDDEV-3054: Resolve issue where using wildcard expressions in REST path mappings lead to a vulnerability to path traversal attacks in certain cases
 
