@@ -29,52 +29,31 @@
 Startpoint of the Vue application.
 Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
-Initialises the app root component.
+Initializes the app root component.
 */
 import { createApp } from 'vue';
-import axios from 'axios';
-import { createFilters } from '@/filters';
-import App from './App.vue';
-import router from './router/router';
-import '@fontsource/open-sans/800.css';
-import '@fontsource/open-sans/700.css';
-import '@fontsource/open-sans';
-import { createPinia } from 'pinia';
-import { createPersistedState } from 'pinia-plugin-persistedstate';
-import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
-import vuetify from '@/plugins/vuetify';
-import {
-  i18n,
-  XrdButton,
-  XrdCloseButton,
-  XrdConfirmDialog,
-  XrdEmptyPlaceholder,
-  XrdIconAdd,
-  XrdIconBase,
-  XrdIconChecked,
-  XrdIconChecker,
-  XrdIconClose,
-  XrdIconCopy,
-  XrdIconEdit,
-  XrdIconFolderOutline,
-  XrdSearch,
-  XrdSimpleDialog,
-  XrdSubViewContainer,
-  XrdSubViewTitle,
-  XrdTitledView,
-} from '@niis/shared-ui';
-import { createLanguageHelper } from '@/plugins/i18n';
-import provider from '@/plugins/provider';
 
-const pinia = createPinia();
-pinia.use(
-  createPersistedState({
-    storage: sessionStorage,
-  }),
-);
+import axios from 'axios';
+
+import { pinia, setupAddErrorNavigation } from '@niis/shared-ui';
+
+import { createFilters } from '@/filters';
+import { RouteName } from '@/global';
+import { createLanguageHelper } from '@/plugins/i18n';
+import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
+import vuetify from '@/plugins/vuetify'; //
+import router from './router/router';
+
+import App from './App.vue';
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
+
+setupAddErrorNavigation(router, {
+  404: {
+    name: RouteName.NotFound,
+  },
+});
 
 const app = createApp(App);
 app.use(pinia);
@@ -82,26 +61,6 @@ app.use(router);
 app.use(vuetify);
 app.use(createValidators());
 app.use(createFilters());
-app.use(provider);
-//icons
-app.component('XrdIconFolderOutline', XrdIconFolderOutline);
-app.component('XrdIconBase', XrdIconBase);
-app.component('XrdIconChecker', XrdIconChecker);
-app.component('XrdIconClose', XrdIconClose);
-app.component('XrdIconChecked', XrdIconChecked);
-app.component('XrdIconAdd', XrdIconAdd);
-app.component('XrdIconCopy', XrdIconCopy);
-app.component('XrdIconEdit', XrdIconEdit);
-//components
-app.component('XrdButton', XrdButton);
-app.component('XrdSearch', XrdSearch);
-app.component('XrdCloseButton', XrdCloseButton);
-app.component('XrdSubViewContainer', XrdSubViewContainer);
-app.component('XrdSimpleDialog', XrdSimpleDialog);
-app.component('XrdConfirmDialog', XrdConfirmDialog);
-app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
-app.component('XrdSubViewTitle', XrdSubViewTitle);
-app.component('XrdTitledView', XrdTitledView);
 
 // translations
 createLanguageHelper()

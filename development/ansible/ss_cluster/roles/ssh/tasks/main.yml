@@ -1,0 +1,8 @@
+---
+- name: generate ssh key
+  user:
+    name: xroad
+    generate_ssh_key: true
+    ssh_key_bits: 4096
+    ssh_key_file: .ssh/id_rsa
+  register: xroad_user

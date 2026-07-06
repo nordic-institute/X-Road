@@ -1,0 +1,224 @@
+name: Dependency Security Audit
+
+on:
+  schedule:
+    # Weekly on Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to audit (e.g. release-7.8, feature/my-branch)'
+        required: false
+        type: string
+        default: 'develop'
+
+permissions:
+  contents: read
+
+jobs:
+  update-nvd:
+    name: Update NVD database
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: develop
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: false
+          setup-docker-buildx: false
+          setup-packaging-tools: false
+          free-disk-space: false
+
+      - name: Restore NVD cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.gradle/dependency-check-data/
+          key: nvd-db
+
+      - name: Update NVD database
+        working-directory: ./src
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: ./gradlew dependencyCheckUpdate --no-daemon
+
+  audit:
+    name: "Audit: ${{ matrix.branch }}"
+    needs: update-nvd
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        #later on array can be extended to include release branches: release-8.0 and etc
+        branch: ${{ github.event_name == 'schedule' && fromJSON('["develop"]') || fromJSON(format('["{0}"]', inputs.branch || 'develop')) }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+          setup-docker-buildx: false
+          setup-packaging-tools: false
+          free-disk-space: false
+
+      - name: Restore NVD cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.gradle/dependency-check-data/
+          key: nvd-db
+
+      - name: Frontend audit
+        id: frontend
+        working-directory: ./src
+        continue-on-error: true
+        run: ./gradlew :shared-ui:dependencyAuditFrontend --no-daemon
+
+      - name: Backend audit
+        id: backend
+        working-directory: ./src
+        continue-on-error: true
+        run: ./gradlew dependencyAuditBackend -PnvdAutoUpdate=false --no-daemon
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: audit-reports-${{ matrix.branch }}
+          path: |
+            src/build/reports/dependency-check-report.*
+            src/build/reports/ui-audit-ci.json
+
+      - name: Analyze audit results
+        if: always()
+        id: results
+        working-directory: ./src
+        run: |
+          BACKEND_CRITICAL=0
+          BACKEND_HIGH=0
+          FRONTEND_CRITICAL=0
+          FRONTEND_HIGH=0
+          ERRORS=""
+
+          FRONTEND_STATUS="${{ steps.frontend.outcome }}"
+          BACKEND_STATUS="${{ steps.backend.outcome }}"
+
+          # Track job failures
+          if [ "$FRONTEND_STATUS" = "failure" ]; then
+            # Check if report exists — if not, the task itself crashed
+            if [ ! -f "build/reports/ui-audit-ci.json" ]; then
+              ERRORS="${ERRORS}:x: Frontend audit task failed\n"
+            fi
+          fi
+          if [ "$BACKEND_STATUS" = "failure" ]; then
+            if [ ! -f "build/reports/dependency-check-report.json" ]; then
+              ERRORS="${ERRORS}:x: Backend audit task failed\n"
+            fi
+          fi
+
+          # Parse backend OWASP JSON report
+          BACKEND_REPORT="build/reports/dependency-check-report.json"
+          if [ -f "$BACKEND_REPORT" ]; then
+            BACKEND_CRITICAL=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.severity == "CRITICAL")] | length' "$BACKEND_REPORT" 2>/dev/null || echo 0)
+            BACKEND_HIGH=$(jq '[.dependencies[]?.vulnerabilities[]? | select(.severity == "HIGH")] | length' "$BACKEND_REPORT" 2>/dev/null || echo 0)
+          fi
+
+          # Parse frontend audit-ci JSON report
+          FRONTEND_REPORT="build/reports/ui-audit-ci.json"
+          if [ -f "$FRONTEND_REPORT" ]; then
+            FRONTEND_CRITICAL=$(jq '[.advisories[]? | select(.severity == "critical")] | length' "$FRONTEND_REPORT" 2>/dev/null || echo 0)
+            FRONTEND_HIGH=$(jq '[.advisories[]? | select(.severity == "high")] | length' "$FRONTEND_REPORT" 2>/dev/null || echo 0)
+          fi
+
+          TOTAL_CRITICAL=$((BACKEND_CRITICAL + FRONTEND_CRITICAL))
+          TOTAL_HIGH=$((BACKEND_HIGH + FRONTEND_HIGH))
+          HAS_FINDINGS=$([ "$TOTAL_CRITICAL" -gt 0 ] || [ "$TOTAL_HIGH" -gt 0 ] && echo "true" || echo "false")
+          HAS_ERRORS=$([ -n "$ERRORS" ] && echo "true" || echo "false")
+          BOTH_FAILED=$([ "$FRONTEND_STATUS" = "failure" ] && [ "$BACKEND_STATUS" = "failure" ] && echo "true" || echo "false")
+
+          # Notify if: findings exist, or any task errored
+          SHOULD_NOTIFY=$([ "$HAS_FINDINGS" = "true" ] || [ "$HAS_ERRORS" = "true" ] && echo "true" || echo "false")
+
+          echo "backend_critical=$BACKEND_CRITICAL" >> $GITHUB_OUTPUT
+          echo "backend_high=$BACKEND_HIGH" >> $GITHUB_OUTPUT
+          echo "frontend_critical=$FRONTEND_CRITICAL" >> $GITHUB_OUTPUT
+          echo "frontend_high=$FRONTEND_HIGH" >> $GITHUB_OUTPUT
+          echo "total_critical=$TOTAL_CRITICAL" >> $GITHUB_OUTPUT
+          echo "total_high=$TOTAL_HIGH" >> $GITHUB_OUTPUT
+          echo "should_notify=$SHOULD_NOTIFY" >> $GITHUB_OUTPUT
+          echo "has_errors=$HAS_ERRORS" >> $GITHUB_OUTPUT
+          echo "both_failed=$BOTH_FAILED" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+
+          if [ "$BOTH_FAILED" = "true" ]; then
+            echo "severity=FAILURE" >> $GITHUB_OUTPUT
+            echo "emoji=:fire:" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+          elif [ "$TOTAL_CRITICAL" -gt 0 ]; then
+            echo "severity=CRITICAL" >> $GITHUB_OUTPUT
+            echo "emoji=:rotating_light:" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+          elif [ "$TOTAL_HIGH" -gt 0 ]; then
+            echo "severity=HIGH" >> $GITHUB_OUTPUT
+            echo "emoji=:warning:" >> $GITHUB_OUTPUT
+            echo "color=#ffc107" >> $GITHUB_OUTPUT
+          else
+            echo "severity=ERROR" >> $GITHUB_OUTPUT
+            echo "emoji=:x:" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack
+        if: steps.results.outputs.should_notify == 'true'
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
+        with:
+          webhook: ${{ secrets.SLACK_AUDIT_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ steps.results.outputs.color }}",
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": { "type": "plain_text", "text": "${{ steps.results.outputs.emoji }} ${{ steps.results.outputs.severity }}: Dependency Audit — ${{ matrix.branch }}", "emoji": true }
+                    },
+                    {
+                      "type": "section",
+                      "fields": [
+                        { "type": "mrkdwn", "text": "*Frontend:*\n:red_circle: ${{ steps.results.outputs.frontend_critical }} critical\n:large_orange_circle: ${{ steps.results.outputs.frontend_high }} high" },
+                        { "type": "mrkdwn", "text": "*Backend:*\n:red_circle: ${{ steps.results.outputs.backend_critical }} critical\n:large_orange_circle: ${{ steps.results.outputs.backend_high }} high" }
+                      ]
+                    },
+                    {
+                      "type": "section",
+                      "text": { "type": "mrkdwn", "text": "${{ steps.results.outputs.has_errors == 'true' && format('{0}{1}', steps.results.outputs.errors, steps.results.outputs.both_failed == 'true' && ':fire: Both audits failed — job is broken' || '') || ':white_check_mark: Audit tasks completed successfully' }}" }
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        { "type": "mrkdwn", "text": "Github: *X-Road* | Branch: `${{ matrix.branch }}`" }
+                      ]
+                    },
+                    {
+                      "type": "actions",
+                      "elements": [
+                        {
+                          "type": "button",
+                          "text": { "type": "plain_text", "text": ":page_facing_up: View Reports", "emoji": true },
+                          "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                          "style": "danger"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }

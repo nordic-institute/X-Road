@@ -1,0 +1,66 @@
+name: Update Gradle Metadata (Dependabot)
+
+# Triggered when Dependabot pushes a Gradle dependency-update branch.
+# Regenerates verification-metadata.xml so that the main build workflow
+# passes strict dependency verification.
+# Uses push (not pull_request) so the GITHUB_TOKEN always has write access.
+on:
+  push:
+    branches:
+      - 'dependabot/gradle/**'
+
+permissions:
+  contents: write
+
+jobs:
+  update-gradle-metadata:
+    name: Regenerate verification metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 2  # enough for --amend; avoids shallow push issues
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
+        with:
+          java-version: '25'
+          distribution: temurin
+
+      # Minimal Gradle setup: no dependency-graph and no build-scan-publish to
+      # avoid the Develocity / dependency-graph init scripts that would themselves
+      # fail verification on a fresh runner.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6
+
+      - name: Regenerate verification metadata
+        run: |
+          bash development/docs/regenerate-verification-metadata.sh \
+            build -x test \
+            --dependency-verification=off \
+            --no-daemon \
+            --parallel \
+            -q
+
+      - name: Detect metadata changes
+        id: metadata_changes
+        run: |
+          if git diff --quiet -- src/gradle/verification-metadata.xml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Only amend + force-push when verification metadata actually changed.
+      # Avoid rewriting the PR head SHA unnecessarily, because that detaches
+      # running Build checks from the latest commit.
+      - name: Amend Dependabot commit and force-push
+        if: steps.metadata_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/gradle/verification-metadata.xml
+          git commit --amend --no-edit
+          git push --force-with-lease

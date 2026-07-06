@@ -29,13 +29,13 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.proxy.proto.dto.MessageLogEncryptionStatusDiagnostics;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.converter.ServiceIdConverter;
@@ -170,7 +170,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<ProxyMemoryUsageStatusDto> getProxyMemoryUsage() {
-        ProxyMemory proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
+        HeapMemoryStatus proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
         return new ResponseEntity<>(proxyMemoryUsageStatusConverter.convert(proxyMemoryUsage), HttpStatus.OK);
     }
 

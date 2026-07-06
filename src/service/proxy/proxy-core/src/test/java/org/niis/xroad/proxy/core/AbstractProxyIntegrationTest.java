@@ -25,10 +25,8 @@
  */
 package org.niis.xroad.proxy.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.Getter;
@@ -43,23 +41,54 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.vault.NoopVaultClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
+import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
+import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
+import org.niis.xroad.proxy.core.messagelog.NullLogManager;
+import org.niis.xroad.proxy.core.serverproxy.ClientProxyVersionVerifier;
+import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
+import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.proxy.core.serverproxy.ServerProxyHandler;
+import org.niis.xroad.proxy.core.serverproxy.ServerRestMessageProcessor;
+import org.niis.xroad.proxy.core.serverproxy.ServerSoapMessageProcessor;
+import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
+import org.niis.xroad.proxy.core.service.ClientVerificationService;
+import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
+import org.niis.xroad.proxy.core.service.MessageSigningService;
+import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
+import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.test.globalconf.EmptyGlobalConf;
+import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
+import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
+import org.niis.xroad.proxy.core.util.IdentifierValidationService;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.keyconf.TestKeyConf;
-import org.niis.xroad.test.serverconf.EmptyServerConf;
 import org.niis.xroad.test.serverconf.TestServerConf;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 
@@ -71,16 +100,17 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
+import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
 /**
- * Base class for proxy integration tests
- * Starts and stops the test proxy instance and a service simulator.
+ * Base class for proxy integration tests.
  */
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
@@ -90,9 +120,32 @@ public abstract class AbstractProxyIntegrationTest {
     protected static ServerProxy serverProxy;
 
     protected static int proxyClientPort = getFreePort();
+    protected static int proxyServerPort;
+
+    /**
+     * Extra configuration properties merged into the proxy configuration before startup.
+     * Subclasses populate this in a static initializer; cleared after the test class finishes.
+     */
+    protected static final Map<String, String> ADDITIONAL_PROPERTIES = new HashMap<>();
+
+    /**
+     * Optional service address resolver used by the client proxy instead of the default
+     * global configuration based one. Subclasses set this in a static initializer; cleared
+     * after the test class finishes.
+     */
+    protected static ServiceAddressResolver serviceAddressResolverOverride;
+
+    /**
+     * Optional listener invoked each time the client proxy finishes verifying a newly
+     * established server proxy connection (i.e. {@code AuthTrustVerifier.verify(...)}
+     * returned). Subclasses set this in a static initializer or {@code @BeforeAll};
+     * cleared after the test class finishes.
+     */
+    protected static Runnable authTrustVerifiedListener;
 
     protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServiceServerConf());
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
+    protected static final OcspVerifierFactory OCSP_VERIFIER_FACTORY = new OcspVerifierFactory();
     protected static TestKeyConf clientKeyConf;
     protected static TestKeyConf serverKeyConf;
     protected static LoggingAuthTrustVerifier clientAuthTrustVerifier;
@@ -104,70 +157,147 @@ public abstract class AbstractProxyIntegrationTest {
     public static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
 
-        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
-
-        final String serverPort = String.valueOf(getFreePort());
-        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
-        System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
-
-        System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-
-        System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-
-        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
-
-        System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
-
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
-
         org.apache.xml.security.Init.init();
 
-        OpMonitoring.init(new EmptyServerConf());
-        MessageLog.init(mock(JobManager.class), new EmptyGlobalConf(), new EmptyServerConf());
-
-        startServices();
+        startProxies();
     }
 
-    static void startServices() throws Exception {
-        startClientProxy();
-        startServerProxy();
+    /**
+     * Stops the proxies and starts them again, picking up the current state of
+     * {@link #ADDITIONAL_PROPERTIES} and {@link #serviceAddressResolverOverride}. Lets a
+     * subclass apply class-specific configuration from its own {@code @BeforeAll}, which runs
+     * after this class has already started the proxies with default configuration.
+     */
+    protected static void restartProxies() throws Exception {
+        serverProxy.destroy();
+        clientProxy.destroy();
+        startProxies();
     }
 
-    private static void startClientProxy() throws Exception {
+    private static void startProxies() throws Exception {
+        proxyServerPort = getFreePort();
+        final String serverPort = String.valueOf(proxyServerPort);
+
+        Map<String, String> properties = new HashMap<>(Map.of(
+                "xroad.proxy.server.listen-address", "127.0.0.1",
+                "xroad.proxy.server.listen-port", serverPort,
+                "xroad.proxy.server-port", serverPort,
+                "xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml",
+                "xroad.proxy.client-proxy.client-timeout", "15000",
+                "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
+                "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
+                "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
+                "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort()),
+                "xroad.proxy.dsp-enabled", "false"
+        ));
+        properties.putAll(ADDITIONAL_PROPERTIES);
+
+        ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);
+        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
+                "xroad.common.temp-files-path", "build/"
+        ));
+        startServices(proxyProperties, commonProperties);
+    }
+
+    static void startServices(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
+        startClientProxy(proxyProperties, commonProperties);
+        startServerProxy(proxyProperties, commonProperties);
+
+        MessageLog.init(new NullLogManager(TEST_GLOBAL_CONF, TEST_SERVER_CONF));
+    }
+
+    private static void startClientProxy(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
         clientKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
-        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
-        CertChainFactory certChainFactory = new CertChainFactory(TEST_GLOBAL_CONF);
-        clientAuthTrustVerifier = new LoggingAuthTrustVerifier(clientKeyConf, certHelper, certChainFactory);
+        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
+        clientAuthTrustVerifier = new LoggingAuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
+                TEST_GLOBAL_CONF, clientKeyConf, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
-        CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                clientKeyConf, signingCtxProvider, certChainFactory, certHelper);
+        ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(TEST_SERVER_CONF,
+                new NoopVaultKeyProvider(), proxyProperties);
 
-        clientProxy = new ClientProxy(commonBeanProxy, TEST_GLOBAL_CONF, clientKeyConf, TEST_SERVER_CONF,
-                clientAuthTrustVerifier);
-        clientProxy.afterPropertiesSet();
+        ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
+        var unusableAddressTracker = new UnusableAddressTracker(proxyProperties);
+        var httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
+                .proxyHttpClient(proxyProperties, clientAuthTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
+        var opMonitoringDataHelperClient = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+        var httpSenderProviderClient = new HttpSenderProvider(httpClient, httpClient, proxyProperties);
+        var messageSigningServiceClient = new MessageSigningService(clientKeyConf, signingCtxProvider);
+        var serviceAddressResolverClient = serviceAddressResolverOverride != null
+                ? serviceAddressResolverOverride
+                : new DefaultServiceAddressResolver(TEST_GLOBAL_CONF, proxyProperties,
+                        new ProviderSecurityServerResolver(TEST_GLOBAL_CONF));
+        var clientVerificationServiceClient = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
+                TEST_GLOBAL_CONF, proxyProperties, certHelper);
+
+        var identifierValidationService = new IdentifierValidationService(proxyProperties);
+
+        var clientRequestPreparationServiceClient = new ClientRequestPreparationService(
+                serviceAddressResolverClient, proxyProperties, opMonitoringDataHelperClient, unusableAddressTracker);
+        clientRequestPreparationServiceClient.init();
+        var clientRestMessageProcessor = new ClientRestMessageProcessor(
+                messageSigningServiceClient, httpSenderProviderClient,
+                clientVerificationServiceClient, opMonitoringDataHelperClient,
+                TEST_GLOBAL_CONF, proxyProperties, commonProperties,
+                OCSP_VERIFIER_FACTORY, clientRequestPreparationServiceClient,
+                mock(DspRequestProcessor.class), identifierValidationService);
+
+        ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(clientRestMessageProcessor,
+                proxyProperties, TEST_GLOBAL_CONF, clientKeyConf, new NoOpMonitoringBuffer(),
+                opMonitoringDataHelperClient);
+        clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
+                new ListInstanceWrapper<>(List.of(restMessageHandler)));
+        clientProxy.init();
     }
 
-    private static void startServerProxy() throws Exception {
+    private static void startServerProxy(ProxyProperties proxyProperties, CommonProperties commonProperties) throws Exception {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
-        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
-        CertChainFactory certChainFactory = new CertChainFactory(TEST_GLOBAL_CONF);
+        CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF, OCSP_VERIFIER_FACTORY);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
-        CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certChainFactory, certHelper);
 
-        serverProxy = new ServerProxy(commonBeanProxy);
-        serverProxy.afterPropertiesSet();
+        HttpClientCreator httpClientCreator = new HttpClientCreator(TEST_SERVER_CONF,
+                proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
+        ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
+                TEST_SERVER_CONF, new NoopVaultKeyProvider(), proxyProperties);
+        var opMonitoringDataHelperServer = new OpMonitoringDataHelper(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+        var httpSenderProviderServer = new HttpSenderProvider(httpClientCreator.getHttpClient(), httpClientCreator.getHttpClient(),
+                proxyProperties);
+        var messageSigningServiceServer = new MessageSigningService(serverKeyConf, signingCtxProvider);
+        var clientVerificationServiceServer = new ClientVerificationService(TEST_SERVER_CONF, clientAuthenticationService,
+                TEST_GLOBAL_CONF, proxyProperties, certHelper);
+
+        ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(
+                TEST_SERVER_CONF, TEST_GLOBAL_CONF, proxyProperties, commonProperties,
+                new NoopVaultClient(), mock(MonitorRpcClient.class),
+                httpSenderProviderServer, httpClientCreator.getHttpClient());
+        serviceHandlerLoader.init();
+
+        var identifierValidationService = new IdentifierValidationService(proxyProperties);
+
+        var serverRestMessageProcessor = new ServerRestMessageProcessor(
+                messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
+                TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
+
+        var serverSoapMessageProcessor = new ServerSoapMessageProcessor(
+                messageSigningServiceServer, clientVerificationServiceServer, opMonitoringDataHelperServer,
+                TEST_GLOBAL_CONF, TEST_SERVER_CONF, proxyProperties, commonProperties,
+                OCSP_VERIFIER_FACTORY, serviceHandlerLoader, identifierValidationService);
+
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
+                serverSoapMessageProcessor, proxyProperties.server(),
+                mock(ClientProxyVersionVerifier.class), TEST_GLOBAL_CONF,
+                new NoOpMonitoringBuffer());
+        serverProxy = new ServerProxy(proxyProperties, TEST_GLOBAL_CONF, serverKeyConf,
+                serverProxyHandler, mock(IdleConnectionMonitorThread.class), mock(AntiDosConfiguration.class));
+        serverProxy.init();
     }
 
     @AfterAll
     public static void afterAll() throws Exception {
         RESERVED_PORTS.clear();
+        ADDITIONAL_PROPERTIES.clear();
+        serviceAddressResolverOverride = null;
+        authTrustVerifiedListener = null;
         serverProxy.destroy();
         clientProxy.destroy();
     }
@@ -231,8 +361,9 @@ public abstract class AbstractProxyIntegrationTest {
     public static class LoggingAuthTrustVerifier extends AuthTrustVerifier {
         private final List<X509Certificate> verifiedCertificates = new ArrayList<>();
 
-        public LoggingAuthTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-            super(keyConfProvider, certHelper, certChainFactory);
+        public LoggingAuthTrustVerifier(CertHashBasedOcspResponderClient certHashBasedOcspResponderClient,
+                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, CertHelper certHelper) {
+            super(certHashBasedOcspResponderClient, globalConfProvider, keyConfProvider, certHelper);
         }
 
         @SneakyThrows
@@ -243,6 +374,9 @@ public abstract class AbstractProxyIntegrationTest {
                 verifiedCertificates.add(peerCerts[0]);
             }
             super.verify(context, sslSession, selectedAddress);
+            if (authTrustVerifiedListener != null) {
+                authTrustVerifiedListener.run();
+            }
         }
 
         public void clearVerifiedCertificates() {

@@ -1,5 +1,7 @@
 # Change Log
 
+## 8.0.0 - UNRELEASED
+
 ## 7.8.2 - 2026-07-03
 - XRDDEV-3236: Fix an issue with timestamping service cost type handling in Security Server version 7.8.1. The issue caused a backward compatibility issue between Security Server version 7.8.1 and Central Server versions earlier than 7.8.0.
 - XRDDEV-3237: Fix a vulnerability in the Apache CXF library by updating it to version 4.2.2. X-Road was not affected because the vulnerable classes are not used in its implementation.

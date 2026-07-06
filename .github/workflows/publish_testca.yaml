@@ -5,43 +5,41 @@ on:
       - develop
     paths:
       - '.github/workflows/publish_testca.yaml'
-      - 'Docker/testca/**'
-      - 'ansible/roles/xroad-ca/**'
+      - 'development/docker/testca/**'
+      - 'development/ansible/roles/xroad-ca/**'
 env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
 jobs:
-  PublishCS:
+  PublishCA:
     name: Publish test CA image
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Initialize docker setup
-        working-directory: ./Docker/testca
+        working-directory: ./development/docker/testca
         run: ./init_context.sh
       - name: Log in to the Container registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7
         with:
-          context: ${{ github.workspace }}/Docker/testca
+          context: ${{ github.workspace }}/development/docker/testca
           push: true
           tags: ghcr.io/nordic-institute/xrddev-testca:latest
       - name: Clean old CA images
-        uses: snok/container-retention-policy@b56f4ff7539c1f94f01e5dc726671cd619aa8072 # v2
+        uses: snok/container-retention-policy@d3bdcf5ce9b05f685154e4a16c39233b245e3d53 # v3.1.0
         with:
           image-names: xrddev-testca
-          cut-off: 1 week ago UTC
+          cut-off: 1w
           timestamp-to-use: created_at
-          account-type: org
-          org-name: nordic-institute
-          keep-at-least: 1
-          token-type: github-token
+          account: nordic-institute
+          keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}

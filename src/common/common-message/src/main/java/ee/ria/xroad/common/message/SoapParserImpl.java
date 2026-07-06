@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -44,6 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jaxb.runtime.api.AccessorException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import javax.xml.namespace.QName;
 
@@ -54,10 +54,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.message.SoapUtils.createSOAPMessage;
 import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
@@ -66,6 +62,10 @@ import static ee.ria.xroad.common.message.SoapUtils.validateMimeType;
 import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
 import static ee.ria.xroad.common.util.HeaderValueUtils.hasUtf8Charset;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
+import static org.niis.xroad.common.core.exception.ErrorCode.DUPLICATE_HEADER_FIELD;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_HEADER_FIELD;
 
 /**
  * Default Soap parser implementation for reading Soap messages from an
@@ -115,7 +115,7 @@ public class SoapParserImpl implements SoapParser {
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
                                 String charset, String originalContentType) throws SOAPException, JAXBException {
         if (soap.getSOAPBody() == null) {
-            throw new CodedException(X_MISSING_BODY,
+            throw XrdRuntimeException.systemException(MISSING_BODY,
                     "Malformed SOAP message: body missing");
         }
 
@@ -145,14 +145,14 @@ public class SoapParserImpl implements SoapParser {
                                  SOAPMessage soap, String charset, String originalContentType)
             throws SOAPException {
         if (header == null) {
-            throw new CodedException(X_MISSING_HEADER,
+            throw XrdRuntimeException.systemException(MISSING_HEADER,
                     "Malformed SOAP message: header missing");
         }
 
         String serviceName = getServiceName(soap.getSOAPBody());
         ServiceId service = header.getService();
         if (service == null) {
-            throw new CodedException(X_MISSING_HEADER_FIELD,
+            throw XrdRuntimeException.systemException(MISSING_HEADER_FIELD,
                     "Message header must contain service id");
         }
 
@@ -175,9 +175,9 @@ public class SoapParserImpl implements SoapParser {
             Object next = it.next();
             if (next instanceof SOAPElement soapElement) {
                 if (!fields.add(soapElement.getElementQName())) {
-                    throw new CodedException(X_DUPLICATE_HEADER_FIELD,
-                            "SOAP header contains duplicate field '%s'",
-                            soapElement.getElementQName());
+                    throw XrdRuntimeException.systemException(DUPLICATE_HEADER_FIELD,
+                            "SOAP header contains duplicate field '%s'".formatted(
+                                    soapElement.getElementQName()));
                 }
             }
         }
@@ -210,7 +210,7 @@ public class SoapParserImpl implements SoapParser {
             case ValidationEvent.ERROR -> {
                 Throwable t = event.getLinkedException();
                 yield !(t instanceof AccessorException
-                        && t.getCause() instanceof CodedException);
+                        && t.getCause() instanceof XrdRuntimeException);
             }
             case ValidationEvent.FATAL_ERROR -> false;
             default -> true;

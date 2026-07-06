@@ -25,25 +25,78 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepository;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepositoryImpl;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepositoryNoopImpl;
+import org.niis.xroad.confclient.common.service.ConfigurationClient;
+import org.niis.xroad.confclient.common.service.ConfigurationClientService;
+import org.niis.xroad.confclient.common.service.ConfigurationDownloader;
+import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
+import org.niis.xroad.confclient.core.globalconf.DBBasedProvider;
+import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
-import org.niis.xroad.confclient.core.ConfigurationClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import javax.sql.DataSource;
 
-@Import({
-        ConfClientAdminPortConfig.class,
-        ConfClientJobConfig.class,
-})
-@ComponentScan("org.niis.xroad.confclient")
-@Configuration
 public class ConfClientRootConfig {
 
-    @Bean
-    ConfigurationClient configurationClient() {
-        return new ConfigurationClient(SystemProperties.getConfigurationPath());
+    @ApplicationScoped
+    ConfigurationAnchorProvider configurationAnchorProvider(ConfigurationClientProperties configurationClientProperties,
+                                                            CommonProperties commonProperties,
+                                                            Provider<DataSource> dataSource) {
+        return switch (configurationClientProperties.configurationAnchorStorage()) {
+            case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile(),
+                    commonProperties.tempFilesPath());
+            case DB -> new DBBasedProvider(dataSource.get());
+        };
+    }
+
+    @ApplicationScoped
+    GlobalConfSourceLocationRepository globalConfSourceLocationRepository(Provider<DataSource> dataSource) {
+        var dataSourceActive = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.datasource.active", Boolean.class)
+                .orElse(true);
+        if (dataSourceActive && dataSource.get() != null) {
+            return new GlobalConfSourceLocationRepositoryImpl(dataSource.get());
+        }
+        return new GlobalConfSourceLocationRepositoryNoopImpl();
+    }
+
+    @ApplicationScoped
+    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties,
+                                            ConfigurationAnchorProvider configurationAnchorProvider,
+                                            HttpUrlConnectionConfigurer connectionConfigurer,
+                                            GlobalConfSourceLocationRepository globalConfSourceLocationRepository) {
+        var downloader = new ConfigurationDownloader(connectionConfigurer, globalConfSourceLocationRepository,
+                configurationClientProperties.globalConfDir());
+        return new ConfigurationClient(
+                configurationAnchorProvider,
+                configurationClientProperties.globalConfDir(), downloader, configurationClientProperties.allowedFederations());
+    }
+
+    @ApplicationScoped
+    FSGlobalConfValidator fsGlobalConfValidator() {
+        return new FSGlobalConfValidator();
+    }
+
+    @ApplicationScoped
+    HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfigurationClientProperties configurationClientProperties) {
+        return new HttpUrlConnectionConfigurer(configurationClientProperties);
+    }
+
+    @ApplicationScoped
+    ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
+                                                          ConfigurationClientProperties configurationClientProperties,
+                                                          CommonProperties commonProperties) {
+        return new ConfigurationClientService(
+                httpUrlConnectionConfigurer,
+                configurationClientProperties,
+                commonProperties::tempFilesPath);
     }
 
 }

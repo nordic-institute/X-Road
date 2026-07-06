@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically check lima0 DHCPv4 lease
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+Unit=lima0-dhcp-recover.service
+
+[Install]
+WantedBy=timers.target

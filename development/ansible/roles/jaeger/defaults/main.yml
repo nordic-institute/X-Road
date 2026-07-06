@@ -1,0 +1,20 @@
+---
+jaeger_version: "2.18.0"
+jaeger_arch_map:
+  x86_64: amd64
+  aarch64: arm64
+
+jaeger_otlp_grpc_port: 4317
+jaeger_otlp_http_port: 4318
+jaeger_ui_port: 80
+
+jaeger_install_dir: /opt/jaeger
+jaeger_config_path: /etc/jaeger/config.yaml
+jaeger_storage_path: /var/lib/jaeger
+
+jaeger_badger_span_ttl: 4h
+jaeger_badger_maintenance_interval: 5m
+
+jaeger_memory_limit_mib: 512
+jaeger_memory_spike_limit_mib: 128
+jaeger_memory_check_interval: 5s

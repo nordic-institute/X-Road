@@ -7,5 +7,7 @@ dependencies {
 
   api(project(":lib:globalconf-impl"))
 
-  implementation("org.springframework:spring-context-support")
+  implementation(project(":lib:properties-core"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
+  implementation(libs.springBoot.starter)
 }

@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "lint": "eslint . --fix",
+    "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
+    "build": "pnpm run generate-types",
+    "generate-types": "rm -rf src/openapi-types && openapi-ts",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "cleanup": "rm -rf dist && rm -rf node_modules",
@@ -12,20 +15,20 @@
   },
   "main": "./src/index.ts",
   "dependencies": {
-    "@fontsource/open-sans": "^5.2.7",
-    "@mdi/font": "^7.4.47",
+    "@fontsource-variable/open-sans": "^5.2.7",
+    "@fontsource-variable/material-symbols-rounded": "^5.2.45",
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
-    "axios": "~1.15.2",
-    "dayjs": "^1.11.19",
+    "axios": "~1.18.1",
+    "dayjs": "^1.11.21",
     "deepmerge": "^4.3.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.27",
-    "vue-i18n": "^11.2.8",
-    "vue-router": "^4.6.4",
-    "vuetify": "3.11.7"
+    "vue": "^3.5.39",
+    "vue-i18n": "^11.4.6",
+    "vue-router": "^5.1.0",
+    "vuetify": "^4.1.2"
   },
   "engines": {
     "npm": "use-pnpm",

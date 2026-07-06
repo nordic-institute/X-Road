@@ -1,22 +1,42 @@
 #!/bin/bash
 set -euo pipefail
 no_cache=""
+no_mirror=""
 n=1
+args_to_keep=()
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then
         no_cache="--no-cache"
-        set -- "${@:1:n-1}" "${@:n+1}"
-        break
+    elif [[ $i == "--no-mirror" ]] ; then
+        no_mirror="true"
+    else
+        args_to_keep+=("$i")
     fi
-    ((n++))
 done
+set -- "${args_to_keep[@]}"
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
-version="${1:-7.8.2}"
+version="${1:-8.0.0}"
 tag="${2:-xroad-security-server-sidecar}"
 repo="${3-}"
 dist="${4-}"
 repo_key="${5-}"
+
+# Prepare mirror build args (unless --no-mirror flag is set)
+MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
+
+# Add Docker Hub mirror build arg if configured
+if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
+fi
+
+if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN-}" ]]; then
+  MIRROR_BUILD_ARGS+=(
+    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
+    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
+    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
+  )
+fi
 
 build() {
   echo "BUILDING $tag:$version$2 using ${1#$dir/}"
@@ -25,7 +45,7 @@ build() {
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
   [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
-  docker build -f "$1" "${build_args[@]}" -t "$tag:$version$2" "$dir"
+  docker build --progress=plain -f "$1" "${build_args[@]}" "${MIRROR_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
 copy_variant_conf() {
@@ -33,21 +53,26 @@ copy_variant_conf() {
   local build_conf_dir="$dir/build/etc/xroad/conf.d"
   rm -rf build
   mkdir -p "$build_conf_dir"
-  cp "$dir/../src/packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
+  cp "$dir/../deployment/native-packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
 }
 
 
 build_variant() {
   echo "BUILDING variant $tag:$version$1-$2"
   copy_variant_conf "$2"
-  docker build -f "$dir/Dockerfile-variant" \
+  docker build --progress=plain -f "$dir/Dockerfile-variant" \
     --build-arg "VERSION=$version" \
     --build-arg "FROM=$tag:$version$1" \
     --build-arg "VARIANT=$2" \
     -t "$tag:$version$1-$2" "$dir"
 }
 
-docker pull ubuntu:24.04 # Ensure latest ubuntu image is used as base
+# Ensure latest ubuntu image is used as base
+if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
+  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:26.04"
+else
+  docker pull ubuntu:26.04
+fi
 
 build "$dir/slim/Dockerfile" "-slim"
 build_variant "-slim" "fi"

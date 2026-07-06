@@ -1,0 +1,27 @@
+---
+- name: Gather facts from target container
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+
+- name: Configure package mirror for APT (Debian-based)
+  script:
+    cmd: >-
+      {{ role_path }}/../../../../deployment/.scripts/configure-mirror-apt.sh
+      '{{ package_mirror_url }}'
+      '{{ package_mirror_user }}'
+  environment:
+    XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
+  delegate_to: "{{ item }}"
+  when: hostvars[item]['ansible_facts']['os_family'] == "Debian"
+
+- name: Configure package mirror for DNF (RedHat-based)
+  script:
+    cmd: >-
+      {{ role_path }}/../../../../deployment/.scripts/configure-mirror-dnf.sh
+      '{{ package_mirror_url | regex_replace('/mirror-.*$', '') }}'
+      '{{ package_mirror_user }}'
+  environment:
+    XROAD_MIRROR_TOKEN: "{{ package_mirror_token }}"
+  delegate_to: "{{ item }}"
+  when: hostvars[item]['ansible_facts']['os_family'] == "RedHat"

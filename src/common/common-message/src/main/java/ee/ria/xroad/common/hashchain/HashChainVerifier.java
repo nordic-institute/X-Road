@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.XmlUtils;
 
@@ -43,6 +42,7 @@ import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.transforms.Transforms;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -65,14 +65,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.SchemaValidator.createSchema;
+import static org.niis.xroad.common.core.exception.ErrorCode.HASHCHAIN_UNUSED_INPUTS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HASH_CHAIN_REF;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HASH_CHAIN_RESULT;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REFERENCE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_HASH_CHAIN;
 
 /**
  * Verification of hash chains.
@@ -210,7 +210,7 @@ public final class HashChainVerifier {
 
         // Compare with the signed hash chain result.
         if (!Arrays.equals(digestedData, hashChainResult.getDigestValue())) {
-            throw new CodedException(X_INVALID_HASH_CHAIN_RESULT,
+            throw XrdRuntimeException.systemException(INVALID_HASH_CHAIN_RESULT,
                     "Hash chain result does not match hash chain calculation");
         }
         checkReferencedInputs();
@@ -223,8 +223,8 @@ public final class HashChainVerifier {
         untouchedInputs.removeAll(usedInputs);
 
         if (!untouchedInputs.isEmpty()) {
-            throw new CodedException(X_HASHCHAIN_UNUSED_INPUTS,
-                    "Some inputs were not referenced by hash chain: %s", StringUtils.join(untouchedInputs, ", "));
+            throw XrdRuntimeException.systemException(HASHCHAIN_UNUSED_INPUTS,
+                    "Some inputs were not referenced by hash chain: %s".formatted(StringUtils.join(untouchedInputs, ", ")));
         }
     }
 
@@ -248,7 +248,7 @@ public final class HashChainVerifier {
             JAXBElement<T> element = unmarshaller.unmarshal(source, type);
             return element.getValue();
         } catch (UnmarshalException e) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, e, "Parsing hash chain failed");
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, e, "Parsing hash chain failed");
         }
     }
 
@@ -270,16 +270,16 @@ public final class HashChainVerifier {
         }
 
         if (activePath.contains(fullUri)) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, "Cycle detected in hash chain at step: %s".formatted(fullUri));
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, "Cycle detected in hash chain at step: %s".formatted(fullUri));
         }
 
         if (activePath.size() >= MAX_DEPTH) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN,
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
                     "Hash chain exceeds maximum depth of %d".formatted(MAX_DEPTH));
         }
 
         if (totalStepsResolved >= MAX_STEPS) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN,
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
                     "Hash chain exceeds maximum step count of %d".formatted(MAX_STEPS));
         }
 
@@ -295,7 +295,7 @@ public final class HashChainVerifier {
             for (int i = 0; i < digests.length; ++i) {
                 totalValuesResolved++;
                 if (totalValuesResolved > MAX_VALUES) {
-                    throw new CodedException(X_MALFORMED_HASH_CHAIN,
+                    throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
                             "Hash chain exceeds maximum value count of %d".formatted(MAX_VALUES));
                 }
                 digests[i] = resolveValue(values.get(i), hashStep.getRight());
@@ -405,7 +405,7 @@ public final class HashChainVerifier {
         }
 
         if (toDigest == null) {
-            throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", dataRef.getURI());
+            throw XrdRuntimeException.systemException(INVALID_REFERENCE, "Cannot resolve URI: %s".formatted(dataRef.getURI()));
         }
 
         byte[] digest = calculateDigest(digestMethodUri, toDigest);
@@ -414,8 +414,8 @@ public final class HashChainVerifier {
         if (!Arrays.equals(digest, dataRef.getDigestValue())) {
             log.debug("Calculated: {}", encodeBase64(digest));
 
-            throw new CodedException(X_INVALID_HASH_CHAIN_REF,
-                    "Invalid digest value in hash chain reference to %s", dataRef.getURI());
+            throw XrdRuntimeException.systemException(INVALID_HASH_CHAIN_REF,
+                    "Invalid digest value in hash chain reference to %s".formatted(dataRef.getURI()));
         }
 
         return new DigestValue(digestMethodUri, digest);
@@ -484,7 +484,7 @@ public final class HashChainVerifier {
         String rawUri = baseUri + (fragment != null ? "#" + fragment : "");
 
         if (fragment == null || fragment.isEmpty()) {
-            throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(rawUri));
+            throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(rawUri));
         }
 
         HashChainType hashChain;
@@ -501,8 +501,7 @@ public final class HashChainVerifier {
             }
         }
 
-        // No hash step with given fragment ID found.
-        throw new CodedException(X_MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG, rawUri);
+        throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN, INVALID_HASH_STEP_URI_MSG.formatted(rawUri));
     }
 
     private HashChainType getHashChain(String uri) throws IOException, JAXBException, ParserConfigurationException, SAXException {
@@ -512,7 +511,7 @@ public final class HashChainVerifier {
             InputStream is = referenceResolver.resolve(uri);
 
             if (is == null) {
-                throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", uri);
+                throw XrdRuntimeException.systemException(INVALID_REFERENCE, "Cannot resolve URI: %s".formatted(uri));
             }
 
             ret = parseHashChain(is);

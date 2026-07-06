@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.validation.ConstraintViolationException;
@@ -37,6 +37,7 @@ import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
@@ -48,6 +49,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeMessag
 import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerPropertyUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
@@ -55,10 +58,10 @@ import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
+import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -106,6 +109,12 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final String TSA_2_NAME = "TSA 2";
 
+    private static final String PROPERTY_NAME = "xroad.proxy-ui-api.client-timeout";
+
+    private static final String PROPERTY_VALUE = "10000";
+
+    private static final String SCOPE = "proxy-ui-api";
+
     private static final String ANCHOR_HASH =
             "CE2CA4FBBB67260F6CE97F9BCB73501F40432A1A2C4E5DA6F9F50DD1";
 
@@ -119,7 +128,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.STANDALONE);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.STANDALONE);
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -131,7 +140,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"GENERATE_INTERNAL_TLS_CSR"})
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
-        when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
+        when(internalTlsCertificateService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
                 new DistinguishedNameDto().name("foobar"));
         assertNotNull(result);
@@ -149,6 +158,41 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         getSystemCertificate();
     }
 
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = {"NON_CHANGE_SYSTEM_PROPERTY"})
+    public void getConfigurablePropertiesWrongPermissions() {
+        systemApiController.getConfigurableProperties();
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_CONFIGURATION_PROPERTY"})
+    public void getConfigurableProperties() {
+        when(configurablePropertiesService.getConfigurationProperties()).thenReturn(Set.of(new SecurityServerConfigurablePropertyDto()));
+        ResponseEntity<Set<SecurityServerConfigurablePropertyDto>> systemProperties = systemApiController.getConfigurableProperties();
+
+        assertEquals(HttpStatus.OK, systemProperties.getStatusCode());
+        assertEquals(1, systemProperties.getBody().size());
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(authorities = {"NON_CHANGE_SYSTEM_PROPERTY"})
+    public void updateConfigurablePropertyWrongPermissions() {
+        systemApiController.updateConfigurableProperty(new SecurityServerPropertyUpdateDto());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CHANGE_CONFIGURATION_PROPERTY"})
+    public void updateConfigurableProperty() {
+        var dto = new SecurityServerPropertyUpdateDto();
+        dto.setPropertyValue(PROPERTY_VALUE);
+        dto.setPropertyName(PROPERTY_NAME);
+        dto.setScope(SCOPE);
+
+        ResponseEntity<Void> voidResponseEntity = systemApiController.updateConfigurableProperty(dto);
+
+        assertEquals(HttpStatus.NO_CONTENT, voidResponseEntity.getStatusCode());
+    }
+
     @Test
     @WithMockUser(authorities = {"VIEW_VERSION"})
     public void getVersionInfo() {
@@ -160,18 +204,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(33, (long) response.getBody().getJavaVersion());
-    }
-
-    private void getSystemCertificate() throws IOException {
-        X509Certificate x509Certificate = null;
-        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
-            x509Certificate = CryptoUtils.readCertificate(stream);
-        }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
-
-        CertificateDetailsDto certificate =
-                systemApiController.getSystemCertificate().getBody();
-        assertEquals(INTERNAL_CERT_CN, certificate.getIssuerCommonName());
     }
 
     @Test
@@ -208,7 +240,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getTimestampingPrioritizationStrategy() {
         when(systemService.getTimestampingPrioritizationStrategy())
-                .thenReturn(SystemProperties.ServicePrioritizationStrategy.FREE_FIRST);
+                .thenReturn(ServicePrioritizationStrategy.FREE_FIRST);
 
         ResponseEntity<ServicePrioritizationStrategyDto> response = systemApiController.getTimestampingPrioritizationStrategy();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -348,8 +380,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void replaceAnchor() throws IOException {
-        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<Void> response = systemApiController.replaceAnchor(anchorResource);
+        var body = CertificateTestUtils.getMultipartFile("anchor", FileUtils.readFileToByteArray(ANCHOR_FILE), "anchor.xml");
+        ResponseEntity<Void> response = systemApiController.replaceAnchor(body);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("/api/system/anchor", response.getHeaders().getLocation().getPath());
     }
@@ -357,8 +389,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void previewAnchor() throws IOException {
-        Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
-        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(true, anchorResource);
+        var body = CertificateTestUtils.getMultipartFile("anchor", FileUtils.readFileToByteArray(ANCHOR_FILE), "anchor.xml");
+        ResponseEntity<AnchorDto> response = systemApiController.previewAnchor(body, true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         AnchorDto anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
@@ -375,7 +407,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypePrimary() {
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.PRIMARY);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
         assertEquals(NodeTypeDto.PRIMARY, response.getBody().getNodeType());
     }
@@ -383,7 +415,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeSecondary() {
-        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
+        when(systemService.getServerNodeType()).thenReturn(NodeProperties.NodeType.SECONDARY);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
         assertEquals(NodeTypeDto.SECONDARY, response.getBody().getNodeType());
     }
@@ -426,5 +458,17 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         var response = systemApiController.disableMaintenanceMode();
         assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
         verify(systemService).disableMaintenanceMode();
+    }
+
+    private void getSystemCertificate() throws IOException {
+        X509Certificate x509Certificate = null;
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
+            x509Certificate = CryptoUtils.readCertificate(stream);
+        }
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
+
+        CertificateDetailsDto certificate =
+                systemApiController.getSystemCertificate().getBody();
+        assertEquals(INTERNAL_CERT_CN, certificate.getIssuerCommonName());
     }
 }

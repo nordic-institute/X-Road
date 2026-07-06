@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$(id -nu)" != "xroad" ]
+then
+  echo $0 must run under xroad user
+  exit 1
+fi
+
+. /etc/xroad/services/confproxy.conf
+
+exec java ${XROAD_PARAMS} ${XROAD_CONFPROXY_PARAMS} -jar /usr/share/xroad/jlib/configuration-proxy-application.jar
+

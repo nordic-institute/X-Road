@@ -1,0 +1,224 @@
+---
+# This playbook compiles X-Road and installs the compiled packages to the defined host inventory
+
+- name: Initialize LXD servers
+  hosts: lxd_servers
+  strategy: free
+  roles:
+    - init-lxd
+  tags:
+    - init
+
+- name: Install lima0 DHCP recovery timer (mac/lima only; no-op elsewhere)
+  hosts: lxd_servers
+  become: "{{ onMacOs | default(true) }}"
+  strategy: free
+  roles:
+    - lima-net-recover
+  tags:
+    - init
+    - lima-net-recover
+
+- name: Perform RHEL support check
+  hosts: ss_servers
+  become: true
+  become_user: root
+  any_errors_fatal: true
+  strategy: free
+  tasks:
+    - name: RHEL-support check
+      fail:
+        msg: "Variant '{{ variant }}' does not support RHEL-servers"
+      when:
+        - (variant is defined and variant == "ee")
+        - ansible_facts['os_family'] == "RedHat"
+
+- name: Run compilation tasks
+  hosts: compile_servers
+  strategy: free
+  roles:
+    - role: compile
+  tags:
+    - compile
+
+- name: Build packages
+  hosts: compile_servers
+  strategy: free
+  roles:
+    - role: build-packages
+  tags:
+    - build-packages
+
+- name: Apply dev env configuration
+  hosts: ss_servers, cs_servers, cp_servers
+  become: true
+  strategy: free
+  roles:
+    - init-dev-configuration
+
+- name: Provision Jaeger tracing backend (xrd-jaeger LXD container)
+  hosts: jaeger_servers
+  strategy: free
+  roles:
+    - jaeger
+  tags:
+    - jaeger
+
+- name: Install host-level monitoring (Netdata)
+  hosts: lxd_servers
+  become: true
+  strategy: free
+  roles:
+    - role: netdata
+      when: enable_netdata | default(true) | bool
+  tags:
+    - netdata
+
+- name: Build local package repository (single shared, served over HTTP)
+  hosts: repo_servers
+  become: true
+  strategy: free
+  pre_tasks:
+    - name: Check host connectivity
+      ping:
+  roles:
+    - xroad-repo
+  tags:
+    - repo
+    - install
+
+# CA installs first because xroad-cs and xroad-ss both need xrd-ca's signing
+# endpoint up to provision ds-https TLS keystores (see ds-https-keystore.yml).
+- name: Install CA servers
+  hosts: ca_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-ca
+  tags:
+    - ca
+    - install
+
+- name: Install CS servers
+  hosts: cs_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-mock-jwks-server
+    - xroad-cs
+  tags:
+    - cs
+    - install
+  vars_files:
+    - vars_files/local_repo.yml
+    - vars_files/cs_database.yml
+
+- name: Install CP servers
+  hosts: cp_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-cp
+  tags:
+    - cp
+    - install
+  vars_files:
+    - vars_files/local_repo.yml
+    - vars_files/cp_database.yml
+
+- name: Configure HW tokens (SoftHSM2) for SS
+  hosts: ubuntu_hsm_ss
+  become: true
+  strategy: free
+  tags:
+    - ss
+    - hwtokens
+  vars:
+    hwtoken_label: "x-road-softhsm2"
+    hwtoken_so_pin: "1234"
+    hwtoken_user_pin: "Secret1234"
+  vars_files:
+    - vars_files/local_repo.yml
+  tasks:
+    - name: Run ubuntu_hsm_ss hwtoken tasks
+      include_role:
+        name: xroad-ss
+        tasks_from: hwtokens.yml
+
+- name: Install SS servers
+  hosts: ss_servers
+  become: true
+  # linear (not free): the installer's run_once "Stage installer on controller"
+  # step rewrites a shared build/xroad-installer dir (rm -rf + cp -R). Under free,
+  # a second SS host races into the per-host "Sync staged installer" copy while
+  # that rewrite is mid-flight and fails with "chmod: cannot access .source".
+  # linear barriers the staging step ahead of the parallel syncs.
+  strategy: linear
+  vars:
+    xroad_installer_local_mode: true
+    # LXD dev containers are below the installer's OS/RAM/CPU floor.
+    skip_requirements_check: true
+    # Ubuntu apt expects "http://xrd-repo/deb /", RHEL dnf expects "http://xrd-repo/rpm" —
+    # mirrors vars_files/local_repo.yml (ubuntu_apt_repo / rhel_repo_baseurl). Packages are
+    # served by the shared xrd-repo nginx container, not a per-host file:// repo.
+    xroad_repo_url_override: >-
+      {{ 'http://xrd-repo/deb /' if ansible_facts['os_family'] == 'Debian'
+         else 'http://xrd-repo/rpm' }}
+    xroad_tls_hostname: "{{ inventory_hostname }}.lxd"
+    xroad_tls_alt_names: "IP:{{ ansible_facts['default_ipv4']['address'] }},DNS:{{ inventory_hostname }}.lxd,DNS:{{ inventory_hostname }}"
+  vars_files:
+    # ss_database.yml consumed by xroad-ss postinstall (enable_postgres_remote_access, pg_remote_dev_cidrs)
+    - vars_files/ss_database.yml
+  roles:
+    - xroad-ss-installer
+  post_tasks:
+    # include_tasks (not include_role) so the xroad-ss -> xroad-base meta
+    # dependency is NOT run — the installer already set up repos/packages/user.
+    - name: Apply SS postinstall tweaks (db_property, postgres_remote_dev, opmonitor)
+      include_tasks: roles/xroad-ss/tasks/postinstall.yml
+    # The xroad-ss-installer flow does not run the xroad-ss role's pre-ss-install
+    # hook, so DSP runtime config + the ds-https TLS keystore never land and the
+    # DS services come up on plain http. Preseed them here, then restart the DS
+    # units (and proxy, which gets local-dsp.yaml) so they pick up TLS + config.
+    - name: Preseed DSP config + provision DS TLS keystore
+      include_tasks: roles/xroad-ss/tasks/pre-ss-install.yml
+    - name: Discover installed DS units
+      ansible.builtin.shell: >-
+        systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'
+      register: ss_ds_units
+      changed_when: false
+    # xroad-proxy-ui-api is started by the installer before pre-ss-install.yml
+    # injects the dataspace block into local.yaml, so without a restart it serves
+    # POST /api/v1/system/dataspace-provisioning with dataspace.enabled=false
+    # ("Data space provisioning is not enabled"). Restart it alongside the DS units.
+    - name: Restart DS units, proxy and proxy-ui-api to apply preseeded TLS + runtime config
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop: "{{ (ss_ds_units.stdout_lines | default([])) + ['xroad-proxy', 'xroad-proxy-ui-api'] }}"
+  handlers:
+    # postinstall.yml notifies xroad-ss handlers; register them at play level
+    # since we no longer enter the role via include_role.
+    - import_tasks: roles/xroad-ss/handlers/main.yml
+  tags:
+    - ss
+    - install
+
+- name: Install IS servers
+  hosts: is_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-is
+  tags:
+    - is
+    - install
+
+- name: Install Hurl servers
+  hosts: hurl_servers
+  become: true
+  strategy: free
+  roles:
+    - xroad-hurl
+  tags:
+    - hurl

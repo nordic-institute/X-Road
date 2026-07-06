@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.X509TrustManager;
 
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
@@ -40,14 +39,12 @@ import java.security.cert.X509Certificate;
 class ServiceTrustManager implements X509TrustManager {
 
     @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
+    public void checkClientTrusted(X509Certificate[] chain, String authType) {
         log.trace("checkClientTrusted()");
     }
 
     @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
+    public void checkServerTrusted(X509Certificate[] chain, String authType) {
         log.trace("checkServerTrusted()");
     }
 

@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.12
+Version: 1.13
 Doc. ID: DM-ML
 
 | Date       | Version | Description                                                  | Author             |
@@ -25,6 +25,7 @@ Doc. ID: DM-ML
 | 26.09.2022 | 1.10    | Remove Ubuntu 18.04 support                                  | Andres Rosenthal   |
 | 09.01.2025 | 1.11    | Heading level changes for the documentation platform         | Raido Kaju         |
 | 21.03.2025 | 1.12    | Syntax and styling                               					  | Pauline Dimmek		 |
+| 01.04.2026 | 1.13    | Update minimum PostgreSQL version to 15                      | Egidijus M         |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -68,7 +69,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.4 Database Version
 
-This database assumes PostgreSQL version 9.2 or later.
+This database assumes PostgreSQL version 15 or later.
 
 ### 1.5 Creating, Backing Up and Restoring the Database
 

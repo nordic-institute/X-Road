@@ -8,7 +8,7 @@ Feature: 0200 - CS: Authentication
 
   Scenario: Correct password and username grant access
     Given Login form is visible
-    When User xrd logs in to CentralServer with password secret
+    When User xrd logs in to CentralServer with password secret123!
     Then Members tab is selected
 
   Scenario: Invalid password is rejected
@@ -17,6 +17,6 @@ Feature: 0200 - CS: Authentication
     And Login form is visible
 
   Scenario: Invalid username is rejected
-    When User INVALID logs in to CentralServer with password secret
+    When User INVALID logs in to CentralServer with password secret123!
     Then Error message for incorrect credentials is shown
     And Login form is visible

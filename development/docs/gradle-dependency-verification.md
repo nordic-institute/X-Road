@@ -1,13 +1,13 @@
 # Gradle Dependency Verification
 
-SHA-256 checksums in `src/gradle/verification-metadata.xml` pin every dependency for reproducible builds.
+SHA-256 checksums in `core/src/gradle/verification-metadata.xml` pin every dependency for reproducible builds.
 
 ## Updating after a dependency change
 
 After bumping a version in `libs.versions.toml` or adding a dependency:
 
 ```bash
-bash development/docs/regenerate-verification-metadata.sh
+bash core/development/docs/regenerate-verification-metadata.sh
 ```
 
 The orchestrator runs:
@@ -23,7 +23,7 @@ Commit the resulting `verification-metadata.xml`.
 - **Gradle step fails** → metadata already cleared. Restore with `git checkout src/gradle/verification-metadata.xml` before retry.
 - **Build verifies on your host but fails on Linux/Windows CI** → OS-classifier entries missing. Re-run the orchestrator, or just the gap-filler:
   ```bash
-  bash development/docs/update-verification-metadata.sh
+  bash core/development/docs/update-verification-metadata.sh
   ```
 - **`HTTP 404` lines** during gap-fill: artifact not published for that platform — expected and skipped.
 
@@ -34,3 +34,18 @@ Dependabot auto-updates run `.github/workflows/dependabot-gradle-metadata.yml`, 
 ## Further Reading
 
 - https://docs.gradle.org/current/userguide/dependency_verification.html
+
+## Manual Build Trigger for Dependabot PRs
+
+If the metadata workflow has already generated correct verification-metadata.xml entries, but the Build workflow is still skipped or missing from the PR checks, a maintainer can manually trigger the Build workflow with a small commit.
+
+Sync the local branch with the latest Dependabot PR state:
+```bash
+git fetch origin
+git checkout <dependabot-branch>
+git reset --hard origin/<dependabot-branch>
+git commit --allow-empty -m "chore: trigger build"
+git push
+```
+
+The manual commit triggers the Build workflow as a normal user push instead of a Dependabot-triggered event.

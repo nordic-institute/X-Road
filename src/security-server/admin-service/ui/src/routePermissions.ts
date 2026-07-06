@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,9 +27,9 @@
 
 import { Permissions, RouteName } from '@/global';
 
-/* 
+/*
 Route permission object needs the permissions and the name.
-It could also use path for some routes that don't have name, but those routes are 
+It could also use path for some routes that don't have name, but those routes are
 restricted by their child routes. So for now this simpler system works ok.
 */
 export interface RoutePermission {
@@ -39,17 +40,16 @@ export interface RoutePermission {
 // "single source of truth" for route permissions
 export const routePermissions: RoutePermission[] = [
   {
+    name: RouteName.Keys,
+    permissions: [Permissions.VIEW_KEYS, Permissions.VIEW_API_KEYS, Permissions.VIEW_INTERNAL_TLS_CERT],
+  },
+  {
     name: RouteName.SignAndAuthKeys,
     permissions: [Permissions.VIEW_KEYS],
   },
   {
     name: RouteName.ApiKey,
-    permissions: [
-      Permissions.VIEW_API_KEYS,
-      Permissions.CREATE_API_KEY,
-      Permissions.UPDATE_API_KEY,
-      Permissions.REVOKE_API_KEY,
-    ],
+    permissions: [Permissions.VIEW_API_KEYS, Permissions.CREATE_API_KEY, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
   },
   {
     name: RouteName.SSTlsCertificate,
@@ -66,6 +66,10 @@ export const routePermissions: RoutePermission[] = [
   {
     name: RouteName.Diagnostics,
     permissions: [Permissions.DIAGNOSTICS],
+  },
+  {
+    name: RouteName.Settings,
+    permissions: [Permissions.VIEW_SYS_PARAMS, Permissions.BACKUP_CONFIGURATION, Permissions.VIEW_ADMIN_USERS],
   },
   {
     name: RouteName.SystemParameters,
@@ -133,5 +137,9 @@ export const routePermissions: RoutePermission[] = [
   {
     name: RouteName.ClientTlsCertificate,
     permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS],
+  },
+  {
+    name: RouteName.AdminUsers,
+    permissions: [Permissions.VIEW_ADMIN_USERS, Permissions.ADD_ADMIN_USER, Permissions.UPDATE_ADMIN_USER, Permissions.DELETE_ADMIN_USER],
   },
 ];

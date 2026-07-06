@@ -1,0 +1,12 @@
+Copied from `core/src/security-server/api-test/src/intTest/resources/container-files/jwks/public_key.json`
+at Story 1.3 author time. Dev-profile ONLY (mock-jwks-server is a test-only
+JWKS server — the `public_key.json` here is the corresponding public key
+material from the api-test `jwks` directory).
+
+If the upstream file changes, refresh this copy — chart render has no
+automatic sync with the upstream path. `.Files.Get` is sandboxed to the
+chart root, so reading files outside the chart is not supported.
+
+Private key is NOT copied. Only the public key is needed by the mock
+JWKS HTTP server (it serves `{ "keys": [<public>] }` for remote JWKS
+consumers to verify signatures).

@@ -1,11 +1,12 @@
 @CentralServer
 @Member
+@Subsystem
 Feature: 0450 - CS: Member details view Subsystem tab
 
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
 
   Scenario: The Subsystems table are correctly shown
     Given Members tab is selected

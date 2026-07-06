@@ -7,7 +7,7 @@ HTTP 200
 POST https://{{cs_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -30,11 +30,10 @@ HTTP 201
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}
+[Options]
+output: gconf_anchor.xml
 
 HTTP 200
-
-[Captures]
-gconf_anchor: body
 
 # Initialize Security Server
 
@@ -42,11 +41,22 @@ gconf_anchor: body
 GET https://{{ss_host}}:4000
 HTTP 200
 
+# Bootstrap the initial admin user (no-op once one exists)
+POST https://{{ss_host}}:4000/api/v1/initialization/admin-user
+Content-Type: application/json
+{
+  "username": "xrd",
+  "password": "secret123!"
+}
+HTTP *
+[Asserts]
+ status toString matches "^(201|409)$"
+
 # Log in to the Security Server
 POST https://{{ss_host}}:4000/login
 [FormParams]
 username: xrd
-password: secret
+password: secret123!
 
 HTTP 200
 [Captures]
@@ -55,10 +65,8 @@ ss_xsrf_token: cookie "XSRF-TOKEN"
 # Add configuration anchor
 POST https://{{ss_host}}:4000/api/v1/system/anchor
 X-XSRF-TOKEN: {{ss_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{gconf_anchor}}
-```
+[MultipartFormData]
+anchor: file,gconf_anchor.xml;
 
 HTTP 201
 
@@ -135,6 +143,8 @@ ss_auth_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss_auth_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -148,16 +158,12 @@ Content-Disposition: form-data; name="certreq"; filename="auth.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss_auth_key_cert: body
 
 # Import auth certificate
 POST https://{{ss_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss_auth_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss_auth_key_cert.pem;
 
 HTTP 201
 
@@ -204,6 +210,8 @@ ss_sign_key_csr: body
 # [FormMultiPart] as we do with the other requests)
 POST http://{{ca_host}}:8888/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss_sign_key_cert.pem
 ```
 --certboundary
 Content-Disposition: form-data; name="type"
@@ -217,16 +225,12 @@ Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
 ```
 
 HTTP 200
-[Captures]
-ss_sign_key_cert: body
 
 # Import auth certificate
 POST https://{{ss_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss_xsrf_token}}
-Content-Type: application/octet-stream
-```
-{{ss_sign_key_cert}}
-```
+[MultipartFormData]
+certificate: file,ss_sign_key_cert.pem;
 
 HTTP 201
 
@@ -274,12 +278,14 @@ HTTP 200
 [Captures]
 tsa_name: jsonpath "$[0].name"
 tsa_url: jsonpath "$[0].url"
+cost_type: jsonpath "$[0].cost_type"
 
 POST https://{{ss_host}}:4000/api/v1/system/timestamping-services
 X-XSRF-TOKEN: {{ss_xsrf_token}}
 {
   "name": "{{tsa_name}}",
-  "url": "{{tsa_url}}"
+  "url": "{{tsa_url}}",
+  "cost_type": "{{cost_type}}"
 }
 
 HTTP 201

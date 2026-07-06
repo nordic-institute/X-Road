@@ -1,10 +1,12 @@
 @CentralServer
+@Settings
+@TlsCertificates
 Feature: 0860 - CS: Settings -> TLS Certificates
 
   Background:
     Given CentralServer login page is open
     And Page is prepared to be tested
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And CentralServer Settings tab is selected
 
  Scenario: Management Service TLS certificate is visible and all buttons are enabled
@@ -20,6 +22,7 @@ Feature: 0860 - CS: Settings -> TLS Certificates
     When Management Service TLS key hash field is clicked
     Then user is able to view the certificate details
 
+  @Download
   Scenario: Management Service TLS certificate can be downloaded
     Given TLS Certificates sub-tab is selected
     When Downloading certificate button is clicked
@@ -30,6 +33,7 @@ Feature: 0860 - CS: Settings -> TLS Certificates
     When Re-create key button is clicked
     Then new key and certificate are successfully created
 
+  @Download
   Scenario: Management Service TLS certificate sign request can be generated
     Given TLS Certificates sub-tab is selected
     When Generate CSR button is clicked

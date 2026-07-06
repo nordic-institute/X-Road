@@ -13,14 +13,14 @@ dependencies {
   implementation(project(":service:signer:signer-api"))
   implementation(project(":common:common-admin-api"))
 
-  implementation("org.springframework.boot:spring-boot-starter-security")
-  implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation("org.springframework.boot:spring-boot-starter-cache")
-  implementation("org.springframework.boot:spring-boot-starter-validation")
+  implementation(libs.springBoot.starterSecurity)
+  implementation(libs.springBoot.starterWeb)
+  implementation(libs.springBoot.starterCache)
+  implementation(libs.springBoot.starterValidation)
   implementation(libs.mapstruct)
 
   testImplementation(project(":common:common-test"))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
   testImplementation("org.springframework.security:spring-security-test")
 }
 

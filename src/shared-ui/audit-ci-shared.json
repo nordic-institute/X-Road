@@ -3,6 +3,5 @@
   "skip-dev": false,
   "package-manager": "auto",
   "output-format": "json",
-  "allowlist": [
-  ]
+  "allowlist": []
 }

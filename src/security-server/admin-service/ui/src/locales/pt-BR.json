@@ -5,13 +5,13 @@
     "addServiceClientsTitle": "Adicionar clientes",
     "addSubjectsSuccess": "Direitos de acesso adicionados com sucesso",
     "id": "ID",
-    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "removeAllText": "Tem certeza de que deseja remover os direitos de acesso de todos os clientes?",
     "removeAllTitle": "Remover todos os direitos de acesso?",
     "removeSuccess": "Direitos de acesso removidos com sucesso",
     "removeText": "Tem certeza de que deseja remover os direitos de acesso deste cliente?",
     "removeTitle": "Remover direitos de acesso?",
     "rightsGiven": "Direitos de Acesso Concedidos",
+    "subsystemName": "Nome do subsistema / Descrição do grupo",
     "title": "Direitos de Acesso"
   },
   "action": {
@@ -119,21 +119,23 @@
     "member": "Membro",
     "memberClass": "Classe do Membro",
     "memberCode": "Código do Membro",
+    "memberInParenthesis": "(@:client.member)",
     "memberName": "Nome do Membro",
     "name": "Nome",
     "owner": "Proprietário",
+    "ownerInParenthesis": "(@:client.owner)",
     "status": "Status",
     "statusText": {
-      "deletionInProgress": "EXCLUSÃO EM ANDAMENTO",
-      "disabled": "DESATIVADO",
-      "disablingInProgress": "DESATIVAÇÃO EM ANDAMENTO",
-      "enablingInProgress": "ATIVAÇÃO EM ANDAMENTO",
-      "globalError": "ERRO GLOBAL",
+      "deletionInProgress": "Exclusão em andamento",
+      "disabled": "Desativado",
+      "disablingInProgress": "Desativação em andamento",
+      "enablingInProgress": "Ativação em andamento",
+      "globalError": "Erro global",
       "nameSet": "Alteração de nome será aplicada no registro do cliente",
       "nameSubmitted": "Alteração de nome enviada",
-      "registered": "REGISTRADO",
-      "registrationInProgress": "REGISTRO EM ANDAMENTO",
-      "saved": "SALVO"
+      "registered": "Registrado",
+      "registrationInProgress": "Registro em andamento",
+      "saved": "Salvo"
     },
     "subsystemCode": "Código do Subsistema",
     "subsystemName": "Nome do Subsistema",
@@ -178,6 +180,30 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Desativado por configuração"
+    },
+    "connection": {
+      "ok": "Tudo certo",
+      "test": "Teste",
+      "centralServer": {
+        "authCertRequest": "Serviço de registro de certificado de autenticação",
+        "globalConf": "Download da configuração global",
+        "globalConfHttp": "http",
+        "globalConfHttps": "https",
+        "title": "Servidor Central"
+      },
+      "management": {
+        "title": "Servidor de Segurança de Gerenciamento"
+      },
+      "securityServer": {
+        "client": "Cliente",
+        "sourceClient": "Cliente de origem",
+        "rest": "REST",
+        "securityServer": "Servidor de Segurança",
+        "soap": "SOAP",
+        "title": "Outro Servidor de Segurança",
+        "target": "Destino",
+        "targetClient": "Cliente de destino"
+      }
     },
     "costType": "Tipo de custo",
     "downloadReport": "Baixar relatório de diagnóstico",
@@ -240,25 +266,25 @@
         "title": "Status das notificações por e-mail"
       },
       "recipientsEmails": "E-mails dos destinatários",
-      "status": "Status",
       "sentTestMail": "Enviar e-mail de teste",
+      "status": "Status",
       "title": "Status das notificações por e-mail",
       "type": {
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "Notificações de certificado ACME ativado automaticamente",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "Notificações de falha na ativação automática do certificado ACME",
         "ACME_FAILURE": "Notificações de falha do ACME",
         "ACME_SUCCESS": "Notificações de sucesso do ACME",
-        "AUTH_CERT_REGISTERED": "Notificações de certificado de autenticação registrado",
-        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "Notificações de certificado ACME ativado automaticamente",
-        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "Notificações de falha na ativação automática do certificado ACME"
+        "AUTH_CERT_REGISTERED": "Notificações de certificado de autenticação registrado"
       },
       "types": "Tipos de notificação por e-mail"
     },
     "maintenanceMode": {
-      "enableTitle": "Ativar modo de manutenção",
-      "enableConfirm": "Deseja ativar o modo de manutenção?",
-      "enableSuccess": "Ativação do modo de manutenção em andamento",
-      "disableTitle": "Desativar modo de manutenção",
       "disableConfirm": "Deseja desativar o modo de manutenção?",
       "disableSuccess": "Desativação do modo de manutenção em andamento",
+      "disableTitle": "Desativar modo de manutenção",
+      "enableConfirm": "Deseja ativar o modo de manutenção?",
+      "enableSuccess": "Ativação do modo de manutenção em andamento",
+      "enableTitle": "Ativar modo de manutenção",
       "forbiddenEnable": "O modo de manutenção não pode ser ativado para um provedor de serviços de gerenciamento",
       "label": "Modo de manutenção:",
       "status": {
@@ -308,49 +334,25 @@
       "title": "Carimbo de tempo"
     },
     "traffic": {
-      "period": "Período",
-      "periodInfo": "Selecione início e fim",
-      "date": "Data",
-      "time": "Hora",
-      "party": "Parte",
-      "partyInfo": "Serviço, subsistema, membro",
       "client": "Cliente",
-      "service": "Serviço",
+      "date": "Data",
+      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, habilite o monitoramento de dados operacionais na configuração do Servidor de Segurança.",
+      "disabledTitle": "Monitoramento de dados operacionais desativado",
       "exchangeRole": "Função de troca",
       "exchangeRoleInfo": "Produtor ou Consumidor",
+      "failedRequests": "Solicitações falhas",
+      "failure": "Falha",
+      "party": "Parte",
+      "partyInfo": "Serviço, subsistema, membro",
+      "period": "Período",
+      "periodInfo": "Selecione início e fim",
       "producer": "Produtor",
+      "service": "Serviço",
       "status": "Status",
       "statusInfo": "Status da troca de mensagens",
       "success": "Sucesso",
-      "failure": "Falha",
       "successfulRequests": "Solicitações exitosas",
-      "failedRequests": "Solicitações falhas",
-      "disabledTitle": "Monitoramento de dados operacionais desativado",
-      "disabledMessage": "O monitoramento de dados operacionais está desativado para este Servidor de Segurança. Para ativá-lo, instale o complemento de monitoramento de dados operacionais (xroad-addon-opmonitoring)."
-    },
-    "connection": {
-      "ok": "Tudo certo",
-      "test": "Teste",
-      "centralServer": {
-        "authCertRequest": "Serviço de registro de certificado de autenticação",
-        "globalConf": "Download da configuração global",
-        "globalConfHttp": "http",
-        "globalConfHttps": "https",
-        "title": "Servidor Central"
-      },
-      "management": {
-        "title": "Servidor de Segurança de Gerenciamento"
-      },
-      "securityServer": {
-        "client": "Cliente",
-        "sourceClient": "Cliente de origem",
-        "rest": "REST",
-        "securityServer": "Servidor de Segurança",
-        "soap": "SOAP",
-        "title": "Outro Servidor de Segurança",
-        "target": "Destino",
-        "targetClient": "Cliente de destino"
-      }
+      "time": "Hora"
     }
   },
   "endpoints": {
@@ -446,6 +448,7 @@
     "global_conf_outdated": "Configuração global está desatualizada",
     "gpg_key_generation_failed": "Falha ao gerar chave GPG",
     "gpg_key_generation_interrupted": "Geração de chave GPG interrompida",
+    "http_error": "Erro HTTP",
     "identifier_not_found": "Identificador não encontrado",
     "illegal_generated_endpoint_remove": "Não é permitido remover endpoint gerado automaticamente",
     "illegal_generated_endpoint_update": "Não é permitido editar endpoint gerado automaticamente",
@@ -481,7 +484,6 @@
     "member_code_not_provided": "Código de membro não informado",
     "missing_parameter": "Parâmetro ausente",
     "network_error": "Erro de rede",
-    "http_error": "Erro HTTP",
     "ocsp_connection_error": "Não foi possível conectar ao respondedor OCSP",
     "ocsp_failed": "Não foi possível obter resposta do respondedor OCSP",
     "ocsp_response_parsing_failure": "Não foi possível interpretar a resposta OCSP",
@@ -511,6 +513,11 @@
       "malformed_csr": "Dados do CSR malformados"
     },
     "token_not_active": "Token não está ativo",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Erro de rede: o monitoramento de dados operacionais não está disponível"
+      }
+    },
     "unsupported_openapi_version": "Versão OpenAPI não suportada. Apenas 3.0.x e 3.1.0 são aceitas.",
     "url_already_exists": "URL já existe",
     "warnings_detected": "Avisos detectados",
@@ -518,7 +525,6 @@
     "wrong_servicedescription_type": "Tipo de descrição de serviço inválido",
     "wsdl_download_failed": "Falha ao baixar WSDL",
     "wsdl_exists": "WSDL já existe",
-    "wsdl_validator_interrupted": "Validador de WSDL interrompido",
     "wsdl_validator_not_executable": "Validador de WSDL não pode ser executado"
   },
   "fields": {
@@ -683,13 +689,13 @@
     "importCertOcspVerifyWarning": "Não foi possível ativar o certificado. A verificação OCSP falhou. Erro: {errorMessage}",
     "importCertSuccess": "Certificado importado com sucesso",
     "incorrectPin": "PIN incorreto. Tente novamente.",
-    "keyAlgorithm": "Algoritmo da Chave:",
+    "keyAlgorithm": "Algoritmo da Chave",
     "keyDeleted": "Chave excluída",
-    "keyId": "ID da Chave:",
+    "keyId": "ID da Chave",
     "keyInfo": "Informações da Chave",
     "keyLabelInput": "Rótulo da Chave",
     "keySaved": "Chave salva",
-    "label": "Rótulo:",
+    "label": "Rótulo",
     "logIn": "Entrar",
     "logOut": "Sair",
     "logOutText": "Deseja sair do token?",
@@ -707,7 +713,7 @@
       "unknown": "Desconhecido"
     },
     "orderAcmeCertificate": "Solicitar Certificado",
-    "readOnly": "Somente leitura:",
+    "readOnly": "Somente leitura",
     "registrationRequest": "Solicitação de registro",
     "renewal": "Renovação automática",
     "request": "Solicitação",
@@ -715,13 +721,13 @@
     "signKeyCert": "Chaves e Certificados SIGN",
     "status": "Status",
     "token": {
+      "deleteSuccess": "Token excluído com sucesso",
+      "deleteText": "Tem certeza de que deseja excluir este token e todas as informações associadas?",
+      "deleteTitle": "Excluir token?",
       "details": "Detalhes do Token",
       "id": "ID do Token:",
       "info": "Informações do Token",
-      "saved": "Token salvo",
-      "deleteText": "Tem certeza de que deseja excluir este token e todas as informações associadas?",
-      "deleteTitle": "Excluir token?",
-      "deleteSuccess": "Token excluído com sucesso"
+      "saved": "Token salvo"
     },
     "tokenStatus": {
       "active": "",
@@ -773,7 +779,8 @@
     "noClientData": "Nenhum dado de cliente disponível",
     "noLocalGroups": "Nenhum grupo local cadastrado",
     "noServiceClients": "Nenhum cliente de serviço",
-    "noTimestampingServices": "Nenhum serviço de carimbo de tempo"
+    "noTimestampingServices": "Nenhum serviço de carimbo de tempo",
+    "noConfigurableProperties": "Nenhuma propriedade configurável"
   },
   "serviceClientType": {
     "globalGroup": "GRUPO_GLOBAL",
@@ -821,7 +828,6 @@
     "enableSuccess": "Descrição do serviço ativada",
     "idGroupCode": "ID / Código do grupo",
     "lastRefreshed": "Última atualização: ",
-    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "noMatches": "Nenhum registro correspondente",
     "openApi3Added": "Serviço OpenAPI 3 adicionado",
     "openapiDetails": "Detalhes OpenAPI 3",
@@ -839,6 +845,7 @@
       "internal_server_ssl_error": "Falha ao verificar os certificados do servidor interno. A URL está correta e acessível pelo Servidor Seguro?",
       "internal_server_ssl_handshake_error": "Falha no handshake TLS com o servidor upstream. O certificado do servidor está ausente da configuração:"
     },
+    "subsystemNameGroupDesc": "Nome do subsistema / Descrição do grupo",
     "timeout": "Timeout",
     "timeoutSec": "Tempo limite (s)",
     "timeoutTooltip": "Duração máxima de uma requisição ao serviço, em segundos",
@@ -859,36 +866,6 @@
     "wsdlAdded": "WSDL adicionado",
     "wsdlDescription": "Descrição do WSDL",
     "wsdlDetails": "Detalhes do WSDL"
-  },
-  "ssTlsCertificate": {
-    "certificateImported": "Certificado importado",
-    "exportCertificate": "Exportar cert.",
-    "generateCsr": "Gerar CSR",
-    "generateInternalCsr": {
-      "cancel": "CANCELAR",
-      "done": "CONCLUÍDO",
-      "step1": {
-        "description": "1) Primeiro, forneça um Distinguished Name",
-        "label": "Distinguished Name",
-        "placeholder": "CN=meuservidorseguro.exemplo.com, O=Minha Organização, C=BR",
-        "tooltip": "O Distinguished Name (DN) identifica de forma única uma entidade em um certificado X.509. Os atributos comuns incluem: CN = Nome comum, O = Nome da organização, C = Código do país."
-      },
-      "step2": {
-        "description": "2) Gere um novo CSR e salve em local seguro",
-        "generateCSR": "Gerar CSR"
-      },
-      "title": "Gerar Solicitação de Assinatura de Certificado TLS"
-    },
-    "generateKey": "Gerar chave",
-    "generateTlsAndCertificateDialog": {
-      "confirmation": "Gerar uma nova chave e certificado TLS do Servidor Seguro?",
-      "explanation": "O sistema irá gerar uma nova chave TLS e um certificado autoassinado, substituindo os existentes.",
-      "success": "Nova chave e certificado TLS gerados com sucesso",
-      "title": "Chave TLS do Servidor Seguro"
-    },
-    "importCertificate": "Importar cert.",
-    "keyCertTitle": "Chave e Certificado TLS",
-    "keyText": "Chave TLS Interna"
   },
   "stores": {
     "user": {
@@ -978,7 +955,7 @@
         "add": {
           "button": "Adicionar",
           "dialog": {
-            "info": "Serviços confiáveis de Carimbo do Tempo:",
+            "info": "Serviços confiáveis de Carimbo do Tempo",
             "success": "Serviço de Carimbo do Tempo adicionado",
             "title": "Adicionar Serviço de Carimbo do Tempo"
           }
@@ -996,14 +973,428 @@
           }
         },
         "header": {
+          "costType": "Tipo de Custo",
           "serviceURL": "URL do Serviço",
-          "timestampingService": "Serviço de Carimbo do Tempo",
-          "costType": "Tipo de Custo"
+          "timestampingService": "Serviço de Carimbo do Tempo"
         }
       },
       "title": "Serviços de Carimbo do Tempo"
     },
-    "title": "Parâmetros do Sistema"
+    "title": "Parâmetros do Sistema",
+    "configurableProperties": {
+      "title": "Propriedades do sistema configuráveis",
+      "search": "Pesquisar propriedades...",
+      "restartWarning": "Os seguintes serviços precisam ser reiniciados para que as alterações entrem em vigor: {scopes}.",
+      "propertyRestartWarning": "Reinicialização necessária para as alterações entrarem em vigor.",
+      "collapseAll": "Recolher tudo",
+      "updateSuccess": "Propriedade atualizada com sucesso",
+      "editDialog": {
+        "title": "Editar valor da propriedade"
+      },
+      "table": {
+        "header": {
+          "propertyName": "Nome da propriedade",
+          "currentValue": "Valor atual",
+          "defaultValue": "Valor padrão",
+          "description": "Descrição"
+        }
+      },
+      "descriptions": {
+        "xroad": {
+          "proxy-ui-api": {
+            "rate-limit-requests-per-second": "Limite de requisições por segundo da API REST de gerenciamento. Os limites se aplicam por IP solicitante.",
+            "rate-limit-requests-per-minute": "Limite de requisições por minuto da API REST de gerenciamento. Os limites se aplicam por IP solicitante.",
+            "rate-limit-cache-size": "Controla quantos endereços IP podem ser armazenados no cache de limite de taxa. Compromisso entre uso de memória e proteção contra ataques em larga escala.",
+            "rate-limit-expire-after-access-minutes": "Controla por quanto tempo as entradas do cache de limite de taxa são válidas.",
+            "cache-default-ttl": "Configura a expiração padrão do cache em segundos. O cache é consultado durante requisições de autenticação. Definir o valor como -1 desativa o cache.",
+            "cache-api-key-ttl": "Configura a expiração do cache de chave de API em segundos. Pode ser utilizado por vários serviços de API. Definir o valor como -1 desativa o cache.",
+            "strict-identifier-checks": "Configura a validação de entrada de identificadores (código de membro, código de subsistema etc.). Valores: true - os identificadores devem corresponder ao padrão ^[a-zA-Z0-9'()+,-.=?]*. false - os identificadores não devem conter dois-pontos (:), ponto e vírgula (;), barras (/\\), percentual (%) ou caracteres de controle.",
+            "request-size-limit-regular": "Tamanho máximo das requisições da API REST de gerenciamento.",
+            "request-size-limit-binary-upload": "Tamanho máximo das requisições da API REST de gerenciamento para envio de arquivos.",
+            "authentication-key-algorithm": "Algoritmo de chave utilizado para criar a solicitação de certificado de autenticação. Os valores possíveis são RSA e EC. (desde a versão 7.6)",
+            "signing-key-algorithm": "Algoritmo de chave utilizado para criar a solicitação de certificado de assinatura. Os valores possíveis são RSA e EC. (desde a versão 7.6)",
+            "authentication-provider": "Provedor de autenticação utilizado para o login na interface. Os valores possíveis são PAM ou DATABASE.",
+            "enforce-user-password-policy": "Quando habilitado, as senhas dos usuários devem atender à política de senha configurada.",
+            "auto-update-timestamp-service-url": "Se habilitado, faz o servidor de segurança atualizar as URLs do serviço de carimbo de tempo quando elas forem alteradas no servidor central. Caso haja múltiplos serviços de carimbo de tempo com o mesmo nome, a atualização não será realizada e um aviso será registrado no log.",
+            "automatic-activate-auth-certificate": "Se habilitado, os certificados de autenticação são ativados automaticamente após serem registrados no Servidor Central.",
+            "acme-renewal-success-notification-enabled": "Se habilitado, um e-mail de notificação é enviado ao membro quando a renovação automática de certificado via ACME é concluída com sucesso.",
+            "acme-renewal-failure-notification-enabled": "Se habilitado, um e-mail de notificação é enviado ao membro quando a renovação automática de certificado via ACME falha.",
+            "auth-cert-registered-notification-enabled": "Se habilitado, um e-mail de notificação é enviado ao membro quando o certificado de autenticação é registrado na configuração global.",
+            "cert-auto-activation-notification-enabled": "Se habilitado, um e-mail de notificação é enviado ao membro quando a ativação automática do certificado é bem-sucedida.",
+            "cert-auto-activation-failure-notification-enabled": "Se habilitado, um e-mail de notificação é enviado ao membro quando a ativação automática do certificado falha.",
+            "mail-notification-locale": "Localidade para notificações por e-mail, que determina o idioma das notificações.",
+            "acme-renewal-active": "Se habilitado, o job de renovação automática de certificado ACME será executado periodicamente.",
+            "acme-renewal-retry-delay": "Número de segundos entre execuções de renovação automática de certificado ACME quando a última execução foi uma falha.",
+            "acme-renewal-interval": "Segundos entre ciclos de verificação de renovação ACME.",
+            "acme-renewal-time-before-expiration-date": "Quando acionar a próxima renovação automática. Subtraído em dias a partir da data de expiração do certificado. Utilizado quando não é possível obter as informações de renovação ACME do servidor ACME.",
+            "acme-keypair-renewal-time-before-expiration-date": "Quando acionar a renovação automática do par de chaves de conta ACME, subtraído em dias a partir da data de expiração do certificado.",
+            "automatic-activate-acme-sign-certificate": "Se habilitado, os certificados de assinatura são ativados automaticamente quando solicitados via ACME (novo ou renovação).",
+            "acme-authorization-wait-attempts": "Número de tentativas para verificar se as autorizações ACME foram concluídas antes de desistir.",
+            "acme-authorization-wait-interval": "Tempo em milissegundos a aguardar entre tentativas de verificação de conclusão de autorização ACME.",
+            "acme-certification-wait-attempts": "Número de tentativas para consultar a emissão de certificado ACME.",
+            "acme-certification-wait-interval": "Segundos entre tentativas de consulta de emissão de certificado ACME.",
+            "acme-certificate-account-key-pair-expiration": "Número de dias durante os quais o certificado autoassinado da conta do servidor ACME é válido.",
+            "acme-challenge-port-enabled": "Se habilitado, a API escutará na porta de desafio ACME (padrão 80) para requisições de desafio ACME recebidas.",
+            "acme-challenge-port": "Número de porta personalizado para desafios ACME. Quando definido, a porta 80 do host do Servidor de Segurança precisa redirecionar para esta porta, pois os servidores ACME sempre utilizam a porta 80 para o desafio.",
+            "acme-key-length": "Comprimento da chave RSA em bits utilizado para solicitações de certificado ACME.",
+            "acme-account-keystore-path": "Caminho no sistema de arquivos para o keystore que armazena o par de chaves da conta ACME.",
+            "acme-challenge-path": "Caminho no sistema de arquivos onde os tokens de desafio ACME HTTP-01 são servidos.",
+            "allow-csr-for-key-with-certificate": "Controla se a geração de um novo CSR é permitida para uma chave que já possui um certificado existente.",
+            "auth-cert-reg-signature-digest-algorithm-id": "Algoritmo de resumo de assinatura utilizado para gerar a solicitação de registro de certificado de autenticação. Os valores possíveis são - SHA-256, SHA-384, SHA-512.",
+            "proxy-server-url": "URL do proxy do Servidor de Segurança utilizado pela API de administração.",
+            "proxy-server-connect-timeout": "Milissegundos para aguardar ao estabelecer uma conexão com o servidor proxy.",
+            "proxy-server-socket-timeout": "Milissegundos para aguardar dados do socket do servidor proxy (0 = sem timeout).",
+            "proxy-server-enable-connection-reuse": "Quando habilitado, as conexões HTTP com o servidor proxy são reutilizadas entre requisições.",
+            "proxy-tls-protocols": "Protocolos TLS aceitos na conexão proxy da API de administração.",
+            "proxy-tls-cipher-suites": "Conjuntos de cifras TLS aceitos na conexão proxy da API de administração.",
+            "key-management-api-whitelist": "Lista separada por vírgulas de endereços IP simples ou intervalos de endereços em notação CIDR com permissão para chamar endpoints de gerenciamento de chaves usando autenticação básica.",
+            "regular-api-whitelist": "Lista separada por vírgulas de endereços IP simples ou intervalos de endereços em notação CIDR com permissão para chamar endpoints regulares usando autenticação por chave de API.",
+            "configurable-properties-path": "Caminho de classpath ou sistema de arquivos para o arquivo YAML de propriedades configuráveis.",
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Nome da role PKI do Vault utilizado ao provisionar o certificado TLS da API de administração.",
+                "common-name": "Nome comum definido no certificado TLS da API de administração provisionado.",
+                "alt-names": "Nomes alternativos de sujeito DNS incluídos no certificado TLS da API de administração provisionado.",
+                "ip-subject-alt-names": "Nomes alternativos de sujeito IP incluídos no certificado TLS da API de administração provisionado.",
+                "ttl": "Tempo de vida do certificado TLS da API de administração provisionado (ex.: 3650D).",
+                "secret-store-pki-path": "Caminho de montagem do mecanismo de segredos PKI do Vault para provisionamento do certificado TLS da API de administração."
+              }
+            }
+          },
+          "proxy": {
+            "admin-port": "Porta na qual o proxy expõe sua interface de administração.",
+            "ssl-enabled": "Se verdadeiro, TLS é utilizado nas conexões entre os servidores de segurança do cliente e do provedor de serviço.",
+            "health-check-port": "A porta TCP onde o serviço de verificação de integridade escuta as requisições. Definir a porta como 0 desativa completamente o serviço de verificação de integridade.",
+            "health-check-interface": "A interface de rede onde o serviço de verificação de integridade escuta as requisições. O padrão são todas as interfaces disponíveis.",
+            "hsm-health-check-enabled": "Quando habilitado, o endpoint de verificação de integridade também verifica a disponibilidade do HSM.",
+            "memory-usage-threshold": "Percentual máximo permitido (0-100) de uso de memória do proxy antes de o serviço de verificação de integridade começar a falhar. Deixe vazio para desabilitar.",
+            "message-sign-digest-name": "Algoritmo de resumo utilizado para assinar mensagens X-Road.",
+            "verify-client-cert": "Quando habilitado, o proxy do servidor verifica o certificado TLS do proxy do cliente.",
+            "log-client-cert": "Se deve registrar informações do sujeito do certificado do cliente.",
+            "enforce-client-is-cert-validity-period-check": "Se deve rejeitar uma requisição quando o certificado do sistema de informação do cliente estiver expirado ou ainda não for válido.",
+            "server-port": "Porta TCP de destino para consultas de saída no servidor de segurança do cliente de serviço.",
+            "xroad-tls-ciphers": "Cifras TLS (lista separada por vírgulas em ordem de preferência) aceitas nas requisições entre servidores de segurança e entre o daemon de monitoramento operacional e o cliente. (desde a versão 6.20)",
+            "batch-signing-enabled": "Quando habilitado, múltiplas mensagens são assinadas em uma única operação em lote.",
+            "strict-identifier-checks": "Configura a validação de entrada de identificadores (código do membro, código do subsistema, etc). Valores: true - os identificadores devem corresponder ao padrão ^[a-zA-Z0-9'()+,-.=?]* e valores que não correspondem são rejeitados. false - os identificadores são validados contra o padrão, valores que não correspondem não são rejeitados, mas um aviso é registrado.",
+            "client-proxy": {
+              "connector-host": "Endereço IP no qual o servidor de segurança do cliente de serviço escuta conexões de aplicações clientes. O valor 0.0.0.0 permite escutar em todas as interfaces IPv4. O valor 127.0.0.1 permite escutar apenas no localhost. Atenção: Alterar este valor pode tornar seu Servidor de Segurança acessível externamente; portanto, regras de firewall devem ser implementadas para limitar o acesso a hosts confiáveis.",
+              "client-http-port": "Porta TCP na qual o servidor de segurança do cliente de serviço escuta requisições HTTP de aplicações clientes.",
+              "client-https-port": "Porta TCP na qual o servidor de segurança do cliente de serviço escuta requisições HTTPS de aplicações clientes.",
+              "jetty-configuration-file": "Nome de arquivo absoluto do arquivo de configuração Jetty para o servidor de segurança do cliente de serviço. Para mais informações sobre como configurar o servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
+              "client-connector-initial-idle-time": "O tempo inicial de inatividade (em milissegundos) que as conexões do cliente podem ficar ociosas antes de o servidor de segurança começar a fechá-las. O valor 0 significa que um tempo de inatividade infinito é permitido.",
+              "client-timeout": "Timeout de assinatura em milissegundos.",
+              "client-httpclient-so-linger": "O tempo SO_LINGER (em segundos) no servidor de segurança que consome serviço para conexões entre servidores de segurança. Um valor maior que 0 significa que, ao fechar uma conexão, o sistema permitirá SO_LINGER segundos para transmissão e confirmação de todos os dados escritos ao par, após os quais o socket é fechado normalmente. Ao atingir o timeout de linger, o socket é fechado forçosamente com um RST TCP. Habilitar a opção com timeout zero realiza um fechamento forçoso imediato. O valor -1 desativa o fechamento forçoso.",
+              "client-httpclient-timeout": "O tempo máximo (SO_TIMEOUT, em milissegundos) que as conexões de um servidor de segurança consumidor de serviço a um servidor de segurança provedor de serviço podem aguardar uma resposta antes de o httpclient do consumidor desistir. O valor 0 significa que um tempo de espera infinito é permitido. Não afeta conexões ociosas.",
+              "pool-total-max-connections": "O número máximo total de conexões permitidas no pool.",
+              "pool-total-default-max-connections-per-route": "O máximo padrão de conexões por rota, definido a menos que um limite específico por rota seja configurado. Devido à implementação atual, este é, na prática, o limite máximo total de conexões, independentemente da configuração acima.",
+              "pool-validate-connections-after-inactivity-of-millis": "Ao reutilizar uma conexão do pool para um servidor de segurança provedor de serviço, verifica se a conexão (o socket) não está semi-fechada caso tenha ficado ociosa por pelo menos este número de milissegundos. Este método não detecta conexões semi-abertas. O valor -1 desativa a verificação.",
+              "client-idle-connection-monitor-interval": "Com que frequência (em milissegundos) o monitor de conexão deve verificar as conexões do pool para limpar conexões ociosas ou expiradas. Esta opção requer que o monitor de conexão esteja habilitado para ter efeito.",
+              "client-idle-connection-monitor-timeout": "O tempo mínimo (em milissegundos) que uma conexão do pool deve estar sem uso (ociosa) antes de poder ser removida do pool. Observe que a remoção do pool também depende da frequência com que o monitor de conexão é executado. Esta opção requer que o monitor de conexão esteja habilitado para ter efeito.",
+              "client-use-idle-connection-monitor": "Se o monitor de conexão ociosa deve ser utilizado para limpar conexões ociosas e expiradas do pool de conexões.",
+              "fastest-connecting-ssl-uri-cache-period": "Quando o servidor de segurança de um consumidor de serviço encontra o servidor de segurança provedor de serviço que responde mais rapidamente, por quanto tempo o resultado deve ser mantido no cache de sessão TLS? 0 para desabilitar.",
+              "use-fastest-connecting-ssl-socket-autoclose": "Nas conexões TLS entre servidores de segurança, o socket de conexão TCP subjacente deve ser fechado no lado do consumidor de serviço quando a conexão TLS for encerrada.",
+              "client-tls-protocols": "Protocolos TLS (lista separada por vírgulas) habilitados nas interfaces do lado do cliente (tanto para requisições de entrada quanto de saída). Para compatibilidade retroativa, o TLSv1.1 ainda é suportado nas interfaces do lado do cliente para requisições de saída. (desde a versão 6.7)",
+              "client-tls-ciphers": "Cifras TLS (lista separada por vírgulas) habilitadas nas interfaces do lado do cliente (tanto para requisições de entrada quanto de saída). (desde a versão 6.7)",
+              "pool-enable-connection-reuse": "Permitir que conexões do pool entre servidores de segurança sejam utilizadas mais de uma vez no lado do cliente. O lado provedor das conexões deve ter a configuração server-support-clients-pooled-connections=true para que o pooling funcione entre servidores de segurança provedor e consumidor."
+            },
+            "server": {
+              "listen-address": "Endereço IP no qual o servidor de segurança do provedor de serviço escuta conexões dos servidores de segurança do cliente de serviço. O valor 0.0.0.0 permite escutar em todas as interfaces IPv4.",
+              "listen-port": "Porta TCP na qual o servidor de segurança do provedor de serviço escuta conexões dos servidores de segurança do cliente de serviço.",
+              "connector-initial-idle-time": "O tempo inicial de inatividade (em milissegundos) que conexões não autenticadas podem ficar ociosas antes de o servidor de segurança provedor começar a fechá-las. O valor 0 significa que um tempo de inatividade infinito é permitido.",
+              "jetty-configuration-file": "Nome de arquivo absoluto do arquivo de configuração Jetty para o servidor de segurança do provedor de serviço. Para mais informações sobre como configurar o servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html.",
+              "support-clients-pooled-connections": "Se este servidor de segurança provedor de serviço suporta conexões em pool do lado do consumidor. Se definido como false, as conexões serão fechadas imediatamente após cada mensagem. Isso pode ser desejável para servidores de segurança atrás de balanceadores de carga.",
+              "min-supported-client-version": "Versão mínima do Servidor de Segurança do cliente com permissão para chamar serviços neste provedor. Requisições de versões mais antigas são rejeitadas. Deixe vazio para permitir todas as versões."
+            },
+            "ocsp-responder": {
+              "listen-address": "Endereço IP no qual o servidor de segurança do provedor de serviço escuta requisições de respostas OCSP do servidor de segurança do cliente de serviço. O servidor de segurança do cliente baixa as respostas OCSP do servidor de segurança do provedor ao estabelecer uma conexão segura entre os servidores. O valor 0.0.0.0 permite escutar em todas as interfaces IPv4. Deve corresponder ao valor de proxy.server-listen-address.",
+              "port": "Porta TCP na qual o servidor de segurança do provedor de serviço escuta requisições de respostas OCSP do servidor de segurança do cliente de serviço. O servidor de segurança do cliente baixa as respostas OCSP do servidor de segurança do provedor ao estabelecer uma conexão segura entre os servidores.",
+              "client-connect-timeout": "Timeout de conexão (em milissegundos) do cliente respondedor OCSP. O servidor de segurança do cliente baixa as respostas OCSP do servidor de segurança do provedor ao estabelecer uma conexão segura entre os servidores.",
+              "client-read-timeout": "Timeout de leitura (em milissegundos) do cliente respondedor OCSP. O servidor de segurança do cliente baixa as respostas OCSP do servidor de segurança do provedor ao estabelecer uma conexão segura entre os servidores.",
+              "jetty-configuration-file": "Nome de arquivo absoluto do arquivo de configuração Jetty para o respondedor OCSP do servidor de segurança do provedor de serviço. Para mais informações sobre como configurar o servidor Jetty, consulte https://www.eclipse.org/jetty/documentation/jetty-9/index.html."
+            },
+            "addon": {
+              "proxy-monitor": {
+                "enabled": "Habilitar o complemento de monitoramento do proxy."
+              },
+              "meta-services": {
+                "enabled": "Habilitar o complemento de metasserviços."
+              },
+              "op-monitor": {
+                "enabled": "Habilitar o complemento de monitoramento operacional.",
+                "buffer": {
+                  "size": "Número máximo de registros armazenados em buffer antes do envio ao monitor operacional.",
+                  "max-records-in-message": "Número máximo de registros de dados operacionais em uma mensagem enviada pelo buffer de monitoramento operacional ao daemon de monitoramento operacional.",
+                  "sending-interval-seconds": "O intervalo em segundos no qual o buffer de monitoramento operacional tenta (re)enviar registros ao daemon de monitoramento operacional. Normalmente, o buffer aciona o mecanismo de envio imediatamente ao receber um novo registro. Em caso de alta carga ou falhas de envio, os registros se acumulam no buffer e precisam de atenção periódica.",
+                  "socket-timeout-seconds": "O timeout de socket (SO_TIMEOUT) para envio de registros de monitoramento operacional do buffer ao daemon de monitoramento operacional, em segundos.",
+                  "connection-timeout-seconds": "Timeout de conexão do cliente HTTP em segundos."
+                },
+                "connection": {
+                  "host": "O endereço do host no qual o daemon de monitoramento operacional escuta.",
+                  "port": "Porta TCP na qual o daemon de monitoramento operacional escuta.",
+                  "scheme": "O nome do esquema URI do daemon de monitoramento operacional. Os valores possíveis são http e https.",
+                  "socket-timeout-seconds": "Timeout de conexão do cliente HTTP em segundos.",
+                  "connection-timeout-seconds": "O timeout de socket (SO_TIMEOUT) para envio da requisição de dados operacionais ao daemon de monitoramento operacional, em segundos.",
+                  "xroad-tls-ciphers": "Cifras TLS (lista separada por vírgulas em ordem de preferência) aceitas nas requisições entre servidores de segurança e entre o daemon de monitoramento operacional e o cliente. (desde a versão 6.20)"
+                }
+              }
+            },
+            "message-log": {
+              "enabled": "Habilitar o registro de mensagens.",
+              "message-body-logging": "Se o corpo da mensagem deve ser registrado ou não. Se verdadeiro, as mensagens são registradas em sua forma original. Se falso, o corpo da mensagem é esvaziado (o corpo SOAP terá um elemento filho vazio; o corpo da mensagem REST, o caminho do serviço e os parâmetros de consulta serão omitidos). Além disso, o cabeçalho SOAP e os cabeçalhos HTTP REST terão apenas um conjunto específico de elementos registrados. Como efeito colateral, detalhes como formatação e rótulos de namespace da mensagem XML podem ser alterados e novos elementos podem ser introduzidos para valores padrão no cabeçalho SOAP. A remoção do corpo da mensagem geralmente é feita por razões de confidencialidade. Observe que alterar a mensagem dessa forma impede a verificação de sua assinatura com a ferramenta asicverifier.",
+              "max-loggable-message-body-size": "Tamanho máximo do corpo de mensagem REST registrável.",
+              "truncated-body-allowed": "Se o corpo da mensagem REST exceder o tamanho máximo registrável, truncar o corpo no log (true) ou rejeitar a mensagem (false).",
+              "hash-algo-id": "O identificador do algoritmo utilizado para hash no log de mensagens. Os valores possíveis são - SHA-224, SHA-256, SHA-384, SHA-512.",
+              "timestamping-prioritization-strategy": "Estratégia de priorização de carimbo de tempo, que determina quais serviços de carimbo de tempo e em que ordem são utilizados. Os valores possíveis são: ONLY_FREE - Apenas serviços de carimbo de tempo gratuitos são utilizados. ONLY_PAID - Apenas serviços de carimbo de tempo pagos são utilizados. FREE_FIRST - Serviços gratuitos são utilizados primeiro; se não houver respostas bem-sucedidas, então serviços pagos são utilizados; por fim, serviços cujo tipo de custo é indefinido são utilizados por último. PAID_FIRST - Serviços pagos são utilizados primeiro; se não houver respostas bem-sucedidas, então serviços gratuitos são utilizados; por fim, serviços cujo tipo de custo é indefinido são utilizados por último. NONE - Nenhuma nova ordenação ou filtragem é adicionada.",
+              "enabled-body-logging-local-producer-subsystems": "Substituições específicas por subsistema para registro do corpo da mensagem quando message-body-logging = false. Este parâmetro define o registro para subsistemas produtores locais, ou seja, nossos subsistemas que produzem algum serviço utilizado por clientes externos. Lista separada por vírgulas de identificadores de clientes para os quais o registro do corpo da mensagem está habilitado. Por exemplo: FI/ORG/1710128-9/SUBSYSTEM_A1, FI/ORG/1710128-9/SUBSYSTEM_A2, onde - FI = instância X-Road, ORG = classe de membro, 1710128-9 = código de membro, SUBSYSTEM_A1 = código de subsistema. Este parâmetro só pode ser utilizado no nível de subsistema. Se um subsistema contiver barras \"/\" no código de subsistema, ele não poderá ser configurado com este parâmetro.",
+              "enabled-body-logging-remote-producer-subsystems": "Substituições específicas por subsistema para subsistemas produtores remotos, ou seja, subsistemas remotos que produzem serviços que utilizamos. O parâmetro é utilizado quando message-body-logging = false.",
+              "disabled-body-logging-local-producer-subsystems": "Equivalente a enabled-body-logging-local-producer-subsystems, mas este parâmetro é utilizado quando message-body-logging = true.",
+              "disabled-body-logging-remote-producer-subsystems": "Equivalente a enabled-body-logging-remote-producer-subsystems, mas este parâmetro é utilizado quando message-body-logging = true.",
+              "timestamper": {
+                "client-connect-timeout": "O timeout de conexão do cliente de carimbo de tempo em milissegundos. Um timeout de zero é interpretado como timeout infinito.",
+                "client-read-timeout": "O timeout de leitura do cliente de carimbo de tempo em milissegundos. Um timeout de zero é interpretado como timeout infinito.",
+                "timestamp-immediately": "Se verdadeiro, o carimbo de tempo é criado de forma síncrona para cada mensagem de requisição. Este é um requisito de política de segurança para garantir o carimbo de tempo no momento do registro da mensagem.",
+                "records-limit": "Número máximo de registros de mensagens para carimbar em um único lote. Se o número de registros em um único lote exceder 70% do valor de timestamp-records-limit, um aviso é registrado no proxy.log.",
+                "retry-delay": "Atraso em segundos para nova tentativa de carimbo de tempo quando o carimbo em lote falha. Após uma falha, o carimbador aguarda o período definido por \"timestamp-retry-delay\" antes de tentar novamente. Isso se repete até o carimbo de tempo ser obtido com sucesso. Após o sucesso, o carimbador retorna ao agendamento normal. Se o valor de \"timestamp-retry-delay\" for maior que o parâmetro do servidor central \"timeStampingIntervalSeconds\", o valor de \"timeStampingIntervalSeconds\" é utilizado. Se o valor de \"timestamp-retry-delay\" for zero, o valor de \"timeStampingIntervalSeconds\" é utilizado.",
+                "acceptable-timestamp-failure-period": "Define o período de tempo (em segundos) por quanto tempo a falha no carimbo de tempo é permitida (por qualquer motivo) antes de o log de mensagens parar de aceitar novas mensagens (e, consequentemente, o servidor de segurança parar de aceitar requisições). Defina como 0 para desabilitar esta verificação. O valor deste parâmetro não deve ser inferior ao valor do parâmetro do servidor central timeStampingIntervalSeconds."
+              }
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Nome da role PKI do Vault utilizado ao provisionar o certificado TLS do proxy.",
+                "common-name": "Nome comum definido no certificado TLS do proxy provisionado.",
+                "alt-names": "Nomes alternativos de sujeito DNS incluídos no certificado TLS do proxy provisionado.",
+                "ip-subject-alt-names": "Nomes alternativos de sujeito IP incluídos no certificado TLS do proxy provisionado.",
+                "ttl": "Tempo de vida do certificado TLS do proxy provisionado (ex.: 3650D).",
+                "secret-store-pki-path": "Caminho de montagem do mecanismo de segredos PKI do Vault para provisionamento do certificado TLS do proxy."
+              }
+            },
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do proxy.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do proxy escuta.",
+              "port": "A porta (localhost) onde o servidor gRPC do proxy está vinculado. Utilizada para comunicação com xroad-signer e xroad-monitor."
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Algoritmo de resumo utilizado ao criar certificados autoassinados.",
+            "csr-signature-digest-algorithm": "Algoritmo de resumo de assinatura da Solicitação de Assinatura de Certificado (CSR). Os valores possíveis são - SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Controla a aplicação da política de PIN do token. Quando definido como true, o PIN do token de software deve ter pelo menos 10 caracteres ASCII de pelo menos três classes de caracteres (letras minúsculas, letras maiúsculas, dígitos, caracteres especiais). (desde a versão 6.7.7)",
+            "ocsp-response-retrieval-active": "Esta propriedade é utilizada como substituição para desativar a recuperação periódica de respostas OCSP para componentes que não necessitam dessa funcionalidade, mas ainda utilizam o signer. Valores: false - os jobs de recuperação de respostas OCSP nunca são agendados. true - a recuperação periódica de respostas OCSP está ativa com base no ocspFetchInterval. Observe que, se a propriedade estiver ausente, ela é interpretada como true.",
+            "ocsp-retry-delay": "Atraso de nova tentativa OCSP para o signer quando a busca de respostas OCSP falha. Após uma falha, o signer aguarda o período definido por \"ocsp-retry-delay\" antes de tentar novamente. Isso se repete até a busca ser bem-sucedida. Após o sucesso, o signer retorna ao agendamento normal de atualização OCSP definido por \"ocspFetchInterval\". Se o valor de \"ocsp-retry-delay\" for maior que \"ocspFetchInterval\", o valor de \"ocspFetchInterval\" é utilizado como atraso de nova tentativa OCSP.",
+            "ocsp-cache-path": "Caminho absoluto para o diretório onde as respostas OCSP em cache são armazenadas.",
+            "ocsp-prioritization-strategy": "Estratégia de priorização OCSP, que determina quais respondedores OCSP e em que ordem são utilizados para obter respostas OCSP. Os valores possíveis são: ONLY_FREE - Apenas respondedores OCSP gratuitos são utilizados. ONLY_PAID - Apenas respondedores OCSP pagos são utilizados. FREE_FIRST - Respondedores gratuitos são utilizados primeiro; se não houver respostas bem-sucedidas, então respondedores pagos são utilizados; por fim, respondedores cujo tipo de custo é indefinido são utilizados por último. PAID_FIRST - Respondedores pagos são utilizados primeiro; se não houver respostas bem-sucedidas, então respondedores gratuitos são utilizados; por fim, respondedores cujo tipo de custo é indefinido são utilizados por último. NONE - Nenhuma nova ordenação ou filtragem é adicionada.",
+            "module-manager-update-interval": "Intervalo de atualização do gerenciador de módulos HSM em segundos.",
+            "soft-token-rsa-sign-mechanism": "Mecanismo PKCS#11 utilizado para assinatura RSA no token de software.",
+            "soft-token-ec-sign-mechanism": "Mecanismo PKCS#11 utilizado para assinatura EC no token de software.",
+            "soft-token-pin-keystore-algorithm": "Algoritmo de chave utilizado para criar o keystore de PIN do token de software. Os valores possíveis são RSA e EC. (desde a versão 7.6)",
+            "key-length": "Comprimento da chave para geração de chaves de autenticação e assinatura. (desde a versão 6.7)",
+            "key-named-curve": "Curva nomeada para geração de chaves de autenticação e assinatura quando algoritmos EC são utilizados. (desde a versão 7.6)",
+            "autologin": {
+              "enabled": "Habilitar o login automático do token na inicialização.",
+              "retry": {
+                "retry-delay": "Atraso inicial entre tentativas de autologin (ex.: 3S).",
+                "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa em cada tentativa de autologin subsequente.",
+                "retry-max-attempts": "Número máximo de tentativas de autologin.",
+                "retry-timeout": "Limite de tempo total para todas as tentativas de autologin (ex.: 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Habilitar o complemento de token de hardware (HSM).",
+                "session-pool-enabled": "Habilitar o pool de sessões PKCS#11 para o token de hardware.",
+                "session-pool-max-total": "Total máximo de sessões PKCS#11 no pool de sessões do token de hardware.",
+                "session-pool-min-idle": "Número mínimo de sessões PKCS#11 ociosas mantidas no pool do token de hardware.",
+                "session-pool-max-idle": "Número máximo de sessões PKCS#11 ociosas mantidas no pool do token de hardware.",
+                "session-acquire-timeout": "Tempo máximo de espera para adquirir uma sessão PKCS#11 do pool (ex.: 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do Signer.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do Signer escuta.",
+              "port": "Porta na qual o servidor gRPC do Signer escuta."
+            },
+            "pin-hasher": {
+              "iterations": "Contagem de iterações Argon2 utilizada ao fazer hash dos PINs do token.",
+              "memory-kb": "Custo de memória Argon2 em kilobytes utilizado ao fazer hash dos PINs do token.",
+              "parallelism": "Grau de paralelismo Argon2 utilizado ao fazer hash dos PINs do token.",
+              "hash-length": "Comprimento do hash de saída em bytes utilizado ao fazer hash dos PINs do token."
+            }
+          },
+          "configuration-client": {
+            "allowed-federations": "Uma lista separada por vírgulas de instâncias X-Road sem distinção de maiúsculas/minúsculas para as quais a busca de âncoras de configuração é permitida. Isso habilita a federação com as instâncias listadas, se a instância X-Road já estiver federada no nível do servidor central. O valor especial none, se presente, desabilita toda federação (valor padrão), enquanto all permite todas as federações se none não estiver presente. Exemplo: allowed-federations=ee,sv permite federação com as instâncias EE e Sv, enquanto allowed-federations=all,none desabilita a federação. Os serviços X-Road xroad-confclient e xroad-proxy precisam ser reiniciados (nessa ordem) para que a alteração da configuração entre em vigor.",
+            "global-conf-hostname-verification": "É possível desabilitar a verificação de hostname. Verifica se o hostname especificado na URL corresponde ao hostname especificado no Nome Comum (CN) do certificado TLS do Servidor Central. Deve ser true em ambiente de produção.",
+            "global-conf-tls-cert-verification": "É possível desabilitar a verificação do certificado TLS de download da configuração global. Deve ser true em ambiente de produção.",
+            "downloader-connect-timeout": "Tempo máximo em milissegundos que o downloader de configuração global aguarda para conectar ao servidor remoto.",
+            "downloader-read-timeout": "Tempo máximo em milissegundos que o downloader de configuração global aguarda para ler dados do servidor remoto após a conexão ser estabelecida.",
+            "global-conf-dir": "Caminho no sistema de arquivos onde a configuração global baixada é armazenada.",
+            "update-interval": "Intervalo de download da configuração global em segundos.",
+            "configuration-anchor-file": "Nome de arquivo absoluto da âncora de configuração utilizada para baixar a configuração global.",
+            "configuration-anchor-storage": "Backend de armazenamento para a âncora de configuração (DB ou FILE).",
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do cliente de configuração.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do cliente de configuração escuta.",
+              "port": "Porta na qual o servidor gRPC do cliente de configuração escuta."
+            }
+          },
+          "env-monitor": {
+            "certificate-info-sensor-interval": "Intervalo do sensor de informações de certificado em segundos. Com que frequência os dados de certificado são coletados. A primeira coleta é sempre realizada após um atraso de 10 segundos.",
+            "disk-space-sensor-interval": "Intervalo do sensor de espaço em disco em segundos. Com que frequência os dados de espaço em disco são coletados.",
+            "exec-listing-sensor-interval": "Intervalo do sensor de listagem de execução em segundos. Com que frequência os dados do sensor por meio de comandos externos são coletados.",
+            "system-metrics-sensor-interval": "Intervalo do sensor de métricas do sistema em segundos. Com que frequência os dados de métricas do sistema são coletados.",
+            "limit-remote-data-set": "Chave de ativação/desativação para filtrar dados de monitoramento opcionais. Com o sinalizador definido como true, apenas o proprietário do servidor de segurança pode solicitar e obter o conjunto de dados completo.",
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do env-monitor.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do env-monitor escuta.",
+              "port": "Porta na qual o servidor gRPC do env-monitor escuta."
+            }
+          },
+          "anti-dos": {
+            "max-parallel-connections": "Número máximo de conexões paralelas para o AntiDOS.",
+            "min-free-file-handles": "Quantidade mínima de descritores de arquivo livres no sistema para aceitar novas conexões. Pelo menos um descritor de arquivo livre deve estar disponível para aceitar uma nova conexão.",
+            "max-cpu-load": "Carga máxima de CPU permitida para aceitar novas conexões. Se definido como > 1.0, a carga de CPU não é verificada.",
+            "max-heap-usage": "Especifica o uso máximo permitido do heap Java ao aceitar novas conexões. Se definido como > 1.0, o uso do heap não é verificado.",
+            "enabled": "Sinalizador para habilitar ou desabilitar o sistema AntiDOS."
+          },
+          "common-rpc": {
+            "use-tls": "Quando habilitado, o TLS mútuo é usado para toda a comunicação gRPC entre os serviços internos do servidor de segurança.",
+            "certificate-provisioning": {
+              "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
+              "retry-delay": "Atraso inicial entre tentativas de provisionamento de certificado TLS gRPC (ex.: 5S).",
+              "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa em cada tentativa subsequente de provisionamento de certificado.",
+              "retry-max-attempts": "Número máximo de tentativas de provisionamento de certificado TLS gRPC.",
+              "retry-timeout": "Limite de tempo total para todas as tentativas de provisionamento de certificado TLS gRPC (ex.: 60S)."
+            },
+            "channel": {
+              "proxy": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do proxy.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do proxy.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao proxy expirar."
+              },
+              "configuration-client": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do cliente de configuração.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do cliente de configuração.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao cliente de configuração expirar."
+              },
+              "env-monitor": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do env-monitor.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do env-monitor.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao env-monitor expirar."
+              },
+              "auxiliary-service": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do serviço auxiliar.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do serviço auxiliar.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao serviço auxiliar expirar."
+              },
+              "op-monitor": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do daemon de monitoramento operacional.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do daemon de monitoramento operacional.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao daemon de monitoramento operacional expirar."
+              }
+            }
+          },
+          "common-global-conf": {
+            "source": "Backend de origem para a configuração global. Valores possíveis: FILESYSTEM (ler de arquivos locais) ou DB (ler do banco de dados).",
+            "refresh-rate": "Com que frequência o cache de configuração global compartilhado é atualizado a partir da fonte configurada (ex.: 60S).",
+            "configuration-path": "Caminho no sistema de arquivos onde os arquivos de configuração global são armazenados."
+          },
+          "common-server-conf": {
+            "cache-period": "Por quanto tempo (em segundos) as entradas de configuração do servidor são armazenadas em cache antes de serem relidas.",
+            "client-cache-size": "Número máximo de entradas no cache do cliente de configuração do servidor.",
+            "service-cache-size": "Número máximo de entradas no cache de serviço de configuração do servidor.",
+            "service-endpoints-cache-size": "Número máximo de entradas de endpoints de serviço mantidas no cache de configuração do servidor.",
+            "acl-cache-size": "Número máximo de entradas no cache da lista de controle de acesso (ACL) de configuração do servidor."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "Por quanto tempo (em segundos) os resultados de verificação OCSP são armazenados em cache antes de serem reverificados."
+          },
+          "auxiliary-service": {
+            "backup": {
+              "location": "Diretório no sistema de arquivos onde os arquivos de backup são armazenados.",
+              "valid-filename-pattern": "Expressão regular que os nomes de arquivo de backup válidos devem corresponder.",
+              "autobackup-cron-expression": "Expressão cron que controla quando os backups automáticos são criados.",
+              "autobackup-script-path": "Caminho para o script executado quando um backup automático é executado.",
+              "autobackup-delete-old-backups-cron": "Expressão cron que controla quando os backups automáticos antigos são excluídos.",
+              "autobackup-keep-for": "Período de retenção para backups automáticos (ex.: 30d).",
+              "script-path": "Caminho para o script de backup manual.",
+              "restore-script-path": "Caminho para o script de restauração de backup.",
+              "generate-gpg-keypair-path": "Caminho para o script que gera um par de chaves GPG para criptografia de backup.",
+              "gpgkeys-home": "Diretório utilizado como GNUPGHOME para operações GPG de backup.",
+              "encryption-enabled": "Quando habilitado, os arquivos de backup são criptografados com GPG.",
+              "encryption-keyids": "IDs de chave GPG separados por vírgulas utilizados para criptografar os arquivos de backup."
+            },
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do serviço auxiliar.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do serviço auxiliar escuta.",
+              "port": "Porta na qual o servidor gRPC do serviço auxiliar escuta."
+            },
+            "readiness-check": {
+              "kubernetes": {
+                "service-host": "Hostname do servidor de API Kubernetes para verificações de prontidão (deixe vazio para desabilitar).",
+                "service-port": "Porta do servidor de API Kubernetes para verificações de prontidão.",
+                "token-path": "Caminho no sistema de arquivos para o token da conta de serviço Kubernetes utilizado nas verificações de prontidão.",
+                "ca-cert-path": "Caminho no sistema de arquivos para o certificado CA do Kubernetes utilizado nas verificações de prontidão.",
+                "connect-timeout-ms": "Milissegundos para aguardar ao conectar à API Kubernetes para verificações de prontidão.",
+                "read-timeout-ms": "Milissegundos para aguardar ao ler uma resposta da API Kubernetes para verificações de prontidão."
+              }
+            },
+            "message-log": {
+              "archive-cron": "Expressão cron que controla quando o arquivamento do log de mensagens é executado.",
+              "clean-cron": "Expressão cron que controla quando os registros antigos do log de mensagens são limpos.",
+              "command-path": "Caminho para o executável de arquivamento do log de mensagens."
+            }
+          },
+          "op-monitor": {
+            "listen-address": "Endereço IP no qual o daemon de monitoramento operacional escuta.",
+            "port": "Porta TCP na qual o daemon de monitoramento operacional escuta.",
+            "scheme": "Esquema URI do daemon de monitoramento operacional. Os valores possíveis são http e https.",
+            "xroad-tls-ciphers": "Cifras TLS (lista separada por vírgulas em ordem de preferência) aceitas nas conexões ao daemon de monitoramento operacional.",
+            "keep-records-for-days": "Número de dias para reter os registros de monitoramento operacional antes de serem excluídos.",
+            "clean-interval": "Expressão cron que controla quando os registros antigos de monitoramento operacional são limpos.",
+            "max-records-in-payload": "Número máximo de registros de monitoramento operacional retornados em um único payload de resposta.",
+            "records-available-timestamp-offset-seconds": "Deslocamento em segundos subtraído do tempo atual ao determinar o limite superior dos registros disponíveis.",
+            "health-statistics-period-seconds": "Período em segundos sobre o qual as estatísticas de integridade são agregadas.",
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do daemon de monitoramento operacional.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do daemon de monitoramento operacional escuta.",
+              "port": "Porta na qual o servidor gRPC do daemon de monitoramento operacional escuta."
+            },
+            "tls": {
+              "certificate-provisioning": {
+                "issuance-role-name": "Nome da role PKI do Vault utilizado ao provisionar o certificado TLS do daemon de monitoramento operacional.",
+                "common-name": "Nome comum definido no certificado TLS do daemon de monitoramento operacional provisionado.",
+                "alt-names": "Nomes alternativos de sujeito DNS incluídos no certificado TLS do daemon de monitoramento operacional provisionado.",
+                "ip-subject-alt-names": "Nomes alternativos de sujeito IP incluídos no certificado TLS do daemon de monitoramento operacional provisionado.",
+                "ttl": "Tempo de vida do certificado TLS do daemon de monitoramento operacional provisionado (ex.: 3650D).",
+                "secret-store-pki-path": "Caminho de montagem do mecanismo de segredos PKI do Vault para provisionamento do certificado TLS do daemon de monitoramento operacional."
+              },
+              "client-certificate-refresh-interval": "Intervalo no qual o daemon de monitoramento operacional renova seu certificado TLS de cliente (ex.: 0S para desabilitar)."
+            }
+          },
+          "message-log-archiver": {
+            "clean-transaction-batch-size": "Número máximo de registros do log de mensagens removidos por transação de banco de dados durante a limpeza.",
+            "clean-keep-records-for": "Número de dias para reter os registros arquivados do log de mensagens antes de serem excluídos.",
+            "max-filesize": "Tamanho máximo em bytes de um único arquivo de arquivamento do log de mensagens.",
+            "transaction-batch-size": "Número de registros do log de mensagens processados em um único lote de transação de arquivamento.",
+            "archive-path": "Caminho absoluto para o diretório onde os arquivos arquivados do log de mensagens são armazenados.",
+            "archive-transfer-command": "Comando shell executado após cada ciclo de arquivamento para transferir os arquivos gerados (ex.: para armazenamento remoto). Deixe vazio para desabilitar.",
+            "hash-algo-id": "O identificador do algoritmo utilizado para hash no arquivamento do log de mensagens. Os valores possíveis são SHA-224, SHA-256, SHA-384, SHA-512."
+          },
+          "message-log-encryption": {
+            "archive": {
+              "encryption-enabled": "Quando habilitado, os arquivos de arquivamento do log de mensagens são criptografados usando OpenPGP (GnuPG).",
+              "default-key-id": "ID de chave OpenPGP padrão utilizado para criptografar os arquivos de arquivamento do log de mensagens quando nenhuma chave específica de membro está configurada.",
+              "grouping-strategy": "Estratégia para agrupar registros em arquivos de arquivamento. Valores possíveis: NONE (sem agrupamento), MEMBER (agrupar por membro), SUBSYSTEM (agrupar por subsistema)."
+            },
+            "db": {
+              "encryption-enabled": "Quando habilitado, os corpos das mensagens são armazenados no banco de dados em forma criptografada.",
+              "key-id": "Identificador da chave de criptografia utilizada para a criptografia do log de mensagens em nível de banco de dados."
+            }
+          },
+          "common": {
+            "temp-files-path": "Caminho absoluto para o diretório onde os arquivos temporários são armazenados."
+          }
+        }
+      }
+    }
   },
   "tab": {
     "client": {
@@ -1012,6 +1403,11 @@
       "localGroups": "Grupos locais",
       "serviceClients": "Clientes de serviço",
       "services": "Serviços"
+    },
+    "diagnostics": {
+      "connectionTesting": "Teste de Conexão",
+      "overview": "Visão Geral",
+      "traffic": "Tráfego"
     },
     "keys": {
       "apiKey": "Chaves de API",
@@ -1031,11 +1427,22 @@
     "settings": {
       "backupAndRestore": "Backup e Restauração",
       "systemParameters": "Parâmetros do Sistema"
+    }
+  },
+  "tlsCertificates": {
+    "generateCsr": {
+      "example": "CN=meuservidorseguro.exemplo.com, O=Minha Organização, C=BR"
     },
-    "diagnostics": {
-      "overview": "Visão Geral",
-      "traffic": "Tráfego",
-      "connectionTesting": "Teste de Conexão"
+    "generateKey": {
+      "confirmation": "Gerar uma nova chave e certificado TLS do Servidor Seguro?",
+      "explanation": "O sistema irá gerar uma nova chave TLS e um certificado autoassinado, substituindo os existentes.",
+      "success": "Nova chave e certificado TLS gerados com sucesso",
+      "title": "Chave TLS do Servidor Seguro"
+    },
+    "key": "Chave e Certificado TLS",
+    "title": "Chave TLS do Servidor Seguro",
+    "uploadCertificate": {
+      "success": "Certificado importado"
     }
   },
   "token": {
@@ -1049,79 +1456,79 @@
       "PRIMARY": "Nó primário",
       "SECONDARY": "Nó secundário",
       "undefined": ""
-    }
-  },
-  "validationError": {
-    "IdentifierChars": "caracteres inválidos no identificador"
-  },
-  "wizard": {
-    "addClientTitle": "Adicionar cliente",
-    "addMemberTitle": "Adicionar membro",
-    "addSubsystemTitle": "Adicionar subsistema",
-    "client": {
-      "addClient": "Adicionar Cliente",
-      "clientExists": "Cliente já existe",
-      "memberClassTooltip": "Código que identifica a classe do membro (ex: órgão governamental, empresa privada etc.).",
-      "memberCodeTooltip": "Código do membro que o identifica de forma única dentro da sua classe (ex: CNPJ).",
-      "memberNameTooltip": "Nome da organização do membro.",
-      "register": "Registrar cliente",
-      "searchLabel": "Cliente",
-      "subsystemCodeTooltip": "Código do subsistema que identifica um sistema de informação pertencente ao membro.",
-      "subsystemNameTooltip": "Nome do sistema de informação pertencente ao membro."
     },
-    "clientDetails": "Detalhes do cliente",
-    "clientInfo1": "Informe os dados do cliente que deseja adicionar.",
-    "clientInfo2": "Se o cliente já existir, você pode selecioná-lo na lista global.",
-    "finish": {
-      "acme": {
-        "infoLine": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e certificado aparecerão na visualização de Chaves e Certificados. O certificado será solicitado ao servidor ACME da AC e importado automaticamente. Depois, você poderá registrar o novo cliente."
+    "validationError": {
+      "IdentifierChars": "caracteres inválidos no identificador"
+    },
+    "wizard": {
+      "addClientTitle": "Adicionar cliente",
+      "addMemberTitle": "Adicionar membro",
+      "addSubsystemTitle": "Adicionar subsistema",
+      "client": {
+        "addClient": "Adicionar Cliente",
+        "clientExists": "Cliente já existe",
+        "memberClassTooltip": "Código que identifica a classe do membro (ex: órgão governamental, empresa privada etc.).",
+        "memberCodeTooltip": "Código do membro que o identifica de forma única dentro da sua classe (ex: CNPJ).",
+        "memberNameTooltip": "Nome da organização do membro.",
+        "register": "Registrar cliente",
+        "searchLabel": "Cliente",
+        "subsystemCodeTooltip": "Código do subsistema que identifica um sistema de informação pertencente ao membro.",
+        "subsystemNameTooltip": "Nome do sistema de informação pertencente ao membro."
       },
-      "infoLine1": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e CSR aparecerão na visualização de Chaves e Certificados.",
-      "infoLine2": "Para registrar o novo cliente, siga os passos abaixo:",
-      "note": "OBS: se clicar em Cancelar, todos os dados serão perdidos",
-      "title": "Finalizar",
-      "todo1": "1) Envie o CSR para uma Autoridade Certificadora",
-      "todo2": "2) Após o recebimento, importe o certificado resultante para a chave correspondente",
-      "todo3": "3) Agora você pode registrar o novo cliente"
-    },
-    "member": {
-      "info1": "Informe os dados do membro que deseja adicionar.",
-      "info2": "Se o membro já existir, você pode selecioná-lo na lista global.",
-      "memberExists": "Membro já existe",
-      "register": "Registrar membro",
-      "searchLabel": "Membro",
-      "select": "Selecionar membro",
-      "title": "Detalhes do membro"
-    },
-    "memberClass": "Classe do Membro",
-    "memberCode": "Código do Membro",
-    "memberName": "Nome do Membro",
-    "selectClient": "Selecionar Cliente",
-    "selectMemberClass": "Selecionar Classe do Membro",
-    "signKey": {
-      "info": "Você pode definir um rótulo para a nova chave SIGN (opcional)",
-      "keyLabel": "Rótulo da Chave",
-      "title": "Chave de Assinatura"
-    },
-    "subsystem": {
-      "info1": "Informe o código do subsistema a ser adicionado.",
-      "info2": "Se o subsistema já existir, você pode selecioná-lo da lista global.",
-      "registerSubsystem": "Registrar subsistema",
-      "searchLabel": "Subsistema",
-      "selectSubsystem": "Selecionar Subsistema",
-      "subsystemAdded": "Subsistema adicionado",
-      "subsystemExists": "Subsistema já existe"
-    },
-    "subsystemCode": "Código do Subsistema",
-    "subsystemName": "Nome do Subsistema",
-    "token": {
-      "info": "Selecione o token onde deseja adicionar a chave SIGN para o novo cliente. Obs: o token deve estar com login ativo.",
-      "loggedIn": "Logado",
-      "title": "Token",
-      "tokenName": "Nome do Token"
-    },
-    "warning": {
-      "unregistered_member": "Membro não registrado"
+      "clientDetails": "Detalhes do cliente",
+      "clientInfo1": "Informe os dados do cliente que deseja adicionar.",
+      "clientInfo2": "Se o cliente já existir, você pode selecioná-lo na lista global.",
+      "finish": {
+        "acme": {
+          "infoLine": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e certificado aparecerão na visualização de Chaves e Certificados. O certificado será solicitado ao servidor ACME da AC e importado automaticamente. Depois, você poderá registrar o novo cliente."
+        },
+        "infoLine1": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e CSR aparecerão na visualização de Chaves e Certificados.",
+        "infoLine2": "Para registrar o novo cliente, siga os passos abaixo:",
+        "note": "OBS: se clicar em Cancelar, todos os dados serão perdidos",
+        "title": "Finalizar",
+        "todo1": "1) Envie o CSR para uma Autoridade Certificadora",
+        "todo2": "2) Após o recebimento, importe o certificado resultante para a chave correspondente",
+        "todo3": "3) Agora você pode registrar o novo cliente"
+      },
+      "member": {
+        "info1": "Informe os dados do membro que deseja adicionar.",
+        "info2": "Se o membro já existir, você pode selecioná-lo na lista global.",
+        "memberExists": "Membro já existe",
+        "register": "Registrar membro",
+        "searchLabel": "Membro",
+        "select": "Selecionar membro",
+        "title": "Detalhes do membro"
+      },
+      "memberClass": "Classe do Membro",
+      "memberCode": "Código do Membro",
+      "memberName": "Nome do Membro",
+      "selectClient": "Selecionar Cliente",
+      "selectMemberClass": "Selecionar Classe do Membro",
+      "signKey": {
+        "info": "Você pode definir um rótulo para a nova chave SIGN (opcional)",
+        "keyLabel": "Rótulo da Chave",
+        "title": "Chave de Assinatura"
+      },
+      "subsystem": {
+        "info1": "Informe o código do subsistema a ser adicionado.",
+        "info2": "Se o subsistema já existir, você pode selecioná-lo da lista global.",
+        "registerSubsystem": "Registrar subsistema",
+        "searchLabel": "Subsistema",
+        "selectSubsystem": "Selecionar Subsistema",
+        "subsystemAdded": "Subsistema adicionado",
+        "subsystemExists": "Subsistema já existe"
+      },
+      "subsystemCode": "Código do Subsistema",
+      "subsystemName": "Nome do Subsistema",
+      "token": {
+        "info": "Selecione o token onde deseja adicionar a chave SIGN para o novo cliente. Obs: o token deve estar com login ativo.",
+        "loggedIn": "Logado",
+        "title": "Token",
+        "tokenName": "Nome do Token"
+      },
+      "warning": {
+        "unregistered_member": "Membro não registrado"
+      }
     }
   }
 }

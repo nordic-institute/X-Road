@@ -1,0 +1,49 @@
+[
+  {
+    "member_class": "GOV",
+    "member_code": "1234",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": true,
+    "id": "CS:GOV:1234",
+    "instance_id": "CS",
+    "member_name": "Test member",
+    "owner": true,
+    "status": "REGISTERED"
+  },
+  {
+    "member_class": "GOV",
+    "member_code": "1234",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
+    "id": "CS:GOV:1234:SUBS1",
+    "instance_id": "CS",
+    "member_name": "Test member",
+    "owner": false,
+    "status": "REGISTERED",
+    "subsystem_code": "SUBS1"
+  },
+  {
+    "member_class": "GOV",
+    "member_code": "5678",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
+    "id": "CS:GOV:5678:BETA",
+    "instance_id": "CS",
+    "member_name": "Beta Corp",
+    "owner": false,
+    "status": "SAVED",
+    "subsystem_code": "BETA"
+  },
+  {
+    "member_class": "GOV",
+    "member_code": "9000",
+    "connection_type": "HTTPS",
+    "has_valid_local_sign_cert": false,
+    "id": "CS:GOV:9000:ALPHA",
+    "instance_id": "CS",
+    "member_name": "Alpha Corp",
+    "owner": false,
+    "status": "REGISTERED",
+    "subsystem_code": "ALPHA"
+  }
+]

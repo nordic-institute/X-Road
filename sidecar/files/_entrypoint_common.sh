@@ -17,13 +17,13 @@ log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
 warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $*" >&2; }
 
 init_db_dir() {
-  local pgdata=/var/lib/postgresql/16/main
+  local pgdata=/var/lib/postgresql/18/main
   if [ ! -s "$pgdata/PG_VERSION" ]; then
     log "Initializing local database at \"$pgdata\""
     mkdir -p "$pgdata"
     chmod 0700 "$pgdata"
     chown postgres:postgres "$pgdata"
-    sudo -u postgres /usr/lib/postgresql/16/bin/initdb -D "$pgdata"
+    sudo -u postgres /usr/lib/postgresql/18/bin/initdb -D "$pgdata"
   fi
 }
 
@@ -58,9 +58,6 @@ PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
 RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
-if [ -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-  RECONFIG+=(xroad-addon-messagelog)
-fi
 if [ -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf ]; then
   RECONFIG+=(xroad-opmonitor)
 fi
@@ -119,21 +116,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
   fi
 else
   warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
-fi
-
-if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0"; then
-  /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
-fi
-
-# Generate internal and admin UI TLS keys and certificates if necessary
-if [ ! -f /etc/xroad/ssl/internal.crt ]; then
-  log "Generating new internal TLS key and certificate"
-  "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -n internal -f -S -p 2>&1 >/dev/null | sed 's/^/    /'
-fi
-
-if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ]; then
-  log "Generating new SSL key and certificate for the admin UI"
-  "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -n proxy-ui-api -f -S -p 2>&1 >/dev/null | sed 's/^/   /'
 fi
 
 # Create database properties and configure remote db address if necessary
@@ -199,7 +181,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
     init_db_dir
-    pg_ctlcluster 16 main start
+    pg_ctlcluster 18 main start
   else
     if [[ -n "$XROAD_DB_PWD" ]]; then
       if [[ -w "$ROOT_PROPERTIES" ]]; then
@@ -226,7 +208,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     touch /.xroad-reconfigured
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 16 main stop
+    pg_ctlcluster 18 main stop
     sleep 1
     crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
   else
@@ -242,11 +224,5 @@ fi
 if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi
-
-log "Generating internal gRPC TLS keys and certificate"
-rm -rf /var/run/xroad
-mkdir -p -m0750 /var/run/xroad
-chown xroad:xroad /var/run/xroad
-su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
 
 create_backup_dir_if_not_exists

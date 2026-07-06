@@ -24,23 +24,22 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.deser.ValueDeserializerModifier;
+import tools.jackson.databind.deser.jdk.StringDeserializer;
 
 /**
  * Modifier for StringDeserializer
  */
-public class StringDeserializerModifier extends BeanDeserializerModifier {
+public class StringDeserializerModifier extends ValueDeserializerModifier {
     @Override
-    public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc,
-                                                  JsonDeserializer<?> deserializer) {
+    public ValueDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription.Supplier beanDesc,
+                                                   ValueDeserializer<?> deserializer) {
         if (deserializer instanceof StringDeserializer) {
             deserializer = new StringTrimmerDeserializer();
         }
@@ -52,7 +51,7 @@ public class StringDeserializerModifier extends BeanDeserializerModifier {
      */
     public static class StringTrimmerDeserializer extends StringDeserializer {
         @Override
-        public String deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
+        public String deserialize(JsonParser jsonParser, DeserializationContext context) throws JacksonException {
             String deserializedString = super.deserialize(jsonParser, context);
             return deserializedString != null ? deserializedString.trim() : null;
         }

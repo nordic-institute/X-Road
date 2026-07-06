@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+    logicalFilePath="centerui-changelog.xml">
+
+    <include file="centerui/000-ensure-supported-version.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/001-baseline.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/002-hibernate-sequence.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/003-apikeys.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/004-identifiers-fix.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/005-client-search-view.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/006-management-service-role.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/007-management-request-view.xml" relativeToChangelogFile="true"/>
+
+    <include file="centerui/202207011455-identifiers-remove-redundant-type-field.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202304030951-drop_insert_node_name_trigger.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202304061726-global-groups-remove-redundant-member-count-field.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202304170000-remove-security-categories.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202304141017-drop-central-services.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202304201701-global-group-members-view.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202305301100-drop-security-server-client-names.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202306151639-drop-schema-migrations.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202306161128-requests-remove-unused-columns.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202308181600-system-param-unique-keys.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202310031700-security-server-unique.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202311161426-server-clients-enabled.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202311161611-server-clients-unique.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202312121722-truncate-version-from-anchor-urls.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202312141700-approved-cas-acme.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202403221700-approved-cas-profile-id.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202502051111-client-search-view.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202502071313-requests-client-name.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202502201614-recreate-management-request-view.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202504241111-security-server-maintenance-mode.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202506191456-admin-users.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202506301304-drop-ui_users-table.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202507091531-identifiers-consolidation.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202510141700-tsa-ocsp-cost-type.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202511031700-ca-csr-format.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202511271200-ca-csr-nullable.xml" relativeToChangelogFile="true"/>
+    <!-- TODO: Uncomment after the fix script is added in XRDDEV-3187 -->
+    <!-- <include file="centerui/202603301200-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/> -->
+    <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
+    <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
+
+    <!-- must be the last one -->
+    <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
+        <sql splitStatements="false"><![CDATA[
+            grant usage on schema "${db_schema}" to "${db_user}";
+        grant select,update,insert,delete on all tables in schema "${db_schema}" to "${db_user}";
+            grant select,usage on all sequences in schema "${db_schema}" to "${db_user}";
+            grant execute on all functions in schema "${db_schema}" to "${db_user}";
+            revoke insert,update,delete on databasechangelog, databasechangeloglock from "${db_user}";
+            ]]>
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>

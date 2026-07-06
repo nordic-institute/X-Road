@@ -26,19 +26,20 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.TokenInitStatusMapping;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
+import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GPG_KEY_GENERATION_INTERRUPTED;
 
 /**
  * Init (Security Server) controller
@@ -59,6 +59,28 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GPG_
 @RequiredArgsConstructor
 public class InitializationApiController implements InitializationApi {
     private final InitializationService initializationService;
+    private final InitialAdminUserService initialAdminUserService;
+
+    @Override
+    @PreAuthorize("permitAll")
+    public ResponseEntity<InitialAdminUserStatusDto> getInitialAdminUserStatus() {
+        var dto = new InitialAdminUserStatusDto();
+        dto.setAdminUserCreationRequired(initialAdminUserService.isInitialAdminUserRequired());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("permitAll")
+    @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_ADD)
+    public synchronized ResponseEntity<Void> createInitialAdminUser(InitialAdminUserDto initialAdminUserDto) {
+        char[] password = initialAdminUserDto.getPassword().toCharArray();
+        try {
+            initialAdminUserService.createInitialAdminUser(initialAdminUserDto.getUsername(), password);
+        } finally {
+            java.util.Arrays.fill(password, '\0');
+        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 
     @Override
     @PreAuthorize("isAuthenticated()")
@@ -69,7 +91,7 @@ public class InitializationApiController implements InitializationApi {
         initializationStatusDto.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
         initializationStatusDto.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
         initializationStatusDto.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
-        initializationStatusDto.setEnforceTokenPinPolicy(SystemProperties.shouldEnforceTokenPinPolicy());
+        initializationStatusDto.setEnforceTokenPinPolicy(initStatus.getTokenPinPolicyEnforced());
         return new ResponseEntity<>(initializationStatusDto, HttpStatus.OK);
     }
 
@@ -87,8 +109,6 @@ public class InitializationApiController implements InitializationApi {
                     ignoreWarnings);
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, GPG_KEY_GENERATION_INTERRUPTED.build());
         }
 
         return new ResponseEntity<>(HttpStatus.CREATED);

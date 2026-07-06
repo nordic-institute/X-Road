@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
@@ -38,12 +37,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -67,8 +68,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static java.util.function.Predicate.not;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
 /**
  * Job that checks whether globalconf has changed.
@@ -87,6 +88,7 @@ public class GlobalConfChecker {
     private final SubsystemNameStatus subsystemNameStatus;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
+    private final AdminServiceProperties adminServiceProperties;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -129,8 +131,8 @@ public class GlobalConfChecker {
 
     private void updateServerConf() {
         // In clustered setup slave nodes may skip serverconf updates
-        if (SLAVE.equals(SystemProperties.getServerNodeType())) {
-            log.debug("This is a slave node - skip serverconf updates");
+        if (SECONDARY.equals(NodeProperties.getServerNodeType())) {
+            log.debug("This is a secondary node - skip serverconf updates");
             return;
         }
 
@@ -179,7 +181,7 @@ public class GlobalConfChecker {
         var globalTsps = globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
         var localTsps = serverConf.getTimestampingServices();
 
-        if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
+        if (adminServiceProperties.isAutoUpdateTimestampServiceUrl()) {
             updateTimestampServiceUrls(globalTsps, localTsps);
         }
         updateTimestampServiceCostTypes(globalTsps, localTsps);
@@ -299,8 +301,8 @@ public class GlobalConfChecker {
         log.debug("Get auth cert for security server '{}'", serverId);
 
         AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
-        if (keyInfo != null && keyInfo.getCert() != null) {
-            return CryptoUtils.readCertificate(keyInfo.getCert().getCertificateBytes());
+        if (keyInfo != null && keyInfo.cert() != null) {
+            return CryptoUtils.readCertificate(keyInfo.cert().getCertificateBytes());
         }
         log.warn("Failed to read authentication key");
         return null;
@@ -404,7 +406,7 @@ public class GlobalConfChecker {
                               X509Certificate cert,
                               KeyUsageInfo keyUsageInfo,
                               SecurityServerId securityServerId) throws IOException {
-        if (SystemProperties.getAutomaticActivateAuthCertificate()) {
+        if (adminServiceProperties.isAutomaticActivateAuthCertificate()) {
             log.debug("Activating certificate '{}'", CertUtils.identify(cert));
             String ownerMemberId = securityServerId.getOwner().asEncodedId();
             try {

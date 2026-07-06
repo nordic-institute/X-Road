@@ -25,9 +25,15 @@
  */
 package org.niis.xroad.e2e.glue;
 
-import org.niis.xroad.common.test.glue.BaseStepDefs;
+import org.niis.xroad.e2e.EnvSetup;
+import org.niis.xroad.test.framework.core.report.TestReportService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
-public abstract class BaseE2EStepDefs extends BaseStepDefs {
+public abstract class BaseE2EStepDefs {
+    @Autowired
+    protected TestReportService testReportService;
+
+    @Autowired
+    protected EnvSetup envSetup;
 
 }

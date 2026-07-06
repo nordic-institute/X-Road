@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: openbao
+  namespace: niis
+  author: Nordic Institute for Interoperability Solutions
+  description: Deploy OpenBao (backed by PostgreSQL) with self-signed TLS for X-Road
+  license: MIT
+  min_ansible_version: "2.20"
+  platforms:
+    - name: MacOSX
+      versions: [any]
+    - name: Ubuntu
+      versions: [noble, resolute]
+    - name: EL
+      versions: ["8", "9", "10"]
+  galaxy_tags: [kubernetes, openbao, vault, xroad]
+dependencies: []

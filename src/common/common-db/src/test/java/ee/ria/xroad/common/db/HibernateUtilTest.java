@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.common.db;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.Configuration;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +34,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
+import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -52,7 +52,7 @@ class HibernateUtilTest {
     private Configuration configuration;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(configuration.configure()).thenReturn(configuration);
         when(configuration.configure(anyString())).thenReturn(configuration);
     }
@@ -60,21 +60,17 @@ class HibernateUtilTest {
     @Test
     void getSessionFactoryHideErrorDetails() {
 
-        try (
-                MockedStatic<HibernateUtil> db = Mockito.mockStatic(HibernateUtil.class, CALLS_REAL_METHODS);
-                MockedStatic<SystemProperties> system = Mockito.mockStatic(SystemProperties.class)
-        ) {
+        try (MockedStatic<HibernateUtil> db = Mockito.mockStatic(HibernateUtil.class, CALLS_REAL_METHODS)) {
             db.when(HibernateUtil::createEmptyConfiguration).thenReturn(configuration);
-            system.when(SystemProperties::getDatabasePropertiesFile)
-                    .thenReturn(HibernateUtilTest.class.getResource("/empty_db.properties").getFile());
-            when(configuration.buildSessionFactory())
-                    .thenThrow(new HibernateException("username and ip address"));
-            HibernateUtil.getSessionFactory(TEST_SESSION_FACTORY_NAME);
 
-            fail("Should have thrown an exception");
+            when(configuration.buildSessionFactory()).thenThrow(new HibernateException("username and ip address"));
+
+            try (var ignored = HibernateUtil.createSessionFactory(TEST_SESSION_FACTORY_NAME, new HashMap<>(), null)) {
+                fail("Should have thrown an exception");
+            }
         } catch (Exception e) {
             assertThat(e)
-                    .isInstanceOf(CodedException.class)
+                    .isInstanceOf(XrdRuntimeException.class)
                     .hasMessageContaining("database_error: Error accessing database (testSessionFactory)");
         }
 

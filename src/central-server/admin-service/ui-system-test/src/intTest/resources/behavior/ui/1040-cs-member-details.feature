@@ -4,7 +4,7 @@ Feature: 1040 - CS: Member details
 
   Background:
     Given CentralServer login page is open
-    And User xrd logs in to CentralServer with password secret
+    And User xrd logs in to CentralServer with password secret123!
     And Members tab is selected
 
   Scenario: Navigate from member details to Security Server details and back

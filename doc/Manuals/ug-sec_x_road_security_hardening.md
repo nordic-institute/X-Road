@@ -1,6 +1,6 @@
 # X-Road: Security hardening guidelines <!-- omit in toc -->
 
-Version: 0.6  
+Version: 0.7  
 Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
@@ -13,6 +13,7 @@ Doc. ID: UG-SEC
 | 15.12.2023 | 0.4     | Minor updates                                    | Eneli Reimets     |
 | 07.01.2025 | 0.5     | Update references                                | Petteri Kivimäki  |
 | 09.01.2025 | 0.6     | Restructure heading levels                       | Raido Kaju        |
+| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support            | Eneli Reimets     |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -226,7 +227,7 @@ Copy the `.crt` file (PEM) into the `/usr/local/share/ca-certificates` folder.
 
 Run `sudo update-ca-certificates`.
 
-**Example on RHEL 7 / 8 / 9**
+**Example on RHEL 9 / 10**
 
 Copy the `.crt` file (PEM or DER) into the `/etc/pki/ca-trust/source/anchors` folder.
 

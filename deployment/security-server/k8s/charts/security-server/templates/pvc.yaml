@@ -1,0 +1,16 @@
+{{- range $name, $config := .Values.persistentVolumeClaims }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+spec:
+  accessModes:
+    - {{ $config.accessMode }}
+  resources:
+    requests:
+      storage: {{ $config.storage }}
+  {{- if $config.storageClassName }}
+  storageClassName: {{ $config.storageClassName }}
+  {{- end }}
+---
+{{- end }}

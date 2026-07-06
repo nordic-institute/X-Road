@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.core.exception.Deviation;
 import org.niis.xroad.common.core.exception.DeviationAware;
@@ -82,21 +80,21 @@ public class ExceptionTranslator {
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
         switch (e) {
-            case DeviationAware errorCodedException -> {
+            case DeviationAware deviationAware -> {
                 // add information about errors and warnings
-                if (errorCodedException.getErrorDeviation() != null) {
-                    errorDto.setError(convert(errorCodedException.getErrorDeviation()));
+                if (deviationAware.getErrorDeviation() != null) {
+                    errorDto.setError(convert(deviationAware.getErrorDeviation()));
                 }
-                if (errorCodedException.getWarningDeviations() != null) {
-                    for (Deviation warning : errorCodedException.getWarningDeviations()) {
+                if (deviationAware.getWarningDeviations() != null) {
+                    for (Deviation warning : deviationAware.getWarningDeviations()) {
                         errorDto.addWarningsItem(convert(warning));
                     }
                 }
             }
-            case CodedException ce -> {
-                // map fault code and string from core CodedException
-                var deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(),
-                        List.of(ce.getFaultString(), TRANSLATABLE_PREFIX + ce.getTranslationCode()));
+            case XrdRuntimeException ce -> {
+                // map fault code and string from core XrdRuntimeException
+                var deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getErrorCode(),
+                        List.of(ce.getDetails(), TRANSLATABLE_PREFIX + ce.getErrorCode()));
                 errorDto.setError(convert(deviation));
             }
             case MethodArgumentNotValidException manve -> errorDto.setError(validationErrorHelper.createError(manve));

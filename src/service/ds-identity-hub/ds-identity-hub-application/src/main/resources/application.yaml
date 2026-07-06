@@ -1,0 +1,79 @@
+quarkus:
+  application:
+    name: ds-identity-hub
+  arc:
+    unremovable-types:
+      - org.niis.xroad.signer.client.SignerRpcClient
+      - org.niis.xroad.signer.client.SignerSignClient
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  log:
+    level: INFO
+    category:
+      "EDC-MONITOR":
+        level: DEBUG
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
+        - /etc/xroad/conf.d/local-tls.yaml
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/conf.d/local-ds-identity-hub.yaml
+        - /etc/xroad/db.properties
+    log:
+      console:
+        enabled: false
+      file:
+        enabled: true
+        path: /var/log/xroad/ds-identity-hub.log
+
+web:
+  http:
+    port: 7181
+    path: /api
+    identity:
+      port: 7182
+      path: /api/identity
+    did:
+      port: 7183
+      path: /
+    sts:
+      port: 7184
+      path: /api/sts
+    credentials:
+      port: 7185
+      path: /api/credentials
+
+edc:
+  hostname: ${HOSTNAME:localhost}
+  vault:
+    hashicorp:
+      url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+      token: "${XROAD_SECRET_STORE_TOKEN}"
+      # KV v2 mount; see ds-control-plane application.yaml for rationale.
+      folder: ds
+      health:
+        check:
+          standby:
+            ok: true
+      api:
+        secret:
+          path: /v1/xrd-ds-secret
+  datasource:
+    default:
+      url: ${xroad.db.ds-identity-hub.hibernate.connection.url}
+      user: ${xroad.db.ds-identity-hub.hibernate.connection.username}
+      password: ${xroad.db.ds-identity-hub.hibernate.connection.password}
+  sql:
+    schema:
+      autocreate: true
+  iam:
+    oauth2:
+      jwks:
+        url: https://example.com/jwks
+      issuer: test-issuer

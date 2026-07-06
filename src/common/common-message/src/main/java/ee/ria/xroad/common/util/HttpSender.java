@@ -52,7 +52,8 @@ public class HttpSender extends AbstractHttpSender {
      * Configures a HTTP sender using the given HTTP client.
      * @param httpClient HTTP client this sender should use
      */
-    public HttpSender(HttpClient httpClient) {
+    public HttpSender(HttpClient httpClient, boolean isEnabledPooledConnectionReuse) {
+        super(isEnabledPooledConnectionReuse);
         client = httpClient;
     }
 

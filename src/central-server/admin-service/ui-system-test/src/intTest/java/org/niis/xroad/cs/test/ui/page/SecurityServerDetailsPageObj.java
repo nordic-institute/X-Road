@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.test.framework.core.ui.page.component.Dialog;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -38,42 +39,42 @@ public class SecurityServerDetailsPageObj {
     private final DeleteSecurityServerDialog deleteSecurityServerDialog = new DeleteSecurityServerDialog();
 
     public SelenideElement ownerName() {
-        var xpath = "//div[@data-test='security-server-owner-name']//div[contains(@class, 'v-card-text')]";
+        var xpath = "//tr[@data-test='security-server-owner-name']/td[@data-test='row-value']";
         return $x(xpath);
     }
 
     public SelenideElement ownerClass() {
-        var xpath = "//div[@data-test='security-server-owner-class']//div[contains(@class, 'v-card-text')]";
+        var xpath = "//tr[@data-test='security-server-owner-class']/td[@data-test='row-value']";
         return $x(xpath);
     }
 
     public SelenideElement ownerCode() {
-        var xpath = "//div[@data-test='security-server-owner-code']//div[contains(@class, 'v-card-text')]";
+        var xpath = "//tr[@data-test='security-server-owner-code']/td[@data-test='row-value']";
         return $x(xpath);
     }
 
     public SelenideElement serverCode() {
-        var xpath = "//div[@data-test='security-server-server-code']//div[contains(@class, 'v-card-text')]";
+        var xpath = "//tr[@data-test='security-server-server-code']/td[@data-test='row-value']";
         return $x(xpath);
     }
 
     public SelenideElement serverAddress() {
-        var xpath = "//div[@data-test='security-server-address']//div[contains(@class, 'v-card-text')]/div";
+        var xpath = "//tr[@data-test='security-server-address']/td[@data-test='row-value']";
         return $x(xpath);
     }
 
     public SelenideElement serverRegistered() {
-        var xpath = "//div[@data-test='security-server-registered']//div[contains(@class, 'v-card-text')]";
+        var xpath = "//tr[@data-test='security-server-registered']/td[@data-test='row-value']/span";
         return $x(xpath);
     }
 
     public SelenideElement btnChangeAddress() {
-        var xpath = "//div[@data-test='security-server-address']//button[@data-test='info-card-edit-button']";
+        var xpath = "//tr[@data-test='security-server-address']//button[.//span/text()='Edit']";
         return $x(xpath);
     }
 
     public SelenideElement btnDeleteSecurityServer() {
-        var xpath = "//div[@data-test='btn-delete-security-server']";
+        var xpath = "//button[@data-test='btn-delete-security-server']";
         return $x(xpath);
     }
 
@@ -85,46 +86,18 @@ public class SecurityServerDetailsPageObj {
         return deleteSecurityServerDialog;
     }
 
-    public class EditServerAddressDialog {
+    public class EditServerAddressDialog extends Dialog {
+
         public SelenideElement inputAddress() {
             var xpath = "//div[@data-test='security-server-address-edit-field']";
             return $x(xpath);
         }
-
-        public SelenideElement btnSave() {
-            var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnCancel() {
-            var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement dialog() {
-            var xpath = "//div[@data-test='dialog-simple']";
-            return $x(xpath);
-        }
     }
 
-    public class DeleteSecurityServerDialog {
+    public class DeleteSecurityServerDialog extends Dialog {
+
         public SelenideElement inputSeverCode() {
             var xpath = "//div[@data-test='verify-server-code']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnDelete() {
-            var xpath = "//button[@data-test='dialog-save-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement btnCancel() {
-            var xpath = "//button[@data-test='dialog-cancel-button']";
-            return $x(xpath);
-        }
-
-        public SelenideElement dialog() {
-            var xpath = "//div[@data-test='dialog-simple']";
             return $x(xpath);
         }
     }

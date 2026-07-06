@@ -27,10 +27,10 @@ package org.niis.xroad.proxy.core.protocol;
 
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -39,7 +39,8 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -59,9 +60,12 @@ import static org.junit.Assert.assertTrue;
  */
 public class ProxyMessageEncoderTest {
 
+    private final String tmpDir = "build/tmp";
+
     ByteArrayOutputStream out;
     ProxyMessageEncoder encoder;
     GlobalConfProvider globalConfProvider;
+    OcspVerifierFactory ocspVerifierFactory;
 
     /**
      * Initialize.
@@ -70,7 +74,9 @@ public class ProxyMessageEncoderTest {
     public void initialize() {
         out = new ByteArrayOutputStream();
         encoder = new ProxyMessageEncoder(out, getHashAlgoId());
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create("dummy");
+        ocspVerifierFactory = new OcspVerifierFactory();
+        ocspVerifierFactory = new OcspVerifierFactory();
     }
 
     /**
@@ -185,15 +191,16 @@ public class ProxyMessageEncoderTest {
     }
 
     private ProxyMessage decode() throws Exception {
-        ProxyMessage proxyMessage = new ProxyMessage("text/xml");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, proxyMessage, encoder.getContentType(), getHashAlgoId());
+        ProxyMessage proxyMessage = new ProxyMessage("text/xml", tmpDir);
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, new OcspVerifierFactory(),
+                proxyMessage, encoder.getContentType(), getHashAlgoId());
         decoder.parse(new ByteArrayInputStream(out.toByteArray()));
 
         return proxyMessage;
     }
 
     private static SoapMessageImpl createMessage(InputStream is) {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxEventSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
@@ -203,7 +210,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapFault createFault(InputStream is) {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxEventSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;

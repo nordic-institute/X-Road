@@ -26,8 +26,8 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
 import org.niis.xroad.cs.openapi.model.BackupDto;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.springframework.stereotype.Component;
 
 @Component

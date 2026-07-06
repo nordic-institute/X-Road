@@ -27,9 +27,7 @@ package org.niis.xroad.monitor.core.executablelister;
 
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.monitor.core.JmxStringifiedData;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -45,15 +43,6 @@ public class PackageLister extends AbstractExecLister<PackageInfo> {
     private static final String REDHAT_LIST_PACKAGES_COMMAND =
             "rpm -qa --queryformat '%{NAME}/%{VERSION}-%{RELEASE}\n'";
     private static final int NUMBER_OF_FIELDS = 2;
-
-    /**
-     * Program entry point
-     */
-    public static void main(String[] args) throws IOException {
-        JmxStringifiedData<PackageInfo> p = new PackageLister().list();
-        System.out.println("raw: " + p.getJmxStringData());
-        System.out.println("parsed: " + p.getDtoData());
-    }
 
     @Override
     protected String getCommand() {

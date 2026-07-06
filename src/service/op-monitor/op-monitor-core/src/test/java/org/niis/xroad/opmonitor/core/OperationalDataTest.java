@@ -25,20 +25,20 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.config.ConfigurationHelper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
+import tools.jackson.databind.DatabindException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.fillMinimalOperationalData;
@@ -55,18 +55,18 @@ public class OperationalDataTest extends BaseTestUsingDB {
     /**
      * Begins a transaction.
      */
-    @Before
+    @BeforeEach
     public void beginTransaction() {
-        session = OpMonitorDaemonDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
      * Rolls back the transaction after each test so we always start with an
      * empty database.
      */
-    @After
+    @AfterEach
     public void rollbackTransaction() {
-        OpMonitorDaemonDatabaseCtx.get().rollbackTransaction();
+        DATABASE_CTX.rollbackTransaction();
     }
 
     @SuppressWarnings("squid:S2699")
@@ -104,7 +104,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
     public void convertFromOutdatedJson() {
         String jsonRec = formatInvalidOperationalDataAsJson();
 
-        var exc = assertThrows(JsonMappingException.class, () -> OBJECT_READER.readValue(jsonRec, OperationalDataRecord.class));
+        var exc = assertThrows(DatabindException.class, () -> OBJECT_READER.forType(OperationalDataRecord.class).readValue(jsonRec));
         assertTrue(exc.getOriginalMessage().contains("Invalid value of securityServerType"));
     }
 

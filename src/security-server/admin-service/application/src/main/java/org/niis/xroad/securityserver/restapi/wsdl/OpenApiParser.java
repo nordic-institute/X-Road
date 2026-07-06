@@ -26,10 +26,6 @@
 
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -37,6 +33,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -65,7 +65,8 @@ public class OpenApiParser {
     private static final String SUPPORTED_OPENAPI_VERSION_3_1_0 = "3.1.0";
     private static final int BUF_SIZE = 8192;
     private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
-    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper YAML_MAPPER = YAMLMapper.builder().build();
+    private static final ObjectMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private final HttpUrlConnectionConfig httpUrlConnectionConfig;
 
@@ -89,12 +90,13 @@ public class OpenApiParser {
             String openApiDescription = readOpenAPIDescription(openApiUrl);
             JsonNode jsonNode = YAML_MAPPER.readTree(openApiDescription);
             verifyOpenApiVersion(jsonNode);
-            result = new OpenAPIV3Parser().parseJsonNode(null, jsonNode);
-        } catch (JsonProcessingException e) {
-            throw new ParsingException("Unable to parse OpenAPI description from " + openApiUrl, e);
+            String jsonContent = JSON_MAPPER.writeValueAsString(jsonNode);
+            result = new OpenAPIV3Parser().readContents(jsonContent, null, null);
+        } catch (ParsingException | UnsupportedOpenApiVersionException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Reading OpenAPI description from {} failed", openApiUrl, e);
-            throw e;
+            throw new ParsingException("Unable to parse OpenAPI description from " + openApiUrl, e);
         }
 
         validate(result, openApiUrl);
@@ -123,7 +125,7 @@ public class OpenApiParser {
     }
 
     private void verifyOpenApiVersion(JsonNode node) throws UnsupportedOpenApiVersionException {
-        final String openapiVersion = node.get("openapi").asText();
+        final String openapiVersion = node.get("openapi").asString();
         if (openapiVersion != null && !versionSupported(openapiVersion)) {
             String errorMsg = String.format("OpenAPI version %s not supported", openapiVersion);
             throw new UnsupportedOpenApiVersionException(errorMsg);

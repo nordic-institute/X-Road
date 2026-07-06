@@ -1,0 +1,8 @@
+---
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+cnpg_namespace: cnpg-system
+cnpg_chart_repo: "https://cloudnative-pg.github.io/charts"
+cnpg_chart: "cnpg/cloudnative-pg"
+cnpg_chart_version: "0.28.0"
+cnpg_helm_wait_timeout: 5m

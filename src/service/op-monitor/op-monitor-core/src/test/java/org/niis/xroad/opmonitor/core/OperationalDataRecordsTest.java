@@ -27,18 +27,17 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import tools.jackson.databind.ObjectWriter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 
 /**
@@ -83,10 +82,9 @@ public class OperationalDataRecordsTest {
 
     /**
      * Test empty records payload.
-     * @throws Exception if an error occurs.
      */
     @Test
-    public void emptyRecordsPayload() throws Exception {
+    public void emptyRecordsPayload() {
         List<OperationalDataRecord> recordList = new ArrayList<>();
         OperationalDataRecords records = new OperationalDataRecords(recordList);
 
@@ -97,31 +95,30 @@ public class OperationalDataRecordsTest {
     }
 
     @Test
-    public void deserializeErrorResponse() throws IOException {
+    public void deserializeErrorResponse() {
         String errorJson = "{\"errorMessage\": \"Error Message\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
-                .readValue(errorJson, StoreOpMonitoringDataResponse.class);
+                .forType(StoreOpMonitoringDataResponse.class).readValue(errorJson);
         assertEquals("Error", response.getStatus());
         assertNotNull(response.getErrorMessage());
     }
 
     @Test
-    public void deserializeOkResponse() throws IOException {
+    public void deserializeOkResponse() {
         String okJson = "{\"status\": \"OK\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
-                .readValue(okJson, StoreOpMonitoringDataResponse.class);
+                .forType(StoreOpMonitoringDataResponse.class).readValue(okJson);
         assertEquals("OK", response.getStatus());
         assertNull(response.getErrorMessage());
     }
 
     /**
      * Test that Jackson deserializes the record correctly
-     * @throws IOException if deserializing fails
      */
     @Test
-    public void deserializeRecords() throws IOException {
-        OperationalDataRecords records = OBJECT_READER.readValue(RECORDS_JSON, OperationalDataRecords.class);
-        OperationalDataRecord record = records.getRecords().get(0);
+    public void deserializeRecords() {
+        OperationalDataRecords records = OBJECT_READER.forType(OperationalDataRecords.class).readValue(RECORDS_JSON);
+        OperationalDataRecord record = records.getRecords().getFirst();
 
         assertEquals("CS", record.getServiceXRoadInstance());
         assertEquals("REST", record.getServiceType());

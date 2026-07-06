@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -41,6 +40,7 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.globalconf.impl.config.GlobalConfProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -57,8 +57,6 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_INTERNAL;
-import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfApplier.getTmpExternalDirectory;
-import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfApplier.getTmpInternalDirectory;
 import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationEvent.FAILURE;
 import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationEvent.SUCCESS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
@@ -81,6 +79,8 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final ApplicationEventPublisher eventPublisher;
+    private final GlobalConfGenerationProperties generationProperties;
+    private final GlobalConfProperties globalConfProperties;
 
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
 
@@ -113,14 +113,20 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     private Optional<Result> generate(ConfigurationPartsGenerator generator) {
         int confVersion = generator.getConfigurationVersion();
-        if (confVersion < SystemProperties.getMinimumCentralServerGlobalConfigurationVersion()) {
+        if (confVersion < generationProperties.getMinimumGlobalConfigurationVersion()) {
             return Optional.empty();
         }
 
         var configGenerationTime = TimeUtils.now();
-        var generatedConfDir = Path.of(SystemProperties.getCenterGeneratedConfDir());
+        var generatedConfDir = Path.of(generationProperties.getGeneratedConfDir());
         var configDistributor = new ConfigurationDistributor(generatedConfDir, confVersion, configGenerationTime);
-        var globalConfApplier = new GlobalConfApplier(confVersion, configDistributor, systemParameterService);
+        var globalConfApplier = new GlobalConfApplier(
+                confVersion,
+                configDistributor,
+                systemParameterService,
+                generationProperties,
+                Path.of(globalConfProperties.configurationPath())
+        );
 
         try {
             log.debug("Starting global conf V{} generation", confVersion);
@@ -141,8 +147,18 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
             var internalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL).orElseThrow();
             var externalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL).orElseThrow();
 
-            writeDirectoryContentFile(configDistributor, internalConfigurationParts, internalSigningKey, getTmpInternalDirectory());
-            writeDirectoryContentFile(configDistributor, externalConfigurationParts, externalSigningKey, getTmpExternalDirectory());
+            writeDirectoryContentFile(
+                    configDistributor,
+                    internalConfigurationParts,
+                    internalSigningKey,
+                    generationProperties.getTmpInternalDirectory()
+            );
+            writeDirectoryContentFile(
+                    configDistributor,
+                    externalConfigurationParts,
+                    externalSigningKey,
+                    generationProperties.getTmpExternalDirectory()
+            );
 
             log.debug("Global conf generated");
             return Optional.of(new Result(true, globalConfApplier));
@@ -152,7 +168,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         }
     }
 
-    private static Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
+    private Set<ConfigurationPart> internalConfigurationParts(Set<ConfigurationPart> configurationParts) {
         var contentIdentifiers = getInternalSourceContentIdentifiers();
         return configurationParts.stream()
                 .filter(cp -> contentIdentifiers.contains(cp.getContentIdentifier()))
@@ -215,7 +231,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
 
-    private static Set<String> getInternalSourceContentIdentifiers() {
+    private Set<String> getInternalSourceContentIdentifiers() {
         return concat(INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.stream(),
                 OptionalPartsConf.getOptionalPartsConf().getAllParts().stream()
                         .map(OptionalConfPart::contentIdentifier))

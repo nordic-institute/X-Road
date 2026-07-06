@@ -1,0 +1,42 @@
+---
+ss_modules:
+  monitor:
+    dir: service/monitor/monitor-application
+    build: build
+    target: /usr/share/xroad/jlib/monitor
+    service: xroad-monitor
+  proxy:
+    dir: service/proxy/proxy-application
+    build: build
+    target: /usr/share/xroad/jlib/proxy
+    service: xroad-proxy
+  configuration-client:
+    dir: service/configuration-client/configuration-client-application
+    build: build
+    target: /usr/share/xroad/jlib/configuration-client
+    service: xroad-confclient
+  auxiliary-service:
+    dir: service/auxiliary-service/auxiliary-service-application
+    build: build
+    target: /usr/share/xroad/jlib/auxiliary-service
+    service: xroad-auxiliary-service
+  message-log-archiver:
+    dir: service/message-log-archiver/message-log-archiver-cli
+    build: build
+    target: /usr/share/xroad/jlib/message-log-archiver
+  proxy-ui-api:
+    dir: security-server/admin-service/application
+    build: build
+    lib: proxy-ui-api-1.0.jar
+    target: /usr/share/xroad/jlib
+    service: xroad-proxy-ui-api
+  ds-control-plane:
+    dir: service/ds-control-plane/ds-control-plane-application
+    build: build
+    target: /usr/share/xroad/jlib/ds-control-plane
+    service: xroad-ds-control-plane
+  ds-identity-hub:
+    dir: service/ds-identity-hub/ds-identity-hub-application
+    build: build
+    target: /usr/share/xroad/jlib/ds-identity-hub
+    service: xroad-ds-identity-hub

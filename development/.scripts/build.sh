@@ -8,7 +8,7 @@ gradleModule=""
 gradleArgs="clean build -x check "
 case $1 in
 "proxy")
-  gradleModule="service/proxy"
+  gradleModule="service/proxy/proxy-application"
   ;;
 "addon-messagelog")
   gradleModule="addons/messagelog/messagelog-addon"
@@ -17,19 +17,46 @@ case $1 in
   gradleModule="addons/metaservice"
   ;;
 "configuration-client")
-  gradleModule="service/configuration-client"
+  gradleModule="service/configuration-client/configuration-client-application"
   ;;
 "signer")
-  gradleModule="signer"
+  gradleModule="service/signer/signer-application"
   ;;
 "proxy-ui-api")
   gradleModule="security-server/admin-service"
+  ;;
+"monitor")
+  gradleModule="service/monitor/monitor-application"
+  ;;
+"auxiliary-service")
+  gradleModule="service/auxiliary-service/auxiliary-service-application"
+  ;;
+"message-log-archiver")
+  gradleModule="service/message-log-archiver/message-log-archiver-cli"
   ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"
   ;;
 "cs-management-service")
   gradleModule="central-server/management-service"
+  ;;
+"cs-registration-service")
+  gradleModule="central-server/registration-service"
+  ;;
+"confproxy-cli")
+  gradleModule="service/configuration-proxy/configuration-proxy-cli"
+  ;;
+"confproxy")
+  gradleModule="service/configuration-proxy/configuration-proxy-application"
+  ;;
+"configuration-client")
+  gradleModule="service/configuration-client/configuration-client-application"
+  ;;
+"ds-control-plane")
+  gradleModule="service/ds-control-plane/ds-control-plane-application"
+  ;;
+"ds-identity-hub")
+  gradleModule="service/ds-identity-hub/ds-identity-hub-application"
   ;;
 esac
 

@@ -1,0 +1,75 @@
+---
+security_server_namespace: ss
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+security_server_chart_repo: ""
+security_server_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/security-server"
+security_server_chart_version: ""
+
+xroad_image_registry: ""
+xroad_image_tag: ""
+serverconf_init_image: ""
+
+jvm_metrics_enabled: false
+
+security_server_wait_retries: 60
+security_server_wait_delay: 10
+
+openbao_tls_secret_name: openbao-server-tls
+
+configuration_client_update_interval: "10"
+
+proxy_dsp_enabled: true
+
+trusted_issuer_host: xrd-cs
+xrd_ca_external_host: xrd-ca.lxd
+
+serverconf_db:
+  name: db-serverconf
+  database: serverconf
+  username: serverconf
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+messagelog_db:
+  name: db-messagelog
+  database: messagelog
+  username: messagelog
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+opmonitor_db:
+  name: db-opmonitor
+  database: op-monitor
+  username: opmonitor
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+
+# DSP-scoped databases — provisioned by the CNPG role alongside
+# serverconf/messagelog/opmonitor. The chart consumes the app-user Secret
+# (`db-<name>` with key `password`) and the bare Service DNS published by
+# the CNPG role's ExternalName alias.
+ds_control_plane_db:
+  name: db-ds-control-plane
+  database: ds-control-plane
+  username: ds_control_plane
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+ds_identity_hub_db:
+  name: db-ds-identity-hub
+  database: ds-identity-hub
+  username: ds_identity_hub
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi
+ds_issuer_service_db:
+  name: db-ds-issuer-service
+  database: ds-issuer-service
+  username: ds_issuer_service
+  password: secret
+  postgres_password: admin_secret
+  storage_size: 1Gi

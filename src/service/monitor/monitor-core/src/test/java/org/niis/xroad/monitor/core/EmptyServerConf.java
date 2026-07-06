@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.monitor.core;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -36,6 +37,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
@@ -117,7 +119,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getOrderedTspUrls() {
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
         return emptyList();
     }
 
@@ -139,6 +141,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return null;
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return emptyList();
     }
 
     @Override

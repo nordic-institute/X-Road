@@ -13,7 +13,7 @@ fi
 isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
 
 # Set XROAD_HOME to repository root using the script's location
-if [ -z "$XROAD_HOME" ]; then
+if [ -z "${XROAD_HOME:-}" ]; then
   # Use the script's location instead of pwd to find repo root
   # This script is now at .scripts/base-script.sh, so go up one level
   XROAD_HOME=$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")

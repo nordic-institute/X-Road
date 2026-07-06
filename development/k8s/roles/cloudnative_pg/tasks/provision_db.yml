@@ -1,0 +1,114 @@
+---
+# Provision one CNPG-backed PostgreSQL instance and publish it under a
+# stable legacy-style service name (db-<name>) so consumers that reference
+# the bitnami chart's DNS keep working unchanged.
+#
+# Inputs (pass via include_tasks vars):
+#   db.name             -> cluster name (e.g. db-serverconf)
+#   db.database         -> application database
+#   db.username         -> application role
+#   db.password         -> application role password
+#   db.postgres_password-> postgres superuser password (kept for legacy consumers)
+#   db.storage_size     -> PVC size, e.g. 1Gi
+#   db.instances        -> replica count (default 1)
+
+- name: "[{{ db.name }}] App credentials secret"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: kubernetes.io/basic-auth
+      metadata:
+        name: "{{ db.name }}"
+        namespace: "{{ security_server_namespace }}"
+      stringData:
+        username: "{{ db.username }}"
+        password: "{{ db.password }}"
+        postgres-password: "{{ db.postgres_password }}"
+  no_log: true
+
+- name: "[{{ db.name }}] Superuser credentials secret"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: kubernetes.io/basic-auth
+      metadata:
+        name: "{{ db.name }}-superuser"
+        namespace: "{{ security_server_namespace }}"
+      stringData:
+        username: postgres
+        password: "{{ db.postgres_password }}"
+  no_log: true
+
+- name: "[{{ db.name }}] CNPG Cluster"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      metadata:
+        name: "{{ db.name }}"
+        namespace: "{{ security_server_namespace }}"
+      spec:
+        instances: "{{ db.instances | default(1) }}"
+        imageName: "{{ postgres_image }}"
+        enableSuperuserAccess: true
+        superuserSecret:
+          name: "{{ db.name }}-superuser"
+        bootstrap:
+          initdb:
+            database: "{{ db.database }}"
+            owner: "{{ db.username }}"
+            secret:
+              name: "{{ db.name }}"
+        storage: >-
+          {{ {'size': db.storage_size | default('1Gi')}
+             | combine({'storageClass': storage_class}
+                       if storage_class is defined and (storage_class | length > 0)
+                       else {}) }}
+        resources:
+          requests:
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+
+- name: "[{{ db.name }}] Wait for Cluster to become healthy"
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    name: "{{ db.name }}"
+    namespace: "{{ security_server_namespace }}"
+  register: cnpg_cluster
+  until: >-
+    (cnpg_cluster.resources | length > 0) and
+    (cnpg_cluster.resources[0].status.phase | default('') == 'Cluster in healthy state') and
+    (cnpg_cluster.resources[0].status.readyInstances | default(0) | int >=
+     cnpg_cluster.resources[0].spec.instances | int)
+  retries: "{{ postgres_wait_retries | default(90) }}"
+  delay: "{{ postgres_wait_delay | default(5) }}"
+
+# CNPG auto-creates <cluster>-rw, -ro, -r services. Consumers reference the
+# bare <cluster> DNS, so alias it to -rw via ExternalName.
+- name: "[{{ db.name }}] Service alias (bare DNS -> -rw primary)"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ db.name }}"
+        namespace: "{{ security_server_namespace }}"
+      spec:
+        type: ExternalName
+        externalName: "{{ db.name }}-rw.{{ security_server_namespace }}.svc.cluster.local"
+        ports:
+          - port: 5432
+            targetPort: 5432

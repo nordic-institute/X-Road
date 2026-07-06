@@ -26,67 +26,18 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.SystemProperties;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
-import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
+import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
-import java.util.Arrays;
-import java.util.List;
-
-@Configuration
 public class ProxyDiagnosticsConfig {
 
-    @Bean
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics() {
-        return new BackupEncryptionStatusDiagnostics(
-                SystemProperties.isBackupEncryptionEnabled(),
-                getBackupEncryptionKeyIds());
+    @ApplicationScoped
+    AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager,
+                                                  ProxyProperties proxyProperties) {
+        return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass(),
+                proxyProperties.addon().opMonitor().enabled());
     }
 
-    @Bean
-    AddOnStatusDiagnostics addOnStatusDiagnostics(@Qualifier("messageLogEnabledStatus") Boolean messageLogEnabledStatus,
-                                                  @Qualifier("opMonitoringEnabledStatus") Boolean opMonitoringEnabledStatus) {
-        return new AddOnStatusDiagnostics(messageLogEnabledStatus, opMonitoringEnabledStatus);
-    }
-
-    @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                              ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
-        return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient);
-    }
-
-    @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthCheckPort healthCheckPort(HealthChecks healthChecks) {
-        return new HealthCheckPort(healthChecks);
-    }
-
-    static class HealthCheckEnabledCondition implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return SystemProperties.isHealthCheckEnabled();
-        }
-    }
-
-    private static List<String> getBackupEncryptionKeyIds() {
-        return Arrays.stream(StringUtils.split(
-                        SystemProperties.getBackupEncryptionKeyIds(), ','))
-                .map(String::trim)
-                .toList();
-    }
 }

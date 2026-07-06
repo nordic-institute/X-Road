@@ -1,0 +1,86 @@
+name: Cleanup Old Snapshot Images
+
+on:
+  # Run daily at 03:00 UTC (after daily base image builds at 02:00)
+  schedule:
+    - cron: '0 3 * * *'
+
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (only show what would be deleted)'
+        required: false
+        type: boolean
+        default: true
+      cut_off:
+        description: 'Age cutoff (e.g., "7 days", "2 weeks")'
+        required: false
+        type: string
+        default: '30 days'
+
+permissions:
+  packages: write
+  contents: read
+
+env:
+  # Set to 'true' to enable dry-run for scheduled runs (safe for testing)
+  # Set to 'false' to actually delete images on scheduled runs
+  SCHEDULED_DRY_RUN: 'false'
+
+jobs:
+  cleanup-snapshots:
+    name: Cleanup old snapshot images
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # All images that receive SNAPSHOT tags during CI builds.
+        # Update this list when adding/removing published container images.
+        package:
+          # Security Server base images
+          - x-road/base-images/ss-baseline-runtime
+          - x-road/base-images/ss-baseline-auxiliary-service-runtime
+          - x-road/base-images/ss-baseline-signer-runtime
+          # Security Server service images
+          - x-road/ss-proxy
+          - x-road/ss-monitor
+          - x-road/ss-op-monitor
+          - x-road/ss-configuration-client
+          - x-road/ss-signer
+          - x-road/ss-softtoken-signer
+          - x-road/ss-auxiliary-service
+          - x-road/ss-proxy-ui-api
+          # Data space service images
+          - x-road/ds-control-plane
+          - x-road/ds-identity-hub
+          # Database initialization images
+          - x-road/ss-db-init
+          - x-road/ss-db-messagelog-init
+          - x-road/ss-db-opmonitor-init
+          - x-road/ss-db-serverconf-init
+          # Development images
+          - x-road/openbao-dev
+          - x-road/testca-dev
+          - x-road/postgres-dev
+          - x-road/central-server-dev
+          # Package builder images
+    # TODO: these require different behaviour as they're rarely updated.
+    #          - x-road/package-builder-deb-noble
+    #          - x-road/package-builder-deb-resolute
+    #          - x-road/package-builder-rpm-el8
+    #          - x-road/package-builder-rpm-el9
+    steps:
+      - name: Cleanup old snapshot images (${{ matrix.package }})
+        uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1
+        with:
+          package: ${{ matrix.package }}
+          owner: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          delete-tags: '*SNAPSHOT*'
+          older-than: ${{ inputs.cut_off || '30 days' }}
+          delete-untagged: true
+          delete-ghost-images: true
+          delete-partial-images: true
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || github.event_name == 'schedule' && env.SCHEDULED_DRY_RUN == 'true' }}
+          log-level: info
