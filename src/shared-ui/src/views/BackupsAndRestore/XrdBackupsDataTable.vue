@@ -65,14 +65,14 @@
       :items-per-page="-1"
       :loader-height="2"
     >
-      <template #[`item.buttons`]="{ item }">
+      <template #item.buttons="{ item }">
         <div class="cs-table-actions-wrap">
           <XrdDownloadBackupButton :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
           <XrdRestoreBackupButton
             :backup-handler="backupHandler"
             :filename="item.filename"
             :can-backup="canBackup"
-            :backup-compatible="item.backup_compatible"
+            :compatible="item.compatible"
           />
           <XrdDeleteBackupButton
             :backup-handler="backupHandler"

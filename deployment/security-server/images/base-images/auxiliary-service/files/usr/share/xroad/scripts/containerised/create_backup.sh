@@ -91,6 +91,10 @@ create_backup_tarball () {
   echo "Backup file saved to ${BACKUP_FILENAME}"
 }
 
+write_backup_metadata () {
+  echo "$BACKUP_FORMAT_VERSION_LABEL" > "${BACKUP_FILENAME}.metadata"
+}
+
 check_backup_file_name () {
   if [ -z "${BACKUP_FILENAME}" ] ; then
     echo "Missing value of backup tar file name"
@@ -141,3 +145,4 @@ create_serverconf_db_backup
 create_openbao_db_backup
 make_tarball_label
 create_backup_tarball
+write_backup_metadata

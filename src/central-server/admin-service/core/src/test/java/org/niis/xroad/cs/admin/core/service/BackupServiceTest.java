@@ -86,6 +86,8 @@ class BackupServiceTest {
     BackupValidator backupValidator;
     @Mock
     BackupConfig backupConfig;
+    @Mock
+    BackupMetadataService backupMetadataService;
 
     BackupRepository backupRepository;
     BackupService backupService;
@@ -96,7 +98,7 @@ class BackupServiceTest {
     @BeforeEach
     void setUp() {
         when(backupConfig.getConfBackupPath()).thenReturn(CONF_BACKUP_PATH);
-        backupRepository = spy(new BackupRepository(backupValidator, backupConfig));
+        backupRepository = spy(new BackupRepository(backupValidator, backupConfig, backupMetadataService));
         backupService = new BackupServiceImpl(backupRepository, auditDataHelper);
     }
 
@@ -169,7 +171,8 @@ class BackupServiceTest {
     void uploadBackup() throws Exception {
         MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
 
-        doReturn(new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC))
+        doReturn(new BackupFile(BACKUP_FILE_1_NAME,
+                new Date(BACKUP_FILE_1_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC), true))
                 .when(backupRepository).writeBackupFile(BACKUP_FILE_1_NAME, multipartFile.getBytes());
 
         BackupFile backupFile = backupService.uploadBackup(true, multipartFile.getOriginalFilename(),
@@ -208,10 +211,8 @@ class BackupServiceTest {
     }
 
     private List<BackupFile> createBackupList() {
-        var file1 = new BackupFile(BACKUP_FILE_1_NAME,
-                ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC), false);
-        var file2 = new BackupFile(BACKUP_FILE_2_NAME,
-                ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC), false);
+        var file1 = new BackupFile(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC), true);
+        var file2 = new BackupFile(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS).atOffset(ZoneOffset.UTC), true);
         List<BackupFile> files = Lists.newArrayList(file1, file2);
 
         when(backupRepository.getBackupFiles()).thenReturn(files);

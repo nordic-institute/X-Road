@@ -111,4 +111,22 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     public void configurationBackupCountIsEqualTo(int count) {
         backupAndRestorePageObj.backupList().shouldHave(size(count));
     }
+
+    @Step("Configuration backup with incompatible version is uploaded")
+    public void uploadIncompatibleConfigurationBackup() {
+        backupAndRestorePageObj.btnUploadConfigurationBackup().shouldBe(Condition.enabled).click();
+        backupAndRestorePageObj.inputConfigurationBackupBackupFile().uploadFromClasspath("files/backups/cs-backup-incompatible.gpg");
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Configuration backup is shown as incompatible")
+    public void configurationBackupIsShownAsIncompatible() {
+        backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldNotBe(Condition.enabled);
+    }
+
+    @Step("Configuration backup is shown as compatible")
+    public void configurationBackupIsShownAsCompatible() {
+        backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldBe(Condition.enabled);
+    }
 }

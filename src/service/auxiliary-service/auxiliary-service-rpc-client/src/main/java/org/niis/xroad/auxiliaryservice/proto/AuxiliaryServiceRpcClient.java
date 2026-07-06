@@ -86,7 +86,10 @@ public class AuxiliaryServiceRpcClient extends AbstractRpcClient {
     public Collection<BackupInfo> listBackups() {
         var response = exec(() -> backupServiceBlockingStub.listBackups(Empty.getDefaultInstance()));
         return response.getBackupItemsList().stream()
-                .map(item -> new BackupInfo(item.getName(), toInstant(item.getCreatedAt()), item.getBackupCompatible()))
+                .map(item -> new BackupInfo(
+                        item.getName(),
+                        toInstant(item.getCreatedAt()),
+                        item.getBackupCompatible()))
                 .toList();
     }
 

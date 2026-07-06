@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,36 +27,15 @@ package ee.ria.xroad.common.util;
 
 import lombok.experimental.UtilityClass;
 
-import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 
 @UtilityClass
 public class BackupUtils {
 
-    /*
-    This version number must be increased when we introduce changes that make
-    earlier backup files incompatible with the current system.
-    */
-    private static final String ALLOWED_BACKUP_VERSION = "v1";
-
-    private static final DateTimeFormatter BACKUP_FILENAME_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private final DateTimeFormatter BACKUP_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
 
     public String generateBackupFileName() {
-        return "conf_backup_%s_%s.gpg".formatted(
-                ALLOWED_BACKUP_VERSION,
-                TimeUtils.localDateTimeNow().format(BACKUP_FILENAME_DATE_FORMATTER));
-    }
-
-    public boolean isBackupCompatible(Path path) {
-        return isBackupCompatible(path.getFileName().toString());
-    }
-
-    public boolean isBackupCompatible(String filename) {
-        for (String part : filename.split("_")) {
-            if (part.equals(ALLOWED_BACKUP_VERSION)) {
-                return true;
-            }
-        }
-        return false;
+        return String.format(FILE_NAME_FORMAT, TimeUtils.localDateTimeNow().format(BACKUP_DATE_FORMAT));
     }
 }

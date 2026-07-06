@@ -60,6 +60,18 @@ check_is_correct_tarball () {
   fi
 }
 
+check_tarball_label () {
+  echo "CHECKING THE LABEL OF THE TAR ARCHIVE"
+  if [[ $FORCE_RESTORE = true ]] ; then
+    echo "Skipping label check due to force restore"
+  else
+    if ! tar --test-label --file "${BACKUP_FILENAME}" --label "${TARBALL_LABEL}" ; then
+      die "The expected label (${TARBALL_LABEL}) and the actual label of the" \
+          "tarball ${BACKUP_FILENAME} do not match. Aborting restore!"
+    fi
+  fi
+}
+
 # copy/paste from _restore_xroad.sh
 acquire_lock () {
     if [ "${FLOCKER}" != "$0" ] ; then
@@ -320,6 +332,7 @@ decrypt_tarball_if_encrypted
 check_is_correct_tarball
 check_restore_options
 make_tarball_label
+check_tarball_label
 stop_services
 create_pre_restore_backup
 setup_tmp_restore_dir

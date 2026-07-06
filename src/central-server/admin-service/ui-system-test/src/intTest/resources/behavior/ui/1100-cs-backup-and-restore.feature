@@ -34,3 +34,19 @@ Feature: 1100 - CS: Backup and Restore
   Scenario: Configuration can be restored from backup
     Given Configuration backup count is equal to 1
     Then Configuration can be successfully restored from backup
+
+  Scenario: Created backup is shown as compatible
+    Given Configuration backup count is equal to 1
+    When Configuration backup is created
+    Then Configuration backup count is equal to 2
+    And Configuration backup is shown as compatible
+    When Configuration backup is deleted
+    Then Configuration backup count is equal to 1
+
+  Scenario: Uploaded backup with incompatible version is shown as incompatible
+    Given Configuration backup count is equal to 1
+    When Configuration backup with incompatible version is uploaded
+    Then Configuration backup count is equal to 2
+    And Configuration backup is shown as incompatible
+    When Configuration backup is deleted
+    Then Configuration backup count is equal to 1

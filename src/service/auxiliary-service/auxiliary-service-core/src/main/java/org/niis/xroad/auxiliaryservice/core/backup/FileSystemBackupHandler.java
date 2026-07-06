@@ -70,10 +70,11 @@ public class FileSystemBackupHandler {
     private final ExternalProcessRunner externalProcessRunner;
     private final BackupProperties backupProperties;
     private final BackupRepository backupRepository;
+    private final BackupMetadataService backupMetadataService;
 
     public BackupItem performBackup(String securityServerId) {
         log.info("Creating new backup for Security Server: {}", securityServerId);
-        String name = generateBackupFileName();
+        String name = BackupUtils.generateBackupFileName();
 
         try {
             String[] args = createBackupArgs(securityServerId, name);
@@ -150,6 +151,7 @@ public class FileSystemBackupHandler {
     public void deleteBackup(String name) {
         log.info("Delete backup: {}", name);
         backupRepository.deleteBackup(name);
+        backupMetadataService.deleteMetadata(backupRepository.getAbsoluteBackupFilePath(name));
     }
 
     public Collection<BackupItem> listBackups() {
@@ -229,6 +231,7 @@ public class FileSystemBackupHandler {
                     .forEach(path -> {
                         try {
                             Files.delete(path);
+                            backupMetadataService.deleteMetadata(path);
                             log.info("Deleted: {}", path);
                         } catch (IOException e) {
                             log.error("Failed to delete: {} - {}", path, e.getMessage());
@@ -243,10 +246,6 @@ public class FileSystemBackupHandler {
         return backupRepository.listBackups().stream()
                 .filter(b -> b.name().equals(name))
                 .findFirst();
-    }
-
-    private String generateBackupFileName() {
-        return BackupUtils.generateBackupFileName();
     }
 
     private String[] encryptionParams() {

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.util.BackupUtils;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.WarningDeviation;
@@ -40,7 +38,6 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -117,9 +114,7 @@ public class BackupServiceImpl implements BackupService {
             throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename));
         }
 
-        OffsetDateTime createdAt = backupRepository.writeBackupFile(filename, fileBytes);
-
-        return new BackupFile(filename, createdAt, BackupUtils.isBackupCompatible(filename));
+        return backupRepository.writeBackupFile(filename, fileBytes);
     }
 
     /**

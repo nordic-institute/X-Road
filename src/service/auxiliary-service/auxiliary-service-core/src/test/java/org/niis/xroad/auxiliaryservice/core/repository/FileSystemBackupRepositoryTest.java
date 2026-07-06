@@ -27,9 +27,16 @@
 
 package org.niis.xroad.auxiliaryservice.core.repository;
 
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.auxiliaryservice.core.backup.BackupItem;
+import org.niis.xroad.auxiliaryservice.core.backup.BackupMetadataService;
 import org.niis.xroad.auxiliaryservice.core.backup.BackupValidator;
 import org.niis.xroad.auxiliaryservice.core.backup.job.repository.BackupRepository;
 import org.niis.xroad.auxiliaryservice.core.backup.job.repository.FileSystemBackupRepository;
@@ -44,12 +51,21 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class FileSystemBackupRepositoryTest {
 
     @TempDir
     private Path backupDir;
+
+    @Mock
+    private BackupMetadataService backupMetadataService;
 
     private BackupProperties backupProperties;
     private BackupRepository backupRepository;
@@ -60,7 +76,7 @@ class FileSystemBackupRepositoryTest {
                 Map.of("xroad.auxiliary-service.backup.location", backupDir.toString()));
         BackupValidator backupValidator = new BackupValidator(backupProperties);
         backupValidator.init();
-        backupRepository = new FileSystemBackupRepository(backupProperties, backupValidator);
+        backupRepository = new FileSystemBackupRepository(backupProperties, backupValidator, backupMetadataService);
     }
 
     @Test
@@ -75,6 +91,21 @@ class FileSystemBackupRepositoryTest {
     }
 
     @Test
+    void listBackupsReportsCompatibilityPerFile() {
+        createBackupFile("compatible-backup.gpg");
+        createBackupFile("incompatible-backup.gpg");
+
+        when(backupMetadataService.isBackupCompatible(backupDir.resolve("compatible-backup.gpg"))).thenReturn(true);
+        when(backupMetadataService.isBackupCompatible(backupDir.resolve("incompatible-backup.gpg"))).thenReturn(false);
+
+        assertThat(backupRepository.listBackups())
+                .extracting(BackupItem::name, BackupItem::compatible)
+                .containsExactlyInAnyOrder(
+                        tuple("compatible-backup.gpg", true),
+                        tuple("incompatible-backup.gpg", false));
+    }
+
+    @Test
     void readBackupFile() {
         assertThatThrownBy(() -> backupRepository.readBackupFile("not-existing-file.gpg"))
                 .isInstanceOf(XrdRuntimeException.class)
@@ -86,6 +117,44 @@ class FileSystemBackupRepositoryTest {
 
         createBackupFile("backup.gpg");
         assertThat(backupRepository.readBackupFile("backup.gpg")).isNotNull();
+    }
+
+    @Test
+    void deleteBackupThrowsWhenFilenameIsInvalid() {
+        var name = "file-name-not-valid";
+
+        assertThatThrownBy(() -> backupRepository.deleteBackup(name))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("backup_file_not_found: %s".formatted(name));
+    }
+
+    @Test
+    void deleteBackupRemovesExistingFile() {
+        createBackupFile("backup.gpg");
+        var file = backupDir.resolve("backup.gpg");
+        assertThat(file).exists();
+
+        backupRepository.deleteBackup("backup.gpg");
+
+        assertThat(file).doesNotExist();
+    }
+
+    @Test
+    void deleteBackupSucceedsWhenFileDoesNotExist() {
+        assertThatCode(() -> backupRepository.deleteBackup("missing.gpg")).doesNotThrowAnyException();
+    }
+
+    @Test
+    void deleteBackupThrowsBackupDeletionFailedOnIOException() {
+        createBackupFile("backup.gpg");
+
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.deleteIfExists(any(Path.class))).thenThrow(new IOException("disk error"));
+
+            assertThatThrownBy(() -> backupRepository.deleteBackup("backup.gpg"))
+                    .isInstanceOf(XrdRuntimeException.class)
+                    .hasMessageContaining("backup_deletion_failed: backup.gpg");
+        }
     }
 
     @Test
@@ -108,6 +177,30 @@ class FileSystemBackupRepositoryTest {
         backupRepository.storeBackup(name, data);
 
         assertThat(backupRepository.readBackupFile(name)).isEqualTo(data);
+    }
+
+    @Test
+    void storeBackupReportsCompatibleWhenDeterminedCompatible() {
+        String name = "compatible-file.gpg";
+        byte[] data = new byte[]{'h', 'e', 'l', 'l', 'o'};
+
+        when(backupMetadataService.determineBackupCompatibility(backupDir.resolve(name))).thenReturn(true);
+
+        BackupItem backupItem = backupRepository.storeBackup(name, data);
+
+        assertThat(backupItem.compatible()).isTrue();
+    }
+
+    @Test
+    void storeBackupReportsIncompatibleWhenDeterminedIncompatible() {
+        String name = "incompatible-file.gpg";
+        byte[] data = new byte[]{'h', 'e', 'l', 'l', 'o'};
+
+        when(backupMetadataService.determineBackupCompatibility(backupDir.resolve(name))).thenReturn(false);
+
+        BackupItem backupItem = backupRepository.storeBackup(name, data);
+
+        assertThat(backupItem.compatible()).isFalse();
     }
 
     private void createBackupFile(String name) {

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,48 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.common.util;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-class BackupUtilsTest {
+public class BackupUtilsTest {
+    private static final int EPOCH_SECONDS = 1696572342; // 2023-10-06T06:05:42 UTC
+
+    @Before
+    public void setClock() {
+        TimeUtils.setClock(Clock.fixed(Instant.ofEpochSecond(EPOCH_SECONDS), ZoneOffset.UTC));
+    }
 
     @Test
-    void generateBackupFileName() {
-        TimeUtils.setClock(Clock.fixed(Instant.parse("2025-05-15T01:02:03Z"), ZoneOffset.UTC));
-        assertThat(BackupUtils.generateBackupFileName()).isEqualTo("conf_backup_v1_20250515-010203.gpg");
+    public void generateBackupFileNameMatchesExpectedFormat() {
+        assertEquals("conf_backup_20231006-060542.gpg", BackupUtils.generateBackupFileName());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "conf_backup_v1_20250515-010203.gpg",
-            "backup_v1_.gpg",
-            "_v1_file.gpg"
-    })
-    void isBackupCompatible(String filename) {
-        assertThat(BackupUtils.isBackupCompatible(filename)).isTrue();
-        assertThat(BackupUtils.isBackupCompatible(Path.of(filename))).isTrue();
-    }
+    @Test
+    public void generateBackupFileNameIsUniquePerSecond() {
+        TimeUtils.setClock(Clock.fixed(Instant.ofEpochSecond(EPOCH_SECONDS + 1), ZoneOffset.UTC));
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "conf_backup_v2_20250515-010203.gpg",
-            "conf_backup_20250515-010203.gpg",
-            "backup_v10_.gpg",
-            "backup_v1x_.gpg",
-            "backup.gpg"
-    })
-    void isBackupCompatibilityBackupIncompatible(String filename) {
-        assertThat(BackupUtils.isBackupCompatible(filename)).isFalse();
-        assertThat(BackupUtils.isBackupCompatible(Path.of(filename))).isFalse();
+        assertTrue(BackupUtils.generateBackupFileName().endsWith("20231006-060543.gpg"));
     }
 }

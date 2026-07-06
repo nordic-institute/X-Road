@@ -142,12 +142,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
         vTextField(backupAndRestorePageObj.inputSearch()).shouldBe(enabled).setValue(createdBackupName);
     }
 
-    @Step("Configuration backup is shown as compatible")
-    public void configurationBackupIsShownAsCompatible() {
-        backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldBe(enabled);
-    }
-
-    @Step("Configuration backup with incompatible filename is uploaded")
+    @Step("Configuration backup with incompatible version is uploaded")
     public void uploadIncompatibleConfigurationBackup() {
         backupAndRestorePageObj.btnUploadConfigurationBackup().shouldBe(enabled).click();
         backupAndRestorePageObj.inputConfigurationBackupBackupFile().uploadFromClasspath("files/backups/ss-backup-incompatible.gpg");
@@ -158,5 +153,10 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     @Step("Configuration backup is shown as incompatible")
     public void configurationBackupIsShownAsIncompatible() {
         backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldNotBe(enabled);
+    }
+
+    @Step("Configuration backup is shown as compatible")
+    public void configurationBackupIsShownAsCompatible() {
+        backupAndRestorePageObj.btnRestoreConfigurationFromBackup().shouldBe(enabled);
     }
 }

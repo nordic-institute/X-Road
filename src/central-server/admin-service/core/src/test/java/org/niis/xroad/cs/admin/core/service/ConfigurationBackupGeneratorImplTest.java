@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.util.BackupUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
@@ -67,7 +66,7 @@ class ConfigurationBackupGeneratorImplTest {
     private static final String BACKUP_SCRIPT_PATH = "/var/backup-script.sh";
     private static final String BACKUP_DIR = "/var/lib/xroad/backup/";
     private static final Instant BACKUP_TIMESTAMP = Instant.parse("2025-05-15T01:02:03Z");
-    private static final String BACKUP_FILE_NAME = "conf_backup_v1_20250515-010203.gpg";
+    private static final String BACKUP_FILE_NAME = "conf_backup_20250515-010203.gpg";
     private static final String BACKUP_FILE_PATH = BACKUP_DIR + BACKUP_FILE_NAME;
 
     @Mock
@@ -106,7 +105,7 @@ class ConfigurationBackupGeneratorImplTest {
         BackupFile result = generator.generateBackup();
 
         assertThat(result.getFilename()).isEqualTo(BACKUP_FILE_NAME);
-        assertThat(result.getBackupCompatible()).isTrue();
+        assertThat(result.isCompatible()).isTrue();
 
         verify(auditDataHelper).putBackupFilename(Path.of(BACKUP_FILE_PATH));
         verify(externalProcessRunner).executeAndThrowOnFailure(anyString(), argsCaptor.capture());
@@ -168,7 +167,6 @@ class ConfigurationBackupGeneratorImplTest {
 
         generator.generateBackup();
 
-        assertThat(BACKUP_FILE_NAME).matches(BackupUtils::isBackupCompatible);
         verify(backupRepository).getAbsoluteBackupFilePath(BACKUP_FILE_NAME);
         verify(backupService).getBackup(BACKUP_FILE_NAME);
     }

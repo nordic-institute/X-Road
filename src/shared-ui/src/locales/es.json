@@ -129,6 +129,7 @@
         "confirmation": "¿Estás seguro de que quieres restaurar desde el archivo o fichero {archivo}?",
         "title": "¿Estás seguro?"
       },
+      "incompatibleTooltip": "El formato de esta copia de seguridad no es compatible con el formato de copia de seguridad de este servidor",
       "success": "Configuración restaurada desde {archivo}"
     },
     "uploadBackup": {

@@ -27,12 +27,11 @@
 
 package org.niis.xroad.auxiliaryservice.core.backup.job.repository;
 
-import ee.ria.xroad.common.util.BackupUtils;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.auxiliaryservice.core.backup.BackupItem;
+import org.niis.xroad.auxiliaryservice.core.backup.BackupMetadataService;
 import org.niis.xroad.auxiliaryservice.core.backup.BackupValidator;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -65,6 +64,7 @@ public class FileSystemBackupRepository implements BackupRepository {
 
     private final BackupProperties backupProperties;
     private final BackupValidator backupValidator;
+    private final BackupMetadataService backupMetadataService;
 
     @Override
     public Collection<BackupItem> listBackups() {
@@ -83,7 +83,7 @@ public class FileSystemBackupRepository implements BackupRepository {
                         return new BackupItem(
                                 file.getName(),
                                 getCreatedAt(file.toPath()),
-                                BackupUtils.isBackupCompatible(file.toPath()));
+                                backupMetadataService.isBackupCompatible(path));
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
@@ -122,7 +122,7 @@ public class FileSystemBackupRepository implements BackupRepository {
             return new BackupItem(
                     name,
                     getCreatedAt(path),
-                    BackupUtils.isBackupCompatible(path));
+                    backupMetadataService.determineBackupCompatibility(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
             throw XrdRuntimeException.systemException(INVALID_BACKUP_FILE, name);

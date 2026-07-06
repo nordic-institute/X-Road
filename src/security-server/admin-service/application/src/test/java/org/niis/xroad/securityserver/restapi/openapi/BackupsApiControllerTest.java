@@ -94,10 +94,8 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Before
     public void setup() {
-        BackupInfo bf1 = new BackupInfo(BACKUP_FILE_1_NAME,
-                ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS), true);
-        BackupInfo bf2 = new BackupInfo(BACKUP_FILE_2_NAME,
-                ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS), false);
+        BackupInfo bf1 = new BackupInfo(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS), true);
+        BackupInfo bf2 = new BackupInfo(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS), true);
 
         doReturn(List.of(bf1, bf2)).when(backupService).listBackups();
         doReturn(false).when(tokenService).hasHardwareTokens();
@@ -122,9 +120,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
                 .findFirst()
                 .orElse(null);
         assertEquals(BACKUP_FILE_1_NAME, firstBackup.getFilename());
-        assertTrue(firstBackup.getBackupCompatible());
         assertEquals(BACKUP_FILE_2_NAME, secondBackup.getFilename());
-        assertFalse(secondBackup.getBackupCompatible());
     }
 
     @Test
@@ -206,8 +202,8 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
-    public void addBackup() throws Exception {
-        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now(), false);
+    public void addBackup() {
+        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now(), true);
         when(backupService.generateBackup()).thenReturn(backupFile);
 
         ResponseEntity<BackupDto> response = backupsApiController.addBackup();
@@ -217,7 +213,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
-    public void addBackupFails() throws Exception {
+    public void addBackupFails() {
         doThrow(new InternalServerErrorException("")).when(backupService).generateBackup();
 
         try {
@@ -231,7 +227,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackup() throws Exception {
-        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now(), false);
+        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now(), true);
 
         when(backupService.uploadBackup(anyString(), any(byte[].class), anyBoolean())).thenReturn(backupFile);
 
