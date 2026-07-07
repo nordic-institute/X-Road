@@ -101,19 +101,17 @@ function singleItemPage(item: ManagementRequestListView): PagedManagementRequest
 
 describe('0900 — CS Management Requests — approve via row button removes from pending list (Browser Mode)', () => {
   it('clicking Approve on a pending row opens confirm dialog; after confirm the row disappears', async () => {
-    let listCallCount = 0;
+    let approved = false;
     await renderRoute(MR_LIST_PATH, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/management-requests', ({ response }) => {
-          listCallCount += 1;
-          return listCallCount === 1
-            ? response(200).json(singleItemPage(waitingRequest) as never)
-            : response(200).json(emptyPage as never);
-        }),
-        specHttp.post('/management-requests/{management_request_id}/approval', ({ response }) =>
-          response(200).json({ ...waitingRequest, status: 'APPROVED' } as never),
+        specHttp.get('/management-requests', ({ response }) =>
+          response(200).json((approved ? emptyPage : singleItemPage(waitingRequest)) as never),
         ),
+        specHttp.post('/management-requests/{management_request_id}/approval', ({ response }) => {
+          approved = true;
+          return response(200).json({ ...waitingRequest, status: 'APPROVED' } as never);
+        }),
       ],
     });
 
@@ -132,19 +130,17 @@ describe('0900 — CS Management Requests — approve via row button removes fro
 
 describe('0900 — CS Management Requests — decline via row button removes from pending list (Browser Mode)', () => {
   it('clicking Decline on a pending row opens confirm dialog; after confirm the row disappears', async () => {
-    let listCallCount = 0;
+    let declined = false;
     await renderRoute(MR_LIST_PATH, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/management-requests', ({ response }) => {
-          listCallCount += 1;
-          return listCallCount === 1
-            ? response(200).json(singleItemPage(waitingRequest) as never)
-            : response(200).json(emptyPage as never);
-        }),
-        specHttp.delete('/management-requests/{management_request_id}', ({ response }) =>
-          response(204).empty(),
+        specHttp.get('/management-requests', ({ response }) =>
+          response(200).json((declined ? emptyPage : singleItemPage(waitingRequest)) as never),
         ),
+        specHttp.delete('/management-requests/{management_request_id}', ({ response }) => {
+          declined = true;
+          return response(204).empty();
+        }),
       ],
     });
 
@@ -162,7 +158,7 @@ describe('0900 — CS Management Requests — decline via row button removes fro
 
 describe('0900 — CS Management Requests — details page approve hides actions (Browser Mode)', () => {
   it('approving a WAITING request from detail page re-fetches status and hides approve/decline buttons', async () => {
-    let detailCallCount = 0;
+    let approved = false;
     const detailedApprovedRequest: ManagementRequestDetailedView = {
       ...waitingRequest,
       status: 'APPROVED',
@@ -171,15 +167,13 @@ describe('0900 — CS Management Requests — details page approve hides actions
     await renderRoute(`/management-requests/101/details`, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/management-requests/{management_request_id}', ({ response }) => {
-          detailCallCount += 1;
-          return detailCallCount === 1
-            ? response(200).json({ ...waitingRequest } as never)
-            : response(200).json(detailedApprovedRequest as never);
-        }),
-        specHttp.post('/management-requests/{management_request_id}/approval', ({ response }) =>
-          response(200).json({ ...waitingRequest, status: 'APPROVED' } as never),
+        specHttp.get('/management-requests/{management_request_id}', ({ response }) =>
+          response(200).json((approved ? detailedApprovedRequest : { ...waitingRequest }) as never),
         ),
+        specHttp.post('/management-requests/{management_request_id}/approval', ({ response }) => {
+          approved = true;
+          return response(200).json({ ...waitingRequest, status: 'APPROVED' } as never);
+        }),
       ],
     });
 
@@ -207,19 +201,17 @@ describe('0900 — CS Management Requests — details page decline hides actions
       ...declinedRequest,
     };
 
-    let detailCallCount = 0;
+    let declined = false;
     await renderRoute(`/management-requests/101/details`, {
       permissions: basePermissions,
       msw: [
-        specHttp.get('/management-requests/{management_request_id}', ({ response }) => {
-          detailCallCount += 1;
-          return detailCallCount === 1
-            ? response(200).json(detailedRequest as never)
-            : response(200).json(detailedDeclinedRequest as never);
-        }),
-        specHttp.delete('/management-requests/{management_request_id}', ({ response }) =>
-          response(204).empty(),
+        specHttp.get('/management-requests/{management_request_id}', ({ response }) =>
+          response(200).json((declined ? detailedDeclinedRequest : detailedRequest) as never),
         ),
+        specHttp.delete('/management-requests/{management_request_id}', ({ response }) => {
+          declined = true;
+          return response(204).empty();
+        }),
       ],
     });
 

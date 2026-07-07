@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.api.managementservices;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.ResourceLocks;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.ManagementServicesAdminClient;
@@ -76,7 +77,10 @@ class ManagementServicesApiTest extends CsApiTest {
             """;
 
     @Test
-    @ResourceLock(value = "management-services-config", mode = ResourceAccessMode.READ_WRITE)
+    @ResourceLocks({
+            @ResourceLock(value = "management-services-config", mode = ResourceAccessMode.READ_WRITE),
+            @ResourceLock(value = "server-address", mode = ResourceAccessMode.READ)
+    })
     void updateManagementServicesConfigurationSuccessful(CsBaselineSeeder seeder) {
         var session = seeder.newSession();
         var soSession = seeder.newSecurityOfficerSession();
@@ -166,7 +170,10 @@ class ManagementServicesApiTest extends CsApiTest {
     }
 
     @Test
-    @ResourceLock(value = "management-services-config", mode = ResourceAccessMode.READ)
+    @ResourceLocks({
+            @ResourceLock(value = "management-services-config", mode = ResourceAccessMode.READ),
+            @ResourceLock(value = "server-address", mode = ResourceAccessMode.READ)
+    })
     void getManagementServicesConfigurationSuccessful(CsBaselineSeeder seeder) {
         var mgmt = new ManagementServicesAdminClient(seeder.newSecurityOfficerSession());
 
