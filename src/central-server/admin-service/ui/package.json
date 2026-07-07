@@ -5,23 +5,30 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "pnpm run generate-types && vitest --run &&  vite build",
+    "build": "pnpm run generate-types && pnpm run generate-msw-types && pnpm run type-check && vite build",
     "preview": "vite preview",
     "build-only": "vite build",
-    "test": "vitest",
+    "test": "pnpm run generate-msw-types && pnpm run type-check && vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "license-check": "license-check-and-add check -f ../../../shared-ui/license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f ../../../shared-ui/license-check-and-add-config.json",
-    "generate-types": "rm -rf src/openapi-types && openapi-ts"
+    "generate-types": "rm -rf src/openapi-types && openapi-ts",
+    "generate-msw-types": "openapi-typescript ../../openapi-model/src/main/resources/openapi-definition.yaml -o src/openapi-msw-paths.d.ts"
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
     "is-ip": "^5.0.1"
   },
   "devDependencies": {
-    "openapi-types": "^12.1.3"
+    "@pinia/testing": "^1.0.3",
+    "@vitest/ui": "4.1.9",
+    "@vue/test-utils": "^2.4.10",
+    "openapi-types": "^12.1.3",
+    "resize-observer-polyfill": "^1.5.1"
   },
   "engines": {
     "npm": "use-pnpm",

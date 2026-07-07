@@ -2,6 +2,7 @@
   "ignore": [
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
+    "redocly.yaml",
     "build/",
     "build.gradle",
     ".gradle",

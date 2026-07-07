@@ -52,19 +52,19 @@ export const useTokenCertificates = defineStore('token-certificates', {
     },
     async activateTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api.put(`/token-certificates/${encodedHash}/activate`, {});
+      return api.put(`/token-certificates/${encodedHash}/activate`, undefined);
     },
     async deactivateTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api.put(`token-certificates/${encodedHash}/disable`, {});
+      return api.put(`token-certificates/${encodedHash}/disable`, undefined);
     },
     async unregisterTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api.put(`/token-certificates/${encodedHash}/unregister`, {});
+      return api.put(`/token-certificates/${encodedHash}/unregister`, undefined);
     },
     async markForDeletionTokenCertificate(hash: string) {
       const encodedHash = encodePathParameter(hash);
-      return api.put(`/token-certificates/${encodedHash}/mark-for-deletion`, {});
+      return api.put(`/token-certificates/${encodedHash}/mark-for-deletion`, undefined);
     },
     async importTokenCertificate(cert: File) {
       return api
@@ -73,7 +73,7 @@ export const useTokenCertificates = defineStore('token-certificates', {
     },
     async importTokenCertificateByHash(hash: string) {
       const encoded = encodePathParameter(hash);
-      api.post<TokenCertificate>(`/token-certificates/${encoded}/import`, {}).then((resp) => resp.data);
+      api.post<TokenCertificate>(`/token-certificates/${encoded}/import`, undefined).then((resp) => resp.data);
     },
   },
 });

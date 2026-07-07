@@ -31,6 +31,7 @@ import { defineConfig, loadEnv, ConfigEnv, UserConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vuetify from 'vite-plugin-vuetify';
 import viteBasicSslPlugin from '@vitejs/plugin-basic-ssl';
+import { playwright } from '@vitest/browser-playwright';
 
 // https://vitejs.dev/config/
 export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
@@ -102,12 +103,95 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
     },
     test: {
       globals: true,
-      environment: 'happy-dom',
+      testTimeout: 15000,
+      attachmentsDir: 'tests/results/attachments',
+      reporters: ['default', 'junit'],
+      outputFile: {
+        junit: 'tests/results/vitest-junit.xml',
+      },
       server: {
         deps: {
           inline: ['vuetify'],
         },
       },
+      projects: [
+        {
+          extends: true,
+          test: {
+            name: 'unit',
+            include: ['tests/unit/**/*.spec.ts'],
+            environment: 'happy-dom',
+          },
+        },
+        {
+          extends: true,
+          optimizeDeps: {
+            include: [
+              'vuetify/components/VApp',
+              'vuetify/components/VBanner',
+              'vuetify/components/VBreadcrumbs',
+              'vuetify/components/VBtn',
+              'vuetify/components/VCard',
+              'vuetify/components/VCheckbox',
+              'vuetify/components/VChip',
+              'vuetify/components/VDataTable',
+              'vuetify/components/VDialog',
+              'vuetify/components/VDivider',
+              'vuetify/components/VFileInput',
+              'vuetify/components/VFooter',
+              'vuetify/components/VForm',
+              'vuetify/components/VGrid',
+              'vuetify/components/VIcon',
+              'vuetify/components/VImg',
+              'vuetify/components/VList',
+              'vuetify/components/VNavigationDrawer',
+              'vuetify/components/VPagination',
+              'vuetify/components/VProgressLinear',
+              'vuetify/components/VRadio',
+              'vuetify/components/VRadioGroup',
+              'vuetify/components/VSelect',
+              'vuetify/components/VSheet',
+              'vuetify/components/VSkeletonLoader',
+              'vuetify/components/VSnackbar',
+              'vuetify/components/VStepper',
+              'vuetify/components/VSystemBar',
+              'vuetify/components/VTable',
+              'vuetify/components/VTabs',
+              'vuetify/components/VTextField',
+              'vuetify/components/VAlert',
+              'vuetify/components/VAvatar',
+              'vuetify/components/VCombobox',
+              'vuetify/components/VMain',
+              'vuetify/components/VSwitch',
+              'vuetify/components/VTooltip',
+              'vuetify/components/VAutocomplete',
+              'vuetify/components/transitions',
+              'vuetify/directives',
+              'vuetify/locale',
+            ],
+          },
+          test: {
+            name: 'browser',
+            include: ['tests/component/**/*.browser.spec.ts'],
+            browser: {
+              enabled: true,
+              headless: true,
+              provider: playwright({
+                launchOptions: {
+                  args: ['--ignore-certificate-errors'],
+                },
+              }),
+              instances: [{ browser: 'chromium', viewport: { width: 1920, height: 1080 } }],
+              screenshotFailures: true,
+              screenshotDirectory: 'tests/results/screenshots',
+              locators: {
+                testIdAttribute: 'data-test',
+              },
+            },
+            setupFiles: ['tests/setup/browser-setup.ts'],
+          },
+        },
+      ],
     },
     server: {
       https: true,

@@ -52,7 +52,7 @@ jobs:
       sha: ${{ github.sha }}
 
   test-central-server:
-    name: cs-system-tests
+    name: cs-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-central-server.yml
     secrets: inherit
