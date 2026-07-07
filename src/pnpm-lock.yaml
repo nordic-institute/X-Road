@@ -7,6 +7,7 @@ settings:
 overrides:
   '@isaacs/brace-expansion': 5.0.1
   axios: ~1.16.0
+  form-data: 4.0.6
   defu: 6.1.5
   fast-uri: ^3.1.2
   flatted: 3.4.2
@@ -18,6 +19,7 @@ overrides:
   minimatch: ^10.2.3
   picomatch: 4.0.4
   rollup: 4.59.0
+  ws: 8.21.0
 
 importers:
 
@@ -37,10 +39,10 @@ importers:
         version: 25.0.10
       '@vitejs/plugin-basic-ssl':
         specifier: ^2.1.4
-        version: 2.1.4(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))
+        version: 2.1.4(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))
       '@vitejs/plugin-vue':
         specifier: ^6.0.3
-        version: 6.0.3(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))
+        version: 6.0.3(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))
       '@vue/eslint-config-prettier':
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)
@@ -93,14 +95,14 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
       vite:
-        specifier: ^7.3.2
-        version: 7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
+        specifier: ^7.3.5
+        version: 7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
       vite-plugin-vuetify:
         specifier: ^2.1.3
-        version: 2.1.3(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7)
+        version: 2.1.3(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7)
       vitest:
         specifier: ^4.1.6
-        version: 4.1.8(@types/node@25.0.10)(happy-dom@20.9.0)(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))
+        version: 4.1.8(@types/node@25.0.10)(happy-dom@20.9.0)(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))
       vue-eslint-parser:
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.39.2(jiti@2.6.1))
@@ -1629,8 +1631,8 @@ packages:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
 
-  form-data@4.0.5:
-    resolution: {integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==}
+  form-data@4.0.6:
+    resolution: {integrity: sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==}
     engines: {node: '>= 6'}
 
   fs-extra@11.3.3:
@@ -1729,8 +1731,8 @@ packages:
     resolution: {integrity: sha512-NqADB8VjPFLM2V0VvHUewwwsw0ZWBaIdgo+ieHtK3hasLz4qeCRjYcqfB6AQrBggRKppKF8L52/VqdVsO47Dlw==}
     engines: {node: '>= 0.4'}
 
-  hasown@2.0.2:
-    resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
+  hasown@2.0.4:
+    resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
 
   hookable@5.5.3:
@@ -2492,8 +2494,8 @@ packages:
       vue: ^3.0.0
       vuetify: '>=3'
 
-  vite@7.3.2:
-    resolution: {integrity: sha512-Bby3NOsna2jsjfLVOHKes8sGwgl4TT0E6vvpYgnAYDIF/tie7MRaFthmKuHx1NSXjiTueXH3do80FMQgvEktRg==}
+  vite@7.3.6:
+    resolution: {integrity: sha512-4XP60spRGjSZFf1qYH+dJIkK2znL3zQfl9KkOV9MkkRR/3Dls0dxaBsQPTloEc5BLXWPL9vsOxopxyKoMmDueg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -2674,8 +2676,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  ws@8.19.0:
-    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
+  ws@8.21.0:
+    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -3401,14 +3403,14 @@ snapshots:
     transitivePeerDependencies:
       - vue
 
-  '@vitejs/plugin-basic-ssl@2.1.4(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))':
+  '@vitejs/plugin-basic-ssl@2.1.4(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))':
     dependencies:
-      vite: 7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
+      vite: 7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
 
-  '@vitejs/plugin-vue@6.0.3(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))':
+  '@vitejs/plugin-vue@6.0.3(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-beta.53
-      vite: 7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
+      vite: 7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
       vue: 3.5.27(typescript@5.9.3)
 
   '@vitest/expect@4.1.8':
@@ -3420,13 +3422,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.8(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))':
+  '@vitest/mocker@4.1.8(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))':
     dependencies:
       '@vitest/spy': 4.1.8
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
+      vite: 7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
 
   '@vitest/pretty-format@4.1.8':
     dependencies:
@@ -3671,7 +3673,7 @@ snapshots:
   axios@1.16.1:
     dependencies:
       follow-redirects: 1.16.0
-      form-data: 4.0.5
+      form-data: 4.0.6
       https-proxy-agent: 5.0.1
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
@@ -3908,7 +3910,7 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
       has-tostringtag: 1.0.2
-      hasown: 2.0.2
+      hasown: 2.0.4
 
   esbuild@0.27.2:
     optionalDependencies:
@@ -4154,12 +4156,12 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
-  form-data@4.0.5:
+  form-data@4.0.6:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       es-set-tostringtag: 2.1.0
-      hasown: 2.0.2
+      hasown: 2.0.4
       mime-types: 2.1.35
 
   fs-extra@11.3.3:
@@ -4193,7 +4195,7 @@ snapshots:
       get-proto: 1.0.1
       gopd: 1.2.0
       has-symbols: 1.1.0
-      hasown: 2.0.2
+      hasown: 2.0.4
       math-intrinsics: 1.1.0
 
   get-proto@1.0.1:
@@ -4267,7 +4269,7 @@ snapshots:
       '@types/ws': 8.18.1
       entities: 7.0.1
       whatwg-mimetype: 3.0.0
-      ws: 8.19.0
+      ws: 8.21.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -4280,7 +4282,7 @@ snapshots:
     dependencies:
       has-symbols: 1.1.0
 
-  hasown@2.0.2:
+  hasown@2.0.4:
     dependencies:
       function-bind: 1.1.2
 
@@ -5012,18 +5014,18 @@ snapshots:
       type-fest: 4.41.0
       vue: 3.5.27(typescript@5.9.3)
 
-  vite-plugin-vuetify@2.1.3(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7):
+  vite-plugin-vuetify@2.1.3(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7):
     dependencies:
       '@vuetify/loader-shared': 2.1.2(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7)
       debug: 4.4.3
       upath: 2.0.1
-      vite: 7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
+      vite: 7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
       vue: 3.5.27(typescript@5.9.3)
       vuetify: 3.11.7(typescript@5.9.3)(vite-plugin-vuetify@2.1.3)(vue@3.5.27(typescript@5.9.3))
     transitivePeerDependencies:
       - supports-color
 
-  vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2):
+  vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2):
     dependencies:
       esbuild: 0.27.2
       fdir: 6.5.0(picomatch@4.0.4)
@@ -5039,10 +5041,10 @@ snapshots:
       stylus: 0.57.0
       yaml: 2.8.2
 
-  vitest@4.1.8(@types/node@25.0.10)(happy-dom@20.9.0)(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)):
+  vitest@4.1.8(@types/node@25.0.10)(happy-dom@20.9.0)(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)):
     dependencies:
       '@vitest/expect': 4.1.8
-      '@vitest/mocker': 4.1.8(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))
+      '@vitest/mocker': 4.1.8(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))
       '@vitest/pretty-format': 4.1.8
       '@vitest/runner': 4.1.8
       '@vitest/snapshot': 4.1.8
@@ -5059,7 +5061,7 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
-      vite: 7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
+      vite: 7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.0.10
@@ -5121,7 +5123,7 @@ snapshots:
       vue: 3.5.27(typescript@5.9.3)
     optionalDependencies:
       typescript: 5.9.3
-      vite-plugin-vuetify: 2.1.3(vite@7.3.2(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7)
+      vite-plugin-vuetify: 2.1.3(vite@7.3.6(@types/node@25.0.10)(jiti@2.6.1)(sass@1.97.3)(stylus@0.57.0)(yaml@2.8.2))(vue@3.5.27(typescript@5.9.3))(vuetify@3.11.7)
 
   webpack-virtual-modules@0.6.2:
     optional: true
@@ -5167,7 +5169,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.2
 
-  ws@8.19.0: {}
+  ws@8.21.0: {}
 
   xml-name-validator@4.0.0: {}
 
