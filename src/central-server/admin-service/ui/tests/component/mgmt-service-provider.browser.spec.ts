@@ -59,7 +59,7 @@ const subsystemClient: PagedClients = {
         member_class: 'E2E-TC1',
         member_code: 'e2e-member-management',
         subsystem_code: 'e2e-sub-management',
-        type: 'ClientId',
+        type: 'SUBSYSTEM',
         encoded_id: 'CS:E2E-TC1:e2e-member-management:e2e-sub-management',
       },
       member_name: 'E2E Management Member',

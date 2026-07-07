@@ -59,7 +59,7 @@ const securityServersPage: PagedSecurityServers = {
         member_class: 'E2E-TC1',
         member_code: 'e2e-tc1-member-subsystem',
         server_code: 'E2E-SS3',
-        type: 'SecurityServerId',
+        type: 'SERVER',
         encoded_id: 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS3',
       },
       owner_name: 'E2E TC1 Member',
