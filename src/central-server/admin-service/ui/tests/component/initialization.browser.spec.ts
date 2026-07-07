@@ -101,7 +101,6 @@ describe('0100 — CS Initialization — inline error on invalid instance identi
     await page.getByTestId('pin--input').getByRole('textbox').fill('Valid_Pin_11');
     await page.getByTestId('confirm-pin--input').getByRole('textbox').fill('Valid_Pin_11');
 
-    const worker = (await import('../setup/browser-setup')).worker;
     worker.use(
       specHttp.post('/initialization', ({ response }) =>
         response(400).json({
@@ -131,7 +130,6 @@ describe('0100 — CS Initialization — inline error on invalid CS address (Bro
     await page.getByTestId('pin--input').getByRole('textbox').fill('Valid_Pin_11');
     await page.getByTestId('confirm-pin--input').getByRole('textbox').fill('Valid_Pin_11');
 
-    const worker = (await import('../setup/browser-setup')).worker;
     worker.use(
       specHttp.post('/initialization', ({ response }) =>
         response(400).json({
@@ -161,7 +159,6 @@ describe('0100 — CS Initialization — inline error on weak PIN (Browser Mode)
     await page.getByTestId('pin--input').getByRole('textbox').fill('1');
     await page.getByTestId('confirm-pin--input').getByRole('textbox').fill('1');
 
-    const worker = (await import('../setup/browser-setup')).worker;
     worker.use(
       specHttp.post('/initialization', ({ response }) =>
         response(400).json({

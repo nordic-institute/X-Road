@@ -17,7 +17,7 @@
     "license-check": "license-check-and-add check -f ../../../shared-ui/license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f ../../../shared-ui/license-check-and-add-config.json",
     "generate-types": "rm -rf src/openapi-types && openapi-ts",
-    "generate-msw-types": "node scripts/generate-msw-types.mjs"
+    "generate-msw-types": "openapi-typescript ../../openapi-model/src/main/resources/openapi-definition.yaml -o src/openapi-msw-paths.d.ts"
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
