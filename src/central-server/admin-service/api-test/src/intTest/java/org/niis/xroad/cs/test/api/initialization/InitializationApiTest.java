@@ -50,7 +50,9 @@ class InitializationApiTest extends CsApiTest {
               "httpResponse": {
                 "statusCode": 200,
                 "headers": {"Content-Type": ["application/json"]},
-                "body": "{\\"id\\":\\"0\\",\\"active\\":true,\\"type\\":\\"type\\",\\"friendlyName\\":\\"friendlyName\\",\\"readOnly\\":false,\\"available\\":true,\\"serialNumber\\":\\"serialNumber\\",\\"label\\":\\"label\\",\\"slotIndex\\":13,\\"status\\":\\"OK\\",\\"keyInfo\\":[],\\"tokenInfo\\":{}}"
+                "body": "{\\"id\\":\\"0\\",\\"active\\":true,\\"type\\":\\"type\\",\
+            \\"friendlyName\\":\\"friendlyName\\",\\"readOnly\\":false,\\"available\\":true,\\"serialNumber\\":\\"serialNumber\\",\
+            \\"label\\":\\"label\\",\\"slotIndex\\":13,\\"status\\":\\"OK\\",\\"keyInfo\\":[],\\"tokenInfo\\":{}}"
               }
             }
             """;

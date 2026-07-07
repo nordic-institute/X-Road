@@ -51,6 +51,7 @@ import java.util.Map;
  *       {@code xroad-system-administrator} only.</li>
  * </ul>
  */
+@SuppressWarnings("checkstyle:magicnumber")
 public class ApiKeysAdminClient {
 
     static final String FULL_PRIVILEGE_USERNAME = "xrd";
