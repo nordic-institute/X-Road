@@ -46,7 +46,7 @@ const serverFixture: SecurityServer = {
     member_class: OWNER_CLASS,
     member_code: OWNER_CODE,
     server_code: SERVER_CODE,
-    type: 'SecurityServerId',
+    type: 'SERVER',
     encoded_id: SERVER_ID,
   },
   owner_name: OWNER_NAME,

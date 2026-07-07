@@ -43,7 +43,7 @@ const serverFixture: SecurityServer = {
     member_class: 'E2E-TC1',
     member_code: 'e2e-tc1-member-subsystem',
     server_code: SERVER_CODE,
-    type: 'SecurityServerId',
+    type: 'SERVER',
     encoded_id: SERVER_ID,
   },
   owner_name: 'E2E TC1 Member with Subsystems',

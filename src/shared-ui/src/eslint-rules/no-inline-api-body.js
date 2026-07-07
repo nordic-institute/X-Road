@@ -27,14 +27,16 @@
 
 /**
  * Reports an error when an object literal is passed as the body argument (2nd positional arg)
- * to api.post / api.put / api.patch (and bare post / put / patch re-exports).
+ * to any `.post` / `.put` / `.patch` member call (e.g. `api.*`, `axios.*`) or a bare
+ * `post` / `put` / `patch` re-export. The match is by method name alone, so every HTTP-mutation
+ * call site is covered, not just `api.*`.
  * Forces callers to extract the body to a named const typed via the operation's generated *Data['body'] type.
  */
 export const noInlineApiBody = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow inline object literals as request body in api.post/put/patch calls',
+      description: 'Disallow inline object literals as request body in any .post/.put/.patch call (api.*, axios.*, bare re-exports)',
     },
     schema: [],
     messages: {
@@ -49,7 +51,7 @@ export const noInlineApiBody = {
       if (node.type !== 'CallExpression') return false;
       const { callee } = node;
 
-      // api.post / api.put / api.patch
+      // any .post / .put / .patch member call (api.*, axios.*, …)
       if (
         callee.type === 'MemberExpression' &&
         !callee.computed &&

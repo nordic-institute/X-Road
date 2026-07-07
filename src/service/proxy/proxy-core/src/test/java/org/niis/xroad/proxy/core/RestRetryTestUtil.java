@@ -96,10 +96,13 @@ public final class RestRetryTestUtil {
      * through the given gate: it is sent only once the client proxy has finished establishing
      * the connection and has stopped writing request bytes, so the failure deterministically
      * surfaces mid-request instead of at connect time.
+     *
+     * <p>Binds to an OS-assigned ephemeral port; call {@link RejectingSslServerProxy#getPort()}
+     * to discover the actual port after this method returns.
      */
-    public static RejectingSslServerProxy startRejectingProxy(int port, AuthKey authKey, HandshakeOrderGate gate)
+    public static RejectingSslServerProxy startRejectingProxy(AuthKey authKey, HandshakeOrderGate gate)
             throws Exception {
-        return new RejectingSslServerProxy("127.0.0.1", port, authKeyManager(authKey), gate, false);
+        return new RejectingSslServerProxy("127.0.0.1", 0, authKeyManager(authKey), gate, false);
     }
 
     /**
@@ -108,10 +111,13 @@ public final class RestRetryTestUtil {
      * establishing the connection. The resulting failure surfaces during request execution as a
      * plain connection error with no {@code SSLHandshakeException} in the chain, on any platform,
      * regardless of how much of the request the transport buffers absorb.
+     *
+     * <p>Binds to an OS-assigned ephemeral port; call {@link RejectingSslServerProxy#getPort()}
+     * to discover the actual port after this method returns.
      */
-    public static RejectingSslServerProxy startResettingProxy(int port, AuthKey authKey, HandshakeOrderGate gate)
+    public static RejectingSslServerProxy startResettingProxy(AuthKey authKey, HandshakeOrderGate gate)
             throws Exception {
-        return new RejectingSslServerProxy("127.0.0.1", port, authKeyManager(authKey), gate, true);
+        return new RejectingSslServerProxy("127.0.0.1", 0, authKeyManager(authKey), gate, true);
     }
 
     private static KeyManager authKeyManager(AuthKey authKey) {
@@ -188,6 +194,11 @@ public final class RestRetryTestUtil {
             serverSocket.setReuseAddress(true);
             serverSocket.bind(new InetSocketAddress(host, port));
             Thread.ofVirtual().name("rejecting-proxy-" + port).start(this::acceptConnections);
+        }
+
+        /** Local port this proxy is bound to (OS-assigned when constructed with port 0). */
+        public int getPort() {
+            return serverSocket.getLocalPort();
         }
 
         /** Stops accepting connections and closes the open ones. */

@@ -63,7 +63,7 @@ const serverId = {
   member_class: 'E2E-TC1',
   member_code: 'e2e-tc1-member-subsystem',
   server_code: 'E2E-SS1',
-  type: 'SecurityServerId' as const,
+  type: 'SERVER' as const,
   encoded_id: 'CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1',
 };
 
@@ -382,7 +382,7 @@ const clientIdFixture: ClientId = {
   member_class: 'E2E-TC1',
   member_code: 'e2e-tc2-member',
   subsystem_code: 'e2e-tc2-subsystem',
-  type: 'ClientId' as const,
+  type: 'SUBSYSTEM' as const,
   encoded_id: 'CS:E2E-TC1:e2e-tc2-member:e2e-tc2-subsystem',
 };
 

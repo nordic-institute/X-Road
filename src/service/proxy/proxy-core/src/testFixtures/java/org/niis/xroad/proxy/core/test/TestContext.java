@@ -218,6 +218,16 @@ public class TestContext {
         }
     }
 
+    /** Port the server proxy is bound to (OS-assigned when configured with {@code listen-port=0}). */
+    public int getServerProxyListenPort() {
+        return serverProxy.getListenPort();
+    }
+
+    /** Port the client proxy HTTP connector is bound to (OS-assigned when configured with {@code client-http-port=0}). */
+    public int getClientHttpPort() {
+        return clientProxy.getClientHttpPort();
+    }
+
     public void destroy() {
         if (serverProxy != null) {
             try {

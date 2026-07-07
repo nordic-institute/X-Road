@@ -18,7 +18,8 @@ Feature: 0100 - Signer: SoftToken
     And token "soft-token-000" status is "OK"
 
   Scenario: Token must be manually activated when the autologin configuration does not match
-    When Waiting 4 seconds for auto-login to take effect
+    When signer service is restarted
+    And Waiting 4 seconds for auto-login to take effect
     Given token "soft-token-000" is not active
     When token "soft-token-000" is logged in with pin "1234"
     Then token "soft-token-000" is active
