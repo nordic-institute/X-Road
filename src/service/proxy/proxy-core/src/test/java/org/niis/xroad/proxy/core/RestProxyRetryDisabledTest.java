@@ -68,9 +68,9 @@ class RestProxyRetryDisabledTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldNotRetryWhenRetryIsDisabled() throws Exception {
-        int badPort = getFreePort();
         int decoyPort = getFreePort();
-        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey(), GATE);
+        var badProxy = startRejectingProxy(serverKeyConf.getAuthKey(), GATE);
+        int badPort = badProxy.getPort();
         try {
             // a retry would succeed against the real server proxy and turn the response into 200,
             // so a 500 here proves no retry was attempted
