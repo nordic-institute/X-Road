@@ -24,33 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api;
+package org.niis.xroad.cs.test.api.platform;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolver;
-import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.cs.test.api.CsApiTest;
+import org.niis.xroad.cs.test.api.CsBaselineSeeder;
+import org.niis.xroad.test.apitest.core.junit.Step;
+
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * Injects the shared Security Server stack into test parameters. The stack lifecycle is managed by
- * {@link SsApiStackSessionListener}, which boots it once per JVM launcher session and tears it down
- * at session close. Tests declare a {@link SsApiTestContainerSetup} or {@link SsBaselineSeeder}
- * parameter to obtain the stack or the seeding facade.
+ * Pattern-bless smoke test — verifies the JUnit5 + RestAssured + Step + Allure lifecycle
+ * works end-to-end against the CS admin service before bulk migration begins.
  */
-public class ApiStackExtension implements ParameterResolver {
+@SuppressWarnings("checkstyle:magicnumber")
+class SystemStatusSmokeTest extends CsApiTest {
 
-    @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        var type = parameterContext.getParameter().getType();
-        return type == SsApiTestContainerSetup.class || type == SsBaselineSeeder.class;
-    }
+    @Test
+    void getSystemStatusReturns200(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
 
-    @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        var type = parameterContext.getParameter().getType();
-        if (type == SsBaselineSeeder.class) {
-            return SsApiStackSessionListener.getSeeder();
-        }
-        return SsApiStackSessionListener.getSetup();
+        Step.when("GET /system/status is called", () ->
+                session.given()
+                        .get("/system/status")
+                        .then()
+                        .statusCode(200)
+                        .body("initialization_status", notNullValue()));
+
+        Step.then("response is 200 OK with initialization_status present", () -> {
+        });
     }
 }

@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
-import org.niis.xroad.ss.test.api.ApiStackExtension;
+import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 
 /**
  * Base class for recoverable destructive-lifecycle tests that run on the shared warm stack.

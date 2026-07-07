@@ -105,7 +105,7 @@ jobs:
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
           # Build and Test Summary
-          
+
           | Job | Status | Duration |
           |-----|--------|----------|
           | Build and Package | ${{ needs.build-and-package.result == 'success' && '✅ Success' || needs.build-and-package.result == 'failure' && '❌ Failed' || needs.build-and-package.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
@@ -113,13 +113,13 @@ jobs:
           | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | E2E Tests | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Service Integration Tests | ${{ needs.test-services.result == 'success' && '✅ Success' || needs.test-services.result == 'failure' && '❌ Failed' || needs.test-services.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
-          
+
           ## Overall Result
-          
+
           ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
-          
+
           ## Quick Actions
-          
+
           - 🔄 [Re-run failed jobs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           - 🐛 [View detailed logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           - 📊 [Build trends](https://github.com/${{ github.repository }}/actions)
