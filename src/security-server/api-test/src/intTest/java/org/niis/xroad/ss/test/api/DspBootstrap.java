@@ -61,6 +61,7 @@ class DspBootstrap {
     }
 
     void bootstrap() {
+        awaitIssuerServiceReady();
         provisionIssuerParticipantContext();
         createAttestationDefinition();
         createCredentialDefinition();
@@ -77,14 +78,39 @@ class DspBootstrap {
         createControlPlaneParticipantContextConfigMgmt();
     }
 
+    private void awaitIssuerServiceReady() {
+        log.info("DSP bootstrap step 0: await issuer identity API ready");
+        Awaitility.await()
+                .pollInterval(3, TimeUnit.SECONDS)
+                .atMost(90, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        var status = givenSilent()
+                                .get(issuerServiceIdentityUrl())
+                                .then()
+                                .extract()
+                                .statusCode();
+                        if (status != 404) {
+                            log.info("Issuer identity API ready (HTTP {})", status);
+                            return true;
+                        }
+                        log.info("Issuer identity API not yet ready (HTTP 404), waiting");
+                        return false;
+                    } catch (Exception e) {
+                        log.info("Issuer identity API not reachable ({}), waiting", e.getMessage());
+                        return false;
+                    }
+                });
+    }
+
     private void provisionIssuerParticipantContext() {
         log.info("DSP bootstrap step 1.1: create issuer participant context");
         var body = """
                 {
-                    "roles": ["admin"],
+                    "scopes": ["identity-api:admin", "issuer-admin-api:write", "issuer-admin-api:read"],
                     "serviceEndpoints": [{
                         "type": "IssuerService",
-                        "serviceEndpoint": "https://ds-issuer-service:6185/api/issuance/v1alpha/participants/issuer",
+                        "serviceEndpoint": "https://ds-issuer-service:6185/api/issuance/v1beta/participants/issuer",
                         "id": "issuer-issuer-service"
                     }],
                     "active": true,
@@ -185,7 +211,7 @@ class DspBootstrap {
         log.info("DSP bootstrap step 2a.1: create IH participant context ss0");
         var body = """
                 {
-                    "roles": [],
+                    "scopes": [],
                     "serviceEndpoints": [{
                         "type": "CredentialService",
                         "serviceEndpoint": "https://ds-identity-hub:7185/api/credentials/v1/participants/%s",
@@ -246,7 +272,7 @@ class DspBootstrap {
         log.info("DSP bootstrap step 2a.4: create IH participant context ss0-mgmt");
         var body = """
                 {
-                    "roles": [],
+                    "scopes": [],
                     "serviceEndpoints": [{
                         "type": "CredentialService",
                         "serviceEndpoint": "https://ds-identity-hub:7185/api/credentials/v1/participants/%s",
@@ -315,6 +341,11 @@ class DspBootstrap {
                             .then()
                             .extract()
                             .response();
+                    var httpStatus = response.statusCode();
+                    if (httpStatus != 200) {
+                        log.info("Credential poll for '{}' returned HTTP {} — retrying", holderPid, httpStatus);
+                        return false;
+                    }
                     var body = response.asString();
                     var status = response.jsonPath().getString("status");
                     if ("ERROR".equals(status)) {
@@ -437,17 +468,17 @@ class DspBootstrap {
 
     private String issuerServiceIdentityUrl() {
         var m = containerSetup.getContainerMapping(SsApiTestContainerSetup.DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY);
-        return baseUrl(m) + "/api/identity/v1alpha/participants";
+        return baseUrl(m) + "/api/identity/v1beta/participants";
     }
 
     private String issuerServiceAdminUrl(String path) {
         var m = containerSetup.getContainerMapping(SsApiTestContainerSetup.DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN);
-        return baseUrl(m) + "/api/admin/v1alpha" + path;
+        return baseUrl(m) + "/api/admin/v1beta" + path;
     }
 
     private String identityHubManagementUrl(String path) {
         var m = containerSetup.getContainerMapping(SsApiTestContainerSetup.DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY);
-        return baseUrl(m) + "/api/identity/v1alpha/participants" + path;
+        return baseUrl(m) + "/api/identity/v1beta/participants" + path;
     }
 
     private String controlPlaneManagementUrl(String path) {

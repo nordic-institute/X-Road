@@ -51,16 +51,16 @@
 
 # 1.1 Create issuer participant context "issuer" with IssuerService endpoint.
 # DID `did:web:xrd-cs%3A6183:issuer` resolves over https://xrd-cs:6183/issuer/did.json
-POST https://{{is_host}}:{{is_id_port}}/api/identity/v1alpha/participants
+POST https://{{is_host}}:{{is_id_port}}/api/identity/v1beta/participants
 Authorization: Bearer {{is_provisioner_token}}
 Content-Type: application/json
 
 {
-    "roles": ["admin"],
+    "scopes": ["identity-api:admin", "issuer-admin-api:write", "issuer-admin-api:read"],
     "serviceEndpoints": [
         {
             "type": "IssuerService",
-            "serviceEndpoint": "https://{{is_host}}:{{is_iss_port}}/api/issuance/v1alpha/participants/issuer",
+            "serviceEndpoint": "https://{{is_host}}:{{is_iss_port}}/api/issuance/v1beta/participants/issuer",
             "id": "issuer-issuer-service"
         }
     ],
@@ -83,7 +83,7 @@ status < 500
 
 # 1.4 Create attestation definition "xroad-membership".
 # Production: attestation schema curated and versioned by NIIS.
-POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/attestations
+POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1beta/participants/issuer/attestations
 Authorization: Bearer {{is_participant_token}}
 Content-Type: application/json
 
@@ -98,7 +98,7 @@ HTTP *
 status < 500
 
 # 1.5 Create credential definition "xroad-membership" -> emits XRoadMembershipCredential VCs.
-POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1alpha/participants/issuer/credentialdefinitions
+POST https://{{is_host}}:{{is_admin_port}}/api/admin/v1beta/participants/issuer/credentialdefinitions
 Authorization: Bearer {{is_participant_token}}
 Content-Type: application/json
 

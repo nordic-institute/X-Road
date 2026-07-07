@@ -408,7 +408,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     private String issuerCredentialsBaseUrl(String issuerEnv) {
         var mapping = envSetup.getContainerMapping(issuerEnv, EnvSetup.DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
-        return "https://%s:%d/api/admin/v1alpha/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
+        return "https://%s:%d/api/admin/v1beta/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
     }
 
     @SuppressWarnings("unchecked")
@@ -487,15 +487,15 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // --- Auth tokens (without "Bearer " prefix — REST Assured .auth().oauth2() adds it) ---
 
-    // Control Plane management API tokens (scope: management-api:write management-api:read)
+    // Control Plane management API tokens (scope: management-api:admin)
     static class ControlPlaneAuthTokens {
         static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYz"
                 + "g2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LC"
                 + "JqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoibWFuYWdlbW"
-                + "VudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.VtgeUBJXWdZSsemdWTtvSDqdCUa1eBaqMlxbBVAAPsSjyVOb8wiDmxpTqv"
-                + "yLKTw9WE2WznmaOUPpWh3s4nDTjHQ51-ke_H__5WHVkwK-E97AFvInue-1lPMdIC1rNGLyZKYmQQ8DtHwZDWkgl-F4zhiyTk8Z3OBzgZp"
-                + "Dz3BcyyJT7WLvAHp6Pk0SdHmFhA5ctvXfra4-ZkfUUudXklOEe-8Jj42v2EjF0woUk9nHoNYA_ca2Gi3kHtJrpHhR4_3Ab7KU046-p0dF5"
-                + "bVLLhYh3HEg-71R0tO9eytzbHkMZMY353aKF0bUqK4UrKnstDT55yo5j5oLpP0xGA9KGai6Kg";
+                + "VudC1hcGk6YWRtaW4ifQ.olwdJ4uNvZ2sgadFyqHBNPz0hCN1E-LorR9X4OCjp9-a0vslHdEW6yQOymTAzj2z48mfnQbV3Hifboz_ItW"
+                + "dDIemvC99yaTU923f8O0ORZaSfoCViYxwu4WtBROt9vlnZHVk9nNPQPI5sVsIlnwQ-fuPT1aoVa8fpWFVCzbdmBrM3PdJk7PmOQn2NyPX"
+                + "frQwkUSnf7zcECPl1rwT6Ylt95W5zBO0DG7nqQLqpDS9qlbTvHX54waGymFHOdR1uT-8lyYhefJMmOFGHG1er_w4g2w5kklO3C4tlQiBCT"
+                + "kqni1dmd0mT7MXf-gWjufjTdrOUpsDtA5B8FFRkySDGVj9nw";
 
         // Participant-role tokens bound to each SS's control-plane participant context (xrd-ss0 / xrd-ss1).
         static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
@@ -524,17 +524,15 @@ public class DsStepDefs extends BaseE2EStepDefs {
     }
 
     // Issuer admin API token: participant role bound to the "issuer" participant context
-    // (scope: issuer-admin-api:write issuer-admin-api:read), signed by mock-jwks-server.
-    // Credential management endpoints require the participant-scoped token, not the provisioner one.
+    // (scope: issuer-admin-api:admin), signed by mock-jwks-server.
     static class IssuerAuthTokens {
         static final String PARTICIPANT = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YT"
                 + "c0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZD"
                 + "M1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOi"
-                + "Jpc3N1ZXIiLCJzY29wZSI6Imlzc3Vlci1hZG1pbi1hcGk6d3JpdGUgaXNzdWVyLWFkbWluLWFwaTpyZWFkIn0.dwRKoVpIwSO0DKX6YD"
-                + "QDVT-9ssYH4L93Iaea9PA4QISUIZZwvF-UvYPzvNHJ3VpJOQgSK35h-dMxbQ3aEdCs7dAV-3i0DKH4k1TNtV1ObDFcHIJ3d9Rl21Ob-U"
-                + "2K7Gj1zy9qDRE6_hh32Gc6xiXKWicy4wQkzN6Lsi1yyayLJlCHiCjPDrjneYl81c2lRrSJ2tsN6XYPvNE7ctjAnk9ubCu8j7od7XTGNp"
-                + "fcwblsr2PX1W6Il-vtCh8hWyZgOxn-NN4FU8Q6rHVMQ7bwaLXbw93mz3A4jvu_i3ID6PLnRGkWZEt3QiHIBwPUzCJ8PWgDem-BO7ck6G"
-                + "qvYvH64m1bYw";
+                + "Jpc3N1ZXIiLCJzY29wZSI6Imlzc3Vlci1hZG1pbi1hcGk6YWRtaW4ifQ.p3HN6vMlOdT581gP0LmGXKtJzvJ2KGlpto3asDzM7Fhs85k"
+                + "ZDOuc2okal3_8i59FoEkLqlDl2yCNQz1eygk1hdTYDM6WcgkEvXM_wiFfMZKD3Ob-mjf7MAR72_h6SqVIx8mD0IdheoFcLHudvPZ19du4"
+                + "jLRXV1q0TddX3ycu-iSCCo1ZfbMxT3updShfFGpYKlZxduuHl3jER5ur8vCPi0BBSrnk8Urtp823l9GWn5fTejJCiS1Ocu51ouFtUhvcM"
+                + "n5tKlTZD-qX5TcyJj5qks2o29qG5N0Offey8iTmjfNxIuyuX6tTGWCh0X_J0OQvMTi5XIGP1Hx6cRsZX4h0Ag";
     }
 
 }

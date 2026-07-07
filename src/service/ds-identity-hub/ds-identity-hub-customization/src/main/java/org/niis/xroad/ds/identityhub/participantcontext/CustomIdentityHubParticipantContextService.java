@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.participantcontext.ApiTokenGenerator;
 import org.eclipse.edc.identityhub.participantcontext.IdentityHubParticipantContextServiceImpl;
 import org.eclipse.edc.identityhub.spi.did.store.DidResourceStore;
+import org.eclipse.edc.identityhub.spi.participantcontext.IdentityApiScopes;
+import org.eclipse.edc.identityhub.spi.participantcontext.IssuerAdminApiScopes;
 import org.eclipse.edc.identityhub.spi.participantcontext.StsAccountProvisioner;
 import org.eclipse.edc.identityhub.spi.participantcontext.events.ParticipantContextObservable;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.CreateParticipantContextResponse;
@@ -158,7 +160,8 @@ class CustomIdentityHubParticipantContextService extends IdentityHubParticipantC
                 .state(manifest.isActive() ? ParticipantContextState.ACTIVATED : ParticipantContextState.CREATED)
                 .properties(manifest.getAdditionalProperties());
         if (manifest.getScopes().isEmpty()) {
-            context.scopes(List.of("participant"));
+            context.scopes(List.of(IdentityApiScopes.READ, IdentityApiScopes.WRITE,
+                    IssuerAdminApiScopes.READ, IssuerAdminApiScopes.WRITE));
         }
 
         return context.build();
