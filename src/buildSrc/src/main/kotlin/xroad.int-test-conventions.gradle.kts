@@ -223,6 +223,74 @@ afterEvaluate {
   }
 }
 
+/**
+ * Extension for configuring the phased api-test intTest task shared by CS and SS api-test modules.
+ * Set phasedSuiteClass to opt in; leave blank to register the intTest task manually in the build script.
+ */
+abstract class IntTestPhasedSuiteExtension {
+  var phasedSuiteClass: String = ""
+  var productName: String = ""
+}
+
+val intTestPhasedSuite = project.extensions.create<IntTestPhasedSuiteExtension>("intTestPhasedSuite")
+
+afterEvaluate {
+  if (intTestPhasedSuite.phasedSuiteClass.isNotBlank()) {
+    tasks.register<Test>("intTest") {
+      dependsOn(provider { tasks.named("generateIntTestEnv") })
+      if (tasks.names.contains("copyMainComposeFile")) {
+        dependsOn(tasks.named("copyMainComposeFile"))
+      }
+
+      description = "Runs the full phased ${intTestPhasedSuite.productName} API test suite " +
+          "(non-destructive parallel first, destructive serial last). " +
+          "Pass --tests <pattern> to run a single class/method directly (IDE-friendly); " +
+          "the stack still boots via @ExtendWith."
+      group = "verification"
+
+      testClassesDirs = sourceSets["intTest"].output.classesDirs
+      classpath = sourceSets["intTest"].runtimeClasspath
+
+      useJUnitPlatform()
+
+      val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
+        request.args.any { it == "--tests" || it.startsWith("--tests=") }
+      }
+      include(if (singleTestFromCli) "**/*Test.class" else "**/${intTestPhasedSuite.phasedSuiteClass}.class")
+      doFirst {
+        val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+        if (testFilter.commandLineIncludePatterns.isNotEmpty() || testFilter.includePatterns.isNotEmpty()) {
+          setIncludes(setOf("**/*Test.class"))
+        }
+      }
+
+      maxParallelForks = 1
+      setForkEvery(0)
+
+      systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+      project.findProperty("apiTestFailFastThreshold")?.let {
+        systemProperty("test-framework.fail-fast.threshold", it.toString())
+      }
+
+      maxHeapSize = "256m"
+
+      testLogging {
+        showStackTraces = true
+        showExceptions = true
+        showCauses = true
+        showStandardStreams = true
+      }
+    }
+
+    tasks.named<Checkstyle>("checkstyleIntTest") {
+      dependsOn(provider { tasks.named("generateIntTestEnv") })
+      if (tasks.names.contains("copyMainComposeFile")) {
+        dependsOn(tasks.named("copyMainComposeFile"))
+      }
+    }
+  }
+}
+
 // Make helper functions available to build scripts (for backwards compatibility if needed)
 extra["resolveIntTestImageTag"] = ::resolveIntTestImageTag
 extra["resolveIntTestImageRegistry"] = ::resolveIntTestImageRegistry

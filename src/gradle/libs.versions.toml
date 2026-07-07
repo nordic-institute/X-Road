@@ -207,6 +207,7 @@ commons-codec = { module = "commons-codec:commons-codec", version = "1.22.0" }
 commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1" }
 commons-io = { module = "commons-io:commons-io", version = "2.22.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
+commons-fileupload = { module = "commons-fileupload:commons-fileupload", version = "1.6.0" }
 
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swaggerParser" }
 swagger-parserV3 = { module = "io.swagger.parser.v3:swagger-parser-v3", version.ref = "swaggerParser" }

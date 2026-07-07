@@ -9,6 +9,7 @@ import eslintPluginVuetify from 'eslint-plugin-vuetify';
 import globals from 'globals';
 
 import typescriptEslint from 'typescript-eslint';
+import { noInlineApiBody } from './src/eslint-rules/no-inline-api-body.js';
 
 export default typescriptEslint.config(
   {
@@ -23,6 +24,13 @@ export default typescriptEslint.config(
       ...eslintPluginVue.configs['flat/recommended'],
       ...eslintPluginVuetify.configs['flat/base'],
     ],
+    plugins: {
+      local: {
+        rules: {
+          'no-inline-api-body': noInlineApiBody,
+        },
+      },
+    },
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -49,6 +57,7 @@ export default typescriptEslint.config(
       'vue/no-unused-vars': 'warn',
       'vue/max-attributes-per-line': 'off',
       'vue/no-unused-components': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'local/no-inline-api-body': 'error',
     },
 
     settings: {

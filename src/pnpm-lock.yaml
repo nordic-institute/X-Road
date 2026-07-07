@@ -120,7 +120,7 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3(vite@8.1.0(@types/node@25.6.2)(esbuild@0.27.2)(jiti@2.7.0)(sass@1.101.0)(stylus@0.57.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))(vuetify@4.1.2)
       vitest:
-        specifier: ^4.1.9
+        specifier: 4.1.9
         version: 4.1.9(@types/node@25.6.2)(@vitest/browser-playwright@4.1.9)(@vitest/ui@4.1.9)(happy-dom@20.10.6)(msw@2.14.6(@types/node@25.6.2)(typescript@5.9.3))(vite@8.1.0(@types/node@25.6.2)(esbuild@0.27.2)(jiti@2.7.0)(sass@1.101.0)(stylus@0.57.0)(yaml@2.9.0))
       vitest-browser-vue:
         specifier: ^2.1.0
@@ -144,9 +144,21 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1
     devDependencies:
+      '@pinia/testing':
+        specifier: ^1.0.3
+        version: 1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
+      '@vitest/ui':
+        specifier: 4.1.9
+        version: 4.1.9(vitest@4.1.9)
+      '@vue/test-utils':
+        specifier: ^2.4.10
+        version: 2.4.11(@vue/compiler-dom@3.5.39)(@vue/server-renderer@3.5.39(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
       openapi-types:
         specifier: ^12.1.3
         version: 12.1.3
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
 
   security-server/admin-service/ui:
     dependencies:
@@ -229,6 +241,16 @@ importers:
       vuetify:
         specifier: ^4.1.2
         version: 4.1.2(typescript@5.9.3)(vite-plugin-vuetify@2.1.3)(vue@3.5.39(typescript@5.9.3))
+    devDependencies:
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.20.0)
+      openapi-msw:
+        specifier: ^2.0.0
+        version: 2.0.0(msw@2.14.6(@types/node@25.6.2)(typescript@5.9.3))
 
 packages:
 
@@ -3821,7 +3843,7 @@ snapshots:
       detect-libc: 2.1.2
       is-glob: 4.0.3
       node-addon-api: 7.1.1
-      picomatch: 4.0.4
+      picomatch: 4.0.5
     optionalDependencies:
       '@parcel/watcher-android-arm64': 2.5.6
       '@parcel/watcher-darwin-arm64': 2.5.6
@@ -4432,7 +4454,7 @@ snapshots:
       alien-signals: 3.2.1
       muggle-string: 0.4.1
       path-browserify: 1.0.1
-      picomatch: 4.0.4
+      picomatch: 4.0.5
 
   '@vue/reactivity@3.5.39':
     dependencies:
@@ -5016,9 +5038,9 @@ snapshots:
     dependencies:
       reusify: 1.1.0
 
-  fdir@6.5.0(picomatch@4.0.4):
+  fdir@6.5.0(picomatch@4.0.5):
     optionalDependencies:
-      picomatch: 4.0.4
+      picomatch: 4.0.5
 
   fflate@0.8.3: {}
 
@@ -5953,8 +5975,8 @@ snapshots:
 
   tinyglobby@0.2.17:
     dependencies:
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
 
   tinyrainbow@3.1.0: {}
 
@@ -6041,7 +6063,7 @@ snapshots:
   unplugin-utils@0.3.1:
     dependencies:
       pathe: 2.0.3
-      picomatch: 4.0.4
+      picomatch: 4.0.5
 
   unplugin-utils@0.3.2:
     dependencies:
@@ -6060,7 +6082,7 @@ snapshots:
   unplugin@3.3.0(esbuild@0.27.2)(rolldown@1.1.4)(vite@8.1.3(@types/node@25.6.2)(esbuild@0.27.2)(jiti@2.7.0)(sass@1.101.0)(stylus@0.57.0)(yaml@2.9.0)):
     dependencies:
       '@jridgewell/remapping': 2.3.5
-      picomatch: 4.0.4
+      picomatch: 4.0.5
       webpack-virtual-modules: 0.6.2
     optionalDependencies:
       esbuild: 0.27.2
@@ -6176,7 +6198,7 @@ snapshots:
       magic-string: 0.30.21
       obug: 2.1.3
       pathe: 2.0.3
-      picomatch: 4.0.4
+      picomatch: 4.0.5
       std-env: 4.1.0
       tinybench: 2.9.0
       tinyexec: 1.2.4
@@ -6206,7 +6228,7 @@ snapshots:
       magic-string: 0.30.21
       obug: 2.1.3
       pathe: 2.0.3
-      picomatch: 4.0.4
+      picomatch: 4.0.5
       std-env: 4.1.0
       tinybench: 2.9.0
       tinyexec: 1.2.4

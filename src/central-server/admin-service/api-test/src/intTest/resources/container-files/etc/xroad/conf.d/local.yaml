@@ -1,0 +1,9 @@
+xroad:
+  admin-service:
+    ha-node-name: test_node
+    rate-limit-enabled: false
+    rate-limit-requests-per-second: 100
+    rate-limit-requests-per-minute: 1000
+    global-configuration-generation-rate-in-seconds: 99999 #unused in int tests
+    key-management-api-whitelist: 0.0.0.0/0, ::/0
+

@@ -6,6 +6,7 @@
     "dev-cs": "pnpm run --filter xroad-centralserver-admin-ui dev",
     "dev-ss": "pnpm run --filter xroad-securityserver-admin-ui dev",
     "test-ss": "pnpm run --filter xroad-securityserver-admin-ui test",
+    "test-cs": "pnpm run --filter xroad-centralserver-admin-ui test",
     "build-workspace": "pnpm -r run build",
     "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
     "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json --registry https://registry.npmjs.org >build/reports/ui-audit-ci.json"
@@ -54,7 +55,7 @@
     "playwright": "^1.61.1",
     "vitest-browser-vue": "^2.1.0",
     "vite-plugin-vuetify": "^2.1.3",
-    "vitest": "^4.1.9",
+    "vitest": "4.1.9",
     "vue-eslint-parser": "^10.4.1",
     "vue-i18n": "^11.4.6",
     "vue-tsc": "^3.3.5"
