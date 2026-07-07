@@ -28,7 +28,15 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { CertificateDetails, Client, SecurityServer, TokenCertificate } from '@/openapi-types';
+import {
+  CertificateDetails,
+  Client,
+  ConnectionType,
+  RenameClientData,
+  SecurityServer,
+  TokenCertificate,
+  UpdateClientData,
+} from '@/openapi-types';
 import { multipartFormDataConfig, buildFileFormData } from '@niis/shared-ui';
 
 export interface ClientState {
@@ -161,10 +169,9 @@ export const useClient = defineStore('client', {
     },
 
     async saveConnectionType(clientId: string, connType: string) {
+      const body: UpdateClientData['body'] = { connection_type: connType as ConnectionType };
       return api
-        .patch<Client>(clientBaseUrl(clientId), {
-          connection_type: connType,
-        })
+        .patch<Client>(clientBaseUrl(clientId), body)
         .then((res) => {
           if (res.data) {
             this.client = res.data;
@@ -176,17 +183,16 @@ export const useClient = defineStore('client', {
     },
 
     async renameClient(clientId: string, newName: string) {
-      return api.put(clientBaseUrl(clientId, '/rename'), {
-        client_name: newName,
-      });
+      const body: RenameClientData['body'] = { client_name: newName };
+      return api.put(clientBaseUrl(clientId, '/rename'), body);
     },
 
     async registerClient(clientId: string) {
-      return api.put(clientBaseUrl(clientId, '/register'), {});
+      return api.put(clientBaseUrl(clientId, '/register'), undefined);
     },
 
     async unregisterClient(clientId: string) {
-      return api.put(clientBaseUrl(clientId, '/unregister'), {});
+      return api.put(clientBaseUrl(clientId, '/unregister'), undefined);
     },
 
     async deleteClient(clientId: string) {
@@ -202,15 +208,15 @@ export const useClient = defineStore('client', {
     },
 
     async disableClient(clientId: string) {
-      return api.put(clientBaseUrl(clientId, '/disable'), {});
+      return api.put(clientBaseUrl(clientId, '/disable'), undefined);
     },
 
     async enableClient(clientId: string) {
-      return api.put(clientBaseUrl(clientId, '/enable'), {});
+      return api.put(clientBaseUrl(clientId, '/enable'), undefined);
     },
 
     async makeOwner(clientId: string) {
-      return api.put(clientBaseUrl(clientId, '/make-owner'), {});
+      return api.put(clientBaseUrl(clientId, '/make-owner'), undefined);
     },
   },
 });

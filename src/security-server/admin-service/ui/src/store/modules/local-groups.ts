@@ -26,7 +26,13 @@
  */
 
 import { defineStore } from 'pinia';
-import { LocalGroup } from '@/openapi-types';
+import {
+  AddClientLocalGroupData,
+  AddLocalGroupMemberData,
+  DeleteLocalGroupMemberData,
+  LocalGroup,
+  UpdateLocalGroupData,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
@@ -93,10 +99,8 @@ export const useLocalGroups = defineStore('local-groups', {
         .finally(() => (this.loadingLocalGroups = false));
     },
     async addLocalGroup(clientId: string, code: string, description: string) {
-      return api.post(clientLocalGroupsBaseUrl(clientId), {
-        code,
-        description,
-      });
+      const body: AddClientLocalGroupData['body'] = { code, description };
+      return api.post(clientLocalGroupsBaseUrl(clientId), body);
     },
     async fetchLocalGroup(groupId: string) {
       if (this.localGroup && this.localGroup.id != groupId) {
@@ -123,27 +127,24 @@ export const useLocalGroups = defineStore('local-groups', {
         this.localGroup = undefined;
       }
       this.updatingDescription = true;
+      const body: UpdateLocalGroupData['body'] = { description };
       return api
-        .patch<LocalGroup>(lgBaseUrl(groupId), {
-          description,
-        })
+        .patch<LocalGroup>(lgBaseUrl(groupId), body)
         .then((res) => (this.localGroup = res.data))
         .finally(() => (this.updatingDescription = false));
     },
     async deleteLocalGroupMembers(groupId: string, members: string[]) {
       this.deletingLocalGroupMembers = true;
+      const body: DeleteLocalGroupMemberData['body'] = { items: members };
       return api
-        .post(lgBaseUrl(groupId, '/members/delete'), {
-          items: members,
-        })
+        .post(lgBaseUrl(groupId, '/members/delete'), body)
         .finally(() => (this.deletingLocalGroupMembers = false));
     },
     async addLocalGroupMembers(groupId: string, members: string[]) {
       this.addingLocalGroupMembers = true;
+      const body: AddLocalGroupMemberData['body'] = { items: members };
       return api
-        .post(lgBaseUrl(groupId, '/members'), {
-          items: members,
-        })
+        .post(lgBaseUrl(groupId, '/members'), body)
         .finally(() => (this.addingLocalGroupMembers = false));
     },
   },

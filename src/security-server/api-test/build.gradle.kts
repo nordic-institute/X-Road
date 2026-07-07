@@ -42,51 +42,9 @@ val copyMainComposeFile by tasks.registering(Copy::class) {
     into("build/resources/intTest")
 }
 
-tasks.register<Test>("intTest") {
-    dependsOn(provider { tasks.named("generateIntTestEnv") })
-    dependsOn(copyMainComposeFile)
-
-    description = "Runs the full phased Security Server API test suite (non-destructive parallel first, destructive serial last). " +
-            "Pass --tests <pattern> to run a single class/method directly (IDE-friendly); the stack still boots via @ExtendWith."
-    group = "verification"
-
-    testClassesDirs = sourceSets["intTest"].output.classesDirs
-    classpath = sourceSets["intTest"].runtimeClasspath
-
-    useJUnitPlatform()
-
-    val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
-        request.args.any { it == "--tests" || it.startsWith("--tests=") }
-    }
-    include(if (singleTestFromCli) "**/*Test.class" else "**/SsApiPhasedSuite.class")
-    doFirst {
-        val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-        if (testFilter.commandLineIncludePatterns.isNotEmpty() || testFilter.includePatterns.isNotEmpty()) {
-            setIncludes(setOf("**/*Test.class"))
-        }
-    }
-
-    maxParallelForks = 1
-    setForkEvery(0)
-
-    systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
-    project.findProperty("apiTestFailFastThreshold")?.let {
-        systemProperty("test-framework.fail-fast.threshold", it.toString())
-    }
-
-    maxHeapSize = "256m"
-
-    testLogging {
-        showStackTraces = true
-        showExceptions = true
-        showCauses = true
-        showStandardStreams = true
-    }
-}
-
-tasks.named<Checkstyle>("checkstyleIntTest") {
-    dependsOn(provider { tasks.named("generateIntTestEnv") })
-    dependsOn(provider { tasks.named("copyMainComposeFile") })
+intTestPhasedSuite {
+    phasedSuiteClass = "SsApiPhasedSuite"
+    productName = "Security Server"
 }
 
 intTestShadowJar {

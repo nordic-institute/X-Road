@@ -33,6 +33,7 @@ import org.niis.xroad.common.core.exception.DeviationBuilder;
 public enum ConfProxyErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     ANCHOR_LOAD_ERROR("anchor_load_error"),
     GLOBAL_CONF_DISTRIBUTION_ERROR("global_conf_distribution_error"),
+    CONF_PART_PATH_TRAVERSAL("conf_part_path_traversal"),
     MALFORMED_URI_ERROR("malformed_uri_error"),
     SAVE_INSTANCE_ERROR("save_instance_error"),
     LOAD_INSTANCE_ERROR("load_instance_error"),

@@ -173,7 +173,7 @@
 
 <script lang="ts" setup>
 import { reactive, Reactive, Ref, ref, watch } from 'vue';
-import { VDateInput } from 'vuetify/labs/VDateInput';
+import { VDateInput } from 'vuetify/components/VDateInput';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';

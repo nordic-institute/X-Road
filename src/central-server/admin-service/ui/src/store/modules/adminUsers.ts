@@ -71,11 +71,12 @@ export function useAdminUsersHandler() {
   };
 
   const changePassword = (username: string, oldPassword: string, newPassword: string) => {
+    const body: AdminUserPasswordChangeRequest = {
+      old_password: oldPassword,
+      new_password: newPassword,
+    };
     return api
-      .put(`/users/${api.encodePathParameter(username)}/password`, {
-        old_password: oldPassword,
-        new_password: newPassword,
-      } as AdminUserPasswordChangeRequest)
+      .put(`/users/${api.encodePathParameter(username)}/password`, body)
       .then(() => {
         addSuccessMessage('adminUsers.table.action.changePassword.success', {
           username: username,

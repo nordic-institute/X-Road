@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-import { Key, Token, TokenCertificate, TokenPinUpdate } from '@/openapi-types';
+import { Key, LoginTokenData, Token, TokenCertificate, TokenPinUpdate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { deepClone } from '@/util/helpers';
@@ -174,14 +174,13 @@ export const useTokens = defineStore('tokens', {
     },
 
     async tokenLogin(tokenId: string, tokenPin: string) {
-      return api.put(`/tokens/${encodePathParameter(tokenId)}/login`, {
-        password: tokenPin,
-      });
+      const body: LoginTokenData['body'] = { password: tokenPin };
+      return api.put(`/tokens/${encodePathParameter(tokenId)}/login`, body);
     },
 
     async tokenLogout(id: string) {
       return api
-        .put(tokenBaseUrl(id, '/logout'), {})
+        .put(tokenBaseUrl(id, '/logout'), undefined)
         .then(() => {
           // Update tokens
           this.fetchTokens();
