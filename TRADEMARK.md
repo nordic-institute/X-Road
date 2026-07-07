@@ -3,8 +3,7 @@
 **NIIS®** Nordic Institute for Interoperability Solutions is a European Union Trade Mark (no 017625484) registered by
 the European Union Intellectual Property Office for NIIS.
 
-**X-Road®** is a European Union trademark (no 1025499) registered by the European Union Intellectual Property Office
-and an Estonian trademark (no M200900641) registered by the Estonian Patent Office for the Estonian Information System
+**X-Road®** is a European Union trademark (no 017918049) registered by the European Union Intellectual Property Office for the Estonian Information System
 Authority (RIA) and managed and sub-licensed by NIIS.
 
 For purposes of this document, references to trademarks or marks include all trade and service marks and logos owned or
