@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.jetty.util.MultiPartWriter;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confproxy.common.domain.ConfProxyInstance;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
@@ -232,8 +233,21 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        boolean isVersionGt2 = metadata.getConfigurationVersion() != null
-                && Integer.parseInt(metadata.getConfigurationVersion()) > 2;
+        String configurationVersion = metadata.getConfigurationVersion();
+        if (configurationVersion == null) {
+            return false;
+        }
+        int versionInt;
+        try {
+            versionInt = Integer.parseInt(configurationVersion);
+        } catch (NumberFormatException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE)
+                    .details("Configuration version must be an integer, got: %s".formatted(configurationVersion))
+                    .metadataItems(configurationVersion)
+                    .cause(e)
+                    .build();
+        }
+        boolean isVersionGt2 = versionInt > 2;
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
         boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
         return isVersionGt2 && isSharedParams && isMainInstance;

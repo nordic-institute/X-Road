@@ -27,6 +27,9 @@ package org.niis.xroad.globalconf.model;
 
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -380,6 +383,66 @@ public class VersionedConfigurationDirectoryTest {
 
         assertTrue(dir.findPrivate("foo").isEmpty());
         assertTrue(dir.findShared("foo").isEmpty());
+    }
+
+    /**
+     * Verifies that excludeMetadataAndDirs matches only the exact reserved filenames, not filenames
+     * that merely contain or end with the reserved name as a suffix.
+     */
+    @Test
+    public void excludeMetadataAndDirsUsesExactFilenameMatch() throws Exception {
+        Path tmpDir = Files.createTempDirectory("confdir-filter-test");
+        try {
+            Files.writeString(tmpDir.resolve(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE), "EE",
+                    StandardCharsets.UTF_8);
+
+            Path subDir = tmpDir.resolve("EE");
+            Files.createDirectories(subDir);
+
+            createFile(subDir, ConfigurationDirectory.FILES);
+            createFile(subDir, ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE);
+            createFile(subDir, "foo-" + ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE);
+            createFile(subDir, "x-" + ConfigurationDirectory.FILES);
+            createFile(subDir, "content.xml");
+            createFile(subDir, "content" + ConfigurationDirectory.METADATA_SUFFIX);
+
+            VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory(tmpDir.toString());
+            List<Path> files = dir.getConfigurationFiles();
+
+            List<String> fileNames = files.stream().map(p -> p.getFileName().toString()).toList();
+
+            assertFalse("exact 'files' must be excluded", fileNames.contains(ConfigurationDirectory.FILES));
+            assertFalse("exact 'instance-identifier' must be excluded",
+                    fileNames.contains(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE));
+            assertTrue("'foo-instance-identifier' must not be excluded",
+                    fileNames.contains("foo-" + ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE));
+            assertTrue("'x-files' must not be excluded",
+                    fileNames.contains("x-" + ConfigurationDirectory.FILES));
+            assertFalse("'.metadata' suffix must be excluded", fileNames.contains("content.metadata"));
+            assertTrue("regular content files must be retained", fileNames.contains("content.xml"));
+        } finally {
+            deleteRecursively(tmpDir);
+        }
+    }
+
+    private static void createFile(Path dir, String name) throws IOException {
+        Files.writeString(dir.resolve(name), "", StandardCharsets.UTF_8);
+    }
+
+    private static void deleteRecursively(Path dir) throws IOException {
+        if (!Files.exists(dir)) {
+            return;
+        }
+        try (var stream = Files.walk(dir)) {
+            stream.sorted(java.util.Comparator.reverseOrder())
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (IOException e) {
+                            // best-effort cleanup
+                        }
+                    });
+        }
     }
 
     private boolean pathExists(List<Path> paths, String path) {
