@@ -120,9 +120,25 @@ class FileNameProviderImplTest {
     void genericPartWithDistinctNonReservedNameResolves() {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
-        Path result = provider.getFileName(genericPart("/nested/custom-extension.xml"));
+        Path result = provider.getFileName(genericPartWithInstance("/nested/custom-extension.xml", "EE"));
 
-        assertThat(result).isEqualTo(globalConfDir.resolve("custom-extension.xml").normalize());
+        assertThat(result).isEqualTo(globalConfDir.resolve("EE").resolve("custom-extension.xml").normalize());
+    }
+
+    @Test
+    void blankInstanceGenericPartWithNonReservedNameIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/foo.xml")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+    }
+
+    @Test
+    void blankInstanceConfigurationDirectoryIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getConfigurationDirectory(""))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
     }
 
     private static ConfigurationFile sharedParamsPart(String instanceIdentifier) {
@@ -141,6 +157,16 @@ class FileNameProviderImplTest {
         headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
         headers.put(HEADER_CONTENT_LOCATION, contentLocation);
         headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private static ConfigurationFile genericPartWithInstance(String contentLocation, String instanceIdentifier) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
+        headers.put(HEADER_CONTENT_IDENTIFIER, "CUSTOM-EXTENSION; instance='%s'".formatted(instanceIdentifier));
         return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 }
