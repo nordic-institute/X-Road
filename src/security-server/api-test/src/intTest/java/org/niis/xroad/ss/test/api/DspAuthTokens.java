@@ -36,28 +36,22 @@ final class DspAuthTokens {
     private static final TestJwtSigner SIGNER = new TestJwtSigner(PRIVATE_KEY_RESOURCE);
 
     static final String IS_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "role", "provisioner",
             "scope", "identity-api:admin issuer-admin-api:write issuer-admin-api:read"
     )));
 
     static final String IS_PARTICIPANT = bearer(SIGNER.sign(null, Map.of(
-            "role", "participant",
-            "participant_context_id", "issuer",
             "scope", "issuer-admin-api:admin"
     )));
 
     static final String IH_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "role", "provisioner",
             "scope", "identity-api:admin"
     )));
 
     static final String IH_ADMIN = bearer(SIGNER.sign(null, Map.of(
-            "role", "admin",
             "scope", "identity-api:admin"
     )));
 
     static final String CP_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "role", "provisioner",
             "scope", "management-api:admin"
     )));
 

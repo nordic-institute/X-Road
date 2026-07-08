@@ -41,23 +41,18 @@ final class DsTokenFactory {
 
     static String provisionerToken() {
         return SIGNER.sign("admin-subject", Map.of(
-                "role", "provisioner",
                 "scope", "management-api:admin"
         ));
     }
 
     static String participantToken(String participantContextId) {
         return SIGNER.sign(participantContextId, Map.of(
-                "role", "participant",
-                "participant_context_id", participantContextId,
                 "scope", "management-api:write management-api:read"
         ));
     }
 
     static String issuerParticipantToken() {
         return SIGNER.sign(null, Map.of(
-                "role", "participant",
-                "participant_context_id", "issuer",
                 "scope", "issuer-admin-api:admin"
         ));
     }
