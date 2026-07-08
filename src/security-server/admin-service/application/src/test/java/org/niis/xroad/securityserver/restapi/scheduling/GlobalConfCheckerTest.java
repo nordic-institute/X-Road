@@ -382,6 +382,18 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
+    public void testUpdateTimestampServiceCostTypesNullGlobalCostType() {
+        List<SharedParameters.ApprovedTSA> globalTsps =
+                Collections.singletonList(TestUtils.createApprovedTsaType("http://example.com:8121", "Foo", null));
+        List<TimestampingServiceEntity> localTsps =
+                Collections.singletonList(TestUtils.createTspTypeEntity("http://example.com:8121", "Foo", CostType.UNDEFINED.name()));
+
+        globalConfChecker.updateTimestampServiceCostTypes(globalTsps, localTsps);
+
+        assertEquals(CostType.UNDEFINED.name(), localTsps.getFirst().getCostType());
+    }
+
+    @Test
     public void doNotUpdateServerConfOnSecondary() {
         try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
             nodePropertiesMock.when(NodeProperties::getServerNodeType).thenReturn(SECONDARY);

@@ -1,0 +1,3 @@
+rules:
+  no-invalid-media-type-examples: off
+  spec: off

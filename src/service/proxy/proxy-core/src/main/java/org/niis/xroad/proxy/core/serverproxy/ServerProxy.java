@@ -52,6 +52,7 @@ import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.PROXY_TLS_PROTOCOLS;
@@ -196,5 +197,15 @@ public class ServerProxy {
                 log.error("Failed to reload auth key", e);
             }
         }
+    }
+
+    /** Local port the server proxy is bound to (OS-assigned when configured with {@code listen-port=0}). */
+    public int getListenPort() {
+        return Arrays.stream(server.getConnectors())
+                .filter(c -> CLIENT_PROXY_CONNECTOR_NAME.equals(c.getName()))
+                .filter(ServerConnector.class::isInstance)
+                .findFirst()
+                .map(c -> ((ServerConnector) c).getLocalPort())
+                .orElseThrow(() -> new IllegalStateException("Server connector not found"));
     }
 }

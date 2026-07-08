@@ -33,13 +33,15 @@ import {
   CsrGenerate,
   CsrSubjectFieldDescription,
   Key,
+  KeyAlgorithm,
   KeyLabelWithCsrGenerate,
   KeyUsageType,
   KeyWithCertificateSigningRequestId,
+  OrderAcmeCertificateData,
+  RegisterCertificateData,
+  ServicePrioritizationStrategy,
   TokenCertificateSigningRequest,
   TokenType,
-  KeyAlgorithm,
-  ServicePrioritizationStrategy,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
@@ -278,11 +280,9 @@ export const useCsr = defineStore('csr', {
       if (!usage) {
         throw new Error('Key usage is missing');
       }
+      const body: OrderAcmeCertificateData['body'] = { csr_id: csr.id, key_usage_type: usage };
       return api
-        .post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`, {
-          csr_id: csr.id,
-          key_usage_type: usage,
-        })
+        .post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`, body)
         .catch((error) => {
           throw error;
         });
@@ -359,7 +359,8 @@ export const useCsr = defineStore('csr', {
     },
 
     async registerCertificate(certHash: string, address: string) {
-      return api.put(`/token-certificates/${certHash}/register`, { address });
+      const body: RegisterCertificateData['body'] = { address };
+      return api.put(`/token-certificates/${certHash}/register`, body);
     },
   },
 });

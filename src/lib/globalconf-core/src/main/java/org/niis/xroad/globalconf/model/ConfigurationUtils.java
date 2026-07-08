@@ -25,6 +25,10 @@
  */
 package org.niis.xroad.globalconf.model;
 
+import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 import java.net.URLEncoder;
 import java.time.OffsetDateTime;
 
@@ -60,5 +64,30 @@ public final class ConfigurationUtils {
      */
     public static String generateConfigurationLocation(String base, int version) {
         return String.format("%s?version=%d", base, version);
+    }
+
+    /**
+     * Parses a global configuration version field. A blank or null value is treated as absent
+     * (returns null); any non-blank value that is not a non-negative integer is rejected.
+     * @param version the raw version field value
+     * @return the parsed version, or null if the value is blank or absent
+     */
+    public static Integer parseGlobalConfVersion(String version) {
+        if (StringUtils.isBlank(version)) {
+            return null;
+        }
+        try {
+            int parsed = Integer.parseInt(version.trim());
+            if (parsed < 0) {
+                throw new NumberFormatException();
+            }
+            return parsed;
+        } catch (NumberFormatException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE)
+                    .details("Configuration version must be a non-negative integer, got: %s".formatted(version))
+                    .metadataItems(version)
+                    .cause(e)
+                    .build();
+        }
     }
 }

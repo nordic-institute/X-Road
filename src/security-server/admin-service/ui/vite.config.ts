@@ -163,6 +163,8 @@ export default defineConfig(({ mode }) => {
               'vuetify/components/VSwitch',
               'vuetify/components/VTooltip',
               'vuetify/components/transitions',
+              'vuetify/directives',
+              'vuetify/locale',
             ],
           },
           test: {

@@ -75,9 +75,9 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldRetryWithNextSecurityServerWhenHandshakeFailsMidRequest() throws Exception {
-        int badPort = getFreePort();
         int decoyPort = getFreePort(); // nothing listens here, so the first attempt connects the rejecting proxy
-        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey(), GATE);
+        var badProxy = startRejectingProxy(serverKeyConf.getAuthKey(), GATE);
+        int badPort = badProxy.getPort();
         try {
             RESOLVER.plan(List.of(
                     List.of(uri(badPort), uri(decoyPort)), // consumed by the op-monitoring address lookup
@@ -98,10 +98,10 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldPreserveErrorContractWhenRetriesExhausted() throws Exception {
-        int badPort1 = getFreePort();
-        int badPort2 = getFreePort();
-        var badProxy1 = startRejectingProxy(badPort1, serverKeyConf.getAuthKey(), GATE);
-        var badProxy2 = startRejectingProxy(badPort2, serverKeyConf.getAuthKey(), GATE);
+        var badProxy1 = startRejectingProxy(serverKeyConf.getAuthKey(), GATE);
+        var badProxy2 = startRejectingProxy(serverKeyConf.getAuthKey(), GATE);
+        int badPort1 = badProxy1.getPort();
+        int badPort2 = badProxy2.getPort();
         try {
             RESOLVER.plan(List.of(List.of(uri(badPort1), uri(badPort2))));
 
@@ -121,8 +121,8 @@ class RestProxyRetryTest extends AbstractProxyIntegrationTest {
 
     @Test
     void shouldNotRetryOrEnterCooldownWithSingleAddress() throws Exception {
-        int badPort = getFreePort();
-        var badProxy = startRejectingProxy(badPort, serverKeyConf.getAuthKey(), GATE);
+        var badProxy = startRejectingProxy(serverKeyConf.getAuthKey(), GATE);
+        int badPort = badProxy.getPort();
         try {
             RESOLVER.plan(List.of(List.of(uri(badPort)), List.of(uri(badPort))));
 
