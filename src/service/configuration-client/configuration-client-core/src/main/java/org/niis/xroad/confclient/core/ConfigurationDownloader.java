@@ -233,8 +233,15 @@ public class ConfigurationDownloader {
 
     Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) {
         Set<Path> result = new HashSet<>();
+        Set<Path> seenContentPaths = new HashSet<>();
         for (DownloadedContent downloadedContent : downloadedContents) {
             Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
+            if (!seenContentPaths.add(contentFileName)) {
+                throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET)
+                        .details("Two configuration parts resolve to the same target path %s".formatted(contentFileName))
+                        .metadataItems(contentFileName.toString())
+                        .build();
+            }
             if (downloadedContent.content != null) {
                 persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
             } else {

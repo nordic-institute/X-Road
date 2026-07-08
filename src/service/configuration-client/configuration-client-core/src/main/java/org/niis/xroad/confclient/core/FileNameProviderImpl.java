@@ -30,9 +30,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
@@ -43,6 +45,13 @@ import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceI
  */
 @RequiredArgsConstructor
 public class FileNameProviderImpl implements FileNameProvider {
+
+    private static final Set<String> RESERVED_FILE_NAMES = Set.of(
+            FILE_NAME_SHARED_PARAMETERS,
+            FILE_NAME_PRIVATE_PARAMETERS,
+            ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE,
+            ConfigurationDirectory.FILES
+    );
 
     private final String globalConfigurationDirectory;
 
@@ -71,6 +80,13 @@ public class FileNameProviderImpl implements FileNameProvider {
         if (StringUtils.isBlank(fileName) || ".".equals(fileName) || "..".equals(fileName)) {
             throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE)
                     .details("Configuration part %s declares an invalid file name derived from %s".formatted(file, source))
+                    .metadataItems(file.getContentLocation())
+                    .build();
+        }
+        if (RESERVED_FILE_NAMES.contains(fileName)
+                || fileName.endsWith(ConfigurationConstants.FILE_NAME_SUFFIX_METADATA)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_RESERVED_FILE_NAME)
+                    .details("Configuration part %s resolves to reserved file name %s".formatted(file, fileName))
                     .metadataItems(file.getContentLocation())
                     .build();
         }
