@@ -186,8 +186,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
-                    "protocol": "dataspace-protocol-http:2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
+                    "protocol": "http-dsp-profile-2025-1"
                 }
                 """.formatted(providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/catalog/request".formatted(consumerParticipantContext);
@@ -208,9 +208,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ContractRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
                     "counterPartyId": "%s",
-                    "protocol": "dataspace-protocol-http:2025-1",
+                    "protocol": "http-dsp-profile-2025-1",
                     "policy": {
                         "@context": [
                             "http://www.w3.org/ns/odrl.jsonld",
@@ -260,9 +260,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "TransferRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
                     "counterPartyId": "%s",
-                    "protocol": "dataspace-protocol-http:2025-1",
+                    "protocol": "http-dsp-profile-2025-1",
                     "contractId": "%s",
                     "transferType": "Xrd-PULL",
                     "dataDestination": {
@@ -320,7 +320,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 {
                     "assetId": "%s",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1"
                 }
                 """.formatted(assetId, providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
@@ -489,30 +489,33 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // Control Plane management API tokens (scope: management-api:admin)
     static class ControlPlaneAuthTokens {
-        static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYz"
-                + "g2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LC"
-                + "JqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoibWFuYWdlbW"
-                + "VudC1hcGk6YWRtaW4ifQ.olwdJ4uNvZ2sgadFyqHBNPz0hCN1E-LorR9X4OCjp9-a0vslHdEW6yQOymTAzj2z48mfnQbV3Hifboz_ItW"
-                + "dDIemvC99yaTU923f8O0ORZaSfoCViYxwu4WtBROt9vlnZHVk9nNPQPI5sVsIlnwQ-fuPT1aoVa8fpWFVCzbdmBrM3PdJk7PmOQn2NyPX"
-                + "frQwkUSnf7zcECPl1rwT6Ylt95W5zBO0DG7nqQLqpDS9qlbTvHX54waGymFHOdR1uT-8lyYhefJMmOFGHG1er_w4g2w5kklO3C4tlQiBCT"
-                + "kqni1dmd0mT7MXf-gWjufjTdrOUpsDtA5B8FFRkySDGVj9nw";
+        static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg"
+                + "5In0.eyJpc3MiO"
+                + "iJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYj"
+                + "JiNDFlZWRmYSIsInN1YiI6ImFkbWluLXN1YmplY3QiLCJyb2xlIjoicHJvdmlzaW9uZXIiLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOmF"
+                + "kbWluIn0.rAHlW7TOCYxrnk5mveHVLxJEJIN_EhgjkeuPOxcbx4SZid7xUj0hV_kv6u5vuCih9Uy-19jZTV5oIx2AXfjhXJfrdILDcc4w"
+                + "1SCHXp51Bc8q3uu8fuZVUlDe42kjE6vcY78ZfcQn4LjRO8BkaEwhc2EeUZb5IBSHgpShwrrkmiLwI6zEL1EV730ou_kOO4Li6AVGlm-CL"
+                + "OzLYCFl-cGsZ-w0nSwhPGPR1P5xeDITmZAkfCNveZDdw72KoPI040nan6fAo_GSQZuxTvYA1iJpOIgM0FlESBmrHjR9gaDE5h78Wm111-"
+                + "2OPTGQPDKRqSsudoEQM55NIIREfxyfkRaRlw";
 
         // Participant-role tokens bound to each SS's control-plane participant context (xrd-ss0 / xrd-ss1).
-        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
-                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
-                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczAiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
-                + "oieHJkLXNzMCIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.L6PuH7KMc-LCktTGDkKvkmmJbsiR9"
-                + "ugjsnR6_vDiidSSKkja8Lx5C8ZKibiLC3ooFofNB0VvFXYL5hkya8487xHIZqUmlLiUIjXYQzmjaeMZPa_nPai4BMtL1wNZOk-TuyE-5rMNK8u1a"
-                + "ikxFB82LW1qSR0eixoMIg6PD-xTlSCetWOfaFhprBBrucjUxpfqJqMbEl6MAtCE37uwamMwqR2WqS-GFuwUsM-5z1XFZnDedVBRSpUi_p5IYTdjI"
-                + "XQULGOn8JCklwNt3yQqWUEpenCGNW3WQm5huUjlDH2LAePXFfrd7EhWl0nWuu4PPcVayrtAKtdXIikRu-VkfAnSqA";
+        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y"
+                + "4ODg5In0.eyJpc3MiO"
+                + "iJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMD"
+                + "AwMDAwMDBzczAiLCJzdWIiOiJ4cmQtc3MwIiwicm9sZSI6InBhcnRpY2lwYW50IiwicGFydGljaXBhbnRfY29udGV4dF9pZCI6InhyZC1"
+                + "zczAiLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOndyaXRlIG1hbmFnZW1lbnQtYXBpOnJlYWQifQ.HNkk7f7y1BBiGkJ24phJ44DLyv54y"
+                + "LjAtU9W_brMVVuTp4Kx_bdESeXxvr8t5wvbqKYfZYcJelGGJwX-vdiS9qkEpU3_XpkkOmEASTr2yXtS2CLI627gGlXdbO2gquattqP-j0"
+                + "No9VNDzzfOb67AF01fFgmxNH82WdGmxNI9b5Za3O1b80bZ-7eMPLc6yRsQ_rpxNTHMi26WdSXExTJ6Lfqv2LMywa68ixd2oHvznLDNgul"
+                + "jfkj-qE8AK9g2vIaNaq7SAyBhJMof-13_5WrBhXmKp2wjU1oxkK5WnmjjGNpb2CuiJRKK8xWIK98QvbglxaUYsd7GdWSaKzOk0PJcRw";
 
-        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
-                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
-                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczEiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
-                + "oieHJkLXNzMSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.kYZXfJCy-9Wg_Ej0mK3kXu7XHtW9_"
-                + "WV1yZ_CAwLSV9srpjXXo2rtz6lVx7dFYGmKZRuBZ0tN8qhSesPknYKimvPZhqKZIUwa7EkohQLPWy5_SkkDKUD-i6-ppH6UqksSQhGE46XETaDt4"
-                + "aqH34Jh8Ewk4j8K_IeyGmoWpzC150hNlGOgDd6xh5wD0_tP4UpN6QweEMgno1-LT-2FLzVRPwTENafUC7BlZLjWSMuueZ02-tkvlHVcLesgr07EB"
-                + "e7fh6XFzFSpbf1hsRUlSJWfnvA5ccBPhOq9aY8xOYFeThklSZhmW0N9M55QDaxAaVXrMdX6s3o-qWt-uXHj9Yax6A";
+        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y"
+                + "4ODg5In0.eyJpc3MiO"
+                + "iJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMD"
+                + "AwMDAwMDBzczEiLCJzdWIiOiJ4cmQtc3MxIiwicm9sZSI6InBhcnRpY2lwYW50IiwicGFydGljaXBhbnRfY29udGV4dF9pZCI6InhyZC1"
+                + "zczEiLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOndyaXRlIG1hbmFnZW1lbnQtYXBpOnJlYWQifQ.ooOQ2r-STrgTDxJgnNkRllEp-tWTR"
+                + "MFZpTqQ_o9MYvfD0JMurpPDhtlzi1hr3oBdopmtgg_erBbszn_TtbabbQfZSxWSy0cWzhbVNC5k-4WA3-zN2fY96FpsqapQpv3Bf62XgO"
+                + "3T7DgspzhqXPJ0FzfQHnncKjJvOGYt7R_AtsHtBJsPx_ACVYQwxMh91cnKQ5PWDqbRPO3up1kHF4aTKSOCvGhhE_11-8hIf_33t8lTkCu"
+                + "vzHSHcrIEEFSp4DsgQ8Cmz6N_VJVvQzmGgVOsPhes5sq6FnLYvXrSN9JwF-sA3rK5tuVjPz7Um3MgUPXGYZii_FJRlsNdJIZs8eAAmA";
 
         static String forContext(String participantContext) {
             return switch (participantContext) {

@@ -51,6 +51,13 @@ import java.util.Map;
 public record CounterPartyTarget(String counterPartyId, String counterPartyAddress) {
 
     /**
+     * DSP profile id segment of the provider DSP URL, and the profile registered by the
+     * EDC virtual runtime ({@code DspVirtualApiConfigurationV2025Extension}). Since EDC 0.18
+     * the profile id replaces the bare protocol version ({@code 2025-1}) as the URL segment.
+     */
+    public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
+
+    /**
      * Default per-host map used when no provider-specific source is configured.
      *
      * <p>Covers known dev/test candidates: LXD + k8s ({@code xrd-ss0/1/2}) and Docker
@@ -58,14 +65,13 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      * provider security-server host-address.
      *
      * <p>The {@code counterPartyAddress} bakes in BOTH the provider's local participant
-     * context id AND the DSP protocol version segment ({@code /2025-1}) because the
-     * EDC v2025/1 catalog/negotiation/transfer APIs are scoped under
-     * {@code /api/dsp/<participantContextId>/2025-1/...} and the {@code DspHttpDispatcherV2025}
+     * context id AND the DSP profile id segment ({@code /http-dsp-profile-2025-1}) because
+     * the EDC v2025/1 virtual catalog/negotiation/transfer APIs are scoped under
+     * {@code /api/dsp/<participantContextId>/<profileId>/...} and the dispatcher
      * does not auto-prepend either segment — it concatenates the per-message subpath
-     * (e.g. {@code /catalog/request}) onto whatever address it is given. Verified against
-     * a running provider: unversioned/unscoped paths return 404, the scoped path returns
-     * 401 (handler reached). Two provider participant context ids in dev align with the
-     * SS hostname, so the segment appears twice in the URL.
+     * (e.g. {@code /catalog/request}) onto whatever address it is given. Two provider
+     * participant context ids in dev align with the SS hostname, so the hostname appears
+     * twice in the URL.
      *
      * @return immutable map keyed by host-address
      * @deprecated Planned: replace hardcoded map with config-driven counter-party resolution.
@@ -75,23 +81,23 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
         return Map.ofEntries(
                 //For E2E
                 Map.entry("xrd-ss0", new CounterPartyTarget("did:web:ss0-ds-identity-hub%3A7183",
-                        "https://ss0-ds-control-plane:8183/api/dsp/xrd-ss0/2025-1")),
+                        "https://ss0-ds-control-plane:8183/api/dsp/xrd-ss0/" + DSP_PROFILE_ID)),
                 Map.entry("xrd-ss1", new CounterPartyTarget("did:web:ss1-ds-identity-hub%3A7183",
-                        "https://ss1-ds-control-plane:8183/api/dsp/xrd-ss1/2025-1")),
+                        "https://ss1-ds-control-plane:8183/api/dsp/xrd-ss1/" + DSP_PROFILE_ID)),
                 Map.entry("xrd-ss2", new CounterPartyTarget("did:web:ss2-ds-identity-hub%3A7183",
-                        "https://ss2-ds-control-plane:8183/api/dsp/xrd-ss2/2025-1")),
+                        "https://ss2-ds-control-plane:8183/api/dsp/xrd-ss2/" + DSP_PROFILE_ID)),
                 //For LXD
-                Map.entry("xrd-ss0.lxd",
-                        new CounterPartyTarget("did:web:xrd-ss0.lxd%3A7183", "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd/2025-1")),
-                Map.entry("xrd-ss1.lxd",
-                        new CounterPartyTarget("did:web:xrd-ss1.lxd%3A7183", "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/2025-1")),
-                Map.entry("xrd-ss2.lxd",
-                        new CounterPartyTarget("did:web:xrd-ss2.lxd%3A7183", "https://xrd-ss2.lxd:8183/api/dsp/xrd-ss2.lxd/2025-1")),
+                Map.entry("xrd-ss0.lxd", new CounterPartyTarget("did:web:xrd-ss0.lxd%3A7183",
+                        "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd/" + DSP_PROFILE_ID)),
+                Map.entry("xrd-ss1.lxd", new CounterPartyTarget("did:web:xrd-ss1.lxd%3A7183",
+                        "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/" + DSP_PROFILE_ID)),
+                Map.entry("xrd-ss2.lxd", new CounterPartyTarget("did:web:xrd-ss2.lxd%3A7183",
+                        "https://xrd-ss2.lxd:8183/api/dsp/xrd-ss2.lxd/" + DSP_PROFILE_ID)),
                 //For docker compose system-test (single-host topology split across containers).
                 Map.entry("ss0", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
-                        "https://ds-control-plane:8183/api/dsp/ss0/2025-1")),
+                        "https://ds-control-plane:8183/api/dsp/ss0/" + DSP_PROFILE_ID)),
                 Map.entry("ss1", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
-                        "https://ds-control-plane:8183/api/dsp/ss1/2025-1")));
+                        "https://ds-control-plane:8183/api/dsp/ss1/" + DSP_PROFILE_ID)));
     }
 
     /**
@@ -115,7 +121,7 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
             var hostTarget = entry.getValue();
             var mgmtDid = hostTarget.counterPartyId() + ":mgmt";
             var mgmtUrl = hostTarget.counterPartyAddress()
-                    .replaceFirst("/api/dsp/([^/]+)/2025-1", "/api/dsp/$1-mgmt/2025-1");
+                    .replaceFirst("/api/dsp/([^/]+)/" + DSP_PROFILE_ID, "/api/dsp/$1-mgmt/" + DSP_PROFILE_ID);
             result.put(host, new CounterPartyTarget(mgmtDid, mgmtUrl));
         }
         return Map.copyOf(result);

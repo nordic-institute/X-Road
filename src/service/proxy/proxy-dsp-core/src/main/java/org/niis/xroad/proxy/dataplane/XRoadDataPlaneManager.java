@@ -98,6 +98,31 @@ public class XRoadDataPlaneManager {
     }
 
     /**
+     * Handles the consumer-side started notification: the provider control plane has started
+     * the transfer and, for {@code Xrd-PULL}, data may now be pulled through the proxy.
+     *
+     * @param flowId process ID of the flow that started
+     * @return status message with state {@link DataFlowStates#STARTED}
+     */
+    public DataFlowStatusMessage started(String flowId) {
+        log.info("Data flow {} started", flowId);
+        storeState(flowId, DataFlowStates.STARTED);
+        return DataFlowStatusMessage.Builder.newInstance()
+                .state(DataFlowStates.STARTED.toString())
+                .build();
+    }
+
+    /**
+     * Completes a data flow, transitioning it to {@link DataFlowStates#COMPLETED}.
+     *
+     * @param flowId process ID of the flow to complete
+     */
+    public void completed(String flowId) {
+        log.info("Completing data flow {}", flowId);
+        storeState(flowId, DataFlowStates.COMPLETED);
+    }
+
+    /**
      * Terminates an active data flow, transitioning it to {@link DataFlowStates#TERMINATED}.
      *
      * @param flowId process ID of the flow to terminate
