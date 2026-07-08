@@ -160,9 +160,6 @@ class ConfigurationParserTest {
                 .is(codedException(X_INVALID_SIGNATURE_VALUE));
     }
 
-    /**
-     * A non-numeric value in the Version header must be rejected with GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE.
-     */
     @Test
     void parseConfRejectsNonNumericVersion() {
         assertThatThrownBy(() ->
@@ -173,16 +170,31 @@ class ConfigurationParserTest {
                 .is(codedException(X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE));
     }
 
-    /**
-     * A valid numeric version in the Version header must parse without error.
-     */
     @Test
     void parseConfAcceptsNumericVersion() throws Exception {
-        List<ConfigurationFile> files = parseFromBytes(buildSignedConf("3"),
+        Configuration configuration = parseConfigurationFromBytes(buildSignedConf("3"),
+                getConfigurationSource(
+                        TestCertUtil.getConsumer().certChain[0],
+                        "EE", "http://foo.bar.baz"));
+        assertThat(configuration.getVersion()).isEqualTo("3");
+    }
+
+    @Test
+    void parseConfNormalizesVersionWithSurroundingWhitespace() throws Exception {
+        Configuration configuration = parseConfigurationFromBytes(buildSignedConf(" 3 "),
+                getConfigurationSource(
+                        TestCertUtil.getConsumer().certChain[0],
+                        "EE", "http://foo.bar.baz"));
+        assertThat(configuration.getVersion()).isEqualTo("3");
+    }
+
+    @Test
+    void parseConfTreatsEmptyVersionAsAbsent() throws Exception {
+        Configuration configuration = parseConfigurationFromBytes(buildSignedConf(""),
                 getConfigurationSource(
                         getConsumer().certChain[0],
                         "EE", "http://foo.bar.baz"));
-        assertThat(files).isNotNull();
+        assertThat(configuration.getVersion()).isNull();
     }
 
     // ------------------------------------------------------------------------
@@ -224,6 +236,12 @@ class ConfigurationParserTest {
 
     private static List<ConfigurationFile> parseFromBytes(byte[] content,
                                                           ConfigurationSource source) throws Exception {
+        Configuration configuration = parseConfigurationFromBytes(content, source);
+        return configuration != null ? configuration.getFiles() : null;
+    }
+
+    private static Configuration parseConfigurationFromBytes(byte[] content,
+                                                              ConfigurationSource source) throws Exception {
         ConfigurationParser.HASH_TO_CERT.clear();
 
         if (!source.getLocations().isEmpty()) {
@@ -234,7 +252,7 @@ class ConfigurationParserTest {
                 }
             };
 
-            return parser.parse(source.getLocations().getFirst()).getFiles();
+            return parser.parse(source.getLocations().getFirst());
         }
 
         return null;

@@ -306,10 +306,6 @@ public class VersionedConfigurationDirectoryTest {
         assertTrue(dir.findShared("foo").isEmpty());
     }
 
-    /**
-     * Verifies that excludeMetadataAndDirs matches only the exact reserved filenames, not filenames
-     * that merely contain or end with the reserved name as a suffix.
-     */
     @Test
     public void excludeMetadataAndDirsUsesExactFilenameMatch() throws Exception {
         Path tmpDir = Files.createTempDirectory("confdir-filter-test");
@@ -346,6 +342,37 @@ public class VersionedConfigurationDirectoryTest {
         }
     }
 
+    @Test
+    public void excludeMetadataAndDirsMatchesReservedNamesCaseInsensitively() throws Exception {
+        Path tmpDir = Files.createTempDirectory("confdir-filter-case-test");
+        try {
+            Files.writeString(tmpDir.resolve(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE), "EE",
+                    StandardCharsets.UTF_8);
+
+            Path subDir = tmpDir.resolve("EE");
+            Files.createDirectories(subDir);
+
+            createFile(subDir, "FILES");
+            createFile(subDir, "Instance-Identifier");
+            createFile(subDir, "content.XML");
+            createFile(subDir, "content.XML" + ".METADATA");
+
+            VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory(tmpDir.toString());
+            List<Path> files = dir.getConfigurationFiles();
+
+            List<String> fileNames = files.stream().map(p -> p.getFileName().toString()).toList();
+
+            assertFalse("'FILES' must be excluded case-insensitively", fileNames.contains("FILES"));
+            assertFalse("'Instance-Identifier' must be excluded case-insensitively",
+                    fileNames.contains("Instance-Identifier"));
+            assertFalse("uppercase '.METADATA' suffix must be excluded",
+                    fileNames.contains("content.XML.METADATA"));
+            assertTrue("regular content files must be retained", fileNames.contains("content.XML"));
+        } finally {
+            deleteRecursively(tmpDir);
+        }
+    }
+
     private static void createFile(Path dir, String name) throws IOException {
         Files.writeString(dir.resolve(name), "", StandardCharsets.UTF_8);
     }
@@ -359,8 +386,8 @@ public class VersionedConfigurationDirectoryTest {
                     .forEach(p -> {
                         try {
                             Files.delete(p);
-                        } catch (IOException e) {
-                            // best-effort cleanup
+                        } catch (IOException ignored) {
+                            // ignore
                         }
                     });
         }
