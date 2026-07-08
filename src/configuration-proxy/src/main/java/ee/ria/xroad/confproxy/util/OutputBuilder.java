@@ -28,6 +28,7 @@ package ee.ria.xroad.confproxy.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationUtils;
 import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
@@ -64,7 +65,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
@@ -233,16 +233,9 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        String configurationVersion = metadata.getConfigurationVersion();
-        if (configurationVersion == null) {
+        Integer versionInt = ConfigurationUtils.parseGlobalConfVersion(metadata.getConfigurationVersion());
+        if (versionInt == null) {
             return false;
-        }
-        int versionInt;
-        try {
-            versionInt = Integer.parseInt(configurationVersion);
-        } catch (NumberFormatException e) {
-            throw new CodedException(X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE, e,
-                    "Configuration version must be an integer, got: %s", configurationVersion);
         }
         boolean isVersionGt2 = versionInt > 2;
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());

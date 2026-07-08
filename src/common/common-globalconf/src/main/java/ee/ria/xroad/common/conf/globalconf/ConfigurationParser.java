@@ -336,19 +336,8 @@ public class ConfigurationParser {
         }
 
         private void parseVersion() {
-            String version = getHeader(HEADER_VERSION);
-            if (version != null) {
-                try {
-                    int parsed = Integer.parseInt(version.trim());
-                    if (parsed < 0) {
-                        throw new NumberFormatException("negative");
-                    }
-                } catch (NumberFormatException e) {
-                    throw new CodedException(ErrorCodes.X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE,
-                            "Configuration version header must be a non-negative integer, got: %s".formatted(version));
-                }
-            }
-            configuration.setVersion(version);
+            Integer version = ConfigurationUtils.parseGlobalConfVersion(getHeader(HEADER_VERSION));
+            configuration.setVersion(version != null ? version.toString() : null);
         }
 
         private void verifyConfUpToDate() {

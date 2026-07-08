@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -189,7 +190,8 @@ public class ConfigurationDownloader {
 
     /**
      * Download all configuration files if the conditions are met {@link #shouldDownload(ConfigurationFile, Path)}.
-     *
+     * A part whose instance identifier is blank or resolves onto the global configuration root is skipped
+     * (logged at WARN) rather than aborting the download of the remaining parts.
      * @param configuration configuration object with details about the configuration download location
      * @return list of downloaded content
      * @throws Exception in case downloading or handling a file fails
@@ -203,7 +205,10 @@ public class ConfigurationDownloader {
         var contentHandler = ContentHandler.forVersion(configuration.getVersion());
 
         for (ConfigurationFile file : configuration.getFiles()) {
-            Path contentFileName = fileNameProvider.getFileName(file);
+            Path contentFileName = resolveFileNameOrSkip(file);
+            if (contentFileName == null) {
+                continue;
+            }
             if (shouldDownload(file, contentFileName)) {
                 byte[] content = downloadContent(location, file);
 
@@ -222,25 +227,70 @@ public class ConfigurationDownloader {
         return result;
     }
 
+    /**
+     * Resolves the write target for a configuration part, skipping (returning null, logged at WARN) a part
+     * whose instance identifier is blank or resolves onto the global configuration root.
+     */
+    private Path resolveFileNameOrSkip(ConfigurationFile file) {
+        try {
+            return fileNameProvider.getFileName(file);
+        } catch (CodedException e) {
+            if (ErrorCodes.X_GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER.equals(e.getFaultCode())) {
+                log.warn("Skipping configuration part {} with a blank or invalid instance identifier",
+                        file.getContentLocation());
+                return null;
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Resolves and validates the write target for every downloaded part before persisting any of them,
+     * so that a rejected batch (reserved-name collision or duplicate target) leaves the previous
+     * configuration directory untouched.
+     * @param downloadedContents the downloaded content to persist
+     * @return the set of file paths (content plus metadata sidecars) that must be retained on disk
+     */
     Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+        List<ResolvedContent> resolvedContents = resolveTargets(downloadedContents);
+
         Set<Path> result = new HashSet<>();
-        Set<Path> seenContentPaths = new HashSet<>();
-        for (DownloadedContent downloadedContent : downloadedContents) {
-            Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
-            if (!seenContentPaths.add(contentFileName)) {
-                throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_DUPLICATE_TARGET,
-                        "Two configuration parts resolve to the same target path %s".formatted(contentFileName));
-            }
-            if (downloadedContent.content != null) {
-                persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
-            } else {
-                updateExpirationDate(contentFileName, downloadedContent.file);
-            }
-            result.add(contentFileName);
-            result.add(contentFileName.resolveSibling(contentFileName.getFileName()
+        for (ResolvedContent resolved : resolvedContents) {
+            persistResolvedContent(resolved);
+            result.add(resolved.contentFileName);
+            result.add(resolved.contentFileName.resolveSibling(resolved.contentFileName.getFileName()
                     + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA));
         }
         return result;
+    }
+
+    private List<ResolvedContent> resolveTargets(List<DownloadedContent> downloadedContents) {
+        List<ResolvedContent> resolvedContents = new ArrayList<>(downloadedContents.size());
+        Set<String> seenContentPaths = new HashSet<>();
+        for (DownloadedContent downloadedContent : downloadedContents) {
+            Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
+            String dedupKey = contentFileName.toString().toLowerCase(Locale.ROOT);
+            if (!seenContentPaths.add(dedupKey)) {
+                throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_DUPLICATE_TARGET,
+                        "Two configuration parts resolve to the same target path %s".formatted(contentFileName));
+            }
+            resolvedContents.add(new ResolvedContent(contentFileName, downloadedContent));
+        }
+        return resolvedContents;
+    }
+
+    private void persistResolvedContent(ResolvedContent resolved) throws Exception {
+        Path contentFileName = resolved.contentFileName;
+        ConfigurationFile file = resolved.downloadedContent.file;
+        byte[] content = resolved.downloadedContent.content;
+        if (content != null) {
+            persistContent(content, contentFileName, file);
+        } else {
+            updateExpirationDate(contentFileName, file);
+        }
+    }
+
+    private record ResolvedContent(Path contentFileName, DownloadedContent downloadedContent) {
     }
 
     void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
