@@ -49,7 +49,6 @@ import org.niis.xroad.cs.test.api.admin.MembersAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -1351,10 +1350,10 @@ class ManagementRequestsApiTest extends CsApiTest {
                 new ListCase(Map.of("serverId", ss1Id, "types", "AUTH_CERT_REGISTRATION_REQUEST"), 1, 1),
                 new ListCase(Map.of("serverId", ss1Id, "types", "CLIENT_REGISTRATION_REQUEST"), 2, 2),
                 new ListCase(Map.of("serverId", ss1Id, "types", "CLIENT_DELETION_REQUEST"), 1, 1),
-                new ListCase(mapOf("serverId", ss1Id, "limit", 2, "offset", 0), 2, 4),
-                new ListCase(mapOf("serverId", ss1Id, "limit", 2, "offset", 1), 2, 4),
-                new ListCase(mapOf("serverId", ss1Id, "sort", "id", "desc", true), 4, 4),
-                new ListCase(mapOf("serverId", ss1Id, "sort", "type", "desc", false), 4, 4)
+                new ListCase(Map.of("serverId", ss1Id, "limit", 2, "offset", 0), 2, 4),
+                new ListCase(Map.of("serverId", ss1Id, "limit", 2, "offset", 1), 2, 4),
+                new ListCase(Map.of("serverId", ss1Id, "sort", "id", "desc", true), 4, 4),
+                new ListCase(Map.of("serverId", ss1Id, "sort", "type", "desc", false), 4, 4)
         );
 
         Step.then("server-scoped filter cases verified", () -> {
@@ -1374,22 +1373,22 @@ class ManagementRequestsApiTest extends CsApiTest {
         var globalCases = List.of(
                 new ListCase(Map.of("query", "mr29"), 11, 11),
                 new ListCase(Map.of("query", "mr29ss3"), 3, 3),
-                new ListCase(mapOf("query", "mr29ss5", "status", "WAITING"), 1, 1),
+                new ListCase(Map.of("query", "mr29ss5", "status", "WAITING"), 1, 1),
                 new ListCase(Map.of("status", "DECLINED", "query", "mr29"), 1, 1),
                 new ListCase(Map.of("status", "APPROVED", "query", "mr29"), 7, 7),
-                new ListCase(mapOf("query", "mr29ss3", "status", "APPROVED"), 3, 3),
+                new ListCase(Map.of("query", "mr29ss3", "status", "APPROVED"), 3, 3),
                 new ListCase(Map.of("origin", "CENTER", "query", "mr29"), 1, 1),
                 new ListCase(Map.of("origin", "SECURITY_SERVER", "query", "mr29"), 10, 10),
-                new ListCase(mapOf("query", "mr29ss3", "status", "APPROVED", "origin", "SECURITY_SERVER"), 3, 3),
+                new ListCase(Map.of("query", "mr29ss3", "status", "APPROVED", "origin", "SECURITY_SERVER"), 3, 3),
                 new ListCase(Map.of("types", "AUTH_CERT_REGISTRATION_REQUEST", "query", "mr29"), 5, 5),
                 new ListCase(Map.of("types", "CLIENT_REGISTRATION_REQUEST", "query", "mr29"), 3, 3),
                 new ListCase(Map.of("types", "OWNER_CHANGE_REQUEST", "query", "mr29"), 1, 1),
                 new ListCase(Map.of("types", "CLIENT_DELETION_REQUEST", "query", "mr29"), 1, 1),
                 new ListCase(Map.of("types", "AUTH_CERT_DELETION_REQUEST", "query", "mr29"), 1, 1),
-                new ListCase(mapOf("status", "APPROVED", "types", "AUTH_CERT_REGISTRATION_REQUEST,CLIENT_DELETION_REQUEST",
+                new ListCase(Map.of("status", "APPROVED", "types", "AUTH_CERT_REGISTRATION_REQUEST,CLIENT_DELETION_REQUEST",
                         "query", "mr29"), 3, 3),
-                new ListCase(mapOf("query", "mr29ss1", "types", "AUTH_CERT_REGISTRATION_REQUEST,CLIENT_DELETION_REQUEST"), 2, 2),
-                new ListCase(mapOf("origin", "CENTER", "types", "OWNER_CHANGE_REQUEST", "query", "mr29"), 0, 0)
+                new ListCase(Map.of("query", "mr29ss1", "types", "AUTH_CERT_REGISTRATION_REQUEST,CLIENT_DELETION_REQUEST"), 2, 2),
+                new ListCase(Map.of("origin", "CENTER", "types", "OWNER_CHANGE_REQUEST", "query", "mr29"), 0, 0)
         );
 
         Step.then("global filter cases verified", () -> {
@@ -1402,14 +1401,14 @@ class ManagementRequestsApiTest extends CsApiTest {
         });
 
         Step.then("list is sorted by id descending", () -> {
-            var ids = client.findRequests(mapOf("query", "mr29", "sort", "id", "desc", true))
+            var ids = client.findRequests(Map.of("query", "mr29", "sort", "id", "desc", true))
                     .statusCode(200)
                     .extract().jsonPath().getList("items.id", Integer.class);
             assertThat(ids).hasSize(11).isSortedAccordingTo(Comparator.reverseOrder());
         });
 
         Step.then("list is sorted by created_at ascending", () -> {
-            var values = client.findRequests(mapOf("query", "mr29", "sort", "created_at", "desc", false))
+            var values = client.findRequests(Map.of("query", "mr29", "sort", "created_at", "desc", false))
                     .statusCode(200)
                     .extract().jsonPath().getList("items.created_at", String.class);
             assertThat(values).hasSize(11);
@@ -1418,7 +1417,7 @@ class ManagementRequestsApiTest extends CsApiTest {
         });
 
         Step.then("list is sorted by type descending", () -> {
-            var values = client.findRequests(mapOf("query", "mr29", "sort", "type", "desc", true))
+            var values = client.findRequests(Map.of("query", "mr29", "sort", "type", "desc", true))
                     .statusCode(200)
                     .extract().jsonPath().getList("items.type", String.class);
             assertThat(values).hasSize(11);
@@ -1427,7 +1426,7 @@ class ManagementRequestsApiTest extends CsApiTest {
         });
 
         Step.then("list is sorted by security_server_owner ascending", () -> {
-            var values = client.findRequests(mapOf("query", "mr29", "sort", "security_server_owner", "desc", false))
+            var values = client.findRequests(Map.of("query", "mr29", "sort", "security_server_owner", "desc", false))
                     .statusCode(200)
                     .extract().jsonPath().getList("items.security_server_owner", String.class);
             assertThat(values).hasSize(11);
@@ -1436,7 +1435,7 @@ class ManagementRequestsApiTest extends CsApiTest {
         });
 
         Step.then("list is sorted by security_server_id descending", () -> {
-            var values = client.findRequests(mapOf("query", "mr29", "sort", "security_server_id", "desc", true))
+            var values = client.findRequests(Map.of("query", "mr29", "sort", "security_server_id", "desc", true))
                     .statusCode(200)
                     .extract().jsonPath().getList("items.security_server_id.encoded_id", String.class);
             assertThat(values).hasSize(11);
@@ -1445,7 +1444,7 @@ class ManagementRequestsApiTest extends CsApiTest {
         });
 
         Step.then("list is sorted by status ascending", () -> {
-            var values = client.findRequests(mapOf("query", "mr29", "sort", "status", "desc", false))
+            var values = client.findRequests(Map.of("query", "mr29", "sort", "status", "desc", false))
                     .statusCode(200)
                     .extract().jsonPath().getList("items.status", String.class);
             assertThat(values).hasSize(11);
@@ -1478,13 +1477,5 @@ class ManagementRequestsApiTest extends CsApiTest {
                 .post("/subsystems")
                 .then()
                 .statusCode(201);
-    }
-
-    private static Map<String, Object> mapOf(Object... keyValues) {
-        var map = new HashMap<String, Object>();
-        for (int i = 0; i < keyValues.length; i += 2) {
-            map.put((String) keyValues[i], keyValues[i + 1]);
-        }
-        return map;
     }
 }

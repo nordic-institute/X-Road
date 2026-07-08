@@ -183,13 +183,6 @@ jobs:
           path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload cs-admin-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: cs-admin-int-test-jar
-          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
-          compression-level: '0'
-
       - name: Upload cs-management-int-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
