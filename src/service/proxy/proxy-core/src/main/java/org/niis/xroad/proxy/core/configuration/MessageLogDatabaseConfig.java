@@ -25,7 +25,9 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageLogDbProperties;
@@ -35,7 +37,9 @@ import org.niis.xroad.messagelog.MessageLogDbProperties;
  */
 public class MessageLogDatabaseConfig {
 
+    @Produces
     @Singleton
+    @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
     MessageLogDatabaseCtx messageLogDbCtx(MessageLogDbProperties messageLogDbProperties) {
         return create(messageLogDbProperties);
     }
