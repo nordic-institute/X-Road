@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
+import org.niis.xroad.auxiliaryservice.core.config.ProxyMessageLogProperties;
 
 @Startup
 @ApplicationScoped
@@ -49,13 +50,13 @@ public class MessageLogCleanupJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
+    private final ProxyMessageLogProperties proxyProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(properties.cleanupCron())
-                && !SchedulerUtils.isOff(properties.cleanupCron())) {
+        if (shouldSchedule()) {
             log.info("Scheduling message log cleanup with cron expression: '{}'", properties.cleanupCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.cleanupCron())
@@ -66,6 +67,12 @@ public class MessageLogCleanupJob {
         } else {
             log.info("Message log cleanup job is disabled.");
         }
+    }
+
+    private boolean shouldSchedule() {
+        return proxyProperties.enabled()
+                && StringUtils.isNotBlank(properties.cleanupCron())
+                && !SchedulerUtils.isOff(properties.cleanupCron());
     }
 
     private void execute(ScheduledExecution execution) {

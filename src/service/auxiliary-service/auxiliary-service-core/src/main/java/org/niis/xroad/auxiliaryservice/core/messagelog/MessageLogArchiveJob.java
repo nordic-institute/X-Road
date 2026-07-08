@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
+import org.niis.xroad.auxiliaryservice.core.config.ProxyMessageLogProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Startup
@@ -50,14 +51,14 @@ public class MessageLogArchiveJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
+    private final ProxyMessageLogProperties proxyProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final GlobalConfProvider globalConfProvider;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(properties.archiveCron())
-                && !SchedulerUtils.isOff(properties.archiveCron())) {
+        if (shouldSchedule()) {
             log.info("Scheduling message log archival with cron expression: '{}'", properties.archiveCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.archiveCron())
@@ -68,6 +69,12 @@ public class MessageLogArchiveJob {
         } else {
             log.info("Message log archival job is disabled.");
         }
+    }
+
+    private boolean shouldSchedule() {
+        return proxyProperties.enabled()
+                && StringUtils.isNotBlank(properties.archiveCron())
+                && !SchedulerUtils.isOff(properties.archiveCron());
     }
 
     private void execute(ScheduledExecution execution) {
