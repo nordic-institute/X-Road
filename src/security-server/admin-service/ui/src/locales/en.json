@@ -416,6 +416,8 @@
     "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
     "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
+    "global_conf_part_reserved_file_name": "Global configuration part {0} resolves to a reserved file name",
+    "global_conf_part_duplicate_target": "Two configuration parts resolve to the same target path {0}",
     "gpg_key_generation_failed": "GPG keypair generation failed",
     "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
     "identifier_not_found": "Identifier not found",

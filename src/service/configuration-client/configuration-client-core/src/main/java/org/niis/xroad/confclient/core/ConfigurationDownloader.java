@@ -26,6 +26,7 @@
 package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
@@ -228,8 +229,13 @@ public class ConfigurationDownloader {
 
     Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
         Set<Path> result = new HashSet<>();
+        Set<Path> seenContentPaths = new HashSet<>();
         for (DownloadedContent downloadedContent : downloadedContents) {
             Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
+            if (!seenContentPaths.add(contentFileName)) {
+                throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_DUPLICATE_TARGET,
+                        "Two configuration parts resolve to the same target path %s".formatted(contentFileName));
+            }
             if (downloadedContent.content != null) {
                 persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
             } else {
