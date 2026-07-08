@@ -64,6 +64,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static ee.ria.xroad.common.ErrorCodes.X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -235,8 +236,18 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        boolean isVersionGt2 = metadata.getConfigurationVersion() != null
-                && Integer.parseInt(metadata.getConfigurationVersion()) > 2;
+        String configurationVersion = metadata.getConfigurationVersion();
+        if (configurationVersion == null) {
+            return false;
+        }
+        int versionInt;
+        try {
+            versionInt = Integer.parseInt(configurationVersion);
+        } catch (NumberFormatException e) {
+            throw new CodedException(X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE, e,
+                    "Configuration version must be an integer, got: %s", configurationVersion);
+        }
+        boolean isVersionGt2 = versionInt > 2;
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
         boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
         return isVersionGt2 && isSharedParams && isMainInstance;

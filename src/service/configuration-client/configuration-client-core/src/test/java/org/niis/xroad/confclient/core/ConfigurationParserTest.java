@@ -28,21 +28,34 @@ package org.niis.xroad.confclient.core;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
+import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.operator.DigestCalculator;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.Signature;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.TestCertUtil.*;
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
+import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -62,7 +75,7 @@ class ConfigurationParserTest {
         List<ConfigurationFile> files =
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().certChain[0],
+                                getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz"));
         assertFiles(files, "/private-params.xml", "/shared-params.xml",
                 "/foo.xml");
@@ -76,7 +89,7 @@ class ConfigurationParserTest {
         assertThatThrownBy(() ->
                 parse("src/test/resources/test-conf-malformed",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().certChain[0],
+                                getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(codedException(X_MALFORMED_GLOBALCONF));
     }
@@ -89,7 +102,7 @@ class ConfigurationParserTest {
         assertThatThrownBy(() ->
                 parse("src/test/resources/test-conf-missing-date",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().certChain[0],
+                                getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(codedException(X_MALFORMED_GLOBALCONF));
     }
@@ -102,7 +115,7 @@ class ConfigurationParserTest {
         assertThatThrownBy(() ->
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
-                                TestCertUtil.getProducer().certChain[0],
+                                getProducer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(codedException(X_CERT_NOT_FOUND));
     }
@@ -115,7 +128,7 @@ class ConfigurationParserTest {
         assertThatThrownBy(() ->
                 parse("src/test/resources/test-conf-missing-signature",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().certChain[0],
+                                getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(codedException(X_INVALID_SIGNATURE_VALUE));
     }
@@ -129,7 +142,7 @@ class ConfigurationParserTest {
         assertThatThrownBy(() ->
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().certChain[0],
+                                getConsumer().certChain[0],
                                 "FI", "http://foo.bar.baz")))
                 .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
     }
@@ -142,9 +155,34 @@ class ConfigurationParserTest {
         assertThatThrownBy(() ->
                 parse("src/test/resources/test-conf-invalid-signature",
                         getConfigurationSource(
-                                TestCertUtil.getConsumer().certChain[0],
+                                getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(codedException(X_INVALID_SIGNATURE_VALUE));
+    }
+
+    /**
+     * A non-numeric value in the Version header must be rejected with GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE.
+     */
+    @Test
+    void parseConfRejectsNonNumericVersion() {
+        assertThatThrownBy(() ->
+                parseFromBytes(buildSignedConf("not-a-number"),
+                        getConfigurationSource(
+                                getConsumer().certChain[0],
+                                "EE", "http://foo.bar.baz")))
+                .is(codedException(X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE));
+    }
+
+    /**
+     * A valid numeric version in the Version header must parse without error.
+     */
+    @Test
+    void parseConfAcceptsNumericVersion() throws Exception {
+        List<ConfigurationFile> files = parseFromBytes(buildSignedConf("3"),
+                getConfigurationSource(
+                        getConsumer().certChain[0],
+                        "EE", "http://foo.bar.baz"));
+        assertThat(files).isNotNull();
     }
 
     // ------------------------------------------------------------------------
@@ -182,6 +220,54 @@ class ConfigurationParserTest {
         }
 
         return null;
+    }
+
+    private static List<ConfigurationFile> parseFromBytes(byte[] content,
+                                                          ConfigurationSource source) throws Exception {
+        ConfigurationParser.HASH_TO_CERT.clear();
+
+        if (!source.getLocations().isEmpty()) {
+            ConfigurationParser parser = new ConfigurationParser(mock(ConfigurationDownloader.class)) {
+                @Override
+                protected InputStream getInputStream() {
+                    return new ByteArrayInputStream(content);
+                }
+            };
+
+            return parser.parse(source.getLocations().getFirst()).getFiles();
+        }
+
+        return null;
+    }
+
+    @SneakyThrows
+    private static byte[] buildSignedConf(String version) {
+        PKCS12 signCert = getConsumer();
+
+        String innerBoundary = "--innerboundary\nExpire-date: 2032-05-20T17:42:55Z\nVersion: " + version + "\n\n";
+
+        Signature sig = Signature.getInstance(SignAlgorithm.SHA512_WITH_RSA.name());
+        sig.initSign(signCert.key);
+        sig.update(innerBoundary.getBytes());
+
+        DigestCalculator dc = createDigestCalculator(DigestAlgorithm.SHA512);
+        IOUtils.write(signCert.certChain[0].getEncoded(), dc.getOutputStream());
+        String certHash = encodeBase64(dc.getDigest());
+
+        String topMp = "Content-Type: multipart/related; charset=UTF-8;boundary=envelopeboundary\n\n"
+                + "--envelopeboundary\n"
+                + "Content-Type: multipart/mixed; charset=UTF-8;boundary=innerboundary\n\n"
+                + innerBoundary
+                + "\n--envelopeboundary\n"
+                + "Content-type: application/octet-stream\n"
+                + "Content-transfer-encoding: base64\n"
+                + "Signature-algorithm-id: http://www.w3.org/2001/04/xmldsig-more#rsa-sha512\n"
+                + "Verification-certificate-hash: " + certHash
+                + "; hash-algorithm-id=\"http://www.w3.org/2001/04/xmlenc#sha512\"\n"
+                + "\n" + encodeBase64(sig.sign()) + "\n"
+                + "--envelopeboundary--";
+
+        return topMp.getBytes(StandardCharsets.UTF_8);
     }
 
     private static ConfigurationSource getConfigurationSource(

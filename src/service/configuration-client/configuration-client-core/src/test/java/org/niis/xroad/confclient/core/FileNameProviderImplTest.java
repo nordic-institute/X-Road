@@ -130,7 +130,7 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getFileName(genericPart("/foo.xml")))
-                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER.code()));
+                .is(codedException(ErrorCodes.X_GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
     }
 
     @Test
@@ -138,7 +138,7 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getConfigurationDirectory(""))
-                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER.code()));
+                .is(codedException(ErrorCodes.X_GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
     }
 
     private static ConfigurationFile sharedParamsPart(String instanceIdentifier) {

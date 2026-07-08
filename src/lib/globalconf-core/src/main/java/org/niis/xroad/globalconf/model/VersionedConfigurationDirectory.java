@@ -303,8 +303,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     private List<Path> excludeMetadataAndDirs(Stream<Path> stream) {
         return stream.filter(Files::isRegularFile)
-                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.FILES))
-                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
+                .filter(p -> !p.getFileName().toString().equals(ConfigurationDirectory.FILES))
+                .filter(p -> !p.getFileName().toString().equals(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
                 .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
                 .toList();
     }
