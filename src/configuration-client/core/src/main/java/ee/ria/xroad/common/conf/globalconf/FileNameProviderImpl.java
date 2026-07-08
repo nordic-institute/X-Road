@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
@@ -43,6 +44,13 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
  */
 @RequiredArgsConstructor
 public class FileNameProviderImpl implements FileNameProvider {
+
+    private static final Set<String> RESERVED_FILE_NAMES = Set.of(
+            FILE_NAME_SHARED_PARAMETERS,
+            FILE_NAME_PRIVATE_PARAMETERS,
+            ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE,
+            ConfigurationDirectory.FILES
+    );
 
     private final String globalConfigurationDirectory;
 
@@ -71,6 +79,11 @@ public class FileNameProviderImpl implements FileNameProvider {
         if (StringUtils.isBlank(fileName) || ".".equals(fileName) || "..".equals(fileName)) {
             throw new CodedException(ErrorCodes.X_MALFORMED_GLOBALCONF,
                     "Configuration part %s declares an invalid file name derived from %s".formatted(file, source));
+        }
+        if (RESERVED_FILE_NAMES.contains(fileName)
+                || fileName.endsWith(ConfigurationConstants.FILE_NAME_SUFFIX_METADATA)) {
+            throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_RESERVED_FILE_NAME,
+                    "Configuration part %s resolves to reserved file name %s".formatted(file, fileName));
         }
         return fileName;
     }

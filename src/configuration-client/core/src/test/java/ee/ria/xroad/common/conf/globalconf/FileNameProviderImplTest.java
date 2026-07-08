@@ -92,6 +92,39 @@ class FileNameProviderImplTest {
                 .is(codedException(ErrorCodes.X_MALFORMED_GLOBALCONF));
     }
 
+    @Test
+    void genericPartCollidingWithSharedParamsIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/nested/shared-params.xml")))
+                .is(codedException(ErrorCodes.X_GLOBAL_CONF_PART_RESERVED_FILE_NAME));
+    }
+
+    @Test
+    void genericPartCollidingWithPrivateParamsIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/nested/private-params.xml")))
+                .is(codedException(ErrorCodes.X_GLOBAL_CONF_PART_RESERVED_FILE_NAME));
+    }
+
+    @Test
+    void genericPartWithMetadataSuffixIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/nested/shared-params.xml.metadata")))
+                .is(codedException(ErrorCodes.X_GLOBAL_CONF_PART_RESERVED_FILE_NAME));
+    }
+
+    @Test
+    void genericPartWithDistinctNonReservedNameResolves() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        Path result = provider.getFileName(genericPart("/nested/custom-extension.xml"));
+
+        assertThat(result).isEqualTo(globalConfDir.resolve("custom-extension.xml").normalize());
+    }
+
     private static ConfigurationFile sharedParamsPart(String instanceIdentifier) {
         Map<String, String> headers = new HashMap<>();
         headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
