@@ -32,7 +32,7 @@ jobs:
           task: start-measurement
           label: 'signer-int-test'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
 
@@ -42,13 +42,13 @@ jobs:
           name: signer-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
         with:
           distribution: 'temurin'
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -115,7 +115,7 @@ jobs:
           task: start-measurement
           label: 'softtoken-signer-int-test'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
 
@@ -125,13 +125,13 @@ jobs:
           name: softtoken-signer-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
         with:
           distribution: 'temurin'
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -198,7 +198,7 @@ jobs:
           task: start-measurement
           label: 'confproxy-int-test'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
 
@@ -208,13 +208,13 @@ jobs:
           name: confproxy-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
         with:
           distribution: 'temurin'
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -280,7 +280,7 @@ jobs:
           task: start-measurement
           label: 'opmonitor-int-test'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
 
@@ -290,13 +290,13 @@ jobs:
           name: opmonitor-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
         with:
           distribution: 'temurin'
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -352,82 +352,6 @@ jobs:
           display-table: true
           pr-comment: false
 
-  test-cs-admin:
-    name: cs-admin-int-test
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
-        with:
-          task: start-measurement
-          label: 'cs-admin-int-test'
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          ref: ${{ inputs.ref }}
-
-      - name: Download cs-admin-int-test
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: cs-admin-int-test-jar
-
-      - name: Setup Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-
-      - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
-        with:
-          task: get-measurement
-          label: 'cs-admin-int-test setup'
-
-      - name: Run cs-admin-int-test
-        run: java -jar central-server-admin-int-test-1.0.jar
-
-      - name: Test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
-        with:
-          task: get-measurement
-          label: 'cs-admin-int-test'
-
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
-        if: success() || failure()
-        with:
-          name: cs-admin-int-test
-          path: test-framework-working-dir/test-results/TEST-*.xml
-          reporter: java-junit
-
-      - name: Upload cs-admin-int-test report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: always()
-        with:
-          name: cs-admin-int-test-report-${{ github.run_number }}
-          path: |
-            test-framework-working-dir/allure-report/index.html
-            test-framework-working-dir/container-logs/
-            test-framework-working-dir/test-automation-exec.log
-
-      - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
-        with:
-          task: display-results
-          display-badge: false
-          display-table: true
-          pr-comment: false
-
   test-cs-management:
     name: cs-management-int-test
     runs-on: ubuntu-24.04
@@ -439,7 +363,7 @@ jobs:
           task: start-measurement
           label: 'cs-management-int-test'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
 
@@ -449,13 +373,13 @@ jobs:
           name: cs-management-int-test-jar
 
       - name: Setup Java
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
         with:
           distribution: 'temurin'
           java-version: '25'
 
       - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

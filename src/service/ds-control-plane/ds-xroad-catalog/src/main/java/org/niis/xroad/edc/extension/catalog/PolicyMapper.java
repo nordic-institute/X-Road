@@ -85,12 +85,18 @@ class PolicyMapper {
             var pathConstraints = specificEndpoints.stream()
                     .map(ep -> buildPathConstraint(ep, policyId))
                     .toList();
-            constraints.add(OrConstraint.Builder.newInstance()
-                    .constraints(pathConstraints)
-                    .build());
+            if (pathConstraints.size() == 1) {
+                constraints.add(pathConstraints.getFirst());
+            } else {
+                constraints.add(OrConstraint.Builder.newInstance()
+                        .constraints(pathConstraints)
+                        .build());
+            }
         }
 
-        var rootConstraint = AndConstraint.Builder.newInstance()
+        Constraint rootConstraint = constraints.size() == 1
+                ? constraints.getFirst()
+                : AndConstraint.Builder.newInstance()
                 .constraints(constraints)
                 .build();
 

@@ -27,6 +27,7 @@ package org.niis.xroad.confclient.core.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
 import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
@@ -57,7 +58,10 @@ public class ConfClientRootConfig {
 
     @ApplicationScoped
     GlobalConfSourceLocationRepository globalConfSourceLocationRepository(Provider<DataSource> dataSource) {
-        if (dataSource.get() != null) {
+        var dataSourceActive = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.datasource.active", Boolean.class)
+                .orElse(true);
+        if (dataSourceActive && dataSource.get() != null) {
             return new GlobalConfSourceLocationRepositoryImpl(dataSource.get());
         }
         return new GlobalConfSourceLocationRepositoryNoopImpl();

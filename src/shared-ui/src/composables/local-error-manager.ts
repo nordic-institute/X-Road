@@ -54,7 +54,7 @@ export function useLocalErrorManager(): ErrorManager {
       return errors.value.length > 0;
     },
     addError(errorObject: unknown) {
-      addError(errors.value, errorObject);
+      addError(errors.value, errorObject).catch(() => {});
     },
   };
 }

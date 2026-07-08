@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
 import io.quarkus.runtime.Startup;
@@ -53,7 +52,10 @@ import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Optional;
+
+import static org.niis.xroad.common.properties.DefaultTlsProperties.PROXY_TLS_PROTOCOLS;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -174,7 +176,7 @@ public class ServerProxy {
     private ServerConnector createClientProxySslConnector() throws NoSuchAlgorithmException, KeyManagementException {
         sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setNeedClientAuth(true);
-        sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        sslContextFactory.setIncludeProtocols(PROXY_TLS_PROTOCOLS);
         sslContextFactory.setIncludeCipherSuites(proxyProperties.xroadTlsCiphers());
         sslContextFactory.setSessionCachingEnabled(true);
         sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
@@ -195,5 +197,15 @@ public class ServerProxy {
                 log.error("Failed to reload auth key", e);
             }
         }
+    }
+
+    /** Local port the server proxy is bound to (OS-assigned when configured with {@code listen-port=0}). */
+    public int getListenPort() {
+        return Arrays.stream(server.getConnectors())
+                .filter(c -> CLIENT_PROXY_CONNECTOR_NAME.equals(c.getName()))
+                .filter(ServerConnector.class::isInstance)
+                .findFirst()
+                .map(c -> ((ServerConnector) c).getLocalPort())
+                .orElseThrow(() -> new IllegalStateException("Server connector not found"));
     }
 }

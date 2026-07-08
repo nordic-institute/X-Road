@@ -35,7 +35,7 @@ jobs:
           task: start-measurement
           label: 'Build, unit tests and packaging'
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
@@ -49,7 +49,7 @@ jobs:
           free-disk-space: false
 
       - name: Cache SonarCloud packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
@@ -62,7 +62,7 @@ jobs:
           label: 'Build environment setup'
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -183,13 +183,6 @@ jobs:
           path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload cs-admin-int-test
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: cs-admin-int-test-jar
-          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
-          compression-level: '0'
-
       - name: Upload cs-management-int-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -197,18 +190,18 @@ jobs:
           path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload ss-system-test
+      - name: Upload ss-api-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ss-system-test-jar
-          path: src/security-server/system-test/build/libs/security-server-system-test-1.0.jar
+          name: ss-api-test-jar
+          path: src/security-server/api-test/build/libs/security-server-api-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload cs-system-test
+      - name: Upload cs-api-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: cs-system-test-jar
-          path: src/central-server/admin-service/ui-system-test/build/libs/central-server-system-test-1.0.jar
+          name: cs-api-test-jar
+          path: src/central-server/admin-service/api-test/build/libs/central-server-api-test-1.0.jar
           compression-level: '0'
 
       - name: Upload e2e-test

@@ -230,5 +230,28 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return userRoleMappings;
     }
 
+    private Dataspace dataspace = new Dataspace();
+
+    /**
+     * Data space (EDC) membership credential provisioning configuration.
+     */
+    @Getter
+    @Setter
+    public static class Dataspace {
+        private boolean enabled;
+        private String identityHubUrl;
+        private String controlPlaneUrl;
+        private String participantId;
+        private boolean managementContextEnabled;
+        private String issuerDid;
+        private String credentialDefinitionId = "xroad-membership-credential-definition";
+        private String identityToken;
+        private String controlPlaneToken;
+        private int requestTimeoutMillis = 15000;
+        private int pollTimeoutMillis = 30000;
+        private int pollIntervalMillis = 2000;
+        private int maxHolderPidSlots = 20;
+    }
+
 }
 

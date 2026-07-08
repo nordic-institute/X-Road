@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
+import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -47,6 +48,7 @@ import org.apache.http.Header;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.james.mime4j.MimeException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -77,6 +79,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -95,6 +98,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INCONSISTENT_RESPON
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_REST;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
+import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
+import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 @Slf4j
 @ApplicationScoped
@@ -184,26 +189,88 @@ public class ClientRestMessageProcessor {
             restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
         opMonitoringDataHelper.updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
+        clientRequestPreparationService.recordServiceSecurityServerAddress(
+                requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData);
 
         ProxyMessage response;
-        try (var httpSender = httpSenderProvider.createClientHttpSender()) {
-            var restBodyDigest = sendRequest(httpSender, jRequest, opMonitoringData, restRequest,
-                    senderId, requestServiceId, xRequestId, ctx);
+        var sentRequest = executeWithRetry(jRequest, opMonitoringData, restRequest, senderId,
+                requestServiceId, xRequestId, ctx);
+        try (var httpSender = sentRequest.httpSender()) {
             var hashAlgoId = ProxyMessageUtils.getHashAlgoId(httpSender);
             response = parseResponse(httpSender, opMonitoringData, requestServiceId);
-            checkConsistency(hashAlgoId, restRequest, restBodyDigest, response);
+            checkConsistency(hashAlgoId, restRequest, sentRequest.restBodyDigest(), response);
         }
         logResponseMessage(restRequest, response, xRequestId);
         return response;
     }
 
-    private byte[] sendRequest(HttpSender httpSender, RequestWrapper jRequest, OpMonitoringData opMonitoringData,
-                               RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
-                               String xRequestId, ProxyRequestContext ctx) throws Exception {
-        log.trace("sendRequest()");
+    /**
+     * Sends the request, transparently retrying towards another security server when a TLS
+     * handshake failure surfaces mid-request (e.g. a TLS 1.3 server proxy rejecting the client
+     * certificate after the handshake completed). The request entity is created on the first
+     * attempt and replayed byte-identically by subsequent attempts. Returns the sender of the
+     * successful attempt, left open so the response can be parsed from it; failed attempts'
+     * senders are closed here.
+     */
+    private SentRequest executeWithRetry(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                                         RestRequest restRequest, ClientId senderId, ServiceId requestServiceId,
+                                         String xRequestId, ProxyRequestContext ctx) throws Exception {
+        final boolean retryEnabled = proxyProperties.clientProxy().enableRequestRetry();
+        SigningProxyMessageEntity entity = null;
+        try {
+            for (int attempt = 1; ; attempt++) {
+                var httpSender = httpSenderProvider.createClientHttpSender();
+                try {
+                    if (entity == null) {
+                        entity = createRequestEntity(jRequest, opMonitoringData, restRequest, senderId, xRequestId,
+                                retryEnabled);
+                    }
+                    sendRequest(httpSender, entity, opMonitoringData, restRequest, requestServiceId, xRequestId, ctx);
+                    return new SentRequest(httpSender, entity.getRestBodyDigest());
+                } catch (Exception e) {
+                    var targets = httpSender.getAttribute(ID_TARGETS);
+                    var failedAddress = httpSender.getAttribute(ID_SELECTED_TARGET);
+                    httpSender.close();
+                    if (!retryEnabled || !canRetry(e, entity, targets, attempt)) {
+                        throw e;
+                    }
+                    log.warn("Sending the request to the server proxy failed with a TLS handshake error, retrying"
+                                    + " (xRequestId: {}, attempt: {}, failed address: {})",
+                            xRequestId, attempt, failedAddress, e);
+                }
+            }
+        } finally {
+            if (entity != null) {
+                entity.consume();
+            }
+        }
+    }
 
-        clientRequestPreparationService.recordServiceSecurityServerAddress(
-                requestServiceId, restRequest.getTargetSecurityServer(), ctx, opMonitoringData);
+    private SigningProxyMessageEntity createRequestEntity(RequestWrapper jRequest, OpMonitoringData opMonitoringData,
+                                                          RestRequest restRequest, ClientId senderId,
+                                                          String xRequestId, boolean retryEnabled) {
+        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.secure().nextAlphabetic(30));
+        if (opMonitoringData != null) {
+            opMonitoringData.setRequestOutTs(getEpochMillisecond());
+        }
+        return new SigningProxyMessageEntity(contentType, messageSigningService, restRequest, senderId,
+                jRequest, commonProperties.tempFilesPath(), opMonitoringData, xRequestId, retryEnabled);
+    }
+
+    /**
+     * Tells whether a failed send attempt may be retried: the shared retry gate must pass
+     * (TLS handshake failure, attempts capped at the resolved address count, a usable address
+     * remaining) and the request entity must still be replayable.
+     */
+    private boolean canRetry(Exception exception, SigningProxyMessageEntity entity, Object targets, int attempt) {
+        return clientRequestPreparationService.shouldRetry(exception, targets, attempt)
+                && entity != null && entity.isReplayable();
+    }
+
+    private void sendRequest(HttpSender httpSender, SigningProxyMessageEntity entity, OpMonitoringData opMonitoringData,
+                             RestRequest restRequest, ServiceId requestServiceId, String xRequestId,
+                             ProxyRequestContext ctx) throws Exception {
+        log.trace("sendRequest()");
 
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         final URI[] addresses;
@@ -219,18 +286,22 @@ public class ClientRestMessageProcessor {
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.secure().nextAlphabetic(30));
-        if (opMonitoringData != null) {
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
+        try {
+            httpSender.doPost(getServiceAddress(addresses), entity);
+        } catch (Exception e) {
+            clientRequestPreparationService.markAddressUnusableIfHandshakeFailure(httpSender, e);
+            throw e;
         }
-        var entity = new SigningProxyMessageEntity(contentType, messageSigningService, restRequest, senderId,
-                jRequest, commonProperties.tempFilesPath(), opMonitoringData, xRequestId);
-        httpSender.doPost(getServiceAddress(addresses), entity);
-        var restBodyDigest = entity.getRestBodyDigest();
         if (opMonitoringData != null) {
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         }
-        return restBodyDigest;
+    }
+
+    /**
+     * Outcome of a successful send: the (still open) sender to parse the response from and the
+     * digest of the streamed request body.
+     */
+    private record SentRequest(HttpSender httpSender, byte[] restBodyDigest) {
     }
 
     private ProxyMessage parseResponse(HttpSender httpSender, OpMonitoringData opMonitoringData,
@@ -348,11 +419,27 @@ public class ClientRestMessageProcessor {
     }
 
     /**
-     * Named static entity that streams the signed REST request body to the server proxy.
-     * The {@code restBodyDigest} field is populated during {@link #writeTo(OutputStream)} and
-     * can be retrieved afterwards via {@link #getRestBodyDigest()}.
+     * Named static entity that streams the signed REST request message to the server proxy.
+     *
+     * <p>The entity is repeatable: the first {@link #writeTo(OutputStream)} call materializes the
+     * message — it streams the client request body while caching it, signs the message, and writes
+     * exactly one message log record. Subsequent calls replay the byte-identical message from the
+     * cached body, the captured OCSP responses, and the stored signature, without re-reading the
+     * client stream, re-signing, or re-logging. When retry is enabled and the connection dies
+     * mid-write, materialization still completes into the cache (the failed connection's writes are
+     * discarded) so a later replay can resend the exact same message.
+     *
+     * <p>Note: {@link #isRepeatable()} returning {@code true} would also permit Apache HttpClient's
+     * own retry handler to resend the entity. That handler is pinned to zero retries in
+     * {@code ProxyClientConfig} and must stay disabled — resends are driven exclusively by the
+     * processor-level retry loop.
+     *
+     * <p>The {@code restBodyDigest} field is populated during the first {@link #writeTo(OutputStream)}
+     * and can be retrieved afterwards via {@link #getRestBodyDigest()}.
      */
     static class SigningProxyMessageEntity extends AbstractHttpEntity {
+
+        private enum State { UNTOUCHED, MATERIALIZED, BROKEN }
 
         private final MessageSigningService messageSigningService;
         private final RestRequest restRequest;
@@ -361,13 +448,20 @@ public class ClientRestMessageProcessor {
         private final String tempFilesPath;
         private final OpMonitoringData opMonitoringData;
         private final String xRequestId;
+        private final boolean retryEnabled;
+
+        private State state = State.UNTOUCHED;
+        private CachingStream bodyCache;
+        private List<OCSPResp> ocspResponses;
+        private SignatureData signature;
 
         @Getter
         private byte[] restBodyDigest;
 
         SigningProxyMessageEntity(String contentType, MessageSigningService messageSigningService,
                                   RestRequest restRequest, ClientId senderId, RequestWrapper jRequest,
-                                  String tempFilesPath, OpMonitoringData opMonitoringData, String xRequestId) {
+                                  String tempFilesPath, OpMonitoringData opMonitoringData, String xRequestId,
+                                  boolean retryEnabled) {
             super();
             setContentType(contentType);
             this.messageSigningService = messageSigningService;
@@ -377,11 +471,12 @@ public class ClientRestMessageProcessor {
             this.tempFilesPath = tempFilesPath;
             this.opMonitoringData = opMonitoringData;
             this.xRequestId = xRequestId;
+            this.retryEnabled = retryEnabled;
         }
 
         @Override
         public boolean isRepeatable() {
-            return false;
+            return true;
         }
 
         @Override
@@ -396,49 +491,110 @@ public class ClientRestMessageProcessor {
 
         @Override
         public void writeTo(OutputStream outstream) {
+            switch (state) {
+                case UNTOUCHED -> materialize(outstream);
+                case MATERIALIZED -> replay(outstream);
+                default -> throw XrdRuntimeException.systemException(IO_ERROR,
+                        "Request message is no longer replayable");
+            }
+        }
+
+        /**
+         * Encodes the message from the live client request stream, caching the body for message
+         * logging and replays. With retry enabled, a connection failure mid-write does not abort
+         * materialization: the remaining writes are discarded, the body finishes streaming into the
+         * cache, the message is signed and logged, and the recorded failure is rethrown at the end.
+         */
+        private void materialize(OutputStream outstream) {
+            state = State.BROKEN;
+            final OutputStream out = retryEnabled ? new FailoverOutputStream(outstream) : outstream;
             try {
-                final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
+                final ProxyMessageEncoder enc = new ProxyMessageEncoder(out,
                         Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
 
                 final CertChain chain = messageSigningService.getAuthKey().certChain();
-                messageSigningService.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
-                        .forEach(enc::ocspResponse);
+                ocspResponses = messageSigningService.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
+                ocspResponses.forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
+                encodeBodyAndLog(enc);
 
-                try (InputStream in = jRequest.getInputStream()) {
-                    @SuppressWarnings("checkstyle:magicnumber")
-                    byte[] buf = new byte[4096];
-                    int count = in.read(buf);
-                    if (count >= 0) {
-                        final CachingStream cache = new CachingStream(tempFilesPath);
-                        try (TeeInputStream tee = new TeeInputStream(in, cache)) {
-                            cache.write(buf, 0, count);
-                            enc.restBody(buf, count, tee);
-                            enc.sign(messageSigningService.createSigningCtx(senderId));
-                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
-                                    xRequestId);
-                        } finally {
-                            cache.consume();
-                        }
-                    } else {
-                        enc.sign(messageSigningService.createSigningCtx(senderId));
-                        MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
-                    }
-                }
-
-                if (opMonitoringData != null) {
-                    opMonitoringData.setRequestAttachmentCount(0);
-                    opMonitoringData.setRequestSize(restRequest.getMessageBytes().length
-                            + enc.getAttachmentsByteCount());
-                }
-
+                signature = enc.getSignature();
+                updateOpMonitoringData(enc);
                 restBodyDigest = enc.getRestBodyDigest();
                 enc.writeSignature();
                 enc.close();
-
+                state = State.MATERIALIZED;
             } catch (Exception e) {
                 throw XrdRuntimeException.systemException(IO_ERROR, e);
+            }
+            if (out instanceof FailoverOutputStream failover) {
+                failover.rethrowFailure();
+            }
+        }
+
+        private void encodeBodyAndLog(ProxyMessageEncoder enc) throws IOException, CertificateEncodingException {
+            try (InputStream in = jRequest.getInputStream()) {
+                @SuppressWarnings("checkstyle:magicnumber")
+                byte[] buf = new byte[4096];
+                int count = in.read(buf);
+                if (count >= 0) {
+                    bodyCache = new CachingStream(tempFilesPath);
+                    try (TeeInputStream tee = new TeeInputStream(in, bodyCache)) {
+                        bodyCache.write(buf, 0, count);
+                        enc.restBody(buf, count, tee);
+                        enc.sign(messageSigningService.createSigningCtx(senderId));
+                        MessageLog.log(restRequest, enc.getSignature(), bodyCache.getCachedContents(), true,
+                                xRequestId);
+                    }
+                } else {
+                    enc.sign(messageSigningService.createSigningCtx(senderId));
+                    MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
+                }
+            }
+        }
+
+        /**
+         * Re-encodes the byte-identical message from the cached body, the captured OCSP responses,
+         * and the stored signature. Does not touch the client stream, the signer, or the message log.
+         */
+        private void replay(OutputStream outstream) {
+            try {
+                final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
+                        Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
+                ocspResponses.forEach(enc::ocspResponse);
+                enc.restRequest(restRequest);
+                if (bodyCache != null) {
+                    enc.restBody(bodyCache.getCachedContents());
+                }
+                enc.signature(signature);
+                enc.close();
+            } catch (Exception e) {
+                throw XrdRuntimeException.systemException(IO_ERROR, e);
+            }
+        }
+
+        private void updateOpMonitoringData(ProxyMessageEncoder enc) {
+            if (opMonitoringData != null) {
+                opMonitoringData.setRequestAttachmentCount(0);
+                opMonitoringData.setRequestSize(restRequest.getMessageBytes().length
+                        + enc.getAttachmentsByteCount());
+            }
+        }
+
+        /**
+         * Tells whether {@link #writeTo(OutputStream)} can produce the complete message (again).
+         */
+        boolean isReplayable() {
+            return state != State.BROKEN;
+        }
+
+        /**
+         * Releases the cached request body. Idempotent; call once the entity is no longer needed.
+         */
+        void consume() {
+            if (bodyCache != null) {
+                bodyCache.consume();
             }
         }
 
@@ -447,5 +603,75 @@ public class ClientRestMessageProcessor {
             return true;
         }
 
+    }
+
+    /**
+     * Output stream wrapper that records the first failure of the underlying stream and silently
+     * discards all subsequent operations. Lets the message encoder finish materializing the message
+     * (body caching, digest calculation, signing, message logging) when the connection dies
+     * mid-write; the recorded failure is rethrown once materialization has completed.
+     */
+    static final class FailoverOutputStream extends OutputStream {
+
+        private final OutputStream out;
+        private IOException failure;
+
+        FailoverOutputStream(OutputStream out) {
+            this.out = out;
+        }
+
+        @Override
+        public void write(int b) {
+            if (failure == null) {
+                try {
+                    out.write(b);
+                } catch (IOException e) {
+                    failure = e;
+                }
+            }
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) {
+            if (failure == null) {
+                try {
+                    out.write(b, off, len);
+                } catch (IOException e) {
+                    failure = e;
+                }
+            }
+        }
+
+        @Override
+        public void flush() {
+            if (failure == null) {
+                try {
+                    out.flush();
+                } catch (IOException e) {
+                    failure = e;
+                }
+            }
+        }
+
+        @Override
+        public void close() {
+            try {
+                out.close();
+            } catch (IOException e) {
+                if (failure == null) {
+                    failure = e;
+                }
+            }
+        }
+
+        /**
+         * Rethrows the recorded stream failure, if any, wrapped the same way a direct write
+         * failure would have been — keeping the original exception in the cause chain.
+         */
+        void rethrowFailure() {
+            if (failure != null) {
+                throw XrdRuntimeException.systemException(IO_ERROR, failure);
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@
   "ignore": [
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
+    "redocly.yaml",
     "build/",
     "build.gradle",
     ".gradle",
@@ -22,6 +23,7 @@
     "src/openapi-types/",
     "src/mock-openapi-types/",
     "**/openapi-types.ts",
+    "**/openapi-msw-paths.d.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/unit/__snapshots__",
     "build.gradle.kts",

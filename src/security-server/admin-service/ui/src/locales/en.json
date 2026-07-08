@@ -347,7 +347,7 @@
     "traffic": {
       "client": "Client",
       "date": "Date",
-      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring).",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please enable operational monitoring in the Security Server configuration.",
       "disabledTitle": "Operational Data Monitoring Is Disabled",
       "exchangeRole": "Exchange role",
       "exchangeRoleInfo": "Producer or Consumer",
@@ -563,12 +563,18 @@
     "service_not_found": "Service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
     "software_token_init_failed": "Software token initialisation failed",
+    "ssl_authentication_failed": "SSL authentication failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",
     "token": {
       "malformed_csr": "CSR data is malformed"
     },
     "token_not_active": "Token is not active",
+    "tr": {
+      "op_monitor": {
+        "network_error": "Network error: Operational Monitoring is not available"
+      }
+    },
     "unknown_host": "Connection error, unknown host",
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",

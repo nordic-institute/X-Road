@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.jetty.util.MultiPartWriter;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confproxy.common.domain.ConfProxyInstance;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
@@ -62,6 +63,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -79,6 +81,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static org.niis.xroad.confproxy.common.exceptions.ConfProxyErrorCode.CONF_PART_PATH_TRAVERSAL;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
 /**
@@ -328,13 +331,27 @@ public class OutputBuilder implements AutoCloseable {
      */
     private FileOutputStream createFileOutputStream(final Path targetPath, final ConfigurationPartMetadata metadata)
             throws IOException {
-        Path filepath = targetPath.resolve(Paths.get(metadata.getInstanceIdentifier(), metadata.getContentLocation()));
+        Path filepath = resolveWithinTargetDir(targetPath, metadata.getInstanceIdentifier(),
+                metadata.getContentLocation());
         FileUtils.createDirectories(filepath.getParent());
         Path newFile = FileUtils.createFile(filepath);
 
         log.debug("Copying file '{}' to directory '{}'", newFile.toAbsolutePath(), targetPath);
 
         return new FileOutputStream(newFile.toAbsolutePath().toFile());
+    }
+
+    private Path resolveWithinTargetDir(Path root, String... segments) {
+        Path normalizedRoot = root.normalize();
+        Path resolved = normalizedRoot.resolve(Paths.get(segments[0], Arrays.copyOfRange(segments, 1, segments.length)))
+                .normalize();
+        if (!resolved.startsWith(normalizedRoot)) {
+            throw XrdRuntimeException.systemException(CONF_PART_PATH_TRAVERSAL)
+                    .details("Resolved configuration part path %s escapes output directory %s"
+                            .formatted(resolved, normalizedRoot))
+                    .build();
+        }
+        return resolved;
     }
 
     /**
@@ -348,8 +365,9 @@ public class OutputBuilder implements AutoCloseable {
                                    final ConfigurationPartMetadata metadata, final InputStream inputStream)
             throws IOException, OperatorCreationException {
         try {
-            Path contentLocation = Paths.get(instance, timestamp, metadata.getInstanceIdentifier(),
-                    metadata.getContentLocation());
+            Path servedRoot = Paths.get(instance, timestamp);
+            Path contentLocation = resolveWithinTargetDir(servedRoot,
+                    metadata.getInstanceIdentifier(), metadata.getContentLocation());
 
             encoder.startPart(MimeTypes.BINARY,
                     new String[]{

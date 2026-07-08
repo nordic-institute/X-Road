@@ -78,6 +78,7 @@ dependencies {
   testImplementation(libs.jsonUnit.assertj)
   testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
   testImplementation(testFixtures(project(":common:common-api-throttling")))
+  testImplementation(libs.systemStubs)
   testRuntimeOnly(libs.junit.vintageEngine)
 }
 

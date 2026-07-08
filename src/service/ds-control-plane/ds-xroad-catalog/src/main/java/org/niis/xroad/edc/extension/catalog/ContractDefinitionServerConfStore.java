@@ -63,6 +63,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
+    private final StoreEnumerationCache<ContractDefinition> cache;
     private final QueryEvaluator<ContractDefinition> queryEvaluator =
             new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
 
@@ -77,6 +78,11 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     @Override
     @Nullable
     public ContractDefinition findById(String definitionId) {
+        return cache.findById(definitionId, () -> findByIdInternal(definitionId));
+    }
+
+    @Nullable
+    private ContractDefinition findByIdInternal(String definitionId) {
         log.trace("findById definitionId={}", definitionId);
         if (definitionId == null || definitionId.isBlank()) {
             log.trace("findById definitionId blank, returning null");
@@ -135,8 +141,15 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findAll criteria={} offset={} limit={}",
                     spec.getFilterExpression(), spec.getOffset(), spec.getLimit());
         }
-        var definitions = new ArrayList<ContractDefinition>();
+        var snapshot = cache.getEnumeration(this::buildContractDefinitionList);
+        if (log.isTraceEnabled()) {
+            log.trace("findAll collected={} definitions before filtering", snapshot.size());
+        }
+        return queryEvaluator.evaluate(snapshot.stream(), spec);
+    }
 
+    private List<ContractDefinition> buildContractDefinitionList() {
+        var definitions = new ArrayList<ContractDefinition>();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 collectContractDefinitionsForService(serviceId, definitions);
@@ -148,11 +161,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
                 .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                         serviceId, managementParticipantContextId)));
-
-        if (log.isTraceEnabled()) {
-            log.trace("findAll collected={} definitions before filtering", definitions.size());
-        }
-        return queryEvaluator.evaluate(definitions.stream(), spec);
+        return definitions;
     }
 
     @Override

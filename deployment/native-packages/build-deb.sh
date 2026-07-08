@@ -87,10 +87,6 @@ function prepare {
 DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
-mkdir -p build/xroad
-rm -rf build/xroad/ubuntu
-cp -a src/xroad/ubuntu build/xroad/
-
 # version was not given, use empty
 if [ -z "$2" ]; then
   readonly PACKAGE_VERSION="$(date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
@@ -100,15 +96,23 @@ fi
 
 case "$1" in
     noble)
-        prepare ubuntu24.04
-        builddeb build/xroad/ubuntu noble ubuntu24.04 "$PACKAGE_VERSION"
+        DIST=noble
+        SUFFIX=ubuntu24.04
         ;;
     resolute)
-        prepare ubuntu26.04
-        builddeb build/xroad/ubuntu resolute ubuntu26.04 "$PACKAGE_VERSION"
+        DIST=resolute
+        SUFFIX=ubuntu26.04
         ;;
     *)
-        echo "Unsupported distribution $dist"
+        echo "Unsupported distribution $1"
         exit 1;
         ;;
 esac
+
+UBUNTU_BUILD="build/xroad/ubuntu-${DIST}"
+mkdir -p build/xroad
+rm -rf "$UBUNTU_BUILD"
+cp -a src/xroad/ubuntu "$UBUNTU_BUILD"
+
+prepare "$SUFFIX"
+builddeb "$UBUNTU_BUILD" "$DIST" "$SUFFIX" "$PACKAGE_VERSION"

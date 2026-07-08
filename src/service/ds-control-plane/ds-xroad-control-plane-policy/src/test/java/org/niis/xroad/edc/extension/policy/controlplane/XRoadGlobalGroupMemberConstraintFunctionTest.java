@@ -68,7 +68,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
     @Test
     void evaluateEqOperatorWhenMemberReturnsTrue() {
         when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "CS:myGlobalGroup", permission, context);
 
@@ -78,7 +78,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
     @Test
     void evaluateInOperatorWhenMemberReturnsTrue() {
         when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(true);
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.IN, "CS:myGlobalGroup", permission, context);
 
@@ -88,7 +88,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
     @Test
     void evaluateEqOperatorWhenNotMemberReturnsFalse() {
         when(globalConfProvider.isSubjectInGlobalGroup(any(ClientId.class), any(GlobalGroupId.class))).thenReturn(false);
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, "CS:myGlobalGroup", permission, context);
 
@@ -97,7 +97,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateUnsupportedOperatorReturnsFalse() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.NEQ, "CS:myGlobalGroup", permission, context);
 
@@ -107,7 +107,7 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
 
     @Test
     void evaluateNonStringRightValueReturnsFalse() {
-        var context = contextWithMember("CS:ORG:1234");
+        var context = contextWithMember("CS", "ORG", "1234");
 
         boolean result = function.evaluate(Operator.EQ, Integer.valueOf(42), permission, context);
 
@@ -115,8 +115,11 @@ class XRoadGlobalGroupMemberConstraintFunctionTest {
         assertThat(context.getProblems()).isNotEmpty();
     }
 
-    private CatalogPolicyContext contextWithMember(String memberId) {
-        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of("xrd:memberIdentifier", memberId));
+    private CatalogPolicyContext contextWithMember(String xroadInstance, String memberClass, String memberCode) {
+        var agent = new ParticipantAgent("test-id", Map.<String, Object>of(), Map.of(
+                "xrd:xroadInstance", xroadInstance,
+                "xrd:memberClass", memberClass,
+                "xrd:memberCode", memberCode));
         return new CatalogPolicyContext(agent);
     }
 }

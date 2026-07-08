@@ -259,6 +259,9 @@
     "backup_generation_failed": "Failed to generate backup",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
     "core": {
+      "op_monitor": {
+        "network_error": "Network error: Operational Monitoring is not available"
+      },
       "signer": {
         "cert_not_found": "Certification is not found",
         "key_not_found": "Key is not found",

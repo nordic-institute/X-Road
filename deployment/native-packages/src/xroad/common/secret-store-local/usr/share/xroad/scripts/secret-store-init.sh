@@ -80,11 +80,6 @@ configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
   exit 1
 }
 
-# Seed AES encryption key for ds-* services (idempotent).
-seed_ds_aes_key "$BAO_ADDR" "$BAO_TOKEN" || {
-  echo "Failed to seed DS AES key" >&2
-  exit 1
-}
 
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 

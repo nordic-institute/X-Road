@@ -48,10 +48,6 @@ dependencyResolutionManagement {
       mavenCentral()
     }
     mavenLocal()
-    maven {
-      //TODO Remove once EDC-V and org.eclipse.dataplane-core:dataplane-sdk artifacts are in Maven Central
-      url = uri("https://artifactory.niis.org/artifactory/xroad-external-snapshots/")
-    }
   }
 }
 
@@ -163,10 +159,12 @@ include("service:ds-control-plane:ds-xroad-asset-access-api")
 include("service:ds-control-plane:ds-xroad-asset-access-protocol")
 include("service:ds-identity-hub")
 include("service:ds-identity-hub:ds-identity-hub-application")
-include("service:ds-identity-hub:ds-identity-hub-db")
+include("service:ds-identity-hub:ds-identity-hub-xroad-claim")
 include("service:ds-identity-hub:ds-identity-hub-customization")
+include("service:ds-identity-hub:ds-identity-hub-db")
 include("service:ds-issuer-service")
 include("service:ds-issuer-service:ds-issuer-service-application")
+include("service:ds-issuer-service:ds-issuer-service-customization")
 
 // Tool projects
 include("tool")
@@ -174,6 +172,7 @@ include("tool:asic-verifier-cli")
 include("tool:migration-cli")
 include("tool:messagelog-archive-verifier")
 include("tool:test-framework-core")
+include("tool:api-test-core")
 include("tool:liquibase-executor")
 include("tool:otel-javaagent-dist")
 
@@ -190,8 +189,7 @@ include("central-server:admin-service:application")
 include("central-server:admin-service:ui")
 include("central-server:admin-service:infra-jpa")
 include("central-server:admin-service:globalconf-generator")
-include("central-server:admin-service:ui-system-test")
-include("central-server:admin-service:int-test")
+include("central-server:admin-service:api-test")
 include("central-server:admin-service:api-client")
 
 include("central-server:management-service")
@@ -208,7 +206,7 @@ include("security-server:openapi-model")
 include("security-server:admin-service")
 include("security-server:admin-service:application")
 include("security-server:admin-service:ui")
-include("security-server:system-test")
+include("security-server:api-test")
 include("security-server:e2e-test")
 
 // Tests

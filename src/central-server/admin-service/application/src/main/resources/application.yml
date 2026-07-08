@@ -2,6 +2,8 @@
 # test runtime has a separate application.properties
 
 spring:
+  application:
+    name: admin-service
   jpa:
     open-in-view: false
     hibernate:

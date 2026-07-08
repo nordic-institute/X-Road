@@ -60,6 +60,7 @@ external_service_bridges:
       - {name: proxy-ocsp, port: 5577, targetPort: 3240}
 
 deploy_prometheus: false
+deploy_netdata: true
 
 openbao_ha_replicas: 1
 openbao_global_tls_disable: true

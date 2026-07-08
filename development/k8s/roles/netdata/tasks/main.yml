@@ -1,0 +1,17 @@
+---
+- name: Add netdata helm repo
+  kubernetes.core.helm_repository:
+    name: netdata
+    repo_url: "{{ netdata_chart_repo }}"
+
+- name: Deploy Netdata
+  kubernetes.core.helm:
+    name: netdata
+    chart_ref: "{{ netdata_chart }}"
+    chart_version: "{{ netdata_chart_version | default(omit, true) }}"
+    release_namespace: "{{ monitoring_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ netdata_helm_timeout }}"
+    values: "{{ lookup('template', 'netdata-values.yaml.j2') | from_yaml }}"

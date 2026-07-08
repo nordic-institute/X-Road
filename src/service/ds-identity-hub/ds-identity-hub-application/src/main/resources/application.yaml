@@ -1,6 +1,10 @@
 quarkus:
   application:
     name: ds-identity-hub
+  arc:
+    unremovable-types:
+      - org.niis.xroad.signer.client.SignerRpcClient
+      - org.niis.xroad.signer.client.SignerSignClient
   config:
     locations:
       - xroad-common.yaml
@@ -60,10 +64,6 @@ edc:
       api:
         secret:
           path: /v1/xrd-ds-secret
-  encryption:
-    aes:
-      key:
-        alias: ds-aes-key
   datasource:
     default:
       url: ${xroad.db.ds-identity-hub.hibernate.connection.url}

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -59,6 +58,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Slf4j
@@ -133,7 +133,7 @@ public class ClientProxy {
         cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols());
         cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers());
 
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},
                 new SecureRandom());
 
@@ -200,6 +200,16 @@ public class ClientProxy {
     public void reloadAuthKey() {
         log.trace("reloadAuthKey()");
         reloadingSSLSocketFactory.reload();
+    }
+
+    /** Local port the client HTTP connector is bound to (OS-assigned when configured with {@code client-http-port=0}). */
+    public int getClientHttpPort() {
+        return Arrays.stream(server.getConnectors())
+                .filter(c -> CLIENT_HTTP_CONNECTOR_NAME.equals(c.getName()))
+                .filter(ServerConnector.class::isInstance)
+                .findFirst()
+                .map(c -> ((ServerConnector) c).getLocalPort())
+                .orElseThrow(() -> new IllegalStateException("Client HTTP connector not found"));
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {

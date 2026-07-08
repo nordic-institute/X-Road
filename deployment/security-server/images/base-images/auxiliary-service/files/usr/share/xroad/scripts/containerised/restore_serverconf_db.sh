@@ -137,6 +137,16 @@ EOF
 
   echo "Liquibase migration completed successfully."
 else
-  echo "Unsupported environment for Liquibase migration. Liquibase migration will not be run."
+  echo "Re-applying serverconf grants for non-Kubernetes containerized deployment..."
+  { cat <<EOF
+GRANT USAGE ON SCHEMA "$db_schema" TO "$db_user";
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA "$db_schema" TO "$db_user";
+GRANT SELECT,USAGE ON ALL SEQUENCES IN SCHEMA "$db_schema" TO "$db_user";
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA "$db_schema" TO "$db_user";
+REVOKE INSERT,UPDATE,DELETE ON databasechangelog, databasechangeloglock FROM "$db_user";
+REVOKE UPDATE,DELETE ON history FROM "$db_user";
+EOF
+  } | psql_adminuser || abort "Restoring database failed. Could not re-apply serverconf grants."
+  echo "Serverconf grants re-applied successfully."
 fi
 

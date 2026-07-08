@@ -73,10 +73,6 @@ excludes:
       reason: "BUILD_TOOL_OF"
       comment: "This directory contains packaging scripts."
 
-    - pattern: "src/security-server/system-test/**"
-      reason: "TEST_OF"
-      comment: "This directory contains tests."
-
     - pattern: "src/systemtest/op-monitoring/**"
       reason: "TEST_OF"
       comment: "This directory contains tests."

@@ -33,6 +33,7 @@ import io.smallrye.config.WithName;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorBufferProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitorConnectionProperties;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
@@ -181,6 +182,10 @@ public interface ProxyProperties {
         @WithDefault("3600")
         int clientProxyFastestConnectingSslUriCachePeriod();
 
+        @WithName("fastest-connecting-ssl-uri-unusable-period")
+        @WithDefault("180s")
+        Duration clientProxyFastestConnectingSslUriUnusablePeriod();
+
         @WithName("use-fastest-connecting-ssl-socket-autoclose")
         @WithDefault("true")
         boolean useSslSocketAutoClose();
@@ -196,6 +201,10 @@ public interface ProxyProperties {
         @WithName("pool-enable-connection-reuse")
         @WithDefault("false")
         boolean poolEnableConnectionReuse();
+
+        @WithName("enable-request-retry")
+        @WithDefault("true")
+        boolean enableRequestRetry();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.server")

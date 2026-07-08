@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: registration-service
   config:
     import:
       - classpath:/xroad-common.yaml

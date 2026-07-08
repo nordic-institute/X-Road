@@ -64,6 +64,13 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
      */
     static final String SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID = "xroad.dsp.management-participant-context-id";
 
+    static final String SETTING_CACHE_ENABLED = "xroad.dsp.catalog.cache.enabled";
+    static final String SETTING_CACHE_TTL_SECONDS = "xroad.dsp.catalog.cache.ttl-seconds";
+    static final String SETTING_CACHE_FIND_BY_ID_MAX_SIZE = "xroad.dsp.catalog.cache.find-by-id-max-size";
+
+    private static final long DEFAULT_CACHE_TTL_SECONDS = 60L;
+    private static final int DEFAULT_CACHE_FIND_BY_ID_MAX_SIZE = 10000;
+
     @Inject
     private ServerConfProvider serverConfProvider;
 
@@ -73,6 +80,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     private String participantContextId;
     private String managementParticipantContextId;
     private BuiltinServiceCatalog builtinServiceCatalog;
+    private StoreCacheConfig cacheConfig;
+    private AssetIndexServerConfStore assetIndexStore;
 
     @Override
     public String name() {
@@ -97,20 +106,31 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         builtinServiceCatalog = new BuiltinServiceCatalog(
                 serverConfProvider, proxyMonitorEnabled, opMonitorEnabled, metaservicesEnabled, serverProxyUrl);
         log.info("Built-in service catalog active entries: {}", builtinServiceCatalog.activeServiceIds().size());
+
+        var cacheEnabled = context.getSetting(SETTING_CACHE_ENABLED, true);
+        var cacheTtlSeconds = context.getSetting(SETTING_CACHE_TTL_SECONDS, DEFAULT_CACHE_TTL_SECONDS);
+        var cacheFindByIdMaxSize = context.getSetting(SETTING_CACHE_FIND_BY_ID_MAX_SIZE, DEFAULT_CACHE_FIND_BY_ID_MAX_SIZE);
+        cacheConfig = new StoreCacheConfig(cacheEnabled, cacheTtlSeconds, cacheFindByIdMaxSize);
+        log.info("Store cache enabled={} ttlSeconds={} findByIdMaxSize={}",
+                cacheEnabled, cacheTtlSeconds, cacheFindByIdMaxSize);
+
+        assetIndexStore = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId,
+                builtinServiceCatalog,
+                new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
+                        cacheConfig.findByIdMaxSize(), "AssetIndex"));
     }
 
     @Provider
     public AssetIndex assetIndex() {
         log.trace("Providing AssetIndex backed by ServerConf");
-        return new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId,
-                builtinServiceCatalog);
+        return assetIndexStore;
     }
 
     @Provider
     public DataAddressResolver dataAddressResolver() {
         log.trace("Providing DataAddressResolver delegating to ServerConf-backed AssetIndex");
-        return assetIndex();
+        return assetIndexStore;
     }
 
     @Provider
@@ -118,7 +138,9 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
         return new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(),
-                participantContextId, managementParticipantContextId, builtinServiceCatalog);
+                participantContextId, managementParticipantContextId, builtinServiceCatalog,
+                new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
+                        cacheConfig.findByIdMaxSize(), "PolicyDefinition"));
     }
 
     @Provider
@@ -127,6 +149,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         return new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider,
                 participantContextId, managementParticipantContextId,
-                builtinServiceCatalog);
+                builtinServiceCatalog,
+                new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
+                        cacheConfig.findByIdMaxSize(), "ContractDefinition"));
     }
 }

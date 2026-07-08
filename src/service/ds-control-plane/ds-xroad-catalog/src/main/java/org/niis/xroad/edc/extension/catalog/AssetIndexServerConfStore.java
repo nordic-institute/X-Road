@@ -61,6 +61,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
+    private final StoreEnumerationCache<Asset> cache;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
 
     /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
@@ -86,6 +87,14 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("queryAssets criteria={} offset={} limit={}",
                     querySpec.getFilterExpression(), querySpec.getOffset(), querySpec.getLimit());
         }
+        var snapshot = cache.getEnumeration(this::buildAssetList);
+        if (log.isTraceEnabled()) {
+            log.trace("queryAssets collected={} assets before filtering", snapshot.size());
+        }
+        return queryEvaluator.evaluate(snapshot.stream(), querySpec);
+    }
+
+    private List<Asset> buildAssetList() {
         var assets = new ArrayList<Asset>();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
@@ -100,15 +109,17 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId)));
-        if (log.isTraceEnabled()) {
-            log.trace("queryAssets collected={} assets before filtering", assets.size());
-        }
-        return queryEvaluator.evaluate(assets.stream(), querySpec);
+        return assets;
     }
 
     @Override
     @Nullable
     public Asset findById(String assetId) {
+        return cache.findById(assetId, () -> findByIdInternal(assetId));
+    }
+
+    @Nullable
+    private Asset findByIdInternal(String assetId) {
         log.trace("findById assetId={}", assetId);
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
@@ -159,6 +170,17 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("resolveForAsset assetId={} matched builtin, baseUrl={}", assetId, builtinServiceCatalog.serverProxyUrl());
             return buildHttpDataAddress(builtinServiceCatalog.serverProxyUrl());
         }
+        var cached = cache.getDataAddress(assetId);
+        if (cached != null) {
+            return cached;
+        }
+        var result = resolveForAssetInternal(assetId);
+        cache.cacheDataAddress(assetId, result);
+        return result;
+    }
+
+    @Nullable
+    private DataAddress resolveForAssetInternal(String assetId) {
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
             log.trace("resolveForAsset assetId={} decode failed, returning null", assetId);

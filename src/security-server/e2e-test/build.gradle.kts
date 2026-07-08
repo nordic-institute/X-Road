@@ -8,11 +8,14 @@ plugins {
 dependencies {
   intTestImplementation(project(":tool:test-framework-core"))
   intTestImplementation(libs.test.restassured)
-  intTestImplementation(libs.postgresql)
   intTestImplementation(project(":lib:asic-core"))
   intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:globalconf-impl"))
   intTestImplementation(project(":lib:vault-core"))
+  intTestImplementation(project(":service:op-monitor:op-monitor-core")) {
+    exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
+  }
 }
 
 intTestComposeEnv {

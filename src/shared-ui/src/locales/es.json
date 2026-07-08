@@ -169,6 +169,9 @@
     "backup_generation_failed": "No se pudo generar la copia de seguridad",
     "backup_restore_interrupted": "La restauración de la copia de seguridad ha sido interrumpida",
     "core": {
+      "op_monitor": {
+        "network_error": "Error de red: la monitorización de datos operativos no está disponible"
+      },
       "signer": {
         "cert_not_found": "No se encuentra el certificado",
         "key_not_found": "No se encuentra la clave",

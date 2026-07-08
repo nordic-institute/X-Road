@@ -112,7 +112,6 @@ class ConfigurationClientTest {
         assertEquals(2, receivedParts.size());
         assertTrue(receivedParts.contains(CONTENT_ID_PRIVATE_PARAMETERS));
         assertTrue(receivedParts.contains(CONTENT_ID_SHARED_PARAMETERS));
-
     }
 
     /**
@@ -131,7 +130,6 @@ class ConfigurationClientTest {
 
         try {
             client.execute();
-
             fail("Should fail to download");
         } catch (XrdRuntimeException expected) {
             assertEquals(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE.code(), expected.getErrorCode());
@@ -187,7 +185,7 @@ class ConfigurationClientTest {
                         int idx = downloadURL.lastIndexOf("?");
 
                         if (idx != -1) {
-                            downloadURL = downloadURL.substring(0, downloadURL.lastIndexOf("?"));
+                            downloadURL = downloadURL.substring(0, idx);
                         }
 
                         return new FileInputStream(downloadURL);

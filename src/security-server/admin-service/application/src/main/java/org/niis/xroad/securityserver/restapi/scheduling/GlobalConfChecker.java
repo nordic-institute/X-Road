@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -47,9 +48,8 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -64,6 +64,7 @@ import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -170,15 +171,20 @@ public class GlobalConfChecker {
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
-            if (adminServiceProperties.isAutoUpdateTimestampServiceUrl()) {
-                updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
-                                globalConfProvider.getInstanceIdentifier()),
-                        TimestampingServiceMapper.get().toTargets(serverConf.getTimestampingServices())
-                );
-            }
+            updateTimestampServices(serverConf);
         } catch (Exception e) {
             throw translateException(e);
         }
+    }
+
+    private void updateTimestampServices(ServerConfEntity serverConf) {
+        var globalTsps = globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
+        var localTsps = serverConf.getTimestampingServices();
+
+        if (adminServiceProperties.isAutoUpdateTimestampServiceUrl()) {
+            updateTimestampServiceUrls(globalTsps, localTsps);
+        }
+        updateTimestampServiceCostTypes(globalTsps, localTsps);
     }
 
     /**
@@ -188,9 +194,9 @@ public class GlobalConfChecker {
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database
      */
-    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TimestampingService> localTsps) {
-
-        for (TimestampingService localTsp : localTsps) {
+    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps,
+                                    List<TimestampingServiceEntity> localTsps) {
+        for (TimestampingServiceEntity localTsp : localTsps) {
             List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
                     .toList();
@@ -211,6 +217,44 @@ public class GlobalConfChecker {
                 }
             }
         }
+    }
+
+    /**
+     * Matches timestamping services in globalTsps with localTsps by name and checks if the cost types have changed.
+     * If the change is unambiguous, it's performed on localTsps. Otherwise, a warning is logged.
+     *
+     * @param globalTsps timestamping services from global configuration
+     * @param localTsps  timestamping services from local database
+     */
+    void updateTimestampServiceCostTypes(List<SharedParameters.ApprovedTSA> globalTsps,
+                                         List<TimestampingServiceEntity> localTsps) {
+        for (TimestampingServiceEntity localTsp : localTsps) {
+            List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
+                    .filter(g -> g.getName().equals(localTsp.getName()))
+                    .toList();
+            if (globalTspMatches.size() > 1) {
+                Optional<SharedParameters.ApprovedTSA> costTypeChanges = globalTspMatches.stream()
+                        .filter(t -> !Objects.equals(getCostTypeString(t.getCostType()), localTsp.getCostType()))
+                        .findAny();
+                if (costTypeChanges.isPresent()) {
+                    log.warn("Skipping timestamping service cost type update due to multiple services with the same name: {}",
+                            globalTspMatches.get(0).getName());
+                }
+            } else if (globalTspMatches.size() == 1) {
+                SharedParameters.ApprovedTSA globalTspMatch = globalTspMatches.get(0);
+                String globalCostType = getCostTypeString(globalTspMatch.getCostType());
+                if (!Objects.equals(globalCostType, localTsp.getCostType())) {
+                    log.info("Timestamping service cost type has changed in the global configuration. "
+                                    + "Updating the changes to the local configuration, Name: {}, Old cost type: {}, New cost type: {}",
+                            localTsp.getName(), localTsp.getCostType(), globalCostType);
+                    localTsp.setCostType(globalCostType);
+                }
+            }
+        }
+    }
+
+    private String getCostTypeString(CostType costType) {
+        return costType == null ? CostType.UNDEFINED.name() : costType.name();
     }
 
     private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {

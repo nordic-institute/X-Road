@@ -27,6 +27,8 @@
 
 package org.niis.xroad.proxy.core.test;
 
+import lombok.Getter;
+import org.apache.http.protocol.HttpContext;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -42,6 +44,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientRequestPreparationService;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -59,6 +62,7 @@ import org.niis.xroad.proxy.core.service.DefaultServiceAddressResolver;
 import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.proxy.core.service.MessageSigningService;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
+import org.niis.xroad.proxy.core.service.ServiceAddressResolver;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.ClientAuthenticationService;
@@ -67,6 +71,9 @@ import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 
+import javax.net.ssl.SSLSession;
+
+import java.net.URI;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -74,6 +81,7 @@ import static org.mockito.Mockito.mock;
 public class TestContext {
     final TestGlobalConfWrapper globalConfProvider;
     final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
+    @Getter
     final KeyConfProvider keyConfProvider;
     final TestServerConfWrapper serverConfProvider;
     final ProxyTestSuiteHelper proxyTestSuiteHelper;
@@ -90,6 +98,27 @@ public class TestContext {
     }
 
     public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
+        this(proxyTestSuiteHelper, startServerProxy, monitorRpcClient, null);
+    }
+
+    /**
+     * Creates a test context whose client proxy resolves service addresses with the given
+     * resolver instead of the default global configuration based one. Lets tests script the
+     * target addresses per resolve call (e.g. for connection failover and retry scenarios).
+     */
+    public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy, MonitorRpcClient monitorRpcClient,
+                       ServiceAddressResolver serviceAddressResolverOverride) {
+        this(proxyTestSuiteHelper, startServerProxy, monitorRpcClient, serviceAddressResolverOverride, null);
+    }
+
+    /**
+     * Creates a test context whose client proxy additionally notifies the given listener each
+     * time it finishes verifying a newly established server proxy connection (i.e.
+     * {@code AuthTrustVerifier.verify(...)} returned). Lets tests order events relative to the
+     * client proxy's connection establishment (e.g. for connection failover and retry scenarios).
+     */
+    public TestContext(ProxyTestSuiteHelper proxyTestSuiteHelper, boolean startServerProxy, MonitorRpcClient monitorRpcClient,
+                       ServiceAddressResolver serviceAddressResolverOverride, Runnable authTrustVerifiedListener) {
         try {
             org.apache.xml.security.Init.init();
 
@@ -104,21 +133,31 @@ public class TestContext {
 
             CertHelper certHelper = new CertHelper(globalConfProvider, ocspVerifierFactory);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
-                    globalConfProvider, keyConfProvider, certHelper);
+                    globalConfProvider, keyConfProvider, certHelper) {
+                @Override
+                protected void verify(HttpContext context, SSLSession sslSession, URI selectedAddress) {
+                    super.verify(context, sslSession, selectedAddress);
+                    if (authTrustVerifiedListener != null) {
+                        authTrustVerifiedListener.run();
+                    }
+                }
+            };
             ClientAuthenticationService clientAuthenticationService = new ClientAuthenticationService(
                     serverConfProvider, mock(NoopVaultKeyProvider.class), proxyProperties);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
+            var unusableAddressTracker = new UnusableAddressTracker(proxyProperties);
             var httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                    .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory);
+                    .proxyHttpClient(proxyProperties, authTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
             HttpClientCreator httpClientCreator = new HttpClientCreator(serverConfProvider,
                     proxyProperties.clientProxy().clientTlsProtocols(), proxyProperties.clientProxy().clientTlsCiphers());
             var opMonitoringDataHelper = new OpMonitoringDataHelper(globalConfProvider, serverConfProvider);
             var httpSenderProvider = new HttpSenderProvider(httpClient, httpClientCreator.getHttpClient(), proxyProperties);
             var messageSigningService = new MessageSigningService(keyConfProvider, signingCtxProvider);
-            var providerSecurityServerResolver = new ProviderSecurityServerResolver(globalConfProvider);
-            var serviceAddressResolver = new DefaultServiceAddressResolver(
-                    globalConfProvider, proxyProperties, providerSecurityServerResolver);
+            var serviceAddressResolver = serviceAddressResolverOverride != null
+                    ? serviceAddressResolverOverride
+                    : new DefaultServiceAddressResolver(globalConfProvider, proxyProperties,
+                            new ProviderSecurityServerResolver(globalConfProvider));
             var clientVerificationService = new ClientVerificationService(serverConfProvider, clientAuthenticationService,
                     globalConfProvider, proxyProperties, certHelper);
 
@@ -128,7 +167,7 @@ public class TestContext {
                     globalConfProvider);
             MetadataHandler metadataHandler = new MetadataHandler(metadataProcessor);
             var clientRequestPreparationService = new ClientRequestPreparationService(
-                    serviceAddressResolver, proxyProperties, opMonitoringDataHelper);
+                    serviceAddressResolver, proxyProperties, opMonitoringDataHelper, unusableAddressTracker);
             clientRequestPreparationService.init();
             var clientSoapMessageProcessor = new ClientSoapMessageProcessor(
                     messageSigningService, httpSenderProvider,
@@ -177,6 +216,16 @@ public class TestContext {
         } catch (Exception e) {
             throw new RuntimeException("Init failed", e);
         }
+    }
+
+    /** Port the server proxy is bound to (OS-assigned when configured with {@code listen-port=0}). */
+    public int getServerProxyListenPort() {
+        return serverProxy.getListenPort();
+    }
+
+    /** Port the client proxy HTTP connector is bound to (OS-assigned when configured with {@code client-http-port=0}). */
+    public int getClientHttpPort() {
+        return clientProxy.getClientHttpPort();
     }
 
     public void destroy() {

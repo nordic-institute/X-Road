@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.niis.xroad.common.vault.VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
@@ -61,6 +62,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String COMPOSE_SS_SOFTTOKEN_SIGNER_FILE = "compose.ss-softtoken-signer-enabled.e2e.yaml";
     private static final String COMPOSE_SS_MSGLOG_ENCRYPTION = "compose.ss-msglog-encryption.e2e.yaml";
     private static final String COMPOSE_SS_MSGLOG_CLI = "compose.ss-msglog.e2e.yaml";
+    private static final String COMPOSE_SS_OPMONITOR_FILE = "compose.ss-opmonitor.e2e.yaml";
 
     private static final String CS = "cs";
     private static final String OPENBAO = "openbao";
@@ -71,6 +73,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String CONFIGURATION_CLIENT = "configuration-client";
     private static final String AUX_SERVICE = "auxiliary-service";
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
+    private static final String OP_MONITOR_SERVICE = "op-monitor";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
     public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
@@ -111,7 +114,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
-        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER));
+        envSs0 = createSSEnvironment("ss0", Set.of(Feature.BATCH_SIGNATURES, Feature.SOFTTOKEN_SIGNER, Feature.OP_MONITOR));
 
         envSs1 = createSSEnvironment("ss1", Set.of(Feature.HSM, Feature.MESSAGE_LOG_ENCRYPTION));
 
@@ -167,9 +170,11 @@ public class EnvSetup extends BaseComposeSetup {
         var env = new ComposeContainer(name + "-", files)
                 .withEnv("ENV_PREFIX", name + "-")
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
+                .withEnv("DSP_MGMT_CONTEXT", "true")
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
+                .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
-                .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
+                .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
@@ -184,6 +189,10 @@ public class EnvSetup extends BaseComposeSetup {
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
+        }
+
+        if (features.contains(Feature.OP_MONITOR)) {
+            env.withLogConsumer(OP_MONITOR_SERVICE, createLogConsumer(name, OP_MONITOR_SERVICE));
         }
 
         env.start();
@@ -234,9 +243,32 @@ public class EnvSetup extends BaseComposeSetup {
                             .orElse(false);
                 });
 
-        var gracePeriod = Duration.ofSeconds(60); //match globalconf refresh
-        log.info("Waiting grace period of {} before continuing..", gracePeriod);
+        awaitProxyReadiness("ss0");
+        awaitProxyReadiness("ss1");
+
+        var gracePeriod = Duration.ofSeconds(20);
+        log.info("Waiting grace period of {} for global configuration to propagate..", gracePeriod);
         await().pollDelay(gracePeriod).timeout(gracePeriod.plusMinutes(1)).until(() -> true);
+    }
+
+    @SuppressWarnings("checkstyle:magicnumber")
+    private void awaitProxyReadiness(String env) {
+        var mapping = getContainerMapping(env, PROXY, Port.PROXY_HEALTHCHECK);
+        var readinessUrl = "http://%s:%d/q/health/ready".formatted(mapping.host(), mapping.port());
+        log.info("Waiting for {} proxy readiness at {}", env, readinessUrl);
+
+        await()
+                .atMost(Duration.ofMinutes(5))
+                .pollInterval(Duration.ofSeconds(5))
+                .ignoreExceptions()
+                .until(() -> {
+                    var json = given().get(readinessUrl).jsonPath();
+                    var overall = json.getString("status");
+                    var authKeyOcsp = json.getString(
+                            "checks.find { it.name == 'PROXY_AUTH_KEY_OCSP_READINESS_CHECK' }.data.status");
+                    log.info("{} proxy readiness: status={}, authKeyOcsp={}", env, overall, authKeyOcsp);
+                    return "UP".equals(overall) && "OK".equals(authKeyOcsp);
+                });
     }
 
     @Override
@@ -254,6 +286,16 @@ public class EnvSetup extends BaseComposeSetup {
 
     public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
         return mapEnvironment(env).getContainerByServiceName(serviceName);
+    }
+
+    @SneakyThrows
+    public String execMessagelogSql(String env, String sql) {
+        var container = getContainerByServiceName(env, DB_MESSAGELOG).orElseThrow();
+        var result = container.execInContainer("psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("psql query on %s failed: %s".formatted(env, result.getStderr()));
+        }
+        return result.getStdout().trim();
     }
 
     public ContainerMapping getContainerMapping(String env, String serviceName, int originalPort) {
@@ -276,7 +318,7 @@ public class EnvSetup extends BaseComposeSetup {
     public static class Port {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
-        public static final int DB = 5432;
+        public static final int PROXY_HEALTHCHECK = 5588;
         public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
         public static final int IDENTITY_HUB_IDENTITY = 7182;
@@ -289,7 +331,8 @@ public class EnvSetup extends BaseComposeSetup {
         HSM(COMPOSE_SS_HSM_FILE),
         BATCH_SIGNATURES(COMPOSE_SS_BATCH_SIGNATURES_FILE),
         SOFTTOKEN_SIGNER(COMPOSE_SS_SOFTTOKEN_SIGNER_FILE),
-        MESSAGE_LOG_ENCRYPTION(COMPOSE_SS_MSGLOG_ENCRYPTION);
+        MESSAGE_LOG_ENCRYPTION(COMPOSE_SS_MSGLOG_ENCRYPTION),
+        OP_MONITOR(COMPOSE_SS_OPMONITOR_FILE);
 
         private final String composeFile;
 

@@ -26,9 +26,14 @@
 package org.niis.xroad.confclient.common.service;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.confclient.common.domain.ConfigurationFile;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
@@ -38,6 +43,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static ee.ria.xroad.common.TestExceptionUtils.xrdRuntimeException;
@@ -48,7 +56,21 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests to verify configuration parser functionality.
  */
+@Execution(ExecutionMode.SAME_THREAD)
 class ConfigurationParserTest {
+
+    private Clock previousClock;
+
+    @BeforeEach
+    void pinClockBeforeFixtureExpiry() {
+        previousClock = TimeUtils.getClock();
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
+    }
+
+    @AfterEach
+    void restoreClock() {
+        TimeUtils.setClock(previousClock);
+    }
 
     /**
      * Test to ensure the parser succeeds on a simple configuration.
@@ -115,6 +137,20 @@ class ConfigurationParserTest {
                                 TestCertUtil.getConsumer().certChain[0],
                                 "EE", "http://foo.bar.baz")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE));
+    }
+
+    /**
+     * Test to ensure the parser rejects a validly-signed part whose instance identifier
+     * does not match the source that delivered it (cross-instance configuration poisoning).
+     */
+    @Test
+    void parseConfRejectsPartFromForeignInstance() {
+        assertThatThrownBy(() ->
+                parse("src/test/resources/test-conf-simple",
+                        getConfigurationSource(
+                                TestCertUtil.getConsumer().certChain[0],
+                                "FI", "http://foo.bar.baz")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
     }
 
     /**

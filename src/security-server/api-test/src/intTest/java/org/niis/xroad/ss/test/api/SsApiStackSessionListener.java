@@ -1,0 +1,62 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.ss.test.api;
+
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
+
+/**
+ * Boots the Security Server stack once per JVM launcher session. Registered via SPI so the stack is
+ * available before any suite or test class runs.
+ */
+@Slf4j
+public class SsApiStackSessionListener extends AbstractApiStackSessionListener {
+
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var properties = ApiTestConfigSource.getInstance().getCoreProperties();
+        var setup = new SsApiTestContainerSetup(properties);
+        log.info("Starting browserless Security Server stack");
+        setup.start();
+        return setup;
+    }
+
+    @Override
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        var seeder = new SsBaselineSeeder((SsApiTestContainerSetup) setup);
+        seeder.ensureBaseline();
+        return seeder;
+    }
+
+    @Override
+    protected void afterBaseline(BaseComposeSetup setup) {
+        ((SsApiTestContainerSetup) setup).bootstrapDsp();
+    }
+}

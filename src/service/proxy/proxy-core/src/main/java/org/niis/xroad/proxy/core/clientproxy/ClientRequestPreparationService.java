@@ -53,6 +53,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_SELECTED_TARGET;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 /**
@@ -70,6 +71,7 @@ public class ClientRequestPreparationService {
     private final ServiceAddressResolver serviceAddressResolver;
     private final ProxyProperties proxyProperties;
     private final OpMonitoringDataHelper opMonitoringDataHelper;
+    private final UnusableAddressTracker unusableAddressTracker;
 
     @Getter
     private URI dummyServiceAddress;
@@ -172,5 +174,58 @@ public class ClientRequestPreparationService {
         }
 
         return addresses;
+    }
+
+    /**
+     * Marks the selected target address as unusable if the given exception was caused by a TLS
+     * handshake failure. Covers handshake failures that surface only during request execution
+     * (e.g. a TLS 1.3 server proxy rejecting the client certificate after the handshake completed).
+     *
+     * <p>Marking is skipped when only one address was resolved: the failure cooldown exists to
+     * steer selection and retry towards alternative security servers, and with a single address
+     * it would instead fail fast all traffic to the provider for the cooldown period, turning a
+     * transient handshake failure into a self-inflicted outage.
+     *
+     * @param httpSender the HTTP sender whose request failed
+     * @param exception  the failure to inspect for a TLS handshake error
+     */
+    public void markAddressUnusableIfHandshakeFailure(HttpSender httpSender, Throwable exception) {
+        if (UnusableAddressTracker.isHandshakeFailure(exception)
+                && httpSender.getAttribute(ID_TARGETS) instanceof URI[] targets
+                && targets.length > 1
+                && httpSender.getAttribute(ID_SELECTED_TARGET) instanceof URI selectedTarget) {
+            unusableAddressTracker.markUnusable(selectedTarget);
+        }
+    }
+
+    /**
+     * Tells whether any of the given target addresses is currently usable, i.e. not within the
+     * TLS handshake failure cooldown period.
+     *
+     * @param addresses candidate target addresses
+     * @return true if at least one address is usable
+     */
+    public boolean hasUsableAddresses(URI[] addresses) {
+        return unusableAddressTracker.filterUsable(addresses).length > 0;
+    }
+
+    /**
+     * Tells whether a failed send attempt may be retried towards another security server: only
+     * TLS handshake failures qualify, the attempt count is capped at the number of resolved
+     * addresses (so each available security server is tried at most once even when failure
+     * cooldown tracking is disabled), and at least one address must remain outside the failure
+     * cooldown. Anything else propagates to the caller unchanged.
+     *
+     * @param exception the failure to inspect
+     * @param targets   the resolved target addresses of the failed attempt (the ID_TARGETS
+     *                  attribute of the failed sender), or null if address resolution never ran
+     * @param attempt   the number of the failed attempt, starting from 1
+     * @return true if a retry attempt may be made
+     */
+    public boolean shouldRetry(Throwable exception, Object targets, int attempt) {
+        return UnusableAddressTracker.isHandshakeFailure(exception)
+                && targets instanceof URI[] addresses
+                && attempt < addresses.length
+                && hasUsableAddresses(addresses);
     }
 }

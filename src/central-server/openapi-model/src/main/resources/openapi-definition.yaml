@@ -4712,9 +4712,9 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          MEMBER: "ClientId"
-          SERVER: "SecurityServerId"
-          SUBSYSTEM: "ClientId"
+          MEMBER: "#/components/schemas/ClientId"
+          SERVER: "#/components/schemas/SecurityServerId"
+          SUBSYSTEM: "#/components/schemas/ClientId"
       properties:
         instance_id:
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
@@ -4816,17 +4816,17 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          AUTH_CERT_REGISTRATION_REQUEST: "AuthenticationCertificateRegistrationRequest"
-          AUTH_CERT_DELETION_REQUEST: "AuthenticationCertificateDeletionRequest"
-          CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
-          CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
-          CLIENT_DISABLE_REQUEST: "ClientDisableRequest"
-          CLIENT_ENABLE_REQUEST: "ClientEnableRequest"
-          CLIENT_RENAME_REQUEST: "ClientRenameRequest"
-          OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
-          ADDRESS_CHANGE_REQUEST: "AddressChangeRequest"
-          MAINTENANCE_MODE_ENABLE_REQUEST: "MaintenanceModeEnableRequest"
-          MAINTENANCE_MODE_DISABLE_REQUEST: "MaintenanceModeDisableRequest"
+          AUTH_CERT_REGISTRATION_REQUEST: "#/components/schemas/AuthenticationCertificateRegistrationRequest"
+          AUTH_CERT_DELETION_REQUEST: "#/components/schemas/AuthenticationCertificateDeletionRequest"
+          CLIENT_REGISTRATION_REQUEST: "#/components/schemas/ClientRegistrationRequest"
+          CLIENT_DELETION_REQUEST: "#/components/schemas/ClientDeletionRequest"
+          CLIENT_DISABLE_REQUEST: "#/components/schemas/ClientDisableRequest"
+          CLIENT_ENABLE_REQUEST: "#/components/schemas/ClientEnableRequest"
+          CLIENT_RENAME_REQUEST: "#/components/schemas/ClientRenameRequest"
+          OWNER_CHANGE_REQUEST: "#/components/schemas/OwnerChangeRequest"
+          ADDRESS_CHANGE_REQUEST: "#/components/schemas/AddressChangeRequest"
+          MAINTENANCE_MODE_ENABLE_REQUEST: "#/components/schemas/MaintenanceModeEnableRequest"
+          MAINTENANCE_MODE_DISABLE_REQUEST: "#/components/schemas/MaintenanceModeDisableRequest"
       properties:
         id:
           type: integer

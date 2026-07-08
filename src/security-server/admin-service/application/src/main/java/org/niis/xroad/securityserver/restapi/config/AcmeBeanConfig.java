@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
@@ -87,6 +88,10 @@ public class AcmeBeanConfig {
                     .getProperty("xroad.proxy-ui-api.acme-renewal-active", "true"));
             if (!isActive) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
+            }
+            if (NodeProperties.isSecondaryNode()) {
+                log.info("This is a secondary cluster node, ACME certificate renewal job auto-scheduling disabled");
+                return false;
             }
             return isActive;
         }

@@ -818,6 +818,38 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 
 HTTP 201
 
+# =============================================================================
+# Provision X-Road membership credentials via the proxy-ui-api data space endpoint.
+# Runs AFTER the SIGN certs above, BEFORE the client/service registration below:
+# the registration steps perform DSP catalog requests that require the member's
+# membership credential. The endpoint is idempotent and re-submits failed
+# credential requests with a fresh holder request id, so retrying here converges
+# to ISSUED once the SIGN cert OCSP response and global conf have propagated.
+# =============================================================================
+
+# Gate: issuer DID document is published (200 with full JSON, not 204).
+GET https://{{is_host}}:{{is_did_port}}/issuer/did.json
+
+HTTP 200
+[Asserts]
+jsonpath "$.id" == "did:web:{{is_host}}%3A{{is_did_port}}:issuer"
+
+# SS0 DS provisioning
+POST https://{{ss0_host}}:4000/api/v1/system/dataspace-provisioning
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ISSUED"
+
+# SS1 DS provisioning
+POST https://{{ss1_host}}:4000/api/v1/system/dataspace-provisioning
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+[Asserts]
+jsonpath "$.status" == "ISSUED"
+
 # Add TestClient to SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/clients
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -1107,6 +1139,8 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     }
   ]
 }
+
+HTTP 201
 
 # Enable soap service on ss0
 PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_service_service_id}}/enable
