@@ -138,6 +138,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE("global_conf_signature_verification_failure"),
     GLOBAL_CONF_PARSING_DOWNLOADED_CONF_DIRECTORY_FAILURE("global_conf_parsing_downloaded_conf_directory_failure"),
     GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER("global_conf_part_invalid_instance_identifier"),
+    GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER("global_conf_part_blank_instance_identifier"),
     GLOBAL_CONF_PART_RESERVED_FILE_NAME("global_conf_part_reserved_file_name"),
     GLOBAL_CONF_PART_DUPLICATE_TARGET("global_conf_part_duplicate_target"),
     GLOBAL_CONF_PART_DOWNLOAD_FAILURE("global_conf_part_download_failure"),
