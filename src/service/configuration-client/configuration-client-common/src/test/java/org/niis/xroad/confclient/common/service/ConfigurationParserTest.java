@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.confclient.common.domain.Configuration;
 import org.niis.xroad.confclient.common.domain.ConfigurationFile;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
@@ -177,9 +178,6 @@ class ConfigurationParserTest {
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE));
     }
 
-    /**
-     * A non-numeric value in the Version header must be rejected with GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE.
-     */
     @Test
     void parseConfRejectsNonNumericVersion() {
         assertThatThrownBy(() ->
@@ -190,16 +188,31 @@ class ConfigurationParserTest {
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE));
     }
 
-    /**
-     * A valid numeric version in the Version header must parse without error.
-     */
     @Test
     void parseConfAcceptsNumericVersion() throws Exception {
-        List<ConfigurationFile> files = parseFromBytes(buildSignedConf("3"),
+        Configuration configuration = parseConfigurationFromBytes(buildSignedConf("3"),
                 getConfigurationSource(
                         TestCertUtil.getConsumer().certChain[0],
                         "EE", "http://foo.bar.baz"));
-        assertThat(files).isNotNull();
+        assertThat(configuration.getVersion()).isEqualTo("3");
+    }
+
+    @Test
+    void parseConfNormalizesVersionWithSurroundingWhitespace() throws Exception {
+        Configuration configuration = parseConfigurationFromBytes(buildSignedConf(" 3 "),
+                getConfigurationSource(
+                        TestCertUtil.getConsumer().certChain[0],
+                        "EE", "http://foo.bar.baz"));
+        assertThat(configuration.getVersion()).isEqualTo("3");
+    }
+
+    @Test
+    void parseConfTreatsEmptyVersionAsAbsent() throws Exception {
+        Configuration configuration = parseConfigurationFromBytes(buildSignedConf(""),
+                getConfigurationSource(
+                        TestCertUtil.getConsumer().certChain[0],
+                        "EE", "http://foo.bar.baz"));
+        assertThat(configuration.getVersion()).isNull();
     }
 
     // ------------------------------------------------------------------------
@@ -240,6 +253,12 @@ class ConfigurationParserTest {
 
     private static List<ConfigurationFile> parseFromBytes(byte[] content,
                                                           ConfigurationSource source) {
+        Configuration configuration = parseConfigurationFromBytes(content, source);
+        return configuration != null ? configuration.getFiles() : null;
+    }
+
+    private static Configuration parseConfigurationFromBytes(byte[] content,
+                                                              ConfigurationSource source) {
         ConfigurationParser.HASH_TO_CERT.clear();
 
         if (!source.getLocations().isEmpty()) {
@@ -250,7 +269,7 @@ class ConfigurationParserTest {
                 }
             };
 
-            return parser.parse(source.getLocations().getFirst()).getFiles();
+            return parser.parse(source.getLocations().getFirst());
         }
 
         return null;

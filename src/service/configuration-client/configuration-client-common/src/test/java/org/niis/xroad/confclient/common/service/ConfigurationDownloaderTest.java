@@ -193,6 +193,76 @@ class ConfigurationDownloaderTest {
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
     }
 
+    @Test
+    void duplicateTargetRejectionLeavesNoPartialWriteOnDisk() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, "content-a".getBytes()),
+                new ConfigurationDownloader.DownloadedContent(partB, "content-b".getBytes())
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+
+        AssertionsForClassTypes.assertThat(new File(tempDir, "EE/custom.xml")).doesNotExist();
+    }
+
+    @Test
+    void blankInstancePartIsSkippedAndValidPartsStillDownload() {
+        ConfigurationDownloader downloader = getContentStubbingDownloader(3);
+        Configuration configuration = new Configuration(
+                new ConfigurationLocation("EE", LOCATION_HTTPS_URL_SUCCESS, List.of()));
+        configuration.getFiles().add(genericPartWithInstance("/good.xml", "EE"));
+        configuration.getFiles().add(genericPart("/bad.xml"));
+
+        List<ConfigurationDownloader.DownloadedContent> result = downloader.downloadAllContent(configuration);
+
+        assertEquals(1, result.size());
+        assertEquals("/good.xml", result.getFirst().file.getContentLocation());
+    }
+
+    private static ConfigurationFile genericPart(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private ConfigurationDownloader getContentStubbingDownloader(int confVersion) {
+        var connectionConfigurer = new HttpUrlConnectionConfigurer(clientProperties);
+        return new ConfigurationDownloader(connectionConfigurer, clientProperties.globalConfDir(), confVersion) {
+            @Override
+            protected byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
+                return "content".getBytes();
+            }
+
+            @Override
+            void verifyContent(byte[] content, ConfigurationFile file) {
+                // downloaded content is synthetic in this test; hash verification is exercised elsewhere
+            }
+        };
+    }
+
+    @Test
+    void duplicateTargetIsRejectedCaseInsensitively() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/Custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
     private static ConfigurationFile genericPartWithInstance(String contentLocation, String instance) {
         Map<String, String> headers = new HashMap<>();
         headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");

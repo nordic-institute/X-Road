@@ -65,7 +65,7 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getFileName(sharedParamsPart("..")))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
     }
 
     @Test
@@ -73,7 +73,55 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getConfigurationDirectory(".."))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
+    }
+
+    @Test
+    void dotInstanceResolvingOntoRootIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPartWithInstance("/custom.xml", ".")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
+    }
+
+    @Test
+    void dotConfigurationDirectoryResolvingOntoRootIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getConfigurationDirectory("."))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
+    }
+
+    @Test
+    void nullInstanceIdentifierIsRejectedNotNpe() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPartWithNoInstanceParam("/foo.xml")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
+    }
+
+    @Test
+    void genericPartCollidingWithInstanceIdentifierControlFileIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/nested/instance-identifier")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_RESERVED_FILE_NAME));
+    }
+
+    @Test
+    void genericPartCollidingWithFilesControlFileIsRejected() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/nested/files")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_RESERVED_FILE_NAME));
+    }
+
+    @Test
+    void genericPartCollidingWithReservedNameIsRejectedCaseInsensitively() {
+        FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
+
+        assertThatThrownBy(() -> provider.getFileName(genericPart("/nested/Shared-Params.XML")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_RESERVED_FILE_NAME));
     }
 
     @Test
@@ -129,8 +177,8 @@ class FileNameProviderImplTest {
     void blankInstanceGenericPartWithNonReservedNameIsRejected() {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
-        assertThatThrownBy(() -> provider.getFileName(genericPart("/foo.xml")))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+        assertThatThrownBy(() -> provider.getFileName(genericPartWithInstance("/foo.xml", "")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
     }
 
     @Test
@@ -138,7 +186,7 @@ class FileNameProviderImplTest {
         FileNameProviderImpl provider = new FileNameProviderImpl(globalConfDir.toString());
 
         assertThatThrownBy(() -> provider.getConfigurationDirectory(""))
-                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER));
     }
 
     private static ConfigurationFile sharedParamsPart(String instanceIdentifier) {
@@ -167,6 +215,16 @@ class FileNameProviderImplTest {
         headers.put(HEADER_CONTENT_LOCATION, contentLocation);
         headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
         headers.put(HEADER_CONTENT_IDENTIFIER, "CUSTOM-EXTENSION; instance='%s'".formatted(instanceIdentifier));
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private static ConfigurationFile genericPartWithNoInstanceParam(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, HASH_ALGORITHM_ID);
+        headers.put(HEADER_CONTENT_IDENTIFIER, "CUSTOM-EXTENSION");
         return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 }
