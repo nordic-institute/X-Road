@@ -487,55 +487,19 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // --- Auth tokens (without "Bearer " prefix — REST Assured .auth().oauth2() adds it) ---
 
-    // Control Plane management API tokens (scope: management-api:admin)
     static class ControlPlaneAuthTokens {
-        static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg"
-                + "5In0.eyJpc3MiO"
-                + "iJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYj"
-                + "JiNDFlZWRmYSIsInN1YiI6ImFkbWluLXN1YmplY3QiLCJyb2xlIjoicHJvdmlzaW9uZXIiLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOmF"
-                + "kbWluIn0.rAHlW7TOCYxrnk5mveHVLxJEJIN_EhgjkeuPOxcbx4SZid7xUj0hV_kv6u5vuCih9Uy-19jZTV5oIx2AXfjhXJfrdILDcc4w"
-                + "1SCHXp51Bc8q3uu8fuZVUlDe42kjE6vcY78ZfcQn4LjRO8BkaEwhc2EeUZb5IBSHgpShwrrkmiLwI6zEL1EV730ou_kOO4Li6AVGlm-CL"
-                + "OzLYCFl-cGsZ-w0nSwhPGPR1P5xeDITmZAkfCNveZDdw72KoPI040nan6fAo_GSQZuxTvYA1iJpOIgM0FlESBmrHjR9gaDE5h78Wm111-"
-                + "2OPTGQPDKRqSsudoEQM55NIIREfxyfkRaRlw";
-
-        // Participant-role tokens bound to each SS's control-plane participant context (xrd-ss0 / xrd-ss1).
-        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y"
-                + "4ODg5In0.eyJpc3MiO"
-                + "iJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMD"
-                + "AwMDAwMDBzczAiLCJzdWIiOiJ4cmQtc3MwIiwicm9sZSI6InBhcnRpY2lwYW50IiwicGFydGljaXBhbnRfY29udGV4dF9pZCI6InhyZC1"
-                + "zczAiLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOndyaXRlIG1hbmFnZW1lbnQtYXBpOnJlYWQifQ.HNkk7f7y1BBiGkJ24phJ44DLyv54y"
-                + "LjAtU9W_brMVVuTp4Kx_bdESeXxvr8t5wvbqKYfZYcJelGGJwX-vdiS9qkEpU3_XpkkOmEASTr2yXtS2CLI627gGlXdbO2gquattqP-j0"
-                + "No9VNDzzfOb67AF01fFgmxNH82WdGmxNI9b5Za3O1b80bZ-7eMPLc6yRsQ_rpxNTHMi26WdSXExTJ6Lfqv2LMywa68ixd2oHvznLDNgul"
-                + "jfkj-qE8AK9g2vIaNaq7SAyBhJMof-13_5WrBhXmKp2wjU1oxkK5WnmjjGNpb2CuiJRKK8xWIK98QvbglxaUYsd7GdWSaKzOk0PJcRw";
-
-        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y"
-                + "4ODg5In0.eyJpc3MiO"
-                + "iJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMD"
-                + "AwMDAwMDBzczEiLCJzdWIiOiJ4cmQtc3MxIiwicm9sZSI6InBhcnRpY2lwYW50IiwicGFydGljaXBhbnRfY29udGV4dF9pZCI6InhyZC1"
-                + "zczEiLCJzY29wZSI6Im1hbmFnZW1lbnQtYXBpOndyaXRlIG1hbmFnZW1lbnQtYXBpOnJlYWQifQ.ooOQ2r-STrgTDxJgnNkRllEp-tWTR"
-                + "MFZpTqQ_o9MYvfD0JMurpPDhtlzi1hr3oBdopmtgg_erBbszn_TtbabbQfZSxWSy0cWzhbVNC5k-4WA3-zN2fY96FpsqapQpv3Bf62XgO"
-                + "3T7DgspzhqXPJ0FzfQHnncKjJvOGYt7R_AtsHtBJsPx_ACVYQwxMh91cnKQ5PWDqbRPO3up1kHF4aTKSOCvGhhE_11-8hIf_33t8lTkCu"
-                + "vzHSHcrIEEFSp4DsgQ8Cmz6N_VJVvQzmGgVOsPhes5sq6FnLYvXrSN9JwF-sA3rK5tuVjPz7Um3MgUPXGYZii_FJRlsNdJIZs8eAAmA";
+        static final String PROVISIONER = DsTokenFactory.provisionerToken();
 
         static String forContext(String participantContext) {
             return switch (participantContext) {
-                case "xrd-ss0" -> PARTICIPANT_SS0;
-                case "xrd-ss1" -> PARTICIPANT_SS1;
+                case "xrd-ss0", "xrd-ss1" -> DsTokenFactory.participantToken(participantContext);
                 default -> throw new IllegalArgumentException("No participant token for context: " + participantContext);
             };
         }
     }
 
-    // Issuer admin API token: participant role bound to the "issuer" participant context
-    // (scope: issuer-admin-api:admin), signed by mock-jwks-server.
     static class IssuerAuthTokens {
-        static final String PARTICIPANT = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YT"
-                + "c0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZD"
-                + "M1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOi"
-                + "Jpc3N1ZXIiLCJzY29wZSI6Imlzc3Vlci1hZG1pbi1hcGk6YWRtaW4ifQ.p3HN6vMlOdT581gP0LmGXKtJzvJ2KGlpto3asDzM7Fhs85k"
-                + "ZDOuc2okal3_8i59FoEkLqlDl2yCNQz1eygk1hdTYDM6WcgkEvXM_wiFfMZKD3Ob-mjf7MAR72_h6SqVIx8mD0IdheoFcLHudvPZ19du4"
-                + "jLRXV1q0TddX3ycu-iSCCo1ZfbMxT3updShfFGpYKlZxduuHl3jER5ur8vCPi0BBSrnk8Urtp823l9GWn5fTejJCiS1Ocu51ouFtUhvcM"
-                + "n5tKlTZD-qX5TcyJj5qks2o29qG5N0Offey8iTmjfNxIuyuX6tTGWCh0X_J0OQvMTi5XIGP1Hx6cRsZX4h0Ag";
+        static final String PARTICIPANT = DsTokenFactory.issuerParticipantToken();
     }
 
 }

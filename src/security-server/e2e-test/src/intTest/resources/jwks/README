@@ -1,4 +1,2 @@
 Folder contains private and public JWK files for testing purposes.
 The public key is served in mock-jwks-server.
-
-JWT tokens generated using web page https://www.scottbrady.io/tools/jwt
