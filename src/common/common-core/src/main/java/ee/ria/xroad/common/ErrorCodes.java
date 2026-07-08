@@ -157,6 +157,8 @@ public final class ErrorCodes {
     public static final String X_HW_MODULE_NON_OPERATIONAL = "HSMNonOperational";
     public static final String X_GLOBAL_CONF_PART_DUPLICATE_TARGET = "GlobalConfPartDuplicateTarget";
     public static final String X_GLOBAL_CONF_PART_RESERVED_FILE_NAME = "GlobalConfPartReservedFileName";
+    public static final String X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE = "GlobalConfHeaderFieldWrongValue";
+    public static final String X_GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER = "GlobalConfPartInvalidInstanceIdentifier";
 
     // Signer Errors
 
