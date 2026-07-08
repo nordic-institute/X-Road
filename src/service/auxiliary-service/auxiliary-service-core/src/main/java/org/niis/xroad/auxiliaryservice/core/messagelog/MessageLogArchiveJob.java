@@ -36,11 +36,12 @@ import io.quarkus.scheduler.Scheduler;
 import io.quarkus.scheduler.common.runtime.util.SchedulerUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
-import org.niis.xroad.auxiliaryservice.core.config.ProxyMessageLogProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Startup
@@ -51,10 +52,13 @@ public class MessageLogArchiveJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
-    private final ProxyMessageLogProperties proxyProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final GlobalConfProvider globalConfProvider;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
+
+    @Inject
+    @ConfigProperty(name = "xroad.proxy.message-log.enabled", defaultValue = "true")
+    private boolean isMessageLogEnabled;
 
     @PostConstruct
     public void init() {
@@ -72,7 +76,7 @@ public class MessageLogArchiveJob {
     }
 
     private boolean shouldSchedule() {
-        return proxyProperties.enabled()
+        return isMessageLogEnabled
                 && StringUtils.isNotBlank(properties.archiveCron())
                 && !SchedulerUtils.isOff(properties.archiveCron());
     }
