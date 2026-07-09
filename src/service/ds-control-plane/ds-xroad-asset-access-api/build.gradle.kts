@@ -18,6 +18,8 @@ dependencies {
   implementation(project(":lib:rpc-core"))
 
   api(libs.edc.lib.controlplane.transform)
+  implementation(libs.edc.lib.dsp.catalog.transform)
+  implementation(libs.edc.lib.dsp.catalog.transform.v2025)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)

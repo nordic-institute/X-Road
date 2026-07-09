@@ -57,7 +57,7 @@ public interface AssetAccessClientProperties {
      *
      * @return protocol identifier
      */
-    @WithDefault("dataspace-protocol-http:2025-1")
+    @WithDefault("http-dsp-profile-2025-1")
     String protocol();
 
     /**

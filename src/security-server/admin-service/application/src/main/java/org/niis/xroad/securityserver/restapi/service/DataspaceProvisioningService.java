@@ -86,7 +86,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 @RequiredArgsConstructor
 public class DataspaceProvisioningService {
 
-    private static final String IDENTITY_API = "/api/identity/v1alpha/participants";
+    private static final String IDENTITY_API = "/api/identity/v1beta/participants";
     private static final String MANAGEMENT_API = "/api/management/v5beta/participants";
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
     private static final String BEARER = "Bearer ";
@@ -167,7 +167,7 @@ public class DataspaceProvisioningService {
                 .formatted(identityHubHost, CREDENTIAL_PORT, participantId);
         String body = """
                 {
-                    "roles": [],
+                    "scopes": [],
                     "serviceEndpoints": [{
                         "type": "CredentialService",
                         "serviceEndpoint": "%s",
@@ -303,7 +303,7 @@ public class DataspaceProvisioningService {
                 return null;
             }
             String body = readBody(response);
-            if (code >= HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+            if (code != HttpStatus.SC_OK) {
                 log.warn("IdentityHub returned {} for credential request {}/{}: {}", code, participantId, holderPid, body);
                 return null;
             }

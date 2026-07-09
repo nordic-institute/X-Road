@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.dataplane;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
@@ -100,6 +101,26 @@ class XRoadDataPlaneSignalingApiControllerTest {
 
         assertThat(result).isSameAs(statusMessage);
         verify(manager).start(startMessage);
+    }
+
+    @Test
+    void startedDelegatesToManagerAndReturnsStatusMessage() {
+        var notification = DataFlowStartedNotificationMessage.Builder.newInstance().messageId("msg-1").build();
+        var statusMessage = buildStatusMessage(DataFlowStates.STARTED);
+
+        when(manager.started("flow-7")).thenReturn(statusMessage);
+
+        var result = controller.started("flow-7", notification);
+
+        assertThat(result).isSameAs(statusMessage);
+        verify(manager).started("flow-7");
+    }
+
+    @Test
+    void completedDelegatesToManagerCompleted() {
+        controller.completed("flow-8", Map.of());
+
+        verify(manager).completed("flow-8");
     }
 
     @Test

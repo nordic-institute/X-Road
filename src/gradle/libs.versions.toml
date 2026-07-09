@@ -43,7 +43,7 @@ testAllure = "2.34.0"
 testSelenide = "7.16.2"
 shadowPlugin = "9.4.3"
 owaspDependencyCheck = "12.2.2"
-edc = "0.17.0"
+edc = "0.18.0"
 nimbus = "10.9.1"
 opentelemetry-javaagent = "2.28.1"
 opentelemetry-sdk-testing = "1.63.0"
@@ -303,8 +303,6 @@ edc-sql-edr-index = { module = "org.eclipse.edc:edr-index-sql", version.ref = "e
 edc-sql-control-plane = { module = "org.eclipse.edc:control-plane-sql", version.ref = "edc" }
 edc-sql-jti-validation = { module = "org.eclipse.edc:jti-validation-store-sql", version.ref = "edc" }
 edc-sql-policy-monitor = { module = "org.eclipse.edc:policy-monitor-store-sql", version.ref = "edc" }
-edc-sql-fedcatalog-cache = { module = "org.eclipse.edc:federated-catalog-cache-sql", version.ref = "edc" }
-edc-sql-fedcatalog-target-node = { module = "org.eclipse.edc:target-node-directory-sql", version.ref = "edc" }
 edc-sql-core = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
 edc-sql-lease = { module = "org.eclipse.edc:sql-lease", version.ref = "edc" }
 edc-sql-lease-core = { module = "org.eclipse.edc:sql-lease-core", version.ref = "edc" }
@@ -359,6 +357,8 @@ edc-spi-identityhub-dcp = { module = "org.eclipse.edc:dcp-spi", version.ref = "e
 edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 
 # EDC Lib modules
+edc-lib-dsp-catalog-transform = { module = "org.eclipse.edc:dsp-catalog-transform-lib", version.ref = "edc" }
+edc-lib-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }

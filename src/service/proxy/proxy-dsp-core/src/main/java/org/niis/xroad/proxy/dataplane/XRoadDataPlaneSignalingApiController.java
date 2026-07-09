@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 
@@ -107,6 +108,33 @@ public class XRoadDataPlaneSignalingApiController {
     @Path("/{id}/start")
     public DataFlowStatusMessage start(@PathParam("id") String dataFlowId, DataFlowStartMessage message) {
         return manager.start(message);
+    }
+
+    /**
+     * Consumer-side notification that the provider has started the transfer.
+     * Required for consumer pull transfers — the control plane treats a non-2xx
+     * response as a fatal transfer failure.
+     *
+     * @param dataFlowId flow identifier from the URL path
+     * @param message    plain-JSON {@code DataFlowStartedNotificationMessage} (may carry the provider data address)
+     * @return {@code DataFlowStatusMessage} with state {@code STARTED}
+     */
+    @POST
+    @Path("/{id}/started")
+    public DataFlowStatusMessage started(@PathParam("id") String dataFlowId, DataFlowStartedNotificationMessage message) {
+        return manager.started(dataFlowId);
+    }
+
+    /**
+     * Completes a data flow. The {@code DataPlaneSignalingClient} sends an empty map body.
+     *
+     * @param dataFlowId process ID of the flow to complete
+     * @param body       ignored — empty map on the wire
+     */
+    @POST
+    @Path("/{id}/completed")
+    public void completed(@PathParam("id") String dataFlowId, Map<String, Object> body) {
+        manager.completed(dataFlowId);
     }
 
     /**

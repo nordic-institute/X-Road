@@ -186,8 +186,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
-                    "protocol": "dataspace-protocol-http:2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
+                    "protocol": "http-dsp-profile-2025-1"
                 }
                 """.formatted(providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/catalog/request".formatted(consumerParticipantContext);
@@ -208,9 +208,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ContractRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
                     "counterPartyId": "%s",
-                    "protocol": "dataspace-protocol-http:2025-1",
+                    "protocol": "http-dsp-profile-2025-1",
                     "policy": {
                         "@context": [
                             "http://www.w3.org/ns/odrl.jsonld",
@@ -260,9 +260,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "TransferRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
                     "counterPartyId": "%s",
-                    "protocol": "dataspace-protocol-http:2025-1",
+                    "protocol": "http-dsp-profile-2025-1",
                     "contractId": "%s",
                     "transferType": "Xrd-PULL",
                     "dataDestination": {
@@ -320,7 +320,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 {
                     "assetId": "%s",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1"
                 }
                 """.formatted(assetId, providerDid, providerCpHost, EnvSetup.Port.CONTROL_PLANE_PROTOCOL);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
@@ -408,7 +408,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     private String issuerCredentialsBaseUrl(String issuerEnv) {
         var mapping = envSetup.getContainerMapping(issuerEnv, EnvSetup.DS_ISSUER_SERVICE, EnvSetup.Port.ISSUER_SERVICE_ADMIN);
-        return "https://%s:%d/api/admin/v1alpha/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
+        return "https://%s:%d/api/admin/v1beta/participants/issuer/credentials".formatted(mapping.host(), mapping.port());
     }
 
     @SuppressWarnings("unchecked")
@@ -487,54 +487,19 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // --- Auth tokens (without "Bearer " prefix — REST Assured .auth().oauth2() adds it) ---
 
-    // Control Plane management API tokens (scope: management-api:write management-api:read)
     static class ControlPlaneAuthTokens {
-        static final String PROVISIONER = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYz"
-                + "g2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LC"
-                + "JqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoibWFuYWdlbW"
-                + "VudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.VtgeUBJXWdZSsemdWTtvSDqdCUa1eBaqMlxbBVAAPsSjyVOb8wiDmxpTqv"
-                + "yLKTw9WE2WznmaOUPpWh3s4nDTjHQ51-ke_H__5WHVkwK-E97AFvInue-1lPMdIC1rNGLyZKYmQQ8DtHwZDWkgl-F4zhiyTk8Z3OBzgZp"
-                + "Dz3BcyyJT7WLvAHp6Pk0SdHmFhA5ctvXfra4-ZkfUUudXklOEe-8Jj42v2EjF0woUk9nHoNYA_ca2Gi3kHtJrpHhR4_3Ab7KU046-p0dF5"
-                + "bVLLhYh3HEg-71R0tO9eytzbHkMZMY353aKF0bUqK4UrKnstDT55yo5j5oLpP0xGA9KGai6Kg";
-
-        // Participant-role tokens bound to each SS's control-plane participant context (xrd-ss0 / xrd-ss1).
-        static final String PARTICIPANT_SS0 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
-                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
-                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczAiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
-                + "oieHJkLXNzMCIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.L6PuH7KMc-LCktTGDkKvkmmJbsiR9"
-                + "ugjsnR6_vDiidSSKkja8Lx5C8ZKibiLC3ooFofNB0VvFXYL5hkya8487xHIZqUmlLiUIjXYQzmjaeMZPa_nPai4BMtL1wNZOk-TuyE-5rMNK8u1a"
-                + "ikxFB82LW1qSR0eixoMIg6PD-xTlSCetWOfaFhprBBrucjUxpfqJqMbEl6MAtCE37uwamMwqR2WqS-GFuwUsM-5z1XFZnDedVBRSpUi_p5IYTdjI"
-                + "XQULGOn8JCklwNt3yQqWUEpenCGNW3WQm5huUjlDH2LAePXFfrd7EhWl0nWuu4PPcVayrtAKtdXIikRu-VkfAnSqA";
-
-        static final String PARTICIPANT_SS1 = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMz"
-                + "dmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdG"
-                + "kiOiJjZTZhMWQwZTAwMDEwMDAwMDAwMDAwMDAwMDAwMDBzczEiLCJyb2xlIjoicGFydGljaXBhbnQiLCJwYXJ0aWNpcGFudF9jb250ZXh0X2lkIj"
-                + "oieHJkLXNzMSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.kYZXfJCy-9Wg_Ej0mK3kXu7XHtW9_"
-                + "WV1yZ_CAwLSV9srpjXXo2rtz6lVx7dFYGmKZRuBZ0tN8qhSesPknYKimvPZhqKZIUwa7EkohQLPWy5_SkkDKUD-i6-ppH6UqksSQhGE46XETaDt4"
-                + "aqH34Jh8Ewk4j8K_IeyGmoWpzC150hNlGOgDd6xh5wD0_tP4UpN6QweEMgno1-LT-2FLzVRPwTENafUC7BlZLjWSMuueZ02-tkvlHVcLesgr07EB"
-                + "e7fh6XFzFSpbf1hsRUlSJWfnvA5ccBPhOq9aY8xOYFeThklSZhmW0N9M55QDaxAaVXrMdX6s3o-qWt-uXHj9Yax6A";
+        static final String PROVISIONER = DsTokenFactory.provisionerToken();
 
         static String forContext(String participantContext) {
             return switch (participantContext) {
-                case "xrd-ss0" -> PARTICIPANT_SS0;
-                case "xrd-ss1" -> PARTICIPANT_SS1;
+                case "xrd-ss0", "xrd-ss1" -> DsTokenFactory.participantToken(participantContext);
                 default -> throw new IllegalArgumentException("No participant token for context: " + participantContext);
             };
         }
     }
 
-    // Issuer admin API token: participant role bound to the "issuer" participant context
-    // (scope: issuer-admin-api:write issuer-admin-api:read), signed by mock-jwks-server.
-    // Credential management endpoints require the participant-scoped token, not the provisioner one.
     static class IssuerAuthTokens {
-        static final String PARTICIPANT = "eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YT"
-                + "c0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZD"
-                + "M1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwYXJ0aWNpcGFudCIsInBhcnRpY2lwYW50X2NvbnRleHRfaWQiOi"
-                + "Jpc3N1ZXIiLCJzY29wZSI6Imlzc3Vlci1hZG1pbi1hcGk6d3JpdGUgaXNzdWVyLWFkbWluLWFwaTpyZWFkIn0.dwRKoVpIwSO0DKX6YD"
-                + "QDVT-9ssYH4L93Iaea9PA4QISUIZZwvF-UvYPzvNHJ3VpJOQgSK35h-dMxbQ3aEdCs7dAV-3i0DKH4k1TNtV1ObDFcHIJ3d9Rl21Ob-U"
-                + "2K7Gj1zy9qDRE6_hh32Gc6xiXKWicy4wQkzN6Lsi1yyayLJlCHiCjPDrjneYl81c2lRrSJ2tsN6XYPvNE7ctjAnk9ubCu8j7od7XTGNp"
-                + "fcwblsr2PX1W6Il-vtCh8hWyZgOxn-NN4FU8Q6rHVMQ7bwaLXbw93mz3A4jvu_i3ID6PLnRGkWZEt3QiHIBwPUzCJ8PWgDem-BO7ck6G"
-                + "qvYvH64m1bYw";
+        static final String PARTICIPANT = DsTokenFactory.issuerParticipantToken();
     }
 
 }

@@ -62,6 +62,14 @@ xroad:
 
 edc:
   hostname: ${HOSTNAME:localhost}
+  dataspace:
+    enable:
+      profiles:
+        # Every participant context served by this runtime may use every registered
+        # profile (X-Road registers a single default profile). Without this, EDC 0.18
+        # virtual DSP controllers require a per-participant edc.dataspace.profiles
+        # association and reject DSP requests with 404.
+        all: true
   vault:
     hashicorp:
       url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
