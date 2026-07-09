@@ -36,12 +36,11 @@ import io.quarkus.scheduler.Scheduler;
 import io.quarkus.scheduler.common.runtime.util.SchedulerUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
+import org.niis.xroad.auxiliaryservice.core.config.ProxyMessageLogProperties;
 
 @Startup
 @ApplicationScoped
@@ -51,16 +50,13 @@ public class MessageLogCleanupJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
+    private final ProxyMessageLogProperties messageLogProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    @Inject
-    @ConfigProperty(name = "xroad.proxy.message-log.enabled", defaultValue = "true")
-    private boolean isMessageLogEnabled;
-
     @PostConstruct
     public void init() {
-        if (shouldSchedule()) {
+        if (isEnabled()) {
             log.info("Scheduling message log cleanup with cron expression: '{}'", properties.cleanupCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.cleanupCron())
@@ -73,13 +69,25 @@ public class MessageLogCleanupJob {
         }
     }
 
-    private boolean shouldSchedule() {
-        return isMessageLogEnabled
+    void executeOnShutdown() {
+        if (isEnabled()) {
+            execute();
+        } else {
+            log.info("Message log cleanup is disabled, skipping cleanup on shutdown.");
+        }
+    }
+
+    private boolean isEnabled() {
+        return messageLogProperties.isEnabled()
                 && StringUtils.isNotBlank(properties.cleanupCron())
                 && !SchedulerUtils.isOff(properties.cleanupCron());
     }
 
     private void execute(ScheduledExecution execution) {
+        execute();
+    }
+
+    private void execute() {
         try {
             log.info("Executing message log cleanup");
             var result = blockingProcessRunner
