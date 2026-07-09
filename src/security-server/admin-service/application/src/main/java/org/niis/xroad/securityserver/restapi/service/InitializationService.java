@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -96,6 +97,7 @@ public class InitializationService {
     private final TokenPinValidator tokenPinValidator;
     private final SecurityServerBackupService securityServerBackupService;
     private final EncryptionInitializationService encryptionInitializationService;
+    private final DataspaceParticipantReconciler dataspaceParticipantReconciler;
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
@@ -196,6 +198,16 @@ public class InitializationService {
                 + ownerClientId.getMemberCode() + "/" + serverConf.getServerCode();
         prepareEncryption(keyRealName);
 
+        eagerReconcileDataspaceParticipant();
+    }
+
+    private void eagerReconcileDataspaceParticipant() {
+        try {
+            dataspaceParticipantReconciler.reconcile();
+        } catch (Exception e) {
+            log.error("Data space participant reconciliation failed at init; continuing initialization. "
+                    + "The scheduled reconciler will converge once the dependency recovers", e);
+        }
     }
 
     /**

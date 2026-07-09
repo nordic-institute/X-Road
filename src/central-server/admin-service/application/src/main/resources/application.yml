@@ -106,6 +106,10 @@ file-upload-endpoints:
       path-pattern: "/**/timestamping-services/*"
 
 xroad:
+  dataspace:
+    enabled: false
+    provisioning:
+      fail-on-error: true
   admin-service:
     ha-node-name:
     global-conf-generator:

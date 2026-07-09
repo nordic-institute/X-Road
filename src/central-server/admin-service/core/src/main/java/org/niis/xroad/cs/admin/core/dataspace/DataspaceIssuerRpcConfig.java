@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 
 import lombok.Setter;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -35,8 +36,10 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Wires the gRPC client to the issuer provisioning service and its configuration properties.
+ * Active only when {@code xroad.dataspace.enabled=true}.
  */
 @Configuration
+@ConditionalOnProperty(name = "xroad.dataspace.enabled", havingValue = "true")
 @EnableConfigurationProperties({
         DataspaceIssuerProperties.class,
         DataspaceIssuerRpcConfig.SpringIssuerProvisioningRpcChannelProperties.class})

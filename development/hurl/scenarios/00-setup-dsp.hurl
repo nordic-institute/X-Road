@@ -1,7 +1,19 @@
 # =============================================================================
-# DSP Mock Participant Provisioning (LXD dev env)
+# DSP Issuer Fallback / Rollback Seed (LXD dev env)
 #
-# WIP / MOCK SEED — replaces production participant onboarding.
+# PRIMARY PATH SUPERSEDED: when xroad.dataspace.enabled=true in the CS
+# application config, CS initialization (InitializationServiceImpl.initialize)
+# provisions the issuer over X-Road gRPC automatically as part of CS init.
+# The REST calls in this file are then redundant and harmless (idempotent).
+#
+# Keep this file as:
+#   1. Rollback / manual re-seed tool — if the gRPC path fails or the flag
+#      was disabled at init time, this re-seeds the Issuer Service directly
+#      via its REST API without reinitializing the CS.
+#   2. Reference for the shape of the issuer seed — used to validate that
+#      the gRPC path produces the same participant context / attestation /
+#      credential definition shapes.
+#
 # Filename prefix `00-` ensures this runs BEFORE setup.hurl (run-hurl.sh
 # concatenates *.hurl files in alphabetical order). Setup.hurl's CS/SS
 # initialisation invokes management-service flows that require the DSP
@@ -15,24 +27,13 @@
 # not the holder record, so a pre-registered holder is redundant.
 #
 # Identity Hub + Control Plane participant contexts (+ STS config) and the
-# membership-credential issuance are provisioned per-SS by the proxy-ui-api
-# DataspaceProvisioningService, invoked from setup.hurl after the SIGN certs.
+# membership-credential issuance are provisioned per-SS by the SS reconciler
+# (issue 03), triggered from setup.hurl after the SIGN certs.
 #
 # What this DOES NOT seed:
 #   - Asset / policy / contract definitions. Production behaviour: assets are
 #     resolved dynamically from serverconf via the X-Road EDC asset extension
 #     at request time. Dev policies/contracts are similarly auto-provisioned.
-#
-# Production replacement plan (REMOVE this file when implemented):
-#   - Issuer onboarding via Central Server admin UI / mgmt-service flow.
-#   - IH credential issuance triggered by member registration on CS.
-#   - CP participant context auto-created on SS first start, STS secrets
-#     drawn from OpenBao instead of pre-shared aliases.
-#   - Mgmt-subsystem dual ctx auto-provisioned when an SS first hosts the
-#     MANAGEMENT subsystem (CS-side trigger). Today it is seeded only here
-#     for the central-server-collocated SS (ss0).
-#   - Permissions: replace lax `policy-allow-all` with role/membership-bound
-#     ODRL policies issued per data-product.
 #
 # Auth: all bearer tokens are pre-signed JWTs from the dev mock-jwks-server
 # (xrd-cs:8099). Same tokens as e2e DsStepDefs — DO NOT use in any non-dev env.

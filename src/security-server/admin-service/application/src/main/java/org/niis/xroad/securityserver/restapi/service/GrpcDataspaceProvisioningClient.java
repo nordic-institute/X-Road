@@ -63,6 +63,11 @@ public class GrpcDataspaceProvisioningClient implements DataspaceProvisioningCli
     }
 
     @Override
+    public boolean contextExists(String participantContextId) {
+        return identityHubClient.participantContextExists(participantContextId);
+    }
+
+    @Override
     public void createControlPlaneParticipantContext(String participantContextId, String did) {
         controlPlaneClient.createParticipantContext(participantContextId, did);
     }

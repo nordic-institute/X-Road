@@ -44,6 +44,8 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContex
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
@@ -88,7 +90,14 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
         responseHandler.handleRequest(responseObserver, () -> getCredentialRequestStateInternal(request));
     }
 
+    @Override
+    public void getParticipantContextExists(GetParticipantContextExistsReq request,
+                                            StreamObserver<GetParticipantContextExistsResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> getParticipantContextExistsInternal(request));
+    }
+
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
+        validateManifestFields(request.getParticipantContextId(), request.getDid());
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantContextId(request.getParticipantContextId())
                 .did(request.getDid())
@@ -139,6 +148,13 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 .build();
     }
 
+    private GetParticipantContextExistsResp getParticipantContextExistsInternal(GetParticipantContextExistsReq request) {
+        var result = participantContextService.getParticipantContext(request.getParticipantContextId());
+        return GetParticipantContextExistsResp.newBuilder()
+                .setExists(result.succeeded())
+                .build();
+    }
+
     private void requireSuccessOrConflict(ServiceResult<?> result, ErrorCode errorCode, String metadata) {
         if (result.succeeded() || result.reason() == ServiceFailure.Reason.CONFLICT) {
             return;
@@ -152,5 +168,14 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 .metadataItems(metadata)
                 .details(detail)
                 .build();
+    }
+
+    private void validateManifestFields(String participantContextId, String did) {
+        if (participantContextId == null || participantContextId.isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
+        }
+        if (did == null || did.isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "did must not be blank");
+        }
     }
 }

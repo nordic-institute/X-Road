@@ -34,6 +34,7 @@ import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
+import org.niis.xroad.cs.admin.core.dataspace.DataspaceProvisioningProperties;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
@@ -41,6 +42,7 @@ import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -57,6 +59,7 @@ import org.springframework.vault.core.VaultTemplate;
         SpringRpcConfig.class,
         SpringVaultClientConfig.class
 })
+@EnableConfigurationProperties(DataspaceProvisioningProperties.class)
 @Configuration
 public class BootstrapConfiguration {
 

@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -53,6 +54,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -96,6 +98,8 @@ public class InitializationServiceTest {
     private SecurityServerBackupService securityServerBackupService;
     @Mock
     private EncryptionInitializationService encryptionInitializationService;
+    @Mock
+    private DataspaceParticipantReconciler dataspaceParticipantReconciler;
 
     private InitializationService initializationService;
 
@@ -112,7 +116,7 @@ public class InitializationServiceTest {
         when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(Boolean.TRUE);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
-                securityServerBackupService, encryptionInitializationService);
+                securityServerBackupService, encryptionInitializationService, dataspaceParticipantReconciler);
     }
 
     @Test
@@ -411,5 +415,17 @@ public class InitializationServiceTest {
 
         assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
                 exception.getErrorDeviation().code());
+    }
+
+    @Test
+    public void initializeReconcileFailIsAlwaysSwallowed() {
+        when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
+        when(serverConfService.isServerCodeInitialized()).thenReturn(false);
+        when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
+        doThrow(new RuntimeException("reconcile error")).when(dataspaceParticipantReconciler).reconcile();
+
+        assertDoesNotThrow(() ->
+                initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
     }
 }

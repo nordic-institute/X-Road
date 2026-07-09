@@ -241,11 +241,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         private boolean enabled;
         private String identityHubUrl;
         private String participantId;
-        private boolean managementContextEnabled;
         private String issuerDid;
         private String credentialDefinitionId = "xroad-membership-credential-definition";
-        private int pollTimeoutMillis = 30000;
-        private int pollIntervalMillis = 2000;
         private int maxHolderPidSlots = 20;
     }
 

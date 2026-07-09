@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.List;
  * fixed (constants below); only the issuer host/ports and the published schema URL are configurable.
  */
 @Service
+@ConditionalOnProperty(name = "xroad.dataspace.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerProvisioningService {
 

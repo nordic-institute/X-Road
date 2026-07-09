@@ -60,6 +60,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FA
 /**
  * gRPC service that provisions the issuer participant context, attestation definitions and credential
  * definitions by delegating to the EDC issuer-service services directly (no REST admin API).
+ *
+ * <p>No {@code CreateHolder} RPC is defined here. The issuer runs with
+ * {@code edc.issuance.anonymous.allowed=true}, so {@code DcpHolderTokenVerifier} auto-creates
+ * an anonymous holder per requesting DID; no holder is ever explicitly provisioned.
+ * Re-check this assumption on each EDC version upgrade.
  */
 @RequiredArgsConstructor
 class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.IssuerProvisioningServiceImplBase {
@@ -94,11 +99,12 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     }
 
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
+        validateManifestFields(request.getParticipantContextId(), request.getDid());
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantContextId(request.getParticipantContextId())
                 .did(request.getDid())
                 .active(true)
-                .roles(List.of(ADMIN_ROLE))
+                .scopes(List.of(ADMIN_ROLE))
                 .serviceEndpoint(new Service(
                         request.getParticipantContextId() + ISSUER_SERVICE_ID_SUFFIX,
                         ISSUER_SERVICE_TYPE,
@@ -159,5 +165,14 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
                 .metadataItems(metadata)
                 .details(result.getFailureDetail())
                 .build();
+    }
+
+    private void validateManifestFields(String participantContextId, String did) {
+        if (participantContextId == null || participantContextId.isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
+        }
+        if (did == null || did.isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "did must not be blank");
+        }
     }
 }

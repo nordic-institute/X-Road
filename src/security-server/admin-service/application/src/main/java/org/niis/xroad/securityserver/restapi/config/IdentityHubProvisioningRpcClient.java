@@ -38,6 +38,7 @@ import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 
@@ -113,5 +114,12 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient {
                 .setHolderPid(holderPid)
                 .build()));
         return response.getFound() ? response.getStatus() : null;
+    }
+
+    public boolean participantContextExists(String participantContextId) {
+        var response = exec(() -> stub.getParticipantContextExists(GetParticipantContextExistsReq.newBuilder()
+                .setParticipantContextId(participantContextId)
+                .build()));
+        return response.getExists();
     }
 }

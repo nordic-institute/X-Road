@@ -73,6 +73,7 @@ public class EnvSetup extends BaseComposeSetup {
     private static final String CONFIGURATION_CLIENT = "configuration-client";
     private static final String AUX_SERVICE = "auxiliary-service";
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
+    private static final String MONITOR = "monitor";
     private static final String OP_MONITOR_SERVICE = "op-monitor";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
@@ -176,7 +177,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
-                .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
+                .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
@@ -184,6 +185,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
                 .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
+                .withLogConsumer(MONITOR, createLogConsumer(name, MONITOR))
                 .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE));
 
@@ -243,6 +245,8 @@ public class EnvSetup extends BaseComposeSetup {
                             .orElse(false);
                 });
 
+        verifyHurlSucceeded();
+
         awaitProxyReadiness("ss0");
         awaitProxyReadiness("ss1");
 
@@ -269,6 +273,17 @@ public class EnvSetup extends BaseComposeSetup {
                     log.info("{} proxy readiness: status={}, authKeyOcsp={}", env, overall, authKeyOcsp);
                     return "UP".equals(overall) && "OK".equals(authKeyOcsp);
                 });
+    }
+
+    private void verifyHurlSucceeded() {
+        var exitCode = envAux.getContainerByServiceName(HURL)
+                .orElseThrow(() -> new IllegalStateException("hurl container not found"))
+                .getCurrentContainerInfo().getState().getExitCodeLong();
+        if (exitCode == null || exitCode != 0L) {
+            throw new IllegalStateException(
+                    "hurl setup container exited with code %s (expected 0); setup scenarios failed".formatted(exitCode));
+        }
+        log.info("hurl setup completed successfully");
     }
 
     @Override
@@ -321,7 +336,7 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int PROXY_HEALTHCHECK = 5588;
         public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
-        public static final int IDENTITY_HUB_IDENTITY = 7182;
+        public static final int IDENTITY_HUB_CREDENTIALS = 7185;
         public static final int IDENTITY_HUB_STS = 7184;
         public static final int ISSUER_SERVICE_IDENTITY = 6182;
         public static final int ISSUER_SERVICE_ADMIN = 6186;

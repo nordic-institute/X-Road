@@ -26,11 +26,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.springframework.stereotype.Service;
@@ -38,28 +36,55 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import java.util.Optional;
 
 /**
  * Provisions this security server's data space participant contexts (IdentityHub + Control Plane)
  * and issues their X-Road membership credentials, over X-Road gRPC.
  *
- * <p>For each participant context (the host context, plus the MANAGEMENT context when enabled) the service
- * creates the IdentityHub participant context, the Control Plane participant context and its STS-bound config,
- * then requests the XRoadMembershipCredential. The creates are idempotent (re-runs tolerate conflicts) and the
- * credential is the success gate.</p>
+ * <p>Exposes three non-blocking, single-step primitives for use by
+ * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler}:
+ * <ul>
+ *   <li>{@link #ensureParticipantContexts(boolean, String)} — idempotent context creation (IH + CP).</li>
+ *   <li>{@link #submitCredentialRequest(String)} — submits a credential request into the next available
+ *       slot only when no active request (PENDING or ISSUED) exists; advances past slots in terminal ERROR.</li>
+ *   <li>{@link #readCredentialStatus(String)} — returns the current credential status
+ *       ({@code ISSUED}, {@code PENDING}, or {@code null} when none is active) without polling.</li>
+ * </ul>
  *
- * <p>The IdentityHub credential request reaches a terminal {@code ERROR} state when its prerequisites
- * (the member SIGN certificate plus a fresh OCSP response, propagated global conf) are not yet ready, and
- * re-submitting the same {@code holderPid} is a no-op. To recover, this service probes a sequence of
- * {@code holderPid} slots and submits a fresh request once the previous one has errored, so that repeated
- * invocations converge to {@code ISSUED} once the prerequisites become observable.</p>
+ * <p>Slot semantics: each participant holds up to {@code maxHolderPidSlots} sequentially named holder-request
+ * ids. A slot in terminal ERROR is skipped and the next slot is used on the following submit; a slot in
+ * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
+ * warning and returns without submitting.</p>
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataspaceProvisioningService {
+
+    public static final String STATUS_ISSUED = "ISSUED";
+    public static final String STATUS_PENDING = "PENDING";
+    public static final String STATUS_ERROR = "ERROR";
+    public static final String STATUS_ABSENT = "ABSENT";
+    public static final String STATUS_UNKNOWN = "UNKNOWN";
+
+    public enum ParticipantKind { HOST, MANAGEMENT }
+
+    /**
+     * Read-only snapshot of one participant context's provisioning state.
+     *
+     * @param participantId    the participant context id
+     * @param kind             HOST or MANAGEMENT
+     * @param contextCreated   whether the participant context exists in IdentityHub
+     * @param credentialStatus ISSUED / PENDING / ABSENT / ERROR / UNKNOWN
+     */
+    public record ParticipantContextStatus(
+            String participantId,
+            ParticipantKind kind,
+            boolean contextCreated,
+            String credentialStatus
+    ) {
+    }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
@@ -68,69 +93,143 @@ public class DataspaceProvisioningService {
     private static final int DID_PORT = 7183;
     private static final int STS_PORT = 7184;
     private static final int CREDENTIAL_PORT = 7185;
-    private static final String STATE_ISSUED = "ISSUED";
-    private static final String STATE_ERROR = "ERROR";
-    private static final String STATUS_ISSUED = "ISSUED";
-    private static final String STATUS_PENDING = "PENDING";
 
     private final AdminServiceProperties adminServiceProperties;
-    private final ServerConfService serverConfService;
     private final DataspaceProvisioningClient provisioningClient;
 
     /**
-     * Ensures every configured participant context is provisioned and holds a membership credential.
+     * Creates (idempotently) the IdentityHub and Control Plane participant contexts for the host participant
+     * and, when {@code managementRegistered} is true, for the management participant context as well.
      *
-     * @return {@code ISSUED} when all contexts are issued, {@code PENDING} while issuance is still in progress
+     * @param managementRegistered   whether the MANAGEMENT subsystem is registered on this security server
+     * @param ownerMemberIdSlashForm the SS owner member id formatted as {@code instance/memberClass/memberCode}
      */
-    public String provision() {
-        Dataspace ds = adminServiceProperties.getDataspace();
-        if (!ds.isEnabled()) {
-            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
-                    .details("Data space provisioning is not enabled")
-                    .build();
+    public void ensureParticipantContexts(boolean managementRegistered, String ownerMemberIdSlashForm) {
+        var ds = adminServiceProperties.getDataspace();
+        var identityHubHost = hostOf(ds.getIdentityHubUrl());
+        for (var participantId : participantContextIds(managementRegistered)) {
+            ensureParticipantContext(ds, participantId, identityHubHost, ownerMemberIdSlashForm);
         }
-
-        String memberId = memberIdSlashForm();
-        String identityHubHost = hostOf(ds.getIdentityHubUrl());
-
-        boolean allIssued = true;
-        for (String participantId : participantContexts(ds)) {
-            ensureParticipantContext(ds, participantId, identityHubHost, memberId);
-            String status = ensureCredential(ds, participantId);
-            log.info("Data space credential status for participant {}: {}", participantId, status);
-            if (!STATUS_ISSUED.equals(status)) {
-                allIssued = false;
-            }
-        }
-        return allIssued ? STATUS_ISSUED : STATUS_PENDING;
     }
 
-    private List<String> participantContexts(Dataspace ds) {
-        List<String> participantIds = new ArrayList<>();
-        participantIds.add(ds.getParticipantId());
-        if (ds.isManagementContextEnabled()) {
-            participantIds.add(ds.getParticipantId() + MANAGEMENT_CONTEXT_SUFFIX);
+    /**
+     * Submits a membership credential request into the next available holder-pid slot for the given
+     * participant context, unless an active (PENDING or ISSUED) request already exists.
+     * Advances past slots that are in terminal ERROR state.
+     * Returns immediately — does not poll for the outcome.
+     *
+     * @param participantId the participant context id
+     */
+    public void submitCredentialRequest(String participantId) {
+        var ds = adminServiceProperties.getDataspace();
+        for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
+            var holderPid = holderPid(participantId, slot);
+            var state = provisioningClient.getCredentialRequestState(participantId, holderPid);
+            if (state == null) {
+                provisioningClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
+                        ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
+                return;
+            }
+            if (STATUS_ISSUED.equals(state) || STATUS_PENDING.equals(state)) {
+                return;
+            }
+            // ERROR — advance to next slot
         }
-        return participantIds;
+        log.warn("Data space credential for participant {} exhausted {} holder-pid slots (all in ERROR); no request submitted",
+                participantId, ds.getMaxHolderPidSlots());
+    }
+
+    /**
+     * Returns the current credential status for the given participant context without polling.
+     *
+     * <p>Scans holder-pid slots in order; ERROR slots are skipped. Returns {@code ISSUED} or {@code PENDING}
+     * for the first active slot found, or {@code null} when no request has been submitted yet (all slots
+     * absent or all slots in terminal ERROR).</p>
+     *
+     * @param participantId the participant context id
+     * @return {@code "ISSUED"}, {@code "PENDING"}, or {@code null}
+     */
+    @Nullable
+    public String readCredentialStatus(String participantId) {
+        var ds = adminServiceProperties.getDataspace();
+        for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
+            var holderPid = holderPid(participantId, slot);
+            var state = provisioningClient.getCredentialRequestState(participantId, holderPid);
+            if (state == null || STATUS_ERROR.equals(state)) {
+                continue;
+            }
+            return state;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the participant context ids for the given management subsystem registration state.
+     *
+     * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
+     */
+    public List<String> participantContextIds(boolean managementRegistered) {
+        var participantId = adminServiceProperties.getDataspace().getParticipantId();
+        List<String> ids = new ArrayList<>();
+        ids.add(participantId);
+        if (managementRegistered) {
+            ids.add(participantId + MANAGEMENT_CONTEXT_SUFFIX);
+        }
+        return ids;
+    }
+
+    /**
+     * Returns a read-only snapshot of the provisioning status for each participant context.
+     * Does not trigger provisioning, poll, or sleep.
+     * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
+     *
+     * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
+     */
+    public List<ParticipantContextStatus> readParticipantContextStatuses(boolean managementRegistered) {
+        var hostParticipantId = adminServiceProperties.getDataspace().getParticipantId();
+        List<ParticipantContextStatus> result = new ArrayList<>();
+        result.add(readContextStatus(hostParticipantId, ParticipantKind.HOST));
+        if (managementRegistered) {
+            result.add(readContextStatus(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT));
+        }
+        return result;
+    }
+
+    private ParticipantContextStatus readContextStatus(String participantId, ParticipantKind kind) {
+        try {
+            var contextCreated = provisioningClient.contextExists(participantId);
+            var credentialStatus = resolveCredentialStatus(participantId, contextCreated);
+            return new ParticipantContextStatus(participantId, kind, contextCreated, credentialStatus);
+        } catch (Exception e) {
+            log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
+            return new ParticipantContextStatus(participantId, kind, false, STATUS_UNKNOWN);
+        }
+    }
+
+    private String resolveCredentialStatus(String participantId, boolean contextCreated) {
+        if (!contextCreated) {
+            return STATUS_ABSENT;
+        }
+        return Optional.ofNullable(readCredentialStatus(participantId)).orElse(STATUS_ABSENT);
     }
 
     private void ensureParticipantContext(Dataspace ds, String participantId, String identityHubHost, String memberId) {
-        String did = didFor(identityHubHost, participantId);
+        var did = didFor(identityHubHost, participantId);
         createIdentityHubContext(participantId, did, identityHubHost, memberId);
         provisioningClient.createControlPlaneParticipantContext(participantId, did);
         provisioningClient.putControlPlaneParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
 
     private String didFor(String identityHubHost, String participantId) {
-        String did = "did:web:" + identityHubHost + "%3A" + DID_PORT;
+        var did = "did:web:" + identityHubHost + "%3A" + DID_PORT;
         return participantId.endsWith(MANAGEMENT_CONTEXT_SUFFIX) ? did + ":mgmt" : did;
     }
 
     private void createIdentityHubContext(String participantId, String did, String identityHubHost, String memberId) {
-        String credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s"
+        var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s"
                 .formatted(identityHubHost, CREDENTIAL_PORT, participantId);
-        String keyId = did + "#key-1";
-        String privateKeyAlias = participantId + "-key";
+        var keyId = did + "#key-1";
+        var privateKeyAlias = participantId + "-key";
         provisioningClient.createIdentityHubParticipantContext(participantId, did, memberId, credentialServiceUrl, keyId,
                 privateKeyAlias);
     }
@@ -139,65 +238,13 @@ public class DataspaceProvisioningService {
         return "https://%s:%d/api/sts/token".formatted(identityHubHost, STS_PORT);
     }
 
-    private String memberIdSlashForm() {
-        ClientId owner = serverConfService.getSecurityServerOwnerId();
-        return "%s/%s/%s".formatted(owner.getXRoadInstance(), owner.getMemberClass(), owner.getMemberCode());
-    }
-
     private String hostOf(String url) {
         return URI.create(url).getHost();
     }
 
-    private String ensureCredential(Dataspace ds, String participantId) {
-        for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
-            String holderPid = holderPid(participantId, slot);
-            String state = provisioningClient.getCredentialRequestState(participantId, holderPid);
-            if (state == null) {
-                provisioningClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
-                        ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
-                state = pollUntilSettled(ds, participantId, holderPid);
-            }
-            if (STATE_ISSUED.equals(state)) {
-                return STATUS_ISSUED;
-            }
-            if (STATE_ERROR.equals(state)) {
-                continue;
-            }
-            return STATUS_PENDING;
-        }
-        log.warn("Data space credential for participant {} exhausted {} holder request slots, all in ERROR",
-                participantId, ds.getMaxHolderPidSlots());
-        return STATUS_PENDING;
-    }
-
     private String holderPid(String participantId, int slot) {
-        String base = participantId + "-" + HOLDER_PID_BASE;
+        var base = participantId + "-" + HOLDER_PID_BASE;
         return slot == 0 ? base : base + "-" + slot;
     }
 
-    private String pollUntilSettled(Dataspace ds, String participantId, String holderPid) {
-        long deadline = System.currentTimeMillis() + ds.getPollTimeoutMillis();
-        String state = provisioningClient.getCredentialRequestState(participantId, holderPid);
-        while (!isTerminal(state) && System.currentTimeMillis() < deadline) {
-            sleep(ds.getPollIntervalMillis());
-            state = provisioningClient.getCredentialRequestState(participantId, holderPid);
-        }
-        return state;
-    }
-
-    private boolean isTerminal(String state) {
-        return STATE_ISSUED.equals(state) || STATE_ERROR.equals(state);
-    }
-
-    private void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw XrdRuntimeException.systemException(INTERNAL_ERROR)
-                    .cause(e)
-                    .details("Interrupted while polling data space credential request")
-                    .build();
-        }
-    }
 }

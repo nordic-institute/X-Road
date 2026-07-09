@@ -24,41 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api;
+package org.niis.xroad.cs.admin.core.dataspace;
 
-import org.niis.xroad.test.framework.core.token.TestJwtSigner;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Map;
+/**
+ * Failure policy for synchronous data space provisioning at CS init. Applies to the issuer setup hook only;
+ * the reconciler's own scheduled ticks are always non-fatal regardless of this setting.
+ */
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "xroad.dataspace.provisioning")
+public class DataspaceProvisioningProperties {
 
-final class DspAuthTokens {
-
-    private static final String PRIVATE_KEY_RESOURCE = "/container-files/jwks/private_key.json";
-    private static final TestJwtSigner SIGNER = new TestJwtSigner(PRIVATE_KEY_RESOURCE);
-
-    static final String IS_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "scope", "identity-api:admin issuer-admin-api:write issuer-admin-api:read"
-    )));
-
-    static final String IS_PARTICIPANT = bearer(SIGNER.sign(null, Map.of(
-            "scope", "issuer-admin-api:admin"
-    )));
-
-    static final String IH_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "scope", "identity-api:admin"
-    )));
-
-    static final String IH_ADMIN = bearer(SIGNER.sign(null, Map.of(
-            "scope", "identity-api:admin"
-    )));
-
-    static final String CP_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "scope", "management-api:admin"
-    )));
-
-    private DspAuthTokens() {
-    }
-
-    private static String bearer(String token) {
-        return "Bearer " + token;
-    }
+    /**
+     * When {@code true} (default), a provisioning failure at CS init propagates and fails initialization.
+     * When {@code false}, the failure is logged and initialization continues.
+     */
+    private boolean failOnError = true;
 }

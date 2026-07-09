@@ -57,6 +57,11 @@ public interface DataspaceProvisioningClient {
     String getCredentialRequestState(String participantContextId, String holderPid);
 
     /**
+     * Returns {@code true} if a participant context with the given id exists in IdentityHub, {@code false} if absent.
+     */
+    boolean contextExists(String participantContextId);
+
+    /**
      * Creates (idempotently) the Control Plane participant context for the given participant.
      */
     void createControlPlaneParticipantContext(String participantContextId, String did);

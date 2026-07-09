@@ -31,7 +31,6 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
-import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -39,7 +38,6 @@ import org.niis.xroad.cs.admin.rest.api.converter.HAClusterNodeDtoConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.model.InitializationStatusDtoConverter;
 import org.niis.xroad.cs.openapi.SystemApi;
 import org.niis.xroad.cs.openapi.model.CentralServerAddressDto;
-import org.niis.xroad.cs.openapi.model.DataspaceProvisioningStatusDto;
 import org.niis.xroad.cs.openapi.model.HighAvailabilityClusterNodeDto;
 import org.niis.xroad.cs.openapi.model.HighAvailabilityClusterStatusDto;
 import org.niis.xroad.cs.openapi.model.HighAvailabilityStatusDto;
@@ -76,20 +74,11 @@ public class SystemApiController implements SystemApi {
     private final HAClusterStatusService haClusterStatusService;
     private final InitializationStatusDtoConverter initializationStatusDtoConverter;
     private final HAClusterNodeDtoConverter haClusterNodeDtoConverter;
-    private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<SystemStatusDto> getSystemStatus() {
         return getSystemStatusResponseEntity();
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('PROVISION_DATASPACE')")
-    @AuditEventMethod(event = RestApiAuditEvent.PROVISION_DATASPACE)
-    public ResponseEntity<DataspaceProvisioningStatusDto> provisionDataspaceIssuer() {
-        String status = dataspaceIssuerProvisioningService.provisionIssuer();
-        return ResponseEntity.ok(new DataspaceProvisioningStatusDto().status(status));
     }
 
     @Override
