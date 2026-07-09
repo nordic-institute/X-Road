@@ -71,17 +71,22 @@
     centerui_password: "{{ centerui_password if centerui_password != '' else lookup('password', '/dev/null chars=ascii_letters,digits length=24') }}"
     centerui_admin_password: "{{ centerui_admin_password if centerui_admin_password != '' else lookup('password', '/dev/null chars=ascii_letters,digits length=24') }}"
 
-- name: "CS — Create centerui_production database"
+- name: "CS — Drop centerui_production if exists"
   shell: >
     PGPASSWORD='{{ database_admin_password }}'
     psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
-    -tc "SELECT 1 FROM pg_database WHERE datname='{{ cs_database_name }}'" | grep -q 1 ||
-    PGPASSWORD='{{ database_admin_password }}'
-    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
-    -c "CREATE DATABASE \"{{ cs_database_name }}\" ENCODING 'UTF8';
-        REVOKE ALL ON DATABASE \"{{ cs_database_name }}\" FROM PUBLIC;"
+    -c "DROP DATABASE IF EXISTS \"{{ cs_database_name }}\";"
   changed_when: false
   no_log: true
+  failed_when: false
+
+- name: "CS — Create centerui_production database"
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "CREATE DATABASE \"{{ cs_database_name }}\" ENCODING 'UTF8';"
+    PGPASSWORD='{{ database_admin_password }}' psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "REVOKE ALL ON DATABASE \"{{ cs_database_name }}\" FROM PUBLIC;"
+  changed_when: false
+  no_log: false
+
 
 - name: "CS — Create centerui roles"
   shell: |
@@ -183,23 +188,17 @@
   loop:
     - { question: "xroad-common/username", value: "{{ _admin_user }}" }
     - { question: "xroad-common/database-host", value: "{{ _database_host_full }}" }
-    - { question: "xroad-common/admin-subject", value: "{{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-subject", value: "/CN={{ inventory_hostname }}" }
     - { question: "xroad-common/admin-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
-    - { question: "xroad-common/service-subject", value: "{{ inventory_hostname }}" }
+    - { question: "xroad-common/service-subject", value: "/CN={{ inventory_hostname }}" }
     - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     - { question: "xroad-common/global-conf-subject", value: "/CN={{ inventory_hostname }}" }
     - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     - { question: "xroad-common/skip-cs-db-migrations", value: "false" }
 
-- name: "CS — Mask CS services before install"
-  shell: systemctl mask {{ item }} 2>/dev/null || true
-  loop:
-    - xroad-center
-    - xroad-signer
-    - xroad-confclient
-    - xroad-center-management-service
-    - xroad-center-registration-service
-  changed_when: false
+# NOTE: Do NOT mask CS services before install.
+# The xroad-center postinst needs services unmasked to start them.
+# (Different from SS which can mask/unmask around install.)
 
 - name: "CS — Install xroad-database-remote"
   apt:
@@ -229,15 +228,6 @@
     DEBIAN_FRONTEND: noninteractive
   changed_when: false
 
-- name: "CS — Unmask CS services"
-  shell: systemctl unmask {{ item }}
-  loop:
-    - xroad-center
-    - xroad-signer
-    - xroad-confclient
-    - xroad-center-management-service
-    - xroad-center-registration-service
-  changed_when: false
 
 # ──────────────────────────────────────────────────────────────────────────────
 # FASE CS-4: Pós-instalação — reescrever configs, run migrations, start
@@ -279,9 +269,7 @@
   loop:
     - xroad-security-officer
     - xroad-registration-officer
-    - xroad-service-administrator
     - xroad-system-administrator
-    - xroad-securityserver-observer
 
 - name: "CS — Start Central Server services"
   service:
