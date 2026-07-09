@@ -120,6 +120,12 @@
         fail_msg: "database_admin_password é obrigatório para banco remoto"
       when: _use_remote_db
 
+    - name: "CS — Remove stale local repo config (pre-install cleanup)"
+      file:
+        path: /etc/apt/sources.list.d/xvia-local.list
+        state: absent
+      changed_when: false
+
     - name: "CS — Install prerequisites"
       apt:
         name:
@@ -226,6 +232,12 @@
     # ──────────────────────────────────────────────────────────────────────────
     # FASE 1: Pré-requisitos
     # ──────────────────────────────────────────────────────────────────────────
+    - name: "SS — Remove stale local repo config (pre-install cleanup)"
+      file:
+        path: /etc/apt/sources.list.d/xvia-local.list
+        state: absent
+      changed_when: false
+
     - name: "SS — Install prerequisites"
       apt:
         name:
