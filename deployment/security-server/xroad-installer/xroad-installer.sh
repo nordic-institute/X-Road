@@ -524,6 +524,15 @@ main() {
   select_messagelog
   log_message ""
 
+  # deb auto-starts xroad-proxy on install; when disabling, defer the start so the DB setting applies on first boot (RHEL does not auto-start).
+  detect_os
+  local defer_proxy_start=false
+  if [[ "$OS_FAMILY" == "debian" && "$XROAD_MESSAGELOG_ENABLED" == "false" ]]; then
+    defer_proxy_start=true
+    log_message "Message log disabled: deferring xroad-proxy start until configuration is applied"
+    systemctl mask xroad-proxy >/dev/null 2>&1 || true
+  fi
+
   if [[ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]]; then
     if ! XROAD_SS_PACKAGE="$XROAD_SS_PACKAGE" \
        XROAD_ADMIN_USERNAME="$XROAD_ADMIN_USERNAME" \
@@ -549,6 +558,15 @@ main() {
     log_die "configure_messagelog.sh not found"
   fi
   log_message ""
+
+  # Start the deferred proxy now that the message log setting is in the database.
+  if [[ "$defer_proxy_start" == true ]]; then
+    log_message "Starting xroad-proxy with message log configuration applied..."
+    systemctl unmask xroad-proxy >/dev/null 2>&1 || true
+    systemctl daemon-reload
+    systemctl enable --now xroad-proxy
+    log_info "xroad-proxy started"
+  fi
 
   # For RHEL: Ask user confirmation before starting the Security Server
   detect_os
