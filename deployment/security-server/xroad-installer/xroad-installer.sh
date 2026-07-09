@@ -527,10 +527,14 @@ main() {
   # deb auto-starts xroad-proxy on install; when disabling, defer the start so the DB setting applies on first boot (RHEL does not auto-start).
   detect_os
   local defer_proxy_start=false
-  if [[ "$OS_FAMILY" == "debian" && "$XROAD_MESSAGELOG_ENABLED" == "false" ]]; then
-    defer_proxy_start=true
-    log_message "Message log disabled: deferring xroad-proxy start until configuration is applied"
-    systemctl mask xroad-proxy >/dev/null 2>&1 || true
+  if [[ "$OS_FAMILY" == "debian" ]]; then
+    # Clear any mask left by a previous failed run before deciding (unmask never starts the unit).
+    systemctl unmask xroad-proxy >/dev/null 2>&1 || true
+    if [[ "$XROAD_MESSAGELOG_ENABLED" == "false" ]]; then
+      defer_proxy_start=true
+      log_message "Message log disabled: deferring xroad-proxy start until configuration is applied"
+      systemctl mask xroad-proxy >/dev/null 2>&1 || true
+    fi
   fi
 
   if [[ -f "$SCRIPT_DIR/tasks/install_security_server.sh" ]]; then
