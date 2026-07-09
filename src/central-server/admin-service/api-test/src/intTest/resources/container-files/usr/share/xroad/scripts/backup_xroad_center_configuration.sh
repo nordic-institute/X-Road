@@ -40,5 +40,6 @@ done
 
 echo $BACKUP_FILENAME
 touch2 $BACKUP_FILENAME
+cat /usr/share/xroad/scripts/_backup_format_version > "${BACKUP_FILENAME}.metadata"
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

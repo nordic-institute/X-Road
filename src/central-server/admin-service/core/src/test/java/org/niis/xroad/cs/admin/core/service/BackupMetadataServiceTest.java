@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -139,7 +140,7 @@ class BackupMetadataServiceTest {
         try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
             filesMock.when(() -> Files.deleteIfExists(any(Path.class))).thenThrow(new IOException("disk error"));
 
-            service.deleteMetadata(backupPath);
+            assertThatCode(() -> service.deleteMetadata(backupPath)).doesNotThrowAnyException();
         }
     }
 
