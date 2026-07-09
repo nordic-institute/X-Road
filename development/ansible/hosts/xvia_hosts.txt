@@ -1,0 +1,40 @@
+# X-VIA: Inventário para instalação de Security Servers via CDN
+#
+# Uso:
+#   ansible-playbook -i hosts/xvia_hosts.txt xvia_install.yml \
+#     -e "database_admin_password=SuaSenha" \
+#     -e "admin_password=SenhaAdmin"
+#
+# Para instalar em um host específico:
+#   ansible-playbook -i hosts/xvia_hosts.txt xvia_install.yml \
+#     -e "database_admin_password=SuaSenha" \
+#     -e "admin_password=SenhaAdmin" \
+#     --limit ss1.exemplo.gov.br
+
+# Security Servers X-VIA
+[ss_servers]
+# Formato: FQDN ansible_host=IP ansible_ssh_user=USUARIO [ansible_ssh_private_key_file=CHAVE]
+#
+# Exemplos:
+# ss1.exemplo.gov.br ansible_host=10.0.1.10 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+# ss2.exemplo.gov.br ansible_host=10.0.1.11 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+[ss_servers:vars]
+variant=vanilla
+ansible_become=yes
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# Central Servers (se necessário)
+[cs_servers]
+
+# Super grupo com todos os servidores
+[xvia:children]
+ss_servers
+cs_servers
+
+[all:vars]
+# Usuário admin da UI do X-Road
+xroad_ui_user=xvia-admin
+# Senha definida via -e na linha de comando (NÃO armazenar aqui)
+# xroad_ui_user_password=

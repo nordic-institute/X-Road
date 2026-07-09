@@ -1,0 +1,94 @@
+---
+# X-VIA: Configuração de banco de dados LOCAL (PostgreSQL na mesma VM)
+
+- name: "FASE 4 (local) — Install PostgreSQL {{ xvia_pg_version }}"
+  apt:
+    name:
+      - "postgresql-{{ xvia_pg_version }}"
+      - "postgresql-contrib-{{ xvia_pg_version }}"
+    state: present
+
+- name: Unmask local PostgreSQL
+  systemd:
+    name: postgresql
+    masked: no
+  failed_when: false
+
+- name: Ensure PostgreSQL is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Configure pg_hba.conf for local password auth
+  lineinfile:
+    path: "/etc/postgresql/{{ xvia_pg_version }}/main/pg_hba.conf"
+    insertafter: "^# IPv4 local connections"
+    line: "host    all             all             127.0.0.1/32            scram-sha-256"
+    state: present
+  notify: reload postgresql
+
+- name: Flush handlers (reload pg_hba before creating users)
+  meta: flush_handlers
+
+- name: Create local DB users
+  become_user: postgres
+  shell: |
+    psql -tc "SELECT 1 FROM pg_roles WHERE rolname='{{ item.name }}'" | grep -q 1 && \
+    psql -c "ALTER ROLE {{ item.name }} PASSWORD '{{ item.password }}';" || \
+    psql -c "CREATE ROLE {{ item.name }} LOGIN PASSWORD '{{ item.password }}';"
+  loop:
+    - { name: "serverconf", password: "{{ serverconf_password }}" }
+    - { name: "serverconf_admin", password: "{{ serverconf_password }}" }
+    - { name: "messagelog", password: "{{ messagelog_password }}" }
+    - { name: "messagelog_admin", password: "{{ messagelog_password }}" }
+    - { name: "opmonitor", password: "{{ opmonitor_password }}" }
+    - { name: "opmonitor_admin", password: "{{ opmonitor_password }}" }
+  changed_when: false
+  no_log: true
+
+- name: Create local databases
+  become_user: postgres
+  shell: |
+    psql -tc "SELECT 1 FROM pg_database WHERE datname='{{ item.db }}'" | grep -q 1 || \
+    psql -c "CREATE DATABASE \"{{ item.db }}\" OWNER {{ item.owner }} ENCODING 'UTF8';"
+  loop:
+    - { db: "serverconf", owner: "serverconf_admin" }
+    - { db: "messagelog", owner: "messagelog_admin" }
+    - { db: "op-monitor", owner: "opmonitor_admin" }
+  changed_when: false
+
+- name: Install hstore extension on serverconf
+  become_user: postgres
+  shell: psql -d serverconf -c "CREATE EXTENSION IF NOT EXISTS hstore;"
+  changed_when: false
+
+- name: Create schemas and grant permissions (local)
+  become_user: postgres
+  shell: |
+    psql -d {{ item.db }} -c "
+      CREATE SCHEMA IF NOT EXISTS {{ item.schema }} AUTHORIZATION {{ item.admin }};
+      GRANT USAGE ON SCHEMA {{ item.schema }} TO {{ item.user }};
+      GRANT ALL ON SCHEMA {{ item.schema }} TO {{ item.admin }};
+      ALTER DEFAULT PRIVILEGES FOR ROLE {{ item.admin }} IN SCHEMA {{ item.schema }}
+        GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO {{ item.user }};
+      ALTER DEFAULT PRIVILEGES FOR ROLE {{ item.admin }} IN SCHEMA {{ item.schema }}
+        GRANT USAGE,SELECT ON SEQUENCES TO {{ item.user }};
+    "
+  loop:
+    - { db: "serverconf", schema: "serverconf", admin: "serverconf_admin", user: "serverconf" }
+    - { db: "messagelog", schema: "messagelog", admin: "messagelog_admin", user: "messagelog" }
+    - { db: "op-monitor", schema: "opmonitor", admin: "opmonitor_admin", user: "opmonitor" }
+  changed_when: false
+
+- name: Grant connect on local databases
+  become_user: postgres
+  shell: |
+    psql -c "GRANT ALL ON DATABASE \"{{ item.db }}\" TO {{ item.admin }};"
+    psql -c "GRANT CONNECT ON DATABASE \"{{ item.db }}\" TO {{ item.user }};"
+    psql -d "{{ item.db }}" -c "GRANT ALL ON SCHEMA public TO {{ item.admin }};"
+  loop:
+    - { db: "serverconf", admin: "serverconf_admin", user: "serverconf" }
+    - { db: "messagelog", admin: "messagelog_admin", user: "messagelog" }
+    - { db: "op-monitor", admin: "opmonitor_admin", user: "opmonitor" }
+  changed_when: false

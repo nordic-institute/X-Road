@@ -1,0 +1,85 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Inventário On-Premises — Todos os Componentes
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Ajuste os hostnames/IPs abaixo para o ambiente do cliente.
+# Use FQDNs reais (não IPs) pois são usados na geração de certificados.
+#
+# EXECUÇÃO:
+#   ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#     -e "admin_password=SenhaAdmin" \
+#     -e "database_admin_password=SenhaBanco"
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── Central Server ───────────────────────────────────────────────────────────
+# Apenas 1 por ambiente. Gerencia membros, global configuration, etc.
+[cs_servers]
+cs.exemplo.gov.br ansible_host=192.168.1.10 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+# ─── Security Server(s) ──────────────────────────────────────────────────────
+# Pode ter múltiplos. Cada órgão/participante tem o seu.
+[ss_servers]
+ss1.exemplo.gov.br ansible_host=192.168.1.20 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+ss2.exemplo.gov.br ansible_host=192.168.1.21 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+# ─── CA Server ────────────────────────────────────────────────────────────────
+# Fornece CA, OCSP e TSA para o ambiente.
+[ca_servers]
+ca.exemplo.gov.br ansible_host=192.168.1.5 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
+# ─── Super grupo (todos os servidores) ────────────────────────────────────────
+[xvia:children]
+cs_servers
+ss_servers
+ca_servers
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VARIÁVEIS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[all:vars]
+ansible_become=yes
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# ─── Admin da UI do X-Road ────────────────────────────────────────────────────
+# Usuário que acessa a interface web (porta 4000)
+xroad_ui_user=xvia-admin
+
+# ─── Banco de dados ──────────────────────────────────────────────────────────
+# PostgreSQL on-premises do cliente
+# Substitua pelo IP/hostname e porta do banco do cliente
+use_remote_db=true
+database_host=192.168.1.50:5432
+database_admin_user=postgres
+# database_admin_password via -e na CLI (NÃO armazenar aqui em produção)
+
+# ─── Senhas customizadas dos bancos (opcionais) ──────────────────────────────
+# Se não definidas, usam os defaults do vars_files/xvia_database.yml
+# Em produção, use ansible-vault:
+#   ansible-vault encrypt_string 'minha-senha' --name 'serverconf_password'
+#
+# serverconf_password=SenhaCustomServerconf
+# messagelog_password=SenhaCustomMsglog
+# opmonitor_password=SenhaCustomOpmon
+# centerui_password=SenhaCustomCenterUI
+# centerui_admin_password=SenhaCustomCenterAdmin
+
+# ─── CA Server ────────────────────────────────────────────────────────────────
+[ca_servers:vars]
+ca_organization=Governo do Estado - X-VIA
+ca_cn=X-VIA Autoridade Certificadora
+
+# ─── Pacotes (escolha o modo) ────────────────────────────────────────────────
+# Para ambientes COM internet (CDN CloudFront):
+#   xvia_package_source=cdn
+#
+# Para ambientes COM AWS CLI (download direto do S3):
+#   xvia_package_source=s3
+#
+# Para ambientes SEM internet (copie o tarball antes):
+#   xvia_package_source=local
+#   xvia_local_tarball_path=/opt/xvia-packages/xroad-7.8.0-ubuntu24.04.tar.gz
+[xvia:vars]
+xvia_package_source=cdn

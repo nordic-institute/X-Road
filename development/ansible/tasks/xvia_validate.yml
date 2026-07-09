@@ -1,0 +1,61 @@
+---
+# X-VIA: Validação da instalação — iniciar serviços e testar UI
+
+- name: "FASE 8 — Start and enable xroad services"
+  service:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+  loop:
+    - xroad-signer
+    - xroad-proxy
+    - xroad-confclient
+    - xroad-proxy-ui-api
+
+- name: Start xroad-opmonitor
+  service:
+    name: xroad-opmonitor
+    state: restarted
+    enabled: yes
+  when: xvia_enable_opmonitoring | default(true) | bool
+
+- name: Wait for UI to be ready (port 4000)
+  uri:
+    url: "https://localhost:4000"
+    validate_certs: no
+    status_code: [200, 302]
+  register: _ui_result
+  until: _ui_result.status is defined and _ui_result.status in [200, 302]
+  retries: 30
+  delay: 10
+
+- name: Validate admin login
+  uri:
+    url: "https://localhost:4000/login"
+    method: POST
+    validate_certs: no
+    body_format: form-urlencoded
+    body:
+      username: "{{ _admin_user }}"
+      password: "{{ _admin_password }}"
+    headers:
+      X-XSRF-TOKEN: "validate"
+      Cookie: "XSRF-TOKEN=validate"
+    status_code: [200]
+  register: _login_test
+  retries: 3
+  delay: 5
+  no_log: true
+
+- name: "✅ Installation complete!"
+  debug:
+    msg: |
+      ══════════════════════════════════════════════════════════════
+       X-VIA Security Server instalado com sucesso!
+      ══════════════════════════════════════════════════════════════
+       URL:       https://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:4000
+       Usuário:   {{ _admin_user }}
+       Banco:     {{ _database_host_full }} ({{ 'REMOTO/RDS' if _use_remote_db else 'LOCAL' }})
+       Messagelog: {{ 'habilitado' if xvia_enable_messagelog | default(true) | bool else 'desabilitado' }}
+       Proxy Mem: {{ xvia_proxy_memory }}MB
+      ══════════════════════════════════════════════════════════════

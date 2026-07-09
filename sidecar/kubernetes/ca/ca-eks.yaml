@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-ca-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=false
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+    - "10.0.0.0/8"
+    - "192.168.0.0/16"
+  selector:
+    run: server-ca
+  ports:
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP
+      name: ca
+    - port: 8899
+      targetPort: 8899
+      protocol: TCP
+      name: tsa
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ca-data-pvc
+  namespace: sidecar
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ebs-sc
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-ca
+  namespace: sidecar
+spec:
+  selector:
+    matchLabels:
+      run: server-ca
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        run: server-ca
+    spec:
+      serviceAccountName: xroad-ca-sa
+      automountServiceAccountToken: false
+      initContainers:
+        - name: init-ca-data
+          image: security-server-sidecar-ca{{IMAGE_TAG}}
+          command: ['sh', '-c']
+          args:
+            - |
+              # Se já inicializado, apenas garantir permissões
+              if [ -f /ca-persistent/.init ]; then
+                echo "CA already initialized, fixing permissions..."
+                chown -R 1001:1001 /ca-persistent
+                exit 0
+              fi
+              # Primeira vez: limpar PVC e copiar scripts da imagem
+              echo "First run: initializing CA on persistent volume..."
+              rm -rf /ca-persistent/certs /ca-persistent/lost+found 2>/dev/null || true
+              cp -a /home/ca/CA/* /ca-persistent/ 2>/dev/null || true
+              chown -R 1001:1001 /ca-persistent
+              # Executar init.sh como user ca para gerar certificados
+              cd /ca-persistent && su -s /bin/bash ca -c './init.sh'
+              # Copiar certs publicados
+              mkdir -p /home/ca/certs 2>/dev/null || true
+              cp /ca-persistent/certs/ca.cert.pem /home/ca/certs/ca.pem 2>/dev/null || true
+              cp /ca-persistent/certs/ocsp.cert.pem /home/ca/certs/ocsp.pem 2>/dev/null || true
+              cp /ca-persistent/certs/tsa.cert.pem /home/ca/certs/tsa.pem 2>/dev/null || true
+              echo "CA initialization complete."
+          volumeMounts:
+            - name: ca-data
+              mountPath: /ca-persistent
+      containers:
+        - name: server-ca
+          image: 183619025107.dkr.ecr.sa-east-1.amazonaws.com/xroad-ca:7.8.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8888
+              protocol: TCP
+            - containerPort: 8899
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          volumeMounts:
+            - name: ca-data
+              mountPath: /home/ca/CA
+          livenessProbe:
+            tcpSocket:
+              port: 8888
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 8888
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: ca-data
+          persistentVolumeClaim:
+            claimName: ca-data-pvc

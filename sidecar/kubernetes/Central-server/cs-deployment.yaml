@@ -172,7 +172,8 @@ spec:
             name: cs-supervisor-config
             defaultMode: 0755
         - name: openbao-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: openbao-data-pvc
 ---
 apiVersion: v1
 kind: Service
