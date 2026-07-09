@@ -34,24 +34,6 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Download resolute (Ubuntu 26.04) packages
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: lxd-packages-ubuntu26.04
-          path: deployment/native-packages/build/ubuntu26.04
-
-      - name: Download noble (Ubuntu 24.04) packages
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: lxd-packages-ubuntu24.04
-          path: deployment/native-packages/build/ubuntu24.04
-
-      - name: Download RHEL 9 packages
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: lxd-packages-rhel9
-          path: deployment/native-packages/build/rhel/9
-
       - name: Install Ansible and LXD tooling
         run: |
           sudo apt-get update
@@ -114,6 +96,58 @@ jobs:
           sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo"
           echo "CACHE_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      # build-and-package uploads the lxd-packages-* / e2e-test-jar artifacts
+      # early, then this marker last, so its presence means all four are ready
+      # for download. Deadline sits above build-and-package's 60-min job
+      # timeout but well below this job's own 120-min timeout.
+      - name: Wait for build artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          start=$(date +%s)
+          deadline=$(( start + 70 * 60 ))
+          marker="lxd-artifacts-ready"
+          while true; do
+            # --paginate + --jq emits per page; match a name line instead of
+            # counting so multi-page artifact lists cannot break the check
+            if gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+                 --paginate -X GET -f per_page=100 \
+                 --jq ".artifacts[] | select(.name == \"$marker\") | .name" \
+                 | grep -qx "$marker"; then
+              break
+            fi
+            now=$(date +%s)
+            if (( now >= deadline )); then
+              echo "::error::Timed out waiting for marker artifact '$marker' from build-and-package. It either failed or was cancelled before uploading it." >&2
+              exit 1
+            fi
+            sleep 25
+          done
+          echo "WAIT_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Download resolute (Ubuntu 26.04) packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-ubuntu26.04
+          path: deployment/native-packages/build/ubuntu26.04
+
+      - name: Download noble (Ubuntu 24.04) packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-ubuntu24.04
+          path: deployment/native-packages/build/ubuntu24.04
+
+      - name: Download RHEL 9 packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-rhel9
+          path: deployment/native-packages/build/rhel/9
+
+      - name: Download e2e-test JAR
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: e2e-test-jar
+
       - name: Provision containers
         working-directory: ./development/native-lxd-stack
         run: |
@@ -127,11 +161,6 @@ jobs:
           start=$(date +%s)
           sg lxd -c "lxc exec xrd-hurl -- bash -c 'cd /opt/hurl && ./run-hurl.sh'"
           echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
-
-      - name: Download e2e-test JAR
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: e2e-test-jar
 
       - name: Setup Java
         uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
@@ -178,10 +207,11 @@ jobs:
             echo "|-------|----------|"
             echo "| LXD init | ${INIT_SECS:-n/a}s |"
             echo "| Cache base images | ${CACHE_SECS:-n/a}s |"
+            echo "| Wait for build artifacts | ${WAIT_SECS:-n/a}s |"
             echo "| Provision containers | ${PROVISION_SECS:-n/a}s |"
             echo "| Federation init (hurl) | ${HURL_SECS:-n/a}s |"
             echo "| e2e suite (LXD mode) | ${E2E_SECS:-n/a}s |"
-            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} + ${E2E_SECS:-0} ))
+            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${WAIT_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} + ${E2E_SECS:-0} ))
             echo "| **Total** | **${total}s** |"
           } >> "$GITHUB_STEP_SUMMARY"
 

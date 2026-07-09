@@ -97,12 +97,13 @@ jobs:
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   # Provisions the LXD environment and runs the e2e suite in LXD mode on every
-  # PR and manual dispatch. A failed run marks the PR checks red (reusable-workflow
-  # callers cannot continue-on-error). To narrow back to manual dispatch only,
-  # change the `if` below to: github.event_name == 'workflow_dispatch'
+  # PR and manual dispatch. Runs in parallel with build-and-package: it consumes
+  # no job outputs, only waits internally for that job's package artifacts via
+  # a marker artifact (see _provision-lxd.yml). A failed run marks the PR checks
+  # red (reusable-workflow callers cannot continue-on-error). To narrow back to
+  # manual dispatch only, change the `if` below to: github.event_name == 'workflow_dispatch'
   provision-lxd:
     name: lxd-e2e
-    needs: build-and-package
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
     uses: ./.github/workflows/_provision-lxd.yml
     secrets: inherit
