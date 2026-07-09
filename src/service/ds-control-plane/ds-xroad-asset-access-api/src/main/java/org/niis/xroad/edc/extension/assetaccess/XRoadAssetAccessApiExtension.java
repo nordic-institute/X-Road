@@ -35,6 +35,10 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDataServiceTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDatasetTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDistributionTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -49,10 +53,6 @@ import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionLi
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore;
-import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToCatalogTransformer;
-import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDataServiceTransformer;
-import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDatasetTransformer;
-import org.niis.xroad.edc.extension.assetaccess.transform.JsonObjectToDistributionTransformer;
 
 import java.time.Duration;
 

@@ -33,7 +33,7 @@ public record AssetAccessRequest(
         String counterPartyAddress,
         String protocol
 ) {
-    private static final String DEFAULT_PROTOCOL = "dataspace-protocol-http:2025-1";
+    private static final String DEFAULT_PROTOCOL = "http-dsp-profile-2025-1";
 
     public String protocolOrDefault() {
         return protocol != null ? protocol : DEFAULT_PROTOCOL;

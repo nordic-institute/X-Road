@@ -570,7 +570,6 @@ services:
       XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME: "ds_identity_hub"
       EDC_IAM_OAUTH2_JWKS_URL: "http://mock-jwks-server:8080/jwks.json"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"
-      EDC_ENCRYPTION_STRICT: "false"
       DEBUG: "true"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
@@ -637,7 +636,6 @@ services:
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME: "ds_issuer_service"
       EDC_IAM_OAUTH2_JWKS_URL: "http://mock-jwks-server:8080/jwks.json"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"
-      EDC_ENCRYPTION_STRICT: "false"
       DEBUG: "true"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"

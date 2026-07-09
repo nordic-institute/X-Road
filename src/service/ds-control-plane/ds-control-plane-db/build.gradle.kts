@@ -8,8 +8,6 @@ dependencies {
   implementation(libs.edc.sql.edr.index)
   implementation(libs.edc.sql.jti.validation)
   implementation(libs.edc.sql.policy.monitor)
-  implementation(libs.edc.sql.fedcatalog.cache)
-  implementation(libs.edc.sql.fedcatalog.target.node)
 
   // SQL infrastructure
   implementation(libs.edc.sql.core)

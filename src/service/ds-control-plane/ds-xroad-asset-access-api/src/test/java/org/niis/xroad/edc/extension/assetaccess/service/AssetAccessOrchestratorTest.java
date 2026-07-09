@@ -118,7 +118,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -133,7 +133,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)
@@ -179,7 +179,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -195,7 +195,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)
@@ -357,7 +357,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -367,7 +367,7 @@ class AssetAccessOrchestratorTest {
 
         var terminatedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -394,7 +394,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -408,7 +408,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)
@@ -434,7 +434,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -450,7 +450,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)
@@ -478,7 +478,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -493,7 +493,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)
@@ -519,7 +519,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -538,7 +538,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)
@@ -563,7 +563,7 @@ class AssetAccessOrchestratorTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .build();
@@ -578,7 +578,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         var finalizedNegotiation = ContractNegotiation.Builder.newInstance()
                 .id("neg-1")
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
                 .contractAgreement(agreement)

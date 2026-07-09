@@ -227,7 +227,6 @@ services:
       - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
       - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-      - EDC_ENCRYPTION_STRICT=false
       - EDC_VAULT_HASHICORP_HEALTH_CHECK_ENABLED=false
       - EDC_STATUSLIST_CALLBACK_ADDRESS=https://ds-issuer-service:6187/statuslist
       - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12

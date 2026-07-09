@@ -129,6 +129,29 @@ class XRoadDataPlaneManagerTest {
     }
 
     @Test
+    void startedTransitionsFlowToStartedAndReturnsStateOnlyStatus() {
+        manager.prepare(DataFlowPrepareMessage.Builder.newInstance()
+                .processId("flow-9")
+                .transferType("Xrd-PULL")
+                .build());
+
+        var result = manager.started("flow-9");
+
+        assertThat(result.getState()).isEqualTo(DataFlowStates.STARTED.toString());
+        assertThat(result.getDataAddress()).isNull();
+        assertThat(manager.state("flow-9")).isEqualTo(DataFlowStates.STARTED);
+    }
+
+    @Test
+    void completedTransitionsFlowToCompleted() {
+        manager.start(buildStartMessage("flow-10"));
+
+        manager.completed("flow-10");
+
+        assertThat(manager.state("flow-10")).isEqualTo(DataFlowStates.COMPLETED);
+    }
+
+    @Test
     void terminateTransitionsFlowToTerminated() {
         manager.start(buildStartMessage("flow-6"));
 

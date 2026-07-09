@@ -24,41 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api;
+
+package org.niis.xroad.e2e.glue;
 
 import org.niis.xroad.test.framework.core.token.TestJwtSigner;
 
 import java.util.Map;
 
-final class DspAuthTokens {
+final class DsTokenFactory {
 
-    private static final String PRIVATE_KEY_RESOURCE = "/container-files/jwks/private_key.json";
+    private static final String PRIVATE_KEY_RESOURCE = "/jwks/private_key.json";
     private static final TestJwtSigner SIGNER = new TestJwtSigner(PRIVATE_KEY_RESOURCE);
 
-    static final String IS_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "scope", "identity-api:admin issuer-admin-api:write issuer-admin-api:read"
-    )));
-
-    static final String IS_PARTICIPANT = bearer(SIGNER.sign(null, Map.of(
-            "scope", "issuer-admin-api:admin"
-    )));
-
-    static final String IH_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "scope", "identity-api:admin"
-    )));
-
-    static final String IH_ADMIN = bearer(SIGNER.sign(null, Map.of(
-            "scope", "identity-api:admin"
-    )));
-
-    static final String CP_PROVISIONER = bearer(SIGNER.sign(null, Map.of(
-            "scope", "management-api:admin"
-    )));
-
-    private DspAuthTokens() {
+    private DsTokenFactory() {
     }
 
-    private static String bearer(String token) {
-        return "Bearer " + token;
+    static String provisionerToken() {
+        return SIGNER.sign("admin-subject", Map.of(
+                "scope", "management-api:admin"
+        ));
+    }
+
+    static String participantToken(String participantContextId) {
+        return SIGNER.sign(participantContextId, Map.of(
+                "scope", "management-api:write management-api:read"
+        ));
+    }
+
+    static String issuerParticipantToken() {
+        return SIGNER.sign(null, Map.of(
+                "scope", "issuer-admin-api:admin"
+        ));
     }
 }
