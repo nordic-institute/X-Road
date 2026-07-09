@@ -39,8 +39,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.confclient.common.config.ConfigurationClientConfig;
 import org.niis.xroad.confclient.common.domain.Configuration;
+import org.niis.xroad.confclient.common.domain.ConfigurationFile;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
@@ -52,10 +54,20 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static ee.ria.xroad.common.TestExceptionUtils.xrdRuntimeException;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -164,6 +176,101 @@ class ConfigurationDownloaderTest {
                 (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationDownloaderTest.com"));
         AssertionsForClassTypes.assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
         AssertionsForClassTypes.assertThat(connection.getHostnameVerifier()).isNotInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    void twoPartsResolvingToSameTargetAreRejected() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    @Test
+    void duplicateTargetRejectionLeavesNoPartialWriteOnDisk() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, "content-a".getBytes()),
+                new ConfigurationDownloader.DownloadedContent(partB, "content-b".getBytes())
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+
+        AssertionsForClassTypes.assertThat(new File(tempDir, "EE/custom.xml")).doesNotExist();
+    }
+
+    @Test
+    void blankInstancePartIsSkippedAndValidPartsStillDownload() {
+        ConfigurationDownloader downloader = getContentStubbingDownloader(3);
+        Configuration configuration = new Configuration(
+                new ConfigurationLocation("EE", LOCATION_HTTPS_URL_SUCCESS, List.of()));
+        configuration.getFiles().add(genericPartWithInstance("/good.xml", "EE"));
+        configuration.getFiles().add(genericPart("/bad.xml"));
+
+        List<ConfigurationDownloader.DownloadedContent> result = downloader.downloadAllContent(configuration);
+
+        assertEquals(1, result.size());
+        assertEquals("/good.xml", result.getFirst().file.getContentLocation());
+    }
+
+    private static ConfigurationFile genericPart(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private ConfigurationDownloader getContentStubbingDownloader(int confVersion) {
+        var connectionConfigurer = new HttpUrlConnectionConfigurer(clientProperties);
+        return new ConfigurationDownloader(connectionConfigurer, clientProperties.globalConfDir(), confVersion) {
+            @Override
+            protected byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
+                return "content".getBytes();
+            }
+
+            @Override
+            void verifyContent(byte[] content, ConfigurationFile file) {
+                // downloaded content is synthetic in this test; hash verification is exercised elsewhere
+            }
+        };
+    }
+
+    @Test
+    void duplicateTargetIsRejectedCaseInsensitively() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/Custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    private static ConfigurationFile genericPartWithInstance(String contentLocation, String instance) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        headers.put(HEADER_CONTENT_IDENTIFIER, "GENERIC; instance='%s'".formatted(instance));
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 
     private void resetParser(ConfigurationDownloader downloader) {
