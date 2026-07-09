@@ -24,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.auxiliaryservice.core.messagelog;
 
 import io.quarkus.runtime.ShutdownEvent;
@@ -45,6 +46,5 @@ class MessageLogShutdownHandler {
         log.info("Executing message log archive and cleanup jobs during application shutdown");
         messageLogArchiveJob.executeOnShutdown();
         messageLogCleanupJob.executeOnShutdown();
-        log.info("Message log archive and cleanup jobs completed during application shutdown");
     }
 }
