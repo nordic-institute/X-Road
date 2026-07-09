@@ -120,10 +120,13 @@
         fail_msg: "database_admin_password é obrigatório para banco remoto"
       when: _use_remote_db
 
-    - name: "CS — Remove stale local repo config (pre-install cleanup)"
-      file:
-        path: /etc/apt/sources.list.d/xvia-local.list
-        state: absent
+    - name: "CS — Remove ALL stale local xroad repo configs"
+      shell: |
+        rm -f /etc/apt/sources.list.d/xvia-local*.list
+        rm -f /etc/apt/sources.list.d/xroad*.list
+        grep -rl 'file:/xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        grep -rl 'file:///xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        sed -i '/file:.*\/xroad/d' /etc/apt/sources.list 2>/dev/null || true
       changed_when: false
 
     - name: "CS — Install prerequisites"
@@ -232,10 +235,13 @@
     # ──────────────────────────────────────────────────────────────────────────
     # FASE 1: Pré-requisitos
     # ──────────────────────────────────────────────────────────────────────────
-    - name: "SS — Remove stale local repo config (pre-install cleanup)"
-      file:
-        path: /etc/apt/sources.list.d/xvia-local.list
-        state: absent
+    - name: "SS — Remove ALL stale local xroad repo configs"
+      shell: |
+        rm -f /etc/apt/sources.list.d/xvia-local*.list
+        rm -f /etc/apt/sources.list.d/xroad*.list
+        grep -rl 'file:/xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        grep -rl 'file:///xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        sed -i '/file:.*\/xroad/d' /etc/apt/sources.list 2>/dev/null || true
       changed_when: false
 
     - name: "SS — Install prerequisites"
