@@ -36,6 +36,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.e2e.ComposeContainerOps;
 import org.niis.xroad.e2e.E2eEnvironment;
+import org.niis.xroad.e2e.MessagelogDbOps;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
@@ -72,6 +73,8 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     private TestFrameworkCoreProperties coreProperties;
     @Autowired
     private ObjectProvider<ComposeContainerOps> containerOpsProvider;
+    @Autowired
+    private MessagelogDbOps messagelogDbOps;
 
     private ValidatableResponseOptions<?, ?> response;
 
@@ -223,7 +226,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     @Step("{string} contains {int} messagelog entries")
     public void messageLogContainsNEntries(String env, int expectedCount) {
         var recordsCount = Integer.parseInt(
-                containerOpsProvider.getObject().execMessagelogSql(env, "SELECT COUNT(id) FROM logrecord"));
+                messagelogDbOps.execMessagelogSql(env, "SELECT COUNT(id) FROM logrecord"));
         assertThat(recordsCount).isEqualTo(expectedCount);
     }
 

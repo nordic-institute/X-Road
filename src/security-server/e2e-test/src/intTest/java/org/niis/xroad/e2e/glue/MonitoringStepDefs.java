@@ -30,9 +30,9 @@ import io.restassured.response.Response;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.niis.xroad.e2e.ComposeContainerOps;
+import org.awaitility.core.ConditionTimeoutException;
 import org.niis.xroad.e2e.E2eEnvironment;
-import org.springframework.beans.factory.ObjectProvider;
+import org.niis.xroad.e2e.MessagelogDbOps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.xml.sax.InputSource;
@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MonitoringStepDefs extends BaseE2EStepDefs {
 
     @Autowired
-    private ObjectProvider<ComposeContainerOps> containerOpsProvider;
+    private MessagelogDbOps messagelogDbOps;
 
     private Response lastProxymonitorResponse;
 
@@ -130,16 +130,24 @@ public class MonitoringStepDefs extends BaseE2EStepDefs {
         var sql = ("SELECT count(*), count(*) FILTER (WHERE keyid IS NOT NULL AND message IS NULL) "
                 + "FROM logrecord WHERE queryid = '%s'").formatted(queryId);
         var counts = new AtomicReference<>(new int[]{0, 0});
-        Awaitility.await()
-                .pollDelay(Duration.ofSeconds(1))
-                .pollInterval(Duration.ofSeconds(2))
-                .timeout(Duration.ofSeconds(60))
-                .ignoreExceptions()
-                .until(() -> {
-                    var parts = containerOpsProvider.getObject().execMessagelogSql(env, sql).split("\\|");
-                    counts.set(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
-                    return counts.get()[1] >= expectedCount;
-                });
+        try {
+            Awaitility.await()
+                    .pollDelay(Duration.ofSeconds(1))
+                    .pollInterval(Duration.ofSeconds(2))
+                    .timeout(Duration.ofSeconds(60))
+                    .ignoreExceptions()
+                    .until(() -> {
+                        var parts = messagelogDbOps.execMessagelogSql(env, sql).split("\\|");
+                        counts.set(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+                        return counts.get()[1] >= expectedCount;
+                    });
+        } catch (ConditionTimeoutException e) {
+            var result = counts.get();
+            throw new ConditionTimeoutException(
+                    ("Timed out waiting for %d encrypted messagelog entries for queryId %s on %s "
+                            + "(last observed: %d total rows, %d encrypted)")
+                            .formatted(expectedCount, queryId, env, result[0], result[1]), e);
+        }
 
         var result = counts.get();
         assertThat(result[0]).as("logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);

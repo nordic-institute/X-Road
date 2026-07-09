@@ -75,4 +75,9 @@ public interface LxdEnvProperties {
     @WithDefault("DEV:COM:4321")
     @WithName("ss1-member-id")
     String ss1MemberId();
+
+    /** Local {@code lxc} executable used to shell out to the LXD stack (TEST_FRAMEWORK_LXD_LXC_COMMAND). */
+    @WithDefault("lxc")
+    @WithName("lxc-command")
+    String lxcCommand();
 }

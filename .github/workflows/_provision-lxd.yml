@@ -155,7 +155,7 @@ jobs:
           sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false"
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
-      - name: Initialize federation (hurl)
+      - name: Initialize X-Road (hurl)
         working-directory: ./development/native-lxd-stack
         run: |
           start=$(date +%s)

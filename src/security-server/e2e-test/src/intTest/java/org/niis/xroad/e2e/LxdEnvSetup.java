@@ -26,11 +26,15 @@
 package org.niis.xroad.e2e;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * LXD-based implementation of the e2e environment.
@@ -39,9 +43,10 @@ import java.net.Socket;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LxdEnvSetup implements E2eEnvironment {
+public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
+    private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
 
     private final LxdEnvProperties lxdProperties;
 
@@ -60,6 +65,45 @@ public class LxdEnvSetup implements E2eEnvironment {
     @Override
     public String peerControlPlaneHost(String env) {
         return "xrd-" + env + ".lxd";
+    }
+
+    @Override
+    public String participantContextId(String env) {
+        return resolveHost(env);
+    }
+
+    @Override
+    public String participantDid(String env) {
+        return "did:web:%s%%3A7183".formatted(resolveHost(env));
+    }
+
+    @Override
+    @SneakyThrows
+    public String execMessagelogSql(String env, String sql) {
+        var container = "xrd-" + env;
+        var process = new ProcessBuilder(
+                lxdProperties.lxcCommand(), "exec", container, "--",
+                "sudo", "-u", "postgres", "PGOPTIONS=" + MESSAGELOG_SEARCH_PATH,
+                "psql", "-d", "messagelog", "-tAX", "-c", sql)
+                .start();
+
+        // Stdout and stderr are drained concurrently to avoid deadlocking on a full pipe buffer:
+        // lxc exec emits sudoers noise on stderr on every call, which must not be mistaken for failure.
+        var stdoutFuture = CompletableFuture.supplyAsync(() -> readAll(process.getInputStream()));
+        var stderrFuture = CompletableFuture.supplyAsync(() -> readAll(process.getErrorStream()));
+        var stdout = stdoutFuture.get();
+        var stderr = stderrFuture.get();
+        var exitCode = process.waitFor();
+
+        if (exitCode != 0) {
+            throw new IllegalStateException("psql query on %s failed (exit %d): %s".formatted(env, exitCode, stderr));
+        }
+        return stdout.trim();
+    }
+
+    @SneakyThrows
+    private static String readAll(InputStream inputStream) {
+        return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
     }
 
     private String resolveHost(String env) {

@@ -148,6 +148,10 @@
           trusted-issuer:
             issuer:
               id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+          credential:
+            revocation:
+              cache:
+                validity: 1
           sts:
             oauth:
               token:

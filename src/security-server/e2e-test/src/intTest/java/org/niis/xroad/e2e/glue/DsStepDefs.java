@@ -67,8 +67,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // --- Control Plane asset/policy/contract management ---
 
-    @Step("Asset is created in participant context {string} on {string}")
-    public void assetIsCreated(String participantContext, String server) {
+    @Step("Asset is created on {string}")
+    public void assetIsCreated(String server) {
         String request = """
                 {
                     "@context": [
@@ -90,13 +90,16 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 }
                 """;
 
+        String participantContext = envSetup.participantContextId(server);
         var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/assets").formatted(mapping.host(), mapping.port(), participantContext);
         sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
 
-    @Step("Policy definition allowing only {string} is created in participant context {string} on {string}")
-    public void policyDefinitionIsCreated(String consumerDid, String participantContext, String server) {
+    @Step("Policy definition allowing only {string} is created on {string}")
+    public void policyDefinitionIsCreated(String consumerEnv, String server) {
+        String consumerDid = envSetup.participantDid(consumerEnv);
+        String participantContext = envSetup.participantContextId(server);
         var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
 
         // Register a CEL expression that checks the consumer's DID
@@ -147,8 +150,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
         sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
     }
 
-    @Step("Contract definition is created in participant context {string} on {string}")
-    public void contractDefinitionIsCreated(String participantContext, String server) {
+    @Step("Contract definition is created on {string}")
+    public void contractDefinitionIsCreated(String server) {
         String request = """
                 {
                     "@context": [
@@ -168,6 +171,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ]
                 }
                 """;
+        String participantContext = envSetup.participantContextId(server);
         var mapping = envSetup.getContainerMapping(server, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         String url = (MGMT_BASE_URL + "/%s/contractdefinitions").formatted(mapping.host(), mapping.port(), participantContext);
         sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, CREATED_OR_MANAGED);
@@ -175,9 +179,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
 
     // --- Cross-server DSP protocol operations ---
 
-    @Step("Catalog can be retrieved using participant context {string} on {string} from {string} on {string}")
-    public void catalogCanBeRetrievedUsingParticipantContextFrom(String consumerParticipantContext, String consumerEnv,
-                                                                 String providerDid, String providerEnv) {
+    @Step("Catalog can be retrieved on {string} from {string}")
+    public void catalogCanBeRetrievedUsingParticipantContextFrom(String consumerEnv, String providerEnv) {
+        String consumerParticipantContext = envSetup.participantContextId(consumerEnv);
+        String providerDid = envSetup.participantDid(providerEnv);
         String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
         String request = """
                 {
@@ -186,10 +191,11 @@ public class DsStepDefs extends BaseE2EStepDefs {
                     ],
                     "@type": "CatalogRequest",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/%s/http-dsp-profile-2025-1",
                     "protocol": "http-dsp-profile-2025-1"
                 }
-                """.formatted(providerDid, providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL);
+                """.formatted(providerDid, providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL,
+                envSetup.dspPathSegment(providerEnv));
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/catalog/request".formatted(consumerParticipantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(consumerParticipantContext), request, HttpStatus.SC_OK);
 
@@ -198,8 +204,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
         assertNotNull(offerId, "Offer ID should be present in catalog response");
     }
 
-    @Step("Contract negotiation is initiated using participant context {string} on {string} with provider {string} on {string}")
-    public void contractNegotiationIsInitiated(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
+    @Step("Contract negotiation is initiated on {string} with provider {string}")
+    public void contractNegotiationIsInitiated(String consumerEnv, String providerEnv) {
+        String participantContext = envSetup.participantContextId(consumerEnv);
+        String providerDid = envSetup.participantDid(providerEnv);
         String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
 
         String request = """
@@ -208,7 +216,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "ContractRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/%s/http-dsp-profile-2025-1",
                     "counterPartyId": "%s",
                     "protocol": "http-dsp-profile-2025-1",
                     "policy": {
@@ -223,7 +231,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "permission": %s
                     }
                 }
-                """.formatted(providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL,
+                """.formatted(providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL, envSetup.dspPathSegment(providerEnv),
                 providerDid, offerId, providerDid, targetAssetId, permissionJson);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/contractnegotiations".formatted(participantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
@@ -233,8 +241,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
         assertNotNull(negotiationId, "Negotiation ID should be present in response");
     }
 
-    @Step("Contract negotiation state is {string} using participant context {string} on {string}")
-    public void contractNegotiationIsCompleted(String state, String participantContext, String consumerEnv) {
+    @Step("Contract negotiation state is {string} on {string}")
+    public void contractNegotiationIsCompleted(String state, String consumerEnv) {
+        String participantContext = envSetup.participantContextId(consumerEnv);
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/contractnegotiations/%s".formatted(participantContext, negotiationId);
 
@@ -251,8 +260,10 @@ public class DsStepDefs extends BaseE2EStepDefs {
                 doGetRequest(url, ControlPlaneAuthTokens.forContext(participantContext), HttpStatus.SC_OK).extract().body().asString());
     }
 
-    @Step("Transfer process is started using participant context {string} on {string} with provider {string} on {string}")
-    public void transferProcessIsStarted(String participantContext, String consumerEnv, String providerDid, String providerEnv) {
+    @Step("Transfer process is started on {string} with provider {string}")
+    public void transferProcessIsStarted(String consumerEnv, String providerEnv) {
+        String participantContext = envSetup.participantContextId(consumerEnv);
+        String providerDid = envSetup.participantDid(providerEnv);
         String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
         String request = """
                 {
@@ -260,7 +271,7 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "https://w3id.org/edc/connector/management/v2"
                     ],
                     "@type": "TransferRequest",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1",
+                    "counterPartyAddress": "https://%s:%d/api/dsp/%s/http-dsp-profile-2025-1",
                     "counterPartyId": "%s",
                     "protocol": "http-dsp-profile-2025-1",
                     "contractId": "%s",
@@ -270,7 +281,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
                         "type": "HttpProxy"
                     }
                 }
-                """.formatted(providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL, providerDid, contractAgreementId);
+                """.formatted(providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL, envSetup.dspPathSegment(providerEnv),
+                providerDid, contractAgreementId);
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/transferprocesses".formatted(participantContext);
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
 
@@ -279,8 +291,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
         assertNotNull(transferProcessId, "Transfer process ID should be present in response");
     }
 
-    @Step("Transfer process is in state {string} using participant context {string} on {string}")
-    public void transferProcessIsCompleted(String processState, String participantContext, String consumerEnv) {
+    @Step("Transfer process is in state {string} on {string}")
+    public void transferProcessIsCompleted(String processState, String consumerEnv) {
+        String participantContext = envSetup.participantContextId(consumerEnv);
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/transferprocesses/%s".formatted(participantContext, transferProcessId);
         awaitResourceState(url, participantContext, processState, "Transfer Process");
@@ -294,8 +307,9 @@ public class DsStepDefs extends BaseE2EStepDefs {
         sendRequest(POST, base + "/%s/revoke".formatted(credentialId), IssuerAuthTokens.PARTICIPANT, "", REVOKE_ACCEPTED);
     }
 
-    @Step("Contract negotiation reaches terminal state {string} using participant context {string} on {string}")
-    public void contractNegotiationReachesTerminalState(String state, String participantContext, String consumerEnv) {
+    @Step("Contract negotiation reaches terminal state {string} on {string}")
+    public void contractNegotiationReachesTerminalState(String state, String consumerEnv) {
+        String participantContext = envSetup.participantContextId(consumerEnv);
         String url = getControlPlaneBaseUrl(consumerEnv)
                 + "/%s/contractnegotiations/%s".formatted(participantContext, negotiationId);
         awaitResourceState(url, participantContext, state, "Contract Negotiation");
@@ -306,23 +320,26 @@ public class DsStepDefs extends BaseE2EStepDefs {
         var mapping = envSetup.getContainerMapping(consumerEnv, DS_CONTROL_PLANE, E2eEnvironment.Port.CONTROL_PLANE_MANAGEMENT);
         String url = "https://%s:%d/api/management/v3/edrs/%s/dataaddress"
                 .formatted(mapping.host(), mapping.port(), transferProcessId);
-        var response = sendGetRequest(url, ControlPlaneAuthTokens.forContext("xrd-" + consumerEnv), HttpStatus.SC_OK);
+        var response = sendGetRequest(url, ControlPlaneAuthTokens.forContext(envSetup.participantContextId(consumerEnv)),
+                HttpStatus.SC_OK);
 
         Map<String, Object> body = response.extract().body().as(Map.class);
         assertNotNull(body.get("endpoint"), "Asset access response should contain an endpoint");
     }
 
-    @Step("Asset access is acquired via control plane API for context {string} on {string} from {string} on {string} for asset {string}")
-    public void assetAccessIsAcquiredViaControlPlaneApi(
-            String participantContext, String consumerEnv, String providerDid, String providerEnv, String assetId) {
+    @Step("Asset access is acquired via control plane API on {string} from {string} for asset {string}")
+    public void assetAccessIsAcquiredViaControlPlaneApi(String consumerEnv, String providerEnv, String assetId) {
+        String participantContext = envSetup.participantContextId(consumerEnv);
+        String providerDid = envSetup.participantDid(providerEnv);
         String providerCpHost = envSetup.peerControlPlaneHost(providerEnv);
         String request = """
                 {
                     "assetId": "%s",
                     "counterPartyId": "%s",
-                    "counterPartyAddress": "https://%s:%d/api/dsp/xrd-ss0/http-dsp-profile-2025-1"
+                    "counterPartyAddress": "https://%s:%d/api/dsp/%s/http-dsp-profile-2025-1"
                 }
-                """.formatted(assetId, providerDid, providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL);
+                """.formatted(assetId, providerDid, providerCpHost, E2eEnvironment.Port.CONTROL_PLANE_PROTOCOL,
+                envSetup.dspPathSegment(providerEnv));
         String url = getControlPlaneBaseUrl(consumerEnv) + "/%s/edr".formatted(participantContext);
 
         var response = sendRequest(POST, url, ControlPlaneAuthTokens.forContext(participantContext), request, HttpStatus.SC_OK);
@@ -490,11 +507,8 @@ public class DsStepDefs extends BaseE2EStepDefs {
     static class ControlPlaneAuthTokens {
         static final String PROVISIONER = DsTokenFactory.provisionerToken();
 
-        static String forContext(String participantContext) {
-            return switch (participantContext) {
-                case "xrd-ss0", "xrd-ss1" -> DsTokenFactory.participantToken(participantContext);
-                default -> throw new IllegalArgumentException("No participant token for context: " + participantContext);
-            };
+        static String forContext(String participantContextId) {
+            return DsTokenFactory.participantToken(participantContextId);
         }
     }
 

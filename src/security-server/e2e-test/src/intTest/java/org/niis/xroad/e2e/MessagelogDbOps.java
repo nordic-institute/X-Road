@@ -25,17 +25,14 @@
  */
 package org.niis.xroad.e2e;
 
-import org.testcontainers.containers.ContainerState;
-
-import java.util.Optional;
-
 /**
- * Docker-specific container operations used by Compose-only scenarios.
+ * Environment-neutral access to the messagelog database, available in both Compose and LXD modes.
  */
-public interface ComposeContainerOps {
+public interface MessagelogDbOps {
 
     /**
-     * Returns the running container for the named service within the given environment.
+     * Runs an SQL statement against the messagelog database of the given environment
+     * and returns psql's unaligned tuple-only output, trimmed.
      */
-    Optional<ContainerState> getContainerByServiceName(String env, String serviceName);
+    String execMessagelogSql(String env, String sql);
 }

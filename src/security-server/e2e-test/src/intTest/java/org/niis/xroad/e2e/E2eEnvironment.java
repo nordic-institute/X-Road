@@ -52,6 +52,23 @@ public interface E2eEnvironment {
     String peerControlPlaneHost(String env);
 
     /**
+     * Returns the dataspace participant context id for the given environment.
+     */
+    String participantContextId(String env);
+
+    /**
+     * Returns the dataspace identity-hub DID for the given environment.
+     */
+    String participantDid(String env);
+
+    /**
+     * Returns the DSP protocol path segment identifying the given environment's participant context.
+     */
+    default String dspPathSegment(String env) {
+        return participantContextId(env);
+    }
+
+    /**
      * Resolved address of a service (host + port pair).
      *
      * @param host resolved hostname or IP

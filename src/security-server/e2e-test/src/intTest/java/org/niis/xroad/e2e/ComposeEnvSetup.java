@@ -51,7 +51,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
  * Docker Compose-based implementation of the e2e environment.
  */
 @Slf4j
-public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment, ComposeContainerOps {
+public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment, ComposeContainerOps, MessagelogDbOps {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
     private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
@@ -134,6 +134,16 @@ public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment,
     @Override
     public String peerControlPlaneHost(String env) {
         return env + "-ds-control-plane";
+    }
+
+    @Override
+    public String participantContextId(String env) {
+        return "xrd-" + env;
+    }
+
+    @Override
+    public String participantDid(String env) {
+        return "did:web:%s-ds-identity-hub%%3A7183".formatted(env);
     }
 
     @Override
