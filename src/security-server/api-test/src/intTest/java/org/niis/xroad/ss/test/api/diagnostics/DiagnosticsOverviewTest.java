@@ -52,6 +52,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @SuppressWarnings("checkstyle:magicnumber")
 class DiagnosticsOverviewTest extends SsApiTest {
 
+    private static final String CONFIGURED_MAIL_RECIPIENT = "member1@example.org";
+
     private static final String[] EXPECTED_REPORT_ITEMS = {
             "X-Road and Java version",
             "JAVA Processes",
@@ -199,7 +201,7 @@ class DiagnosticsOverviewTest extends SsApiTest {
         var result = when("a test mail is sent to the configured recipient", () ->
                 session.given()
                         .contentType(ContentType.JSON)
-                        .body("{\"mail_address\":\"test@example.org\"}")
+                        .body("{\"mail_address\":\"" + CONFIGURED_MAIL_RECIPIENT + "\"}")
                         .put("/mail/send-test-mail")
                         .then()
                         .statusCode(200)
@@ -209,6 +211,20 @@ class DiagnosticsOverviewTest extends SsApiTest {
 
         then("the response status field is 'success'", () ->
                 assertThat(result).isEqualTo("success"));
+    }
+
+    @Test
+    @DisplayName("Sending a test mail to a recipient outside the configured contact set via PUT /mail/send-test-mail is rejected")
+    void sendingTestMailToNonConfiguredRecipientIsRejected(SsBaselineSeeder seeder) {
+        var session = seeder.newSession();
+
+        when("a test mail is sent to a recipient that is not a configured contact", () ->
+                session.given()
+                        .contentType(ContentType.JSON)
+                        .body("{\"mail_address\":\"not-configured@example.org\"}")
+                        .put("/mail/send-test-mail")
+                        .then()
+                        .statusCode(400));
     }
 
 }
