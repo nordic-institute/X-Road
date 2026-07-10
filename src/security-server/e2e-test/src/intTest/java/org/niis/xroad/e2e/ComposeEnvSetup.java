@@ -147,6 +147,11 @@ public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment,
     }
 
     @Override
+    public String securityServerAddress(String env) {
+        return "xrd-" + env;
+    }
+
+    @Override
     public E2eEnvironment.ContainerMapping getContainerMapping(String env, String service, int port) {
         var environment = mapEnvironment(env);
         return new E2eEnvironment.ContainerMapping(

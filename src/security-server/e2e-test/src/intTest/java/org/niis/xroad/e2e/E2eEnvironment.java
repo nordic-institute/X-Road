@@ -69,6 +69,11 @@ public interface E2eEnvironment {
     }
 
     /**
+     * Returns the security server address registered in the global configuration for the given environment.
+     */
+    String securityServerAddress(String env);
+
+    /**
      * Resolved address of a service (host + port pair).
      *
      * @param host resolved hostname or IP

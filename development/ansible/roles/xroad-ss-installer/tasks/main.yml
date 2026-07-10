@@ -143,6 +143,8 @@
 # The deb postinst auto-starts xroad services on Ubuntu; the RHEL installer does
 # not, so proxy and the enabled-but-stopped DS units (control-plane, identity-hub)
 # must be started explicitly or the DSP federation endpoints never come up.
+# xroad-opmonitor is not part of the installer's package set — its install,
+# config and start live in roles/xroad-ss/tasks/opmonitor.yml.
 - name: Start xroad services on RHEL (installer does not auto-start)
   become: true
   systemd:

@@ -47,6 +47,7 @@ xrd-jaeger ansible_connection=lxd
 
 [ss_servers:vars]
 variant=vanilla
+xroad_install_opmonitoring=true
 
 [all:vars]
 ansible_lxd_remote=xroad-lxd

@@ -78,6 +78,11 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps {
     }
 
     @Override
+    public String securityServerAddress(String env) {
+        return resolveHost(env);
+    }
+
+    @Override
     @SneakyThrows
     public String execMessagelogSql(String env, String sql) {
         var container = "xrd-" + env;

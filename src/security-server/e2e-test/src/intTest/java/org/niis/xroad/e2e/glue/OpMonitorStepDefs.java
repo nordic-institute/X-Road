@@ -86,8 +86,9 @@ public class OpMonitorStepDefs extends BaseE2EStepDefs {
     }
 
     @SneakyThrows
-    @Step("operational data response contains records with serviceSecurityServerAddress {string}")
-    public void assertOperationalDataRecordsAddress(String expectedAddress) {
+    @Step("operational data response contains records served by security server {string}")
+    public void assertOperationalDataRecordsAddress(String env) {
+        var expectedAddress = envSetup.securityServerAddress(env);
         assertThat(lastOpMonitorResponse.getStatusCode()).isEqualTo(200);
 
         var contentType = lastOpMonitorResponse.getContentType();

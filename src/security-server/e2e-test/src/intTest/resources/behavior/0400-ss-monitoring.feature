@@ -40,7 +40,7 @@ Feature: 0400 - SS: Monitoring
     Then response is received with http status code 200 and body path "[0].name" is equal to "MTÜ Nordic Institute for Interoperability Solutions"
     And REST request targeted at unsaved "/notexist/test" API endpoint is attempted on "ss1" "proxy"
     When getSecurityServerOperationalData request is sent to "ss0"
-    Then operational data response contains records with serviceSecurityServerAddress "xrd-ss0"
+    Then operational data response contains records served by security server "ss0"
 
   Scenario: Retrieving Health Data of Security Server
     Given "ss0" owner client internal connection type is set to "HTTP"
