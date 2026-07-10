@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.mail.MailNotificationProperties;
 import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -41,6 +42,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CertUtils.isSigningCert;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_TEST_MAIL_RECIPIENT;
 
 @RequiredArgsConstructor
 @Component
@@ -171,9 +173,18 @@ public class MailNotificationHelper {
     }
 
     public void sendTestMail(String recipientAddress, String securityServerId) {
+        verifyRecipientIsConfiguredContact(recipientAddress);
         mailService.sendTestMail(recipientAddress,
                 notificationMessageSourceAccessor.getMessage("test_mail_title", new String[]{securityServerId}),
                 notificationMessageSourceAccessor.getMessage("test_mail_content", new String[]{securityServerId}));
+    }
+
+    private void verifyRecipientIsConfiguredContact(String recipientAddress) {
+        var contacts = mailNotificationProperties.getContacts();
+        boolean isConfiguredContact = contacts != null && contacts.containsValue(recipientAddress);
+        if (!isConfiguredContact) {
+            throw new BadRequestException(INVALID_TEST_MAIL_RECIPIENT.build());
+        }
     }
 
 }
