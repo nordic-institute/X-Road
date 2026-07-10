@@ -1,0 +1,17 @@
+edc:
+  hostname: ${XROAD_HOST}
+  iam:
+    oauth2:
+      jwks:
+        url: http://mock-jwks-server:8080/jwks.json
+  statuslist:
+    callback:
+      address: https://${XROAD_HOST}:6187/statuslist
+  web:
+    https:
+      keystore:
+        path: /etc/xroad/ds-ssl/ds-https.p12
+        type: PKCS12
+        password: changeit
+      keymanager:
+        password: changeit

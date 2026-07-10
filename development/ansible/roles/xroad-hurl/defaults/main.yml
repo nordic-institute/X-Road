@@ -2,12 +2,9 @@
 hurl_version: "8.0.1"
 hurl_install_dir: "/opt/hurl"
 hurl_scenario_dir: "{{ playbook_dir }}/../hurl/scenarios"
-# Order matters: run-hurl.sh sorts by filename. `00-setup-dsp.hurl` must run
-# BEFORE `setup.hurl` because setup.hurl's CS/SS init triggers management-service
-# flows that depend on the DSP control-plane participant context existing on
-# each SS. Keep filename prefixes in sync with sort order.
+# Order matters: run-hurl.sh sorts by filename. `setup.hurl` must run before the
+# `test-proxy-*.hurl` scenarios, which exercise flows it provisions.
 hurl_files:
-  - 00-setup-dsp.hurl
   - setup.hurl
   - test-proxy-rest.hurl
   - test-proxy-soap.hurl

@@ -97,8 +97,6 @@ public class EnvSetup extends BaseComposeSetup {
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
-                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_ADMIN, forListeningPort())
-                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withEnv("PROXY_UI_0", "ss0-ui")
                 .withEnv("PROXY_0", "xrd-ss0")
                 .withEnv("PROXY_UI_1", "ss1-ui")
@@ -111,7 +109,6 @@ public class EnvSetup extends BaseComposeSetup {
                 .withEnv("PARTICIPANT_ID_1", "xrd-ss1")
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
-                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer("aux", DS_ISSUER_SERVICE))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
