@@ -187,6 +187,11 @@
     - name: Install and enable operational monitoring
       include_tasks: roles/xroad-ss/tasks/opmonitor.yml
       when: xroad_install_opmonitoring | default(false) | bool
+    # Runs before the restart task below so the proxy restart there picks up
+    # the encryption flag from local.yaml. Unconditional (all SS hosts), unlike
+    # opmonitor, which is gated per host group.
+    - name: Preseed messagelog DB encryption config
+      include_tasks: roles/xroad-ss/tasks/msglog-encryption.yml
     - name: Discover installed DS units
       ansible.builtin.shell: >-
         systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'

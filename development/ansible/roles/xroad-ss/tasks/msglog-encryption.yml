@@ -1,0 +1,14 @@
+---
+# Messagelog DB encryption for dev stacks. xroad.message-log-encryption.db.encryption-enabled
+# defaults false (MessageLogEncryptionProperties in lib/messagelog-core) — compose enables the
+# equivalent via the msglog_encryption_config/application.yaml mount. No key provisioning is
+# needed: the DB master key is generated unconditionally at SS init
+# (EncryptionInitializationService.initializeMessageLogDatabaseEncryption()) and stored in
+# openbao, so it already exists on any provisioned stack. db.key-id is left at its "default".
+- name: preseed messagelog DB encryption config into local.yaml
+  blockinfile:
+    path: /etc/xroad/conf.d/local.yaml
+    insertafter: '^xroad:'
+    marker: "  # {mark} MESSAGELOG DB ENCRYPTION (lxd dev preseed)"
+    block: "  message-log-encryption:\n    db:\n      encryption-enabled: true"
+  notify: restart xroad-proxy

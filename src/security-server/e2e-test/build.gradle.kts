@@ -113,6 +113,10 @@ tasks.register<Test>("e2eTestLxd") {
     systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("e2eTestServeReport")}"
   }
 
+  if (project.hasProperty("e2eTestFilterName")) {
+    systemTestArgs += "-Dtest-framework.cucumber.filter-name=${project.property("e2eTestFilterName")}"
+  }
+
   jvmArgs(systemTestArgs)
 
   maxHeapSize = "256m"
