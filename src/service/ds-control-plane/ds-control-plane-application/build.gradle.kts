@@ -65,6 +65,7 @@ dependencies {
   runtimeOnly(libs.edc.contolplane.api.config)
   runtimeOnly(libs.edc.api.secrets)
 
+  runtimeOnly(project(":lib:rpc-quarkus"))
   runtimeOnly(libs.edc.core.sql.bootstrapper)
   // Inlined virtual-controlplane-feature-dcp-bom contents (DCP bundle)
   runtimeOnly(libs.bundles.edc.dcp)

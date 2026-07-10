@@ -42,20 +42,22 @@ import java.util.Optional;
  * Provisions this security server's data space participant contexts (IdentityHub + Control Plane)
  * and issues their X-Road membership credentials, over X-Road gRPC.
  *
- * <p>Exposes three non-blocking, single-step primitives for use by
+ * <p>Exposes non-blocking, single-step primitives for use by
  * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler}:
  * <ul>
- *   <li>{@link #ensureParticipantContexts(boolean, String)} — idempotent context creation (IH + CP).</li>
+ *   <li>{@link #contextExists(String)} — checks whether a participant context exists in IdentityHub.</li>
+ *   <li>{@link #ensureParticipantContext(String, String)} — idempotent context creation for one participant (IH + CP).</li>
  *   <li>{@link #submitCredentialRequest(String)} — submits a credential request into the next available
  *       slot only when no active request (PENDING or ISSUED) exists; advances past slots in terminal ERROR.</li>
  *   <li>{@link #readCredentialStatus(String)} — returns the current credential status
- *       ({@code ISSUED}, {@code PENDING}, or {@code null} when none is active) without polling.</li>
+ *       ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active) without polling.</li>
  * </ul>
  *
  * <p>Slot semantics: each participant holds up to {@code maxHolderPidSlots} sequentially named holder-request
  * ids. A slot in terminal ERROR is skipped and the next slot is used on the following submit; a slot in
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
- * warning and returns without submitting.</p>
+ * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
+ * returns {@link #STATUS_ERROR} so the status path can distinguish "failing" from "never requested".</p>
  */
 @Slf4j
 @Service
@@ -96,6 +98,27 @@ public class DataspaceProvisioningService {
 
     private final AdminServiceProperties adminServiceProperties;
     private final DataspaceProvisioningClient provisioningClient;
+
+    /**
+     * Returns {@code true} if a participant context with the given id exists in IdentityHub.
+     *
+     * @param participantId the participant context id
+     */
+    public boolean contextExists(String participantId) {
+        return provisioningClient.contextExists(participantId);
+    }
+
+    /**
+     * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
+     *
+     * @param participantId          the participant context id
+     * @param ownerMemberIdSlashForm the SS owner member id formatted as {@code instance/memberClass/memberCode}
+     */
+    public void ensureParticipantContext(String participantId, String ownerMemberIdSlashForm) {
+        var ds = adminServiceProperties.getDataspace();
+        var identityHubHost = hostOf(ds.getIdentityHubUrl());
+        ensureParticipantContext(ds, participantId, identityHubHost, ownerMemberIdSlashForm);
+    }
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant contexts for the host participant
@@ -143,24 +166,29 @@ public class DataspaceProvisioningService {
      * Returns the current credential status for the given participant context without polling.
      *
      * <p>Scans holder-pid slots in order; ERROR slots are skipped. Returns {@code ISSUED} or {@code PENDING}
-     * for the first active slot found, or {@code null} when no request has been submitted yet (all slots
-     * absent or all slots in terminal ERROR).</p>
+     * for the first active slot found, {@code ERROR} when all queried slots are in terminal ERROR, or
+     * {@code null} when no request has been submitted yet (all slots absent).</p>
      *
      * @param participantId the participant context id
-     * @return {@code "ISSUED"}, {@code "PENDING"}, or {@code null}
+     * @return {@code "ISSUED"}, {@code "PENDING"}, {@code "ERROR"}, or {@code null}
      */
     @Nullable
     public String readCredentialStatus(String participantId) {
         var ds = adminServiceProperties.getDataspace();
+        boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
             var state = provisioningClient.getCredentialRequestState(participantId, holderPid);
-            if (state == null || STATUS_ERROR.equals(state)) {
+            if (state == null) {
+                continue;
+            }
+            if (STATUS_ERROR.equals(state)) {
+                anyError = true;
                 continue;
             }
             return state;
         }
-        return null;
+        return anyError ? STATUS_ERROR : null;
     }
 
     /**

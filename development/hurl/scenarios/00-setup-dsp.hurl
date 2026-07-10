@@ -27,8 +27,8 @@
 # not the holder record, so a pre-registered holder is redundant.
 #
 # Identity Hub + Control Plane participant contexts (+ STS config) and the
-# membership-credential issuance are provisioned per-SS by the SS reconciler
-# (issue 03), triggered from setup.hurl after the SIGN certs.
+# membership-credential issuance are provisioned per-SS by the SS reconciler,
+# triggered from setup.hurl after the SIGN certs.
 #
 # What this DOES NOT seed:
 #   - Asset / policy / contract definitions. Production behaviour: assets are

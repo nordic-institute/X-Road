@@ -37,11 +37,6 @@ import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.Credentia
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
-import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.ErrorOrigin;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionResp;
@@ -56,6 +51,8 @@ import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
 /**
  * gRPC service that provisions the issuer participant context, attestation definitions and credential
@@ -156,23 +153,4 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         return CreateCredentialDefinitionResp.getDefaultInstance();
     }
 
-    private void requireSuccessOrConflict(ServiceResult<?> result, ErrorCode errorCode, String metadata) {
-        if (result.succeeded() || result.reason() == ServiceFailure.Reason.CONFLICT) {
-            return;
-        }
-        throw XrdRuntimeException.systemException(errorCode)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(metadata)
-                .details(result.getFailureDetail())
-                .build();
-    }
-
-    private void validateManifestFields(String participantContextId, String did) {
-        if (participantContextId == null || participantContextId.isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
-        }
-        if (did == null || did.isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "did must not be blank");
-        }
-    }
 }

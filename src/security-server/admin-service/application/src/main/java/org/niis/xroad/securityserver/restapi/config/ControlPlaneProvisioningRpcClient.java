@@ -68,7 +68,7 @@ public class ControlPlaneProvisioningRpcClient extends AbstractRpcClient {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
-        stub = ControlPlaneProvisioningServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        stub = ControlPlaneProvisioningServiceGrpc.newBlockingStub(channel);
     }
 
     @Override

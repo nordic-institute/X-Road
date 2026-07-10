@@ -35,22 +35,15 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -73,9 +66,7 @@ class DataspaceParticipantReconcilerTest {
     @Mock
     private ScheduledJobHelper scheduledJobHelper;
     @Mock
-    private GlobalConfProvider globalConfProvider;
-    @Mock
-    private SignerRpcClient signerRpcClient;
+    private DataspaceReadinessPredicates readinessPredicates;
 
     @InjectMocks
     private DataspaceParticipantReconciler reconciler;
@@ -86,7 +77,16 @@ class DataspaceParticipantReconcilerTest {
 
         reconciler.scheduledReconcile();
 
-        verifyNoInteractions(scheduledJobHelper, dataspaceProvisioningService, signerRpcClient);
+        verifyNoInteractions(scheduledJobHelper, dataspaceProvisioningService, readinessPredicates);
+    }
+
+    @Test
+    void reconcileSkipsWhenDataspaceDisabled() {
+        withDataspaceEnabled(false);
+
+        reconciler.reconcile();
+
+        verifyNoInteractions(scheduledJobHelper, dataspaceProvisioningService, readinessPredicates);
     }
 
     @Test
@@ -99,30 +99,51 @@ class DataspaceParticipantReconcilerTest {
 
     @Test
     void reconcileSkipsWhenServerNotInitialized() {
+        withDataspaceEnabled(true);
         when(scheduledJobHelper.getServerConf()).thenThrow(mock(XrdRuntimeException.class));
 
         reconciler.reconcile();
 
-        verify(dataspaceProvisioningService, never()).ensureParticipantContexts(anyBoolean(), anyString());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
     @Test
-    void reconcileEnsuresContextsButDefersCredentialUntilAuthCertRegistered() {
+    void reconcileEnsuresContextsOnlyForAbsentParticipantsAndDefersCredentialUntilAuthCertRegistered() {
         givenInitializedServer();
-        withoutRegisteredAuthCert();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
+        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(false);
+        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
 
         reconciler.reconcile();
 
-        verify(dataspaceProvisioningService).ensureParticipantContexts(true, OWNER_SLASH_FORM);
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, OWNER_SLASH_FORM);
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MGMT_ID, OWNER_SLASH_FORM);
+        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
+    }
+
+    @Test
+    void reconcileSkipsEnsureForAlreadyExistingContexts() {
+        givenInitializedServer();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
+        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
+        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
+
+        reconciler.reconcile();
+
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
     @Test
     void reconcileSubmitsCredentialWhenAbsentAndAuthCertRegistered() {
         givenInitializedServer();
-        withRegisteredAuthCert();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
+        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
+        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
         when(dataspaceProvisioningService.readCredentialStatus(HOST_ID)).thenReturn("ERROR");
         when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID)).thenReturn(null);
 
@@ -135,8 +156,10 @@ class DataspaceParticipantReconcilerTest {
     @Test
     void reconcileDoesNotResubmitWhenCredentialIssuedOrPending() {
         givenInitializedServer();
-        withRegisteredAuthCert();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
+        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
+        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
         when(dataspaceProvisioningService.readCredentialStatus(HOST_ID))
                 .thenReturn(DataspaceProvisioningService.STATUS_ISSUED);
         when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID))
@@ -147,6 +170,19 @@ class DataspaceParticipantReconcilerTest {
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
+    @Test
+    void reconcileSkipsWhenOwnerIsNull() {
+        withDataspaceEnabled(true);
+        var serverConf = mock(ServerConfEntity.class);
+        when(serverConf.getOwner()).thenReturn(null);
+        when(scheduledJobHelper.getServerConf()).thenReturn(serverConf);
+
+        reconciler.reconcile();
+
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
+        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
+    }
+
     private void withDataspaceEnabled(boolean enabled) {
         var dataspace = new AdminServiceProperties.Dataspace();
         dataspace.setEnabled(enabled);
@@ -154,6 +190,7 @@ class DataspaceParticipantReconcilerTest {
     }
 
     private void givenInitializedServer() {
+        withDataspaceEnabled(true);
         var ownerId = mock(ClientIdEntity.class);
         when(ownerId.getXRoadInstance()).thenReturn("TEST");
         when(ownerId.getMemberClass()).thenReturn("GOV");
@@ -162,23 +199,6 @@ class DataspaceParticipantReconcilerTest {
         when(owner.getIdentifier()).thenReturn(ownerId);
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(owner);
-        when(serverConf.getClients()).thenReturn(Set.of());
         when(scheduledJobHelper.getServerConf()).thenReturn(serverConf);
-        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
-    }
-
-    private void withoutRegisteredAuthCert() {
-        when(signerRpcClient.getTokens()).thenReturn(List.of());
-    }
-
-    private void withRegisteredAuthCert() {
-        var cert = mock(CertificateInfo.class);
-        when(cert.getStatus()).thenReturn(CertificateInfo.STATUS_REGISTERED);
-        var key = mock(KeyInfo.class);
-        when(key.getUsage()).thenReturn(KeyUsageInfo.AUTHENTICATION);
-        when(key.getCerts()).thenReturn(List.of(cert));
-        var token = mock(TokenInfo.class);
-        when(token.getKeyInfo()).thenReturn(List.of(key));
-        when(signerRpcClient.getTokens()).thenReturn(List.of(token));
     }
 }

@@ -35,10 +35,6 @@ import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.ErrorOrigin;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
@@ -55,6 +51,9 @@ import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.failure;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
 /**
  * gRPC service that provisions IdentityHub participant contexts and holder credential requests by
@@ -150,32 +149,12 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
     private GetParticipantContextExistsResp getParticipantContextExistsInternal(GetParticipantContextExistsReq request) {
         var result = participantContextService.getParticipantContext(request.getParticipantContextId());
-        return GetParticipantContextExistsResp.newBuilder()
-                .setExists(result.succeeded())
-                .build();
-    }
-
-    private void requireSuccessOrConflict(ServiceResult<?> result, ErrorCode errorCode, String metadata) {
-        if (result.succeeded() || result.reason() == ServiceFailure.Reason.CONFLICT) {
-            return;
+        if (result.succeeded()) {
+            return GetParticipantContextExistsResp.newBuilder().setExists(true).build();
         }
-        throw failure(errorCode, metadata, result.getFailureDetail());
-    }
-
-    private XrdRuntimeException failure(ErrorCode errorCode, String metadata, String detail) {
-        return XrdRuntimeException.systemException(errorCode)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(metadata)
-                .details(detail)
-                .build();
-    }
-
-    private void validateManifestFields(String participantContextId, String did) {
-        if (participantContextId == null || participantContextId.isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
+        if (result.reason() == ServiceFailure.Reason.NOT_FOUND) {
+            return GetParticipantContextExistsResp.newBuilder().setExists(false).build();
         }
-        if (did == null || did.isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "did must not be blank");
-        }
+        throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), result.getFailureDetail());
     }
 }

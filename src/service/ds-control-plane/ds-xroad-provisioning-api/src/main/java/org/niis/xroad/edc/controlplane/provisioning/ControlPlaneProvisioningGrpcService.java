@@ -32,11 +32,6 @@ import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextCon
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.ErrorOrigin;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.ControlPlaneProvisioningServiceGrpc;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
@@ -46,6 +41,8 @@ import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextC
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
 /**
  * gRPC service that provisions Control Plane participant contexts and their STS-bound config by
@@ -78,6 +75,7 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
     }
 
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
+        validateManifestFields(request.getParticipantContextId(), request.getDid());
         var participantContext = ParticipantContext.Builder.newInstance()
                 .participantContextId(request.getParticipantContextId())
                 .identity(request.getDid())
@@ -101,16 +99,5 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
         var result = participantContextConfigService.save(configuration);
         requireSuccessOrConflict(result, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
         return PutParticipantContextConfigResp.getDefaultInstance();
-    }
-
-    private void requireSuccessOrConflict(ServiceResult<?> result, ErrorCode errorCode, String metadata) {
-        if (result.succeeded() || result.reason() == ServiceFailure.Reason.CONFLICT) {
-            return;
-        }
-        throw XrdRuntimeException.systemException(errorCode)
-                .origin(ErrorOrigin.DATASPACE)
-                .metadataItems(metadata)
-                .details(result.getFailureDetail())
-                .build();
     }
 }

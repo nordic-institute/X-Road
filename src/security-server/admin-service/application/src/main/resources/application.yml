@@ -116,7 +116,7 @@ xroad:
     acme-key-length: 2048
     configurable-properties-path: "classpath:configurable-properties.yaml"
     dataspace:
-      enabled: false
+      enabled: true
 
 file-upload-endpoints:
   endpoint-definitions:

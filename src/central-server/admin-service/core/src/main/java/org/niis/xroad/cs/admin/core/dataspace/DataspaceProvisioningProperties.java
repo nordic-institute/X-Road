@@ -40,8 +40,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class DataspaceProvisioningProperties {
 
     /**
-     * When {@code true} (default), a provisioning failure at CS init propagates and fails initialization.
-     * When {@code false}, the failure is logged and initialization continues.
+     * When {@code true}, a provisioning failure at CS init propagates and fails initialization.
+     * When {@code false} (default), the failure is logged and initialization continues.
      */
-    private boolean failOnError = true;
+    private boolean failOnError = false;
 }

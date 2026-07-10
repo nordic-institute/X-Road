@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,19 +33,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
-import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.signer.client.SignerRpcClient;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -68,11 +57,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
-    private GlobalConfProvider globalConfProvider;
-    @Mock
-    private SignerRpcClient signerRpcClient;
-    @Mock
-    private ServerConfRepository serverConfRepository;
+    private DataspaceReadinessPredicates readinessPredicates;
     @Mock
     private DataspaceProvisioningClient provisioningClient;
 
@@ -94,7 +79,7 @@ class DataspaceProvisioningStatusServiceTest {
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, provisioningClient);
 
         statusService = new DataspaceProvisioningStatusService(
-                adminServiceProperties, provisioningService, serverConfRepository, globalConfProvider, signerRpcClient);
+                adminServiceProperties, provisioningService, readinessPredicates);
     }
 
     @Test
@@ -107,13 +92,13 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(status.authCertRegistered()).isFalse();
         assertThat(status.participantContexts()).isEmpty();
         verify(provisioningClient, never()).contextExists(anyString());
-        verify(signerRpcClient, never()).getTokens();
+        verify(readinessPredicates, never()).hasRegisteredAuthCert();
     }
 
     @Test
     void readStatusHostOnlySsContextCreatedAndIssued() {
-        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
-        when(signerRpcClient.getTokens()).thenReturn(List.of());
+        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
         when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
@@ -130,13 +115,8 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusHostPlusManagementSsTwoContextsReturned() {
-        var managementServiceId = ClientId.Conf.create("FI", "GOV", "123", "MANAGEMENT");
-        when(globalConfProvider.getManagementRequestService()).thenReturn(managementServiceId);
-
-        var serverConf = buildServerConfWithRegisteredClient("FI", "GOV", "123", "MANAGEMENT");
-        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
-        when(signerRpcClient.getTokens()).thenReturn(List.of());
-
+        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(true);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
         when(provisioningClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(false);
         when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
@@ -156,8 +136,8 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusBackendUnreachableReportsUnknownInsteadOf5xx() {
-        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
-        when(signerRpcClient.getTokens()).thenReturn(List.of());
+        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(anyString()))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR).build());
 
@@ -172,11 +152,8 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusSsNotInitializedManagementTreatedAsNotRegistered() {
-        when(globalConfProvider.getManagementRequestService())
-                .thenReturn(ClientId.Conf.create("FI", "GOV", "123", "MANAGEMENT"));
-        when(serverConfRepository.getServerConf())
-                .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
-        when(signerRpcClient.getTokens()).thenReturn(List.of());
+        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(false);
 
         DataspaceStatus status = statusService.readStatus();
@@ -185,15 +162,5 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(status.participantContexts().get(0).kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(status.participantContexts().get(0).contextCreated()).isFalse();
         assertThat(status.participantContexts().get(0).credentialStatus()).isEqualTo(STATUS_ABSENT);
-    }
-
-    private ServerConfEntity buildServerConfWithRegisteredClient(String instance, String memberClass,
-                                                                  String memberCode, String subsystemCode) {
-        var serverConf = new ServerConfEntity();
-        var client = new ClientEntity();
-        client.setIdentifier(SubsystemIdEntity.create(instance, memberClass, memberCode, subsystemCode));
-        client.setClientStatus(Client.STATUS_REGISTERED);
-        serverConf.getClients().add(client);
-        return serverConf;
     }
 }

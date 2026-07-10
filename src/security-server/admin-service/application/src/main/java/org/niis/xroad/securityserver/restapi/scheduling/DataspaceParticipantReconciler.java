@@ -26,22 +26,15 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
-import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Level-triggered reconciler that drives data space participant context provisioning
@@ -58,15 +51,13 @@ public class DataspaceParticipantReconciler {
     private final AdminServiceProperties adminServiceProperties;
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final ScheduledJobHelper scheduledJobHelper;
-    private final GlobalConfProvider globalConfProvider;
-    private final SignerRpcClient signerRpcClient;
+    private final DataspaceReadinessPredicates readinessPredicates;
 
     /**
      * Scheduled reconciliation tick. Runs at a fixed rate; failures are non-fatal and
      * retried on the next tick.
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
-    @Transactional
     public void scheduledReconcile() {
         if (!adminServiceProperties.getDataspace().isEnabled()) {
             return;
@@ -83,30 +74,38 @@ public class DataspaceParticipantReconciler {
      * reconcile at SS init; in that context a failure propagates to the caller.
      */
     public void reconcile() {
+        if (!adminServiceProperties.getDataspace().isEnabled()) {
+            return;
+        }
         ServerConfEntity serverConf = loadServerConf();
         if (serverConf == null) {
             log.debug("Data space reconcile: SS not yet initialized, skipping");
             return;
         }
 
-        boolean mgmtSubsystemRegistered = isManagementSubsystemRegistered(serverConf);
-        boolean authCertRegistered = hasRegisteredAuthCert();
+        var owner = serverConf.getOwner();
+        if (owner == null) {
+            log.debug("Data space reconcile: server owner not set, skipping");
+            return;
+        }
+        var ownerId = owner.getIdentifier();
+        var ownerMemberIdSlashForm = "%s/%s/%s".formatted(ownerId.getXRoadInstance(), ownerId.getMemberClass(), ownerId.getMemberCode());
 
-        boolean provisionManagementContext = true;
+        boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
+        log.debug("Data space reconcile: authCertRegistered={}", authCertRegistered);
 
-        log.debug("Data space reconcile: mgmtSubsystemRegistered={}, provisioningManagementContext={}, authCertRegistered={}",
-                mgmtSubsystemRegistered, provisionManagementContext, authCertRegistered);
-
-        var owner = serverConf.getOwner().getIdentifier();
-        var ownerMemberIdSlashForm = "%s/%s/%s".formatted(owner.getXRoadInstance(), owner.getMemberClass(), owner.getMemberCode());
-        dataspaceProvisioningService.ensureParticipantContexts(provisionManagementContext, ownerMemberIdSlashForm);
+        for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
+            if (!dataspaceProvisioningService.contextExists(participantId)) {
+                dataspaceProvisioningService.ensureParticipantContext(participantId, ownerMemberIdSlashForm);
+            }
+        }
 
         if (!authCertRegistered) {
             log.debug("Data space reconcile: auth cert not yet REGISTERED, deferring credential request");
             return;
         }
 
-        for (var participantId : dataspaceProvisioningService.participantContextIds(provisionManagementContext)) {
+        for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
             var status = dataspaceProvisioningService.readCredentialStatus(participantId);
             if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
                 log.debug("Data space reconcile: participant {} credential already ISSUED", participantId);
@@ -124,29 +123,6 @@ public class DataspaceParticipantReconciler {
             return scheduledJobHelper.getServerConf();
         } catch (XrdRuntimeException e) {
             return null;
-        }
-    }
-
-    private boolean isManagementSubsystemRegistered(ServerConfEntity serverConf) {
-        ClientId managementService = globalConfProvider.getManagementRequestService();
-        if (managementService == null) {
-            return false;
-        }
-        return serverConf.getClients().stream()
-                .anyMatch(client -> managementService.equals(client.getIdentifier())
-                        && Client.STATUS_REGISTERED.equals(client.getClientStatus()));
-    }
-
-    private boolean hasRegisteredAuthCert() {
-        try {
-            return signerRpcClient.getTokens().stream()
-                    .flatMap(t -> t.getKeyInfo().stream())
-                    .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
-                    .flatMap(k -> k.getCerts().stream())
-                    .anyMatch(cert -> CertificateInfo.STATUS_REGISTERED.equals(cert.getStatus()));
-        } catch (Exception e) {
-            log.debug("Data space reconcile: could not read signer state, treating auth cert as not registered", e);
-            return false;
         }
     }
 }

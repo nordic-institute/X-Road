@@ -71,7 +71,7 @@ class DataspaceProvisioningServiceTest {
         dataspace.setIssuerDid("did:web:issuer.example.test");
         dataspace.setCredentialDefinitionId("xroad-membership-credential-definition");
         dataspace.setMaxHolderPidSlots(20);
-        when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        org.mockito.Mockito.lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         service = new DataspaceProvisioningService(adminServiceProperties, provisioningClient);
     }
 
@@ -180,10 +180,21 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void readCredentialStatusReturnsNullWhenAllSlotsError() {
+    void readCredentialStatusReturnsErrorWhenAllSlotsError() {
         dataspace.setMaxHolderPidSlots(2);
         when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+
+        var status = service.readCredentialStatus(PARTICIPANT_ID);
+
+        assertThat(status).isEqualTo(STATUS_ERROR);
+    }
+
+    @Test
+    void readCredentialStatusReturnsNullWhenAllSlotsAbsent() {
+        dataspace.setMaxHolderPidSlots(2);
+        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
+        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -240,5 +251,32 @@ class DataspaceProvisioningServiceTest {
         verify(provisioningClient).createIdentityHubParticipantContext(eq(mgmtId), any(), any(), any(), any(), any());
         verify(provisioningClient).createControlPlaneParticipantContext(eq(PARTICIPANT_ID), any());
         verify(provisioningClient).createControlPlaneParticipantContext(eq(mgmtId), any());
+    }
+
+    // --- contextExists ---
+
+    @Test
+    void contextExistsDelegatesToProvisioningClient() {
+        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
+
+        assertThat(service.contextExists(PARTICIPANT_ID)).isTrue();
+    }
+
+    @Test
+    void contextExistsReturnsFalseWhenClientReturnsFalse() {
+        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(false);
+
+        assertThat(service.contextExists(PARTICIPANT_ID)).isFalse();
+    }
+
+    // --- ensureParticipantContext (single) ---
+
+    @Test
+    void ensureParticipantContextCreatesIhAndCpForSingleParticipant() {
+        service.ensureParticipantContext(PARTICIPANT_ID, "TEST/ORG/CODE");
+
+        verify(provisioningClient).createIdentityHubParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
+        verify(provisioningClient).createControlPlaneParticipantContext(eq(PARTICIPANT_ID), any());
+        verify(provisioningClient).putControlPlaneParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
     }
 }

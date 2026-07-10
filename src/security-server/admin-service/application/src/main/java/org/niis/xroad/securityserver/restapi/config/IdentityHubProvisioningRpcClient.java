@@ -71,7 +71,7 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
-        stub = IdentityHubProvisioningServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        stub = IdentityHubProvisioningServiceGrpc.newBlockingStub(channel);
     }
 
     @Override
