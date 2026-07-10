@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.issuer.provisioning;
 
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
+import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -55,6 +56,9 @@ public class IssuerProvisioningExtension implements ServiceExtension {
     private CredentialDefinitionService credentialDefinitionService;
 
     @Inject
+    private CredentialStatusService credentialStatusService;
+
+    @Inject
     private GrpcServiceRegistry grpcServiceRegistry;
 
     @Inject
@@ -69,7 +73,7 @@ public class IssuerProvisioningExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var grpcService = new IssuerProvisioningGrpcService(
                 participantContextService, attestationDefinitionService, credentialDefinitionService,
-                new RpcResponseHandler());
+                credentialStatusService, new RpcResponseHandler());
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }

@@ -102,7 +102,6 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - EDC_DSP_CALLBACK_ADDRESS=https://${ENV_PREFIX:-}ds-control-plane:8183/api/dsp/%s
-      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       # Validity in ms (EDC default 900000); 1 ms ~= no cache, so revocation is seen immediately in the test.
       - EDC_IAM_CREDENTIAL_REVOCATION_CACHE_VALIDITY=1
       - DB_CONFIG_SOURCE_ENABLED=true
@@ -163,7 +162,6 @@ services:
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
-      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - DEBUG=true
       - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
       - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
@@ -180,7 +178,6 @@ services:
         aliases:
           - ${ENV_PREFIX:-}ds-identity-hub
     ports:
-      - "0:7182" # identity API
       - "0:7183" # DID resolution
       - "0:7185" # credentials API
       - "0:9999" # debug port

@@ -77,8 +77,3 @@ edc:
   sql:
     schema:
       autocreate: true
-  iam:
-    oauth2:
-      jwks:
-        url: https://example.com/jwks
-      issuer: test-issuer

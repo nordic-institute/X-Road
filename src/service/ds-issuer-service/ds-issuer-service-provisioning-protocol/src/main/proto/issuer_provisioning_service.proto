@@ -34,6 +34,7 @@ service IssuerProvisioningService {
   rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
   rpc CreateAttestationDefinition(CreateAttestationDefinitionReq) returns (CreateAttestationDefinitionResp);
   rpc CreateCredentialDefinition(CreateCredentialDefinitionReq) returns (CreateCredentialDefinitionResp);
+  rpc RevokeCredential(RevokeCredentialReq) returns (RevokeCredentialResp);
 }
 
 message CreateParticipantContextReq {
@@ -75,4 +76,15 @@ message CreateCredentialDefinitionReq {
 }
 
 message CreateCredentialDefinitionResp {
+}
+
+message RevokeCredentialReq {
+  string participant_context_id = 1;
+  string xroad_instance = 2;
+  string member_class = 3;
+  string member_code = 4;
+}
+
+message RevokeCredentialResp {
+  bool revoked = 1;
 }

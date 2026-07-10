@@ -118,10 +118,6 @@ edc:
           id: "did:web:${HOSTNAME:localhost}%3A7183"
           secret:
             alias: "did:web:${HOSTNAME:localhost}%3A7183-sts-client-secret"
-    oauth2:
-      jwks:
-        url: https://example.com/jwks
-      issuer: test-issuer
     dcp:
       scopes:
         membership:

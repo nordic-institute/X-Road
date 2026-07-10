@@ -388,6 +388,7 @@ edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-oauth2-bom", v
 edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
 edc-issuerservice-issuance-spi = { module = "org.eclipse.edc:issuerservice-issuance-spi", version.ref = "edc" }
 edc-issuerservice-holder-spi = { module = "org.eclipse.edc:issuerservice-holder-spi", version.ref = "edc" }
+edc-issuerservice-credential-spi = { module = "org.eclipse.edc:issuerservice-credential-spi", version.ref = "edc" }
 
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
 

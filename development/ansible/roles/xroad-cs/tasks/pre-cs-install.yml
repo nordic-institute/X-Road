@@ -6,7 +6,7 @@
 #
 # Remove this file (and the `include_tasks: pre-cs-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
-#   - ds-issuer-service: hostname, statuslist.callback.address, jwks.url, keystore
+#   - ds-issuer-service: hostname, statuslist.callback.address, keystore
 # AND the package no longer starts the unit unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
@@ -43,7 +43,7 @@
 #    http would surface as "unexpected end of stream" on the IH side.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
-#   hostname, statuslist.callback.address, jwks.url, and keystore config.
+#   hostname, statuslist.callback.address, and keystore config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-issuer-service runtime overrides
   copy:
@@ -59,10 +59,6 @@
             # https because ds-https-keystore.yml enables TLS on every ds-* port —
             # plain http here surfaces as "unexpected end of stream" on the IH side.
             address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
-        iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
         web:
           https:
             keystore:

@@ -186,9 +186,6 @@ services:
         name: {{ svc }}-ds-https
 {% endif %}
 {% endfor %}
-  mock-jwks-server:
-    replicas: 1
-
   auxiliary-service:
     env:
 {% if serverconf_init_image | length > 0 %}

@@ -28,10 +28,20 @@ package org.niis.xroad.edc.issuer.provisioning;
 
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
+import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -40,10 +50,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
+
+import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class IssuerProvisioningGrpcServiceTest {
@@ -55,14 +72,18 @@ class IssuerProvisioningGrpcServiceTest {
     @Mock
     private CredentialDefinitionService credentialDefinitionService;
     @Mock
-    private StreamObserver<CreateParticipantContextResp> responseObserver;
+    private CredentialStatusService credentialStatusService;
+    @Mock
+    private StreamObserver<CreateParticipantContextResp> participantContextResponseObserver;
+    @Mock
+    private StreamObserver<RevokeCredentialResp> revokeResponseObserver;
 
     private IssuerProvisioningGrpcService service;
 
     @BeforeEach
     void setUp() {
         service = new IssuerProvisioningGrpcService(participantContextService, attestationDefinitionService,
-                credentialDefinitionService, new RpcResponseHandler());
+                credentialDefinitionService, credentialStatusService, new RpcResponseHandler());
     }
 
     @ParameterizedTest
@@ -73,9 +94,9 @@ class IssuerProvisioningGrpcServiceTest {
                 .setDid("did:web:example.com")
                 .build();
 
-        service.createParticipantContext(request, responseObserver);
+        service.createParticipantContext(request, participantContextResponseObserver);
 
-        verify(responseObserver).onError(any(StatusRuntimeException.class));
+        verify(participantContextResponseObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
     }
 
@@ -87,9 +108,95 @@ class IssuerProvisioningGrpcServiceTest {
                 .setDid(blank)
                 .build();
 
-        service.createParticipantContext(request, responseObserver);
+        service.createParticipantContext(request, participantContextResponseObserver);
 
-        verify(responseObserver).onError(any(StatusRuntimeException.class));
+        verify(participantContextResponseObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+    }
+
+    @Test
+    void revokeCredentialHappyPath() {
+        var resource = hostCredentialResource("cred-id-1", "EE", "ORG", "12345678",
+                "did:web:ss1.example.com");
+        when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
+                .thenReturn(ServiceResult.success(List.of(resource)));
+        when(credentialStatusService.revokeCredential("cred-id-1"))
+                .thenReturn(ServiceResult.success(null));
+
+        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "12345678"), revokeResponseObserver);
+
+        verify(credentialStatusService).revokeCredential(eq("cred-id-1"));
+        verify(revokeResponseObserver).onNext(any(RevokeCredentialResp.class));
+        verify(revokeResponseObserver).onCompleted();
+    }
+
+    @Test
+    void revokeCredentialSkipsMgmtHolder() {
+        var mgmtResource = hostCredentialResource("mgmt-id", "EE", "ORG", "12345678",
+                "did:web:ss1.example.com:mgmt");
+        var hostResource = hostCredentialResource("host-id", "EE", "ORG", "12345678",
+                "did:web:ss1.example.com");
+        when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
+                .thenReturn(ServiceResult.success(List.of(mgmtResource, hostResource)));
+        when(credentialStatusService.revokeCredential("host-id"))
+                .thenReturn(ServiceResult.success(null));
+
+        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "12345678"), revokeResponseObserver);
+
+        verify(credentialStatusService).revokeCredential(eq("host-id"));
+        verify(credentialStatusService, never()).revokeCredential(eq("mgmt-id"));
+    }
+
+    @Test
+    void revokeCredentialThrowsWhenNoMatchFound() {
+        when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
+                .thenReturn(ServiceResult.success(List.of()));
+
+        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "99999999"), revokeResponseObserver);
+
+        verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
+        verify(credentialStatusService, never()).revokeCredential(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   "})
+    void revokeCredentialRejectsBlankParticipantContextId(String blank) {
+        service.revokeCredential(revokeReq(blank, "EE", "ORG", "12345678"), revokeResponseObserver);
+
+        verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
+        verify(credentialStatusService, never()).queryCredentials(any());
+    }
+
+    private RevokeCredentialReq revokeReq(String ctx, String instance, String memberClass, String memberCode) {
+        return RevokeCredentialReq.newBuilder()
+                .setParticipantContextId(ctx)
+                .setXroadInstance(instance)
+                .setMemberClass(memberClass)
+                .setMemberCode(memberCode)
+                .build();
+    }
+
+    private VerifiableCredentialResource hostCredentialResource(String id, String xroadInstance,
+                                                                String memberClass, String memberCode,
+                                                                String subjectDid) {
+        var subject = CredentialSubject.Builder.newInstance()
+                .id(subjectDid)
+                .claim("xroadInstance", xroadInstance)
+                .claim("memberClass", memberClass)
+                .claim("memberCode", memberCode)
+                .build();
+        var vc = VerifiableCredential.Builder.newInstance()
+                .type("MembershipCredential")
+                .issuer(new Issuer("did:web:issuer.example.com"))
+                .issuanceDate(Instant.now())
+                .credentialSubject(subject)
+                .build();
+        var container = new VerifiableCredentialContainer("raw", CredentialFormat.VC1_0_LD, vc);
+        return VerifiableCredentialResource.Builder.newInstance()
+                .id(id)
+                .issuerId("did:web:issuer.example.com")
+                .holderId(subjectDid)
+                .credential(container)
+                .build();
     }
 }
