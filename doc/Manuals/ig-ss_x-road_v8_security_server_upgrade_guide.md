@@ -2,16 +2,17 @@
 
 **X-ROAD 8**
 
-Version: 1.0
+Version: 1.1
 Doc. ID: IG-SS-8-UPGRADE
 
 ---
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description     | Author             |
-|------------|---------|-----------------|--------------------|
-| 19.05.2026 | 1.0     | Initial version | Egidijus Milierius |
+| Date       | Version | Description                                                                | Author             |
+|------------|---------|----------------------------------------------------------------------------|--------------------|
+| 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
+| 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
 
 ## License
 
@@ -69,14 +70,14 @@ This document applies to X-Road 8 Beta 2. Pre-release software may behave differ
 
 Before starting, confirm the following on the Security Server:
 
-| Requirement | Notes |
-|---|---|
-| Operating system | Ubuntu Server 22.04 / 24.04 LTS, or RHEL 9 / 10 |
-| Current X-Road version | 7.8.x (any patch level). Earlier versions must first be upgraded to 7.8.x. |
-| PostgreSQL major version | 15 or newer. The wizard verifies this automatically. |
-| Network reachability | Outbound HTTPS to `https://artifactory.niis.org` (X-Road 8 packages, GPG key, migration CLI, bootstrap script) and `https://pkgs.openbao.org` (OpenBao packages). |
-| Root / sudo access | Required for all steps |
-| Backup | A current backup of the Security Server (configuration, databases, signer keys) is **strongly recommended** — see [Before you start](#before-you-start). The wizard also creates an automatic `/etc/xroad` snapshot before any on-disk change. |
+| Requirement              | Notes                                                                                                                                                                                                                                          |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Operating system         | Ubuntu Server 22.04 / 24.04 LTS, or RHEL 9 / 10                                                                                                                                                                                                |
+| Current X-Road version   | 7.8.x (any patch level). Earlier versions must first be upgraded to 7.8.x.                                                                                                                                                                     |
+| PostgreSQL major version | 15 or newer. The wizard verifies this automatically.                                                                                                                                                                                           |
+| Network reachability     | Outbound HTTPS to `https://artifactory.niis.org` (X-Road 8 packages, GPG key, migration CLI, bootstrap script) and `https://pkgs.openbao.org` (OpenBao packages).                                                                              |
+| Root / sudo access       | Required for all steps                                                                                                                                                                                                                         |
+| Backup                   | A current backup of the Security Server (configuration, databases, signer keys) is **strongly recommended** — see [Before you start](#before-you-start). The wizard also creates an automatic `/etc/xroad` snapshot before any on-disk change. |
 
 Verify your current X-Road version:
 
@@ -197,21 +198,21 @@ sudo bash -c "$(curl -sSfL https://artifactory.niis.org/xroad-scripts/0.0.1-beta
 
 The wizard runs thirteen ordered steps. Each step exits non-zero on failure; the wizard then halts and the services are left in whatever state the failing step produced (the per-step failure hint in the wizard log explains the precise state). The first seven steps are all reversible without touching package state, so a preflight failure leaves the server unchanged.
 
-| #  | Step | What it does |
-|----|---|---|
-| 1  | **Version gate** | Reads installed `xroad-proxy` version; aborts unless it matches `^7\.8\.`. In interactive mode it asks for confirmation; in unattended mode it relies on `XROAD_UPGRADE_CONFIRMED=yes`. |
-| 2  | **Download migration CLI** | Fetches `migration-cli.jar` (and `migration-cli.jar.sha256`) from `XROAD_MIGRATION_CLI_URL`, verifies the SHA-256, writes the JAR to `/var/tmp/migration-cli.jar` (mode 600). |
-| 3  | **Back up /etc/xroad** | Snapshots `/etc/xroad` to `/etc/xroad/xroad-pre-v8-backup-<timestamp>.tar.gz` (mode 600). On a resumed run an existing snapshot is preserved. |
-| 4  | **Migrate db.properties** | Rewrites `/etc/xroad/db.properties` in place to the V8 `xroad.db.*` key prefix. Original is preserved at `/etc/xroad/db.properties.bak`. |
-| 5  | **PostgreSQL pre-flight** | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15. |
-| 6  | **OpenBao repository setup** | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies. |
-| 7  | **Stop X-Road services** | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state. |
-| 8  | **Switch to V8 repository** | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata. |
-| 9  | **Upgrade packages** | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`). |
-| 10 | **Migrate TLS to secret store** | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service`, `management-service`, and `opmonitor`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service,opmonitor}`. Missing pairs are skipped. |
-| 11 | **Run migration CLI** | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`. |
-| 12 | **Start X-Road services** | Starts `xroad-signer`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
-| 13 | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`. |
+| #  | Step                                  | What it does                                                                                                                                                                                                                                                                                                          |
+|----|---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1  | **Version gate**                      | Reads installed `xroad-proxy` version; aborts unless it matches `^7\.8\.`. In interactive mode it asks for confirmation; in unattended mode it relies on `XROAD_UPGRADE_CONFIRMED=yes`.                                                                                                                               |
+| 2  | **Download migration CLI**            | Fetches `migration-cli.jar` (and `migration-cli.jar.sha256`) from `XROAD_MIGRATION_CLI_URL`, verifies the SHA-256, writes the JAR to `/var/tmp/migration-cli.jar` (mode 600).                                                                                                                                         |
+| 3  | **Back up /etc/xroad**                | Snapshots `/etc/xroad` to `/etc/xroad/xroad-pre-v8-backup-<timestamp>.tar.gz` (mode 600). On a resumed run an existing snapshot is preserved.                                                                                                                                                                         |
+| 4  | **Migrate db.properties**             | Rewrites `/etc/xroad/db.properties` in place to the V8 `xroad.db.*` key prefix. Original is preserved at `/etc/xroad/db.properties.bak`.                                                                                                                                                                              |
+| 5  | **PostgreSQL pre-flight**             | Parses the migrated `db.properties`, connects to the `serverconf` database, verifies PostgreSQL major version ≥ 15.                                                                                                                                                                                                   |
+| 6  | **OpenBao repository setup**          | Adds the OpenBao apt/yum repository so the 8.0 packages can pull in OpenBao dependencies.                                                                                                                                                                                                                             |
+| 7  | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
+| 8  | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
+| 9  | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`).                                                                                                                                                                                            |
+| 10 | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service`, `management-service`, and `opmonitor`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service,opmonitor}`. Missing pairs are skipped.                                    |
+| 11 | **Run migration CLI**                 | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`.                                                                                                                                                           |
+| 12 | **Start X-Road services**             | Starts `xroad-signer`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
+| 13 | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`.                                                                                        |
 
 On success the wizard prints `X-Road 8.0 upgrade completed successfully!` and the path of its log file.
 
@@ -219,22 +220,22 @@ On success the wizard prints `X-Road 8.0 upgrade completed successfully!` and th
 
 Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-step is gated by a sentinel file under `/var/lib/xroad-upgrade/step-<id>.done`, so re-running the wizard after a fix skips already-completed sub-steps automatically. Sub-steps whose source file is absent are skipped with an info log.
 
-| Sub-step | What it migrates |
-|---|---|
-| `validate` | Read-only sanity check: prerequisites and configuration database connectivity. Nothing is written. |
-| `configuration-anchor` | The configuration anchor XML (path from `local.ini` `proxy.configuration-anchor-file`, default `/etc/xroad/configuration-anchor.xml`) into the configuration database. |
-| `signer-devices` | HSM / signer module declarations from `devices.ini` (path from `local.ini` `signer.device-configuration-file`, default `/etc/xroad/devices.ini`) into the configuration database under the signer scope. |
-| `ini-to-db` (per file) | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database. |
-| `properties-to-db` (ssl) | The SSL properties file (path from `local.ini` `proxy-ui-api.ssl-properties`, default `/etc/xroad/ssl.properties`) under the proxy-ui-api scope. |
-| `keyconf` | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set. |
-| `signer-token-pins` | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed. |
-| `file-to-db` (acme) | The contents of `/etc/xroad/conf.d/acme.yml` into the configuration database under key `xroad.acme` (proxy-ui-api scope). |
-| `file-to-db` (mail) | The contents of `/etc/xroad/conf.d/mail.yml` into the configuration database under key `xroad.mail-notification` (proxy-ui-api scope). |
-| `pgp-keys` | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store. |
-| `messagelog-key-mappings` | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database. |
-| `messagelog-db-encryption-keys` | The X-Road 7 message-log database encryption key from a PKCS#12 keystore (settings from `local.ini` `[message-log]`: `messagelog-keystore`, `messagelog-keystore-password`, `messagelog-key-id`) into the OpenBao secret store. |
-| `set-property` (batch signing) | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices). |
-| `set-property` (strict identifier checks) | Sets `xroad.proxy.strict-identifier-checks=false` if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices). |
+| Sub-step                                  | What it migrates                                                                                                                                                                                                                |
+|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `validate`                                | Read-only sanity check: prerequisites and configuration database connectivity. Nothing is written.                                                                                                                              |
+| `configuration-anchor`                    | The configuration anchor XML (path from `local.ini` `proxy.configuration-anchor-file`, default `/etc/xroad/configuration-anchor.xml`) into the configuration database.                                                          |
+| `signer-devices`                          | HSM / signer module declarations from `devices.ini` (path from `local.ini` `signer.device-configuration-file`, default `/etc/xroad/devices.ini`) into the configuration database under the signer scope.                        |
+| `ini-to-db` (per file)                    | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database.                                                                                                                               |
+| `properties-to-db` (ssl)                  | The SSL properties file (path from `local.ini` `proxy-ui-api.ssl-properties`, default `/etc/xroad/ssl.properties`) under the proxy-ui-api scope.                                                                                |
+| `keyconf`                                 | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set.       |
+| `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed.                                                                                          |
+| `file-to-db` (acme)                       | The contents of `/etc/xroad/conf.d/acme.yml` into the configuration database under key `xroad.acme` (proxy-ui-api scope).                                                                                                       |
+| `file-to-db` (mail)                       | The contents of `/etc/xroad/conf.d/mail.yml` into the configuration database under key `xroad.mail-notification` (proxy-ui-api scope).                                                                                          |
+| `pgp-keys`                                | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store.                                             |
+| `messagelog-key-mappings`                 | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database.                                                           |
+| `messagelog-db-encryption-keys`           | The X-Road 7 message-log database encryption key from a PKCS#12 keystore (settings from `local.ini` `[message-log]`: `messagelog-keystore`, `messagelog-keystore-password`, `messagelog-key-id`) into the OpenBao secret store. |
+| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                          |
+| `set-property` (strict identifier checks) | Sets `xroad.proxy.strict-identifier-checks=false` if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                           |
 
 Inspect the wizard log for any Java stack traces. Migration-CLI sub-commands sometimes return exit 0 even after an internal exception; the wizard scans the output and treats any line matching `Error `, `Caused by:`, `Exception in `, or `<Class>Exception:` as a failure.
 
@@ -262,9 +263,9 @@ Two semantics changed between X-Road 7 and X-Road 8. The wizard asks once for ea
 
 Two migration sub-steps require credentials. The wizard does not prescribe how to supply them; choose whichever method fits your secret-management practice.
 
-| Variable | Required when | Used by |
-|---|---|---|
-| `XROAD_MIGRATION_SOFTTOKEN_PIN` | A soft token keystore exists at `/etc/xroad/signer/softtoken/.softtoken.p12` | `keyconf` sub-step |
+| Variable                                       | Required when                                                                   | Used by                                  |
+|------------------------------------------------|---------------------------------------------------------------------------------|------------------------------------------|
+| `XROAD_MIGRATION_SOFTTOKEN_PIN`                | A soft token keystore exists at `/etc/xroad/signer/softtoken/.softtoken.p12`    | `keyconf` sub-step                       |
 | `XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD` | `message-log.messagelog-keystore` in `local.ini` points to an existing keystore | `messagelog-db-encryption-keys` sub-step |
 
 Common delivery options:
@@ -450,7 +451,7 @@ java -jar /var/tmp/migration-cli.jar set-property /etc/xroad/db.properties xroad
 **12. Start X-Road services.**
 
 ```bash
-for s in xroad-signer xroad-proxy xroad-opmonitor xroad-monitor xroad-proxy-ui-api; do
+for s in xroad-signer xroad-proxy xroad-opmonitor xroad-monitor xroad-proxy-ui-api xroad-auxiliary-service; do
   systemctl cat "$s" >/dev/null 2>&1 || { echo "skip $s (not installed)"; continue; }
   systemctl start "$s"
   for _ in {1..30}; do systemctl is-active --quiet "$s" && break; sleep 2; done
@@ -478,7 +479,7 @@ done
 systemctl list-units --type=service --state=active 'xroad-*'
 ```
 
-You should see `xroad-signer`, `xroad-proxy`, `xroad-monitor`, `xroad-proxy-ui-api`, and any optional services (`xroad-opmonitor`, etc.) that were active before the upgrade.
+You should see `xroad-signer`, `xroad-proxy`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service`, and any optional services (`xroad-opmonitor`, etc.) that were active before the upgrade.
 
 **2. Confirm the package version:**
 
