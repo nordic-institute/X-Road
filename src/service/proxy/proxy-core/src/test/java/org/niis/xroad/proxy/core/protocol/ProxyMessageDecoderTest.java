@@ -46,9 +46,13 @@ import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -59,6 +63,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
 import static org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder.MAX_HASHCHAIN_PART_BYTES;
+import static org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder.MAX_SIGNATURE_PART_BYTES;
 
 /**
  * Tests to verify correct proxy message decoder behavior.
@@ -332,35 +337,92 @@ public class ProxyMessageDecoderTest {
         assertEquals(IO_ERROR.code(), ex.getFaultCode());
     }
 
+    /**
+     * Test to ensure a signature part within the size cap is accepted.
+     *
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void signaturePartWithinCapDecodes() throws Exception {
+        String boundary = "testboundary123";
+        String contentType = MimeUtils.mpMixedContentType(boundary);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
+        decoder.parse(buildHashChainMessage(boundary, "x".repeat(100), "y".repeat(100), "<sig/>"));
+        assertNotNull(callback.getSignature());
+    }
+
+    /**
+     * Test to ensure an oversized signature part is rejected as a clean fault, not OOM. The oversized part is
+     * generated lazily via a repeating-byte stream so the test never materializes the oversized content as a
+     * String or byte array.
+     */
+    @Test
+    public void oversizedSignaturePartIsRejected() {
+        String boundary = "testboundary123";
+        String contentType = MimeUtils.mpMixedContentType(boundary);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
+        long oversizedLength = MAX_SIGNATURE_PART_BYTES + 1;
+        InputStream message = buildOversizedSignatureMessage(boundary, "x".repeat(100), "y".repeat(100), oversizedLength);
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(message));
+        assertEquals(IO_ERROR.code(), ex.getErrorCode());
+    }
+
+    private static final String SOAP_MESSAGE = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <SOAP-ENV:Envelope
+                    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers">
+                <SOAP-ENV:Header>
+                    <xroad:protocolVersion>4.0</xroad:protocolVersion>
+                    <xroad:client id:objectType="MEMBER">
+                        <id:xRoadInstance>EE</id:xRoadInstance>
+                        <id:memberClass>BUSINESS</id:memberClass>
+                        <id:memberCode>consumer</id:memberCode>
+                    </xroad:client>
+                    <xroad:service id:objectType="SERVICE">
+                        <id:xRoadInstance>EE</id:xRoadInstance>
+                        <id:memberClass>BUSINESS</id:memberClass>
+                        <id:memberCode>producer</id:memberCode>
+                        <id:serviceCode>getState</id:serviceCode>
+                    </xroad:service>
+                    <xroad:userId>EE:PIN:abc4567</xroad:userId>
+                    <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
+                    <xroad:issue/>
+                </SOAP-ENV:Header>
+                <SOAP-ENV:Body><xroad:getState>a</xroad:getState></SOAP-ENV:Body>
+            </SOAP-ENV:Envelope>""";
+
     private static InputStream buildHashChainMessage(String boundary, String hashChainResult, String hashChain) {
-        var soap = """
-                <?xml version="1.0" encoding="utf-8"?>
-                <SOAP-ENV:Envelope
-                        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-                        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
-                        xmlns:id="http://x-road.eu/xsd/identifiers">
-                    <SOAP-ENV:Header>
-                        <xroad:protocolVersion>4.0</xroad:protocolVersion>
-                        <xroad:client id:objectType="MEMBER">
-                            <id:xRoadInstance>EE</id:xRoadInstance>
-                            <id:memberClass>BUSINESS</id:memberClass>
-                            <id:memberCode>consumer</id:memberCode>
-                        </xroad:client>
-                        <xroad:service id:objectType="SERVICE">
-                            <id:xRoadInstance>EE</id:xRoadInstance>
-                            <id:memberClass>BUSINESS</id:memberClass>
-                            <id:memberCode>producer</id:memberCode>
-                            <id:serviceCode>getState</id:serviceCode>
-                        </xroad:service>
-                        <xroad:userId>EE:PIN:abc4567</xroad:userId>
-                        <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
-                        <xroad:issue/>
-                    </SOAP-ENV:Header>
-                    <SOAP-ENV:Body><xroad:getState>a</xroad:getState></SOAP-ENV:Body>
-                </SOAP-ENV:Envelope>""";
-        var msg = "--" + boundary + "\r\n"
+        return buildHashChainMessage(boundary, hashChainResult, hashChain, "<sig/>");
+    }
+
+    private static InputStream buildHashChainMessage(String boundary, String hashChainResult, String hashChain,
+                                                       String signatureBody) {
+        var msg = buildPreSignaturePart(boundary, hashChainResult, hashChain)
+                + signatureBody + "\r\n"
+                + "--" + boundary + "--\r\n";
+        return new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Builds a multipart message whose signature part is a lazily-generated repeated-byte stream of the given
+     * length, so oversized signatures can be exercised without allocating the oversized content in memory.
+     */
+    private static InputStream buildOversizedSignatureMessage(String boundary, String hashChainResult, String hashChain,
+                                                                long signatureLength) {
+        byte[] header = buildPreSignaturePart(boundary, hashChainResult, hashChain).getBytes(StandardCharsets.UTF_8);
+        byte[] trailer = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8);
+        return new SequenceInputStream(Collections.enumeration(List.of(
+                new ByteArrayInputStream(header),
+                new RepeatingByteInputStream((byte) 'x', signatureLength),
+                new ByteArrayInputStream(trailer))));
+    }
+
+    private static String buildPreSignaturePart(String boundary, String hashChainResult, String hashChain) {
+        return "--" + boundary + "\r\n"
                 + "Content-Type: text/xml\r\n\r\n"
-                + soap + "\r\n"
+                + SOAP_MESSAGE + "\r\n"
                 + "--" + boundary + "\r\n"
                 + "Content-Type: " + MimeTypes.HASH_CHAIN_RESULT + "\r\n\r\n"
                 + hashChainResult + "\r\n"
@@ -368,10 +430,42 @@ public class ProxyMessageDecoderTest {
                 + "Content-Type: " + MimeTypes.HASH_CHAIN + "\r\n\r\n"
                 + hashChain + "\r\n"
                 + "--" + boundary + "\r\n"
-                + "Content-Type: " + MimeTypes.SIGNATURE_BDOC + "\r\n\r\n"
-                + "<sig/>\r\n"
-                + "--" + boundary + "--\r\n";
-        return new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
+                + "Content-Type: " + MimeTypes.SIGNATURE_BDOC + "\r\n\r\n";
+    }
+
+    /**
+     * An InputStream that emits a fixed number of repeated bytes without allocating a backing array, so
+     * oversized-input tests can exercise multi-megabyte parts with negligible heap footprint.
+     */
+    private static final class RepeatingByteInputStream extends InputStream {
+
+        private final byte value;
+        private long remaining;
+
+        RepeatingByteInputStream(byte value, long length) {
+            this.value = value;
+            this.remaining = length;
+        }
+
+        @Override
+        public int read() {
+            if (remaining <= 0) {
+                return -1;
+            }
+            remaining--;
+            return value & 0xFF;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) {
+            if (remaining <= 0) {
+                return -1;
+            }
+            int toWrite = (int) Math.min(len, remaining);
+            Arrays.fill(b, off, off + toWrite, value);
+            remaining -= toWrite;
+            return toWrite;
+        }
     }
 
     private ProxyMessageDecoder createDecoder(String contentType) {
