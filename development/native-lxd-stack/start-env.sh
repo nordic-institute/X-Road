@@ -174,10 +174,12 @@ function listSnapshots() {
     snaps_json=$(lxc query "/1.0/instances/${container}/snapshots" 2>/dev/null || echo "[]")
 
     local found=false
-    local snap_names
-    # Extract just the snapshot name from each URL path element
-    mapfile -t snap_names < <(echo "$snaps_json" | jq -r '.[]' 2>/dev/null \
-      | sed 's|.*/||')
+    local snap_names=()
+    # Extract just the snapshot name from each URL path element.
+    # while-read instead of mapfile: macOS ships bash 3.2, which lacks it.
+    while IFS= read -r snap_name; do
+      snap_names+=("$snap_name")
+    done < <(echo "$snaps_json" | jq -r '.[]' 2>/dev/null | sed 's|.*/||')
 
     for snap in "${snap_names[@]}"; do
       [[ "$snap" == "empty" || "$snap" == "custom" ]] || continue
