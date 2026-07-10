@@ -71,7 +71,7 @@ public class MailApiController implements MailApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    @PreAuthorize("hasAuthority('SEND_TEST_MAIL')")
     public ResponseEntity<TestMailResponse> sendTestMail(MailRecipient mailRecipient) {
         try {
             mailNotificationHelper.sendTestMail(mailRecipient.getMailAddress(), currentSecurityServerId.getServerId().asEncodedId());

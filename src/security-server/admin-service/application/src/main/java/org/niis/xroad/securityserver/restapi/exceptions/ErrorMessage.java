@@ -39,7 +39,8 @@ public enum ErrorMessage implements DeviationProvider {
     AUTH_CERT_NOT_SUPPORTED(ERROR_AUTH_CERT_NOT_SUPPORTED, "Not supported authentication certificate"),
     SIGN_CERT_NOT_SUPPORTED(ERROR_SIGN_CERT_NOT_SUPPORTED, "Not supported sign certificate"),
     CERTIFICATE_NOT_FOUND(ERROR_CERTIFICATE_NOT_FOUND, "Certificate not found"),
-    CERTIFICATE_NOT_FOUND_WITH_ID(ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, "Certificate not found by id");
+    CERTIFICATE_NOT_FOUND_WITH_ID(ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, "Certificate not found by id"),
+    INVALID_TEST_MAIL_RECIPIENT("invalid_test_mail_recipient", "Test mail recipient is not a configured contact");
 
     private final String code;
     private final String description;
