@@ -53,6 +53,7 @@ public final class ConfigKeyProviders {
                 AuxiliaryServiceConfigKeys.instance(),
                 AdminServiceConfigKeys.instance(),
                 CsAdminServiceConfigKeys.instance(),
+                CsManagementServiceConfigKeys.instance(),
                 HealthCheckConfigKeys.instance());
     }
 }
