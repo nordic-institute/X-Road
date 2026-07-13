@@ -160,6 +160,7 @@ jobs:
         run: |
           start=$(date +%s)
           sg lxd -c "lxc exec xrd-hurl -- bash -c 'cd /opt/hurl && ./run-hurl.sh'"
+          sg lxd -c "./wait-xroad-ready.sh"
           echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Setup Java

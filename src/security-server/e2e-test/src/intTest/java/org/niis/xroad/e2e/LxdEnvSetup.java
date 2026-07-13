@@ -133,19 +133,21 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
         var process = new ProcessBuilder(commandArgs).start();
         var stdoutFuture = CompletableFuture.supplyAsync(() -> readAll(process.getInputStream()));
         var stderrFuture = CompletableFuture.supplyAsync(() -> readAll(process.getErrorStream()));
-        stdoutFuture.get();
-        stderrFuture.get();
+        var stdout = stdoutFuture.get();
+        var stderr = stderrFuture.get();
         var exitCode = process.waitFor();
 
-        // The CLI always exits 0 (MessageLogArchiverService catches and logs internally), so the
-        // real outcome is read from its own log file — the %native Quarkus profile disables
-        // console logging in favor of /var/log/xroad/message-log-archiver.log.
+        // An operation-level failure keeps exit code 0 (MessageLogArchiverService catches and logs
+        // internally), so the real outcome is read from the CLI's own log file — the %native Quarkus
+        // profile disables console logging in favor of /var/log/xroad/message-log-archiver.log. A
+        // startup-level failure (JVM/config/connection) exits non-zero without reaching that file,
+        // so its cause is only visible on the process streams.
         var successMarker = command.startsWith("archive") ? ARCHIVE_SUCCESS_MARKER : CLEANUP_SUCCESS_MARKER;
         var logTail = tailArchiverLog(env);
         if (exitCode != 0 || !logTail.contains(successMarker)) {
             throw new IllegalStateException(
-                    "message log %s on %s did not report success (exit %d); log tail:\n%s"
-                            .formatted(command, env, exitCode, logTail));
+                    "message log %s on %s did not report success (exit %d); stderr: %s; stdout: %s; log tail:\n%s"
+                            .formatted(command, env, exitCode, stderr, stdout, logTail));
         }
     }
 

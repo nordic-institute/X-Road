@@ -323,6 +323,7 @@ function handleBuild() {
 function handleInitialize() {
   if [ "$SKIP_INITIALIZE" = false ]; then
     lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh"
+    "$(dirname "$0")/wait-xroad-ready.sh"
   fi
 }
 
