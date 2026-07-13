@@ -28,9 +28,6 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import io.grpc.ManagedChannel;
 import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -41,14 +38,15 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestSta
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * gRPC transport client for the IdentityHub provisioning service.
  */
 @Slf4j
 @RequiredArgsConstructor
-@ApplicationScoped
-public class IdentityHubProvisioningRpcClient extends AbstractRpcClient {
+public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implements InitializingBean, DisposableBean {
 
     private final RpcChannelFactory rpcChannelFactory;
     private final IdentityHubProvisioningRpcChannelProperties channelProperties;
@@ -66,20 +64,24 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient {
         return channel;
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
-        stub = IdentityHubProvisioningServiceGrpc.newBlockingStub(channel);
+        stub = IdentityHubProvisioningServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
 
     @Override
-    @PreDestroy
     public void close() {
         if (channel != null) {
             channel.shutdown();
         }
+    }
+
+    @Override
+    public void destroy() {
+        close();
     }
 
     public void createIdentityHubParticipantContext(String participantContextId, String did, String memberId,

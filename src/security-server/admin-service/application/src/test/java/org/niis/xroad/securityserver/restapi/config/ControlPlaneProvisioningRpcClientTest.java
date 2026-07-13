@@ -89,7 +89,7 @@ class ControlPlaneProvisioningRpcClientTest {
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
 
         client = new ControlPlaneProvisioningRpcClient(rpcChannelFactory, channelProperties);
-        client.init();
+        client.afterPropertiesSet();
     }
 
     @AfterEach

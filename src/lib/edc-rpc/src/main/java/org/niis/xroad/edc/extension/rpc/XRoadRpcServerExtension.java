@@ -57,7 +57,7 @@ public class XRoadRpcServerExtension implements ServiceExtension {
     @Setting(key = "xroad.ds.rpc.port", description = "Shared gRPC server port for this EDC runtime", defaultValue = "5460")
     private int rpcPort;
 
-    @Setting(key = "xroad.ds.rpc.host", description = "Shared gRPC server listen address", defaultValue = "0.0.0.0")
+    @Setting(key = "xroad.ds.rpc.host", description = "Shared gRPC server listen address", defaultValue = "127.0.0.1")
     private String rpcHost;
 
     @Inject

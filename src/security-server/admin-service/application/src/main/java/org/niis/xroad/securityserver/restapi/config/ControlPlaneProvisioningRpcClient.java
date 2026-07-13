@@ -27,9 +27,6 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import io.grpc.ManagedChannel;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -38,14 +35,15 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.controlplane.provisioning.proto.ControlPlaneProvisioningServiceGrpc;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * gRPC transport client for the Control Plane provisioning service.
  */
 @Slf4j
 @RequiredArgsConstructor
-@ApplicationScoped
-public class ControlPlaneProvisioningRpcClient extends AbstractRpcClient {
+public class ControlPlaneProvisioningRpcClient extends AbstractRpcClient implements InitializingBean, DisposableBean {
 
     private final RpcChannelFactory rpcChannelFactory;
     private final ControlPlaneProvisioningRpcChannelProperties channelProperties;
@@ -63,20 +61,24 @@ public class ControlPlaneProvisioningRpcClient extends AbstractRpcClient {
         return channel;
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
-        stub = ControlPlaneProvisioningServiceGrpc.newBlockingStub(channel);
+        stub = ControlPlaneProvisioningServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
 
     @Override
-    @PreDestroy
     public void close() {
         if (channel != null) {
             channel.shutdown();
         }
+    }
+
+    @Override
+    public void destroy() {
+        close();
     }
 
     public void createParticipantContext(String participantContextId, String did) {

@@ -27,9 +27,6 @@
 package org.niis.xroad.cs.admin.core.dataspace;
 
 import io.grpc.ManagedChannel;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -40,6 +37,8 @@ import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionRe
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import org.niis.xroad.edc.issuer.provisioning.proto.IssuerProvisioningServiceGrpc;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
 
@@ -48,8 +47,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-@ApplicationScoped
-public class IssuerProvisioningRpcClient extends AbstractRpcClient {
+public class IssuerProvisioningRpcClient extends AbstractRpcClient implements InitializingBean, DisposableBean {
 
     private final RpcChannelFactory rpcChannelFactory;
     private final IssuerProvisioningRpcChannelProperties channelProperties;
@@ -67,8 +65,8 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient {
         return channel;
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void afterPropertiesSet() {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
@@ -76,11 +74,15 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient {
     }
 
     @Override
-    @PreDestroy
     public void close() {
         if (channel != null) {
             channel.shutdown();
         }
+    }
+
+    @Override
+    public void destroy() {
+        close();
     }
 
     public void createParticipantContext(String participantContextId, String did, String issuerServiceUrl,

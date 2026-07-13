@@ -53,9 +53,8 @@ public class DataspaceProvisioningStatusService {
     @Transactional(readOnly = true)
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        boolean managementRegistered = readinessPredicates.isManagementSubsystemRegistered();
         List<ParticipantContextStatus> contextStatuses =
-                dataspaceProvisioningService.readParticipantContextStatuses(managementRegistered);
+                dataspaceProvisioningService.readParticipantContextStatuses(true);
 
         return new DataspaceStatus(true, authCertRegistered, contextStatuses);
     }

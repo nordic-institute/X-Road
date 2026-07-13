@@ -109,7 +109,7 @@ class IdentityHubProvisioningRpcClientTest {
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
 
         client = new IdentityHubProvisioningRpcClient(rpcChannelFactory, channelProperties);
-        client.init();
+        client.afterPropertiesSet();
     }
 
     @AfterEach

@@ -51,6 +51,7 @@ class DataspaceProvisioningStatusServiceTest {
     private static final String PARTICIPANT_ID = "test-participant";
     private static final String MGMT_PARTICIPANT_ID = PARTICIPANT_ID + "-mgmt";
     private static final String HOLDER_PID_SLOT0 = PARTICIPANT_ID + "-xroad-membership-credential-request";
+    private static final String MGMT_HOLDER_PID_SLOT0 = MGMT_PARTICIPANT_ID + "-xroad-membership-credential-request";
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -79,26 +80,31 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     @Test
-    void readStatusHostOnlySsContextCreatedAndIssued() {
-        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
+    void readStatusAlwaysReportsHostAndManagementContextsBothIssued() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
+        when(provisioningClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(true);
         when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(provisioningClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.enabled()).isTrue();
-        assertThat(status.participantContexts()).hasSize(1);
-        var ctx = status.participantContexts().get(0);
-        assertThat(ctx.participantId()).isEqualTo(PARTICIPANT_ID);
-        assertThat(ctx.kind()).isEqualTo(ParticipantKind.HOST);
-        assertThat(ctx.contextCreated()).isTrue();
-        assertThat(ctx.credentialStatus()).isEqualTo(STATUS_ISSUED);
+        assertThat(status.participantContexts()).hasSize(2);
+        var host = status.participantContexts().get(0);
+        var mgmt = status.participantContexts().get(1);
+        assertThat(host.participantId()).isEqualTo(PARTICIPANT_ID);
+        assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
+        assertThat(host.contextCreated()).isTrue();
+        assertThat(host.credentialStatus()).isEqualTo(STATUS_ISSUED);
+        assertThat(mgmt.participantId()).isEqualTo(MGMT_PARTICIPANT_ID);
+        assertThat(mgmt.kind()).isEqualTo(ParticipantKind.MANAGEMENT);
+        assertThat(mgmt.contextCreated()).isTrue();
+        assertThat(mgmt.credentialStatus()).isEqualTo(STATUS_ISSUED);
     }
 
     @Test
-    void readStatusHostPlusManagementSsTwoContextsReturned() {
-        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(true);
+    void readStatusReportsManagementContextEvenWhenHostIssuedAndManagementAbsent() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
         when(provisioningClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(false);
@@ -119,7 +125,6 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusBackendUnreachableReportsUnknownInsteadOf5xx() {
-        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(provisioningClient.contextExists(anyString()))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR).build());
@@ -127,23 +132,28 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.enabled()).isTrue();
-        assertThat(status.participantContexts()).hasSize(1);
-        var ctx = status.participantContexts().get(0);
-        assertThat(ctx.contextCreated()).isFalse();
-        assertThat(ctx.credentialStatus()).isEqualTo(STATUS_UNKNOWN);
+        assertThat(status.participantContexts()).hasSize(2);
+        assertThat(status.participantContexts())
+                .allSatisfy(ctx -> {
+                    assertThat(ctx.contextCreated()).isFalse();
+                    assertThat(ctx.credentialStatus()).isEqualTo(STATUS_UNKNOWN);
+                });
     }
 
     @Test
-    void readStatusSsNotInitializedManagementTreatedAsNotRegistered() {
-        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
+    void readStatusSsNotInitializedReportsBothContextsAbsent() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(false);
+        when(provisioningClient.contextExists(anyString())).thenReturn(false);
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(1);
+        assertThat(status.participantContexts()).hasSize(2);
         assertThat(status.participantContexts().get(0).kind()).isEqualTo(ParticipantKind.HOST);
-        assertThat(status.participantContexts().get(0).contextCreated()).isFalse();
-        assertThat(status.participantContexts().get(0).credentialStatus()).isEqualTo(STATUS_ABSENT);
+        assertThat(status.participantContexts().get(1).kind()).isEqualTo(ParticipantKind.MANAGEMENT);
+        assertThat(status.participantContexts())
+                .allSatisfy(ctx -> {
+                    assertThat(ctx.contextCreated()).isFalse();
+                    assertThat(ctx.credentialStatus()).isEqualTo(STATUS_ABSENT);
+                });
     }
 }
