@@ -54,6 +54,7 @@ public final class ConfigKeyProviders {
                 AdminServiceConfigKeys.instance(),
                 CsAdminServiceConfigKeys.instance(),
                 CsManagementServiceConfigKeys.instance(),
+                CsRegistrationServiceConfigKeys.instance(),
                 HealthCheckConfigKeys.instance());
     }
 }
