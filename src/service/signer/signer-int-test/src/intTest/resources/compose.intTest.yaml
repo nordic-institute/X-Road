@@ -124,6 +124,7 @@ services:
              ('xroad.signer.addon.hwtoken.session-pool-min-idle', '1', 'signer', now(), now()),
              ('xroad.signer.addon.hwtoken.session-acquire-timeout', 'PT5S', 'signer', now(), now()),
              ('xroad.signer.autologin.enabled', 'true', 'signer', now(), now()),
+             ('xroad.signer.autologin.retry.retry-max-attempts', '0', 'signer', now(), now()),
              ('xroad.signer.ocsp-response-retrieval-active', 'true', 'signer', now(), now()),
              ('xroad.signer.modules', '{\"softhsm2\":{\"library\":\"/usr/lib/softhsm/libsofthsm2.so\",\"os-locking-ok\":true,\"library-cant-create-os-threads\":true}}', 'signer', now(), now())
            ON CONFLICT DO NOTHING;"
