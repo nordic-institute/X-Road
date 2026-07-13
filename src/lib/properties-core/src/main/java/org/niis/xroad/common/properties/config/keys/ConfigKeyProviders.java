@@ -52,6 +52,7 @@ public final class ConfigKeyProviders {
                 OpMonitorConfigKeys.instance(),
                 AuxiliaryServiceConfigKeys.instance(),
                 AdminServiceConfigKeys.instance(),
+                CsAdminServiceConfigKeys.instance(),
                 HealthCheckConfigKeys.instance());
     }
 }

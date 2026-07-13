@@ -24,31 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.config;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
-import org.niis.xroad.cs.admin.api.service.config.GlobalConfigDirectories;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Admin-service global configuration directories ({@code xroad.admin-service.global-conf-generator.*}),
- * resolved through {@link XRoadConfig}.
+ * Produces the {@link GlobalConfGenerationProperties} bean from the shared {@link XRoadConfig} resolver
+ * (wired by the admin-service application).
  */
-public class AdminServiceGlobalConfigProperties implements GlobalConfigDirectories {
+@Configuration(proxyBeanMethods = false)
+public class GlobalConfGeneratorConfiguration {
 
-    private final XRoadConfig config;
-
-    public AdminServiceGlobalConfigProperties(XRoadConfig config) {
-        this.config = config;
-    }
-
-    @Override
-    public String getInternalDirectory() {
-        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_INTERNAL_DIRECTORY);
-    }
-
-    @Override
-    public String getExternalDirectory() {
-        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_EXTERNAL_DIRECTORY);
+    @Bean
+    GlobalConfGenerationProperties globalConfGenerationProperties(XRoadConfig xRoadConfig) {
+        return new GlobalConfGenerationProperties(xRoadConfig);
     }
 }

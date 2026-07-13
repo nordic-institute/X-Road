@@ -31,6 +31,7 @@ import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,8 +43,8 @@ import java.util.Map;
 
 /**
  * Wires the {@link XRoadConfig} resolver for the central-server admin-service (DB overrides via the
- * {@code configuration_properties} table + packaged DSL defaults). Currently registers the shared RPC
- * channel keys consumed by the signer client.
+ * {@code configuration_properties} table + packaged DSL defaults) and the admin-service property beans
+ * that resolve through it. Registers the shared RPC channel keys (signer client) and the admin-service keys.
  */
 @Configuration(proxyBeanMethods = false)
 public class XRoadConfigBeanConfiguration {
@@ -53,13 +54,36 @@ public class XRoadConfigBeanConfiguration {
                             Environment environment) {
         var deploymentMode = environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
-        var providers = List.<ConfigKeyProvider>of(CommonRpcConfigKeys.instance());
+        var providers = List.<ConfigKeyProvider>of(
+                CommonRpcConfigKeys.instance(),
+                CsAdminServiceConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
+                .register(CsAdminServiceConfigKeys.instance())
                 .overrides(springEnvironmentOverrides(providers, environment))
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
+    }
+
+    @Bean
+    AdminServiceProperties adminServiceProperties(XRoadConfig xRoadConfig) {
+        return new AdminServiceProperties(xRoadConfig);
+    }
+
+    @Bean
+    AdminServiceTlsProperties adminServiceTlsProperties(XRoadConfig xRoadConfig) {
+        return new AdminServiceTlsProperties(xRoadConfig);
+    }
+
+    @Bean
+    AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties(XRoadConfig xRoadConfig) {
+        return new AdminServiceGlobalConfigProperties(xRoadConfig);
+    }
+
+    @Bean
+    ManagementServiceConfigProperties managementServiceConfigProperties(XRoadConfig xRoadConfig) {
+        return new ManagementServiceConfigProperties(xRoadConfig);
     }
 
     private static Map<String, String> springEnvironmentOverrides(List<ConfigKeyProvider> providers, Environment environment) {
