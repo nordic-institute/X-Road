@@ -57,7 +57,7 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
 
     @Override
     public ErrorOrigin getRpcOrigin() {
-        return ErrorOrigin.DATASPACE;
+        return ErrorOrigin.DS_ISSUER_SERVICE;
     }
 
     @Override

@@ -53,7 +53,7 @@ public class ControlPlaneProvisioningRpcClient extends AbstractRpcClient impleme
 
     @Override
     public ErrorOrigin getRpcOrigin() {
-        return ErrorOrigin.DATASPACE;
+        return ErrorOrigin.DS_CONTROL_PLANE;
     }
 
     @Override

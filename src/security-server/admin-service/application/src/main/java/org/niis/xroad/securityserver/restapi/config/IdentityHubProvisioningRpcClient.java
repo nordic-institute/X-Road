@@ -56,7 +56,7 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
 
     @Override
     public ErrorOrigin getRpcOrigin() {
-        return ErrorOrigin.DATASPACE;
+        return ErrorOrigin.DS_IDENTITY_HUB;
     }
 
     @Override
