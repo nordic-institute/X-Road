@@ -136,12 +136,26 @@
           - curl
           - locales
           - software-properties-common
+          - dialog
+          - ca-certificates
+          - gnupg2
+          - rsyslog
+          - openjdk-21-jre-headless
+          - rlwrap
+          - ca-certificates-java
+          - crudini
+          - lsb-release
+          - net-tools
+          - expect
           - dpkg-dev
           - apt-transport-https
           - postgresql-common
-          - crudini
+          - postgresql
+          - postgresql-contrib
         state: present
         update_cache: yes
+      environment:
+        DEBIAN_FRONTEND: noninteractive
 
     - name: Configure PostgreSQL PGDG apt repository
       command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
@@ -251,11 +265,26 @@
           - curl
           - locales
           - software-properties-common
+          - dialog
+          - ca-certificates
+          - gnupg2
+          - rsyslog
+          - openjdk-21-jre-headless
+          - rlwrap
+          - ca-certificates-java
+          - crudini
+          - lsb-release
+          - net-tools
+          - expect
           - dpkg-dev
           - apt-transport-https
           - postgresql-common
+          - postgresql
+          - postgresql-contrib
         state: present
         update_cache: yes
+      environment:
+        DEBIAN_FRONTEND: noninteractive
 
     - name: Configure PostgreSQL PGDG apt repository
       command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
