@@ -3,8 +3,6 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
-      - XROAD_DATASPACE_ENABLED=true
-      - XROAD_DATASPACE_PROVISIONING_FAIL_ON_ERROR=false
       # Co-located Issuer Service: CS-init provisions it over loopback gRPC (the
       # default RPC host 127.0.0.1 matches the issuer server-cert IP SAN).
       # Publish the issuer DID under the `cs` host.
@@ -149,12 +147,6 @@ services:
       --variable ss1_host=${PROXY_UI_1}
       --variable ss0_proxy=${PROXY_0}
       --variable ss1_proxy=${PROXY_1}
-      --variable ss0_ih_host=${IH_HOST_0}
-      --variable ss1_ih_host=${IH_HOST_1}
-      --variable ss0_cp_host=${CP_HOST_0}
-      --variable ss1_cp_host=${CP_HOST_1}
-      --variable ss0_participant_id=${PARTICIPANT_ID_0}
-      --variable ss1_participant_id=${PARTICIPANT_ID_1}
       --variable is_host=cs
       --file-root /hurl-files
       /hurl-src/setup.hurl

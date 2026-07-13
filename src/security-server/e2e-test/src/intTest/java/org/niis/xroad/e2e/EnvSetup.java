@@ -101,12 +101,6 @@ public class EnvSetup extends BaseComposeSetup {
                 .withEnv("PROXY_0", "xrd-ss0")
                 .withEnv("PROXY_UI_1", "ss1-ui")
                 .withEnv("PROXY_1", "xrd-ss1")
-                .withEnv("IH_HOST_0", "ss0-ds-identity-hub")
-                .withEnv("IH_HOST_1", "ss1-ds-identity-hub")
-                .withEnv("CP_HOST_0", "ss0-ds-control-plane")
-                .withEnv("CP_HOST_1", "ss1-ds-control-plane")
-                .withEnv("PARTICIPANT_ID_0", "xrd-ss0")
-                .withEnv("PARTICIPANT_ID_1", "xrd-ss1")
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
@@ -335,7 +329,6 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
         public static final int IDENTITY_HUB_CREDENTIALS = 7185;
         public static final int IDENTITY_HUB_STS = 7184;
-        public static final int ISSUER_SERVICE_IDENTITY = 6182;
         public static final int ISSUER_SERVICE_ADMIN = 6186;
     }
 
