@@ -35,7 +35,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -48,7 +47,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,8 +58,6 @@ class DataspaceParticipantReconcilerTest {
     private static final String MGMT_ID = "xrd-ss0-mgmt";
 
     @Mock
-    private AdminServiceProperties adminServiceProperties;
-    @Mock
     private DataspaceProvisioningService dataspaceProvisioningService;
     @Mock
     private ScheduledJobHelper scheduledJobHelper;
@@ -72,26 +68,7 @@ class DataspaceParticipantReconcilerTest {
     private DataspaceParticipantReconciler reconciler;
 
     @Test
-    void scheduledReconcileSkipsWhenDataspaceDisabled() {
-        withDataspaceEnabled(false);
-
-        reconciler.scheduledReconcile();
-
-        verifyNoInteractions(scheduledJobHelper, dataspaceProvisioningService, readinessPredicates);
-    }
-
-    @Test
-    void reconcileSkipsWhenDataspaceDisabled() {
-        withDataspaceEnabled(false);
-
-        reconciler.reconcile();
-
-        verifyNoInteractions(scheduledJobHelper, dataspaceProvisioningService, readinessPredicates);
-    }
-
-    @Test
     void scheduledReconcileSwallowsFailures() {
-        withDataspaceEnabled(true);
         when(scheduledJobHelper.getServerConf()).thenThrow(new RuntimeException("boom"));
 
         assertThatCode(() -> reconciler.scheduledReconcile()).doesNotThrowAnyException();
@@ -99,7 +76,6 @@ class DataspaceParticipantReconcilerTest {
 
     @Test
     void reconcileSkipsWhenServerNotInitialized() {
-        withDataspaceEnabled(true);
         when(scheduledJobHelper.getServerConf()).thenThrow(mock(XrdRuntimeException.class));
 
         reconciler.reconcile();
@@ -172,7 +148,6 @@ class DataspaceParticipantReconcilerTest {
 
     @Test
     void reconcileSkipsWhenOwnerIsNull() {
-        withDataspaceEnabled(true);
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
         when(scheduledJobHelper.getServerConf()).thenReturn(serverConf);
@@ -183,14 +158,7 @@ class DataspaceParticipantReconcilerTest {
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
-    private void withDataspaceEnabled(boolean enabled) {
-        var dataspace = new AdminServiceProperties.Dataspace();
-        dataspace.setEnabled(enabled);
-        when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-    }
-
     private void givenInitializedServer() {
-        withDataspaceEnabled(true);
         var ownerId = mock(ClientIdEntity.class);
         when(ownerId.getXRoadInstance()).thenReturn("TEST");
         when(ownerId.getMemberClass()).thenReturn("GOV");

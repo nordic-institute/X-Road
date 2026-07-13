@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,21 +44,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataspaceProvisioningStatusService {
 
-    private final AdminServiceProperties adminServiceProperties;
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
 
     /**
      * Returns a snapshot of the current provisioning status.
-     * When dataspace is disabled ({@code dataspace.enabled=false}) the returned record carries
-     * {@code enabled=false} and empty context list; no gRPC calls are made.
      */
     @Transactional(readOnly = true)
     public DataspaceStatus readStatus() {
-        if (!adminServiceProperties.getDataspace().isEnabled()) {
-            return new DataspaceStatus(false, false, List.of());
-        }
-
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         boolean managementRegistered = readinessPredicates.isManagementSubsystemRegistered();
         List<ParticipantContextStatus> contextStatuses =
@@ -71,9 +63,9 @@ public class DataspaceProvisioningStatusService {
     /**
      * Snapshot of the SS data space provisioning status at a point in time.
      *
-     * @param enabled             whether dataspace is enabled on this SS
+     * @param enabled             always {@code true}; kept for API backward compatibility
      * @param authCertRegistered  whether the SS auth cert is in REGISTERED state (Signer read)
-     * @param participantContexts per-context provisioning statuses; empty when disabled
+     * @param participantContexts per-context provisioning statuses
      */
     public record DataspaceStatus(
             boolean enabled,

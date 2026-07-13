@@ -29,7 +29,6 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -48,7 +47,6 @@ public class DataspaceParticipantReconciler {
     static final int JOB_REPEAT_INTERVAL_MS = 30000;
     static final int INITIAL_DELAY_MS = 30000;
 
-    private final AdminServiceProperties adminServiceProperties;
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final ScheduledJobHelper scheduledJobHelper;
     private final DataspaceReadinessPredicates readinessPredicates;
@@ -59,9 +57,6 @@ public class DataspaceParticipantReconciler {
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     public void scheduledReconcile() {
-        if (!adminServiceProperties.getDataspace().isEnabled()) {
-            return;
-        }
         try {
             reconcile();
         } catch (Exception e) {
@@ -74,9 +69,6 @@ public class DataspaceParticipantReconciler {
      * reconcile at SS init; in that context a failure propagates to the caller.
      */
     public void reconcile() {
-        if (!adminServiceProperties.getDataspace().isEnabled()) {
-            return;
-        }
         ServerConfEntity serverConf = loadServerConf();
         if (serverConf == null) {
             log.debug("Data space reconcile: SS not yet initialized, skipping");

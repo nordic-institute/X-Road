@@ -89,8 +89,6 @@ public class InitializationServiceImpl implements InitializationService {
     private final String generateKeypairScriptPath;
     @Value("${gpgkeys.gpghome}")
     private final String gpgHome;
-    @Value("${xroad.dataspace.enabled:false}")
-    private final boolean dataspaceEnabled;
 
     @Override
     public InitializationStatusDto getInitializationStatus() {
@@ -161,9 +159,6 @@ public class InitializationServiceImpl implements InitializationService {
     }
 
     private void provisionDataspaceIssuer() {
-        if (!dataspaceEnabled) {
-            return;
-        }
         log.info("Provisioning data space issuer");
         dataspaceIssuerProvisioningService.provisionIssuer();
         log.info("Data space issuer provisioned");

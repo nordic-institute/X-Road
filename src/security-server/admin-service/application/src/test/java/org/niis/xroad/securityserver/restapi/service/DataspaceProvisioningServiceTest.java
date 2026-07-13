@@ -65,7 +65,6 @@ class DataspaceProvisioningServiceTest {
     @BeforeEach
     void setUp() {
         dataspace = new Dataspace();
-        dataspace.setEnabled(true);
         dataspace.setParticipantId(PARTICIPANT_ID);
         dataspace.setIdentityHubUrl("https://ih.example.test");
         dataspace.setIssuerDid("did:web:issuer.example.test");

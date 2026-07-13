@@ -40,8 +40,6 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ABSENT;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ISSUED;
@@ -63,12 +61,10 @@ class DataspaceProvisioningStatusServiceTest {
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceProvisioningStatusService statusService;
-    private Dataspace dataspace;
 
     @BeforeEach
     void setUp() {
-        dataspace = new Dataspace();
-        dataspace.setEnabled(true);
+        var dataspace = new Dataspace();
         dataspace.setParticipantId(PARTICIPANT_ID);
         dataspace.setIdentityHubUrl("https://ih.example.test");
         dataspace.setIssuerDid("did:web:issuer.example.test");
@@ -79,20 +75,7 @@ class DataspaceProvisioningStatusServiceTest {
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, provisioningClient);
 
         statusService = new DataspaceProvisioningStatusService(
-                adminServiceProperties, provisioningService, readinessPredicates);
-    }
-
-    @Test
-    void readStatusReturnsDisabledWithNoContextsWhenDataspaceDisabled() {
-        dataspace.setEnabled(false);
-
-        DataspaceStatus status = statusService.readStatus();
-
-        assertThat(status.enabled()).isFalse();
-        assertThat(status.authCertRegistered()).isFalse();
-        assertThat(status.participantContexts()).isEmpty();
-        verify(provisioningClient, never()).contextExists(anyString());
-        verify(readinessPredicates, never()).hasRegisteredAuthCert();
+                provisioningService, readinessPredicates);
     }
 
     @Test
