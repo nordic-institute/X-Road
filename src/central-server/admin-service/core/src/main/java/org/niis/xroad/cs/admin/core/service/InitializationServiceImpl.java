@@ -47,7 +47,6 @@ import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
-import org.niis.xroad.cs.admin.core.dataspace.DataspaceProvisioningProperties;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -86,7 +85,6 @@ public class InitializationServiceImpl implements InitializationService {
     private final HAConfigStatus currentHaConfigStatus;
     private final ExternalProcessRunner externalProcessRunner;
     private final Optional<DataspaceIssuerProvisioningService> dataspaceIssuerProvisioningService;
-    private final DataspaceProvisioningProperties dataspaceProvisioningProperties;
     @Value("${script.generate-gpg-keypair.path}")
     private final String generateKeypairScriptPath;
     @Value("${gpgkeys.gpghome}")
@@ -163,15 +161,8 @@ public class InitializationServiceImpl implements InitializationService {
     private void provisionDataspaceIssuer() {
         dataspaceIssuerProvisioningService.ifPresent(service -> {
             log.info("Provisioning data space issuer");
-            try {
-                service.provisionIssuer();
-                log.info("Data space issuer provisioned");
-            } catch (Exception e) {
-                if (dataspaceProvisioningProperties.isFailOnError()) {
-                    throw e;
-                }
-                log.error("Data space issuer provisioning failed; continuing initialization", e);
-            }
+            service.provisionIssuer();
+            log.info("Data space issuer provisioned");
         });
     }
 

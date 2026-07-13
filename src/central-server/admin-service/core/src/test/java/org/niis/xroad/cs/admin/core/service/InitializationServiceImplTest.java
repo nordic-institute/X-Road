@@ -39,7 +39,6 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
-import org.niis.xroad.cs.admin.core.dataspace.DataspaceProvisioningProperties;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -80,13 +79,10 @@ class InitializationServiceImplTest {
     @Mock
     private DataspaceIssuerProvisioningService issuerProvisioningService;
 
-    private DataspaceProvisioningProperties provisioningProperties;
     private InitializationServiceImpl service;
 
     @BeforeEach
     void setup() throws Exception {
-        provisioningProperties = new DataspaceProvisioningProperties();
-
         var tokenInfo = mock(TokenInfo.class);
         when(tokenInfo.getStatus()).thenReturn(TokenStatusInfo.OK);
         when(signerProxyFacade.getToken(any())).thenReturn(tokenInfo);
@@ -109,7 +105,6 @@ class InitializationServiceImplTest {
                 new HAConfigStatus("node1", false),
                 externalProcessRunner,
                 provisioning,
-                provisioningProperties,
                 GPG_KEY_PATH,
                 GPG_HOME
         );
@@ -124,23 +119,12 @@ class InitializationServiceImplTest {
     }
 
     @Test
-    void issuerProvisioningFailurePropagatesWhenFailOnErrorTrue() {
-        provisioningProperties.setFailOnError(true);
+    void issuerProvisioningFailurePropagates() {
         doThrow(new RuntimeException("gRPC failure")).when(issuerProvisioningService).provisionIssuer();
 
         service = buildService(Optional.of(issuerProvisioningService));
 
         assertThrows(RuntimeException.class, () -> service.initialize(dto()));
-    }
-
-    @Test
-    void issuerProvisioningFailureSwallowedWhenFailOnErrorFalse() {
-        provisioningProperties.setFailOnError(false);
-        doThrow(new RuntimeException("gRPC failure")).when(issuerProvisioningService).provisionIssuer();
-
-        service = buildService(Optional.of(issuerProvisioningService));
-
-        assertDoesNotThrow(() -> service.initialize(dto()));
     }
 
     @Test

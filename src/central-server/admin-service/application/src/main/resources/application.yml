@@ -108,8 +108,6 @@ file-upload-endpoints:
 xroad:
   dataspace:
     enabled: true
-    provisioning:
-      fail-on-error: false
   admin-service:
     ha-node-name:
     global-conf-generator:
