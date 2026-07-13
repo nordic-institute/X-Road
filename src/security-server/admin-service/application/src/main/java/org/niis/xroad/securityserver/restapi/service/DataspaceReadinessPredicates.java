@@ -57,8 +57,7 @@ public class DataspaceReadinessPredicates {
 
     /**
      * Returns {@code true} if the SS has at least one authentication certificate in REGISTERED state.
-     * Treats signer unavailability as "not registered" and restores the thread interrupt flag when
-     * an {@link InterruptedException} is encountered.
+     * Treats signer unavailability as "not registered".
      */
     public boolean hasRegisteredAuthCert() {
         try {
@@ -68,28 +67,9 @@ public class DataspaceReadinessPredicates {
                     .flatMap(k -> k.getCerts().stream())
                     .anyMatch(cert -> CertificateInfo.STATUS_REGISTERED.equals(cert.getStatus()));
         } catch (Exception e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
             log.debug("Data space: could not read signer state, treating auth cert as not registered", e);
             return false;
         }
-    }
-
-    /**
-     * Returns {@code true} if the management-request subsystem is registered as a client on this SS.
-     * Treats globalconf or serverconf unavailability as "not registered".
-     *
-     * @param serverConf the already-loaded server configuration entity
-     */
-    public boolean isManagementSubsystemRegistered(ServerConfEntity serverConf) {
-        ClientId managementService = globalConfProvider.getManagementRequestService();
-        if (managementService == null) {
-            return false;
-        }
-        return serverConf.getClients().stream()
-                .anyMatch(client -> managementService.equals(client.getIdentifier())
-                        && Client.STATUS_REGISTERED.equals(client.getClientStatus()));
     }
 
     /**
