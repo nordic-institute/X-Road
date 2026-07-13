@@ -53,9 +53,6 @@ import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
 
 public class ConfClientRootConfig {
@@ -68,7 +65,6 @@ public class ConfClientRootConfig {
                 .register(ConfClientConfigKeys.instance())
                 .register(HealthCheckConfigKeys.instance())
                 .deploymentMode(deploymentMode())
-                .overrides(smallryeRpcOverrides())
                 .dbOverrides(appName)
                 .build();
     }
@@ -76,14 +72,6 @@ public class ConfClientRootConfig {
     private static DeploymentMode deploymentMode() {
         var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
         return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
-    }
-
-    private static Map<String, String> smallryeRpcOverrides() {
-        var overrides = new HashMap<String, String>();
-        ConfigProvider.getConfig()
-                .getOptionalValue("xroad.common-rpc.use-tls", String.class)
-                .ifPresent(v -> overrides.put("xroad.common-rpc.use-tls", v));
-        return overrides;
     }
 
     @ApplicationScoped

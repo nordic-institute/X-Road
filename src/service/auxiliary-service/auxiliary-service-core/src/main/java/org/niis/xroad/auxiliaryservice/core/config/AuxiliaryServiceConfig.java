@@ -37,7 +37,6 @@ import jakarta.enterprise.inject.Typed;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcChannelProperties;
-import org.niis.xroad.auxiliaryservice.proto.XRoadAuxiliaryServiceRpcChannelProperties;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
@@ -47,7 +46,6 @@ import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 
 import java.nio.file.Path;
 
@@ -73,12 +71,12 @@ public class AuxiliaryServiceConfig {
 
     @ApplicationScoped
     AuxiliaryServiceRpcChannelProperties auxiliaryServiceRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadAuxiliaryServiceRpcChannelProperties(xRoadConfig);
+        return new AuxiliaryServiceRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped

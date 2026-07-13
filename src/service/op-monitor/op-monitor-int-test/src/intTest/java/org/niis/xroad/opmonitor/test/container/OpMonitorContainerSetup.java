@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
-import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
@@ -70,7 +70,7 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
         return new ComposeContainer(composeProjectName(),
                 new File(coreProperties.resourceDir() + COMPOSE_FILE))
                 .withExposedService(OP_MONITOR,
-                        Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT),
+                        CommonRpcConfigKeys.CHANNEL_OP_MONITOR_PORT.convertedDefaultValue(),
                         Wait.forHealthcheck().withStartupTimeout(OP_MONITOR_STARTUP_TIMEOUT))
                 .withExposedService(DB_OP_MONITOR, DB_OP_MONITOR_PORT, Wait.forListeningPort())
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))

@@ -26,7 +26,9 @@
 package org.niis.xroad.monitor.core;
 
 import io.grpc.stub.StreamObserver;
+import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +44,7 @@ import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
  * System metrics sensor collects information such as
  * memory, cpu, swap and file descriptors.
  */
+@Startup
 @Slf4j
 @ApplicationScoped
 public class SystemMetricsSensor {
@@ -49,13 +52,22 @@ public class SystemMetricsSensor {
 
     private final RpcChannelFactory rpcChannelFactory;
     private final ProxyRpcChannelProperties rpcChannelProperties;
+    private final Scheduler scheduler;
+    private final EnvMonitorProperties envMonitorProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     private MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
 
     public SystemMetricsSensor(EnvMonitorProperties envMonitorProperties,
-                               RpcChannelFactory rpcChannelFactory, ProxyRpcChannelProperties rpcChannelProperties) {
+                               RpcChannelFactory rpcChannelFactory,
+                               ProxyRpcChannelProperties rpcChannelProperties,
+                               Scheduler scheduler,
+                               Scheduled.ApplicationNotRunning applicationNotRunning) {
         this.rpcChannelFactory = rpcChannelFactory;
         this.rpcChannelProperties = rpcChannelProperties;
+        this.scheduler = scheduler;
+        this.envMonitorProperties = envMonitorProperties;
+        this.applicationNotRunning = applicationNotRunning;
         log.info("Creating sensor, measurement interval: {}", envMonitorProperties.systemMetricsSensorInterval());
     }
 
@@ -66,6 +78,14 @@ public class SystemMetricsSensor {
         var channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
+
+        var interval = envMonitorProperties.systemMetricsSensorInterval();
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval(interval.toString())
+                .setTask(_ -> measure())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
 
     /**
@@ -99,9 +119,6 @@ public class SystemMetricsSensor {
                 .update(stats.getTotalPhysicalMemorySize());
     }
 
-    @Scheduled(every = "${xroad.env-monitor.system-metrics-sensor-interval}",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
-            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         monitorServiceStub.getStats(StatsReq.getDefaultInstance(), new StreamObserver<>() {
 

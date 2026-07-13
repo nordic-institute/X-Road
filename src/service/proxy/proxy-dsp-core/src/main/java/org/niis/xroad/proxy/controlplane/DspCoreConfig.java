@@ -34,7 +34,7 @@ class DspCoreConfig {
 
     @ApplicationScoped
     AssetAccessRpcChannelProperties assetAccessRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadAssetAccessRpcChannelProperties(xRoadConfig);
+        return new AssetAccessRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped

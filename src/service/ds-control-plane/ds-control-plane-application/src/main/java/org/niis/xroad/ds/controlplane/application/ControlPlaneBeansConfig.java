@@ -42,7 +42,6 @@ import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -73,7 +72,7 @@ class ControlPlaneBeansConfig {
 
     @ApplicationScoped
     ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @Unremovable

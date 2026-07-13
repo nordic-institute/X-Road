@@ -42,8 +42,6 @@ import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confproxy.common.config.ConfigurationProxyProperties;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
 
 class ConfProxyRpcConfig {
 
@@ -86,12 +84,12 @@ class ConfProxyRpcConfig {
 
     @ApplicationScoped
     SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSignerRpcChannelProperties(xRoadConfig);
+        return new SignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
 }

@@ -30,6 +30,8 @@ import ee.ria.xroad.common.TestPortUtils;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,6 +57,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -128,8 +131,11 @@ class SystemMetricsSensorTest {
             }
         };
 
+        Scheduler scheduler = mock(Scheduler.class);
+        when(scheduler.newJob(any())).thenReturn(mock(Scheduler.JobDefinition.class, RETURNS_SELF));
         SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(envMonitorProperties,
-                new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties);
+                new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties,
+                scheduler, mock(Scheduled.ApplicationNotRunning.class));
         systemMetricsSensor.afterPropertiesSet();
 
         response = StatsResp.newBuilder()

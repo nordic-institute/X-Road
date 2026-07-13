@@ -296,7 +296,7 @@ public abstract sealed class Scope {
             while (root instanceof ChildScope child) {
                 root = child.parent;
             }
-            ((RootScope) root).keys().add(configKey);
+            root.keys().add(configKey);
 
             return configKey;
         }

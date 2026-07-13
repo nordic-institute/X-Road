@@ -24,50 +24,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ds.identityhub.application;
+package org.niis.xroad.cs.admin.core.config;
 
-import io.smallrye.config.SmallRyeConfig;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
-import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.rpc.XRoadRpcProperties;
-import org.niis.xroad.signer.client.SignerRpcChannelProperties;
-import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
-class IdentityHubRpcConfig {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    @ApplicationScoped
-    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+/**
+ * Wires the {@link XRoadConfig} resolver for the central-server admin-service (DB overrides via the
+ * {@code configuration_properties} table + packaged DSL defaults). Currently registers the shared RPC
+ * channel keys consumed by the signer client.
+ */
+@Configuration(proxyBeanMethods = false)
+public class XRoadConfigBeanConfiguration {
+
+    @Bean
+    XRoadConfig xRoadConfig(@Value("${spring.application.name:centralserver-admin-service}") String appName,
+                            Environment environment) {
+        var deploymentMode = environment.matchesProfiles("containerized")
+                ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+        var providers = List.<ConfigKeyProvider>of(CommonRpcConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
-                .deploymentMode(deploymentMode())
+                .overrides(springEnvironmentOverrides(providers, environment))
+                .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
     }
 
-    private static DeploymentMode deploymentMode() {
-        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
-        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    private static Map<String, String> springEnvironmentOverrides(List<ConfigKeyProvider> providers, Environment environment) {
+        var result = new HashMap<String, String>();
+        for (var provider : providers) {
+            for (var key : provider.keys()) {
+                var value = environment.getProperty(key.key());
+                if (value != null) {
+                    result.put(key.key(), value);
+                }
+            }
+        }
+        return result;
     }
-
-    @ApplicationScoped
-    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
-        return new XRoadRpcProperties(xRoadConfig);
-    }
-
-    @ApplicationScoped
-    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new SignerRpcChannelProperties(xRoadConfig);
-    }
-
-    @ApplicationScoped
-    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
-    }
-
 }

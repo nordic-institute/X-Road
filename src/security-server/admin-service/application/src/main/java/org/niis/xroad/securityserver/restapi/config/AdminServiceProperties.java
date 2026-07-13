@@ -29,7 +29,6 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -360,15 +359,30 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     /**
      * Data space (EDC) membership credential provisioning configuration.
      */
-    @Getter
-    @Setter
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static class Dataspace {
-        private String identityHubUrl;
-        private String participantId;
-        private String issuerDid;
-        private String credentialDefinitionId = "xroad-membership-credential-definition";
-        private int maxHolderPidSlots = 20;
+    public class Dataspace {
+        public boolean isEnabled() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_ENABLED);
+        }
+
+        public String getIdentityHubUrl() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_URL);
+        }
+
+        public String getParticipantId() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_ID);
+        }
+
+        public String getIssuerDid() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_ISSUER_DID);
+        }
+
+        public String getCredentialDefinitionId() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_CREDENTIAL_DEFINITION_ID);
+        }
+
+        public int getMaxHolderPidSlots() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_MAX_HOLDER_PID_SLOTS);
+        }
     }
 
 }

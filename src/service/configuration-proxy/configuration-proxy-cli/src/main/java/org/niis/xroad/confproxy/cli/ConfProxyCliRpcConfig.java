@@ -40,15 +40,9 @@ import org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 import org.niis.xroad.confproxy.common.config.ConfigurationProxyProperties;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
-
-import java.util.HashMap;
-import java.util.Map;
 
 class ConfProxyCliRpcConfig {
 
@@ -60,7 +54,6 @@ class ConfProxyCliRpcConfig {
                 .register(ConfClientConfigKeys.instance())
                 .register(ConfProxyConfigKeys.instance())
                 .deploymentMode(deploymentMode())
-                .overrides(smallryeOverrides())
                 .dbOverrides(appName)
                 .build();
     }
@@ -87,25 +80,17 @@ class ConfProxyCliRpcConfig {
 
     @ApplicationScoped
     ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSignerRpcChannelProperties(xRoadConfig);
+        return new SignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
-    }
-
-    private static Map<String, String> smallryeOverrides() {
-        var overrides = new HashMap<String, String>();
-        ConfigProvider.getConfig()
-                .getOptionalValue("xroad.common-rpc.use-tls", String.class)
-                .ifPresent(v -> overrides.put("xroad.common-rpc.use-tls", v));
-        return overrides;
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
 }

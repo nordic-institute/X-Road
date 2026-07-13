@@ -43,18 +43,14 @@ import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.niis.xroad.proxy.proto.XRoadProxyRpcChannelProperties;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
 
 @Slf4j
 public class MonitorConfig {
@@ -97,22 +93,22 @@ public class MonitorConfig {
 
     @ApplicationScoped
     ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadProxyRpcChannelProperties(xRoadConfig);
+        return new ProxyRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSignerRpcChannelProperties(xRoadConfig);
+        return new SignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped

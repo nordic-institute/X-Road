@@ -25,8 +25,12 @@
  */
 package org.niis.xroad.monitor.core;
 
+import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
@@ -36,15 +40,26 @@ import java.io.File;
 /**
  * Collects disk space information
  */
+@Startup
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 public class DiskSpaceSensor {
 
-    /**
-     * Constructor
-     */
-    public DiskSpaceSensor(EnvMonitorProperties envMonitorProperties) {
-        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.diskSpaceSensorInterval());
+    private final Scheduler scheduler;
+    private final EnvMonitorProperties envMonitorProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
+
+    @PostConstruct
+    public void init() {
+        var interval = envMonitorProperties.diskSpaceSensorInterval();
+        log.info("Creating sensor, measurement interval: {}", interval);
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval(interval.toString())
+                .setTask(_ -> measure())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
 
     private void updateMetrics() {
@@ -64,9 +79,6 @@ public class DiskSpaceSensor {
         }
     }
 
-    @Scheduled(every = "${xroad.env-monitor.disk-space-sensor-interval}",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
-            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     protected void measure() {
         log.debug("Updating metrics");
         updateMetrics();

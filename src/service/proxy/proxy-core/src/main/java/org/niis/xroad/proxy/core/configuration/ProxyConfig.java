@@ -54,11 +54,9 @@ import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
-import org.niis.xroad.monitor.rpc.XRoadEnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
@@ -67,7 +65,6 @@ import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.signature.SimpleSigner;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.niis.xroad.proxy.proto.XRoadProxyRpcChannelProperties;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
@@ -76,8 +73,6 @@ import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -119,27 +114,27 @@ class ProxyConfig {
 
     @ApplicationScoped
     SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSignerRpcChannelProperties(xRoadConfig);
+        return new SignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadEnvMonitorRpcChannelProperties(xRoadConfig);
+        return new EnvMonitorRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadProxyRpcChannelProperties(xRoadConfig);
+        return new ProxyRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
@@ -213,8 +208,8 @@ class ProxyConfig {
         return vaultClient;
     }
 
-    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient) throws CertificateException,
-            IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient)
+            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
             vaultClient.getInternalTlsCredentials();
         } catch (Exception e) {
@@ -236,7 +231,7 @@ class ProxyConfig {
                                               ProxyProperties proxyProperties,
                                               VaultClient vaultClient)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-                InvalidKeySpecException, KeyManagementException {
+                       InvalidKeySpecException, KeyManagementException {
 
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");

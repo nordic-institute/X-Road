@@ -26,21 +26,21 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
 /** gRPC channel configuration for the asset access service connection. */
-public interface AssetAccessRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.asset-access";
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "5461";
-    String DEFAULT_DEADLINE_AFTER = "60000";
+public class AssetAccessRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    @Override
-    String host();
+    public AssetAccessRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_HOST,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_PORT,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_DEADLINE_AFTER);
+    }
 
-    @Override
-    int port();
-
-    @Override
-    int deadlineAfter();
+    public AssetAccessRpcChannelProperties() {
+        this(null);
+    }
 }

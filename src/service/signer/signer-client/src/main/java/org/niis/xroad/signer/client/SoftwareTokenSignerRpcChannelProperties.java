@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,23 +26,28 @@
  */
 package org.niis.xroad.signer.client;
 
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-public interface SoftwareTokenSignerRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.softtoken-signer";
+/** XRoadConfig-backed implementation of {@link SoftwareTokenSignerRpcChannelProperties}. */
+public class SoftwareTokenSignerRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "5561";
-    String DEFAULT_DEADLINE_AFTER = "60000";
+    private final XRoadConfig config;
 
-    boolean enabled();
+    public SoftwareTokenSignerRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_SOFTTOKEN_SIGNER_HOST,
+                CommonRpcConfigKeys.CHANNEL_SOFTTOKEN_SIGNER_PORT,
+                CommonRpcConfigKeys.CHANNEL_SOFTTOKEN_SIGNER_DEADLINE_AFTER);
+        this.config = config;
+    }
 
-    @Override
-    String host();
+    public SoftwareTokenSignerRpcChannelProperties() {
+        this(null);
+    }
 
-    @Override
-    int port();
-
-    @Override
-    int deadlineAfter();
+    public boolean enabled() {
+        return config.value(CommonRpcConfigKeys.CHANNEL_SOFTTOKEN_SIGNER_ENABLED);
+    }
 }

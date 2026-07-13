@@ -24,26 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.opmonitor.client;
 
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-@SuppressWarnings("checkstyle:InterfaceIsType")
-public interface OpMonitorRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.op-monitor";
+/** XRoadConfig-backed implementation of {@link OpMonitorRpcChannelProperties}. */
+public class OpMonitorRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "2081";
-    String DEFAULT_DEADLINE_AFTER = "60000";
-
-    @Override
-    String host();
-
-    @Override
-    int port();
+    public OpMonitorRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_HOST,
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_PORT,
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_DEADLINE_AFTER);
+    }
 
     @Override
-    int deadlineAfter();
-
+    public String toString() {
+        return "OpMonitorRpcChannelProperties(" + super.toString() + ")";
+    }
 }

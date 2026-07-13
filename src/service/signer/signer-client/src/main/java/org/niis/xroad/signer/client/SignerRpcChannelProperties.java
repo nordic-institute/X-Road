@@ -26,22 +26,21 @@
  */
 package org.niis.xroad.signer.client;
 
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-public interface SignerRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.signer";
+/** XRoadConfig-backed implementation of {@link SignerRpcChannelProperties}. */
+public class SignerRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "5560";
-    String DEFAULT_DEADLINE_AFTER = "60000";
+    public SignerRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_SIGNER_HOST,
+                CommonRpcConfigKeys.CHANNEL_SIGNER_PORT,
+                CommonRpcConfigKeys.CHANNEL_SIGNER_DEADLINE_AFTER);
+    }
 
-    @Override
-    String host();
-
-    @Override
-    int port();
-
-    @Override
-    int deadlineAfter();
-
+    public SignerRpcChannelProperties() {
+        this(null);
+    }
 }

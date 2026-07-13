@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Scope;
 
 import java.time.Duration;
+import java.util.List;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
@@ -41,14 +42,15 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     private static final Scope ROOT = Scope.of("xroad.common-rpc");
     private static final Scope CERT_PROVISIONING = ROOT.child("certificate-provisioning");
-    private static final Scope CHANNEL_SIGNER = ROOT.child("channel").child("signer");
-    private static final Scope CHANNEL_SOFTTOKEN_SIGNER = ROOT.child("channel").child("softtoken-signer");
-    private static final Scope CHANNEL_OP_MONITOR = ROOT.child("channel").child("op-monitor");
-    private static final Scope CHANNEL_ENV_MONITOR = ROOT.child("channel").child("env-monitor");
-    private static final Scope CHANNEL_CONF_CLIENT = ROOT.child("channel").child("configuration-client");
-    private static final Scope CHANNEL_PROXY = ROOT.child("channel").child("proxy");
-    private static final Scope CHANNEL_AUXILIARY_SERVICE = ROOT.child("channel").child("auxiliary-service");
-    private static final Scope CHANNEL_ASSET_ACCESS = ROOT.child("channel").child("asset-access");
+    private static final Scope CHANNEL = ROOT.child("channel");
+    private static final Scope CHANNEL_SIGNER = CHANNEL.child("signer");
+    private static final Scope CHANNEL_SOFTTOKEN_SIGNER = CHANNEL.child("softtoken-signer");
+    private static final Scope CHANNEL_OP_MONITOR = CHANNEL.child("op-monitor");
+    private static final Scope CHANNEL_ENV_MONITOR = CHANNEL.child("env-monitor");
+    private static final Scope CHANNEL_CONF_CLIENT = CHANNEL.child("configuration-client");
+    private static final Scope CHANNEL_PROXY = CHANNEL.child("proxy");
+    private static final Scope CHANNEL_AUXILIARY_SERVICE = CHANNEL.child("auxiliary-service");
+    private static final Scope CHANNEL_ASSET_ACCESS = CHANNEL.child("asset-access");
 
     private static final CommonRpcConfigKeys INSTANCE = new CommonRpcConfigKeys();
 
@@ -293,7 +295,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.asset-access.port}. */
     public static final ConfigKey<Integer> CHANNEL_ASSET_ACCESS_PORT = CHANNEL_ASSET_ACCESS
             .integer("port")
-            .withDefaultValue(5460)
+            .withDefaultValue(5461)
             .build();
 
     /** {@code xroad.common-rpc.channel.asset-access.deadline-after}. */
@@ -313,5 +315,10 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     @Override
     public Scope scope() {
         return ROOT;
+    }
+
+    @Override
+    public List<ConfigKey<?>> keys() {
+        return ROOT.keys();
     }
 }

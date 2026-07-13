@@ -43,7 +43,6 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
-import org.niis.xroad.monitor.rpc.XRoadEnvMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -67,7 +66,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ProxyMonitorMetaserviceTest {
 
-    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = new XRoadEnvMonitorRpcChannelProperties(
+    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = new EnvMonitorRpcChannelProperties(
             XRoadConfigBuilder.create()
                     .register(CommonRpcConfigKeys.instance())
                     .overrides(Map.of("xroad.common-rpc.channel.env-monitor.port", String.valueOf(findRandomPort())))

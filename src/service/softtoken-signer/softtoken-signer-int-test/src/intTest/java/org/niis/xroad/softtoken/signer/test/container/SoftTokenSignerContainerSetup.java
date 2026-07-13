@@ -31,7 +31,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.signer.client.SignerRpcChannelProperties;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
@@ -54,6 +54,9 @@ import static org.awaitility.Awaitility.await;
  */
 @Slf4j
 public class SoftTokenSignerContainerSetup extends BaseComposeSetup {
+    private static final int SIGNER_GRPC_PORT = CommonRpcConfigKeys.CHANNEL_SIGNER_PORT.convertedDefaultValue();
+    private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
+    private static final Duration SOFTTOKEN_SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
 
     public static final String SIGNER = "signer";
     public static final String SOFTTOKEN_SIGNER = "softtoken-signer";

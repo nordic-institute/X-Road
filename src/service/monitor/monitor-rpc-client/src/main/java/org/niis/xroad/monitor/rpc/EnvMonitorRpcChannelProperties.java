@@ -24,26 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.monitor.rpc;
 
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-@SuppressWarnings("checkstyle:InterfaceIsType")
-public interface EnvMonitorRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.env-monitor";
+/** XRoadConfig-backed implementation of {@link EnvMonitorRpcChannelProperties}. */
+public class EnvMonitorRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "2552";
-    String DEFAULT_DEADLINE_AFTER = "60000";
+    public EnvMonitorRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_ENV_MONITOR_HOST,
+                CommonRpcConfigKeys.CHANNEL_ENV_MONITOR_PORT,
+                CommonRpcConfigKeys.CHANNEL_ENV_MONITOR_DEADLINE_AFTER);
+    }
+
+    public EnvMonitorRpcChannelProperties() {
+        this(null);
+    }
 
     @Override
-    String host();
-
-    @Override
-    int port();
-
-    @Override
-    int deadlineAfter();
-
+    public String toString() {
+        return "EnvMonitorRpcChannelProperties(" + super.toString() + ")";
+    }
 }

@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.google.protobuf.ByteString;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,8 +107,8 @@ class CertificateInfoSensorTest {
 
         var serverConfProvider = new EmptyServerConf();
 
-        certificateInfoSensor = new CertificateInfoSensor(envMonitorProperties, serverConfProvider,
-                mock(SignerRpcClient.class));
+        certificateInfoSensor = new CertificateInfoSensor(mock(Scheduler.class), envMonitorProperties,
+                mock(Scheduled.ApplicationNotRunning.class), serverConfProvider, mock(SignerRpcClient.class));
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

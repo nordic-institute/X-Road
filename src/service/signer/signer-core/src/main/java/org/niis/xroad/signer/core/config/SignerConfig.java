@@ -44,12 +44,9 @@ import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.XRoadConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSignerRpcChannelProperties;
-import org.niis.xroad.signer.client.XRoadSoftwareTokenSignerRpcChannelProperties;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyProperties;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
@@ -78,17 +75,17 @@ public class SignerConfig {
 
     @ApplicationScoped
     ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadConfClientRpcChannelProperties(xRoadConfig);
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSignerRpcChannelProperties(xRoadConfig);
+        return new SignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped
     SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadSoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
     @ApplicationScoped

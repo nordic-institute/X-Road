@@ -51,6 +51,7 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     private static final Scope ADMIN = Scope.of("xroad.proxy-ui-api");
     private static final Scope TLS_CERT_PROVISIONING = ADMIN.child("tls").child("certificate-provisioning");
     private static final Scope ROLE_MAPPINGS = ADMIN.child("complementary-user-role-mappings");
+    private static final Scope DATASPACE = ADMIN.child("dataspace");
 
     // admin-service config that lives at the top-level xroad.* namespace (not under xroad.proxy-ui-api),
     // stored as a single YAML document per key and parsed by the consuming beans
@@ -396,6 +397,65 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.mail-notification} — full mail-notification configuration as a YAML/JSON document; no default. */
     public static final ConfigKey<String> MAIL_NOTIFICATION = XROAD
             .string("mail-notification")
+            .build();
+
+    public static final ConfigKey<Boolean> DATASPACE_ENABLED = DATASPACE
+            .bool("enabled")
+            .withDefaultValue(false)
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_IDENTITY_HUB_URL = DATASPACE
+            .string("identity-hub-url")
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_CONTROL_PLANE_URL = DATASPACE
+            .string("control-plane-url")
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_PARTICIPANT_ID = DATASPACE
+            .string("participant-id")
+            .build();
+
+    public static final ConfigKey<Boolean> DATASPACE_MANAGEMENT_CONTEXT_ENABLED = DATASPACE
+            .bool("management-context-enabled")
+            .withDefaultValue(false)
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_ISSUER_DID = DATASPACE
+            .string("issuer-did")
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_CREDENTIAL_DEFINITION_ID = DATASPACE
+            .string("credential-definition-id")
+            .withDefaultValue("xroad-membership-credential-definition")
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_IDENTITY_TOKEN = DATASPACE
+            .string("identity_token")
+            .build();
+
+    public static final ConfigKey<String> DATASPACE_CONTROL_PLANE_TOKEN = DATASPACE
+            .string("control-plane-token")
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_REQUEST_TIMEOUT_MILLIS = DATASPACE
+            .integer("request-timeout-millis")
+            .withDefaultValue(15000)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_POLL_TIMEOUT_MILLIS = DATASPACE
+            .integer("poll-timeout-millis")
+            .withDefaultValue(30000)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_POLL_INTERVAL_MILLIS = DATASPACE
+            .integer("poll-interval-millis")
+            .withDefaultValue(2000)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_MAX_HOLDER_PID_SLOTS = DATASPACE
+            .integer("max-holder-pid-slots")
+            .withDefaultValue(20)
             .build();
 
     private AdminServiceConfigKeys() {

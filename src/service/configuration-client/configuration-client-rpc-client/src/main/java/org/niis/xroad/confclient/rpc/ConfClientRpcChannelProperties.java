@@ -26,21 +26,25 @@
  */
 package org.niis.xroad.confclient.rpc;
 
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.configuration-client";
+/** XRoadConfig-backed implementation of {@link ConfClientRpcChannelProperties}. */
+public class ConfClientRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "5665";
-    String DEFAULT_DEADLINE_AFTER = "60000";
+    public ConfClientRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_CONF_CLIENT_HOST,
+                CommonRpcConfigKeys.CHANNEL_CONF_CLIENT_PORT,
+                CommonRpcConfigKeys.CHANNEL_CONF_CLIENT_DEADLINE_AFTER);
+    }
 
-    @Override
-    String host();
+    public ConfClientRpcChannelProperties() {
+        this(null);
+    }
 
-    @Override
-    int port();
-
-    @Override
-    int deadlineAfter();
+    public String toString() {
+        return "ConfClientRpcChannelProperties(" + super.toString() + ")";
+    }
 }

@@ -25,8 +25,12 @@
  */
 package org.niis.xroad.monitor.core;
 
+import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
@@ -42,13 +46,26 @@ import java.util.ArrayList;
  * parsing output from those.
  */
 @Slf4j
+@Startup
 @ApplicationScoped
+@RequiredArgsConstructor
 public class ExecListingSensor {
 
     private MetricRegistryHolder registryHolder;
+    private final Scheduler scheduler;
+    private final EnvMonitorProperties envMonitorProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
-    public ExecListingSensor(EnvMonitorProperties envMonitorProperties) {
-        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.execListingSensorInterval());
+    @PostConstruct
+    public void init() {
+        var interval = envMonitorProperties.execListingSensorInterval();
+        log.info("Creating sensor, measurement interval: {}", interval);
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval(interval.toString())
+                .setTask(_ -> measure())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
 
     private void createOrUpdateMetricPair(String parsedName, String stringName, StringifiedData data) {
@@ -95,9 +112,6 @@ public class ExecListingSensor {
         createOsStringMetric(SystemMetricNames.OS_INFO, new OsInfoLister().list());
     }
 
-    @Scheduled(every = "${xroad.env-monitor.exec-listing-sensor-interval}",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
-            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         log.debug("Updating metrics");
         updateMetrics();

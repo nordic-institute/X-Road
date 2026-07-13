@@ -27,7 +27,10 @@ package org.niis.xroad.monitor.core;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,11 +54,16 @@ import java.util.stream.Stream;
  * Before using CertificateInfoSensor, SignerClient needs to have been initialized
  * with SignerClient.init()
  */
+@Startup
 @Slf4j
 @ApplicationScoped
 public class CertificateInfoSensor {
 
     private static final String STRING_DATA_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER\t\tACTIVE";
+
+    private final Scheduler scheduler;
+    private final EnvMonitorProperties envMonitorProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     private CertificateInfoCollector certificateInfoCollector;
 
@@ -68,14 +76,32 @@ public class CertificateInfoSensor {
     /**
      * Create new CertificateInfoSensor
      */
-    public CertificateInfoSensor(EnvMonitorProperties envMonitorProperties,
-                                 ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
+    public CertificateInfoSensor(Scheduler scheduler,
+                                 EnvMonitorProperties envMonitorProperties,
+                                 Scheduled.ApplicationNotRunning applicationNotRunning,
+                                 ServerConfProvider serverConfProvider,
+                                 SignerRpcClient signerRpcClient) {
+        this.scheduler = scheduler;
+        this.envMonitorProperties = envMonitorProperties;
+        this.applicationNotRunning = applicationNotRunning;
         certificateInfoCollector = new CertificateInfoCollector()
                 .addExtractor(new InternalServerCertificateExtractor(serverConfProvider))
                 .addExtractor(new InternalTlsExtractor(serverConfProvider))
                 .addExtractor(new TokenExtractor(signerRpcClient));
 
         log.info("Creating sensor, measurement interval: {}", envMonitorProperties.certificateInfoSensorInterval());
+    }
+
+    @PostConstruct
+    public void init() {
+        var interval = envMonitorProperties.certificateInfoSensorInterval();
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval(interval.toString())
+                .setTask(_ -> measure())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .setDelayed("10s")
+                .schedule();
     }
 
     /**
@@ -182,7 +208,6 @@ public class CertificateInfoSensor {
 
         /**
          * Constructor for test purposes
-         *
          * @param tokenInfoLister
          */
         TokenExtractor(Lister tokenInfoLister) {
@@ -254,9 +279,6 @@ public class CertificateInfoSensor {
         b.append('\t');
     }
 
-    @Scheduled(every = "${xroad.env-monitor.certificate-info-sensor-interval}", delayed = "10s",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
-            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         log.info("Updating CertificateInfo metrics");
         updateOrRegisterData(list());

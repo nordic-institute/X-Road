@@ -28,7 +28,7 @@ services:
     volumes:
       - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
     depends_on:
-      db-serverconf-confclient-config-seed:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
   signer:
@@ -42,7 +42,7 @@ services:
     volumes:
       - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
     depends_on:
-      db-serverconf-signer-config-seed:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
   proxy:
@@ -70,135 +70,73 @@ services:
         condition: service_healthy
       ssl-keystore-init:
         condition: service_completed_successfully
-      db-serverconf-proxy-config-seed:
-        condition: service_completed_successfully
-      db-serverconf-message-log-encryption-config-seed:
-        condition: service_completed_successfully
-      db-serverconf-common-rpc-config-seed:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
-  # Seeds the proxy's config overrides into configuration_properties so the proxy resolves them
-  # via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
-  # scope='proxy' matches the proxy's quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
-  db-serverconf-proxy-config-seed:
+  # Single place for all configuration_properties seeds. Each row carries its own scope (the consuming
+  # app's quarkus/spring.application.name, or NULL for global); apps resolve these via the DB-override
+  # layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml/env.
+  db-serverconf-config-seed:
     image: ${POSTGRES_DEV_IMG:-postgres-dev}
     pull_policy: always
     entrypoint: [ "sh", "-c" ]
     command:
       - |
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.proxy.ssl-enabled', 'false', 'proxy', now(), now()),
-             ('xroad.proxy.health-check-port', '5558', 'proxy', now(), now()),
-             ('xroad.proxy.memory-usage-threshold', '77', 'proxy', now(), now()),
-             ('xroad.proxy.message-log.timestamping-prioritization-strategy', 'PAID_FIRST', 'proxy', now(), now()),
-             ('xroad.proxy.addon.op-monitor.enabled', 'true', 'proxy', now(), now()),
-             ('xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds', '1', 'proxy', now(), now()),
-             ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', 'proxy', now(), now()),
-             ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', 'proxy', now(), now()),
-             ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', 'proxy', now(), now()),
-             ('xroad.proxy.dsp.participant-context-id', 'ss0', 'proxy', now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
-        condition: service_completed_successfully
-
-  # Seeds the configuration-client's config overrides into configuration_properties so the confclient
-  # resolves them via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
-  # scope='configuration-client' matches its quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
-  db-serverconf-confclient-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.configuration-client.update-interval', '3', 'configuration-client', now(), now()),
-             ('xroad.configuration-client.global-conf-tls-cert-verification', 'false', 'configuration-client', now(), now()),
-             ('xroad.configuration-client.global-conf-hostname-verification', 'false', 'configuration-client', now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
-        condition: service_completed_successfully
-
-  # Seeds the signer's config overrides into configuration_properties so the signer resolves them
-  # via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
-  # scope='signer' matches its quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
-  db-serverconf-signer-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.signer.enforce-token-pin-policy', 'true', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.enabled', 'true', 'signer', now(), now()),
-             ('xroad.signer.ocsp-prioritization-strategy', 'ONLY_FREE', 'signer', now(), now()),
-             ('xroad.signer.ocsp-response-retrieval-active', 'true', 'signer', now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
-        condition: service_completed_successfully
-
-  # Seeds the admin-service (proxy-ui-api) config overrides into configuration_properties so the UI
-  # resolves them via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml/env.
-  # scope='proxy-ui-api' matches its spring.application.name (DB filter: scope IS NULL OR scope=<app>).
-  # authentication-provider=DATABASE / enforce-user-password-policy=true are NOT seeded here: they are
-  # the XRoadConfig container-mode defaults, applied automatically because the SS runs the containerized
-  # profile. proxy-server-url replaces the XROAD_PROXY_UI_API_PROXY_SERVER_URL env the DSL no longer reads.
-  db-serverconf-proxy-ui-api-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.proxy-ui-api.rate-limit-requests-per-second', '10000', 'proxy-ui-api', now(), now()),
-             ('xroad.proxy-ui-api.rate-limit-requests-per-minute', '30000', 'proxy-ui-api', now(), now()),
-             ('xroad.proxy-ui-api.acme-challenge-port-enabled', 'true', 'proxy-ui-api', now(), now()),
-             ('xroad.proxy-ui-api.automatic-activate-acme-sign-certificate', 'true', 'proxy-ui-api', now(), now()),
-             ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', 'proxy-ui-api', now(), now())
-           ON CONFLICT DO NOTHING;"
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
         INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.proxy.ssl-enabled', 'false', 'proxy', now(), now()),
+        ('xroad.proxy.health-check-port', '5558', 'proxy', now(), now()),
+        ('xroad.proxy.memory-usage-threshold', '77', 'proxy', now(), now()),
+        ('xroad.health-check.memory.threshold-percent', '77', 'proxy', now(), now()),
+        ('xroad.proxy.message-log.timestamping-prioritization-strategy', 'PAID_FIRST', 'proxy', now(), now()),
+        ('xroad.proxy.addon.op-monitor.enabled', 'true', 'proxy', now(), now()),
+        ('xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds', '1', 'proxy', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', 'proxy', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', 'proxy', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', 'proxy', now(), now()),
+        ('xroad.proxy.dsp.participant-context-id', 'ss0', 'proxy', now(), now()),
+        ('xroad.configuration-client.update-interval', '3', 'configuration-client', now(), now()),
+        ('xroad.configuration-client.global-conf-tls-cert-verification', 'false', 'configuration-client', now(), now()),
+        ('xroad.configuration-client.global-conf-hostname-verification', 'false', 'configuration-client', now(), now()),
+        ('xroad.signer.enforce-token-pin-policy', 'true', 'signer', now(), now()),
+        ('xroad.signer.addon.hwtoken.enabled', 'true', 'signer', now(), now()),
+        ('xroad.signer.ocsp-prioritization-strategy', 'ONLY_FREE', 'signer', now(), now()),
+        ('xroad.signer.ocsp-response-retrieval-active', 'true', 'signer', now(), now()),
+        ('xroad.proxy-ui-api.rate-limit-requests-per-second', '10000', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.rate-limit-requests-per-minute', '30000', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.acme-challenge-port-enabled', 'true', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.automatic-activate-acme-sign-certificate', 'true', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', 'proxy-ui-api', now(), now()),
+
+        ('xroad.proxy-ui-api.dataspace.enabled', 'true', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://ds-identity-hub:7182', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.control-plane-url', 'https://ds-control-plane:8182', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.participant-id', 'ss0', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.management-context-enabled', 'true', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:ds-issuer-service%3A6183:issuer', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-token', 'eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJhZG1pbiIsInNjb3BlIjoiaWRlbnRpdHktYXBpOndyaXRlIGlkZW50aXR5LWFwaTpyZWFkIn0.vKPkIJ47atCdUnH60TsGSihx54xqbpvmI-QYSIRZprkmY3Fb8zPZ4PYMrTUCu6mw-ISPyzV1fu54s5bYD4q5trjZN8hrocgWyYbPPkk-sZDqcKFwFfxcVWP7wPuRZOus_AxcxrSny0IQYzlTmmvhVqPq1MJjLSximHnY3Hg7yti_b0OZE5iBMKuoww8xlr6OXY4dpJHAvwK6vJhscoQa5Mm56GsSVto38Y4HHsKlNjJlYPpILdiiytfMS5x6AhCALRoY15_0upP-MWWe7eq_2sAv7TuEZJFIdpfpWKQG4-eMHBTNim17FZx76CG9xoYhlhrJ5WGSel_8xTJD3xSVzg', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.control-plane-token', 'eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.VtgeUBJXWdZSsemdWTtvSDqdCUa1eBaqMlxbBVAAPsSjyVOb8wiDmxpTqvyLKTw9WE2WznmaOUPpWh3s4nDTjHQ51-ke_H__5WHVkwK-E97AFvInue-1lPMdIC1rNGLyZKYmQQ8DtHwZDWkgl-F4zhiyTk8Z3OBzgZpDz3BcyyJT7WLvAHp6Pk0SdHmFhA5ctvXfra4-ZkfUUudXklOEe-8Jj42v2EjF0woUk9nHoNYA_ca2Gi3kHtJrpHhR4_3Ab7KU046-p0dF5bVLLhYh3HEg-71R0tO9eytzbHkMZMY353aKF0bUqK4UrKnstDT55yo5j5oLpP0xGA9KGai6Kg', 'proxy-ui-api', now(), now()),
+
         ('xroad.acme', '{"eab-credentials":{"certificate-authorities":{"Test CA":{"mac-key-base64-encoded":true,"members":{"DEV:COM:1234":{"auth-kid":"keyid_2","auth-mac-key":"addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625","sign-kid":"keyid_3","sign-mac-key":"96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde"}}}}},"account-keystore-password":"testPassword123"}', 'proxy-ui-api', now(), now()),
-        ('xroad.mail-notification', '{"host":"testmailserver","port":587,"username":"testuser","password":"passw0rd","use-ssl-tls":true,"contacts":{"DEV:COM:1234":"member1@example.org"}}', 'proxy-ui-api', now(), now())
+        ('xroad.mail-notification', '{"host":"testmailserver","port":587,"username":"testuser","password":"passw0rd","use-ssl-tls":true,"contacts":{"DEV:COM:1234":"member1@example.org"}}', 'proxy-ui-api', now(), now()),
+        ('xroad.common-rpc.certificate-provisioning.ttl', 'PT120S', NULL, now(), now()),
+        ('xroad.common-rpc.certificate-provisioning.refresh-interval', 'PT60S', NULL, now(), now()),
+        ('xroad.auxiliary-service.backup.encryption-enabled', 'true', 'auxiliary-service', now(), now()),
+        ('xroad.auxiliary-service.backup.encryption-keyids', 'backup.key1@example.org,backup.key2@example.org,backup.key3@example.org', 'auxiliary-service', now(), now()),
+        ('xroad.message-log-encryption.db.encryption-enabled', 'true', NULL, now(), now()),
+        ('xroad.message-log-encryption.db.key-id', 'default', NULL, now(), now()),
+        ('xroad.message-log-encryption.archive.encryption-enabled', 'true', NULL, now(), now()),
+        ('xroad.op-monitor.listen-address', '0.0.0.0', 'op-monitor-daemon', now(), now()),
+        ('xroad.op-monitor.scheme', 'https', 'op-monitor-daemon', now(), now()),
+        ('xroad.op-monitor.tls.client-certificate-refresh-interval', 'PT60S', 'op-monitor-daemon', now(), now()),
+        ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', 'op-monitor-daemon', now(), now()),
+        ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', 'op-monitor-daemon', now(), now()),
+        ('xroad.op-monitor.tls.certificate-provisioning.common-name', 'op-monitor', 'op-monitor-daemon', now(), now()),
+        ('xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names', '127.0.0.1', 'op-monitor-daemon', now(), now())
+
         ON CONFLICT DO NOTHING;
         SQL
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
-        condition: service_completed_successfully
-
-  # Seeds global-scope (scope=NULL) common-rpc certificate-provisioning overrides into configuration_properties.
-  # scope=NULL means the DB ConfigSource returns these rows to every app (no scope filter).
-  # CommonRpcConfigKeys uses Scope.of("xroad.common-rpc") with no name arg → scopeName=null → DB filter: scope IS NULL.
-  db-serverconf-common-rpc-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.common-rpc.certificate-provisioning.ttl', 'PT120S', NULL, now(), now()),
-             ('xroad.common-rpc.certificate-provisioning.refresh-interval', 'PT60S', NULL, now(), now())
-           ON CONFLICT DO NOTHING;"
     networks:
       - xrd-ss-network
     depends_on:
@@ -209,11 +147,6 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
-      - XROAD_PROXY_UI_API_DATASPACE_ENABLED=true
-      - XROAD_PROXY_UI_API_DATASPACE_IDENTITY_HUB_URL=https://ds-identity-hub:7182
-      - XROAD_PROXY_UI_API_DATASPACE_PARTICIPANT_ID=ss0
-      - XROAD_PROXY_UI_API_DATASPACE_MANAGEMENT_CONTEXT_ENABLED=true
-      - XROAD_PROXY_UI_API_DATASPACE_ISSUER_DID=did:web:ds-issuer-service%3A6183:issuer
     ports:
       - "0:9999"
     volumes:
@@ -221,7 +154,7 @@ services:
     depends_on:
       testca:
         condition: service_healthy
-      db-serverconf-proxy-ui-api-config-seed:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
   auxiliary-service:
@@ -237,52 +170,7 @@ services:
       - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
       - ./container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
     depends_on:
-      db-serverconf-auxiliary-service-config-seed:
-        condition: service_completed_successfully
-      db-serverconf-message-log-encryption-config-seed:
-        condition: service_completed_successfully
-
-  # Seeds the auxiliary-service's backup-encryption overrides into configuration_properties so it
-  # resolves them via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml.
-  # scope='auxiliary-service' matches its quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
-  db-serverconf-auxiliary-service-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.auxiliary-service.backup.encryption-enabled', 'true', 'auxiliary-service', now(), now()),
-             ('xroad.auxiliary-service.backup.encryption-keyids', 'backup.key1@example.org,backup.key2@example.org,backup.key3@example.org', 'auxiliary-service', now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
-        condition: service_completed_successfully
-
-  # Seeds the message-log-encryption overrides into configuration_properties with a NULL (global) scope so
-  # both the proxy and the message-log-archiver resolve them via the DB-override layer (DB filter:
-  # scope IS NULL OR scope=<app>), not local.yaml.
-  db-serverconf-message-log-encryption-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.message-log-encryption.db.encryption-enabled', 'true', NULL, now(), now()),
-             ('xroad.message-log-encryption.db.key-id', 'default', NULL, now(), now()),
-             ('xroad.message-log-encryption.archive.encryption-enabled', 'true', NULL, now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
   db-opmonitor:
@@ -357,33 +245,7 @@ services:
     depends_on:
       db-opmonitor-init:
         condition: service_completed_successfully
-      db-serverconf-opmonitor-config-seed:
-        condition: service_completed_successfully
-
-  # Seeds the op-monitor daemon's config overrides into configuration_properties so it resolves them
-  # via the DB-override layer (XRoadConfig.dbOverrides / DB ConfigSource), not env vars.
-  # scope='op-monitor-daemon' matches its quarkus.application.name (DB filter: scope IS NULL OR scope=<app>).
-  db-serverconf-opmonitor-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.op-monitor.listen-address', '0.0.0.0', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.scheme', 'https', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.tls.client-certificate-refresh-interval', 'PT60S', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.tls.certificate-provisioning.common-name', 'op-monitor', 'op-monitor-daemon', now(), now()),
-             ('xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names', '127.0.0.1', 'op-monitor-daemon', now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
   testca:

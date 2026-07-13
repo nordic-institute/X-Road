@@ -81,4 +81,29 @@ class XRoadConfigBuilderTest {
 
         assertThat(config.get(withContainerDefault).value()).isEqualTo("overridden");
     }
+
+    @Test
+    void nestedGrandchildKeyBuildsFullPathRegistersOnRootAndResolves() {
+        var root = Scope.of("xroad.test");
+        // a scope with a child, whose child has its own child
+        var signerChannel = root.child("channel").child("signer");
+        var hostKey = signerChannel.string("host").withDefaultValue("127.0.0.1").build();
+
+        // the key path is the full root -> child -> grandchild path
+        assertThat(hostKey.key()).isEqualTo("xroad.test.channel.signer.host");
+        // and the key is tracked on the root scope's keys() list, not the intermediate scopes'
+        assertThat(root.keys()).contains(hostKey);
+        assertThat(signerChannel.keys()).isEmpty();
+
+        // so a provider exposing the root scope registers the nested key and the builder resolves it
+        ConfigKeyProvider nestedProvider = () -> root;
+        var config = XRoadConfigBuilder.create().register(nestedProvider).build();
+        assertThat(config.get(hostKey).value()).isEqualTo("127.0.0.1");
+
+        // and a DB override keyed by the full nested path wins, proving the path is used for lookup
+        var overridden = XRoadConfigBuilder.create().register(nestedProvider)
+                .overrides(Map.of("xroad.test.channel.signer.host", "signer"))
+                .build();
+        assertThat(overridden.get(hostKey).value()).isEqualTo("signer");
+    }
 }

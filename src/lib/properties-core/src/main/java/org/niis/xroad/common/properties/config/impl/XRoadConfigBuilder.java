@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Construction entry point for the resolver. Callers depend on {@code :lib:properties-api}
@@ -87,7 +88,6 @@ public final class XRoadConfigBuilder {
      * Sets the deployment mode. In {@link DeploymentMode#CONTAINERIZED} a key resolves to its
      * container default (when declared) instead of the regular default; DB overrides still win.
      * Defaults to {@link DeploymentMode#NATIVE}. Apps derive the value from their framework profile.
-     *
      * @param mode deployment mode
      * @return this builder
      */
@@ -101,7 +101,6 @@ public final class XRoadConfigBuilder {
      * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
      * its URL is unset, so callers fall back to packaged defaults. Reuses the framework-neutral
      * {@link CachedDbConfigSource}.
-     *
      * @param appName application name (drives the read-pool name and scope filtering)
      * @return this builder
      */
@@ -129,6 +128,7 @@ public final class XRoadConfigBuilder {
      * packaged default) and caches the resulting {@link Value}s; v1 does not reread until
      * a new instance is built.
      */
+    @Slf4j
     private static final class DefaultXRoadConfig implements XRoadConfig {
 
         private final Map<ConfigKey<?>, Value<?>> resolved;
@@ -140,6 +140,9 @@ public final class XRoadConfigBuilder {
                     map.put(key, resolve(key, overrides, deploymentMode));
                 }
             }
+            log.debug("Loaded {} key(s):\n\t{}",
+                    map.size(),
+                    map.keySet().stream().map(ConfigKey::key).collect(Collectors.joining("\n\t")));
             this.resolved = map;
         }
 
