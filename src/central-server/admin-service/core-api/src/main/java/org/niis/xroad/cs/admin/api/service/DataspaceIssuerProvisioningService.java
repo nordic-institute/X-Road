@@ -34,8 +34,6 @@ public interface DataspaceIssuerProvisioningService {
 
     /**
      * Ensures the issuer participant context, attestation definition and credential definition exist.
-     *
-     * @return {@code ISSUED} when issuer setup is complete, {@code PENDING} otherwise
      */
-    String provisionIssuer();
+    void provisionIssuer();
 }

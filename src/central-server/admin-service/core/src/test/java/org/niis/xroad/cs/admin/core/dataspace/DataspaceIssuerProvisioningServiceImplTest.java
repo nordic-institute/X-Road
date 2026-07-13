@@ -136,10 +136,4 @@ class DataspaceIssuerProvisioningServiceImplTest {
         );
     }
 
-    @Test
-    void provisionIssuerReturnsIssuedStatus() {
-        String result = service.provisionIssuer();
-
-        assertThat(result).isEqualTo("ISSUED");
-    }
 }

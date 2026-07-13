@@ -53,13 +53,11 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
     private static final String CREDENTIAL_JSON_SCHEMA = "{}";
     private static final long CREDENTIAL_VALIDITY_SECONDS = 2592000L;
     private static final String CREDENTIAL_SUBJECT_PREFIX = "credentialSubject.";
-    private static final String STATUS_ISSUED = "ISSUED";
-
     private final IssuerProvisioningRpcClient rpcClient;
     private final DataspaceIssuerProperties properties;
 
     @Override
-    public String provisionIssuer() {
+    public void provisionIssuer() {
         String did = "did:web:" + properties.getHost() + "%3A" + properties.getDidPort() + ":issuer";
         String issuerServiceUrl = "https://%s:%d/api/issuance/v1beta/participants/issuer"
                 .formatted(properties.getHost(), properties.getIssuancePort());
@@ -70,8 +68,6 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
         rpcClient.createCredentialDefinition(ISSUER_PARTICIPANT_ID, CREDENTIAL_DEFINITION_ID, CREDENTIAL_TYPE,
                 CREDENTIAL_FORMAT, CREDENTIAL_JSON_SCHEMA, properties.getCredentialJsonSchemaUrl(),
                 CREDENTIAL_VALIDITY_SECONDS, List.of(ATTESTATION_DEFINITION_ID), membershipMappings());
-
-        return STATUS_ISSUED;
     }
 
     private List<CredentialMapping> membershipMappings() {
