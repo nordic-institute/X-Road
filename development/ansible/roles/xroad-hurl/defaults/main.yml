@@ -6,10 +6,17 @@ hurl_scenario_dir: "{{ playbook_dir }}/../hurl/scenarios"
 # BEFORE `setup.hurl` because setup.hurl's CS/SS init triggers management-service
 # flows that depend on the DSP control-plane participant context existing on
 # each SS. Keep filename prefixes in sync with sort order.
+#
+# Deliberately the same set compose's hurl service runs (compose.aux.yaml) and nothing more:
+# the e2e 0200 messagelog scenarios assert exact archive counts that include this bootstrap's
+# proxied traffic, so every extra proxied call here shifts those counts. The test-proxy-*.hurl
+# smoke files remain in development/hurl/scenarios for manual runs (override hurl_files or run
+# them via run-hurl.sh on the hurl host).
+# todo: review the removed hurl_files, add if needed
+#  - test-proxy-rest.hurl
+#  - test-proxy-soap.hurl
+#  - test-proxy-dsp.hurl
 hurl_files:
   - 00-setup-dsp.hurl
   - setup.hurl
-  - test-proxy-rest.hurl
-  - test-proxy-soap.hurl
-  - test-proxy-dsp.hurl
 hurl_env_file: "files/vars.env"
