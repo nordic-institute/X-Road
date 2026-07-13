@@ -63,12 +63,10 @@ class DataspaceProvisioningStatusServiceTest {
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceProvisioningStatusService statusService;
-    private Dataspace dataspace;
 
     @BeforeEach
     void setUp() {
-        dataspace = new Dataspace();
-        dataspace.setEnabled(true);
+        var dataspace = new Dataspace();
         dataspace.setParticipantId(PARTICIPANT_ID);
         dataspace.setIdentityHubUrl("https://ih.example.test");
         dataspace.setIssuerDid("did:web:issuer.example.test");
@@ -79,20 +77,7 @@ class DataspaceProvisioningStatusServiceTest {
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, provisioningClient);
 
         statusService = new DataspaceProvisioningStatusService(
-                adminServiceProperties, provisioningService, readinessPredicates);
-    }
-
-    @Test
-    void readStatusReturnsDisabledWithNoContextsWhenDataspaceDisabled() {
-        dataspace.setEnabled(false);
-
-        DataspaceStatus status = statusService.readStatus();
-
-        assertThat(status.enabled()).isFalse();
-        assertThat(status.authCertRegistered()).isFalse();
-        assertThat(status.participantContexts()).isEmpty();
-        verify(provisioningClient, never()).contextExists(anyString());
-        verify(readinessPredicates, never()).hasRegisteredAuthCert();
+                provisioningService, readinessPredicates);
     }
 
     @Test

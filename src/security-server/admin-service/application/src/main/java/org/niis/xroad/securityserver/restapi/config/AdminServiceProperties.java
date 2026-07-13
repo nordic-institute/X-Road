@@ -238,7 +238,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     @Getter
     @Setter
     public static class Dataspace {
-        private boolean enabled;
         private String identityHubUrl;
         private String participantId;
         private String issuerDid;

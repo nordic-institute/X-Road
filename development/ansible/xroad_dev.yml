@@ -189,7 +189,7 @@
       changed_when: false
     # xroad-proxy-ui-api is started by the installer before pre-ss-install.yml
     # injects the dataspace block into local.yaml; restart it so the reconciler
-    # picks up dataspace.enabled=true alongside the DS units.
+    # picks up the dataspace provisioning config alongside the DS units.
     - name: Restart DS units, proxy and proxy-ui-api to apply preseeded TLS + runtime config
       ansible.builtin.systemd:
         name: "{{ item }}"
