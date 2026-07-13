@@ -28,52 +28,40 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.config.ControlPlaneProvisioningRpcClient;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 import org.springframework.stereotype.Component;
 
 /**
- * gRPC-backed {@link DataspaceProvisioningClient} that delegates to the per-runtime transport clients.
+ * gRPC-backed {@link IdentityHubProvisioningClient} that delegates to {@link IdentityHubProvisioningRpcClient}.
  */
 @Component
 @RequiredArgsConstructor
-public class GrpcDataspaceProvisioningClient implements DataspaceProvisioningClient {
+public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisioningClient {
 
-    private final IdentityHubProvisioningRpcClient identityHubClient;
-    private final ControlPlaneProvisioningRpcClient controlPlaneClient;
+    private final IdentityHubProvisioningRpcClient rpcClient;
 
     @Override
-    public void createIdentityHubParticipantContext(String participantContextId, String did, String memberId,
-                                                    String credentialServiceUrl, String keyId, String privateKeyAlias) {
-        identityHubClient.createIdentityHubParticipantContext(participantContextId, did, memberId, credentialServiceUrl,
+    public void createParticipantContext(String participantContextId, String did, String memberId,
+                                         String credentialServiceUrl, String keyId, String privateKeyAlias) {
+        rpcClient.createIdentityHubParticipantContext(participantContextId, did, memberId, credentialServiceUrl,
                 keyId, privateKeyAlias);
     }
 
     @Override
     public String requestMembershipCredential(String participantContextId, String issuerDid, String holderPid,
                                               String credentialDefinitionId, String credentialType, String format) {
-        return identityHubClient.requestMembershipCredential(participantContextId, issuerDid, holderPid,
+        return rpcClient.requestMembershipCredential(participantContextId, issuerDid, holderPid,
                 credentialDefinitionId, credentialType, format);
     }
 
     @Override
     @Nullable
     public String getCredentialRequestState(String participantContextId, String holderPid) {
-        return identityHubClient.getCredentialRequestState(participantContextId, holderPid);
+        return rpcClient.getCredentialRequestState(participantContextId, holderPid);
     }
 
     @Override
     public boolean contextExists(String participantContextId) {
-        return identityHubClient.participantContextExists(participantContextId);
-    }
-
-    @Override
-    public void createControlPlaneParticipantContext(String participantContextId, String did) {
-        controlPlaneClient.createParticipantContext(participantContextId, did);
-    }
-
-    @Override
-    public void putControlPlaneParticipantContextConfig(String participantContextId, String did, String stsTokenUrl) {
-        controlPlaneClient.putParticipantContextConfig(participantContextId, did, stsTokenUrl);
+        return rpcClient.participantContextExists(participantContextId);
     }
 }

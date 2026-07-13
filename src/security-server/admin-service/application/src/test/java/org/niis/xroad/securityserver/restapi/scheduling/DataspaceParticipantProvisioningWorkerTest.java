@@ -85,31 +85,15 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantEnsuresContextsOnlyForAbsentParticipantsAndDefersCredentialUntilAuthCertRegistered() {
+    void provisionParticipantEnsuresAllContextsAndDefersCredentialUntilAuthCertRegistered() {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
-        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(false);
-        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
 
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(MGMT_ID, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
-    }
-
-    @Test
-    void provisionParticipantSkipsEnsureForAlreadyExistingContexts() {
-        givenInitializedServer();
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
-        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
-        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
-
-        worker.provisionParticipant();
-
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
+        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, OWNER_SLASH_FORM);
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
@@ -118,8 +102,6 @@ class DataspaceParticipantProvisioningWorkerTest {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
-        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
-        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
         when(dataspaceProvisioningService.readCredentialStatus(HOST_ID)).thenReturn("ERROR");
         when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID)).thenReturn(null);
 
@@ -134,8 +116,6 @@ class DataspaceParticipantProvisioningWorkerTest {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
-        when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
-        when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
         when(dataspaceProvisioningService.readCredentialStatus(HOST_ID))
                 .thenReturn(DataspaceProvisioningService.STATUS_ISSUED);
         when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID))

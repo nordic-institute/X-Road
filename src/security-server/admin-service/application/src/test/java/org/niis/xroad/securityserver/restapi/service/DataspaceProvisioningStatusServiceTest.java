@@ -58,7 +58,9 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private DataspaceReadinessPredicates readinessPredicates;
     @Mock
-    private DataspaceProvisioningClient provisioningClient;
+    private IdentityHubProvisioningClient identityHubClient;
+    @Mock
+    private ControlPlaneProvisioningClient controlPlaneClient;
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceProvisioningStatusService statusService;
@@ -73,7 +75,7 @@ class DataspaceProvisioningStatusServiceTest {
         dataspace.setMaxHolderPidSlots(20);
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
 
-        provisioningService = new DataspaceProvisioningService(adminServiceProperties, provisioningClient);
+        provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient);
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);
@@ -82,10 +84,10 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusAlwaysReportsHostAndManagementContextsBothIssued() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
-        when(provisioningClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(true);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
-        when(provisioningClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
+        when(identityHubClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(true);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -106,9 +108,9 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsManagementContextEvenWhenHostIssuedAndManagementAbsent() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
-        when(provisioningClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(false);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
+        when(identityHubClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(false);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -126,7 +128,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusBackendUnreachableReportsUnknownInsteadOf5xx() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(provisioningClient.contextExists(anyString()))
+        when(identityHubClient.contextExists(anyString()))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR).build());
 
         DataspaceStatus status = statusService.readStatus();
@@ -143,7 +145,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusSsNotInitializedReportsBothContextsAbsent() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(provisioningClient.contextExists(anyString())).thenReturn(false);
+        when(identityHubClient.contextExists(anyString())).thenReturn(false);
 
         DataspaceStatus status = statusService.readStatus();
 

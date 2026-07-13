@@ -45,7 +45,6 @@ import java.util.Optional;
  * <p>Exposes non-blocking, single-step primitives for use by
  * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
  * <ul>
- *   <li>{@link #contextExists(String)} — checks whether a participant context exists in IdentityHub.</li>
  *   <li>{@link #ensureParticipantContext(String, String)} — idempotent context creation for one participant (IH + CP).</li>
  *   <li>{@link #submitCredentialRequest(String)} — submits a credential request into the next available
  *       slot only when no active request (PENDING or ISSUED) exists; advances past slots in terminal ERROR.</li>
@@ -97,16 +96,8 @@ public class DataspaceProvisioningService {
     private static final int CREDENTIAL_PORT = 7185;
 
     private final AdminServiceProperties adminServiceProperties;
-    private final DataspaceProvisioningClient provisioningClient;
-
-    /**
-     * Returns {@code true} if a participant context with the given id exists in IdentityHub.
-     *
-     * @param participantId the participant context id
-     */
-    public boolean contextExists(String participantId) {
-        return provisioningClient.contextExists(participantId);
-    }
+    private final IdentityHubProvisioningClient identityHubClient;
+    private final ControlPlaneProvisioningClient controlPlaneClient;
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
@@ -147,9 +138,9 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
-            var state = provisioningClient.getCredentialRequestState(participantId, holderPid);
+            var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
-                provisioningClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
+                identityHubClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
                         ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
                 return;
             }
@@ -178,7 +169,7 @@ public class DataspaceProvisioningService {
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
-            var state = provisioningClient.getCredentialRequestState(participantId, holderPid);
+            var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
                 continue;
             }
@@ -225,7 +216,7 @@ public class DataspaceProvisioningService {
 
     private ParticipantContextStatus readContextStatus(String participantId, ParticipantKind kind) {
         try {
-            var contextCreated = provisioningClient.contextExists(participantId);
+            var contextCreated = identityHubClient.contextExists(participantId);
             var credentialStatus = resolveCredentialStatus(participantId, contextCreated);
             return new ParticipantContextStatus(participantId, kind, contextCreated, credentialStatus);
         } catch (Exception e) {
@@ -244,8 +235,8 @@ public class DataspaceProvisioningService {
     private void ensureParticipantContext(Dataspace ds, String participantId, String identityHubHost, String memberId) {
         var did = didFor(identityHubHost, participantId);
         createIdentityHubContext(participantId, did, identityHubHost, memberId);
-        provisioningClient.createControlPlaneParticipantContext(participantId, did);
-        provisioningClient.putControlPlaneParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+        controlPlaneClient.createParticipantContext(participantId, did);
+        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
 
     private String didFor(String identityHubHost, String participantId) {
@@ -258,7 +249,7 @@ public class DataspaceProvisioningService {
                 .formatted(identityHubHost, CREDENTIAL_PORT, participantId);
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
-        provisioningClient.createIdentityHubParticipantContext(participantId, did, memberId, credentialServiceUrl, keyId,
+        identityHubClient.createParticipantContext(participantId, did, memberId, credentialServiceUrl, keyId,
                 privateKeyAlias);
     }
 

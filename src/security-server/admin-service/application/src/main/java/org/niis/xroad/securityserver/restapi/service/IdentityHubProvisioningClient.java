@@ -29,16 +29,15 @@ package org.niis.xroad.securityserver.restapi.service;
 import jakarta.annotation.Nullable;
 
 /**
- * Transport-agnostic client for data space (EDC) provisioning operations driven by the security server.
- * Isolates {@link DataspaceProvisioningService}'s orchestration from the underlying gRPC transport.
+ * Transport-agnostic client for IdentityHub provisioning operations.
  */
-public interface DataspaceProvisioningClient {
+public interface IdentityHubProvisioningClient {
 
     /**
      * Creates (idempotently) the IdentityHub participant context for the given participant.
      */
-    void createIdentityHubParticipantContext(String participantContextId, String did, String memberId,
-                                             String credentialServiceUrl, String keyId, String privateKeyAlias);
+    void createParticipantContext(String participantContextId, String did, String memberId,
+                                  String credentialServiceUrl, String keyId, String privateKeyAlias);
 
     /**
      * Submits a membership credential request for the given participant and holder request id.
@@ -60,14 +59,4 @@ public interface DataspaceProvisioningClient {
      * Returns {@code true} if a participant context with the given id exists in IdentityHub, {@code false} if absent.
      */
     boolean contextExists(String participantContextId);
-
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createControlPlaneParticipantContext(String participantContextId, String did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putControlPlaneParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
 }

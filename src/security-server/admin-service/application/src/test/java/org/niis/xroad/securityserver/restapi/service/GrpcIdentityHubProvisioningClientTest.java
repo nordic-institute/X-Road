@@ -31,16 +31,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.securityserver.restapi.config.ControlPlaneProvisioningRpcClient;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GrpcDataspaceProvisioningClientTest {
+class GrpcIdentityHubProvisioningClientTest {
 
     private static final String CTX_ID = "test-ctx";
     private static final String DID = "did:web:example";
@@ -53,50 +51,44 @@ class GrpcDataspaceProvisioningClientTest {
     private static final String CRED_DEF_ID = "xroad-membership-credential-definition";
     private static final String CRED_TYPE = "XRoadMembershipCredential";
     private static final String FORMAT = "VC1_0_JWT";
-    private static final String STS_TOKEN_URL = "https://sts.example/token";
 
     @Mock
-    private IdentityHubProvisioningRpcClient identityHubClient;
-    @Mock
-    private ControlPlaneProvisioningRpcClient controlPlaneClient;
+    private IdentityHubProvisioningRpcClient rpcClient;
 
     @InjectMocks
-    private GrpcDataspaceProvisioningClient client;
+    private GrpcIdentityHubProvisioningClient client;
 
     @Test
-    void createIdentityHubParticipantContextRoutsToIhClient() {
-        client.createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+    void createParticipantContextDelegatesToRpcClient() {
+        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
 
-        verify(identityHubClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
-        verify(controlPlaneClient, never()).createParticipantContext(CTX_ID, DID);
+        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
     }
 
     @Test
-    void requestMembershipCredentialRoutsToIhClient() {
-        when(identityHubClient.requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT))
+    void requestMembershipCredentialDelegatesToRpcClientAndReturnsRequestId() {
+        when(rpcClient.requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT))
                 .thenReturn("req-id-1");
 
         var result = client.requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
 
         assertThat(result).isEqualTo("req-id-1");
-        verify(identityHubClient).requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
-        verify(controlPlaneClient, never()).createParticipantContext(CTX_ID, DID);
+        verify(rpcClient).requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
     }
 
     @Test
-    void getCredentialRequestStateRoutsToIhClientAndReturnsStatus() {
-        when(identityHubClient.getCredentialRequestState(CTX_ID, HOLDER_PID)).thenReturn("PENDING");
+    void getCredentialRequestStateDelegatesToRpcClientAndReturnsStatus() {
+        when(rpcClient.getCredentialRequestState(CTX_ID, HOLDER_PID)).thenReturn("PENDING");
 
         var result = client.getCredentialRequestState(CTX_ID, HOLDER_PID);
 
         assertThat(result).isEqualTo("PENDING");
-        verify(identityHubClient).getCredentialRequestState(CTX_ID, HOLDER_PID);
-        verify(controlPlaneClient, never()).createParticipantContext(CTX_ID, DID);
+        verify(rpcClient).getCredentialRequestState(CTX_ID, HOLDER_PID);
     }
 
     @Test
-    void getCredentialRequestStateReturnsNullWhenIhClientReturnsNull() {
-        when(identityHubClient.getCredentialRequestState(CTX_ID, HOLDER_PID)).thenReturn(null);
+    void getCredentialRequestStateReturnsNullWhenRpcClientReturnsNull() {
+        when(rpcClient.getCredentialRequestState(CTX_ID, HOLDER_PID)).thenReturn(null);
 
         var result = client.getCredentialRequestState(CTX_ID, HOLDER_PID);
 
@@ -104,36 +96,19 @@ class GrpcDataspaceProvisioningClientTest {
     }
 
     @Test
-    void contextExistsRoutsToIhClient() {
-        when(identityHubClient.participantContextExists(CTX_ID)).thenReturn(true);
+    void contextExistsDelegatesToRpcClientAndReturnsTrue() {
+        when(rpcClient.participantContextExists(CTX_ID)).thenReturn(true);
 
         var result = client.contextExists(CTX_ID);
 
         assertThat(result).isTrue();
-        verify(identityHubClient).participantContextExists(CTX_ID);
-        verify(controlPlaneClient, never()).createParticipantContext(CTX_ID, DID);
+        verify(rpcClient).participantContextExists(CTX_ID);
     }
 
     @Test
-    void contextExistsReturnsFalseWhenIhClientReturnsFalse() {
-        when(identityHubClient.participantContextExists(CTX_ID)).thenReturn(false);
+    void contextExistsReturnsFalseWhenRpcClientReturnsFalse() {
+        when(rpcClient.participantContextExists(CTX_ID)).thenReturn(false);
 
         assertThat(client.contextExists(CTX_ID)).isFalse();
-    }
-
-    @Test
-    void createControlPlaneParticipantContextRoutsToCpClient() {
-        client.createControlPlaneParticipantContext(CTX_ID, DID);
-
-        verify(controlPlaneClient).createParticipantContext(CTX_ID, DID);
-        verify(identityHubClient, never()).participantContextExists(CTX_ID);
-    }
-
-    @Test
-    void putControlPlaneParticipantContextConfigRoutsToCpClient() {
-        client.putControlPlaneParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
-
-        verify(controlPlaneClient).putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
-        verify(identityHubClient, never()).participantContextExists(CTX_ID);
     }
 }

@@ -87,9 +87,7 @@ public class DataspaceParticipantProvisioningWorker {
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
         for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
-            if (!dataspaceProvisioningService.contextExists(participantId)) {
-                dataspaceProvisioningService.ensureParticipantContext(participantId, ownerMemberIdSlashForm);
-            }
+            dataspaceProvisioningService.ensureParticipantContext(participantId, ownerMemberIdSlashForm);
         }
 
         if (!authCertRegistered) {

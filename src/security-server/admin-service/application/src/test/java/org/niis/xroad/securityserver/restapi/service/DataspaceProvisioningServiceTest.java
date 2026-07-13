@@ -57,7 +57,9 @@ class DataspaceProvisioningServiceTest {
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
-    private DataspaceProvisioningClient provisioningClient;
+    private IdentityHubProvisioningClient identityHubClient;
+    @Mock
+    private ControlPlaneProvisioningClient controlPlaneClient;
 
     private DataspaceProvisioningService service;
     private Dataspace dataspace;
@@ -71,71 +73,71 @@ class DataspaceProvisioningServiceTest {
         dataspace.setCredentialDefinitionId("xroad-membership-credential-definition");
         dataspace.setMaxHolderPidSlots(20);
         org.mockito.Mockito.lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        service = new DataspaceProvisioningService(adminServiceProperties, provisioningClient);
+        service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient);
     }
 
     // --- submitCredentialRequest ---
 
     @Test
     void submitCredentialRequestSubmitsIntoSlot0WhenNoExistingRequest() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
-        verify(provisioningClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT0),
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT0),
                 anyString(), anyString(), anyString());
     }
 
     @Test
     void submitCredentialRequestNoOpWhenSlot0IsPending() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
-        verify(provisioningClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     @Test
     void submitCredentialRequestNoOpWhenSlot0IsIssued() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
-        verify(provisioningClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     @Test
     void submitCredentialRequestAdvancesPastErrorSlot() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
-        verify(provisioningClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT1),
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT1),
                 anyString(), anyString(), anyString());
     }
 
     @Test
     void submitCredentialRequestAdvancesPastMultipleErrorSlots() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT2)).thenReturn(null);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT2)).thenReturn(null);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
-        verify(provisioningClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT2),
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT2),
                 anyString(), anyString(), anyString());
     }
 
     @Test
     void submitCredentialRequestNoSubmitWhenAllSlotsExhausted() {
         dataspace.setMaxHolderPidSlots(2);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
-        verify(provisioningClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     // --- readCredentialStatus ---
@@ -143,7 +145,7 @@ class DataspaceProvisioningServiceTest {
     @Test
     void readCredentialStatusReturnsNullWhenNoRequests() {
         dataspace.setMaxHolderPidSlots(2);
-        when(provisioningClient.getCredentialRequestState(eq(PARTICIPANT_ID), anyString())).thenReturn(null);
+        when(identityHubClient.getCredentialRequestState(eq(PARTICIPANT_ID), anyString())).thenReturn(null);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -152,7 +154,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusReturnsIssuedWhenSlot0Issued() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -161,7 +163,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusReturnsPendingWhenSlot0Pending() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -170,8 +172,8 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusSkipsErrorSlotAndReturnsNextActiveStatus() {
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_PENDING);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -181,8 +183,8 @@ class DataspaceProvisioningServiceTest {
     @Test
     void readCredentialStatusReturnsErrorWhenAllSlotsError() {
         dataspace.setMaxHolderPidSlots(2);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -192,8 +194,8 @@ class DataspaceProvisioningServiceTest {
     @Test
     void readCredentialStatusReturnsNullWhenAllSlotsAbsent() {
         dataspace.setMaxHolderPidSlots(2);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -203,14 +205,14 @@ class DataspaceProvisioningServiceTest {
     @Test
     void readCredentialStatusStopsAtFirstActiveSlotAfterErrors() {
         dataspace.setMaxHolderPidSlots(20);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(provisioningClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ISSUED);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
         assertThat(status).isEqualTo(STATUS_ISSUED);
         // slot2..N are not queried
-        verify(provisioningClient, times(2)).getCredentialRequestState(eq(PARTICIPANT_ID), anyString());
+        verify(identityHubClient, times(2)).getCredentialRequestState(eq(PARTICIPANT_ID), anyString());
     }
 
     // --- participantContextIds ---
@@ -235,9 +237,9 @@ class DataspaceProvisioningServiceTest {
     void ensureParticipantContextsCreatesOnlyHostContextWhenManagementNotRegistered() {
         service.ensureParticipantContexts(false, "TEST/ORG/CODE");
 
-        verify(provisioningClient).createIdentityHubParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
-        verify(provisioningClient).createControlPlaneParticipantContext(eq(PARTICIPANT_ID), any());
-        verify(provisioningClient).putControlPlaneParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
+        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
+        verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
+        verify(controlPlaneClient).putParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
     }
 
     @Test
@@ -246,26 +248,10 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContexts(true, "TEST/ORG/CODE");
 
-        verify(provisioningClient).createIdentityHubParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
-        verify(provisioningClient).createIdentityHubParticipantContext(eq(mgmtId), any(), any(), any(), any(), any());
-        verify(provisioningClient).createControlPlaneParticipantContext(eq(PARTICIPANT_ID), any());
-        verify(provisioningClient).createControlPlaneParticipantContext(eq(mgmtId), any());
-    }
-
-    // --- contextExists ---
-
-    @Test
-    void contextExistsDelegatesToProvisioningClient() {
-        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
-
-        assertThat(service.contextExists(PARTICIPANT_ID)).isTrue();
-    }
-
-    @Test
-    void contextExistsReturnsFalseWhenClientReturnsFalse() {
-        when(provisioningClient.contextExists(PARTICIPANT_ID)).thenReturn(false);
-
-        assertThat(service.contextExists(PARTICIPANT_ID)).isFalse();
+        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
+        verify(identityHubClient).createParticipantContext(eq(mgmtId), any(), any(), any(), any(), any());
+        verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
+        verify(controlPlaneClient).createParticipantContext(eq(mgmtId), any());
     }
 
     // --- ensureParticipantContext (single) ---
@@ -274,8 +260,8 @@ class DataspaceProvisioningServiceTest {
     void ensureParticipantContextCreatesIhAndCpForSingleParticipant() {
         service.ensureParticipantContext(PARTICIPANT_ID, "TEST/ORG/CODE");
 
-        verify(provisioningClient).createIdentityHubParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
-        verify(provisioningClient).createControlPlaneParticipantContext(eq(PARTICIPANT_ID), any());
-        verify(provisioningClient).putControlPlaneParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
+        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
+        verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
+        verify(controlPlaneClient).putParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
     }
 }
