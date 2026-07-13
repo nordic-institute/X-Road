@@ -5,7 +5,7 @@ plugins {
 dependencies {
   implementation(project(":service:ds-control-plane:ds-xroad-provisioning-protocol"))
   implementation(project(":lib:rpc-core"))
-  implementation(project(":lib:bootstrap-edc-quarkus"))
+  implementation(project(":lib:edc-rpc"))
 
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.participantcontext)
