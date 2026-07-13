@@ -183,16 +183,17 @@
     enabled: yes
   when: (autologin_pin | default('')) != ''
 
-# --- Mail notification stub (silencia aviso de configuração incompleta) ---
+# --- Mail notification stub (silencia aviso de configuração incompleta na UI) ---
 - name: Create mail.yml stub (disables mail notifications)
   copy:
     content: |
-      host: ""
-      port: 0
+      host: localhost
+      port: 25
       username: ""
       password: ""
       use-ssl-tls: false
-      contacts: {}
+      contacts:
+        '{{ xvia_instance_id | default("XVIA") }}:{{ xvia_member_class | default("GOV") }}:{{ xvia_member_code | default("XVIA") }}': noreply@localhost
     dest: /etc/xroad/conf.d/mail.yml
     owner: xroad
     group: xroad
@@ -214,3 +215,8 @@
     mode: '0640'
   when: xvia_mail_config | default({}) | length > 0
   no_log: true
+
+- name: Restart xroad-proxy-ui-api after mail config
+  service:
+    name: xroad-proxy-ui-api
+    state: restarted
