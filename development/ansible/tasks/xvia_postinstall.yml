@@ -182,3 +182,35 @@
     daemon_reload: yes
     enabled: yes
   when: (autologin_pin | default('')) != ''
+
+# --- Mail notification stub (silencia aviso de configuração incompleta) ---
+- name: Create mail.yml stub (disables mail notifications)
+  copy:
+    content: |
+      host: ""
+      port: 0
+      username: ""
+      password: ""
+      use-ssl-tls: false
+      contacts: {}
+    dest: /etc/xroad/conf.d/mail.yml
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  when: xvia_mail_config | default({}) | length == 0
+
+- name: Create mail.yml with custom config
+  copy:
+    content: |
+      host: "{{ xvia_mail_config.host }}"
+      port: {{ xvia_mail_config.port | default(587) }}
+      username: "{{ xvia_mail_config.username | default('') }}"
+      password: "{{ xvia_mail_config.password | default('') }}"
+      use-ssl-tls: {{ xvia_mail_config.use_ssl_tls | default(false) | lower }}
+      contacts: {{ xvia_mail_config.contacts | default({}) | to_nice_yaml | indent(2) }}
+    dest: /etc/xroad/conf.d/mail.yml
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  when: xvia_mail_config | default({}) | length > 0
+  no_log: true
