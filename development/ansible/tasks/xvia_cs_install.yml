@@ -117,6 +117,18 @@
   changed_when: false
   no_log: true
 
+- name: "CS — Ensure postgresql-contrib is installed on DB server"
+  apt:
+    name: "postgresql-{{ xvia_pg_version | default('16') }}-contrib"
+    state: present
+    update_cache: yes
+  delegate_to: "{{ groups['db_servers'][0] }}"
+  become: true
+  when:
+    - _use_remote_db | bool
+    - groups['db_servers'] is defined
+    - groups['db_servers'] | length > 0
+
 - name: "CS — Install hstore extension"
   shell: >
     PGPASSWORD='{{ database_admin_password }}'
