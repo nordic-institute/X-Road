@@ -24,4 +24,5 @@ dependencies {
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
   runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-customization"))
+  runtimeOnly(project(":service:ds-issuer-service:ds-issuer-service-provisioning-api"))
 }

@@ -145,7 +145,7 @@ class TlsKeyTest extends SsApiTest {
     private Map<String, byte[]> extractTarEntries(byte[] tarGzBytes) {
         var result = new HashMap<String, byte[]>();
         try (var gzipStream = new GZIPInputStream(new ByteArrayInputStream(tarGzBytes));
-             var tarStream = new TarArchiveInputStream(gzipStream)) {
+                var tarStream = new TarArchiveInputStream(gzipStream)) {
             var entry = tarStream.getNextEntry();
             while (entry != null) {
                 if (!entry.isDirectory()) {

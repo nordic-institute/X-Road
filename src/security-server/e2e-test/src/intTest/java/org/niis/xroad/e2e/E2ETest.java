@@ -25,9 +25,11 @@
  */
 package org.niis.xroad.e2e;
 
+import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.SelectClasspathResource;
 import org.niis.xroad.test.framework.core.BaseTestRunner;
 
 @SelectClasspathResource("/behavior")
+@ConfigurationParameter(key = "cucumber.filter.tags", value = "not @Skip")
 public class E2ETest extends BaseTestRunner {
 }

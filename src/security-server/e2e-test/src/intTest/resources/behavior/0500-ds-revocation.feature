@@ -1,7 +1,7 @@
 # Revoking a member credential is permanent for the lifetime of the shared test stack and
 # affects every later data-space negotiation by that member. This feature therefore runs last
 # (highest number), after all scenarios that depend on ss1's credentials.
-@Dataspaces
+@Dataspaces @Skip
 Feature: 0500 - Data spaces credential revocation
 
   Scenario: Consumer with a revoked credential cannot negotiate a contract

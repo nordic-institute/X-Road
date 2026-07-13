@@ -272,14 +272,6 @@ X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 201
 
-# SS2 DS provisioning
-POST https://{{ss2_host}}:4000/api/v1/system/dataspace-provisioning
-X-XSRF-TOKEN: {{ss2_xsrf_token}}
-
-HTTP 200
-[Asserts]
-jsonpath "$.status" == "ISSUED"
-
 # Add Subsystem to ss2 Security Server
 POST https://{{ss2_host}}:4000/api/v1/clients
 X-XSRF-TOKEN: {{ss2_xsrf_token}}

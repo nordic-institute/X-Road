@@ -14,7 +14,15 @@ dependencies {
 
   implementation(libs.bundles.quarkus.containerized)
 
-  runtimeOnly(libs.edc.bom.identityhub)
+  runtimeOnly(libs.edc.bom.identityhub) {
+    exclude(group = "org.eclipse.edc", module = "identity-api-configuration")
+    exclude(group = "org.eclipse.edc", module = "participant-context-api")
+    exclude(group = "org.eclipse.edc", module = "did-api")
+    exclude(group = "org.eclipse.edc", module = "verifiable-credentials-api")
+    exclude(group = "org.eclipse.edc", module = "keypair-api")
+    exclude(group = "org.eclipse.edc", module = "identity-api-authentication-oauth2")
+    exclude(group = "org.eclipse.edc", module = "identity-api-authorization-oauth2")
+  }
   runtimeOnly(libs.edc.core.participantcontext.config)
 
   runtimeOnly(libs.edc.vault.hashicorp)
@@ -24,4 +32,5 @@ dependencies {
 
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-customization"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
+  runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-provisioning-api"))
 }

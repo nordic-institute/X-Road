@@ -44,6 +44,9 @@ web:
       port: 8185
 
 xroad:
+  ds:
+    rpc:
+      host: "0.0.0.0"
   db:
     serverconf:
       hibernate:

@@ -35,7 +35,10 @@ public enum ErrorOrigin {
     CONF_CLIENT,
     AUXILIARY_SERVICE,
     SIGNER,
-    DATASPACE;
+    DATASPACE,
+    DS_CONTROL_PLANE,
+    DS_IDENTITY_HUB,
+    DS_ISSUER_SERVICE;
 
     public String toPrefix() {
         return this.name().toLowerCase() + ".";
