@@ -103,10 +103,22 @@ tasks.register<Test>("e2eTestLxd") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
+  // Base tag expression; -Pe2eTestFilterTag appends "and @<tag>" for opt-in narrowing to a single
+  // feature/scenario (e.g. -Pe2eTestFilterTag=Messagelog to run only 0200-ss-messagelog.feature).
+  // NOTE: narrowing via the cucumber.features system property was tried and rejected — the
+  // cucumber-junit-platform-engine TestEngine auto-registers and reads that property independently
+  // of the junit-platform-suite-wrapped E2ETest, so every scenario runs twice. Tag/name filtering
+  // (test-framework.cucumber.filter-tags/filter-name) stays inside the single Suite-nested engine
+  // and has no such issue.
+  var filterTags = "not @Skip and not @compose-only"
+  if (project.hasProperty("e2eTestFilterTag")) {
+    filterTags += " and @${project.property("e2eTestFilterTag")}"
+  }
+
   val systemTestArgs = mutableListOf(
     "-XX:MaxMetaspaceSize=200m",
     "-Dtest-framework.env-mode=lxd",
-    "-Dtest-framework.cucumber.filter-tags=not @Skip and not @compose-only"
+    "-Dtest-framework.cucumber.filter-tags=$filterTags"
   )
 
   if (project.hasProperty("e2eTestServeReport")) {

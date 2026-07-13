@@ -34,27 +34,21 @@ import io.restassured.response.ValidatableResponseOptions;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.niis.xroad.e2e.ComposeContainerOps;
 import org.niis.xroad.e2e.E2eEnvironment;
+import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.testcontainers.containers.Container;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -68,11 +62,12 @@ import static org.hamcrest.Matchers.matchesPattern;
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
     private static final String HEADER_CLIENT_ID = "x-road-client";
+    private static final String DEFAULT_PASSPHRASE = "secret";
 
     @Autowired
     private TestFrameworkCoreProperties coreProperties;
     @Autowired
-    private ObjectProvider<ComposeContainerOps> containerOpsProvider;
+    private MessagelogArchiveOps messagelogArchiveOps;
     @Autowired
     private MessagelogDbOps messagelogDbOps;
 
@@ -132,17 +127,8 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     }
 
     @Step("message log {string} is triggered on {string}")
-    public void messageLogCommandIsExecuted(String command, String env) throws IOException, InterruptedException {
-        var container = containerOpsProvider.getObject().getContainerByServiceName(env, "message-log-cli").orElseThrow();
-        var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-                + " -Dquarkus.profile=containerized"
-                + " -jar /opt/app/quarkus-run.jar " + command
-                + " 2>&1 | tee /proc/1/fd/1";
-        var result = container.execInContainer("sh", "-c", javaCmd);
-        if (result.getExitCode() != 0) {
-            throw new RuntimeException("Message log %s failed (exit code %d): %s".formatted(
-                    command, result.getExitCode(), result.getStderr()));
-        }
+    public void messageLogCommandIsExecuted(String command, String env) {
+        messagelogArchiveOps.triggerMessageLogCommand(env, command);
     }
 
     @Step("Global configuration is fetched from {string}'s {string} for messagelog verification")
@@ -164,21 +150,9 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
         }
     }
 
-    @SneakyThrows
-    private String downloadMessageLogArchives(String env, String service, String serverPath, String localDir) {
-        Files.createDirectories(Paths.get(localDir));
-        var localCompressedArchivesPath = localDir + "/messagelog-archives.tar.gz";
-        var container = containerOpsProvider.getObject().getContainerByServiceName(env, service).orElseThrow();
-        container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", serverPath, ".");
-        container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
-        container.execInContainer("rm", "/tmp/messagelog-archives.tar.gz");
-
-        return localCompressedArchivesPath;
-    }
-
     @Step("messsagelog archives are downloaded from {string} {string}")
     public void messsagelogArchivesAreDownloadedFrom(String env, String service) {
-        downloadMessageLogArchives(env, service, "/var/lib/xroad", coreProperties.resourceDir() + env);
+        messagelogArchiveOps.downloadMessageLogArchives(env, coreProperties.resourceDir() + env);
     }
 
     @Step("{string} has {int} messagelogs present in the archives and all are cryptographically valid")
@@ -231,45 +205,35 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
     }
 
     @Step("{string} messsagelog archives {string} can be decrypted using key {string}")
-    public void messsagelogArchivesCanBeDecryptedUsingKey(String env, String filePrefix, String keyId)
-            throws IOException, InterruptedException {
-        String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
-        String outputDir = "/tmp/" + UUID.randomUUID();
+    public void messsagelogArchivesCanBeDecryptedUsingKey(String env, String filePrefix, String keyId) {
+        var outputDir = coreProperties.resourceDir() + env + "/" + keyId;
+        var processedFilesCount = messagelogArchiveOps.decryptArchives(env, filePrefix, keyId, DEFAULT_PASSPHRASE, outputDir);
+        var decryptedFilesCount = countTarballEntries(outputDir + "/messagelog-archives.tar.gz");
 
-        var container = containerOpsProvider.getObject().getContainerByServiceName(env, "message-log-cli").orElseThrow();
-        Container.ExecResult execResult = container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
-                filePrefix, keyfile, "secret", outputDir);
-
-        downloadMessageLogArchives(env, "message-log-cli", outputDir, coreProperties.resourceDir() + env + "/" + keyId);
-
-        int processedFilesCount = getFilesCountFromOutput(execResult.getStdout());
-
-        String decryptedFilesCount = container.execInContainer("/gpg-keys/scripts/count_files.sh", outputDir).getStdout().trim();
-
-        assertThat(Integer.parseInt(decryptedFilesCount)).isEqualTo(processedFilesCount);
-    }
-
-    private int getFilesCountFromOutput(String output) {
-        Matcher matcher = Pattern.compile("Processed (\\d+) files\\.").matcher(output);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(1));
-        }
-        throw new RuntimeException();
+        assertThat(decryptedFilesCount).isEqualTo(processedFilesCount);
     }
 
     @Step("{string} messsagelog archives {string} can not be decrypted using key {string}")
-    public void messsagelogArchivesCanNotBeDecryptedUsingKey(String env, String filePrefix, String keyId)
-            throws IOException, InterruptedException {
-        String keyfile = "/gpg-keys/%s.asc".formatted(keyId);
-        String outputDir = "/tmp/" + UUID.randomUUID();
+    public void messsagelogArchivesCanNotBeDecryptedUsingKey(String env, String filePrefix, String keyId) {
+        var outputDir = coreProperties.resourceDir() + env + "/" + keyId;
+        messagelogArchiveOps.decryptArchives(env, filePrefix, keyId, DEFAULT_PASSPHRASE, outputDir);
+        var decryptedFilesCount = countTarballEntries(outputDir + "/messagelog-archives.tar.gz");
 
-        var container = containerOpsProvider.getObject().getContainerByServiceName(env, "message-log-cli").orElseThrow();
-        container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
-                filePrefix, keyfile, "secret", outputDir);
+        assertThat(decryptedFilesCount).isZero();
+    }
 
-        String outputFilesCount = container.execInContainer("/gpg-keys/scripts/count_files.sh", outputDir).getStdout().trim();
-
-        assertThat(outputFilesCount).isEqualTo("0");
+    @SneakyThrows
+    private int countTarballEntries(String tarballPath) {
+        try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(tarballPath)))) {
+            var count = 0;
+            TarArchiveEntry entry;
+            while ((entry = tis.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    count++;
+                }
+            }
+            return count;
+        }
     }
 
 }

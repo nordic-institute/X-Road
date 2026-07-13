@@ -1,4 +1,4 @@
-@Initialization
+@Initialization @Proxy
 Feature: 0100 - SS: Proxy
 
   Background:

@@ -50,6 +50,14 @@
     - build-packages
 
 - name: Apply dev env configuration
+  # WARNING: this role's "copy SS/CS/CP container configuration files" tasks copy
+  # files/{ss,cs,cp}/etc/xroad/conf.d/local.yaml wholesale (plain `copy`, force
+  # defaults true) — running ONLY this play/role (e.g. `--tags dev-configuration`)
+  # on an already-provisioned host clobbers every blockinfile layer the "Install
+  # SS servers" play's post_tasks added afterward (DSP, op-monitor, messagelog
+  # encryption, ...), silently reverting local.yaml to this bare template.
+  # Re-run the "Install SS servers" play's post_tasks (or the whole play) after,
+  # to reapply those layers.
   hosts: ss_servers, cs_servers, cp_servers
   become: true
   strategy: free
@@ -188,10 +196,15 @@
       include_tasks: roles/xroad-ss/tasks/opmonitor.yml
       when: xroad_install_opmonitoring | default(false) | bool
     # Runs before the restart task below so the proxy restart there picks up
-    # the encryption flag from local.yaml. Unconditional (all SS hosts), unlike
+    # the encryption flags from local.yaml. Unconditional (all SS hosts), unlike
     # opmonitor, which is gated per host group.
-    - name: Preseed messagelog DB encryption config
+    - name: Preseed messagelog DB and archive encryption config
       include_tasks: roles/xroad-ss/tasks/msglog-encryption.yml
+    # Archive-encryption PGP key import + cron parking, so the 0200 e2e scenarios
+    # can trigger archive/cleanup deterministically. Independent of the config
+    # task above; unconditional like it.
+    - name: Park messagelog archive/clean crons and import PGP keys
+      include_tasks: roles/xroad-ss/tasks/msglog-archive-encryption.yml
     - name: Discover installed DS units
       ansible.builtin.shell: >-
         systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'

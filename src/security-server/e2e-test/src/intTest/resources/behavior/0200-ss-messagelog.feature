@@ -1,4 +1,4 @@
-@Initialization @compose-only
+@Initialization @Messagelog
 Feature: 0200 - SS: Message Log
 
   Background:

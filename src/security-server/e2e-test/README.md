@@ -62,17 +62,17 @@ environment variables — see `test-framework.lxd.*` properties.
 
 Scenarios that require Docker-specific operations (running commands inside a
 container, reading files from a container) or depend on a Compose-only feature
-overlay (HSM, batch signatures, message-log encryption) must be tagged
-`@compose-only`. The LXD run filters them out.
+overlay (HSM, batch signatures) must be tagged `@compose-only`. The LXD run
+filters them out.
 
 **Maintenance rule:** if you add a scenario that uses an in-container operation
-or a Compose-only feature overlay, tag it `@compose-only`. Without the tag it
-will run in the LXD CI job and fail.
+or a Compose-only feature overlay, tag it `@compose-only` — or make it
+env-aware through the `E2eEnvironment` seam (see `MessagelogArchiveOps` for the
+pattern the 0200 message-log scenarios use). Without either, it will run in the
+LXD CI job and fail.
 
-Currently `@compose-only` covers:
-
-- `0200-ss-messagelog.feature` — message-log CLI and archive operations require
-  running commands inside the proxy container.
+No scenario currently carries `@compose-only`; the filter and maintenance rule
+remain for future compose-specific scenarios.
 
 ## CI
 

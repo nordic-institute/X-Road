@@ -32,15 +32,21 @@ import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
 import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
@@ -51,7 +57,10 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
  * Docker Compose-based implementation of the e2e environment.
  */
 @Slf4j
-public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment, ComposeContainerOps, MessagelogDbOps {
+public class ComposeEnvSetup extends BaseComposeSetup
+        implements E2eEnvironment, ComposeContainerOps, MessagelogDbOps, MessagelogArchiveOps {
+
+    private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
     private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
@@ -174,6 +183,60 @@ public class ComposeEnvSetup extends BaseComposeSetup implements E2eEnvironment,
             throw new IllegalStateException("psql query on %s failed: %s".formatted(env, result.getStderr()));
         }
         return result.getStdout().trim();
+    }
+
+    @Override
+    @SneakyThrows
+    public void triggerMessageLogCommand(String env, String command) {
+        var container = getContainerByServiceName(env, MESSAGE_LOG_CLI).orElseThrow();
+        var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+                + " -Dquarkus.profile=containerized"
+                + " -jar /opt/app/quarkus-run.jar " + command
+                + " 2>&1 | tee /proc/1/fd/1";
+        var result = container.execInContainer("sh", "-c", javaCmd);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("Message log %s failed (exit code %d): %s".formatted(
+                    command, result.getExitCode(), result.getStderr()));
+        }
+    }
+
+    @Override
+    @SneakyThrows
+    public void downloadMessageLogArchives(String env, String localDir) {
+        downloadArchivesTarball(env, MESSAGE_LOG_CLI, "/var/lib/xroad", localDir);
+    }
+
+    @Override
+    @SneakyThrows
+    public int decryptArchives(String env, String filePrefix, String keyId, String passphrase, String outputDir) {
+        String keyFile = "/gpg-keys/%s.asc".formatted(keyId);
+        String remoteOutputDir = "/tmp/decrypt-" + UUID.randomUUID();
+
+        var container = getContainerByServiceName(env, MESSAGE_LOG_CLI).orElseThrow();
+        Container.ExecResult execResult = container.execInContainer("/gpg-keys/scripts/decrypt-archives.sh",
+                filePrefix, keyFile, passphrase, remoteOutputDir);
+
+        downloadArchivesTarball(env, MESSAGE_LOG_CLI, remoteOutputDir, outputDir);
+
+        return getProcessedFilesCountFromOutput(execResult.getStdout());
+    }
+
+    @SneakyThrows
+    private void downloadArchivesTarball(String env, String service, String remoteDir, String localDir) {
+        Files.createDirectories(Paths.get(localDir));
+        var localCompressedArchivesPath = localDir + "/messagelog-archives.tar.gz";
+        var container = getContainerByServiceName(env, service).orElseThrow();
+        container.execInContainer("tar", "czf", "/tmp/messagelog-archives.tar.gz", "-C", remoteDir, ".");
+        container.copyFileFromContainer("/tmp/messagelog-archives.tar.gz", localCompressedArchivesPath);
+        container.execInContainer("rm", "/tmp/messagelog-archives.tar.gz");
+    }
+
+    private int getProcessedFilesCountFromOutput(String output) {
+        Matcher matcher = PROCESSED_FILES_PATTERN.matcher(output);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        throw new IllegalStateException("Could not find processed files count in decrypt-archives.sh output: " + output);
     }
 
     /**

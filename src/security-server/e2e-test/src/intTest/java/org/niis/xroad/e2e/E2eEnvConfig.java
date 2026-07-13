@@ -36,15 +36,18 @@ import org.springframework.context.annotation.Primary;
  * Wires exactly one environment bean selected by {@code test-framework.env-mode}.
  *
  * <p>In {@code compose} mode the bean's runtime type is {@link ComposeEnvSetup}, which implements
- * {@link E2eEnvironment}, {@link ComposeContainerOps} and {@link MessagelogDbOps}. Spring's injection
- * resolves all three interface types from that single bean.
+ * {@link E2eEnvironment}, {@link ComposeContainerOps}, {@link MessagelogDbOps} and
+ * {@link MessagelogArchiveOps}. Spring's injection resolves all four interface types from that
+ * single bean.
  *
  * <p>In {@code lxd} mode the runtime type is {@link LxdEnvSetup}, which implements
- * {@link E2eEnvironment} and {@link MessagelogDbOps}, but NOT {@link ComposeContainerOps} — that
- * interface exposes testcontainers' {@code ContainerState}, which has no LXD equivalent and is only
- * consumed by {@code @compose-only} steps. {@code ObjectProvider<ComposeContainerOps>.getIfAvailable()}
- * returns {@code null} safely in this mode; {@link MessagelogDbOps}, being env-neutral, is always
- * available and should be injected directly (not via {@code ObjectProvider}) by steps that need it.
+ * {@link E2eEnvironment}, {@link MessagelogDbOps} and {@link MessagelogArchiveOps}, but NOT
+ * {@link ComposeContainerOps} — that interface exposes testcontainers' {@code ContainerState},
+ * which has no LXD equivalent and has no remaining consumers once the 0200 messagelog steps became
+ * env-aware. {@code ObjectProvider<ComposeContainerOps>.getIfAvailable()} returns {@code null}
+ * safely in this mode; {@link MessagelogDbOps} and {@link MessagelogArchiveOps}, being env-neutral,
+ * are always available and should be injected directly (not via {@code ObjectProvider}) by steps
+ * that need them.
  *
  * <p>Neither impl carries {@code @Component}, so component-scan never produces duplicates.
  */
@@ -63,8 +66,9 @@ public class E2eEnvConfig {
      * so in compose mode it also satisfies {@link ComposeContainerOps} injection points.
      *
      * <p>Marked {@code @Primary} because the runtime instance is also registered under
-     * {@link MessagelogDbOps} below (same object, different declared bean type); without a primary,
-     * an {@code E2eEnvironment} injection point sees both bean definitions as equally good matches.
+     * {@link MessagelogDbOps} and {@link MessagelogArchiveOps} below (same object, different
+     * declared bean type); without a primary, an {@code E2eEnvironment} injection point sees
+     * multiple bean definitions as equally good matches.
      */
     @Bean
     @Primary
@@ -73,7 +77,7 @@ public class E2eEnvConfig {
         log.info("e2e environment mode: {}", mode);
         return switch (mode) {
             case "compose" -> new ComposeEnvSetup(coreProperties);
-            case "lxd" -> new LxdEnvSetup(lxdEnvProperties);
+            case "lxd" -> new LxdEnvSetup(lxdEnvProperties, coreProperties);
             default -> throw new IllegalArgumentException("Unknown env-mode: " + mode + " — expected 'compose' or 'lxd'");
         };
     }
@@ -90,5 +94,19 @@ public class E2eEnvConfig {
         }
         throw new IllegalStateException(
                 "%s does not implement MessagelogDbOps".formatted(e2eEnvironment.getClass().getSimpleName()));
+    }
+
+    /**
+     * Exposes the same {@code e2eEnvironment} instance as {@link MessagelogArchiveOps}, which both
+     * environment implementations satisfy. See {@link #messagelogDbOps} for why this is a distinct
+     * bean method rather than relying on {@code E2eEnvironment} being castable.
+     */
+    @Bean
+    MessagelogArchiveOps messagelogArchiveOps(E2eEnvironment e2eEnvironment) {
+        if (e2eEnvironment instanceof MessagelogArchiveOps messagelogArchiveOps) {
+            return messagelogArchiveOps;
+        }
+        throw new IllegalStateException(
+                "%s does not implement MessagelogArchiveOps".formatted(e2eEnvironment.getClass().getSimpleName()));
     }
 }
