@@ -239,7 +239,10 @@ class SoapProxyRetryTest {
         int actualClientHttpPort = ctx.getClientHttpPort();
         PROPS.put("xroad.proxy.server.listen-port", valueOf(serverProxyPort));
         PROPS.put("xroad.proxy.client-proxy.client-http-port", valueOf(actualClientHttpPort));
-        HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, PROPS);
+        HELPER.proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(PROPS)
+                .build());
         MessageLog.init(logManager);
     }
 
