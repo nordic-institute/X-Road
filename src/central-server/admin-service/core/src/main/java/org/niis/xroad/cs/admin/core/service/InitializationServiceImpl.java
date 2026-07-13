@@ -84,11 +84,13 @@ public class InitializationServiceImpl implements InitializationService {
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
     private final ExternalProcessRunner externalProcessRunner;
-    private final Optional<DataspaceIssuerProvisioningService> dataspaceIssuerProvisioningService;
+    private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     @Value("${script.generate-gpg-keypair.path}")
     private final String generateKeypairScriptPath;
     @Value("${gpgkeys.gpghome}")
     private final String gpgHome;
+    @Value("${xroad.dataspace.enabled:false}")
+    private final boolean dataspaceEnabled;
 
     @Override
     public InitializationStatusDto getInitializationStatus() {
@@ -159,11 +161,12 @@ public class InitializationServiceImpl implements InitializationService {
     }
 
     private void provisionDataspaceIssuer() {
-        dataspaceIssuerProvisioningService.ifPresent(service -> {
-            log.info("Provisioning data space issuer");
-            service.provisionIssuer();
-            log.info("Data space issuer provisioned");
-        });
+        if (!dataspaceEnabled) {
+            return;
+        }
+        log.info("Provisioning data space issuer");
+        dataspaceIssuerProvisioningService.provisionIssuer();
+        log.info("Data space issuer provisioned");
     }
 
     private void initializeCsSystemParameters() {

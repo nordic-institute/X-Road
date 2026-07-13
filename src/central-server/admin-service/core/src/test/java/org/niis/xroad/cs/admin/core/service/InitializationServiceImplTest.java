@@ -53,6 +53,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,7 +97,7 @@ class InitializationServiceImplTest {
                 .thenReturn(new ExternalProcessRunner.ProcessResult("cmd", 0, List.of()));
     }
 
-    private InitializationServiceImpl buildService(Optional<DataspaceIssuerProvisioningService> provisioning) {
+    private InitializationServiceImpl buildService(DataspaceIssuerProvisioningService provisioning, boolean dataspaceEnabled) {
         return new InitializationServiceImpl(
                 signerProxyFacade,
                 globalGroupRepository,
@@ -106,7 +108,8 @@ class InitializationServiceImplTest {
                 externalProcessRunner,
                 provisioning,
                 GPG_KEY_PATH,
-                GPG_HOME
+                GPG_HOME,
+                dataspaceEnabled
         );
     }
 
@@ -122,15 +125,24 @@ class InitializationServiceImplTest {
     void issuerProvisioningFailurePropagates() {
         doThrow(new RuntimeException("gRPC failure")).when(issuerProvisioningService).provisionIssuer();
 
-        service = buildService(Optional.of(issuerProvisioningService));
+        service = buildService(issuerProvisioningService, true);
 
         assertThrows(RuntimeException.class, () -> service.initialize(dto()));
     }
 
     @Test
-    void initializeSucceedsWhenNoIssuerProvisioningService() {
-        service = buildService(Optional.empty());
+    void initializeSucceedsWhenDataspaceDisabled() {
+        service = buildService(issuerProvisioningService, false);
 
         assertDoesNotThrow(() -> service.initialize(dto()));
+        verifyNoInteractions(issuerProvisioningService);
+    }
+
+    @Test
+    void issuerProvisioningCalledWhenDataspaceEnabled() {
+        service = buildService(issuerProvisioningService, true);
+
+        assertDoesNotThrow(() -> service.initialize(dto()));
+        verify(issuerProvisioningService).provisionIssuer();
     }
 }
