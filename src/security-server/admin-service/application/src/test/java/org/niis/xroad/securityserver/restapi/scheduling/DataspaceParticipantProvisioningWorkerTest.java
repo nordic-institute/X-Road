@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class DataspaceParticipantReconcilerTest {
+class DataspaceParticipantProvisioningWorkerTest {
 
     private static final String OWNER_SLASH_FORM = "TEST/GOV/1234";
     private static final String HOST_ID = "xrd-ss0";
@@ -65,34 +65,34 @@ class DataspaceParticipantReconcilerTest {
     private DataspaceReadinessPredicates readinessPredicates;
 
     @InjectMocks
-    private DataspaceParticipantReconciler reconciler;
+    private DataspaceParticipantProvisioningWorker worker;
 
     @Test
-    void scheduledReconcileSwallowsFailures() {
+    void scheduledProvisionSwallowsFailures() {
         when(scheduledJobHelper.getServerConf()).thenThrow(new RuntimeException("boom"));
 
-        assertThatCode(() -> reconciler.scheduledReconcile()).doesNotThrowAnyException();
+        assertThatCode(() -> worker.scheduledProvision()).doesNotThrowAnyException();
     }
 
     @Test
-    void reconcileSkipsWhenServerNotInitialized() {
+    void provisionParticipantSkipsWhenServerNotInitialized() {
         when(scheduledJobHelper.getServerConf()).thenThrow(mock(XrdRuntimeException.class));
 
-        reconciler.reconcile();
+        worker.provisionParticipant();
 
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
     @Test
-    void reconcileEnsuresContextsOnlyForAbsentParticipantsAndDefersCredentialUntilAuthCertRegistered() {
+    void provisionParticipantEnsuresContextsOnlyForAbsentParticipantsAndDefersCredentialUntilAuthCertRegistered() {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
         when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(false);
         when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
 
-        reconciler.reconcile();
+        worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, OWNER_SLASH_FORM);
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(MGMT_ID, OWNER_SLASH_FORM);
@@ -100,21 +100,21 @@ class DataspaceParticipantReconcilerTest {
     }
 
     @Test
-    void reconcileSkipsEnsureForAlreadyExistingContexts() {
+    void provisionParticipantSkipsEnsureForAlreadyExistingContexts() {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
         when(dataspaceProvisioningService.contextExists(HOST_ID)).thenReturn(true);
         when(dataspaceProvisioningService.contextExists(MGMT_ID)).thenReturn(true);
 
-        reconciler.reconcile();
+        worker.provisionParticipant();
 
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
     @Test
-    void reconcileSubmitsCredentialWhenAbsentAndAuthCertRegistered() {
+    void provisionParticipantSubmitsCredentialWhenAbsentAndAuthCertRegistered() {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
@@ -123,14 +123,14 @@ class DataspaceParticipantReconcilerTest {
         when(dataspaceProvisioningService.readCredentialStatus(HOST_ID)).thenReturn("ERROR");
         when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID)).thenReturn(null);
 
-        reconciler.reconcile();
+        worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).submitCredentialRequest(HOST_ID);
         verify(dataspaceProvisioningService).submitCredentialRequest(MGMT_ID);
     }
 
     @Test
-    void reconcileDoesNotResubmitWhenCredentialIssuedOrPending() {
+    void provisionParticipantDoesNotResubmitWhenCredentialIssuedOrPending() {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
@@ -141,18 +141,18 @@ class DataspaceParticipantReconcilerTest {
         when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID))
                 .thenReturn(DataspaceProvisioningService.STATUS_PENDING);
 
-        reconciler.reconcile();
+        worker.provisionParticipant();
 
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
     }
 
     @Test
-    void reconcileSkipsWhenOwnerIsNull() {
+    void provisionParticipantSkipsWhenOwnerIsNull() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
         when(scheduledJobHelper.getServerConf()).thenReturn(serverConf);
 
-        reconciler.reconcile();
+        worker.provisionParticipant();
 
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());

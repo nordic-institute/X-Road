@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Shared readiness predicates used by both the DSP reconciler and the DSP status service.
+ * Shared readiness predicates used by both the DSP provisioning worker and the DSP status service.
  * Both callers key their logic on the same state; a single implementation prevents the two
  * from silently diverging.
  */

@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
- * Mirrors the precondition observations of {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler}
+ * Mirrors the precondition observations of {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}
  * without triggering any provisioning action.
  */
 @Slf4j

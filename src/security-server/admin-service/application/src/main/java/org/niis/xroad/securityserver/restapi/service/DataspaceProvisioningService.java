@@ -43,7 +43,7 @@ import java.util.Optional;
  * and issues their X-Road membership credentials, over X-Road gRPC.
  *
  * <p>Exposes non-blocking, single-step primitives for use by
- * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler}:
+ * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
  * <ul>
  *   <li>{@link #contextExists(String)} — checks whether a participant context exists in IdentityHub.</li>
  *   <li>{@link #ensureParticipantContext(String, String)} — idempotent context creation for one participant (IH + CP).</li>

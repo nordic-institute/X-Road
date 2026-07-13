@@ -36,13 +36,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Level-triggered reconciler that drives data space participant context provisioning
+ * Level-triggered provisioning worker that drives data space participant context provisioning
  * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataspaceParticipantReconciler {
+public class DataspaceParticipantProvisioningWorker {
 
     static final int JOB_REPEAT_INTERVAL_MS = 30000;
     static final int INITIAL_DELAY_MS = 30000;
@@ -52,39 +52,39 @@ public class DataspaceParticipantReconciler {
     private final DataspaceReadinessPredicates readinessPredicates;
 
     /**
-     * Scheduled reconciliation tick. Runs at a fixed rate; failures are non-fatal and
+     * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
      * retried on the next tick.
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
-    public void scheduledReconcile() {
+    public void scheduledProvision() {
         try {
-            reconcile();
+            provisionParticipant();
         } catch (Exception e) {
-            log.error("Data space participant reconciliation tick failed", e);
+            log.error("Data space participant provisioning tick failed", e);
         }
     }
 
     /**
-     * Executes one idempotent reconciliation step. Safe to call directly for an eager first
-     * reconcile at SS init; in that context a failure propagates to the caller.
+     * Executes one idempotent provisioning step. Safe to call directly for an eager first
+     * provisioning run at SS init; in that context a failure propagates to the caller.
      */
-    public void reconcile() {
+    public void provisionParticipant() {
         ServerConfEntity serverConf = loadServerConf();
         if (serverConf == null) {
-            log.debug("Data space reconcile: SS not yet initialized, skipping");
+            log.debug("Data space provisioning: SS not yet initialized, skipping");
             return;
         }
 
         var owner = serverConf.getOwner();
         if (owner == null) {
-            log.debug("Data space reconcile: server owner not set, skipping");
+            log.debug("Data space provisioning: server owner not set, skipping");
             return;
         }
         var ownerId = owner.getIdentifier();
         var ownerMemberIdSlashForm = "%s/%s/%s".formatted(ownerId.getXRoadInstance(), ownerId.getMemberClass(), ownerId.getMemberCode());
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        log.debug("Data space reconcile: authCertRegistered={}", authCertRegistered);
+        log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
         for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
             if (!dataspaceProvisioningService.contextExists(participantId)) {
@@ -93,18 +93,18 @@ public class DataspaceParticipantReconciler {
         }
 
         if (!authCertRegistered) {
-            log.debug("Data space reconcile: auth cert not yet REGISTERED, deferring credential request");
+            log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");
             return;
         }
 
         for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
             var status = dataspaceProvisioningService.readCredentialStatus(participantId);
             if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
-                log.debug("Data space reconcile: participant {} credential already ISSUED", participantId);
+                log.debug("Data space provisioning: participant {} credential already ISSUED", participantId);
             } else if (DataspaceProvisioningService.STATUS_PENDING.equals(status)) {
-                log.debug("Data space reconcile: participant {} credential PENDING, waiting for next tick", participantId);
+                log.debug("Data space provisioning: participant {} credential PENDING, waiting for next tick", participantId);
             } else {
-                log.info("Data space reconcile: submitting credential request for participant {}", participantId);
+                log.info("Data space provisioning: submitting credential request for participant {}", participantId);
                 dataspaceProvisioningService.submitCredentialRequest(participantId);
             }
         }

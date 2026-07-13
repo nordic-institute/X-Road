@@ -44,7 +44,7 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantReconciler;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -99,7 +99,7 @@ public class InitializationServiceTest {
     @Mock
     private EncryptionInitializationService encryptionInitializationService;
     @Mock
-    private DataspaceParticipantReconciler dataspaceParticipantReconciler;
+    private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
 
     private InitializationService initializationService;
 
@@ -116,7 +116,7 @@ public class InitializationServiceTest {
         when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(Boolean.TRUE);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
-                securityServerBackupService, encryptionInitializationService, dataspaceParticipantReconciler);
+                securityServerBackupService, encryptionInitializationService, dataspaceParticipantProvisioningWorker);
     }
 
     @Test
@@ -418,11 +418,11 @@ public class InitializationServiceTest {
     }
 
     @Test
-    public void initializeReconcileFailIsAlwaysSwallowed() {
+    public void initializeProvisioningFailIsAlwaysSwallowed() {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        doThrow(new RuntimeException("reconcile error")).when(dataspaceParticipantReconciler).reconcile();
+        doThrow(new RuntimeException("provisioning error")).when(dataspaceParticipantProvisioningWorker).provisionParticipant();
 
         assertDoesNotThrow(() ->
                 initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
