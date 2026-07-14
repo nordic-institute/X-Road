@@ -31,8 +31,6 @@ quarkus:
 web:
   http:
     port: 8181
-    management:
-      port: 8182
     protocol:
       port: 8183
       path: /api/dsp
@@ -44,6 +42,12 @@ web:
       port: 8185
 
 xroad:
+  edc:
+    boot:
+      # Upstream DataPlaneSignalingApiExtension registers the DP registration V5 controller on the
+      # MANAGEMENT web context; XRoadDataPlaneRegistrationApiExtension replaces it with a SIGNALING-context
+      # registration so the management context (and its dedicated port) is not needed.
+      excluded-service-extensions: org.eclipse.edc.signaling.DataPlaneSignalingApiExtension
   ds:
     rpc:
       host: "0.0.0.0"

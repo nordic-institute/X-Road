@@ -32,11 +32,20 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.boot.system.DependencyGraph;
+import org.eclipse.edc.boot.system.ExtensionLoader;
+import org.eclipse.edc.boot.system.ServiceLocatorImpl;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * EDC runtime implementation for Quarkus environment. Handles EDC lifecycle within Quarkus.
@@ -46,8 +55,12 @@ import org.jetbrains.annotations.NotNull;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class EdcRuntime extends BaseRuntime {
+
+    static final String SETTING_EXCLUDED_SERVICE_EXTENSIONS = "xroad.edc.boot.excluded-service-extensions";
+
     private final QuarkusLoggingBridge loggingBridge;
     private final QuarkusConfigBridge configBridge;
+    private final ExtensionLoader extensionLoader = new ExtensionLoader(new ServiceLocatorImpl());
 
     @PreDestroy
     @Override
@@ -71,5 +84,38 @@ public class EdcRuntime extends BaseRuntime {
     @Override
     protected @NotNull ServiceExtensionContext createContext(Monitor monitor, Config config) {
         return new QuarkusServiceExtensionContext(loggingBridge, configBridge);
+    }
+
+    /**
+     * Loads {@link ServiceExtension}s the same way {@link BaseRuntime} does, except extensions whose class name is
+     * listed under {@value SETTING_EXCLUDED_SERVICE_EXTENSIONS} (comma-separated, fully qualified) are dropped
+     * before the dependency graph is built. This lets an X-Road-side replacement extension supersede an upstream
+     * one without resorting to classpath surgery.
+     */
+    @Override
+    protected DependencyGraph buildDependencyGraph(ServiceExtensionContext context) {
+        var extensions = filterExcluded(extensionLoader.loadExtensions(ServiceExtension.class, true), context);
+        return DependencyGraph.of(context, extensions);
+    }
+
+    static List<ServiceExtension> filterExcluded(List<ServiceExtension> extensions, ServiceExtensionContext context) {
+        var excluded = excludedServiceExtensionTypes(context);
+        if (excluded.isEmpty()) {
+            return extensions;
+        }
+        return extensions.stream()
+                .filter(extension -> !excluded.contains(extension.getClass().getName()))
+                .toList();
+    }
+
+    private static Set<String> excludedServiceExtensionTypes(ServiceExtensionContext context) {
+        var value = context.getSetting(SETTING_EXCLUDED_SERVICE_EXTENSIONS, "");
+        if (value.isBlank()) {
+            return Set.of();
+        }
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(type -> !type.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
     }
 }
