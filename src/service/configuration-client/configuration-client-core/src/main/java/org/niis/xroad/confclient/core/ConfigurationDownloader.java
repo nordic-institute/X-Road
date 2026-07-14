@@ -43,7 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -407,8 +409,33 @@ public class ConfigurationDownloader {
         ConfigurationDirectory.saveMetadata(destination, file.getMetadata());
     }
 
-    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file) throws Exception {
-        return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
+    static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file)
+            throws URISyntaxException, MalformedURLException {
+        URI sourceUri = new URI(location.getDownloadURL());
+        URI resolvedUri = sourceUri.resolve(file.getContentLocation());
+
+        if (!isSameOrigin(sourceUri, resolvedUri)) {
+            throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION,
+                    "Configuration part %s content location resolved to foreign origin %s (expected origin of %s)"
+                            .formatted(file, resolvedUri, sourceUri));
+        }
+
+        return resolvedUri.toURL();
+    }
+
+    private static boolean isSameOrigin(URI source, URI resolved) throws MalformedURLException {
+        if (resolved.getHost() == null || source.getHost() == null) {
+            return false;
+        }
+
+        return source.getScheme().equalsIgnoreCase(resolved.getScheme())
+                && source.getHost().equalsIgnoreCase(resolved.getHost())
+                && effectivePort(source) == effectivePort(resolved);
+    }
+
+    private static int effectivePort(URI uri) throws MalformedURLException {
+        int port = uri.getPort();
+        return port != -1 ? port : uri.toURL().getDefaultPort();
     }
 
     public URLConnection getDownloadURLConnection(URL url) throws IOException {
