@@ -34,7 +34,6 @@ init:
 {% if ds_tls %}
 {% set _ = proxy_env.update({
   'XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID': ss2_advertised_host,
-  'XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT': 'https://ds-control-plane:8184/api/v1/control',
   'JAVA_TOOL_OPTIONS': ds_truststore_opts,
 }) %}
 {% endif %}
