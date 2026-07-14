@@ -12,19 +12,30 @@ source /usr/share/xroad/scripts/_backup_restore_common.sh
 
 set -e
 
-TEMP_GPG_DIR=/var/tmp/xroad/gpgtmp
-TEMP_TAR_FILE=${TEMP_GPG_DIR}/decrypted_temporary.tar
-
 log() { echo >&2 "$@"; }
 
 # The tar label has the form "<server_type>_<version>_<identity>" (see make_tarball_label()).
 # Backup format versions always look like "vN_<flavor>" (e.g. v1_native), so once the known
 # server-type prefix is stripped, the version is unambiguous even if identity also has underscores.
-parse_backup_version() {
-  local remainder="${1#security_}"
-  remainder="${remainder#central_}"
+# Sets BACKUP_LABEL_SERVER_TYPE and BACKUP_LABEL_VERSION; both left empty if unparseable.
+parse_backup_label() {
+  local label="$1"
+  BACKUP_LABEL_SERVER_TYPE=""
+  BACKUP_LABEL_VERSION=""
+  case "$label" in
+    security_*)
+      BACKUP_LABEL_SERVER_TYPE="security"
+      ;;
+    central_*)
+      BACKUP_LABEL_SERVER_TYPE="central"
+      ;;
+    *)
+      return
+      ;;
+  esac
+  local remainder="${label#"${BACKUP_LABEL_SERVER_TYPE}"_}"
   if [[ "$remainder" =~ ^(v[0-9]+_[a-z0-9]+)_ ]]; then
-    echo "${BASH_REMATCH[1]}"
+    BACKUP_LABEL_VERSION="${BASH_REMATCH[1]}"
   fi
 }
 
@@ -42,8 +53,12 @@ fi
 
 log "Reading tar label for backup file: $BACKUP_FILE"
 
-rm -f "$TEMP_TAR_FILE"
-mkdir -p "$TEMP_GPG_DIR"
+# Clear any stale metadata up front so an inconclusive read below (missing/unparseable
+# label) can't leave behind a stale verdict from a previous run against this filename.
+rm -f "${BACKUP_FILE}.metadata"
+
+TEMP_GPG_DIR=$(mktemp -d /var/tmp/xroad/gpgtmp.XXXXXX)
+TEMP_TAR_FILE=${TEMP_GPG_DIR}/decrypted_temporary.tar
 trap 'rm -rf "$TEMP_GPG_DIR"' EXIT
 
 # gpg --decrypt can also handle files that are only signed. Signature validity does not
@@ -66,12 +81,12 @@ fi
 
 log "Parsed tar label: $TAR_LABEL"
 
-BACKUP_VERSION=$(parse_backup_version "$TAR_LABEL")
+parse_backup_label "$TAR_LABEL"
 
-if [ -z "$BACKUP_VERSION" ]; then
+if [ -z "$BACKUP_LABEL_VERSION" ]; then
   log "Could not parse a backup format version from tar label: $TAR_LABEL"
   exit 0
 fi
 
-log "Parsed backup format version: $BACKUP_VERSION"
-echo "$BACKUP_VERSION" > "${BACKUP_FILE}.metadata"
+log "Parsed backup format version: $BACKUP_LABEL_VERSION (server type: $BACKUP_LABEL_SERVER_TYPE)"
+echo "{\"version\":\"${BACKUP_LABEL_VERSION}\",\"server_type\":\"${BACKUP_LABEL_SERVER_TYPE}\"}" > "${BACKUP_FILE}.metadata"

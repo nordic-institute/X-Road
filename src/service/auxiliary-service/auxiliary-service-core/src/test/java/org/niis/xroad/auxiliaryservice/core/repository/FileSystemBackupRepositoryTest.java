@@ -184,7 +184,7 @@ class FileSystemBackupRepositoryTest {
         String name = "compatible-file.gpg";
         byte[] data = new byte[]{'h', 'e', 'l', 'l', 'o'};
 
-        when(backupMetadataService.determineBackupCompatibility(backupDir.resolve(name))).thenReturn(true);
+        when(backupMetadataService.isBackupCompatible(backupDir.resolve(name))).thenReturn(true);
 
         BackupItem backupItem = backupRepository.storeBackup(name, data);
 
@@ -196,7 +196,7 @@ class FileSystemBackupRepositoryTest {
         String name = "incompatible-file.gpg";
         byte[] data = new byte[]{'h', 'e', 'l', 'l', 'o'};
 
-        when(backupMetadataService.determineBackupCompatibility(backupDir.resolve(name))).thenReturn(false);
+        when(backupMetadataService.isBackupCompatible(backupDir.resolve(name))).thenReturn(false);
 
         BackupItem backupItem = backupRepository.storeBackup(name, data);
 

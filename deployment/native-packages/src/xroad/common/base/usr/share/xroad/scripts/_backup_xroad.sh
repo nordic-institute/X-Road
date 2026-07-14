@@ -111,7 +111,7 @@ create_backup_tarball () {
 }
 
 write_backup_metadata () {
-  echo "$BACKUP_FORMAT_VERSION_LABEL" > "${BACKUP_FILENAME}.metadata"
+  echo "{\"version\":\"${BACKUP_FORMAT_VERSION_LABEL}\",\"server_type\":\"${SERVER_TYPE}\"}" > "${BACKUP_FILENAME}.metadata"
 }
 
 ENCRYPT_MODE="none"

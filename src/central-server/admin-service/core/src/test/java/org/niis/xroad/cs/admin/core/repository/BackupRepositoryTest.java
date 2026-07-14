@@ -236,7 +236,7 @@ class BackupRepositoryTest {
         var content = "content".getBytes();
         var file = backupDir.resolve(BACKUP_FILE_NAME);
         when(backupValidator.isValidBackupFilename(BACKUP_FILE_NAME)).thenReturn(true);
-        when(backupMetadataService.determineBackupCompatibility(file)).thenReturn(true);
+        when(backupMetadataService.isBackupCompatible(file)).thenReturn(true);
 
         var backupFile = repository.writeBackupFile(BACKUP_FILE_NAME, content);
 
@@ -244,6 +244,8 @@ class BackupRepositoryTest {
         assertThat(backupFile.getFilename()).isEqualTo(BACKUP_FILE_NAME);
         assertThat(backupFile.isCompatible()).isTrue();
         assertThat(backupFile.getCreatedAt()).isNotNull();
+
+        verify(backupMetadataService).createMetadata(file);
     }
 
     @Test
@@ -288,7 +290,5 @@ class BackupRepositoryTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Error[code=invalid_filename, metadata=[%s]]".formatted(filename));
     }
-
-
 
 }

@@ -51,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,8 +59,13 @@ class BackupMetadataServiceTest {
 
     private static final String CURRENT_FORMAT_VERSION = "v1";
 
+    private static final String METADATA_JSON_TEMPLATE = "{\"version\":\"%s\",\"server_type\":\"security\"}";
+
     @TempDir
     private Path backupDir;
+
+    @TempDir
+    private Path outsideDir;
 
     @Mock
     private ExternalProcessRunner externalProcessRunner;
@@ -74,6 +80,7 @@ class BackupMetadataServiceTest {
         Files.writeString(formatVersionFile, CURRENT_FORMAT_VERSION);
         when(backupProperties.backupFormatVersionFilePath()).thenReturn(formatVersionFile.toString());
         lenient().when(backupProperties.createBackupMetadataPath()).thenReturn("irrelevant-script-path");
+        lenient().when(backupProperties.location()).thenReturn(backupDir.toString());
 
         service = new BackupMetadataService(externalProcessRunner, backupProperties);
         service.init();
@@ -89,7 +96,7 @@ class BackupMetadataServiceTest {
     @Test
     void isBackupCompatibleReturnsTrueWhenMetadataVersionMatches() throws IOException {
         var backupPath = backupDir.resolve("backup.gpg");
-        Files.writeString(backupDir.resolve("backup.gpg.metadata"), CURRENT_FORMAT_VERSION);
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), metadataJson(CURRENT_FORMAT_VERSION));
 
         assertThat(service.isBackupCompatible(backupPath)).isTrue();
     }
@@ -97,16 +104,47 @@ class BackupMetadataServiceTest {
     @Test
     void isBackupCompatibleReturnsFalseWhenMetadataVersionDiffers() throws IOException {
         var backupPath = backupDir.resolve("backup.gpg");
-        Files.writeString(backupDir.resolve("backup.gpg.metadata"), "v2");
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), metadataJson("v2"));
 
         assertThat(service.isBackupCompatible(backupPath)).isFalse();
+    }
+
+    @Test
+    void isBackupCompatibleReturnsFalseWhenServerTypeDiffers() throws IOException {
+        var backupPath = backupDir.resolve("backup.gpg");
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"),
+                "{\"version\":\"" + CURRENT_FORMAT_VERSION + "\",\"server_type\":\"central\"}");
+
+        assertThat(service.isBackupCompatible(backupPath)).isFalse();
+    }
+
+    @Test
+    void isBackupCompatibleReturnsFalseWhenMetadataFileIsNotValidJson() throws IOException {
+        var backupPath = backupDir.resolve("backup.gpg");
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), "not-valid-json");
+
+        assertThat(service.isBackupCompatible(backupPath)).isFalse();
+    }
+
+    @Test
+    void isBackupCompatibleReturnsFalseWhenReadingMetadataThrowsException() throws IOException {
+        var backupPath = backupDir.resolve("backup.gpg");
+        var metadataPath = backupDir.resolve("backup.gpg.metadata");
+        Files.writeString(metadataPath, metadataJson(CURRENT_FORMAT_VERSION));
+
+        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+            filesMock.when(() -> Files.exists(metadataPath)).thenReturn(true);
+            filesMock.when(() -> Files.readString(metadataPath)).thenThrow(new IOException("disk error"));
+
+            assertThat(service.isBackupCompatible(backupPath)).isFalse();
+        }
     }
 
     @Test
     void deleteMetadataRemovesMetadataFileWhenPresent() throws IOException {
         var backupPath = backupDir.resolve("backup.gpg");
         var metadataPath = backupDir.resolve("backup.gpg.metadata");
-        Files.writeString(metadataPath, CURRENT_FORMAT_VERSION);
+        Files.writeString(metadataPath, metadataJson(CURRENT_FORMAT_VERSION));
 
         service.deleteMetadata(backupPath);
 
@@ -133,60 +171,104 @@ class BackupMetadataServiceTest {
     }
 
     @Test
-    void determineBackupCompatibilityReturnsTrueWhenScriptSucceedsAndMetadataMatches() throws Exception {
+    void createMetadataLeavesBackupCompatibleWhenScriptSucceedsAndMetadataMatches() throws Exception {
         var backupPath = backupDir.resolve("backup.gpg");
-        Files.writeString(backupDir.resolve("backup.gpg.metadata"), CURRENT_FORMAT_VERSION);
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), metadataJson(CURRENT_FORMAT_VERSION));
         when(externalProcessRunner.execute(anyString(), anyString()))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("cmd", 0, List.of("ok")));
 
-        assertThat(service.determineBackupCompatibility(backupPath)).isTrue();
+        service.createMetadata(backupPath);
+
+        assertThat(service.isBackupCompatible(backupPath)).isTrue();
     }
 
     @Test
-    void determineBackupCompatibilityReturnsTrueWhenScriptSucceedsAndMetadataDiffers() throws Exception {
+    void createMetadataLeavesBackupIncompatibleWhenScriptSucceedsAndMetadataDiffers() throws Exception {
         var backupPath = backupDir.resolve("backup.gpg");
-        Files.writeString(backupDir.resolve("backup.gpg.metadata"), "v2");
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), metadataJson("v2"));
         when(externalProcessRunner.execute(anyString(), anyString()))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("cmd", 0, List.of("ok")));
 
-        assertThat(service.determineBackupCompatibility(backupPath)).isFalse();
+        service.createMetadata(backupPath);
+
+        assertThat(service.isBackupCompatible(backupPath)).isFalse();
     }
 
     @Test
-    void determineBackupCompatibilityReturnsFalseWhenScriptExitsWithNonZeroCode() throws Exception {
+    void createMetadataLeavesStaleMetadataUntouchedWhenScriptExitsWithNonZeroCode() throws Exception {
         var backupPath = backupDir.resolve("backup.gpg");
-        Files.writeString(backupDir.resolve("backup.gpg.metadata"), CURRENT_FORMAT_VERSION);
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), metadataJson(CURRENT_FORMAT_VERSION));
         when(externalProcessRunner.execute(anyString(), anyString()))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("cmd", 1, List.of("failure")));
 
-        assertThat(service.determineBackupCompatibility(backupPath)).isFalse();
+        service.createMetadata(backupPath);
+
+        assertThat(service.isBackupCompatible(backupPath)).isTrue();
     }
 
     @Test
-    void determineBackupCompatibilityReturnsFalseWhenProcessNotExecutable() throws Exception {
+    void createMetadataDeletesStaleMetadataWhenProcessNotExecutable() throws Exception {
         var backupPath = backupDir.resolve("backup.gpg");
+        Files.writeString(backupDir.resolve("backup.gpg.metadata"), metadataJson(CURRENT_FORMAT_VERSION));
         when(externalProcessRunner.execute(anyString(), anyString()))
                 .thenThrow(new ProcessNotExecutableException(new IOException("boom")));
 
-        assertThat(service.determineBackupCompatibility(backupPath)).isFalse();
+        service.createMetadata(backupPath);
+
+        assertThat(service.isBackupCompatible(backupPath)).isFalse();
     }
 
     @Test
-    void determineBackupCompatibilityReturnsFalseWhenProcessFailed() throws Exception {
+    void createMetadataLeavesBackupIncompatibleWhenProcessFailed() throws Exception {
         var backupPath = backupDir.resolve("backup.gpg");
         when(externalProcessRunner.execute(anyString(), anyString()))
                 .thenThrow(new ProcessFailedException("failed"));
 
-        assertThat(service.determineBackupCompatibility(backupPath)).isFalse();
+        service.createMetadata(backupPath);
+
+        assertThat(service.isBackupCompatible(backupPath)).isFalse();
     }
 
     @Test
-    void determineBackupCompatibilityReturnsFalseAndKeepsInterruptFlagWhenInterrupted() throws Exception {
+    void createMetadataKeepsInterruptFlagWhenInterrupted() throws Exception {
         var backupPath = backupDir.resolve("backup.gpg");
         when(externalProcessRunner.execute(anyString(), anyString()))
                 .thenThrow(new InterruptedException("interrupted"));
 
-        assertThat(service.determineBackupCompatibility(backupPath)).isFalse();
+        service.createMetadata(backupPath);
+
+        assertThat(service.isBackupCompatible(backupPath)).isFalse();
     }
 
+    @Test
+    void isBackupCompatibleReturnsFalseForPathOutsideBackupDir() throws IOException {
+        var outsidePath = outsideDir.resolve("outside.gpg");
+        Files.writeString(outsideDir.resolve("outside.gpg.metadata"), metadataJson(CURRENT_FORMAT_VERSION));
+
+        assertThat(service.isBackupCompatible(outsidePath)).isFalse();
+    }
+
+    @Test
+    void deleteMetadataDoesNotDeleteFileOutsideBackupDir() throws IOException {
+        var outsidePath = outsideDir.resolve("outside.gpg");
+        var outsideMetadata = outsideDir.resolve("outside.gpg.metadata");
+        Files.writeString(outsideMetadata, metadataJson(CURRENT_FORMAT_VERSION));
+
+        service.deleteMetadata(outsidePath);
+
+        assertThat(outsideMetadata).exists();
+    }
+
+    @Test
+    void createMetadataDoesNotRunScriptForPathOutsideBackupDir() {
+        var outsidePath = outsideDir.resolve("outside.gpg");
+
+        service.createMetadata(outsidePath);
+
+        verifyNoInteractions(externalProcessRunner);
+    }
+
+    private static String metadataJson(String version) {
+        return String.format(METADATA_JSON_TEMPLATE, version);
+    }
 }

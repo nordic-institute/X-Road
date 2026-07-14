@@ -31,25 +31,32 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
-import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-@Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
 public class BackupMetadataService {
 
     static final String METADATA_SUFFIX = ".metadata";
+
+    private static final String EXPECTED_SERVER_TYPE = "security";
+
+    private static final ObjectMapper MAPPER = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build();
 
     private final ExternalProcessRunner externalProcessRunner;
     private final BackupProperties backupProperties;
@@ -68,10 +75,14 @@ public class BackupMetadataService {
     }
 
     public boolean isBackupCompatible(Path backupPath) {
-        return readMetadataVersion(backupPath).map(this::isCompatible).orElse(false);
+        return readMetadata(backupPath).map(this::isCompatible).orElse(false);
     }
 
     public void deleteMetadata(Path backupPath) {
+        if (isOutsideBackupDirectory(backupPath)) {
+            log.warn("Refusing to delete metadata for path outside the backup directory: {}", backupPath);
+            return;
+        }
         try {
             Files.deleteIfExists(toMetadataPath(backupPath));
         } catch (IOException e) {
@@ -80,9 +91,15 @@ public class BackupMetadataService {
     }
 
     /**
-     * Runs the metadata creation script, which parses the backup's version and writes the backup's ".metadata" file
+     * Runs the metadata creation script, which clears any stale ".metadata" file for this backup up front and
+     * writes a fresh one only if it can parse the backup's version. This only creates/refreshes the metadata
+     * file; call {@link #isBackupCompatible(Path)} separately to read the compatibility result.
      */
-    public boolean determineBackupCompatibility(Path backupPath) {
+    public void createMetadata(Path backupPath) {
+        if (isOutsideBackupDirectory(backupPath)) {
+            log.warn("Refusing to create metadata for path outside the backup directory: {}", backupPath);
+            return;
+        }
         try {
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner.execute(
                     backupProperties.createBackupMetadataPath(),
@@ -95,38 +112,45 @@ public class BackupMetadataService {
             if (processResult.getExitCode() != 0) {
                 log.warn("Backup label script failed for {} with exit code {}",
                         backupPath.getFileName(), processResult.getExitCode());
-                return false;
             }
-
-            return isBackupCompatible(backupPath);
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.warn("Reading backup label failed for {}: {}", backupPath.getFileName(), e.getMessage());
-            return false;
+            deleteMetadata(backupPath);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             log.warn("Reading backup label interrupted for {}", backupPath.getFileName());
-            return false;
+            deleteMetadata(backupPath);
         }
     }
 
-    private Optional<String> readMetadataVersion(Path backupPath) {
+    private Optional<BackupMetadata> readMetadata(Path backupPath) {
         Path metaPath = toMetadataPath(backupPath);
         if (!Files.exists(metaPath)) {
             return Optional.empty();
         }
         try {
-            return Optional.of(Files.readString(metaPath).strip());
-        } catch (IOException e) {
+            String json = Files.readString(metaPath);
+            return Optional.ofNullable(MAPPER.readValue(json, BackupMetadata.class));
+        } catch (Exception e) {
             log.warn("Failed to read metadata for {}: {}", backupPath.getFileName(), e.getMessage());
             return Optional.empty();
         }
     }
 
-    private boolean isCompatible(String version) {
-        return currentFormatVersion != null && currentFormatVersion.equals(version);
+    private boolean isCompatible(BackupMetadata metadata) {
+        return currentFormatVersion != null
+                && currentFormatVersion.equals(metadata.version())
+                && EXPECTED_SERVER_TYPE.equals(metadata.serverType());
+    }
+
+    private boolean isOutsideBackupDirectory(Path backupPath) {
+        Path backupDir = Path.of(backupProperties.location()).normalize();
+        return !backupPath.normalize().startsWith(backupDir);
     }
 
     private static Path toMetadataPath(Path backupPath) {
         return backupPath.resolveSibling(backupPath.getFileName() + METADATA_SUFFIX);
+    }
+
+    private record BackupMetadata(String version, String serverType) {
     }
 }

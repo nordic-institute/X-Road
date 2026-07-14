@@ -119,10 +119,11 @@ public class FileSystemBackupRepository implements BackupRepository {
         var path = getAbsoluteBackupFilePath(name);
         try {
             Files.write(path, content);
+            backupMetadataService.createMetadata(path);
             return new BackupItem(
                     name,
                     getCreatedAt(path),
-                    backupMetadataService.determineBackupCompatibility(path));
+                    backupMetadataService.isBackupCompatible(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
             throw XrdRuntimeException.systemException(INVALID_BACKUP_FILE, name);

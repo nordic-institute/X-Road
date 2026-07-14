@@ -149,7 +149,8 @@ public class BackupRepository {
         var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.write(path, content);
-            return new BackupFile(filename, getCreatedAt(path), backupMetadataService.determineBackupCompatibility(path));
+            backupMetadataService.createMetadata(path);
+            return new BackupFile(filename, getCreatedAt(path), backupMetadataService.isBackupCompatible(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
             throw new InternalServerErrorException(ioe, INVALID_BACKUP_FILE.build());
