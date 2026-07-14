@@ -6,9 +6,16 @@ services:
         - CS_IMG=${CS_IMG}
       dockerfile: Dockerfile
     pull_policy: always
+    environment:
+      - XROAD_HOST=localhost
+      - XROAD_DATASPACE_ISSUER_HOST=localhost
+      - XROAD_COMMON_RPC_USE_TLS=false
     ports:
       - "0:4000"
       - "0:5432"
+      - "0:6183"
+      - "0:6185"
+      - "0:6187"
     healthcheck:
       interval: 5s
       retries: 40
@@ -18,7 +25,14 @@ services:
         reservations:
           memory: 768M
         limits:
-          memory: 2048M
+          memory: 3072M
+    volumes:
+      - ds-https-keystore:/etc/xroad/ds-ssl:ro
+    depends_on:
+      ds-https-keystore-init:
+        condition: service_completed_successfully
+      mock-jwks-server:
+        condition: service_healthy
 
   mock-server:
     image: mockserver/mockserver:mockserver-5.15.0
@@ -30,3 +44,56 @@ services:
           memory: 128M
         limits:
           memory: 512M
+
+  ds-https-keystore-init:
+    image: eclipse-temurin:21-jre-alpine
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        set -euo pipefail
+        cd /keystore
+        [ -f ds-https.p12 ] && [ -f cacerts ] && exit 0
+        apk add --no-cache openssl
+        openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+          -keyout ds-https-key.pem -out ds-https-cert.pem \
+          -subj "/CN=xrd-ds" \
+          -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+        openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
+          -name ds-https -password pass:changeit
+        cp /opt/java/openjdk/lib/security/cacerts cacerts
+        chmod u+w cacerts
+        keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
+          -keystore cacerts -storepass changeit
+        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem
+    volumes:
+      - ds-https-keystore:/keystore
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  mock-jwks-server:
+    image: python:3.11-alpine
+    command: >
+      sh -c "
+        mkdir -p /tmp/jwks &&
+        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
+        python3 -m http.server 8080 --directory /tmp/jwks
+      "
+    healthcheck:
+      interval: 5s
+      retries: 3
+      test: [ "CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+    volumes:
+      - ./container-files/jwks/:/jwks
+
+volumes:
+  ds-https-keystore:

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
-import io.grpc.ServerCredentials;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -34,29 +33,19 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
-import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
-import java.io.IOException;
 import java.time.Duration;
 
 /**
- * EDC ServiceExtension that hosts a gRPC server for the AssetAccessService.
+ * EDC ServiceExtension that registers the AssetAccessService onto the runtime's shared gRPC server.
  */
 @Extension(value = AssetAccessGrpcExtension.EXTENSION_NAME)
 public class AssetAccessGrpcExtension implements ServiceExtension {
 
     public static final String EXTENSION_NAME = "X-Road Asset Access gRPC Extension";
-
-    @Setting(key = "xroad.asset-access.rpc.port", description = "gRPC server port for asset access service", defaultValue = "5460")
-    private int rpcPort;
-
-    @Setting(key = "xroad.asset-access.rpc.host", description = "gRPC server listen address", defaultValue = "0.0.0.0")
-    private String rpcHost;
 
     @Setting(key = "xroad.asset-access.acquisition.timeout-seconds",
             description = "Overall asset acquisition deadline in seconds (gRPC await for catalog → negotiation → transfer)",
@@ -70,13 +59,10 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     private ParticipantContextService participantContextService;
 
     @Inject
-    private RpcCredentialsConfigurer credentialsConfigurer;
+    private GrpcServiceRegistry grpcServiceRegistry;
 
     @Inject
     private Monitor monitor;
-
-    private RpcServer rpcServer;
-    private AssetAccessGrpcService grpcService;
 
     @Override
     public String name() {
@@ -86,51 +72,9 @@ public class AssetAccessGrpcExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext extensionContext) {
         var responseHandler = new RpcResponseHandler();
-        grpcService = new AssetAccessGrpcService(assetAccessOrchestrator, participantContextService, responseHandler,
+        var grpcService = new AssetAccessGrpcService(assetAccessOrchestrator, participantContextService, responseHandler,
                 Duration.ofSeconds(acquisitionTimeoutSeconds));
+        grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
-    }
-
-    @Override
-    public void start() {
-        var credentials = resolveServerCredentials();
-
-        rpcServer = new RpcServer(rpcHost, rpcPort, credentials,
-                builder -> builder.addService(grpcService));
-        try {
-            rpcServer.init();
-            monitor.info("Started " + EXTENSION_NAME + " on " + rpcHost + ":" + rpcPort);
-        } catch (IOException e) {
-            throw XrdRuntimeException.systemException(
-                    ErrorCode.INTERNAL_ERROR, e, "Failed to start gRPC server for %s", EXTENSION_NAME);
-        }
-    }
-
-    @Override
-    public void shutdown() {
-        if (rpcServer != null) {
-            try {
-                rpcServer.destroy();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                monitor.warning("Interrupted while shutting down gRPC server", e);
-            } catch (RuntimeException e) {
-                monitor.severe("Failed to shut down gRPC server for " + EXTENSION_NAME, e);
-            }
-        }
-    }
-
-    ServerCredentials resolveServerCredentials() {
-        try {
-            return credentialsConfigurer.createServerCredentials();
-        } catch (Exception e) {
-            monitor.severe("%s failed to build server credentials — gRPC server cannot start"
-                    .formatted(EXTENSION_NAME), e);
-            throw XrdRuntimeException.systemException(
-                    ErrorCode.INTERNAL_ERROR,
-                    e,
-                    "%s failed to build server credentials",
-                    EXTENSION_NAME);
-        }
     }
 }

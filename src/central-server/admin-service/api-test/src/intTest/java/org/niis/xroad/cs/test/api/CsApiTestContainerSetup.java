@@ -38,7 +38,8 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 import static org.testcontainers.containers.wait.strategy.Wait.forLogMessage;
 
 /**
- * Browserless Central Server test stack: CS admin service (with embedded postgres) + mock-server.
+ * Browserless Central Server test stack: CS admin service (with embedded postgres, openbao, and
+ * co-located DS Issuer Service) + mock-server + mock-jwks-server.
  */
 @Slf4j
 @SuppressWarnings("checkstyle:magicnumber")
@@ -46,6 +47,7 @@ class CsApiTestContainerSetup extends BaseComposeSetup {
 
     static final String CS = "cs-admin-service";
     static final String MOCK_SERVER = "mock-server";
+    static final String MOCK_JWKS_SERVER = "mock-jwks-server";
 
     private static final String COMPOSE_API_FILE = "compose.api.yaml";
 
@@ -67,6 +69,7 @@ class CsApiTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(MOCK_SERVER, Port.MOCK_SERVER,
                         forLogMessage(".*started on port: 1080.*", 1))
                 .withLogConsumer(CS, createLogConsumer(CS))
-                .withLogConsumer(MOCK_SERVER, createLogConsumer(MOCK_SERVER));
+                .withLogConsumer(MOCK_SERVER, createLogConsumer(MOCK_SERVER))
+                .withLogConsumer(MOCK_JWKS_SERVER, createLogConsumer(MOCK_JWKS_SERVER));
     }
 }

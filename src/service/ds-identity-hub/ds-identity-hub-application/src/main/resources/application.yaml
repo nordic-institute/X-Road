@@ -32,6 +32,11 @@ quarkus:
         enabled: true
         path: /var/log/xroad/ds-identity-hub.log
 
+xroad:
+  ds:
+    rpc:
+      host: "0.0.0.0"
+
 web:
   http:
     port: 7181

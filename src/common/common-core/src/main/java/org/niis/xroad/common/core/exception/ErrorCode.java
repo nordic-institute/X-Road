@@ -321,7 +321,8 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_ACQUISITION_TIMEOUT("dsp_acquisition_timeout"),
     DSP_NEGOTIATION_FAILED("dsp_negotiation_failed"),
     DSP_TRANSFER_FAILED("dsp_transfer_failed"),
-    DSP_ACQUISITION_FAILED("dsp_acquisition_failed");
+    DSP_ACQUISITION_FAILED("dsp_acquisition_failed"),
+    DSP_PROVISIONING_FAILED("dsp_provisioning_failed");
 
     private final String code;
 
