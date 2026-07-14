@@ -51,6 +51,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.test.framework.core.logging.ComposeLoggerFactory.CONTAINER_LOGS_DIR;
 
@@ -69,10 +70,17 @@ public abstract class BaseComposeSetup implements InitializingBean, DisposableBe
     protected final TestFrameworkCoreProperties coreProperties;
     protected ComposeContainer env;
     private DockerStatsMonitor dockerStatsMonitor;
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
+    // Spring runs initialization callbacks once per bean DEFINITION, not per instance. Test
+    // configs register the same setup object under several interface-typed @Bean methods
+    // (e.g. E2eEnvironment + MessagelogDbOps + MessagelogArchiveOps), so without the guard
+    // each alias definition re-runs init() and starts a duplicate container environment.
     @Override
     public void afterPropertiesSet() {
-        init();
+        if (initialized.compareAndSet(false, true)) {
+            init();
+        }
     }
 
     @SneakyThrows
