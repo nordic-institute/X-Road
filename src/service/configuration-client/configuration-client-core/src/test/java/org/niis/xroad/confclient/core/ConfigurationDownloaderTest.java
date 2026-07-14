@@ -61,7 +61,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -197,6 +197,72 @@ class ConfigurationDownloaderTest {
 
         assertEquals(1, result.size());
         assertEquals("/good.xml", result.getFirst().file.getContentLocation());
+    }
+
+    @Test
+    void relativeContentLocationResolvesAgainstSourceUrl() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("files/part.xml");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs.x-road.global/files/part.xml");
+    }
+
+    @Test
+    void rootRelativeContentLocationResolvesToSourceOrigin() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("/V2/fi/shared-params.xml");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs.x-road.global/V2/fi/shared-params.xml");
+    }
+
+    @Test
+    void absoluteCrossHostContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://169.254.169.254/latest/meta-data/");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION.code()));
+    }
+
+    @Test
+    void absoluteSameHostDifferentPortContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs:80/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://cs:9000/x");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION.code()));
+    }
+
+    @Test
+    void absoluteSameOriginWithImplicitDefaultPortIsAllowed() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://cs:80/x");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs:80/x");
+    }
+
+    @Test
+    void sameHostDifferentSchemeContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("https://cs.x-road.global/x");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION.code()));
+    }
+
+    @Test
+    void nonHttpSchemeContentLocationWithNoHostIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("file:///etc/passwd");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION.code()));
     }
 
     private static ConfigurationFile genericPart(String contentLocation) {

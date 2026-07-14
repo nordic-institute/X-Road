@@ -465,9 +465,35 @@ public class ConfigurationDownloader {
         }
     }
 
-    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file)
+    static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file)
             throws URISyntaxException, MalformedURLException {
-        return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
+        URI sourceUri = new URI(location.getDownloadURL());
+        URI resolvedUri = sourceUri.resolve(file.getContentLocation());
+
+        if (!isSameOrigin(sourceUri, resolvedUri)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION)
+                    .details("Configuration part %s content location resolved to foreign origin %s (expected origin of %s)"
+                            .formatted(file, resolvedUri, sourceUri))
+                    .metadataItems(file.getContentLocation())
+                    .build();
+        }
+
+        return resolvedUri.toURL();
+    }
+
+    private static boolean isSameOrigin(URI source, URI resolved) throws MalformedURLException {
+        if (resolved.getHost() == null || source.getHost() == null) {
+            return false;
+        }
+
+        return source.getScheme().equalsIgnoreCase(resolved.getScheme())
+                && source.getHost().equalsIgnoreCase(resolved.getHost())
+                && effectivePort(source) == effectivePort(resolved);
+    }
+
+    private static int effectivePort(URI uri) throws MalformedURLException {
+        int port = uri.getPort();
+        return port != -1 ? port : uri.toURL().getDefaultPort();
     }
 
     public URLConnection getDownloadURLConnection(URL url) throws IOException {
