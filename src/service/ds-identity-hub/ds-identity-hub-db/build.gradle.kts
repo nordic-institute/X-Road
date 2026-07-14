@@ -17,6 +17,7 @@ dependencies {
   runtimeOnly(libs.edc.sql.lease.core)
   runtimeOnly(libs.edc.sql.participantcontext.store)
   runtimeOnly(libs.edc.store.participantcontext.config.sql)
+  runtimeOnly(libs.postgresql)
 }
 
 archUnit {

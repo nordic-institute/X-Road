@@ -396,7 +396,6 @@ edc-ih-identity-did-core        = { module = "org.eclipse.edc:identity-did-core"
 edc-ih-identity-did-web         = { module = "org.eclipse.edc:identity-did-web",           version.ref = "edc" }
 edc-ih-participant-context-core = { module = "org.eclipse.edc:participant-context-core",   version.ref = "edc" }
 edc-ih-version-api              = { module = "org.eclipse.edc:version-api",                version.ref = "edc" }
-edc-ih-aes-encryption           = { module = "org.eclipse.edc:aes-encryption",             version.ref = "edc" }
 # DCP protocol modules (shared by IH and IS)
 edc-dcp-core                    = { module = "org.eclipse.edc:dcp-core",                   version.ref = "edc" }
 edc-ih-dcp-core                 = { module = "org.eclipse.edc:dcp-identityhub-core",       version.ref = "edc" }
