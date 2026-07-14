@@ -154,7 +154,10 @@
   loop: "{{ ['xroad-proxy'] + (rhel_ds_units.stdout_lines | default([])) }}"
   when: ansible_facts['os_family'] == "RedHat"
 
+# Generous ceiling: proxy-ui-api cold-starts alongside every other service on RHEL (no
+# postinst auto-start), and its startup grew past 180s on loaded CI runners once the DSP
+# provisioning gRPC clients moved into it. wait_for returns as soon as the port opens.
 - name: Wait for X-Road UI port
   wait_for:
     port: 4000
-    timeout: 180
+    timeout: 420
