@@ -24,19 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.dataplane.registration;
+package org.niis.xroad.edc.extension.dataplane.signaling;
 
-import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.signaling.port.api.management.DataPlaneRegistrationApiV4Controller;
-import org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5Controller;
 import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferApiController;
 import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferAuthorizationFilter;
 import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
@@ -44,7 +38,6 @@ import org.eclipse.edc.signaling.port.transformer.DataFlowStatusMessageToDataFlo
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
@@ -56,24 +49,22 @@ import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 
-import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
-import static org.niis.xroad.edc.extension.dataplane.registration.XRoadDataPlaneRegistrationApiExtension.NAME;
+import static org.niis.xroad.edc.extension.dataplane.signaling.XRoadDataPlaneSignalingApiExtension.NAME;
 
 /**
- * Replaces upstream {@code DataPlaneSignalingApiExtension}: keeps the data-plane transfer API on
- * {@link ApiContext#SIGNALING} unchanged, but binds the data-plane registration controller (V4 in
- * single-participant mode, V5 in multi-participant mode, mirroring upstream's mode branching) to
- * {@link ApiContext#SIGNALING} instead of {@link ApiContext#MANAGEMENT}. X-Road seeds its
- * {@code DataPlaneInstanceStore} in-process ({@code XRoadDataPlaneRegistrarExtension}) and never calls this
- * REST API, but keeps the controller mounted for DSP protocol fidelity.
+ * Replaces upstream {@code DataPlaneSignalingApiExtension}: keeps the data-plane transfer API (the
+ * {@link DataPlaneTransferAuthorizationFilter} and {@link DataPlaneTransferApiController}) mounted on
+ * {@link ApiContext#SIGNALING}, but does not mount any data-plane registration REST controller. X-Road seeds
+ * its {@code DataPlaneInstanceStore} in-process ({@code XRoadDataPlaneRegistrarExtension}), which is the only
+ * writer; registration over REST is EDC operator surface, not part of the DSP protocol this extension serves.
  *
  * <p>The upstream extension must be excluded from the boot's dependency graph (see
  * {@code xroad.edc.boot.excluded-service-extensions}) so both extensions do not race to bind the same ports.
  */
 @Extension(NAME)
-public class XRoadDataPlaneRegistrationApiExtension implements ServiceExtension {
+public class XRoadDataPlaneSignalingApiExtension implements ServiceExtension {
 
-    public static final String NAME = "X-Road Data Plane Registration Api";
+    public static final String NAME = "X-Road Data Plane Signaling Api";
 
     private static final String API_VERSION_JSON_FILE = "signaling-api-version.json";
     private static final String DEFAULT_SIGNALING_PATH = "/api/signaling";
@@ -102,12 +93,6 @@ public class XRoadDataPlaneRegistrationApiExtension implements ServiceExtension 
     @Inject
     private SignalingAuthorizationRegistry signalingAuthorizationRegistry;
 
-    @Inject(required = false)
-    private SingleParticipantContextSupplier participantContextSupplier;
-
-    @Inject(required = false)
-    private AuthorizationService authorizationService;
-
     @Override
     public String name() {
         return NAME;
@@ -122,17 +107,6 @@ public class XRoadDataPlaneRegistrationApiExtension implements ServiceExtension 
         typeTransformerRegistry.register(new DataFlowStatusMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
 
-        if (participantContextSupplier != null) {
-            webService.registerResource(ApiContext.SIGNALING,
-                    new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier));
-        } else if (authorizationService != null) {
-            authorizationService.addLookupFunction(DataPlaneInstance.class, this::findDataPlaneInstance);
-            webService.registerResource(ApiContext.SIGNALING,
-                    new DataPlaneRegistrationApiV5Controller(dataPlaneSelectorService, authorizationService));
-        } else {
-            throw new EdcException("Missing AuthorizationService which is required when running in multi participant mode.");
-        }
-
         webService.registerResource(ApiContext.SIGNALING,
                 new DataPlaneTransferAuthorizationFilter(signalingAuthorizationRegistry, transferProcessService, dataPlaneSelectorService));
         webService.registerResource(ApiContext.SIGNALING, new DataPlaneTransferApiController(transferProcessService,
@@ -143,13 +117,5 @@ public class XRoadDataPlaneRegistrationApiExtension implements ServiceExtension 
         } catch (IOException e) {
             throw new EdcException(e);
         }
-    }
-
-    private ParticipantResource findDataPlaneInstance(String ownerId, String dataplaneId) {
-        return dataPlaneSelectorService.search(queryByParticipantContextId(ownerId)
-                        .filter(new Criterion("id", "=", dataplaneId))
-                        .build())
-                .map(it -> it.stream().findFirst().orElse(null))
-                .orElse(f -> null);
     }
 }

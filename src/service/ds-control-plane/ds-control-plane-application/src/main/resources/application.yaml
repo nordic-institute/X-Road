@@ -44,9 +44,9 @@ web:
 xroad:
   edc:
     boot:
-      # Upstream DataPlaneSignalingApiExtension registers the DP registration V5 controller on the
-      # MANAGEMENT web context; XRoadDataPlaneRegistrationApiExtension replaces it with a SIGNALING-context
-      # registration so the management context (and its dedicated port) is not needed.
+      # Upstream DataPlaneSignalingApiExtension also mounts a data-plane registration REST controller;
+      # XRoadDataPlaneSignalingApiExtension replaces it with the transfer API only, since the in-process
+      # registrar (XRoadDataPlaneRegistrarExtension) is the sole DataPlaneInstanceStore writer.
       excluded-service-extensions: org.eclipse.edc.signaling.DataPlaneSignalingApiExtension
   ds:
     rpc:

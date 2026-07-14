@@ -5,10 +5,8 @@ plugins {
 dependencies {
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.web)
-  implementation(libs.edc.spi.auth)
   implementation(libs.edc.spi.dataplane.selector)
   implementation(libs.edc.spi.controlplane)
-  implementation(libs.edc.spi.participantcontext)
   implementation(libs.edc.spi.transform)
   implementation(libs.edc.core.dps) {
     // Swagger/OpenAPI doc-generation dependency, only needed by the module's own edcBuild plugin at build time;
