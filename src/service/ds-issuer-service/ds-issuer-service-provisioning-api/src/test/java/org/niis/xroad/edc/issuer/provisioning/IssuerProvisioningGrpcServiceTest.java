@@ -116,7 +116,7 @@ class IssuerProvisioningGrpcServiceTest {
 
     @Test
     void revokeCredentialHappyPath() {
-        var resource = hostCredentialResource("cred-id-1", "EE", "ORG", "12345678",
+        var resource = hostCredentialResource("cred-id-1", "issuer", "EE", "ORG", "12345678",
                 "did:web:ss1.example.com");
         when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
                 .thenReturn(ServiceResult.success(List.of(resource)));
@@ -132,9 +132,9 @@ class IssuerProvisioningGrpcServiceTest {
 
     @Test
     void revokeCredentialSkipsMgmtHolder() {
-        var mgmtResource = hostCredentialResource("mgmt-id", "EE", "ORG", "12345678",
+        var mgmtResource = hostCredentialResource("mgmt-id", "issuer", "EE", "ORG", "12345678",
                 "did:web:ss1.example.com:mgmt");
-        var hostResource = hostCredentialResource("host-id", "EE", "ORG", "12345678",
+        var hostResource = hostCredentialResource("host-id", "issuer", "EE", "ORG", "12345678",
                 "did:web:ss1.example.com");
         when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
                 .thenReturn(ServiceResult.success(List.of(mgmtResource, hostResource)));
@@ -158,6 +158,19 @@ class IssuerProvisioningGrpcServiceTest {
         verify(credentialStatusService, never()).revokeCredential(any());
     }
 
+    @Test
+    void revokeCredentialIgnoresMatchInDifferentParticipantContext() {
+        var otherContextResource = hostCredentialResource("other-ctx-id", "other-issuer", "EE", "ORG", "12345678",
+                "did:web:ss1.example.com");
+        when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
+                .thenReturn(ServiceResult.success(List.of(otherContextResource)));
+
+        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "12345678"), revokeResponseObserver);
+
+        verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
+        verify(credentialStatusService, never()).revokeCredential(any());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"", "   "})
     void revokeCredentialRejectsBlankParticipantContextId(String blank) {
@@ -176,9 +189,9 @@ class IssuerProvisioningGrpcServiceTest {
                 .build();
     }
 
-    private VerifiableCredentialResource hostCredentialResource(String id, String xroadInstance,
-                                                                String memberClass, String memberCode,
-                                                                String subjectDid) {
+    private VerifiableCredentialResource hostCredentialResource(String id, String participantContextId,
+                                                                String xroadInstance, String memberClass,
+                                                                String memberCode, String subjectDid) {
         var subject = CredentialSubject.Builder.newInstance()
                 .id(subjectDid)
                 .claim("xroadInstance", xroadInstance)
@@ -194,6 +207,7 @@ class IssuerProvisioningGrpcServiceTest {
         var container = new VerifiableCredentialContainer("raw", CredentialFormat.VC1_0_LD, vc);
         return VerifiableCredentialResource.Builder.newInstance()
                 .id(id)
+                .participantContextId(participantContextId)
                 .issuerId("did:web:issuer.example.com")
                 .holderId(subjectDid)
                 .credential(container)

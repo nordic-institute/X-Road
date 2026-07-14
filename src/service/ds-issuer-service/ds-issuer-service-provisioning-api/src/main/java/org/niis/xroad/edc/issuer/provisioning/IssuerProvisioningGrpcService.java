@@ -173,6 +173,7 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         requireSuccessOrConflict(queryResult, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
 
         var credentialId = queryResult.getContent().stream()
+                .filter(resource -> request.getParticipantContextId().equals(resource.getParticipantContextId()))
                 .filter(resource -> resource.getVerifiableCredential() != null
                         && resource.getVerifiableCredential().credential() != null)
                 .filter(resource -> resource.getVerifiableCredential().credential().getCredentialSubject().stream()
