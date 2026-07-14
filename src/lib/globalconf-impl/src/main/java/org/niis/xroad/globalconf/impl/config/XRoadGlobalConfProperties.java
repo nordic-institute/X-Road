@@ -24,25 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.globalconf.impl.config;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
-import org.niis.xroad.globalconf.impl.ocsp.XRoadOcspVerifierProperties;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 
-public class OcspVerifierConfig {
+import java.time.Duration;
 
-    @ApplicationScoped
-    public OcspVerifierProperties ocspVerifierProperties(XRoadConfig config) {
-        return new XRoadOcspVerifierProperties(config);
+/** {@link XRoadConfig}-backed implementation of {@link GlobalConfProperties}. */
+@RequiredArgsConstructor
+public class XRoadGlobalConfProperties implements GlobalConfProperties {
+
+    private final XRoadConfig config;
+
+    @Override
+    public GlobalConfSource source() {
+        return GlobalConfSource.valueOf(config.value(GlobalConfConfigKeys.SOURCE));
     }
 
-    @ApplicationScoped
-    public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
-        return new OcspVerifierFactory(ocspVerifierProperties);
+    @Override
+    public Duration refreshRate() {
+        return config.value(GlobalConfConfigKeys.REFRESH_RATE);
     }
 
+    @Override
+    public String configurationPath() {
+        return config.value(GlobalConfConfigKeys.CONFIGURATION_PATH);
+    }
 }

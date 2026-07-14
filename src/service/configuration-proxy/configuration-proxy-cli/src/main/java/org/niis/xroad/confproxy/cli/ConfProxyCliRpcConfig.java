@@ -37,6 +37,8 @@ import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
@@ -53,6 +55,8 @@ class ConfProxyCliRpcConfig {
                 .register(CommonRpcConfigKeys.instance())
                 .register(ConfClientConfigKeys.instance())
                 .register(ConfProxyConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();

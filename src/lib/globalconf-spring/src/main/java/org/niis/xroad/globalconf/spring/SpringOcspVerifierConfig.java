@@ -31,7 +31,6 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.impl.config.OcspVerifierConfig;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
-import org.niis.xroad.globalconf.impl.ocsp.XRoadOcspVerifierProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,8 +38,9 @@ import org.springframework.context.annotation.Configuration;
 public class SpringOcspVerifierConfig extends OcspVerifierConfig {
 
     @Bean
-    OcspVerifierProperties ocspVerifierProperties(XRoadConfig xRoadConfig) {
-        return new XRoadOcspVerifierProperties(xRoadConfig);
+    @Override
+    public OcspVerifierProperties ocspVerifierProperties(XRoadConfig xRoadConfig) {
+        return super.ocspVerifierProperties(xRoadConfig);
     }
 
     @Bean

@@ -31,6 +31,7 @@ import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CsRegistrationServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,10 +57,12 @@ public class XRoadConfigBeanConfiguration {
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
         var providers = List.<ConfigKeyProvider>of(
                 CsRegistrationServiceConfigKeys.instance(),
-                OcspVerifierConfigKeys.instance());
+                OcspVerifierConfigKeys.instance(),
+                GlobalConfConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CsRegistrationServiceConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
                 .overrides(springEnvironmentOverrides(providers, environment))
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)

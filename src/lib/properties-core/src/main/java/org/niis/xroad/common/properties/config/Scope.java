@@ -25,6 +25,7 @@
 package org.niis.xroad.common.properties.config;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.util.DurationConverter;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -366,7 +367,7 @@ public abstract sealed class Scope {
 
         private DurationKeyBuilder(Scope scope, String shortKey) {
             super(scope, shortKey, Duration.class);
-            converter = Duration::parse;
+            converter = DurationConverter::parseDuration;
         }
 
         public DurationKeyBuilder withDefaultValue(Duration defaultValue) {

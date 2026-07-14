@@ -40,7 +40,9 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
@@ -69,6 +71,8 @@ public class OpMonitorConfig {
                 .register(CommonConfigKeys.instance())
                 .register(OpMonitorConfigKeys.instance())
                 .register(HealthCheckConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();

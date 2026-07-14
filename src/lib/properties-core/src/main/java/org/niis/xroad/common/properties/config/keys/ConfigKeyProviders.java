@@ -56,6 +56,7 @@ public final class ConfigKeyProviders {
                 CsManagementServiceConfigKeys.instance(),
                 CsRegistrationServiceConfigKeys.instance(),
                 OcspVerifierConfigKeys.instance(),
+                GlobalConfConfigKeys.instance(),
                 HealthCheckConfigKeys.instance());
     }
 }
