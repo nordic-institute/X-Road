@@ -1,13 +1,4 @@
 ---
-# TEMPORARY (dataspaces dev): remove stale systemd drop-in that set jwks.url
-# via Environment= (superseded by local-ds-control-plane.yaml placed by
-# pre-ss-install.yml). The drop-in dir is created by the package, so this
-# must run after install. Remove once the packages never shipped this drop-in.
-- name: drop legacy ds-control-plane systemd override (now in YAML)
-  file:
-    path: /etc/systemd/system/xroad-ds-control-plane.service.d/jwks.conf
-    state: absent
-
 # TEMPORARY (dataspaces dev): post-install safety net. The pre-install preseed
 # ensures DS services boot cleanly on a fresh install, but if an earlier run
 # left a unit in `inactive (dead)` state (e.g., from a prior StartLimitBurst
