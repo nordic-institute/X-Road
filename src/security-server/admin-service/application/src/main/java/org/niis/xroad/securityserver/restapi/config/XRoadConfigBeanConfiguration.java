@@ -33,6 +33,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,11 +57,13 @@ public class XRoadConfigBeanConfiguration {
         var providers = List.<ConfigKeyProvider>of(
                 CommonRpcConfigKeys.instance(),
                 CommonConfigKeys.instance(),
-                AdminServiceConfigKeys.instance());
+                AdminServiceConfigKeys.instance(),
+                OcspVerifierConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
                 .register(AdminServiceConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
                 .overrides(springEnvironmentOverrides(providers, environment))
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)

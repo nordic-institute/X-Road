@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
   api(project(":lib:globalconf-core"))
+  api(project(":lib:properties-core"))
 
   implementation(project(":common:common-message"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))

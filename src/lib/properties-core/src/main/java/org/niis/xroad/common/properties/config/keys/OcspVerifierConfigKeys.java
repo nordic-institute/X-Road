@@ -24,29 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.properties.config.keys;
 
-package org.niis.xroad.globalconf.spring;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.Scope;
 
-import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.globalconf.impl.config.OcspVerifierConfig;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
-import org.niis.xroad.globalconf.impl.ocsp.XRoadOcspVerifierProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * Shared OCSP verifier keys ({@code xroad.common-ocsp-verifier.*}), consumed by both Quarkus and Spring products.
+ */
+@SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
+public final class OcspVerifierConfigKeys implements ConfigKeyProvider {
 
-@Configuration
-public class SpringOcspVerifierConfig extends OcspVerifierConfig {
+    private static final Scope OCSP_VERIFIER = Scope.of("xroad.common-ocsp-verifier");
 
-    @Bean
-    OcspVerifierProperties ocspVerifierProperties(XRoadConfig xRoadConfig) {
-        return new XRoadOcspVerifierProperties(xRoadConfig);
+    private static final OcspVerifierConfigKeys INSTANCE = new OcspVerifierConfigKeys();
+
+    /** {@code xroad.common-ocsp-verifier.cache-period}. */
+    public static final ConfigKey<Integer> CACHE_PERIOD = OCSP_VERIFIER
+            .integer("cache-period")
+            .withDefaultValue(60)
+            .build();
+
+    private OcspVerifierConfigKeys() {
     }
 
-    @Bean
+    /** @return the provider singleton (pass to {@code XRoadConfigBuilder.register(...)}). */
+    public static OcspVerifierConfigKeys instance() {
+        return INSTANCE;
+    }
+
     @Override
-    public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
-        return super.ocspVerifierFactory(ocspVerifierProperties);
+    public Scope scope() {
+        return OCSP_VERIFIER;
     }
-
 }

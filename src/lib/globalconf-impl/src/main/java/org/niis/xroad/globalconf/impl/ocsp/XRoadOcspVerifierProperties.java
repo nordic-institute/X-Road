@@ -24,29 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.globalconf.impl.ocsp;
 
-package org.niis.xroad.globalconf.spring;
-
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.globalconf.impl.config.OcspVerifierConfig;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
-import org.niis.xroad.globalconf.impl.ocsp.XRoadOcspVerifierProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 
-@Configuration
-public class SpringOcspVerifierConfig extends OcspVerifierConfig {
+/** {@link XRoadConfig}-backed implementation of {@link OcspVerifierProperties}. */
+@RequiredArgsConstructor
+public class XRoadOcspVerifierProperties implements OcspVerifierProperties {
 
-    @Bean
-    OcspVerifierProperties ocspVerifierProperties(XRoadConfig xRoadConfig) {
-        return new XRoadOcspVerifierProperties(xRoadConfig);
-    }
+    private final XRoadConfig config;
 
-    @Bean
     @Override
-    public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
-        return super.ocspVerifierFactory(ocspVerifierProperties);
+    public int cachePeriod() {
+        return config.value(OcspVerifierConfigKeys.CACHE_PERIOD);
     }
-
 }
