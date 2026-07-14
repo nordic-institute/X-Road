@@ -49,7 +49,7 @@ import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 
-import static org.niis.xroad.edc.extension.dataplane.signaling.XRoadDataPlaneSignalingApiExtension.NAME;
+import static org.niis.xroad.edc.extension.dataplane.signaling.XRoadDataPlaneSignalingApiExtension.EXTENSION_NAME;
 
 /**
  * Replaces upstream {@code DataPlaneSignalingApiExtension}: keeps the data-plane transfer API (the
@@ -61,10 +61,10 @@ import static org.niis.xroad.edc.extension.dataplane.signaling.XRoadDataPlaneSig
  * <p>The upstream extension must be excluded from the boot's dependency graph (see
  * {@code xroad.edc.boot.excluded-service-extensions}) so both extensions do not race to bind the same ports.
  */
-@Extension(NAME)
+@Extension(EXTENSION_NAME)
 public class XRoadDataPlaneSignalingApiExtension implements ServiceExtension {
 
-    public static final String NAME = "X-Road Data Plane Signaling Api";
+    public static final String EXTENSION_NAME = "X-Road Data Plane Signaling Api";
 
     private static final String API_VERSION_JSON_FILE = "signaling-api-version.json";
     private static final String DEFAULT_SIGNALING_PATH = "/api/signaling";
@@ -95,7 +95,7 @@ public class XRoadDataPlaneSignalingApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return NAME;
+        return EXTENSION_NAME;
     }
 
     @Override
