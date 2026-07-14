@@ -87,8 +87,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
     @Override
     public boolean canAutoApprove(ClientRegistrationRequest request) {
-        return (SystemProperties.getCenterAutoApproveClientRegRequests()
-                || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
+        return (SystemProperties.getCenterAutoApproveClientRegRequests())
                 && request.getOrigin() == SECURITY_SERVER
                 && servers.count(request.getSecurityServerId()) > 0
                 && members.findMember(request.getClientId()).isPresent();
