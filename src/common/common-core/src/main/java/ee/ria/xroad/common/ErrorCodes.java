@@ -160,6 +160,7 @@ public final class ErrorCodes {
     public static final String X_GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE = "GlobalConfHeaderFieldWrongValue";
     public static final String X_GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER = "GlobalConfPartInvalidInstanceIdentifier";
     public static final String X_GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER = "GlobalConfPartBlankInstanceIdentifier";
+    public static final String X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION = "GlobalConfPartInvalidContentLocation";
 
     // Signer Errors
 
