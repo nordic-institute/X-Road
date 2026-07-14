@@ -267,7 +267,6 @@ edc-dataplane-signaling = { module = "org.eclipse.edc:data-plane-signaling", ver
 edc-dataplane-signaling-client            = { module = "org.eclipse.edc:data-plane-signaling-client",              version.ref = "edc" }
 edc-dataplane-selector-control-api        = { module = "org.eclipse.edc:data-plane-selector-control-api",          version.ref = "edc" }
 edc-core-participantcontext-connector-classic = { module = "org.eclipse.edc:participant-context-connector-classic-core", version.ref = "edc" }
-edc-api-secrets = { module = "org.eclipse.edc:secrets-api", version.ref = "edc" }
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-controlplane-contract-tasks = { module = "org.eclipse.edc:control-plane-contract-task-executor", version.ref = "edc" }
@@ -289,7 +288,6 @@ edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", versi
 edc-core-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
 edc-core-edrstore = { module = "org.eclipse.edc:edr-store-core", version.ref = "edc" }
 edc-edrstore-receiver = { module = "org.eclipse.edc:edr-store-receiver", version.ref = "edc" }
-edc-edr-cache-api = { module = "org.eclipse.edc:edr-cache-api", version.ref = "edc" }
 
 edc-store-participantcontext-config-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 

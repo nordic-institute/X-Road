@@ -55,7 +55,6 @@ dependencies {
   runtimeOnly(project(":service:ds-control-plane:ds-control-plane-tasks-store-poll-executor"))
   runtimeOnly(libs.edc.core.edrstore)
   runtimeOnly(libs.edc.edrstore.receiver)
-  runtimeOnly(libs.edc.edr.cache.api)
   runtimeOnly(libs.edc.vault.hashicorp)
 
   runtimeOnly(libs.edc.dataplane.signaling)
@@ -63,7 +62,6 @@ dependencies {
   runtimeOnly(libs.edc.dataplane.selector.control.api)
   runtimeOnly(libs.edc.core.participantcontext.connector.classic)
   runtimeOnly(libs.edc.contolplane.api.config)
-  runtimeOnly(libs.edc.api.secrets)
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   runtimeOnly(libs.edc.core.sql.bootstrapper)

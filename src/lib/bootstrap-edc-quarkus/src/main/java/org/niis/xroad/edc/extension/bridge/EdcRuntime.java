@@ -94,7 +94,10 @@ public class EdcRuntime extends BaseRuntime {
      */
     @Override
     protected DependencyGraph buildDependencyGraph(ServiceExtensionContext context) {
-        var extensions = filterExcluded(extensionLoader.loadExtensions(ServiceExtension.class, true), context);
+        var loaded = extensionLoader.loadExtensions(ServiceExtension.class, true);
+        var extensions = filterExcluded(loaded, context);
+        log.info("EDC boot: {} service extensions loaded, {} after exclusions (list: '{}')",
+                loaded.size(), extensions.size(), context.getSetting(SETTING_EXCLUDED_SERVICE_EXTENSIONS, ""));
         return DependencyGraph.of(context, extensions);
     }
 
