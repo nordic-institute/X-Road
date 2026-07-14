@@ -49,6 +49,7 @@ import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
@@ -69,6 +70,7 @@ import org.niis.xroad.proxy.core.signature.SimpleSigner;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
@@ -101,9 +103,15 @@ class ProxyConfig {
                 .register(HealthCheckConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
+                .register(ServerConfConfigKeys.instance())
                 .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    @ApplicationScoped
+    ServerConfCommonProperties serverConfCommonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadServerConfProperties(xRoadConfig);
     }
 
     private static DeploymentMode deploymentMode() {

@@ -24,40 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.serverconf;
 
-package org.niis.xroad.common.properties.config.keys;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+/** {@link XRoadConfig}-backed implementation of {@link ServerConfCommonProperties}. */
+@RequiredArgsConstructor
+public class XRoadServerConfProperties implements ServerConfCommonProperties {
 
-import java.util.List;
+    private final XRoadConfig config;
 
-/**
- * Aggregator of every shipped {@link ConfigKeyProvider}. Used where the complete catalogue
- * is needed (admin-service UI/export, the Quarkus defaults config source). A single list to
- * maintain when a new {@code *ConfigKeys} provider is added.
- */
-public final class ConfigKeyProviders {
-
-    private ConfigKeyProviders() {
+    @Override
+    public int cachePeriod() {
+        return config.value(ServerConfConfigKeys.CACHE_PERIOD);
     }
 
-    /** @return all shipped providers (common scope + per-service scopes) */
-    public static List<ConfigKeyProvider> allProviders() {
-        return List.of(
-                CommonConfigKeys.instance(),
-                CommonRpcConfigKeys.instance(),
-                ProxyConfigKeys.instance(),
-                ConfClientConfigKeys.instance(),
-                ConfProxyConfigKeys.instance(),
-                OpMonitorConfigKeys.instance(),
-                AuxiliaryServiceConfigKeys.instance(),
-                AdminServiceConfigKeys.instance(),
-                CsAdminServiceConfigKeys.instance(),
-                CsManagementServiceConfigKeys.instance(),
-                CsRegistrationServiceConfigKeys.instance(),
-                OcspVerifierConfigKeys.instance(),
-                GlobalConfConfigKeys.instance(),
-                ServerConfConfigKeys.instance(),
-                HealthCheckConfigKeys.instance());
+    @Override
+    public long clientCacheSize() {
+        return config.value(ServerConfConfigKeys.CLIENT_CACHE_SIZE);
+    }
+
+    @Override
+    public long serviceCacheSize() {
+        return config.value(ServerConfConfigKeys.SERVICE_CACHE_SIZE);
+    }
+
+    @Override
+    public long serviceEndpointsCacheSize() {
+        return config.value(ServerConfConfigKeys.SERVICE_ENDPOINTS_CACHE_SIZE);
+    }
+
+    @Override
+    public long aclCacheSize() {
+        return config.value(ServerConfConfigKeys.ACL_CACHE_SIZE);
     }
 }

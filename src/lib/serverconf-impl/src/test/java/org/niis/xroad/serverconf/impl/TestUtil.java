@@ -39,8 +39,11 @@ import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -56,7 +59,6 @@ import org.niis.xroad.serverconf.model.DescriptionType;
 import java.util.Date;
 import java.util.Map;
 
-import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
 /**
@@ -118,7 +120,8 @@ public final class TestUtil {
             "xroad.db.serverconf.hibernate.hbm2ddl.auto", "create-drop"
     );
     static ServerConfDbProperties serverConfDbProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
-    static ServerConfCommonProperties serverConfProperties = defaultConfiguration(ServerConfCommonProperties.class);
+    static ServerConfCommonProperties serverConfProperties = new XRoadServerConfProperties(
+            XRoadConfigBuilder.create().register(ServerConfConfigKeys.instance()).build());
 
     private TestUtil() {
     }

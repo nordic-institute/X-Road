@@ -44,6 +44,7 @@ import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
@@ -126,6 +127,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                     .register(AdminServiceConfigKeys.instance())
                     .register(OcspVerifierConfigKeys.instance())
                     .register(GlobalConfConfigKeys.instance())
+                    .register(ServerConfConfigKeys.instance())
                     .overrides(Map.of(
                             "xroad.proxy-ui-api.proxy-server-url", "https://localhost:" + UNBOUND_PROXY_PORT,
                             "xroad.common-rpc.use-tls", "false"))
