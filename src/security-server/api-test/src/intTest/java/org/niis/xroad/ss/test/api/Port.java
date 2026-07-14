@@ -34,7 +34,7 @@ public final class Port {
     public static final int PROXY_HEALTHCHECK = 5558;
     public static final int TEST_CA = 8888;
     public static final int QUARKUS_HEALTH = 4099;
-    public static final int DS_CONTROL_PLANE_MANAGEMENT = 8182;
+    public static final int DS_CONTROL_PLANE_PROTOCOL = 8183;
     public static final int DS_IDENTITY_HUB_CREDENTIALS = 7185;
     public static final int DS_ISSUER_SERVICE_DEFAULT = 6181;
     public static final int DS_ISSUER_SERVICE_IDENTITY_DID = 6183;

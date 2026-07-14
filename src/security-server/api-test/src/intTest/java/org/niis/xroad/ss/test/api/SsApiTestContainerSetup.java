@@ -86,7 +86,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
-                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_PROTOCOL, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_DEFAULT, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY_DID, forListeningPort())

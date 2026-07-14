@@ -41,9 +41,6 @@ web:
   http:
     port: 7181
     path: /api
-    identity:
-      port: 7182
-      path: /api/identity
     did:
       port: 7183
       path: /

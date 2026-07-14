@@ -448,12 +448,12 @@ services:
     ports:
       - port: 8181
         name: http
-      - port: 8182
-        name: mgmt
       - port: 8183
         name: dsp
       - port: 8184
         name: control
+      - port: 8185
+        name: signaling
       - port: 5460
         name: asset-access
       - port: 4099

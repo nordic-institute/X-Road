@@ -124,7 +124,6 @@ services:
           - ${ENV_PREFIX:-}ds-control-plane
     ports:
       - "0:8181"
-      - "0:8182" # management, /api/management
       - "0:8183" # protocol, /api/dsp
       - "0:8184" # control, /api/control
       - "0:9999" # debug port
