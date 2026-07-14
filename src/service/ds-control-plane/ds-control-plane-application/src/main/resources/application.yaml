@@ -110,14 +110,6 @@ edc:
   iam:
     issuer:
       id: "did:web:${HOSTNAME:localhost}%3A7183"
-    sts:
-      oauth:
-        token:
-          url: "http://ds-identity-hub:7184/api/sts/token"
-        client:
-          id: "did:web:${HOSTNAME:localhost}%3A7183"
-          secret:
-            alias: "did:web:${HOSTNAME:localhost}%3A7183-sts-client-secret"
     dcp:
       scopes:
         membership:
