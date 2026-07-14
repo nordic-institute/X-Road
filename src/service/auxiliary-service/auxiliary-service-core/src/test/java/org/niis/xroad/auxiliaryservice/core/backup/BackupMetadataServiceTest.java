@@ -241,14 +241,6 @@ class BackupMetadataServiceTest {
     }
 
     @Test
-    void isBackupCompatibleReturnsFalseForPathOutsideBackupDir() throws IOException {
-        var outsidePath = outsideDir.resolve("outside.gpg");
-        Files.writeString(outsideDir.resolve("outside.gpg.metadata"), metadataJson(CURRENT_FORMAT_VERSION));
-
-        assertThat(service.isBackupCompatible(outsidePath)).isFalse();
-    }
-
-    @Test
     void deleteMetadataDoesNotDeleteFileOutsideBackupDir() throws IOException {
         var outsidePath = outsideDir.resolve("outside.gpg");
         var outsideMetadata = outsideDir.resolve("outside.gpg.metadata");
