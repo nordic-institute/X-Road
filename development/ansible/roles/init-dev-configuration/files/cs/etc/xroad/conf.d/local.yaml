@@ -4,3 +4,8 @@ xroad:
     global-configuration-generation-rate-in-seconds: 10
   configuration-client:
     update-interval: 10 # default 60
+  dataspace:
+    issuer:
+      # did:web host of the co-located issuer service; must match the host the
+      # SS preseed pins in issuer-did and the hurl DID gate (is_host).
+      host: xrd-cs

@@ -63,6 +63,12 @@
 #     local.yaml. The reconciler drives provisioning automatically at SS init
 #     and on each globalconf-refresh tick; no manual API call is needed.
 #
+#     xroad.dataspace.*-provisioning.rpc: the provisioning gRPC client defaults
+#     (ds-identity-hub:5460 / ds-control-plane:5460) are Docker service names;
+#     here both runtimes are co-located, so point at loopback (127.0.0.1, not
+#     localhost — the mTLS server cert carries an IP SAN) and give identity-hub
+#     its non-default port (see 4.).
+#
 # TEMPORARY (dataspaces dev): remove once packaging ships these as debconf
 #   answerable questions / real STS-issued tokens.
 # ---------------------------------------------------------------------------
@@ -82,7 +88,7 @@
     path: /etc/xroad/conf.d/local.yaml
     insertafter: '^  proxy-ui-api:'
     marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      control-plane-url: https://localhost:8182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n      identity-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiI3NDcyYmExN2ExMjE0MGI3YWVhNjNlNDM2ZWI1OTMxMSIsInNjb3BlIjoiaWRlbnRpdHktYXBpOmFkbWluIn0.LTjYT366IgFiI12rkxBatvzoIbtTzoYYVXRE9ytAJ23thT_cVid6Gv3m7XKe6bEphARXodhJqTwxeLYMtHAI_XIIC50xZ76e2mo9qLF9LX3JR2_Y5prMDb1BjmYpzedLupnu8SwB2W9n7POYeaMMTTXDlCZsqR2zffwZaCliXGWuj9VLdp0SUvNc8Xz9LMR1C0NNwL-HSH0oBHzMTn0E7kFSJ5HU0AZNa-h9ZNpYu6e4S_Yx7Lo4xRFtVMFRCW8sqfWfqjE861DVGTaQKgmBerbA0jfgaOWB4IU_8EwPBse68N2w8rCUJ4NU6MgRpd8uKEAbSBwNCmSpBvOOriqqAw\n      control-plane-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiJjZWI1MjYzM2M1YjU0MDU3OWM3OTIxZTRmN2QyOWM3NSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6YWRtaW4ifQ.iNTzn9fdrEkO5SChx8d9aZI34kKW7HV6EfUauPHUs_HC7OpGXMra9qLaEUwcNVmaPdIp7qypBG-wgIEn9znZ6inhDI7V4hoGVTEE7bZS2jar5LTcnr_tt-7Y-frV7GX-qW-b-C9y7hDWpTE_D4mPCLXvhSPjKYAS3_ZP2uCryQ6wGyFUToyf39YDnMOys2vpkI9knnCDfdFFoPsLmVWAz7CWjtV5J_IpTwRP2c63trsPVuPn85tQqXIDI8-geiXmxUVGWFGQQSkCyHX3xSbFE0vC23HFFxkmV0EUr8qFS6wDNiSFw2UYmYfWgfMk64xRY3d07HFbAWwgYa4tZixT6Q"
+    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      control-plane-url: https://localhost:8182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n      identity-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiI3NDcyYmExN2ExMjE0MGI3YWVhNjNlNDM2ZWI1OTMxMSIsInNjb3BlIjoiaWRlbnRpdHktYXBpOmFkbWluIn0.LTjYT366IgFiI12rkxBatvzoIbtTzoYYVXRE9ytAJ23thT_cVid6Gv3m7XKe6bEphARXodhJqTwxeLYMtHAI_XIIC50xZ76e2mo9qLF9LX3JR2_Y5prMDb1BjmYpzedLupnu8SwB2W9n7POYeaMMTTXDlCZsqR2zffwZaCliXGWuj9VLdp0SUvNc8Xz9LMR1C0NNwL-HSH0oBHzMTn0E7kFSJ5HU0AZNa-h9ZNpYu6e4S_Yx7Lo4xRFtVMFRCW8sqfWfqjE861DVGTaQKgmBerbA0jfgaOWB4IU_8EwPBse68N2w8rCUJ4NU6MgRpd8uKEAbSBwNCmSpBvOOriqqAw\n      control-plane-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiJjZWI1MjYzM2M1YjU0MDU3OWM3OTIxZTRmN2QyOWM3NSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6YWRtaW4ifQ.iNTzn9fdrEkO5SChx8d9aZI34kKW7HV6EfUauPHUs_HC7OpGXMra9qLaEUwcNVmaPdIp7qypBG-wgIEn9znZ6inhDI7V4hoGVTEE7bZS2jar5LTcnr_tt-7Y-frV7GX-qW-b-C9y7hDWpTE_D4mPCLXvhSPjKYAS3_ZP2uCryQ6wGyFUToyf39YDnMOys2vpkI9knnCDfdFFoPsLmVWAz7CWjtV5J_IpTwRP2c63trsPVuPn85tQqXIDI8-geiXmxUVGWFGQQSkCyHX3xSbFE0vC23HFFxkmV0EUr8qFS6wDNiSFw2UYmYfWgfMk64xRY3d07HFbAWwgYa4tZixT6Q\n  dataspace:\n    identity-hub-provisioning:\n      rpc:\n        host: 127.0.0.1\n        port: 5461\n    control-plane-provisioning:\n      rpc:\n        host: 127.0.0.1"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
@@ -99,6 +105,14 @@
     group: xroad
     mode: "0640"
     content: |
+      # Both EDC runtimes default the shared gRPC server to 5460; co-located on
+      # one host, the control plane keeps 5460 (the proxy asset-access client
+      # defaults to 127.0.0.1:5460) and identity-hub moves off it (matching the
+      # proxy-ui-api client preseed in 3b).
+      xroad:
+        ds:
+          rpc:
+            port: 5461
       edc:
         iam:
           oauth2:
