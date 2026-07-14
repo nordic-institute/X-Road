@@ -200,7 +200,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
-    void autoApproveAuthCert(CsBaselineSeeder seeder) throws Exception {
+    void pairedAuthCertRegistrationRequiresApproval(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var roSession = Step.given("registration officer session opened", seeder::newRegistrationOfficerSession);
         var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "mr04", MEMBER_CLASS));
@@ -224,11 +224,17 @@ class ManagementRequestsApiTest extends CsApiTest {
             req.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
             req.setSecurityServerId(serverId);
             return client.addManagementRequest(req)
-                    .statusCode(201)
+                    .statusCode(202)
                     .extract().jsonPath().getInt("id");
         });
 
-        Step.then("SECURITY_SERVER request is auto-approved", () ->
+        Step.then("SECURITY_SERVER request is SUBMITTED_FOR_APPROVAL", () ->
+                roClient.getRequest(id2).statusCode(200).body("status", equalTo("SUBMITTED FOR APPROVAL")));
+
+        Step.when("request is approved", () ->
+                client.approveRequest(id2).statusCode(200));
+
+        Step.then("SECURITY_SERVER request is APPROVED", () ->
                 roClient.getRequest(id2).statusCode(200).body("status", equalTo("APPROVED")));
 
         Step.then("server has one auth cert", () ->
@@ -447,7 +453,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
-    void autoApproveRegistrationOfMemberAsSSClient(CsBaselineSeeder seeder) {
+    void pairedRegistrationOfMemberAsSSClientRequiresApproval(CsBaselineSeeder seeder) {
         var session = Step.given("admin session opened", seeder::newSession);
         var roSession = Step.given("registration officer session opened", seeder::newRegistrationOfficerSession);
         var memberId = Step.given("owner member seeded", () -> seeder.seedMember(session, "mr11", MEMBER_CLASS));
@@ -475,10 +481,16 @@ class ManagementRequestsApiTest extends CsApiTest {
             req.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
             req.setSecurityServerId(serverId);
             return client.addManagementRequest(req)
-                    .statusCode(201).extract().jsonPath().getInt("id");
+                    .statusCode(202).extract().jsonPath().getInt("id");
         });
 
-        Step.then("SECURITY_SERVER request is auto-approved", () ->
+        Step.then("SECURITY_SERVER request is SUBMITTED_FOR_APPROVAL", () ->
+                roClient.getRequest(id2).statusCode(200).body("status", equalTo("SUBMITTED FOR APPROVAL")));
+
+        Step.when("request is approved", () ->
+                client.approveRequest(id2).statusCode(200));
+
+        Step.then("SECURITY_SERVER request is APPROVED", () ->
                 roClient.getRequest(id2).statusCode(200).body("status", equalTo("APPROVED")));
 
         Step.then("server clients contains mr11m2", () ->
@@ -744,7 +756,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
-    void autoApproveRegistrationOfSubsystemAsSSClient(CsBaselineSeeder seeder) {
+    void pairedRegistrationOfSubsystemAsSSClientRequiresApproval(CsBaselineSeeder seeder) {
         var session = Step.given("admin session opened", seeder::newSession);
         var roSession = Step.given("registration officer session opened", seeder::newRegistrationOfficerSession);
         var memberId = Step.given("owner member seeded", () -> seeder.seedMember(session, "mr19", MEMBER_CLASS));
@@ -773,10 +785,16 @@ class ManagementRequestsApiTest extends CsApiTest {
             req.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
             req.setSecurityServerId(serverId);
             return client.addManagementRequest(req)
-                    .statusCode(201).extract().jsonPath().getInt("id");
+                    .statusCode(202).extract().jsonPath().getInt("id");
         });
 
-        Step.then("SECURITY_SERVER request is auto-approved", () ->
+        Step.then("SECURITY_SERVER request is SUBMITTED_FOR_APPROVAL", () ->
+                roClient.getRequest(id2).statusCode(200).body("status", equalTo("SUBMITTED FOR APPROVAL")));
+
+        Step.when("request is approved", () ->
+                client.approveRequest(id2).statusCode(200));
+
+        Step.then("SECURITY_SERVER request is APPROVED", () ->
                 roClient.getRequest(id2).statusCode(200).body("status", equalTo("APPROVED")));
 
         Step.then("server clients contains member", () ->

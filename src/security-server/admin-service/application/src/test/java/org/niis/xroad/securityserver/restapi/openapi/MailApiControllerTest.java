@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
@@ -37,11 +38,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -53,6 +56,8 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MailApiControllerTest extends AbstractApiControllerTestContext {
+
+    private static final String CONFIGURED_RECIPIENT = "member1@example.org";
 
     @Autowired
     private MailApiController mailApiController;
@@ -78,19 +83,41 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void sendTestMailWithoutSendTestMailAuthorityIsForbidden() {
+        assertThatThrownBy(() -> mailApiController.sendTestMail(new MailRecipientDto(CONFIGURED_RECIPIENT)))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SEND_TEST_MAIL"})
     public void testSendMail() {
         ResponseEntity<TestMailResponseDto> testMailResponse =
-                mailApiController.sendTestMail(new MailRecipientDto("test@mailaddress.org"));
+                mailApiController.sendTestMail(new MailRecipientDto(CONFIGURED_RECIPIENT));
         assertEquals(MailStatusDto.SUCCESS, testMailResponse.getBody().getStatus());
     }
 
     @Test
-    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    @WithMockUser(authorities = {"SEND_TEST_MAIL"})
     public void testSendMailException() {
 
         doThrow(new MailSendException("Sending failed")).when(mailService).sendTestMail(any(), any(), any());
         ResponseEntity<TestMailResponseDto> testMailResponse =
-                mailApiController.sendTestMail(new MailRecipientDto("test@mailaddress.org"));
+                mailApiController.sendTestMail(new MailRecipientDto(CONFIGURED_RECIPIENT));
         assertEquals(MailStatusDto.ERROR, testMailResponse.getBody().getStatus());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SEND_TEST_MAIL"})
+    public void sendTestMailToNonConfiguredRecipientIsRejected() {
+        assertThatThrownBy(() -> mailApiController.sendTestMail(new MailRecipientDto("not-configured@example.org")))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SEND_TEST_MAIL"})
+    public void sendTestMailWithGroupSyntaxRecipientIsRejected() {
+        assertThatThrownBy(() -> mailApiController.sendTestMail(
+                new MailRecipientDto("group:" + CONFIGURED_RECIPIENT + ",other@example.org;")))
+                .isInstanceOf(BadRequestException.class);
     }
 }

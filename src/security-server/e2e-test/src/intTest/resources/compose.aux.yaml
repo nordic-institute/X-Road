@@ -3,12 +3,16 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
+      # Co-located Issuer Service: CS-init provisions it over loopback gRPC (the
+      # default RPC host 127.0.0.1 matches the issuer server-cert IP SAN).
+      # Publish the issuer DID under the `cs` host.
+      - XROAD_DATASPACE_ISSUER_HOST=cs
     deploy:
       resources:
         reservations:
           memory: 512M
         limits:
-          memory: 2560M
+          memory: 3072M
     healthcheck:
       interval: 5s
       retries: 40
@@ -17,8 +21,16 @@ services:
       - "0:4000" # Frontend
       - "0:9994" # Signer debug
       - "0:5432" # DB
+      - "0:6183" # Issuer DID resolution
+      - "0:6185" # Issuer issuance API
+      - "0:6187" # Issuer statuslist API
     networks:
       - xroad-network
+    volumes:
+      - ds-https-keystore:/etc/xroad/ds-ssl:ro
+    depends_on:
+      ds-https-keystore-init:
+        condition: service_completed_successfully
   testca:
     image: ${CA_IMG}
     pull_policy: always
@@ -107,7 +119,7 @@ services:
         openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
           -keyout ds-https-key.pem -out ds-https-cert.pem \
           -subj "/CN=xrd-ds" \
-          -addext "subjectAltName=DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:ss0-ds-identity-hub,DNS:ss1-ds-identity-hub,DNS:ss0-ds-control-plane,DNS:ss1-ds-control-plane,DNS:xrd-ss0,DNS:xrd-ss1,DNS:localhost"
+          -addext "subjectAltName=DNS:cs,DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:ss0-ds-identity-hub,DNS:ss1-ds-identity-hub,DNS:ss0-ds-control-plane,DNS:ss1-ds-control-plane,DNS:xrd-ss0,DNS:xrd-ss1,DNS:localhost"
         openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
           -name ds-https -password pass:changeit
         cp /opt/java/openjdk/lib/security/cacerts cacerts
@@ -135,14 +147,8 @@ services:
       --variable ss1_host=${PROXY_UI_1}
       --variable ss0_proxy=${PROXY_0}
       --variable ss1_proxy=${PROXY_1}
-      --variable ss0_ih_host=${IH_HOST_0}
-      --variable ss1_ih_host=${IH_HOST_1}
-      --variable ss0_cp_host=${CP_HOST_0}
-      --variable ss1_cp_host=${CP_HOST_1}
-      --variable ss0_participant_id=${PARTICIPANT_ID_0}
-      --variable ss1_participant_id=${PARTICIPANT_ID_1}
+      --variable is_host=cs
       --file-root /hurl-files
-      /hurl-src/00-setup-dsp.hurl
       /hurl-src/setup.hurl
       --very-verbose
       --retry 30
@@ -188,84 +194,6 @@ services:
           memory: 64M
         limits:
           memory: 256M
-
-  db-ds-issuer-service:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    environment:
-      - POSTGRES_PASSWORD=ds_issuer_service_admin_secret
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=ds-issuer-service
-    networks:
-      - xroad-network
-    ports:
-      - "0:5432"
-    healthcheck:
-      start_period: 5s
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 256M
-
-  ds-issuer-service:
-    image: ${DS_ISSUER_SERVICE_IMG}
-    pull_policy: always
-    environment:
-      - HOSTNAME=ds-issuer-service
-      - XROAD_HOST=ds-issuer-service
-      - XROAD_SECRET_STORE_HOST=openbao
-      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
-      - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
-      # admin permissions required to create schema on startup
-      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service
-      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
-      - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
-      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-      - EDC_VAULT_HASHICORP_HEALTH_CHECK_ENABLED=false
-      - EDC_STATUSLIST_CALLBACK_ADDRESS=https://ds-issuer-service:6187/statuslist
-      - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
-      - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
-      - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
-      - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
-      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
-      - DEBUG=true
-    healthcheck:
-      start_period: 60s
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "curl", "-fk", "https://localhost:6181/api/check/health" ]
-    networks:
-      - xroad-network
-    ports:
-      - "0:6182" # identity API
-      - "0:6183" # DID resolution
-      - "0:6185" # issuance API
-      - "0:6186" # admin API
-      - "0:6187" # statuslist API
-      - "0:9999" # debug port
-    volumes:
-      - ds-https-keystore:/etc/xroad/ssl:ro
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 320M
-    depends_on:
-      db-ds-issuer-service:
-        condition: service_healthy
-      mock-jwks-server:
-        condition: service_healthy
-      openbao:
-        condition: service_healthy
-      ds-https-keystore-init:
-        condition: service_completed_successfully
 
   mock-jwks-server:
     image: python:3.11-alpine

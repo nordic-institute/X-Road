@@ -83,6 +83,7 @@ public class ComposeEnvSetup extends BaseComposeSetup
     private static final String CONFIGURATION_CLIENT = "configuration-client";
     private static final String AUX_SERVICE = "auxiliary-service";
     private static final String MESSAGE_LOG_CLI = "message-log-cli";
+    private static final String MONITOR = "monitor";
     private static final String OP_MONITOR_SERVICE = "op-monitor";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
@@ -103,21 +104,12 @@ public class ComposeEnvSetup extends BaseComposeSetup
 
         envAux = new ComposeContainer("aux-", getComposeFilePath(COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
-                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_ADMIN, forListeningPort())
-                .withExposedService(DS_ISSUER_SERVICE, Port.ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withEnv("PROXY_UI_0", "ss0-ui")
                 .withEnv("PROXY_0", "xrd-ss0")
                 .withEnv("PROXY_UI_1", "ss1-ui")
                 .withEnv("PROXY_1", "xrd-ss1")
-                .withEnv("IH_HOST_0", "ss0-ds-identity-hub")
-                .withEnv("IH_HOST_1", "ss1-ds-identity-hub")
-                .withEnv("CP_HOST_0", "ss0-ds-control-plane")
-                .withEnv("CP_HOST_1", "ss1-ds-control-plane")
-                .withEnv("PARTICIPANT_ID_0", "xrd-ss0")
-                .withEnv("PARTICIPANT_ID_1", "xrd-ss1")
                 .withLogConsumer(HURL, createLogConsumer("aux", HURL))
                 .withLogConsumer(CS, createLogConsumer("aux", CS))
-                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer("aux", DS_ISSUER_SERVICE))
                 .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
         envAux.start();
 
@@ -301,7 +293,7 @@ public class ComposeEnvSetup extends BaseComposeSetup
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
-                .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_IDENTITY, forListeningPort())
+                .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
@@ -309,6 +301,7 @@ public class ComposeEnvSetup extends BaseComposeSetup
                 .withLogConsumer(OPENBAO, createLogConsumer(name, OPENBAO))
                 .withLogConsumer(AUX_SERVICE, createLogConsumer(name, AUX_SERVICE))
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
+                .withLogConsumer(MONITOR, createLogConsumer(name, MONITOR))
                 .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE));
 
@@ -359,6 +352,8 @@ public class ComposeEnvSetup extends BaseComposeSetup
                             .orElse(false);
                 });
 
+        verifyHurlSucceeded();
+
         awaitProxyReadiness("ss0");
         awaitProxyReadiness("ss1");
 
@@ -385,6 +380,17 @@ public class ComposeEnvSetup extends BaseComposeSetup
                     log.info("{} proxy readiness: status={}, authKeyOcsp={}", env, overall, authKeyOcsp);
                     return "UP".equals(overall) && "OK".equals(authKeyOcsp);
                 });
+    }
+
+    private void verifyHurlSucceeded() {
+        var exitCode = envAux.getContainerByServiceName(HURL)
+                .orElseThrow(() -> new IllegalStateException("hurl container not found"))
+                .getCurrentContainerInfo().getState().getExitCodeLong();
+        if (exitCode == null || exitCode != 0L) {
+            throw new IllegalStateException(
+                    "hurl setup container exited with code %s (expected 0); setup scenarios failed".formatted(exitCode));
+        }
+        log.info("hurl setup completed successfully");
     }
 
     @Override

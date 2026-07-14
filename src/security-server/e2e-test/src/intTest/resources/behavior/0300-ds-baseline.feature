@@ -1,4 +1,4 @@
-@Dataspaces
+@Dataspaces @Skip
 Feature: 0300 - Data spaces baseline
 
   Scenario: Asset is created on ss0

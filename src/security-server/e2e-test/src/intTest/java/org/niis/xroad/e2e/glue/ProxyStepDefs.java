@@ -169,7 +169,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 }
                 assertThat(entry.getName()).matches("\\./mlog-.*\\.zip");
                 try (ByteArrayInputStream bais = new ByteArrayInputStream(tis.readAllBytes());
-                     ZipInputStream zis = new ZipInputStream(bais)) {
+                        ZipInputStream zis = new ZipInputStream(bais)) {
                     ZipEntry archiveEntry;
                     while ((archiveEntry = zis.getNextEntry()) != null) {
                         if (archiveEntry.getName().equals("linkinginfo")) {

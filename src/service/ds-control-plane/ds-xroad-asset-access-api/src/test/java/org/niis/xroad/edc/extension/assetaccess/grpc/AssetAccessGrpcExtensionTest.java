@@ -26,24 +26,21 @@
  */
 package org.niis.xroad.edc.extension.assetaccess.grpc;
 
-import io.grpc.ServerCredentials;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AssetAccessGrpcExtensionTest {
@@ -52,10 +49,13 @@ class AssetAccessGrpcExtensionTest {
     private Monitor monitor;
 
     @Mock
-    private RpcCredentialsConfigurer configurer;
+    private GrpcServiceRegistry grpcServiceRegistry;
 
     @Mock
-    private ServerCredentials serverCredentials;
+    private AssetAccessOrchestrator assetAccessOrchestrator;
+
+    @Mock
+    private ParticipantContextService participantContextService;
 
     private AssetAccessGrpcExtension extension;
 
@@ -63,7 +63,10 @@ class AssetAccessGrpcExtensionTest {
     void setUp() throws Exception {
         extension = new AssetAccessGrpcExtension();
         setField(extension, "monitor", monitor);
-        setField(extension, "credentialsConfigurer", configurer);
+        setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
+        setField(extension, "assetAccessOrchestrator", assetAccessOrchestrator);
+        setField(extension, "participantContextService", participantContextService);
+        setField(extension, "acquisitionTimeoutSeconds", 60L);
     }
 
     @Test
@@ -72,27 +75,10 @@ class AssetAccessGrpcExtensionTest {
     }
 
     @Test
-    void resolveServerCredentialsReturnsConfigurerOutput() {
-        when(configurer.createServerCredentials()).thenReturn(serverCredentials);
+    void initializeRegistersServiceOntoSharedRegistry() {
+        extension.initialize(mock(ServiceExtensionContext.class));
 
-        var result = extension.resolveServerCredentials();
-
-        assertThat(result).isSameAs(serverCredentials);
-        verify(monitor, never()).severe(anyString(), any(Throwable.class));
-    }
-
-    @Test
-    void resolveServerCredentialsWrapsConfigurerFailure() {
-        var cause = new IllegalStateException("vault unreachable");
-        when(configurer.createServerCredentials()).thenThrow(cause);
-
-        assertThatThrownBy(() -> extension.resolveServerCredentials())
-                .isInstanceOf(XrdRuntimeException.class)
-                .hasMessageContaining(AssetAccessGrpcExtension.EXTENSION_NAME)
-                .hasMessageContaining("server credentials")
-                .hasCause(cause);
-
-        verify(monitor).severe(contains("failed to build server credentials"), any(Throwable.class));
+        verify(grpcServiceRegistry).register(any(AssetAccessGrpcService.class));
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {

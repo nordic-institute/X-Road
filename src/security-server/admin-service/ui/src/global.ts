@@ -176,6 +176,7 @@ export enum Permissions {
   CHANGE_CONFIGURATION_PROPERTY = 'CHANGE_CONFIGURATION_PROPERTY', // settings > system parameters > configurable properties
   DOWNLOAD_DIAGNOSTICS_REPORT = 'DOWNLOAD_DIAGNOSTICS_REPORT', // diagnostics > download diagnostics report
   TOGGLE_MAINTENANCE_MODE = 'TOGGLE_MAINTENANCE_MODE', // diagnostics > enable / disable maintenance mode button
+  SEND_TEST_MAIL = 'SEND_TEST_MAIL', // diagnostics > send test mail button
 }
 
 export enum UsageTypes {

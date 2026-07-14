@@ -44,6 +44,8 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
   implementation(project(":service:proxy:proxy-rpc-client"))
+  implementation(project(":service:ds-identity-hub:ds-identity-hub-provisioning-protocol"))
+  implementation(project(":service:ds-control-plane:ds-xroad-provisioning-protocol"))
 
   implementation(libs.springBoot.starterSecurity)
   implementation(libs.springBoot.starterWeb)

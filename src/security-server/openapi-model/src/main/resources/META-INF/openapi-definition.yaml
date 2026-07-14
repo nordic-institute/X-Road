@@ -21,6 +21,8 @@ tags:
     description: CA endpoints
   - name: clients
     description: clients endpoints
+  - name: dataspace
+    description: data space provisioning endpoints
   - name: diagnostics
     description: diagnostics endpoints
   - name: endpoints
@@ -2549,6 +2551,32 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /dataspace/provisioning-status:
+    get:
+      tags:
+        - dataspace
+      summary: view data space provisioning status
+      operationId: getDataspaceProvisioningStatus
+      description: <h3>Administrator views the data space participant context provisioning status.</h3>
+      responses:
+        '200':
+          description: data space provisioning status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataspaceProvisioningStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/operational-monitoring:
     get:
       tags:
@@ -4722,28 +4750,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/dataspace-provisioning:
-    post:
-      tags:
-        - system
-      summary: provision data space membership credentials for this security server
-      operationId: provisionDataspace
-      description: <h3>Administrator triggers dataspace participant contexts provisioning and issuance of the X-Road membership credential(s) for this security server. Idempotent - re-invoking re-submits failed credential requests and reports the current status.</h3>
-      responses:
-        '200':
-          description: data space provisioning status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataspaceProvisioningStatus'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '500':
-          description: internal server error
   /system/certificate:
     get:
       tags:
@@ -6209,17 +6215,6 @@ components:
       description: X-Road-ApiKey token=<api key>
       # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
-    DataspaceProvisioningStatus:
-      type: object
-      description: aggregate status of data space membership credential provisioning
-      required:
-        - status
-      properties:
-        status:
-          type: string
-          format: text
-          description: ISSUED when all configured participant contexts hold a membership credential, PENDING while issuance is still in progress
-          example: ISSUED
     AccessRight:
       type: object
       description: access right given for a specific subject (ServiceClient) for specific service (service_code) owned by some client. This object does not represent endpoint-level access rights
@@ -8621,5 +8616,61 @@ components:
         global_configuration_version:
           type: integer
           description: global configuration version
+    DataspaceProvisioningStatus:
+      type: object
+      description: aggregate status of data space membership credential provisioning
+      required:
+        - enabled
+        - auth_cert_registered
+        - participant_contexts
+      properties:
+        enabled:
+          type: boolean
+          readOnly: true
+          description: whether data space provisioning is enabled on this security server
+        auth_cert_registered:
+          type: boolean
+          readOnly: true
+          description: whether the authentication certificate is in REGISTERED state
+        participant_contexts:
+          type: array
+          readOnly: true
+          description: provisioning status per participant context
+          items:
+            $ref: '#/components/schemas/DataspaceParticipantContextStatus'
+    DataspaceParticipantContextStatus:
+      type: object
+      description: provisioning status for one data space participant context
+      required:
+        - participant_id
+        - kind
+        - context_created
+        - credential_status
+      properties:
+        participant_id:
+          type: string
+          readOnly: true
+          description: participant context id
+        kind:
+          type: string
+          readOnly: true
+          description: participant context kind
+          enum:
+            - HOST
+            - MANAGEMENT
+        context_created:
+          type: boolean
+          readOnly: true
+          description: whether the participant context has been created in IdentityHub
+        credential_status:
+          type: string
+          readOnly: true
+          description: status of the X-Road membership credential
+          enum:
+            - ISSUED
+            - PENDING
+            - ABSENT
+            - ERROR
+            - UNKNOWN
 security:
   - ApiKeyAuth: []

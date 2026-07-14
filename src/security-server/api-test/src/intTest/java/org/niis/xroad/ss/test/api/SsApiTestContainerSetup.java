@@ -87,7 +87,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
                 .withExposedService(DS_CONTROL_PLANE, Port.DS_CONTROL_PLANE_MANAGEMENT, forListeningPort())
-                .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_IDENTITY, forListeningPort())
+                .withExposedService(DS_IDENTITY_HUB, Port.DS_IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_ADMIN, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY, forListeningPort())
                 .withExposedService(DS_ISSUER_SERVICE, Port.DS_ISSUER_SERVICE_IDENTITY_DID, forListeningPort())
@@ -112,15 +112,6 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
         env.getContainerByServiceName(NGINX).orElseThrow()
                 .copyFileToContainer(nginxFiles, "/var/lib");
         execInContainer(AUXILIARY_SERVICE, "/etc/xroad/backup-keys/init_backup_encryption.sh");
-    }
-
-    /**
-     * Provisions the DSP participant stack. Must run after the baseline SIGN certificate is seeded:
-     * the Identity Hub signs the {@code xroadMemberClaim} via the signer at credential-request time,
-     * which requires the owner member's SIGN cert to be present.
-     */
-    public void bootstrapDsp() {
-        new DspBootstrap(this).bootstrap();
     }
 
     /**

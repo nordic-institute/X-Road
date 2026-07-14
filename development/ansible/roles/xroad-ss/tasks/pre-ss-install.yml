@@ -54,20 +54,14 @@
               enabled: false
 
 # ---------------------------------------------------------------------------
-# 3b. Preseed proxy-ui-api dataspace provisioning config. The
-#     POST /api/v1/system/dataspace-provisioning endpoint is disabled by default
-#     (application.yml ships dataspace.enabled=false); enable it here for the LXD
-#     dev env. identity-hub-url MUST be this host's FQDN, not localhost: the
+# 3b. Preseed proxy-ui-api dataspace provisioning config.
+#     identity-hub-url MUST be this host's FQDN, not localhost: the
 #     provisioning service derives the holder DID, the credentialService endpoint
 #     (where the issuer on the CS pushes the issued credential) and the STS token
 #     URL from its host, and all three must be reachable cross-host. proxy-ui-api
 #     only imports local.yaml and local-tls.yaml, so this is injected into
-#     local.yaml. Dev-only bearer tokens are signed by the mock JWKS the CS serves
-#     on :8099. management-context-enabled on every SS: it adds the :mgmt
-#     participant context that serves the DSP-routed MANAGEMENT/clientReg
-#     catalog other SS fetch during client registration, and each SS also
-#     routes its own proxymonitor/metrics self-call through its own :mgmt
-#     context — so every SS needs one, not just the management/provider SS.
+#     local.yaml. The reconciler drives provisioning automatically at SS init
+#     and on each globalconf-refresh tick; no manual API call is needed.
 #
 # TEMPORARY (dataspaces dev): remove once packaging ships these as debconf
 #   answerable questions / real STS-issued tokens.
@@ -88,7 +82,7 @@
     path: /etc/xroad/conf.d/local.yaml
     insertafter: '^  proxy-ui-api:'
     marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:\n      enabled: true\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      control-plane-url: https://localhost:8182\n      participant-id: {{ inventory_hostname }}.lxd\n      management-context-enabled: true\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n      identity-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiI3NDcyYmExN2ExMjE0MGI3YWVhNjNlNDM2ZWI1OTMxMSIsInNjb3BlIjoiaWRlbnRpdHktYXBpOmFkbWluIn0.LTjYT366IgFiI12rkxBatvzoIbtTzoYYVXRE9ytAJ23thT_cVid6Gv3m7XKe6bEphARXodhJqTwxeLYMtHAI_XIIC50xZ76e2mo9qLF9LX3JR2_Y5prMDb1BjmYpzedLupnu8SwB2W9n7POYeaMMTTXDlCZsqR2zffwZaCliXGWuj9VLdp0SUvNc8Xz9LMR1C0NNwL-HSH0oBHzMTn0E7kFSJ5HU0AZNa-h9ZNpYu6e4S_Yx7Lo4xRFtVMFRCW8sqfWfqjE861DVGTaQKgmBerbA0jfgaOWB4IU_8EwPBse68N2w8rCUJ4NU6MgRpd8uKEAbSBwNCmSpBvOOriqqAw\n      control-plane-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiJjZWI1MjYzM2M1YjU0MDU3OWM3OTIxZTRmN2QyOWM3NSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6YWRtaW4ifQ.iNTzn9fdrEkO5SChx8d9aZI34kKW7HV6EfUauPHUs_HC7OpGXMra9qLaEUwcNVmaPdIp7qypBG-wgIEn9znZ6inhDI7V4hoGVTEE7bZS2jar5LTcnr_tt-7Y-frV7GX-qW-b-C9y7hDWpTE_D4mPCLXvhSPjKYAS3_ZP2uCryQ6wGyFUToyf39YDnMOys2vpkI9knnCDfdFFoPsLmVWAz7CWjtV5J_IpTwRP2c63trsPVuPn85tQqXIDI8-geiXmxUVGWFGQQSkCyHX3xSbFE0vC23HFFxkmV0EUr8qFS6wDNiSFw2UYmYfWgfMk64xRY3d07HFbAWwgYa4tZixT6Q"
+    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      control-plane-url: https://localhost:8182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n      identity-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiI3NDcyYmExN2ExMjE0MGI3YWVhNjNlNDM2ZWI1OTMxMSIsInNjb3BlIjoiaWRlbnRpdHktYXBpOmFkbWluIn0.LTjYT366IgFiI12rkxBatvzoIbtTzoYYVXRE9ytAJ23thT_cVid6Gv3m7XKe6bEphARXodhJqTwxeLYMtHAI_XIIC50xZ76e2mo9qLF9LX3JR2_Y5prMDb1BjmYpzedLupnu8SwB2W9n7POYeaMMTTXDlCZsqR2zffwZaCliXGWuj9VLdp0SUvNc8Xz9LMR1C0NNwL-HSH0oBHzMTn0E7kFSJ5HU0AZNa-h9ZNpYu6e4S_Yx7Lo4xRFtVMFRCW8sqfWfqjE861DVGTaQKgmBerbA0jfgaOWB4IU_8EwPBse68N2w8rCUJ4NU6MgRpd8uKEAbSBwNCmSpBvOOriqqAw\n      control-plane-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiJjZWI1MjYzM2M1YjU0MDU3OWM3OTIxZTRmN2QyOWM3NSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6YWRtaW4ifQ.iNTzn9fdrEkO5SChx8d9aZI34kKW7HV6EfUauPHUs_HC7OpGXMra9qLaEUwcNVmaPdIp7qypBG-wgIEn9znZ6inhDI7V4hoGVTEE7bZS2jar5LTcnr_tt-7Y-frV7GX-qW-b-C9y7hDWpTE_D4mPCLXvhSPjKYAS3_ZP2uCryQ6wGyFUToyf39YDnMOys2vpkI9knnCDfdFFoPsLmVWAz7CWjtV5J_IpTwRP2c63trsPVuPn85tQqXIDI8-geiXmxUVGWFGQQSkCyHX3xSbFE0vC23HFFxkmV0EUr8qFS6wDNiSFw2UYmYfWgfMk64xRY3d07HFbAWwgYa4tZixT6Q"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees

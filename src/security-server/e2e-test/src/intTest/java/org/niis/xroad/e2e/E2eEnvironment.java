@@ -91,9 +91,8 @@ public interface E2eEnvironment {
         public static final int PROXY_HEALTHCHECK = 5588;
         public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
-        public static final int IDENTITY_HUB_IDENTITY = 7182;
+        public static final int IDENTITY_HUB_CREDENTIALS = 7185;
         public static final int IDENTITY_HUB_STS = 7184;
-        public static final int ISSUER_SERVICE_IDENTITY = 6182;
         public static final int ISSUER_SERVICE_ADMIN = 6186;
 
         private Port() {

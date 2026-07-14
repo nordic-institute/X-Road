@@ -180,7 +180,7 @@ public class OpMonitorStepDefs extends BaseE2EStepDefs {
 
     private static String readGzipContent(InputStream inputStream) throws IOException {
         try (var gzipIn = new GZIPInputStream(new ByteArrayInputStream(inputStream.readAllBytes()));
-             var reader = new BufferedReader(new InputStreamReader(gzipIn))) {
+                var reader = new BufferedReader(new InputStreamReader(gzipIn))) {
             var sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
