@@ -29,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
@@ -84,8 +86,8 @@ public class AcmeBeanConfig {
     public static class IsAcmeCertRenewalJobsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean isActive = Boolean.parseBoolean(context.getEnvironment()
-                    .getProperty("xroad.proxy-ui-api.acme-renewal-active", "true"));
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
+            boolean isActive = config.value(AdminServiceConfigKeys.ACME_RENEWAL_ACTIVE);
             if (!isActive) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
             }

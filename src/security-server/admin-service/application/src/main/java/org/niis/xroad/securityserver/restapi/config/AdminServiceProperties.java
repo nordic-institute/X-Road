@@ -110,6 +110,10 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return optionalList(config.value(AdminServiceConfigKeys.ALLOWED_HOSTNAMES));
     }
 
+    public List<String> getReservedServiceCodes() {
+        return optionalList(config.value(AdminServiceConfigKeys.RESERVED_SERVICE_CODES));
+    }
+
     @Override
     public int getCacheDefaultTtl() {
         return config.value(AdminServiceConfigKeys.CACHE_DEFAULT_TTL);

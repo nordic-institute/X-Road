@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.mock.env.MockEnvironment;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -74,11 +74,10 @@ class AcmeBeanConfigTest {
 
         ConditionContext context = mock(ConditionContext.class);
         AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
-        Environment environment = mock(Environment.class);
+        MockEnvironment environment = new MockEnvironment();
+        environment.setProperty("xroad.proxy-ui-api.acme-renewal-active", renewalActive);
 
         when(context.getEnvironment()).thenReturn(environment);
-        when(environment.getProperty("xroad.proxy-ui-api.acme-renewal-active", "true"))
-                .thenReturn(renewalActive);
 
         return isAcmeCertRenewalJobsActive.matches(context, metadata);
     }

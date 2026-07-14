@@ -118,6 +118,12 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("request-size-limit-binary-upload")
             .withDefaultValue("10MB")
             .build();
+    /** {@code xroad.proxy-ui-api.reserved-service-codes} — service codes that cannot be added as user services. */
+    public static final ConfigKey<String[]> RESERVED_SERVICE_CODES = ADMIN
+            .stringArray("reserved-service-codes")
+            .withDefaultValue("listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,"
+                    + "getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData")
+            .build();
 
     // --- key algorithms / auth ---
     /** {@code xroad.proxy-ui-api.authentication-key-algorithm} — {@code KeyAlgorithm} name. */
