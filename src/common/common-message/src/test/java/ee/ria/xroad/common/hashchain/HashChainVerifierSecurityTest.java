@@ -32,13 +32,22 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractList;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_HASH_CHAIN;
 
 /**
@@ -151,6 +160,72 @@ class HashChainVerifierSecurityTest {
                     assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
                     assertThat(xre.getMessage()).contains("value count");
                 });
+    }
+
+    /**
+     * Feeds {@code resolveHashStep} a step whose value list reports a size far beyond MAX_VALUES without
+     * actually holding that many elements. If the MAX_VALUES guard were checked only inside the per-value loop
+     * (after {@code new DigestValue[values.size()]}), that allocation would throw OutOfMemoryError before the
+     * guard ever runs. Asserting the MALFORMED_HASH_CHAIN rejection instead proves the guard runs first.
+     */
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void stepReportingHugeValueCountIsRejectedBeforeArrayAllocation() throws Exception {
+        HashStepType step = new HashStepType();
+        step.setId("STEP0");
+        setValues(step, new HugeReportedSizeList(Integer.MAX_VALUE));
+
+        HashChainType chain = new HashChainType();
+        chain.getHashStep().add(step);
+
+        Throwable thrown = catchThrowable(() -> resolveHashStep(chain, "#STEP0"));
+
+        assertThat(thrown).isInstanceOf(InvocationTargetException.class);
+        Throwable cause = ((InvocationTargetException) thrown).getTargetException();
+        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
+        XrdRuntimeException xre = (XrdRuntimeException) cause;
+        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(xre.getMessage()).contains("value count");
+    }
+
+    /**
+     * Primes {@code totalValuesResolved} to 1 via a real resolved step, then feeds a second step reporting
+     * {@code Integer.MAX_VALUE} values. {@code totalValuesResolved + values.size()} would overflow to a negative
+     * number and slip past an int-addition guard, reaching the allocation. The overflow-safe guard
+     * ({@code values.size() > MAX_VALUES - totalValuesResolved}) must reject this regardless.
+     */
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void secondStepWithOverflowingValueCountIsRejectedAfterPriorValueResolved() throws Exception {
+        HashChainType chain = new HashChainType();
+        DigestMethodType defaultDigestMethod = new DigestMethodType();
+        defaultDigestMethod.setAlgorithm(SHA256_URI);
+        chain.setDefaultDigestMethod(defaultDigestMethod);
+
+        HashStepType step0 = new HashStepType();
+        step0.setId("STEP0");
+        HashValueType realValue = new HashValueType();
+        realValue.setDigestValue(Base64.getDecoder().decode(DUMMY_DIGEST));
+        step0.getHashValueOrStepRefOrDataRef().add(realValue);
+
+        HashStepType step1 = new HashStepType();
+        step1.setId("STEP1");
+        setValues(step1, new HugeReportedSizeList(Integer.MAX_VALUE));
+
+        chain.getHashStep().add(step0);
+        chain.getHashStep().add(step1);
+
+        HashChainVerifier verifier = newVerifier(chain);
+        resolveHashStep(verifier, chain, "#STEP0");
+
+        Throwable thrown = catchThrowable(() -> resolveHashStep(verifier, chain, "#STEP1"));
+
+        assertThat(thrown).isInstanceOf(InvocationTargetException.class);
+        Throwable cause = ((InvocationTargetException) thrown).getTargetException();
+        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
+        XrdRuntimeException xre = (XrdRuntimeException) cause;
+        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(xre.getMessage()).contains("value count");
     }
 
     @Test
@@ -312,5 +387,77 @@ class HashChainVerifierSecurityTest {
                 return true;
             }
         };
+    }
+
+    /**
+     * Sets the backing field of {@code HashStepType.hashValueOrStepRefOrDataRef} directly, bypassing the
+     * lazily-initializing getter, so tests can install a custom {@link List} implementation.
+     */
+    private static void setValues(HashStepType step, List<AbstractValueType> values) throws ReflectiveOperationException {
+        Field field = HashStepType.class.getDeclaredField("hashValueOrStepRefOrDataRef");
+        field.setAccessible(true);
+        field.set(step, values);
+    }
+
+    /**
+     * Invokes the private {@code HashChainVerifier.resolveHashStep} directly on a hand-built chain, skipping
+     * XML parsing entirely so a step can report an arbitrarily large value count with no matching allocation.
+     * Creates a fresh verifier instance per call.
+     */
+    private static Object resolveHashStep(HashChainType chain, String uri) throws ReflectiveOperationException {
+        return resolveHashStep(newVerifier(chain), chain, uri);
+    }
+
+    /**
+     * Invokes the private {@code HashChainVerifier.resolveHashStep} on an already-created verifier instance,
+     * so callers can resolve multiple steps in sequence and observe the running {@code totalValuesResolved}
+     * counter carry over between calls.
+     */
+    private static Object resolveHashStep(HashChainVerifier verifier, HashChainType chain, String uri)
+            throws ReflectiveOperationException {
+        Method method = HashChainVerifier.class.getDeclaredMethod("resolveHashStep", String.class, HashChainType.class);
+        method.setAccessible(true);
+        return method.invoke(verifier, uri, chain);
+    }
+
+    /**
+     * Builds a {@code HashChainVerifier} via its private constructor and registers {@code chain} as resolvable
+     * under {@link #CHAIN_URI}, bypassing the normal XML-parsing entry point.
+     */
+    private static HashChainVerifier newVerifier(HashChainType chain) throws ReflectiveOperationException {
+        Constructor<HashChainVerifier> constructor = HashChainVerifier.class.getDeclaredConstructor(
+                InputStream.class, HashChainReferenceResolver.class, Map.class);
+        constructor.setAccessible(true);
+        HashChainVerifier verifier = constructor.newInstance(null, resolver(""), Collections.emptyMap());
+
+        Field chainBaseUrisField = HashChainVerifier.class.getDeclaredField("chainBaseUris");
+        chainBaseUrisField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<HashChainType, String> chainBaseUris = (Map<HashChainType, String>) chainBaseUrisField.get(verifier);
+        chainBaseUris.put(chain, CHAIN_URI);
+
+        return verifier;
+    }
+
+    /**
+     * A value list that reports {@code reportedSize} from {@link #size()} while actually holding zero elements.
+     * Used to prove a size guard runs before any code allocates an array sized from {@code size()}.
+     */
+    private static final class HugeReportedSizeList extends AbstractList<AbstractValueType> {
+        private final int reportedSize;
+
+        HugeReportedSizeList(int reportedSize) {
+            this.reportedSize = reportedSize;
+        }
+
+        @Override
+        public AbstractValueType get(int index) {
+            throw new AssertionError("get() must not be called before the MAX_VALUES guard rejects this list");
+        }
+
+        @Override
+        public int size() {
+            return reportedSize;
+        }
     }
 }
