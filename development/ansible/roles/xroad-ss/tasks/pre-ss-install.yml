@@ -88,18 +88,7 @@
     path: /etc/xroad/conf.d/local.yaml
     insertafter: '^  proxy-ui-api:'
     marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:
-      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182
-      participant-id: {{ inventory_hostname }}.lxd
-      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer
-  dataspace:
-    identity-hub-provisioning:
-      rpc:
-        host: 127.0.0.1
-        port: 5461
-    control-plane-provisioning:
-      rpc:
-        host: 127.0.0.1"
+    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n  dataspace:\n    identity-hub-provisioning:\n      rpc:\n        host: 127.0.0.1\n        port: 5461\n    control-plane-provisioning:\n      rpc:\n        host: 127.0.0.1"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
