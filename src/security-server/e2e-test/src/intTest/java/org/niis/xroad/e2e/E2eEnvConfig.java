@@ -35,19 +35,10 @@ import org.springframework.context.annotation.Primary;
 /**
  * Wires exactly one environment bean selected by {@code test-framework.env-mode}.
  *
- * <p>In {@code compose} mode the bean's runtime type is {@link ComposeEnvSetup}, which implements
- * {@link E2eEnvironment}, {@link ComposeContainerOps}, {@link MessagelogDbOps} and
- * {@link MessagelogArchiveOps}. Spring's injection resolves all four interface types from that
- * single bean.
- *
- * <p>In {@code lxd} mode the runtime type is {@link LxdEnvSetup}, which implements
- * {@link E2eEnvironment}, {@link MessagelogDbOps} and {@link MessagelogArchiveOps}, but NOT
- * {@link ComposeContainerOps} — that interface exposes testcontainers' {@code ContainerState},
- * which has no LXD equivalent and has no remaining consumers once the 0200 messagelog steps became
- * env-aware. {@code ObjectProvider<ComposeContainerOps>.getIfAvailable()} returns {@code null}
- * safely in this mode; {@link MessagelogDbOps} and {@link MessagelogArchiveOps}, being env-neutral,
- * are always available and should be injected directly (not via {@code ObjectProvider}) by steps
- * that need them.
+ * <p>Both implementations ({@link ComposeEnvSetup} in {@code compose} mode, {@link LxdEnvSetup} in
+ * {@code lxd} mode) implement {@link E2eEnvironment}, {@link MessagelogDbOps} and
+ * {@link MessagelogArchiveOps}; Spring's injection resolves all three interface types from the
+ * single bean instance.
  *
  * <p>Neither impl carries {@code @Component}, so component-scan never produces duplicates.
  */
@@ -61,9 +52,7 @@ public class E2eEnvConfig {
     }
 
     /**
-     * Returns the active environment implementation. The declared return type is
-     * {@link E2eEnvironment}; Spring resolves autowiring by the actual runtime class,
-     * so in compose mode it also satisfies {@link ComposeContainerOps} injection points.
+     * Returns the active environment implementation.
      *
      * <p>Marked {@code @Primary} because the runtime instance is also registered under
      * {@link MessagelogDbOps} and {@link MessagelogArchiveOps} below (same object, different

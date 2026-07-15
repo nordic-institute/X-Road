@@ -47,28 +47,6 @@ public interface E2eEnvironment {
     boolean isInitialized();
 
     /**
-     * Returns the host name of the peer dataspace control-plane for the given environment.
-     */
-    String peerControlPlaneHost(String env);
-
-    /**
-     * Returns the dataspace participant context id for the given environment.
-     */
-    String participantContextId(String env);
-
-    /**
-     * Returns the dataspace identity-hub DID for the given environment.
-     */
-    String participantDid(String env);
-
-    /**
-     * Returns the DSP protocol path segment identifying the given environment's participant context.
-     */
-    default String dspPathSegment(String env) {
-        return participantContextId(env);
-    }
-
-    /**
      * Returns the security server address registered in the global configuration for the given environment.
      */
     String securityServerAddress(String env);
@@ -89,11 +67,8 @@ public interface E2eEnvironment {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
         public static final int PROXY_HEALTHCHECK = 5588;
-        public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
         public static final int IDENTITY_HUB_CREDENTIALS = 7185;
-        public static final int IDENTITY_HUB_STS = 7184;
-        public static final int ISSUER_SERVICE_ADMIN = 6186;
 
         private Port() {
         }

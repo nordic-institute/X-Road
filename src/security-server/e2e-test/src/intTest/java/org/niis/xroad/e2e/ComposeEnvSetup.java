@@ -58,7 +58,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
  */
 @Slf4j
 public class ComposeEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, ComposeContainerOps, MessagelogDbOps, MessagelogArchiveOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
 
     private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
 
@@ -133,21 +133,6 @@ public class ComposeEnvSetup extends BaseComposeSetup
     }
 
     @Override
-    public String peerControlPlaneHost(String env) {
-        return env + "-ds-control-plane";
-    }
-
-    @Override
-    public String participantContextId(String env) {
-        return "xrd-" + env;
-    }
-
-    @Override
-    public String participantDid(String env) {
-        return "did:web:%s-ds-identity-hub%%3A7183".formatted(env);
-    }
-
-    @Override
     public String securityServerAddress(String env) {
         return "xrd-" + env;
     }
@@ -161,8 +146,7 @@ public class ComposeEnvSetup extends BaseComposeSetup
         );
     }
 
-    @Override
-    public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
+    private Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
         return mapEnvironment(env).getContainerByServiceName(serviceName);
     }
 

@@ -78,21 +78,6 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
     }
 
     @Override
-    public String peerControlPlaneHost(String env) {
-        return "xrd-" + env + ".lxd";
-    }
-
-    @Override
-    public String participantContextId(String env) {
-        return resolveHost(env);
-    }
-
-    @Override
-    public String participantDid(String env) {
-        return "did:web:%s%%3A7183".formatted(resolveHost(env));
-    }
-
-    @Override
     public String securityServerAddress(String env) {
         return resolveHost(env);
     }
