@@ -37,6 +37,7 @@ import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.RpcProperties;
@@ -58,6 +59,7 @@ class ControlPlaneBeansConfig {
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .register(ServerConfConfigKeys.instance())
                 .deploymentMode(deploymentMode())
