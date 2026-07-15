@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":service:signer:signer-client"))
   intTestImplementation(project(":common:common-core"))
   intTestImplementation(project(":common:common-message"))
@@ -29,34 +29,22 @@ intTestShadowJar {
   mainClass("org.niis.xroad.signer.test.ConsoleIntTestRunner")
 }
 
-tasks.register<Test>("intTest") {
-  dependsOn(":service:signer:signer-application:quarkusBuild")
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-
-  useJUnitPlatform()
-
-  description = "Runs integration tests."
-  group = "verification"
-
-  testClassesDirs = sourceSets["intTest"].output.classesDirs
-  classpath = sourceSets["intTest"].runtimeClasspath
-
-  testLogging {
-    showStackTraces = true
-    showExceptions = true
-    showCauses = true
-    showStandardStreams = true
-  }
+intTestPhasedSuite {
+  phasedSuiteClass = "SignerIntTestSuite"
+  productName = "Signer"
 }
 
-tasks.named<Checkstyle>("checkstyleIntTest") {
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
+afterEvaluate {
+  tasks.named<Test>("intTest") {
+    dependsOn(":service:signer:signer-application:quarkusBuild")
+
+    description = "Runs the signer integration test suite in scenario order on the shared signer + " +
+        "secondary-signer stack (all classes share the same two tokens, so the suite runs class-ordered " +
+        "and serial - see SignerIntTestSuite). Pass --tests <pattern> to run a single class/method " +
+        "directly (IDE-friendly); the stack still boots via the LauncherSessionListener SPI."
+  }
 }
 
 tasks.named<Copy>("processIntTestResources") {
   from("../../../../development/docker/testca-dev")
-}
-
-archUnit {
-  setSkip(true)
 }

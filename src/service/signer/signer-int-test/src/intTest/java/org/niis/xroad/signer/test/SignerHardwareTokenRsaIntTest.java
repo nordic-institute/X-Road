@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,25 +25,26 @@
  */
 package org.niis.xroad.signer.test;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
+/**
+ * 0210 - Signer: HardwareToken key operations (RSA). Uses SoftHSM to emulate the hardware token.
+ */
+@Order(210)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class SignerHardwareTokenRsaIntTest extends AbstractSignerHardwareKeyOpsIntTest {
+
+    @Override
+    protected String tokenFriendlyName() {
+        return "xrd-softhsm-0";
     }
 
     @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.intTest.yaml",
-                ".env",
-                "signer-container-files/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return SignerIntTestSuite.class.getName();
+    protected KeyAlgorithm keyAlgorithm() {
+        return KeyAlgorithm.RSA;
     }
 }
