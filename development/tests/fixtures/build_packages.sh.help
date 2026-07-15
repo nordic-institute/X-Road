@@ -1,0 +1,14 @@
+Usage: [options] [additional arguments]
+
+Options:
+ -p, --package-only     Skip compilation and build only the packages.
+ -d, --docker-compile   Compile inside a Docker container instead of native Gradle build.
+ -h, --help             Display this help message and exit.
+ -r release-name        Specify one or more releases to build packages for. Supported values:
+                          - resolute, noble   (Debian packages)
+                          - rpm-el9, rpm-el10 (Red Hat packages)
+                        Example: -r resolute -r rpm-el9
+
+Options can be used individually or in combination.
+If provided, options must precede any additional arguments.
+Additional arguments are passed on to compile_code.sh

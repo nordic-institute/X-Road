@@ -1,0 +1,13 @@
+Usage: deployment/native-packages/docker/prepare-builder-image.sh [options] <release|all>
+
+Options:
+  -f, --force     Force build without checking registry
+  --no-cache      Build without using cache
+
+Examples:
+  deployment/native-packages/docker/prepare-builder-image.sh deb-resolute              # Prepare single image (pull or build)
+  deployment/native-packages/docker/prepare-builder-image.sh all                    # Prepare all images
+  deployment/native-packages/docker/prepare-builder-image.sh -f all                 # Force rebuild all images
+  deployment/native-packages/docker/prepare-builder-image.sh -f --no-cache rpm-el9  # Force rebuild without cache
+
+Available releases: deb-resolute deb-noble rpm-el9 rpm-el10
