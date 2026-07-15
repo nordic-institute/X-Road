@@ -167,7 +167,7 @@ public class EnvSetup extends BaseComposeSetup {
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
-                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_PROTOCOL, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
@@ -325,11 +325,8 @@ public class EnvSetup extends BaseComposeSetup {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
         public static final int PROXY_HEALTHCHECK = 5588;
-        public static final int CONTROL_PLANE_MANAGEMENT = 8182;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
         public static final int IDENTITY_HUB_CREDENTIALS = 7185;
-        public static final int IDENTITY_HUB_STS = 7184;
-        public static final int ISSUER_SERVICE_ADMIN = 6186;
     }
 
     enum Feature {

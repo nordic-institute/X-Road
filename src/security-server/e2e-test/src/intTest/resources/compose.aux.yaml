@@ -195,25 +195,6 @@ services:
         limits:
           memory: 256M
 
-  mock-jwks-server:
-    image: python:3.11-alpine
-    command: >
-      sh -c "
-        mkdir -p  /tmp/jwks &&
-        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
-        python3 -m http.server 8080 --directory /tmp/jwks
-      "
-    ports:
-      - "0:8080"
-    networks:
-      - xroad-network
-    healthcheck:
-      interval: 5s
-      retries: 3
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
-    volumes:
-      - ./jwks/:/jwks
-
   # Downloads the configuration anchor from the Central Server for the
   # configuration-client. The download is fault tolerant: it retries until the
   # CS is initialised (login + signing keys) by setup.hurl in the hurl

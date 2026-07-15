@@ -32,11 +32,16 @@ import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
+import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateAttestationDefinitionResp;
@@ -45,6 +50,8 @@ import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionRe
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.issuer.provisioning.proto.IssuerProvisioningServiceGrpc;
+import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
+import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 
 import java.util.List;
 import java.util.Map;
@@ -71,10 +78,14 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private static final String ADMIN_ROLE = "admin";
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
+    private static final String MGMT_HOLDER_DID_SUFFIX = ":mgmt";
+    private static final String CREDENTIAL_SUBJECT_PATH = "verifiableCredential.credential.credentialSubject.";
+    private static final String EQ_OPERATOR = "=";
 
     private final IdentityHubParticipantContextService participantContextService;
     private final AttestationDefinitionService attestationDefinitionService;
     private final CredentialDefinitionService credentialDefinitionService;
+    private final CredentialStatusService credentialStatusService;
     private final RpcResponseHandler responseHandler;
 
     @Override
@@ -93,6 +104,11 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     public void createCredentialDefinition(CreateCredentialDefinitionReq request,
                                            StreamObserver<CreateCredentialDefinitionResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> createCredentialDefinitionInternal(request));
+    }
+
+    @Override
+    public void revokeCredential(RevokeCredentialReq request, StreamObserver<RevokeCredentialResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> revokeCredentialInternal(request));
     }
 
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
@@ -151,6 +167,54 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         var result = credentialDefinitionService.createCredentialDefinition(credentialDefinition);
         requireSuccessOrConflict(result, DSP_PROVISIONING_FAILED, request.getCredentialDefinitionId());
         return CreateCredentialDefinitionResp.getDefaultInstance();
+    }
+
+    private RevokeCredentialResp revokeCredentialInternal(RevokeCredentialReq request) {
+        validateRevokeFields(request);
+
+        var queryResult = credentialStatusService.queryCredentials(hostCredentialQuery(request));
+        requireSuccessOrConflict(queryResult, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
+
+        var credentialId = queryResult.getContent().stream()
+                .filter(resource -> resource.getVerifiableCredential() != null
+                        && resource.getVerifiableCredential().credential() != null)
+                .filter(resource -> resource.getVerifiableCredential().credential().getCredentialSubject().stream()
+                        .noneMatch(subject -> subject.getId() != null && subject.getId().endsWith(MGMT_HOLDER_DID_SUFFIX)))
+                .map(VerifiableCredentialResource::getId)
+                .findFirst()
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                        "No HOST credential found for member %s/%s/%s".formatted(
+                                request.getXroadInstance(), request.getMemberClass(), request.getMemberCode())));
+
+        var revokeResult = credentialStatusService.revokeCredential(credentialId);
+        requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
+
+        return RevokeCredentialResp.newBuilder().setRevoked(true).build();
+    }
+
+    private QuerySpec hostCredentialQuery(RevokeCredentialReq request) {
+        return QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("participantContextId", EQ_OPERATOR, request.getParticipantContextId()))
+                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "xroadInstance", EQ_OPERATOR, request.getXroadInstance()))
+                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberClass", EQ_OPERATOR, request.getMemberClass()))
+                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberCode", EQ_OPERATOR, request.getMemberCode()))
+                .limit(Integer.MAX_VALUE)
+                .build();
+    }
+
+    private void validateRevokeFields(RevokeCredentialReq request) {
+        if (request.getParticipantContextId() == null || request.getParticipantContextId().isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
+        }
+        if (request.getXroadInstance() == null || request.getXroadInstance().isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "xroadInstance must not be blank");
+        }
+        if (request.getMemberClass() == null || request.getMemberClass().isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "memberClass must not be blank");
+        }
+        if (request.getMemberCode() == null || request.getMemberCode().isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "memberCode must not be blank");
+        }
     }
 
 }

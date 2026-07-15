@@ -33,7 +33,7 @@ app.kubernetes.io/component: dsp
 Temporary DSP feature gate — returns a non-empty string when any DSP app
 service has `replicas > 0`, otherwise returns "". Drives conditional
 rendering of DSP-scoped resources (passwords Secret, DB StatefulSets,
-seed Job, init-scripts ConfigMap, mock-jwks ConfigMap).
+seed Job, init-scripts ConfigMap).
 
 Intentionally replica-driven (not a dedicated `dsp.enabled` flag): DSP
 will become always-on once it ships, at which point this helper is
@@ -53,17 +53,6 @@ Call shape:
   {{- end -}}
 {{- end -}}
 {{- if $on }}true{{ end -}}
-{{- end }}
-
-{{/*
-Single source of truth for the mock-jwks-server keys ConfigMap name.
-Prefixed with `.Release.Name` per chart naming convention.
-
-Call shape:
-  {{ include "xroad.dsp.mockJwksServerKeysConfigMapName" . }}
-*/}}
-{{- define "xroad.dsp.mockJwksServerKeysConfigMapName" -}}
-{{ .Release.Name }}-mock-jwks-server-keys
 {{- end }}
 
 {{/*
@@ -106,7 +95,7 @@ Accepted top-level keys on the include dict:
 initContainer emitter: wait until a TCP dependency accepts a connection.
 
 Call shape:
-  {{- include "xroad.dsp.wait.tcp" (dict "root" $ "host" "mock-jwks-server" "port" 8080 "name" "wait-mock-jwks") | nindent 8 }}
+  {{- include "xroad.dsp.wait.tcp" (dict "root" $ "host" "configuration-client" "port" 4099 "name" "wait-config-client") | nindent 8 }}
 
 Accepted top-level keys on the include dict:
   - `root` (required) root context `$` — used for Values
