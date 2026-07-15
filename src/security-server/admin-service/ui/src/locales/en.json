@@ -297,6 +297,7 @@
       "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
       "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
       "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
+      "http_challenge_token_invalid": "ACME server returned an invalid HTTP challenge token",
       "challenge_trigger_failure": "Requesting the ACME server to validate the challenge failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",

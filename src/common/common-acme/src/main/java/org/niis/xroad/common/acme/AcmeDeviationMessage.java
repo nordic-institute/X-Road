@@ -45,6 +45,7 @@ public enum AcmeDeviationMessage implements DeviationProvider {
     HTTP_CHALLENGE_FILE_DELETION("acme.http_challenge_file_deletion", "Deleting ACME HTTP challenge file failed"),
     HTTP_CHALLENGE_MISSING("acme.http_challenge_missing",
             "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server"),
+    HTTP_CHALLENGE_TOKEN_INVALID("acme.http_challenge_token_invalid", "ACME server returned an invalid HTTP challenge token"),
     CHALLENGE_TRIGGER_FAILURE("acme.challenge_trigger_failure", "Requesting the ACME server to validate the challenge failed"),
     AUTHORIZATION_FAILURE("acme.authorization_failure",
             "Authorization failed. Usually related to a challenge validation failure that is required to prove the "
