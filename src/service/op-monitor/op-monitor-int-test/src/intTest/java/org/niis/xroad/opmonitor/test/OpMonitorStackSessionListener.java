@@ -25,27 +25,29 @@
  */
 package org.niis.xroad.opmonitor.test;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.opmonitor.test.container.OpMonitorContainerSetup;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
+/**
+ * Boots the op-monitor stack once per JVM, via the {@code LauncherSessionListener} SPI.
+ */
+@Slf4j
+public class OpMonitorStackSessionListener extends AbstractApiStackSessionListener {
 
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var properties = ApiTestConfigSource.getInstance().getCoreProperties();
+        var setup = new OpMonitorContainerSetup(properties);
+        log.info("Starting op-monitor stack");
+        setup.start();
+        return setup;
     }
 
     @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.intTest.yaml",
-                "db-init.dockerfile",
-                ".env",
-                "container-files/",
-                "test-data/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return OpMonitorIntTest.class.getName();
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        return setup;
     }
 }

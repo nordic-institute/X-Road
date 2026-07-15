@@ -25,35 +25,49 @@
  */
 package org.niis.xroad.opmonitor.test.container;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
-import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
-import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
 
-@Primary
-@Service
-public class OpMonitorIntTestSetup extends BaseComposeSetup {
+/**
+ * Browserless op-monitor test stack: the op-monitor service and its own PostgreSQL database, seeded via
+ * the {@code db-opmonitor-init} Liquibase container. Boots once per JVM launcher session; the
+ * {@link OpMonitorClient} is created and initialised once the stack is up.
+ */
+@Slf4j
+public class OpMonitorContainerSetup extends BaseComposeSetup {
 
     private static final Duration OP_MONITOR_STARTUP_TIMEOUT = Duration.ofSeconds(45);
-    public static final String OP_MONITOR = "op-monitor";
-    public static final String DB_OP_MONITOR = "db-opmonitor";
-    public static final String DB_OP_MONITOR_INIT = "db-opmonitor-init";
-    public static final Integer DB_OP_MONITOR_PORT = 5432;
+    private static final String OP_MONITOR = "op-monitor";
+    private static final String DB_OP_MONITOR = "db-opmonitor";
+    private static final String DB_OP_MONITOR_INIT = "db-opmonitor-init";
+    private static final int DB_OP_MONITOR_PORT = 5432;
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
-    public OpMonitorIntTestSetup(TestFrameworkCoreProperties coreProperties) {
+    private OpMonitorClient opMonitorClient;
+
+    public OpMonitorContainerSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
     }
 
     @Override
+    protected String composeProjectName() {
+        return "op-monitor-";
+    }
+
+    @Override
     protected ComposeContainer initEnv() {
-        return new ComposeContainer("op-monitor-",
+        return new ComposeContainer(composeProjectName(),
                 new File(coreProperties.resourceDir() + COMPOSE_FILE))
                 .withExposedService(OP_MONITOR,
                         Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT),
@@ -63,4 +77,34 @@ public class OpMonitorIntTestSetup extends BaseComposeSetup {
                 .withLogConsumer(DB_OP_MONITOR_INIT, createLogConsumer(DB_OP_MONITOR_INIT));
     }
 
+    @Override
+    @SneakyThrows
+    protected void onPostStart() {
+        var properties = new OpMonitorRpcChannelProperties() {
+            @Override
+            public String host() {
+                return getContainerMapping(OP_MONITOR, Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT)).host();
+            }
+
+            @Override
+            public int port() {
+                return getContainerMapping(OP_MONITOR, Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT)).port();
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_DEADLINE_AFTER);
+            }
+        };
+
+        opMonitorClient = new OpMonitorClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), properties);
+        opMonitorClient.init();
+    }
+
+    /**
+     * Returns the op-monitor gRPC client, initialised once the stack is up.
+     */
+    public OpMonitorClient opMonitorClient() {
+        return opMonitorClient;
+    }
 }
