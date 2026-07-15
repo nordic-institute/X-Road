@@ -74,11 +74,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * JUnit5 port of {@code 0400-ss-monitoring.feature}. Runs last among the e2e test classes (see the
- * {@link Order} value on the class) — its "Retrieving Operational/Health Data" scenarios assert on
- * op-monitor records that accumulate from every REST/SOAP call made across this whole test run, so
- * running it after {@link SsProxyMessageFlowTest} and {@link SsMessagelogArchiveTest}
- * preserves the traffic history those assertions were written against.
+ * Runs last: the operational/health data tests assert on op-monitor records that accumulate from
+ * every call made across the whole run.
  */
 @DisplayName("SS monitoring - proxy metrics, operational data and health data")
 @Order(400)

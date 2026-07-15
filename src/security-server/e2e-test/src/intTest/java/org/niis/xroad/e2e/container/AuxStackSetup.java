@@ -72,8 +72,7 @@ public class AuxStackSetup extends BaseComposeSetup {
     }
 
     /**
-     * Blocks until the one-shot hurl setup container exits, then verifies it exited cleanly. This is
-     * the JUnit5 equivalent of the legacy Cucumber "Environment is initialized" background step.
+     * Blocks until the one-shot hurl setup container exits, then verifies it exited cleanly.
      */
     @SuppressWarnings("checkstyle:magicnumber")
     public void waitForHurlToFinish() {

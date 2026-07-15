@@ -38,12 +38,9 @@ import java.util.Set;
 import static org.awaitility.Awaitility.await;
 
 /**
- * Facade over the e2e topology's three independent compose stacks: aux (Central Server + hurl setup),
- * ss0 and ss1 (Security Servers). Extends {@link BaseComposeSetup} only so it satisfies the type the
- * api-test-core substrate's {@code AbstractApiStackSessionListener}/{@code ApiStackExtension} lifecycle
- * expects; its single-stack accessors are not meaningful for a three-stack topology and are overridden
- * to fail loudly instead of silently touching a never-populated {@code env} field. Test code must use
- * the env-qualified overloads below (e.g. {@link #getContainerMapping(String, String, int)}).
+ * Facade over the three compose stacks (aux, ss0, ss1). Extends {@link BaseComposeSetup} only to satisfy
+ * the api-test-core session-listener/extension lifecycle; the inherited single-stack accessors are
+ * overridden to fail loudly — test code must use the env-qualified overloads.
  */
 @Slf4j
 public class E2eEnvSetup extends BaseComposeSetup {
@@ -106,9 +103,8 @@ public class E2eEnvSetup extends BaseComposeSetup {
     }
 
     /**
-     * Named {@code execInEnvContainer} rather than an {@code execInContainer} overload: both this and the
-     * single-stack {@link #execInContainer(String, String...)} override take a trailing {@code String...},
-     * so a same-named overload would be arity-ambiguous at every call site with more than one command token.
+     * Not an {@code execInContainer} overload: both take a trailing {@code String...}, which would make
+     * call sites arity-ambiguous.
      */
     public Container.ExecResult execInEnvContainer(String envName, String container, String... command) {
         return mapEnvironment(envName).execInContainer(container, command);

@@ -44,10 +44,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
- * JUnit5 port of {@code 0100-ss-proxy.feature}: baseline proxy message flow against the multi-stack
- * (aux, ss0, ss1) e2e topology. Runs first among the e2e test classes (see {@link Order} on the class)
- * because {@link SsMessagelogArchiveTest} archives the messagelog entries this class's SOAP/REST
- * traffic produces on ss1.
+ * Runs first: {@link SsMessagelogArchiveTest} asserts on the messagelog records this class's
+ * SOAP/REST traffic produces on ss1.
  */
 @DisplayName("SS proxy - baseline message flow")
 @Order(100)

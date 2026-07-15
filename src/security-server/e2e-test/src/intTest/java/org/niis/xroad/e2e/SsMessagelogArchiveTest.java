@@ -61,15 +61,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * JUnit5 port of {@code 0200-ss-messagelog.feature}. Runs after {@link SsProxyMessageFlowTest}
- * (see the {@link Order} value on the class) because the "10 messagelogs for DEV/COM/4321" and
- * "2 messagelogs for DEV/COM/1234/test-consumer" counts asserted here are the messagelog records that
- * class's SOAP/REST traffic produced on ss1.
- *
- * <p>Method order matches the original scenario order and matters: scenario 1 downloads the
- * verificationconf used to cryptographically verify every archive asserted in this class (including
- * ss1's, in scenarios 3-5); scenario 2 archives ss1 (producing the {@code mlog-*} files on the
- * message-log-cli container that scenarios 3-6 decrypt). Scenarios 3-6 do not depend on each other.
+ * Runs after {@link SsProxyMessageFlowTest}: the messagelog counts asserted here are the records its
+ * traffic produced on ss1. Method order matters too: the first test downloads the verificationconf that
+ * verifies every archive, and the second produces the {@code mlog-*} files the decryption tests read.
  */
 @DisplayName("SS message log - archive, cleanup and encryption-key-scoped decryption")
 @Order(200)

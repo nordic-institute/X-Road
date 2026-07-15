@@ -31,14 +31,8 @@ import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 
 /**
- * Runs the entire e2e test tier as one ordered suite against the single shared aux/ss0/ss1 stack. Unlike
- * the SS/CS api-test tiers, there is no destructive/non-destructive split here: the scenarios are
- * state-coupled (see the {@code Order} values on the individual test classes) and always run serially,
- * one class at a time, in ascending {@code @Order}.
- *
- * <p>This is the entry point the {@code e2eTest} Gradle task and {@link ConsoleE2ETestRunner} select by
- * default. Both also support running an individual test class/method directly (bypassing this suite)
- * for IDE-friendly single-scenario runs.
+ * Default entry point of the {@code e2eTest} task and {@link ConsoleE2ETestRunner}: runs the tier as
+ * one serial suite in ascending class {@code @Order}, because the test classes are state-coupled.
  */
 @Suite(failIfNoTests = false)
 @SelectPackages("org.niis.xroad.e2e")

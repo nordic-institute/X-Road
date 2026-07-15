@@ -32,9 +32,7 @@ import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
 /**
- * Boots the e2e three-stack topology (aux, ss0, ss1) once per JVM launcher session. Registered via
- * SPI in {@code META-INF/services/org.junit.platform.launcher.LauncherSessionListener} so the stack
- * is available before any JUnit5 test class in this module runs.
+ * Boots the three-stack topology (aux, ss0, ss1) once per JVM, via the {@code LauncherSessionListener} SPI.
  */
 @Slf4j
 public class E2eStackSessionListener extends AbstractApiStackSessionListener {
