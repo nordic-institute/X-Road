@@ -290,14 +290,15 @@ public final class HashChainVerifier {
 
             List<AbstractValueType> values = hashStep.getLeft().getHashValueOrStepRefOrDataRef();
 
+            if (values.size() > MAX_VALUES - totalValuesResolved) {
+                throw new CodedException(X_MALFORMED_HASH_CHAIN,
+                        "Hash chain exceeds maximum value count of %d".formatted(MAX_VALUES));
+            }
+
             DigestValue[] digests = new DigestValue[values.size()];
 
             for (int i = 0; i < digests.length; ++i) {
                 totalValuesResolved++;
-                if (totalValuesResolved > MAX_VALUES) {
-                    throw new CodedException(X_MALFORMED_HASH_CHAIN,
-                            "Hash chain exceeds maximum value count of %d".formatted(MAX_VALUES));
-                }
                 digests[i] = resolveValue(values.get(i), hashStep.getRight());
             }
 
