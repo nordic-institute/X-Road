@@ -27,6 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Optional;
 
 /**
@@ -35,55 +39,24 @@ import java.util.Optional;
  * {@code {"EE":{"tokenId":"tok1","sourceAnchorFileUri":"http://cs/anchor.xml"}}}.
  */
 @SuppressWarnings("checkstyle:MagicNumber")
+@NoArgsConstructor
+@Setter
 public class ConfProxyInstanceConfig {
 
     private String tokenId;
     private String signingKeyId;
+    @Getter
     private String keyAlgorithm = "RSA";
+    @Getter
     private String sourceAnchorFileUri;
+    @Getter
     private int validityInterval = 600;
-
-    /** No-arg constructor for Jackson deserialization. */
-    public ConfProxyInstanceConfig() {
-    }
 
     public Optional<String> tokenId() {
         return Optional.ofNullable(tokenId);
     }
 
-    public void setTokenId(String tokenId) {
-        this.tokenId = tokenId;
-    }
-
     public Optional<String> signingKeyId() {
         return Optional.ofNullable(signingKeyId);
-    }
-
-    public void setSigningKeyId(String signingKeyId) {
-        this.signingKeyId = signingKeyId;
-    }
-
-    public String keyAlgorithm() {
-        return keyAlgorithm;
-    }
-
-    public void setKeyAlgorithm(String keyAlgorithm) {
-        this.keyAlgorithm = keyAlgorithm;
-    }
-
-    public String sourceAnchorFileUri() {
-        return sourceAnchorFileUri;
-    }
-
-    public void setSourceAnchorFileUri(String sourceAnchorFileUri) {
-        this.sourceAnchorFileUri = sourceAnchorFileUri;
-    }
-
-    public int validityInterval() {
-        return validityInterval;
-    }
-
-    public void setValidityInterval(int validityInterval) {
-        this.validityInterval = validityInterval;
     }
 }
