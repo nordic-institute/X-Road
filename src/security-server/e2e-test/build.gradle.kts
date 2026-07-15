@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(libs.test.restassured)
   intTestImplementation(project(":lib:asic-core"))
   intTestImplementation(project(":common:common-test"))
