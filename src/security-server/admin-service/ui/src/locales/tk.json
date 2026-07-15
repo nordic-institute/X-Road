@@ -288,6 +288,7 @@
       "http_challenge_file_creation": "ACME HTTP talap faýlyny döredip bolmady",
       "http_challenge_file_deletion": "ACME HTTP talap faýlyny pozup bolmady",
       "http_challenge_missing": "Häzirki wagtda X-Road diňe HTTP birikmäni goldaýar, ýöne ACME serwerinden mümkin bolan opsiýalarda ýok",
+      "http_challenge_token_invalid": "ACME serweri nädogry HTTP talap tokenini gaýtardy",
       "order_creation_failure": "ACME serwerinde täze Sargyt döredip bolmady",
       "order_finalization_failure": "ACME serwerinde sargydy tamamlap bolamdy"
     },

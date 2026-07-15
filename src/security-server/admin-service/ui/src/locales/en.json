@@ -360,6 +360,7 @@
       "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
       "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
       "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
+      "http_challenge_token_invalid": "ACME server returned an invalid HTTP challenge token",
       "order_creation_failure": "Creating new Order on ACME server failed",
       "order_finalization_failure": "Finalizing the Order on ACME server failed"
     },
