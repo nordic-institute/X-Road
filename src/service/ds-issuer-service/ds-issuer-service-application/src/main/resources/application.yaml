@@ -35,9 +35,6 @@ web:
   http:
     port: 6181
     path: /api
-    identity:
-      port: 6182
-      path: /api/identity
     did:
       port: 6183
       path: /
@@ -47,9 +44,6 @@ web:
     issuance:
       port: 6185
       path: /api/issuance
-    issueradmin:
-      port: 6186
-      path: /api/admin
     statuslist:
       port: 6187
       path: /statuslist

@@ -1,9 +1,5 @@
 edc:
   hostname: ${XROAD_HOST}
-  iam:
-    oauth2:
-      jwks:
-        url: http://mock-jwks-server:8080/jwks.json
   statuslist:
     callback:
       address: https://${XROAD_HOST}:6187/statuslist

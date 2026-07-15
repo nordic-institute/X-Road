@@ -31,8 +31,6 @@ quarkus:
 web:
   http:
     port: 8181
-    management:
-      port: 8182
     protocol:
       port: 8183
       path: /api/dsp
@@ -44,6 +42,12 @@ web:
       port: 8185
 
 xroad:
+  edc:
+    boot:
+      # Upstream DataPlaneSignalingApiExtension also mounts a data-plane registration REST controller;
+      # XRoadDataPlaneSignalingApiExtension replaces it with the transfer API only, since the in-process
+      # registrar (XRoadDataPlaneRegistrarExtension) is the sole DataPlaneInstanceStore writer.
+      excluded-service-extensions: org.eclipse.edc.signaling.DataPlaneSignalingApiExtension
   ds:
     rpc:
       host: "0.0.0.0"
@@ -110,18 +114,6 @@ edc:
   iam:
     issuer:
       id: "did:web:${HOSTNAME:localhost}%3A7183"
-    sts:
-      oauth:
-        token:
-          url: "http://ds-identity-hub:7184/api/sts/token"
-        client:
-          id: "did:web:${HOSTNAME:localhost}%3A7183"
-          secret:
-            alias: "did:web:${HOSTNAME:localhost}%3A7183-sts-client-secret"
-    oauth2:
-      jwks:
-        url: https://example.com/jwks
-      issuer: test-issuer
     dcp:
       scopes:
         membership:

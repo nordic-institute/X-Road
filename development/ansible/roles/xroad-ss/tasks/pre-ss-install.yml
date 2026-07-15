@@ -8,7 +8,7 @@
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
 #   - ds-control-plane:  participant-context-id
-#   - ds-identity-hub:   jwks.url, keystore path
+#   - ds-identity-hub:   keystore path
 #   - xroad-proxy:       dsp.participant-context-id
 # AND the packages no longer start the units unconditionally during postinst.
 
@@ -83,12 +83,23 @@
       xroad:
         proxy-ui-api:
 
-- name: preseed proxy-ui-api dataspace provisioning config into local.yaml
+- name: preseed proxy-ui-api dataspace provisioning config into local
   blockinfile:
     path: /etc/xroad/conf.d/local.yaml
     insertafter: '^  proxy-ui-api:'
     marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      control-plane-url: https://localhost:8182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n      identity-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiI3NDcyYmExN2ExMjE0MGI3YWVhNjNlNDM2ZWI1OTMxMSIsInNjb3BlIjoiaWRlbnRpdHktYXBpOmFkbWluIn0.LTjYT366IgFiI12rkxBatvzoIbtTzoYYVXRE9ytAJ23thT_cVid6Gv3m7XKe6bEphARXodhJqTwxeLYMtHAI_XIIC50xZ76e2mo9qLF9LX3JR2_Y5prMDb1BjmYpzedLupnu8SwB2W9n7POYeaMMTTXDlCZsqR2zffwZaCliXGWuj9VLdp0SUvNc8Xz9LMR1C0NNwL-HSH0oBHzMTn0E7kFSJ5HU0AZNa-h9ZNpYu6e4S_Yx7Lo4xRFtVMFRCW8sqfWfqjE861DVGTaQKgmBerbA0jfgaOWB4IU_8EwPBse68N2w8rCUJ4NU6MgRpd8uKEAbSBwNCmSpBvOOriqqAw\n      control-plane-token: eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiJjZWI1MjYzM2M1YjU0MDU3OWM3OTIxZTRmN2QyOWM3NSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6YWRtaW4ifQ.iNTzn9fdrEkO5SChx8d9aZI34kKW7HV6EfUauPHUs_HC7OpGXMra9qLaEUwcNVmaPdIp7qypBG-wgIEn9znZ6inhDI7V4hoGVTEE7bZS2jar5LTcnr_tt-7Y-frV7GX-qW-b-C9y7hDWpTE_D4mPCLXvhSPjKYAS3_ZP2uCryQ6wGyFUToyf39YDnMOys2vpkI9knnCDfdFFoPsLmVWAz7CWjtV5J_IpTwRP2c63trsPVuPn85tQqXIDI8-geiXmxUVGWFGQQSkCyHX3xSbFE0vC23HFFxkmV0EUr8qFS6wDNiSFw2UYmYfWgfMk64xRY3d07HFbAWwgYa4tZixT6Q\n  dataspace:\n    identity-hub-provisioning:\n      rpc:\n        host: 127.0.0.1\n        port: 5461\n    control-plane-provisioning:\n      rpc:\n        host: 127.0.0.1"
+    block: "    dataspace:
+      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182
+      participant-id: {{ inventory_hostname }}.lxd
+      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer
+  dataspace:
+    identity-hub-provisioning:
+      rpc:
+        host: 127.0.0.1
+        port: 5461
+    control-plane-provisioning:
+      rpc:
+        host: 127.0.0.1"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
@@ -96,7 +107,7 @@
 #    EDC's @Setting resolution. These must exist before the unit's first start.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
-#   edc.iam.oauth2.jwks.url and keystore config as answerable questions.
+#   keystore config as an answerable question.
 # ---------------------------------------------------------------------------
 - name: preseed ds-identity-hub runtime overrides
   copy:
@@ -114,10 +125,6 @@
           rpc:
             port: 5461
       edc:
-        iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
         web:
           https:
             keystore:
@@ -131,7 +138,7 @@
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   participant-context-id, jwks.url, trusted-issuer.id, sts.oauth.token.url,
+#   participant-context-id, trusted-issuer.id, sts.oauth.token.url,
 #   dsp.callback.address, and keystore config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
@@ -152,9 +159,6 @@
           callback:
             address: "https://{{ inventory_hostname }}.lxd:8183/api/dsp/%s"
         iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
           trusted-issuer:
             issuer:
               id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"

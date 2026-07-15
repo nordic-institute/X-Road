@@ -41,9 +41,6 @@ web:
   http:
     port: 7181
     path: /api
-    identity:
-      port: 7182
-      path: /api/identity
     did:
       port: 7183
       path: /
@@ -79,8 +76,3 @@ edc:
   sql:
     schema:
       autocreate: true
-  iam:
-    oauth2:
-      jwks:
-        url: https://example.com/jwks
-      issuer: test-issuer

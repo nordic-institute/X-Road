@@ -48,6 +48,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && pg_ctlcluster 18 main start \
   && apt-get -qq update \
   && apt-get -qq install xroad-centralserver \
+  && dpkg -s xroad-secret-store-local >/dev/null \
   && pg_ctlcluster 18 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -72,6 +73,7 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
   && pg_ctlcluster 18 main start \
   && apt-get -qq update \
   && apt-get -qq install xroad-centralserver \
+  && dpkg -s xroad-secret-store-local >/dev/null \
   && pg_ctlcluster 18 main stop \
   # Clean up
   && rm -rf /tmp/repo \

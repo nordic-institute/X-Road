@@ -292,7 +292,7 @@ public class ComposeEnvSetup extends BaseComposeSetup
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
-                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_MANAGEMENT, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_PROTOCOL, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))

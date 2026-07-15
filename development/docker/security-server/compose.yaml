@@ -253,9 +253,7 @@ services:
       - DEBUG=true
       - XROAD_HOST=proxy
       - XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID=${DSP_PARTICIPANT_ID:-xrd-ss}
-      - XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT=https://ds-control-plane:8184/api/v1/control
       - XROAD_PROXY_DSP_LISTEN_ADDRESS=0.0.0.0
-      - XROAD_PROXY_DSP_DATA_FLOW_ENDPOINT=http://proxy:5590/full/api/v1/dataflows
       - XROAD_COMMON_RPC_CHANNEL_ASSET_ACCESS_HOST=ds-control-plane
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}

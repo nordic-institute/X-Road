@@ -31,8 +31,6 @@ services:
     depends_on:
       ds-https-keystore-init:
         condition: service_completed_successfully
-      mock-jwks-server:
-        condition: service_healthy
 
   mock-server:
     image: mockserver/mockserver:mockserver-5.15.0
@@ -73,27 +71,6 @@ services:
           memory: 64M
         limits:
           memory: 256M
-
-  mock-jwks-server:
-    image: python:3.11-alpine
-    command: >
-      sh -c "
-        mkdir -p /tmp/jwks &&
-        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
-        python3 -m http.server 8080 --directory /tmp/jwks
-      "
-    healthcheck:
-      interval: 5s
-      retries: 3
-      test: [ "CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json" ]
-    deploy:
-      resources:
-        reservations:
-          memory: 32M
-        limits:
-          memory: 128M
-    volumes:
-      - ./container-files/jwks/:/jwks
 
 volumes:
   ds-https-keystore:
