@@ -42,7 +42,6 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.liquibase.LiquibaseSlf4jLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -56,7 +55,6 @@ import java.util.concurrent.TimeUnit;
  * Uses Liquibase directly to avoid any internal state accumulation.
  */
 @Slf4j
-@Component
 public class LiquibaseExecutor {
     private static final Logger LIQUIBASE_LOGGER = LoggerFactory.getLogger("liquibase");
     private static final String CHANGELOG_FILE = "test-data/centerui-int-test-changelog.xml";
