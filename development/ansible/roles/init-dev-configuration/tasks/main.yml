@@ -45,10 +45,25 @@
 - name: Install and configure Mailpit
   when: inventory_hostname in groups['cs_servers']
   block:
-    - name: Download and run Mailpit installation script
-      shell: curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
-      args:
+# Deliberately NOT the upstream install.sh: it resolves the latest release via the GitHub
+# API, and anonymous API calls from shared CI runner IPs get rate-limited ("Unable to
+# determine the latest version"). The releases/latest/download/ URL is a plain web redirect
+# with no such limit and needs no token.
+    - name: Download and extract Mailpit
+      vars:
+        mailpit_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
+      unarchive:
+        src: "https://github.com/axllent/mailpit/releases/latest/download/mailpit-linux-{{ mailpit_arch }}.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        include:
+          - mailpit
         creates: /usr/local/bin/mailpit
+        mode: "0755"
+      register: mailpit_install
+      retries: 3
+      delay: 15
+      until: mailpit_install is succeeded
 
     - name: Create Mailpit config directory
       file:
