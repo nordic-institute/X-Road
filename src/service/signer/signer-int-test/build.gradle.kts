@@ -48,7 +48,3 @@ afterEvaluate {
 tasks.named<Copy>("processIntTestResources") {
   from("../../../../development/docker/testca-dev")
 }
-
-archUnit {
-  setSkip(true)
-}

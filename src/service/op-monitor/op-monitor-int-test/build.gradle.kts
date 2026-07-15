@@ -51,7 +51,3 @@ tasks.register<Test>("intTest") {
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
 }
-
-archUnit {
-  setSkip(true)
-}

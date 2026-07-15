@@ -55,7 +55,3 @@ intTestShadowJar {
 tasks.named("shadowJar") {
     dependsOn(copyMainComposeFile)
 }
-
-archUnit {
-    setSkip(true)
-}

@@ -50,7 +50,3 @@ val copyMainComposeFile by tasks.registering(Copy::class) {
 tasks.named<ShadowJar>("shadowJar") {
   dependsOn(provider { tasks.named("copyMainComposeFile") })
 }
-
-archUnit {
-  setSkip(true)
-}

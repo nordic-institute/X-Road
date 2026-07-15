@@ -30,7 +30,3 @@ intTestPhasedSuite {
   phasedSuiteClass = "ManagementServiceIntTestSuite"
   productName = "Management Service"
 }
-
-archUnit {
-  setSkip(true)
-}
