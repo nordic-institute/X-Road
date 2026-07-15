@@ -25,27 +25,27 @@
  */
 package org.niis.xroad.confproxy.test;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import org.junit.platform.suite.api.ConfigurationParameter;
+import org.junit.platform.suite.api.DisableParentConfigurationParameters;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
-
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
-    }
-
-    @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.main.yaml",
-                "compose.intTest.yaml",
-                ".env",
-                "nginx-container-files/",
-                "cp-container-files/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return ConfProxyIntTestSuite.class.getName();
-    }
+/**
+ * Entry point of the {@code intTest} task and {@link ConsoleIntTestRunner}: runs every scenario class as
+ * one serial suite in ascending class {@code @Order}. All three classes drive the same proxy instance
+ * ({@code TEST}) on the same long-lived configuration-proxy stack with no state reset between classes -
+ * the instance's signing-key count and configuration state built up in one class is asserted on in the
+ * next, exactly as the legacy Cucumber suite's file-ordered scenario execution did (0100 API keys, then
+ * 0200 CLI instance management, then 0300 REST instance management on the instance 0200 created).
+ */
+@Suite(failIfNoTests = false)
+@SelectClasses({
+        ConfProxyApiKeyManagementIntTest.class,
+        ConfProxyInstanceConfigurationIntTest.class,
+        ConfProxyRestApiIntTest.class
+})
+@DisableParentConfigurationParameters
+@ConfigurationParameter(key = "junit.jupiter.testclass.order.default", value = "org.junit.jupiter.api.ClassOrderer$OrderAnnotation")
+@ConfigurationParameter(key = "junit.jupiter.extensions.autodetection.enabled", value = "true")
+public class ConfProxyIntTestSuite {
 }

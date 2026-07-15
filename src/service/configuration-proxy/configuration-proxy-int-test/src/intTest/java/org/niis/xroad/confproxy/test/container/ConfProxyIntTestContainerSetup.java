@@ -23,20 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confproxy.test;
+package org.niis.xroad.confproxy.test.container;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
-import org.niis.xroad.test.framework.core.container.BaseComposeSetup;
-import org.springframework.stereotype.Service;
+import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 
+/**
+ * Configuration-proxy test stack: the configuration-proxy service under test, its signer dependency, and
+ * its own PostgreSQL database, plus a local nginx standing in for the dev global-configuration source
+ * ({@code xrd-cs}). Built from the product's own dev-stack {@code compose.main.yaml} (copied from
+ * {@code development/docker/configuration-proxy}) overridden by {@code compose.intTest.yaml}. Boots once
+ * per JVM launcher session.
+ */
 @Slf4j
-@Service
 public class ConfProxyIntTestContainerSetup extends BaseComposeSetup {
 
     public static final String CONFIGURATION_PROXY = "configuration-proxy";
@@ -46,13 +51,18 @@ public class ConfProxyIntTestContainerSetup extends BaseComposeSetup {
     private static final String COMPOSE_MAIN_FILE = "compose.main.yaml";
     private static final String COMPOSE_INTTEST_FILE = "compose.intTest.yaml";
 
-    public ConfProxyIntTestContainerSetup(TestFrameworkCoreProperties coreProperties) {
+    public ConfProxyIntTestContainerSetup(ApiTestCoreProperties coreProperties) {
         super(coreProperties);
     }
 
     @Override
-    public ComposeContainer initEnv() {
-        return new ComposeContainer("confproxy-",
+    protected String composeProjectName() {
+        return "confproxy-";
+    }
+
+    @Override
+    protected ComposeContainer initEnv() {
+        return new ComposeContainer(composeProjectName(),
                 new File(coreProperties.resourceDir() + COMPOSE_MAIN_FILE),
                 new File(coreProperties.resourceDir() + COMPOSE_INTTEST_FILE))
                 .withExposedService(CONFIGURATION_PROXY, Port.HTTP, Wait.forHealthcheck())
@@ -62,8 +72,16 @@ public class ConfProxyIntTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER));
     }
 
+    /**
+     * Returns the base URL ({@code http://host:port/api}) of the configuration-proxy REST API.
+     */
+    public String apiBaseUrl() {
+        var mapping = getContainerMapping(CONFIGURATION_PROXY, Port.HTTP);
+        return "http://%s:%d/api".formatted(mapping.host(), mapping.port());
+    }
+
     @UtilityClass
-    public final class Port {
+    public static final class Port {
         public static final int HTTP = 4099;
         public static final int HTTPS = 4000;
         public static final int DB = 5432;

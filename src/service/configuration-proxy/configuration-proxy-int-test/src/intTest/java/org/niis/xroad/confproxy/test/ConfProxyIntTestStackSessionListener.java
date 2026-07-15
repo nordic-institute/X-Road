@@ -25,9 +25,29 @@
  */
 package org.niis.xroad.confproxy.test;
 
-import org.junit.platform.suite.api.SelectClasspathResource;
-import org.niis.xroad.test.framework.core.BaseTestRunner;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confproxy.test.container.ConfProxyIntTestContainerSetup;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
-@SelectClasspathResource("behavior")
-public class ConfProxyIntTest extends BaseTestRunner {
+/**
+ * Boots the configuration-proxy stack once per JVM, via the {@code LauncherSessionListener} SPI.
+ */
+@Slf4j
+public class ConfProxyIntTestStackSessionListener extends AbstractApiStackSessionListener {
+
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var properties = ApiTestConfigSource.getInstance().getCoreProperties();
+        var setup = new ConfProxyIntTestContainerSetup(properties);
+        log.info("Starting configuration-proxy stack");
+        setup.start();
+        return setup;
+    }
+
+    @Override
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        return setup;
+    }
 }
