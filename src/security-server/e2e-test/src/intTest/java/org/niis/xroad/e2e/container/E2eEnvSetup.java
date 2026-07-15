@@ -23,8 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.junit5.container;
+package org.niis.xroad.e2e.container;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
@@ -104,8 +105,27 @@ public class E2eEnvSetup extends BaseComposeSetup {
         return mapEnvironment(envName).getContainerMapping(service, originalPort);
     }
 
-    public Container.ExecResult execInContainer(String envName, String container, String... command) {
+    /**
+     * Named {@code execInEnvContainer} rather than an {@code execInContainer} overload: both this and the
+     * single-stack {@link #execInContainer(String, String...)} override take a trailing {@code String...},
+     * so a same-named overload would be arity-ambiguous at every call site with more than one command token.
+     */
+    public Container.ExecResult execInEnvContainer(String envName, String container, String... command) {
         return mapEnvironment(envName).execInContainer(container, command);
+    }
+
+    public void copyFileFromContainer(String envName, String container, String containerPath, String localPath) {
+        mapEnvironment(envName).copyFileFromContainer(container, containerPath, localPath);
+    }
+
+    @SneakyThrows
+    public String execMessagelogSql(String envName, String sql) {
+        var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
+                "psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("psql query on %s failed: %s".formatted(envName, result.getStderr()));
+        }
+        return result.getStdout().trim();
     }
 
     private BaseComposeSetup mapEnvironment(String name) {
@@ -136,7 +156,7 @@ public class E2eEnvSetup extends BaseComposeSetup {
 
     @Override
     public Container.ExecResult execInContainer(String container, String... command) {
-        throw new UnsupportedOperationException("Use execInContainer(env, container, command); this facade manages three stacks");
+        throw new UnsupportedOperationException("Use execInEnvContainer(env, container, command); this facade manages three stacks");
     }
 
     @Override
@@ -147,5 +167,11 @@ public class E2eEnvSetup extends BaseComposeSetup {
     @Override
     public void copyFilesToContainer(String containerName, String classpathResource, String targetPath) {
         throw new UnsupportedOperationException("Not supported on the multi-stack facade");
+    }
+
+    @Override
+    public void copyFileFromContainer(String containerName, String containerPath, String localPath) {
+        throw new UnsupportedOperationException("Use copyFileFromContainer(env, container, containerPath, localPath); "
+                + "this facade manages three stacks");
     }
 }

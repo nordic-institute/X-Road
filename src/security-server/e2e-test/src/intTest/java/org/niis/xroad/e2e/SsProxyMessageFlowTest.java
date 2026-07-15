@@ -23,14 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.junit5;
+package org.niis.xroad.e2e;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.e2e.junit5.container.E2eEnvSetup;
-import org.niis.xroad.e2e.junit5.container.SsStackSetup;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.niis.xroad.e2e.container.E2eEnvSetup;
+import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import static io.restassured.config.XmlConfig.xmlConfig;
@@ -41,14 +44,16 @@ import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
- * JUnit5 port of the baseline scenario from {@code 0100-ss-proxy.feature} ("Soap request is successful
- * over proxy"), proving the multi-stack (aux, ss0, ss1) e2e topology boots and is exercised the same
- * way on the api-test-core substrate as on the Cucumber path, which stays intact alongside this test.
- * A REST proxy request and an admin UI login round out the spike per the review-gate checklist.
+ * JUnit5 port of {@code 0100-ss-proxy.feature}: baseline proxy message flow against the multi-stack
+ * (aux, ss0, ss1) e2e topology. Runs first among the e2e test classes (see {@link Order} on the class)
+ * because {@link SsMessagelogArchiveTest} archives the messagelog entries this class's SOAP/REST
+ * traffic produces on ss1.
  */
-@DisplayName("SS proxy - baseline message flow (JUnit5 spike)")
+@DisplayName("SS proxy - baseline message flow")
+@Order(100)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("checkstyle:magicnumber")
-class SsProxyMessageFlowJunit5Test extends E2eTest {
+class SsProxyMessageFlowTest extends E2eTest {
 
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
@@ -119,6 +124,7 @@ class SsProxyMessageFlowJunit5Test extends E2eTest {
             """;
 
     @Test
+    @Order(1)
     @DisplayName("Soap request is successful over proxy")
     void soapRequestIsSuccessfulOverProxy(E2eEnvSetup env) {
         given("the environment is initialized", () -> assertThat(env.isAuxHurlRunning()).isFalse());
@@ -137,6 +143,7 @@ class SsProxyMessageFlowJunit5Test extends E2eTest {
     }
 
     @Test
+    @Order(2)
     @DisplayName("REST request is successfully transferred over X-Road proxy")
     void restRequestIsSuccessfullyTransferredOverProxy(E2eEnvSetup env) {
         var mapping = env.getContainerMapping("ss1", SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
@@ -154,6 +161,24 @@ class SsProxyMessageFlowJunit5Test extends E2eTest {
     }
 
     @Test
+    @Order(3)
+    @DisplayName("REST request with valid API path permission is successfully transferred over X-Road proxy")
+    void restRequestWithValidApiPathPermissionIsSuccessfullyTransferredOverProxy(E2eEnvSetup env) {
+        var mapping = env.getContainerMapping("ss1", SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
+
+        var response = given("a REST request targeted at the /api/members API endpoint is sent to ss1 proxy", () ->
+                RestAssuredFactory.given()
+                        .header("Content-Type", "application/json")
+                        .header("x-road-client", "DEV/COM/4321/TestClient")
+                        .get("http://%s:%s/r1/DEV/COM/1234/TestService/restapi/api/members".formatted(mapping.host(), mapping.port()))
+                        .then());
+
+        then("the response is 200 with the first member's name", () ->
+                response.statusCode(200).body("[0].name", equalTo("MTÜ Nordic Institute for Interoperability Solutions")));
+    }
+
+    @Test
+    @Order(4)
     @DisplayName("Admin login against the ss1 UI container succeeds")
     void adminLoginAgainstSs1UiSucceeds(E2eEnvSetup env) {
         var mapping = env.getContainerMapping("ss1", SsStackSetup.UI, SsStackSetup.Port.UI);

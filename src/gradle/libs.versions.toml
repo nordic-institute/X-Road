@@ -13,6 +13,7 @@ hibernate = "7.3.4.Final"
 mapstruct = "1.6.3"
 jackson = "3.2.0"
 jacksonAnnotations = "2.22"
+jacksonLegacyDataformat = "2.21.3"
 mockito = "5.23.0"
 springBoot = "4.0.6"
 springFramework = "7.0.8"
@@ -183,6 +184,8 @@ hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "h
 
 jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
+jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jacksonLegacyDataformat" }
+jackson-module-jaxbAnnotations = { module = "com.fasterxml.jackson.module:jackson-module-jaxb-annotations", version.ref = "jacksonLegacyDataformat" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }

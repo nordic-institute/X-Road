@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.junit5.container;
+package org.niis.xroad.e2e.container;
 
 import com.github.dockerjava.api.model.ContainerNetwork;
 import lombok.SneakyThrows;

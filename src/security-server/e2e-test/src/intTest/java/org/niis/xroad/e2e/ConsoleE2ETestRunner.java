@@ -25,21 +25,19 @@
  */
 package org.niis.xroad.e2e;
 
-import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
+import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
-public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
+/**
+ * Fat-jar entry point for the e2e test suite.
+ */
+public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
 
     public static void main(String[] args) {
         new ConsoleE2ETestRunner().run();
     }
 
     @Override
-    protected String getTestClassName() {
-        return E2ETest.class.getName();
-    }
-
-    @Override
-    protected String[] getResourcesToExtract() {
+    protected String[] resourceFiles() {
         return new String[]{
                 "compose.aux.yaml",
                 "compose.main.yaml",
@@ -58,5 +56,10 @@ public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
                 "gpg_keys/",
                 "msglog_encryption_config/"
         };
+    }
+
+    @Override
+    protected String phasedSuiteClassName() {
+        return E2eSuite.class.getName();
     }
 }

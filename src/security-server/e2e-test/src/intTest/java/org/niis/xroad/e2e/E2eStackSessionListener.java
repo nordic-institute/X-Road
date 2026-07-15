@@ -23,17 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.glue;
+package org.niis.xroad.e2e;
 
-import org.niis.xroad.e2e.EnvSetup;
-import org.niis.xroad.test.framework.core.report.TestReportService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.container.E2eEnvSetup;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
-public abstract class BaseE2EStepDefs {
-    @Autowired
-    protected TestReportService testReportService;
+/**
+ * Boots the e2e three-stack topology (aux, ss0, ss1) once per JVM launcher session. Registered via
+ * SPI in {@code META-INF/services/org.junit.platform.launcher.LauncherSessionListener} so the stack
+ * is available before any JUnit5 test class in this module runs.
+ */
+@Slf4j
+public class E2eStackSessionListener extends AbstractApiStackSessionListener {
 
-    @Autowired
-    protected EnvSetup envSetup;
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var properties = ApiTestConfigSource.getInstance().getCoreProperties();
+        var setup = new E2eEnvSetup(properties);
+        log.info("Starting e2e three-stack topology (aux, ss0, ss1)");
+        setup.start();
+        return setup;
+    }
 
+    @Override
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        return setup;
+    }
 }

@@ -221,6 +221,16 @@ public abstract class BaseComposeSetup {
                 .copyFileToContainer(files, targetPath);
     }
 
+    /**
+     * Copies a single file out of a running container to the local filesystem.
+     */
+    @SneakyThrows
+    public void copyFileFromContainer(String containerName, String containerPath, String localPath) {
+        env.getContainerByServiceName(containerName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + containerName))
+                .copyFileFromContainer(containerPath, localPath);
+    }
+
     @SneakyThrows
     public Container.ExecResult execInContainer(String container, String... command) {
         log.debug("Executing command in container {}: {}", container, String.join(" ", command));
