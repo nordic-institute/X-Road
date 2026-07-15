@@ -61,6 +61,12 @@ public class ConfClientRootConfig {
 
     @ApplicationScoped
     XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return configBuilder()
+                .dbOverrides(appName)
+                .build();
+    }
+
+    public static XRoadConfigBuilder configBuilder() {
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
@@ -68,9 +74,7 @@ public class ConfClientRootConfig {
                 .register(HealthCheckConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
-                .deploymentMode(deploymentMode())
-                .dbOverrides(appName)
-                .build();
+                .deploymentMode(deploymentMode());
     }
 
     private static DeploymentMode deploymentMode() {

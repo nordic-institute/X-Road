@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,33 +25,28 @@
  */
 package org.niis.xroad.confclient.application;
 
-import io.quarkus.test.junit.QuarkusTestProfile;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.confclient.core.config.ConfClientRootConfig;
 
 import java.util.Map;
-import java.util.Set;
 
-import static java.lang.String.join;
+/**
+ * Alternative {@link XRoadConfig} producer enabled only for the CLI test profile
+ * ({@link ConfClientCLITestProfile}). Disables RPC TLS through the config DSL's override
+ * layer so the command-mode boot does not require a Vault-provisioned RPC certificate.
+ */
+@Alternative
+public class CliTestXRoadConfig {
 
-public class ConfClientCLITestProfile implements QuarkusTestProfile {
-    private static final String NATIVE = "native";
-    private static final String CLI = "cli";
-    private static final String TEST = "test";
-
-    @Override
-    public String getConfigProfile() {
-        return join(",", CLI, NATIVE, TEST);
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return ConfClientRootConfig.configBuilder()
+                .overrides(Map.of(CommonRpcConfigKeys.USE_TLS.key(), "false"))
+                .dbOverrides(appName)
+                .build();
     }
-
-    @Override
-    public Map<String, String> getConfigOverrides() {
-        return Map.of(
-                "quarkus.log.level", "INFO"
-        );
-    }
-
-    @Override
-    public Set<Class<?>> getEnabledAlternatives() {
-        return Set.of(CliTestXRoadConfig.class);
-    }
-
 }
