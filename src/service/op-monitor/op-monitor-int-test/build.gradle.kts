@@ -6,7 +6,7 @@ plugins {
 dependencies {
   intTestImplementation(project(":tool:liquibase-executor"))
   intTestImplementation(project(":service:op-monitor:op-monitor-client"))
-  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(libs.liquibase.core)
 
   intTestRuntimeOnly(libs.postgresql)
