@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.signer.test;
 
-import org.junit.platform.suite.api.SelectClasspathResource;
-import org.niis.xroad.test.framework.core.BaseTestRunner;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.test.container.SignerIntTestContainerSetup;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
-@SelectClasspathResource("behavior")
-public class SignerIntTest extends BaseTestRunner {
+/**
+ * Boots the signer + secondary-signer + test CA stack once per JVM, via the {@code LauncherSessionListener} SPI.
+ */
+@Slf4j
+public class SignerIntTestStackSessionListener extends AbstractApiStackSessionListener {
+
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var properties = ApiTestConfigSource.getInstance().getCoreProperties();
+        var setup = new SignerIntTestContainerSetup(properties);
+        log.info("Starting signer stack");
+        setup.start();
+        return setup;
+    }
+
+    @Override
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        return setup;
+    }
 }
-

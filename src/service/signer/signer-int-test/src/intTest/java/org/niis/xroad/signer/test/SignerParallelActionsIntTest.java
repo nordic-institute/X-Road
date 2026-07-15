@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,15 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package org.niis.xroad.signer.test.glue;
+package org.niis.xroad.signer.test;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
-import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.test.apitest.core.junit.Step;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,36 +54,66 @@ import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RS
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.PRIMARY;
+import static org.niis.xroad.signer.test.container.SignerIntTestContainerSetup.SIGNER;
 
+/**
+ * 0300 - Signer: Parallel scenarios. Exercises the signer under real concurrent sign calls against the
+ * hardware-token key {@code SignKey from CA} on {@code xrd-softhsm-0} (created by the hardware-token EC
+ * class, 0220), before and after a container restart.
+ */
 @Slf4j
-public class SignerParallelStepDefs extends BaseSignerStepDefs {
-    @Step("digest can be signed in using key {string} from token {string}. Called {} times with {} threads in parallel.")
-    public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName, int loops, int threads) throws Exception {
-        final KeyInfo key = findKeyInToken(friendlyName, keyName);
+@Order(300)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@SuppressWarnings("checkstyle:MagicNumber")
+class SignerParallelActionsIntTest extends AbstractSignerIntTest {
 
+    private static final String TOKEN_HSM_0 = "xrd-softhsm-0";
+    private static final String KEY_NAME = "SignKey from CA";
+
+    @BeforeEach
+    void backgroundSetup() {
+        Step.given("tokens are listed", this::listTokens);
+        Step.and("HSM is operational", () -> assertThat(client().isHSMOperational()).isTrue());
+    }
+
+    @Test
+    @Order(1)
+    @DisplayName("Data sign is properly handled in parallel execution")
+    void dataSignIsProperlyHandledInParallelExecution() {
+        Step.when("digest can be signed in using key \"SignKey from CA\" from token \"xrd-softhsm-0\". "
+                        + "Called 50 times with 25 threads in parallel.",
+                () -> doConcurrentSign(50, 25));
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Data sign is properly handled in parallel execution (post restart)")
+    void dataSignIsProperlyHandledInParallelExecutionPostRestart() {
+        Step.when("signer service is restarted", () -> containerSetup.restartContainer(SIGNER));
+        Step.and("tokens are listed", this::listTokens);
+        Step.and("digest can be signed in using key \"SignKey from CA\" from token \"xrd-softhsm-0\". "
+                        + "Called 25 times with 5 threads in parallel.",
+                () -> doConcurrentSign(25, 5));
+    }
+
+    @SneakyThrows
+    private void doConcurrentSign(int loops, int threads) {
+        final KeyInfo key = findKeyInToken(TOKEN_HSM_0, KEY_NAME);
         var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
             case RSA -> SHA256_WITH_RSA;
             case EC -> SHA256_WITH_ECDSA;
         };
 
-        doConcurrentSign(() -> {
-            var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
-
+        Callable<byte[]> callable = () -> {
+            var digest = "%s-%d".formatted(UUID.randomUUID(), System.currentTimeMillis());
             var stopWatch = StopWatch.createStarted();
-            byte[] result = clientHolder.getSignClient(PRIMARY).sign(key.getId(), signAlgorithm,
-                    calculateDigest(SHA256, digest.getBytes(UTF_8)));
+            byte[] result = signClient(PRIMARY).sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
             log.trace("Executed sign in {} ms.", stopWatch.getDuration().toMillis());
             return result;
-        }, threads, loops);
+        };
 
-    }
-
-    private void doConcurrentSign(Callable<byte[]> callable,
-                                  int threads,
-                                  int loops) throws Exception {
         try (ExecutorService executorService = Executors.newFixedThreadPool(threads)) {
-
             List<Callable<byte[]>> callables = new ArrayList<>();
             for (int i = 0; i < threads; i++) {
                 for (int j = 0; j < loops; j++) {
