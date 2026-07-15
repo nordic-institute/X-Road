@@ -1,16 +1,19 @@
 #!/bin/bash
 # Waits until the federation is ready for cross-server traffic: each security
 # server's downloaded global configuration must list the counterpart server's
-# address AND the e2e subsystems as approved security-server clients, otherwise
-# proxied calls fail with clientproxy.unknown_member. Server addresses and
-# client registrations reach the shared parameters in separate globalconf
-# generations — an address-only check passes before provider resolution works.
+# address AND the e2e subsystems as approved security-server clients, and each
+# PROXY must have loaded that globalconf generation — otherwise proxied calls
+# fail with clientproxy.unknown_member. Server addresses and client
+# registrations reach the shared parameters in separate globalconf generations,
+# and the proxies consume globalconf through the remote source on its own
+# refresh cycle (~60s), so a file on disk is not yet a view the proxy serves.
 # The hurl bootstrap returns as soon as registrations are accepted on the
-# central server; propagation to the security servers is asynchronous
-# (globalconf regeneration + configuration-client download cycle, ~2 minutes).
-# Deliberately reads files instead of sending a probe request through the
-# proxies: the e2e messagelog scenarios assert exact archive counts, and any
-# probe traffic would shift them.
+# central server; propagation is asynchronous end to end (globalconf
+# regeneration + configuration-client download + proxy refresh, ~2-3 minutes).
+# The proxy-view check uses the unauthenticated listClients metaservice, which
+# reflects the proxy's loaded globalconf and produces no messagelog rows — the
+# e2e messagelog scenarios assert exact archive counts, so a real proxied
+# probe request would shift them.
 set -euo pipefail
 
 TIMEOUT="${1:-300}"
@@ -34,9 +37,20 @@ check_params() {
     }'
 }
 
+# The proxy's loaded view: listClients must contain every e2e subsystem.
+proxy_view_ready() {
+  local body
+  body=$(curl -sf --max-time 10 "http://$1:8080/listClients") || return 1
+  for sub in $SUBSYSTEMS; do
+    grep -q ">$sub<" <<<"$body" || return 1
+  done
+}
+
 ready() {
   lxc exec xrd-ss1 -- cat "$SHARED_PARAMS" 2>/dev/null | check_params "xrd-ss0.lxd" "$SUBSYSTEMS" \
-    && lxc exec xrd-ss0 -- cat "$SHARED_PARAMS" 2>/dev/null | check_params "xrd-ss1.lxd" "$SUBSYSTEMS"
+    && lxc exec xrd-ss0 -- cat "$SHARED_PARAMS" 2>/dev/null | check_params "xrd-ss1.lxd" "$SUBSYSTEMS" \
+    && proxy_view_ready "xrd-ss0.lxd" \
+    && proxy_view_ready "xrd-ss1.lxd"
 }
 
 start=$(date +%s)
