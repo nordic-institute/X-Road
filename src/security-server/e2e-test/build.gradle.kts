@@ -15,24 +15,6 @@ dependencies {
   intTestImplementation(project(":service:op-monitor:op-monitor-core")) {
     exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
   }
-
-  constraints {
-    // Without test-framework-core's transitive graph pulling in a jackson-bom that aligns these,
-    // a lower, differently-patched version resolves here than in the rest of the repo, which
-    // gradle/verification-metadata.xml has no checksum for.
-    intTestImplementation(libs.jackson.dataformat.xml) {
-      version {
-        strictly(libs.jackson.dataformat.xml.get().version!!)
-      }
-      because("Align with the version already verified and used elsewhere in the repo")
-    }
-    intTestImplementation(libs.jackson.module.jaxbAnnotations) {
-      version {
-        strictly(libs.jackson.module.jaxbAnnotations.get().version!!)
-      }
-      because("Align with the version already verified and used elsewhere in the repo")
-    }
-  }
 }
 
 intTestComposeEnv {
