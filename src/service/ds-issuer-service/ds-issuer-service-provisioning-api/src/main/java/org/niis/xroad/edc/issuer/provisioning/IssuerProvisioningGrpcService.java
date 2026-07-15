@@ -39,6 +39,7 @@ import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.Credentia
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
@@ -78,6 +79,8 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
     private static final String MGMT_HOLDER_DID_SUFFIX = ":mgmt";
+    private static final String CREDENTIAL_SUBJECT_PATH = "verifiableCredential.credential.credentialSubject.";
+    private static final String EQ_OPERATOR = "=";
 
     private final IdentityHubParticipantContextService participantContextService;
     private final AttestationDefinitionService attestationDefinitionService;
@@ -169,19 +172,14 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private RevokeCredentialResp revokeCredentialInternal(RevokeCredentialReq request) {
         validateRevokeFields(request);
 
-        var queryResult = credentialStatusService.queryCredentials(QuerySpec.none());
+        var queryResult = credentialStatusService.queryCredentials(hostCredentialQuery(request));
         requireSuccessOrConflict(queryResult, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
 
         var credentialId = queryResult.getContent().stream()
-                .filter(resource -> request.getParticipantContextId().equals(resource.getParticipantContextId()))
                 .filter(resource -> resource.getVerifiableCredential() != null
                         && resource.getVerifiableCredential().credential() != null)
                 .filter(resource -> resource.getVerifiableCredential().credential().getCredentialSubject().stream()
                         .noneMatch(subject -> subject.getId() != null && subject.getId().endsWith(MGMT_HOLDER_DID_SUFFIX)))
-                .filter(resource -> resource.getVerifiableCredential().credential().getCredentialSubject().stream()
-                        .anyMatch(subject -> request.getXroadInstance().equals(subject.getClaims().get("xroadInstance"))
-                                && request.getMemberClass().equals(subject.getClaims().get("memberClass"))
-                                && request.getMemberCode().equals(subject.getClaims().get("memberCode"))))
                 .map(VerifiableCredentialResource::getId)
                 .findFirst()
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
@@ -192,6 +190,16 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
 
         return RevokeCredentialResp.newBuilder().setRevoked(true).build();
+    }
+
+    private QuerySpec hostCredentialQuery(RevokeCredentialReq request) {
+        return QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("participantContextId", EQ_OPERATOR, request.getParticipantContextId()))
+                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "xroadInstance", EQ_OPERATOR, request.getXroadInstance()))
+                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberClass", EQ_OPERATOR, request.getMemberClass()))
+                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberCode", EQ_OPERATOR, request.getMemberCode()))
+                .limit(Integer.MAX_VALUE)
+                .build();
     }
 
     private void validateRevokeFields(RevokeCredentialReq request) {
