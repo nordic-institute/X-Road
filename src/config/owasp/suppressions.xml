@@ -135,21 +135,6 @@
   </suppress>
 
   <!-- ============================================================
-       D5: commons-fileupload 1.5 (test-scope only via feign-form-spring -> spring-cloud-openfeign -> test-framework-core).
-       Investigated 2026-05-25: not present on any production runtimeClasspath.
-       ============================================================ -->
-  <suppress>
-    <notes><![CDATA[
-      commons-fileupload 1.5 (CVE-2025-48976) is pulled in only by
-      io.github.openfeign:feign-form-spring:13.6 -> spring-cloud-openfeign 5.0.1
-      via `tool:test-framework-core` for test-side Feign multipart calls.
-      Verified 2026-05-25 via `./gradlew :central-server:admin-service:application:dependencyInsight --configuration runtimeClasspath` — absent from prod.
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/commons-fileupload/commons-fileupload@1\.5$</packageUrl>
-    <cve>CVE-2025-48976</cve>
-  </suppress>
-
-  <!-- ============================================================
        D6: commons-beanutils 1.9.4 (test-scope only via Allure CLI + MockServer).
        Investigated 2026-05-25: pulled via opencsv -> allure-plugin-api and velocity-tools-generic -> mockserver-core.
        ============================================================ -->
