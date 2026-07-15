@@ -195,86 +195,8 @@ services:
         limits:
           memory: 256M
 
-  # Downloads the configuration anchor from the Central Server for the
-  # configuration-client. The download is fault tolerant: it retries until the
-  # CS is initialised (login + signing keys) by setup.hurl in the hurl
-  # container, then exits so configuration-client can fetch a signed global conf
-  # for the issuer's X-Road membership-claim verification.
-  anchor-init:
-    image: ${OPENBAO_DEV_IMG}
-    pull_policy: always
-    entrypoint: [ "bash", "-c" ]
-    command:
-      - |
-        set -e
-        CS="https://cs:4000"
-        JAR="$$(mktemp)"
-        echo "anchor-init: waiting for Central Server.."
-        until curl -sfk -o /dev/null "$$CS"; do sleep 3; done
-        echo "anchor-init: downloading anchor, retrying until the CS is initialised by setup.hurl.."
-        while true; do
-          rm -f "$$JAR"
-          curl -sk -c "$$JAR" -o /dev/null "$$CS" || { sleep 5; continue; }
-          XSRF="$$(awk '/XSRF-TOKEN/{print $$7}' "$$JAR")"
-          code="$$(curl -sk -b "$$JAR" -c "$$JAR" -o /dev/null -w '%{http_code}' \
-            -X POST "$$CS/login" --data 'username=xrd' --data 'password=secret123!' \
-            -H "X-XSRF-TOKEN: $$XSRF")"
-          if [ "$$code" != "200" ]; then echo "anchor-init: login HTTP $$code, retrying.."; sleep 5; continue; fi
-          XSRF="$$(awk '/XSRF-TOKEN/{print $$7}' "$$JAR")"
-          code="$$(curl -sk -b "$$JAR" -c "$$JAR" -o /anchor/configuration-anchor.xml -w '%{http_code}' \
-            "$$CS/api/v1/configuration-sources/INTERNAL/anchor/download" -H "X-XSRF-TOKEN: $$XSRF")"
-          if [ "$$code" = "200" ] && [ -s /anchor/configuration-anchor.xml ]; then
-            echo "anchor-init: anchor downloaded"; exit 0
-          fi
-          echo "anchor-init: anchor download HTTP $$code (CS not initialised yet), retrying.."
-          sleep 5
-        done
-    networks:
-      - xroad-network
-    volumes:
-      - ds-anchor:/anchor
-    deploy:
-      resources:
-        reservations:
-          memory: 16M
-        limits:
-          memory: 64M
-
-  configuration-client:
-    image: ${CONFIGURATION_CLIENT_IMG}
-    pull_policy: always
-    environment:
-      - DEBUG=true
-      - XROAD_HOST=configuration-client
-      - XROAD_SECRET_STORE_HOST=openbao
-      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
-      - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_CONFIGURATION_CLIENT_CONFIGURATION_ANCHOR_STORAGE=FILE
-      - XROAD_CONFIGURATION_CLIENT_CONFIGURATION_ANCHOR_FILE=/anchor/configuration-anchor.xml
-      - QUARKUS_DATASOURCE_ACTIVE=false
-    healthcheck:
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
-    networks:
-      - xroad-network
-    volumes:
-      - ds-anchor:/anchor
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 320M
-    depends_on:
-      openbao:
-        condition: service_healthy
-      anchor-init:
-        condition: service_completed_successfully
-
 volumes:
   ca-volume:
-  ds-anchor:
   ds-https-keystore:
     external: true
     name: e2e-ds-https-keystore
