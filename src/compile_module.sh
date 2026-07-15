@@ -1,8 +1,10 @@
 #!/bin/bash
-source compile_env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../.scripts/base-script.sh"
+resolve_java_home
 
 DIR=$PWD
 
-pushd $1 
+pushd $1
 $DIR/gradlew $2
 popd

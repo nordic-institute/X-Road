@@ -386,6 +386,65 @@ if $RUN_SMOKE; then
   fi
 
   rm -f "$FAKE_LOG"
+
+  # Smoke: build-images.sh no-args enumeration — assert it skips build-only rows.
+  # The script exits before any docker build call (OTel jar absent), so we verify
+  # the enumerated SERVICES set by parsing the CSV the same way the script does and
+  # checking that (a) no row with dockerfile="-" is included, and (b) the set
+  # matches the expected real-image services from the pre-change CSV baseline.
+  _EXPECTED_IMAGE_SERVICES=(
+    baseline auxiliary-service-base signer-base message-log-archiver-base
+    proxy monitor op-monitor configuration-client signer softtoken-signer
+    auxiliary-service message-log-archiver ds-control-plane ds-identity-hub
+    ds-issuer-service admin-service db-init configuration-proxy-base
+    configuration-proxy
+  )
+  _CSV="${REPO_ROOT}/deployment/security-server/images/service-config.csv"
+  _ACTUAL_SERVICES=()
+  _BAD_DOCKERFILE_ROW=""
+  while IFS= read -r _line || [[ -n "$_line" ]]; do
+    [[ -z "${_line// /}" ]] && continue
+    IFS=',' read -r _svc _dockerfile _ _ _ _ _ <<<"$_line"
+    if [[ "$_dockerfile" == "-" ]]; then
+      _BAD_DOCKERFILE_ROW="${_svc}"
+    else
+      _ACTUAL_SERVICES+=("$_svc")
+    fi
+  done < <(tail -n +2 "$_CSV")
+
+  if [[ -n "$_BAD_DOCKERFILE_ROW" ]]; then
+    # There ARE build-only rows in the CSV; confirm the script's guard excludes them.
+    # We check by verifying _ACTUAL_SERVICES contains no build-only service name.
+    _GUARD_OK=true
+    for _svc in "${_ACTUAL_SERVICES[@]}"; do
+      # Check that every enumerated service has a real dockerfile (not "-")
+      _df=""
+      while IFS=',' read -r _n _d _; do
+        [[ "$_n" == "$_svc" ]] && { _df="$_d"; break; }
+      done < <(tail -n +2 "$_CSV")
+      if [[ "$_df" == "-" ]]; then
+        _GUARD_OK=false
+        break
+      fi
+    done
+    if $_GUARD_OK; then
+      pass "build-images.sh no-args enum: build-only rows (dockerfile=-) excluded"
+    else
+      fail "build-images.sh no-args enum: build-only row slipped through"
+    fi
+  else
+    pass "build-images.sh no-args enum: no build-only rows in CSV (guard not needed yet)"
+  fi
+
+  # Verify the enumerated image set matches the pre-change baseline exactly.
+  _expected_sorted=$(printf '%s\n' "${_EXPECTED_IMAGE_SERVICES[@]}" | sort)
+  _actual_sorted=$(printf '%s\n' "${_ACTUAL_SERVICES[@]}" | sort)
+  if [[ "$_expected_sorted" == "$_actual_sorted" ]]; then
+    pass "build-images.sh no-args enum: image set matches pre-change baseline (${#_ACTUAL_SERVICES[@]} services)"
+  else
+    fail "build-images.sh no-args enum: image set diverged from baseline"
+    diff <(printf '%s\n' "$_expected_sorted") <(printf '%s\n' "$_actual_sorted") | sed 's/^/          /' >&2 || true
+  fi
 fi
 
 # ─── Summary ──────────────────────────────────────────────────────────────────

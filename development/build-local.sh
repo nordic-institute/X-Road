@@ -74,22 +74,6 @@ done
 
 export IMAGE_REGISTRY="$REGISTRY"
 
-prepare_local_registry() {
-  local container_name="xrd-registry"
-
-  if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log_info "Container ${container_name} is already running"
-    return 0
-  fi
-
-  if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log_info "Starting existing container ${container_name}"
-    docker start "${container_name}"
-  else
-    log_info "Creating and starting new container ${container_name}"
-    docker run -d -p 5555:5000 --name "${container_name}" registry:2
-  fi
-}
 
 START_TIME=$(date +%s)
 
@@ -105,7 +89,7 @@ if [[ "$NO_REGISTRY" == "true" ]]; then
   log_info "Skipping local registry guard (--no-registry)"
 elif [[ "$REGISTRY" == "localhost:"* ]]; then
   log_info "--- Ensuring local registry ---"
-  prepare_local_registry
+  ensure_local_registry
 else
   log_info "Remote registry $REGISTRY — skipping local registry guard"
 fi

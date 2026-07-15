@@ -96,14 +96,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# If no services specified, read all from CSV
+# If no services specified, read all image-building rows from CSV.
+# Rows with dockerfile="-" are build-only metadata entries (no Docker image); skip them.
 if [[ ${#SERVICES[@]} -eq 0 ]]; then
   line_number=0
   while IFS= read -r line || [[ -n "$line" ]]; do
     line_number=$((line_number + 1))
     [[ $line_number -eq 1 ]] && continue # Skip header
     [[ -z "${line// /}" ]] && continue
-    IFS=',' read -r svc_name _ _ _ _ _ _ <<<"$line"
+    IFS=',' read -r svc_name dockerfile _ _ _ _ _ <<<"$line"
+    [[ "$dockerfile" == "-" ]] && continue
     SERVICES+=("$svc_name")
   done <"$SERVICE_CONFIG_CSV"
 fi
@@ -155,56 +157,7 @@ if [[ "$NO_CACHE" == "true" ]]; then
   CACHE_FLAG=(--no-cache)
 fi
 
-# Prepare mirror build args (unless --no-mirror flag is set)
-# Always include mirror-scripts build context (Dockerfiles require it even if mirror not used)
-MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=${ROOT_DIR}/deployment/.scripts")
-log_info "=== Mirror Configuration ==="
-log_info "NO_MIRROR flag: $NO_MIRROR"
-log_info "XROAD_MIRROR_DOCKER_URL: ${XROAD_MIRROR_DOCKER_URL:-<not set>}"
-log_info "XROAD_MIRROR_UBUNTU_URL: ${XROAD_MIRROR_UBUNTU_URL:-<not set>}"
-log_info "XROAD_MIRROR_USERNAME: ${XROAD_MIRROR_USERNAME:-<not set>}"
-if [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-  log_info "XROAD_MIRROR_TOKEN: <present>"
-else
-  log_info "XROAD_MIRROR_TOKEN: <not set>"
-fi
-
-# Add Docker Hub mirror build arg if configured
-if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
-  log_success "Docker mirror ENABLED: $XROAD_MIRROR_DOCKER_URL"
-fi
-
-# Add GitHub mirror URL if configured (used for JMX Prometheus JAR download)
-if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_GITHUB_URL:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(--build-arg "GITHUB_URL=${XROAD_MIRROR_GITHUB_URL}")
-  log_success "GitHub mirror ENABLED: $XROAD_MIRROR_GITHUB_URL"
-fi
-
-# Add kubectl mirror URL if configured
-if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_K8S_URL:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(--build-arg "KUBECTL_DIST_URL=${XROAD_MIRROR_K8S_URL}")
-  log_success "kubectl mirror ENABLED: $XROAD_MIRROR_K8S_URL"
-fi
-
-if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(
-    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
-  )
-  log_success "APT mirror ENABLED: $XROAD_MIRROR_UBUNTU_URL"
-else
-  log_warn "APT mirror DISABLED (using public repos)"
-fi
-
-# Pass mirror credentials to all builds (used by APT, curl-based downloads, etc.)
-if [[ "$NO_MIRROR" != "true" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(
-    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
-    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
-  )
-fi
-log_info "MIRROR_BUILD_ARGS: ${MIRROR_BUILD_ARGS[*]}"
-echo
+build_mirror_args "${ROOT_DIR}" "${NO_MIRROR}"
 
 log_info "=== X-Road Security Server Images Build ==="
 log_info "Registry: $REGISTRY"
@@ -289,6 +242,11 @@ for service in "${SERVICES[@]}"; do
   fi
 
   read -r image_name gradle_path dockerfile build_artifact base_image extra_build_arg <<<"$service_def"
+
+  if [[ "$dockerfile" == "-" ]]; then
+    log_error "Service '$service' is a build-only entry (no Docker image); cannot build"
+    exit 1
+  fi
 
   log_info "Building $service ($image_name)..."
   build_start=$(date +%s)

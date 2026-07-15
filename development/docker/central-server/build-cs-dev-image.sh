@@ -182,21 +182,7 @@ fi
 log_info "Building central-server-dev image..."
 build_start=$(date +%s)
 
-# Prepare mirror build args (only if mirror configured)
-MIRROR_BUILD_ARGS=()
-
-# Add Docker Hub mirror build arg if configured
-if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
-fi
-
-if [[ -n "${XROAD_MIRROR_UBUNTU_URL:-}" ]] && [[ -n "${XROAD_MIRROR_USERNAME:-}" ]] && [[ -n "${XROAD_MIRROR_TOKEN:-}" ]]; then
-  MIRROR_BUILD_ARGS+=(
-    --build-arg XROAD_MIRROR_URL="$XROAD_MIRROR_UBUNTU_URL"
-    --build-arg XROAD_MIRROR_USER="$XROAD_MIRROR_USERNAME"
-    --secret "id=mirror_token,env=XROAD_MIRROR_TOKEN"
-  )
-fi
+build_mirror_args "${XROAD_HOME}" "false"
 
 build_cmd=(
   docker buildx build --progress=plain
@@ -204,7 +190,6 @@ build_cmd=(
   --build-arg PACKAGE_SOURCE=internal
   --build-context "perf=$PERF_PATH"
   --build-context "packages=$PACKAGES_PATH"
-  --build-context "mirror-scripts=${XROAD_HOME}/deployment/.scripts"
   --secret "id=user_passwd,env=USER_PASSWD"
   "${MIRROR_BUILD_ARGS[@]}"
 )

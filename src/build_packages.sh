@@ -96,25 +96,6 @@ runInBuilderImage() {
   docker run "${OPTS[@]}" "$image" "$@"
 }
 
-prepareLocalRegistry() {
-  local container_name="xrd-registry"
-
-  # Check if container is already running
-  if docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log_info "Container ${container_name} is already running"
-    return 0
-  fi
-
-  # Check if container exists but is stopped
-  if docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"; then
-    log_info "Starting existing container ${container_name}"
-    docker start "${container_name}"
-  else
-    log_info "Creating and starting new container ${container_name}"
-    docker run -d -p 5555:5000 --name "${container_name}" registry:2
-  fi
-}
-
 prepareDebianPackagesBuilderImages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
     if [[ "$release" == "resolute" || "$release" == "noble" ]]; then
@@ -192,7 +173,7 @@ if [ -n "$HAS_DOCKER" ]; then
   log_info "Building packages in docker"
   log_kv "  Package version" "$PACKAGE_VERSION" 3 5
 
-  prepareLocalRegistry
+  ensure_local_registry
   prepareDebianPackagesBuilderImages
   prepareRedhatPackagesBuilderImages
   buildDebianPackages

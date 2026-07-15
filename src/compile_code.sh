@@ -1,5 +1,7 @@
 #!/bin/bash
-source compile_env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../.scripts/base-script.sh"
+resolve_java_home
 
 RELEASE="SNAPSHOT"
 

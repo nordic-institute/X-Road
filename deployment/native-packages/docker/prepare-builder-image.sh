@@ -9,6 +9,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+source "${ROOT_DIR}/.scripts/base-script.sh"
 
 # Configuration from environment variables
 IMAGE_REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
@@ -74,40 +75,6 @@ if [[ -n "$XROAD_MIRROR_UBUNTU_URL" ]] && [[ -n "$XROAD_MIRROR_USERNAME" ]] && [
   )
 fi
 
-# Color codes
-isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
-
-log_info() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 4)[INFO]$(tput sgr0) $1"
-  else
-    echo "[INFO] $1"
-  fi
-}
-
-log_warn() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 3)[WARN]$(tput sgr0) $1"
-  else
-    echo "[WARN] $1"
-  fi
-}
-
-log_error() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 1)[ERROR]$(tput sgr0) $1" >&2
-  else
-    echo "[ERROR] $1" >&2
-  fi
-}
-
-log_success() {
-  if $isTextColoringEnabled; then
-    echo "$(tput setaf 2)[SUCCESS]$(tput sgr0) $1"
-  else
-    echo "[SUCCESS] $1"
-  fi
-}
 
 # Validate arguments
 if [[ -z "$RELEASE" ]]; then
