@@ -96,14 +96,25 @@ tasks.register<Test>("e2eTest") {
   // Select only the E2eSuite by default so the topology boots exactly once per run: the suite itself
   // discovers and runs every scenario class. An unfiltered scan of testClassesDirs would otherwise let
   // the Jupiter engine run each scenario class a second time alongside the suite engine's own run of it.
+  val suiteClass = "E2eSuite"
   val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
     request.args.any { it == "--tests" || it.startsWith("--tests=") }
   }
-  include(if (singleTestFromCli) "**/*Test.class" else "**/E2eSuite.class")
+  include(if (singleTestFromCli) "**/*Test.class" else "**/$suiteClass.class")
   doFirst {
     val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-    if (testFilter.commandLineIncludePatterns.isNotEmpty() || testFilter.includePatterns.isNotEmpty()) {
-      setIncludes(setOf("**/*Test.class"))
+    val patterns = testFilter.commandLineIncludePatterns + testFilter.includePatterns
+    val targetsSuite = patterns.any { it.substringBefore('*').trimEnd('.').substringAfterLast('.') == suiteClass }
+    when {
+      // Naming the suite via --tests (e.g. the IDE gutter run on the suite class) must behave like the
+      // unfiltered run: select the suite class and drop the test-name filter. Otherwise Gradle matches the
+      // filter against the suite's nested scenario classes by their own names and strips every one of them.
+      targetsSuite -> {
+        setIncludes(setOf("**/$suiteClass.class"))
+        testFilter.setCommandLineIncludePatterns(emptyList())
+        testFilter.setIncludePatterns()
+      }
+      patterns.isNotEmpty() -> setIncludes(setOf("**/*Test.class"))
     }
   }
 
