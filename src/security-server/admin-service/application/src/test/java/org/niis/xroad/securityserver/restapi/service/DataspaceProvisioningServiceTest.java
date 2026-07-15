@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -57,22 +58,22 @@ class DataspaceProvisioningServiceTest {
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
+    private Dataspace dataspace;
+    @Mock
     private IdentityHubProvisioningClient identityHubClient;
     @Mock
     private ControlPlaneProvisioningClient controlPlaneClient;
 
     private DataspaceProvisioningService service;
-    private Dataspace dataspace;
 
     @BeforeEach
     void setUp() {
-        dataspace = new Dataspace();
-        dataspace.setParticipantId(PARTICIPANT_ID);
-        dataspace.setIdentityHubUrl("https://ih.example.test");
-        dataspace.setIssuerDid("did:web:issuer.example.test");
-        dataspace.setCredentialDefinitionId("xroad-membership-credential-definition");
-        dataspace.setMaxHolderPidSlots(20);
-        org.mockito.Mockito.lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
+        lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
+        lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
+        lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
+        lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
+        lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient);
     }
 
@@ -131,7 +132,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void submitCredentialRequestNoSubmitWhenAllSlotsExhausted() {
-        dataspace.setMaxHolderPidSlots(2);
+        when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
 
@@ -144,7 +145,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusReturnsNullWhenNoRequests() {
-        dataspace.setMaxHolderPidSlots(2);
+        when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
         when(identityHubClient.getCredentialRequestState(eq(PARTICIPANT_ID), anyString())).thenReturn(null);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
@@ -182,7 +183,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusReturnsErrorWhenAllSlotsError() {
-        dataspace.setMaxHolderPidSlots(2);
+        when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
 
@@ -193,7 +194,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusReturnsNullWhenAllSlotsAbsent() {
-        dataspace.setMaxHolderPidSlots(2);
+        when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
@@ -204,7 +205,6 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusStopsAtFirstActiveSlotAfterErrors() {
-        dataspace.setMaxHolderPidSlots(20);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ISSUED);
 
