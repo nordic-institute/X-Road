@@ -25,16 +25,26 @@
  */
 package org.niis.xroad.cs.test;
 
-import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
+import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
-public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
+public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
 
     public static void main(String[] args) {
         new ConsoleIntTestRunner().run();
     }
 
     @Override
-    protected String getTestClassName() {
-        return CSManagementTestRunner.class.getName();
+    protected String[] resourceFiles() {
+        return new String[]{
+                "compose.intTest.yaml",
+                ".env",
+                "container-files/",
+                "test-data/"
+        };
+    }
+
+    @Override
+    protected String phasedSuiteClassName() {
+        return ManagementServiceIntTestSuite.class.getName();
     }
 }

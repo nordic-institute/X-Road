@@ -4,14 +4,15 @@ plugins {
 }
 
 dependencies {
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":central-server:admin-service:api-client"))
+  intTestImplementation(project(":central-server:openapi-model"))
   intTestImplementation(testFixtures(project(":common:common-management-request")))
-  intTestImplementation(project(":tool:test-framework-core"))
 
   intTestImplementation(project(":tool:liquibase-executor"))
   intTestImplementation(libs.liquibase.core)
   intTestImplementation(libs.postgresql)
+  intTestImplementation(libs.mockserver.client)
 }
 
 intTestComposeEnv {
@@ -25,33 +26,7 @@ intTestShadowJar {
   mainClass("org.niis.xroad.cs.test.ConsoleIntTestRunner")
 }
 
-tasks.register<Test>("intTest") {
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-
-  useJUnitPlatform()
-
-  description = "Runs integration tests."
-  group = "verification"
-
-  testClassesDirs = sourceSets["intTest"].output.classesDirs
-  classpath = sourceSets["intTest"].runtimeClasspath
-
-  testLogging {
-    showStackTraces = true
-    showExceptions = true
-    showCauses = true
-    showStandardStreams = true
-  }
-}
-
-tasks.test {
-  useJUnitPlatform()
-}
-
-tasks.named<Checkstyle>("checkstyleIntTest") {
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-}
-
-archUnit {
-  setSkip(true)
+intTestPhasedSuite {
+  phasedSuiteClass = "ManagementServiceIntTestSuite"
+  productName = "Management Service"
 }
