@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,28 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.softtoken.signer.test;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
-
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
-    }
-
-    @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.intTest.yaml",
-                ".env",
-                "signer-container-files/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return SoftTokenSignerIntTestSuite.class.getName();
-    }
+/**
+ * Selection root for {@link ConsoleIntTestRunner}. The two feature classes are independent (no ordering or
+ * shared-state coupling beyond the container stack itself - see the {@code SIGNER_AVAILABILITY_LOCK}
+ * resource lock on each), so this exists only because
+ * {@link org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner} selects a single class; the
+ * plain {@code intTest} Gradle task discovers both classes directly and does not use this suite.
+ */
+@Suite
+@SelectClasses({SoftTokenKeySyncIntTest.class, SoftTokenHealthChecksIntTest.class})
+public class SoftTokenSignerIntTestSuite {
 }
