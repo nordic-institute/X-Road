@@ -112,8 +112,6 @@ port_forwards:
   # service, and DSP protocol endpoint.
   # All on 0.0.0.0: Jetty's sniHostCheck rejects IP-literal HTTPS, so even
   # mac-local seeding goes through the xrd-ss2.lxd name (-> 192.168.105.1).
-  - {name: ih-identity, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7182:7182", address: "0.0.0.0"}
   - {name: ih-did, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7183:7183", address: "0.0.0.0"}
   - {name: ih-credentials, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7185:7185", address: "0.0.0.0"}
-  - {name: cp-mgmt, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8182:8182", address: "0.0.0.0"}
   - {name: cp-dsp, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8183:8183", address: "0.0.0.0"}

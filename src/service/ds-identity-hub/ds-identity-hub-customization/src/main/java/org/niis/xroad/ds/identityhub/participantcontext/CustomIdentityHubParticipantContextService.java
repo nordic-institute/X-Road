@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.participantcontext.ApiTokenGenerator;
 import org.eclipse.edc.identityhub.participantcontext.IdentityHubParticipantContextServiceImpl;
 import org.eclipse.edc.identityhub.spi.did.store.DidResourceStore;
+import org.eclipse.edc.identityhub.spi.participantcontext.IdentityApiScopes;
+import org.eclipse.edc.identityhub.spi.participantcontext.IssuerAdminApiScopes;
 import org.eclipse.edc.identityhub.spi.participantcontext.StsAccountProvisioner;
 import org.eclipse.edc.identityhub.spi.participantcontext.events.ParticipantContextObservable;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.CreateParticipantContextResponse;
@@ -151,14 +153,15 @@ class CustomIdentityHubParticipantContextService extends IdentityHubParticipantC
         var apiKeyAlias = ofNullable(manifest.getApiKeyAlias()).orElse("%s-%s".formatted(manifest.getParticipantContextId(), API_KEY_ALIAS_SUFFIX));
         var context = IdentityHubParticipantContext.Builder.newInstance()
                 .participantContextId(manifest.getParticipantContextId())
-                .roles(manifest.getRoles())
+                .scopes(manifest.getScopes())
                 .did(manifest.getDid())
                 .apiTokenAlias(apiKeyAlias)
                 // This whole class is just to edit this single line
                 .state(manifest.isActive() ? ParticipantContextState.ACTIVATED : ParticipantContextState.CREATED)
                 .properties(manifest.getAdditionalProperties());
-        if (manifest.getRoles().isEmpty()) {
-            context.roles(List.of("participant"));
+        if (manifest.getScopes().isEmpty()) {
+            context.scopes(List.of(IdentityApiScopes.READ, IdentityApiScopes.WRITE,
+                    IssuerAdminApiScopes.READ, IssuerAdminApiScopes.WRITE));
         }
 
         return context.build();

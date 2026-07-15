@@ -55,8 +55,68 @@ import org.springframework.context.annotation.Import;
         RpcClientsConfig.SpringAuxiliaryServiceRpcChannelProperties.class,
         RpcClientsConfig.SpringConfClientRpcChannelProperties.class,
         RpcClientsConfig.SpringProxyRpcChannelProperties.class,
-        RpcClientsConfig.SpringOpMonitorRpcChannelProperties.class})
+        RpcClientsConfig.SpringOpMonitorRpcChannelProperties.class,
+        RpcClientsConfig.SpringIdentityHubProvisioningRpcChannelProperties.class,
+        RpcClientsConfig.SpringControlPlaneProvisioningRpcChannelProperties.class})
 class RpcClientsConfig {
+
+    @Bean
+    IdentityHubProvisioningRpcClient identityHubProvisioningRpcClient(RpcChannelFactory rpcChannelFactory,
+                                                                      SpringIdentityHubProvisioningRpcChannelProperties channelProperties) {
+        return new IdentityHubProvisioningRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = IdentityHubProvisioningRpcChannelProperties.PREFIX)
+    static class SpringIdentityHubProvisioningRpcChannelProperties implements IdentityHubProvisioningRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
+    }
+
+    @Bean
+    ControlPlaneProvisioningRpcClient controlPlaneProvisioningRpcClient(
+            RpcChannelFactory rpcChannelFactory, SpringControlPlaneProvisioningRpcChannelProperties channelProperties) {
+        return new ControlPlaneProvisioningRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = ControlPlaneProvisioningRpcChannelProperties.PREFIX)
+    static class SpringControlPlaneProvisioningRpcChannelProperties implements ControlPlaneProvisioningRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
+    }
 
     @Bean
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,

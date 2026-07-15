@@ -8,7 +8,7 @@
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
 #   - ds-control-plane:  participant-context-id
-#   - ds-identity-hub:   jwks.url, keystore path
+#   - ds-identity-hub:   keystore path
 #   - xroad-proxy:       dsp.participant-context-id
 # AND the packages no longer start the units unconditionally during postinst.
 
@@ -54,18 +54,14 @@
               enabled: false
 
 # ---------------------------------------------------------------------------
-# 3b. Preseed proxy-ui-api dataspace provisioning config. The
-#     POST /api/v1/system/dataspace-provisioning endpoint is disabled by default
-#     (application.yml ships dataspace.enabled=false); enable it here for the LXD
-#     dev env. identity-hub-url MUST be this host's FQDN, not localhost: the
+# 3b. Preseed proxy-ui-api dataspace provisioning config.
+#     identity-hub-url MUST be this host's FQDN, not localhost: the
 #     provisioning service derives the holder DID, the credentialService endpoint
 #     (where the issuer on the CS pushes the issued credential) and the STS token
 #     URL from its host, and all three must be reachable cross-host. proxy-ui-api
 #     only imports local.yaml and local-tls.yaml, so this is injected into
-#     local.yaml. Dev-only bearer tokens are signed by the mock JWKS the CS serves
-#     on :8099. management-context-enabled only on xrd-ss0, the management/provider
-#     SS: it adds the :mgmt participant context that serves the DSP-routed
-#     MANAGEMENT/clientReg catalog other SS fetch during client registration.
+#     local.yaml. The reconciler drives provisioning automatically at SS init
+#     and on each globalconf-refresh tick; no manual API call is needed.
 #
 # TEMPORARY (dataspaces dev): remove once packaging ships these as debconf
 #   answerable questions / real STS-issued tokens.
@@ -81,12 +77,12 @@
       xroad:
         proxy-ui-api:
 
-- name: preseed proxy-ui-api dataspace provisioning config into local.yaml
+- name: preseed proxy-ui-api dataspace provisioning config into local
   blockinfile:
     path: /etc/xroad/conf.d/local.yaml
     insertafter: '^  proxy-ui-api:'
     marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:\n      enabled: true\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      control-plane-url: https://localhost:8182\n      participant-id: {{ inventory_hostname }}.lxd\n      management-context-enabled: {{ 'true' if inventory_hostname == 'xrd-ss0' else 'false' }}\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n      identity-token: eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJhZG1pbiIsInNjb3BlIjoiaWRlbnRpdHktYXBpOndyaXRlIGlkZW50aXR5LWFwaTpyZWFkIn0.vKPkIJ47atCdUnH60TsGSihx54xqbpvmI-QYSIRZprkmY3Fb8zPZ4PYMrTUCu6mw-ISPyzV1fu54s5bYD4q5trjZN8hrocgWyYbPPkk-sZDqcKFwFfxcVWP7wPuRZOus_AxcxrSny0IQYzlTmmvhVqPq1MJjLSximHnY3Hg7yti_b0OZE5iBMKuoww8xlr6OXY4dpJHAvwK6vJhscoQa5Mm56GsSVto38Y4HHsKlNjJlYPpILdiiytfMS5x6AhCALRoY15_0upP-MWWe7eq_2sAv7TuEZJFIdpfpWKQG4-eMHBTNim17FZx76CG9xoYhlhrJ5WGSel_8xTJD3xSVzg\n      control-plane-token: eyJ0eXAiOiJhdCtqd3QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ijc0ZjM0MjJiMzdmYzg2ODhlN2Y1YTc0MTYyN2Y4ODg5In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MTk4OTg0MDk5NywiaWF0IjoxNzY4ODM3Mzk3LCJqdGkiOiI3ZDM1YTUwZGNmMmEyNTE2YTE1ZDgwYjJiNDFlZWRmYSIsInJvbGUiOiJwcm92aXNpb25lciIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6d3JpdGUgbWFuYWdlbWVudC1hcGk6cmVhZCJ9.VtgeUBJXWdZSsemdWTtvSDqdCUa1eBaqMlxbBVAAPsSjyVOb8wiDmxpTqvyLKTw9WE2WznmaOUPpWh3s4nDTjHQ51-ke_H__5WHVkwK-E97AFvInue-1lPMdIC1rNGLyZKYmQQ8DtHwZDWkgl-F4zhiyTk8Z3OBzgZpDz3BcyyJT7WLvAHp6Pk0SdHmFhA5ctvXfra4-ZkfUUudXklOEe-8Jj42v2EjF0woUk9nHoNYA_ca2Gi3kHtJrpHhR4_3Ab7KU046-p0dF5bVLLhYh3HEg-71R0tO9eytzbHkMZMY353aKF0bUqK4UrKnstDT55yo5j5oLpP0xGA9KGai6Kg"
+    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
@@ -94,7 +90,7 @@
 #    EDC's @Setting resolution. These must exist before the unit's first start.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
-#   edc.iam.oauth2.jwks.url and keystore config as answerable questions.
+#   keystore config as an answerable question.
 # ---------------------------------------------------------------------------
 - name: preseed ds-identity-hub runtime overrides
   copy:
@@ -104,10 +100,6 @@
     mode: "0640"
     content: |
       edc:
-        iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
         web:
           https:
             keystore:
@@ -121,7 +113,7 @@
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   participant-context-id, jwks.url, trusted-issuer.id, sts.oauth.token.url,
+#   participant-context-id, trusted-issuer.id, sts.oauth.token.url,
 #   dsp.callback.address, and keystore config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
@@ -142,9 +134,6 @@
           callback:
             address: "https://{{ inventory_hostname }}.lxd:8183/api/dsp/%s"
         iam:
-          oauth2:
-            jwks:
-              url: "http://{{ groups['cs_servers'] | first }}:8099/jwks.json"
           trusted-issuer:
             issuer:
               id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"

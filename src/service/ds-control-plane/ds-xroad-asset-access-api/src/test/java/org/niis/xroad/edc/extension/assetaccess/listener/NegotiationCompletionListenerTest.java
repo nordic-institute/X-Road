@@ -159,7 +159,7 @@ class NegotiationCompletionListenerTest {
     private ContractNegotiation buildNegotiation(String id) {
         return ContractNegotiation.Builder.newInstance()
                 .id(id)
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://addr")
                 .build();
@@ -168,7 +168,7 @@ class NegotiationCompletionListenerTest {
     private ContractNegotiation buildFinalizedNegotiation(String id, ContractAgreement agreement) {
         return ContractNegotiation.Builder.newInstance()
                 .id(id)
-                .protocol("dataspace-protocol-http:2025-1")
+                .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://addr")
                 .contractAgreement(agreement)

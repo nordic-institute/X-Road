@@ -46,6 +46,8 @@ dependencies {
   api(libs.test.selenide.grid)
 
   api(libs.assertj.core)
+
+  implementation(libs.nimbus.jose.jwt)
 }
 
 archUnit {

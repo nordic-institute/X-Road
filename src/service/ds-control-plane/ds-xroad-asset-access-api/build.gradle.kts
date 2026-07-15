@@ -16,8 +16,11 @@ dependencies {
 
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   implementation(project(":lib:rpc-core"))
+  implementation(project(":lib:edc-rpc"))
 
   api(libs.edc.lib.controlplane.transform)
+  implementation(libs.edc.lib.dsp.catalog.transform)
+  implementation(libs.edc.lib.dsp.catalog.transform.v2025)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)

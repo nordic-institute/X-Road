@@ -184,10 +184,8 @@ services:
       XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_HOST: "op-monitor"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_SCHEME: https
-      XROAD_PROXY_DSP_CONTROL_PLANE_ENDPOINT: "http://ds-control-plane:8184/api/v1/control"
       XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
       XROAD_PROXY_DSP_LISTEN_ADDRESS: "0.0.0.0"
-      XROAD_PROXY_DSP_DATA_FLOW_ENDPOINT: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_COMMON_RPC_CHANNEL_ASSET_ACCESS_HOST: "ds-control-plane"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
@@ -450,12 +448,12 @@ services:
     ports:
       - port: 8181
         name: http
-      - port: 8182
-        name: mgmt
       - port: 8183
         name: dsp
       - port: 8184
         name: control
+      - port: 8185
+        name: signaling
       - port: 5460
         name: asset-access
       - port: 4099
@@ -487,7 +485,6 @@ services:
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME: "ds_control_plane"
-      EDC_IAM_OAUTH2_JWKS_URL: "http://mock-jwks-server:8080/jwks.json"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"
       DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
@@ -516,16 +513,12 @@ services:
         host: db-ds-control-plane
         name: wait-db
       - type: tcp
-        host: mock-jwks-server
-        port: 8080
-        name: wait-mock-jwks
-      - type: tcp
         host: configuration-client
         port: 4099
         name: wait-config-client
       - type: tcp
         host: ds-identity-hub
-        port: 7182
+        port: 7185
         name: wait-identity-hub
       - type: serverconfSeed
 
@@ -568,9 +561,7 @@ services:
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub"
       XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME: "ds_identity_hub"
-      EDC_IAM_OAUTH2_JWKS_URL: "http://mock-jwks-server:8080/jwks.json"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"
-      EDC_ENCRYPTION_STRICT: "false"
       DEBUG: "true"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
@@ -583,10 +574,6 @@ services:
       - type: postgres
         host: db-ds-identity-hub
         name: wait-db
-      - type: tcp
-        host: mock-jwks-server
-        port: 8080
-        name: wait-mock-jwks
 
   ds-issuer-service:
     imageName: ds-issuer-service
@@ -599,16 +586,12 @@ services:
     ports:
       - port: 6181
         name: health
-      - port: 6182
-        name: identity
       - port: 6183
         name: did
       - port: 6184
         name: sts
       - port: 6185
         name: issuance
-      - port: 6186
-        name: admin
       - port: 6187
         name: statuslist
       - port: 9999
@@ -635,9 +618,7 @@ services:
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service"
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME: "ds_issuer_service"
-      EDC_IAM_OAUTH2_JWKS_URL: "http://mock-jwks-server:8080/jwks.json"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"
-      EDC_ENCRYPTION_STRICT: "false"
       DEBUG: "true"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
@@ -650,51 +631,6 @@ services:
       - type: postgres
         host: db-ds-issuer-service
         name: wait-db
-      - type: tcp
-        host: mock-jwks-server
-        port: 8080
-        name: wait-mock-jwks
-
-  mock-jwks-server:
-    # External image — bypasses {registry}/{imageName}:{tag} composition
-    # because python:3.11-alpine isn't published under the x-road registry.
-    image: "python:3.11-alpine"
-    imageName: ""
-    replicas: 0
-    resources: {}
-    ports:
-      - port: 8080
-        name: http
-    readinessProbe:
-      path: "/jwks.json"
-      scheme: "HTTP"
-      initialDelaySeconds: 5
-      periodSeconds: 5
-      failureThreshold: 3
-    livenessProbe:
-      path: "/jwks.json"
-      scheme: "HTTP"
-      initialDelaySeconds: 5
-      periodSeconds: 5
-      failureThreshold: 3
-    serviceAccount:
-      annotations: {}
-    command:
-      - "sh"
-      - "-c"
-      - "mkdir -p /tmp/jwks && echo '{\"keys\":['\"$(cat /jwks/public_key.json)\"']}' > /tmp/jwks/jwks.json && python3 -m http.server 8080 --directory /tmp/jwks"
-    env:
-      HOME: "/tmp"
-      PYTHONDONTWRITEBYTECODE: "1"
-    envFromSecrets: []
-    volumeMounts:
-      - name: jwks
-        mountPath: /jwks
-        readOnly: true
-    volumes:
-      - name: jwks
-        configMap:
-          name: mock-jwks-server-keys
 
 messageLogArchiver:
   ttlSecondsAfterFinished: 172800 # 48 hours

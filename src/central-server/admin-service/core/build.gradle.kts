@@ -22,6 +22,7 @@ dependencies {
   implementation(libs.apache.commonsCompress)
   implementation(libs.mapstruct)
   implementation(project(":lib:rpc-spring"))
+  implementation(project(":service:ds-issuer-service:ds-issuer-service-provisioning-protocol"))
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.springBoot.starterTest)

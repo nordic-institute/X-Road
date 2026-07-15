@@ -38,7 +38,8 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 import static org.testcontainers.containers.wait.strategy.Wait.forLogMessage;
 
 /**
- * Browserless Central Server test stack: CS admin service (with embedded postgres) + mock-server.
+ * Browserless Central Server test stack: CS admin service (with embedded postgres, openbao, and
+ * co-located DS Issuer Service) + mock-server.
  */
 @Slf4j
 @SuppressWarnings("checkstyle:magicnumber")

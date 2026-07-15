@@ -475,6 +475,8 @@
     "global_conf_part_file_hash_failure": "Failed to get hash for existing global configuration file",
     "global_conf_part_file_save_failure": "Failed to save global configuration part file to {0}",
     "global_conf_part_invalid_instance_identifier": "Global configuration part file {0} has invalid instance identifier",
+    "global_conf_part_reserved_file_name": "Global configuration part {0} resolves to a reserved file name",
+    "global_conf_part_duplicate_target": "Two configuration parts resolve to the same target path {0}",
     "global_conf_signature_decode_failure": "Failed to decode signature of global configuration",
     "global_conf_signature_verification_failure": "Failed to verify signature of global configuration",
     "gpg_key_generation_failed": "GPG keypair generation failed",

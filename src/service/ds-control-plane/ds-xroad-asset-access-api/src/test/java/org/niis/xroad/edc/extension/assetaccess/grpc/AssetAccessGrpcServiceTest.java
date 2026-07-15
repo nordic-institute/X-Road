@@ -125,7 +125,7 @@ class AssetAccessGrpcServiceTest {
                 .setAssetId("asset-1")
                 .setCounterPartyId("provider-1")
                 .setCounterPartyAddress("http://provider/dsp")
-                .setProtocol("dataspace-protocol-http:2025-1")
+                .setProtocol("http-dsp-profile-2025-1")
                 .build();
         var response = stub.acquire(request);
 

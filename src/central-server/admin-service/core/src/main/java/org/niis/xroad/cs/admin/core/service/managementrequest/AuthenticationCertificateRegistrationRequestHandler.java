@@ -163,8 +163,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     }
 
     public boolean canAutoApprove(AuthenticationCertificateRegistrationRequest request) {
-        return (managementServiceConfigProperties.isAutoApproveAuthCertRegRequests()
-                || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
+        return managementServiceConfigProperties.isAutoApproveAuthCertRegRequests()
                 && request.getOrigin() == SECURITY_SERVER
                 && members.count(request.getSecurityServerId().getOwner()) > 0;
     }

@@ -354,7 +354,8 @@ public class ConfigurationParser {
         }
 
         private void parseVersion() {
-            configuration.setVersion(getHeader(HEADER_VERSION));
+            Integer version = ConfigurationUtils.parseGlobalConfVersion(getHeader(HEADER_VERSION));
+            configuration.setVersion(version != null ? version.toString() : null);
         }
 
         private void verifyConfUpToDate() {

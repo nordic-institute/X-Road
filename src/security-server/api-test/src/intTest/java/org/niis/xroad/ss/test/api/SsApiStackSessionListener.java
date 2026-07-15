@@ -54,9 +54,4 @@ public class SsApiStackSessionListener extends AbstractApiStackSessionListener {
         seeder.ensureBaseline();
         return seeder;
     }
-
-    @Override
-    protected void afterBaseline(BaseComposeSetup setup) {
-        ((SsApiTestContainerSetup) setup).bootstrapDsp();
-    }
 }

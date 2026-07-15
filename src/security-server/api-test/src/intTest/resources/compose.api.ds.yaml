@@ -89,7 +89,6 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - EDC_DSP_CALLBACK_ADDRESS=https://ds-control-plane:8183/api/dsp/%s
-      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
@@ -107,7 +106,6 @@ services:
       - xrd-ss-network
     ports:
       - "0:8181"
-      - "0:8182"
       - "0:8183"
       - "0:8184"
       - "0:9999"
@@ -125,8 +123,6 @@ services:
       db-serverconf-ds-control-plane-config-seed:
         condition: service_completed_successfully
       configuration-client:
-        condition: service_healthy
-      mock-jwks-server:
         condition: service_healthy
       ds-identity-hub:
         condition: service_healthy
@@ -169,9 +165,7 @@ services:
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD=ds_identity_hub_admin_secret
-      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
       - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
-      - EDC_ENCRYPTION_STRICT=false # implicitly enabled - requires extra overhead of having AES key present in OpenBao
       - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
       - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
       - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
@@ -185,7 +179,6 @@ services:
     networks:
       - xrd-ss-network
     ports:
-      - "0:7182"
       - "0:7183"
       - "0:7185"
       - "0:9999"
@@ -193,8 +186,6 @@ services:
       - ds-https-keystore:/etc/xroad/ssl:ro
     depends_on:
       db-ds-identity-hub:
-        condition: service_healthy
-      mock-jwks-server:
         condition: service_healthy
       ds-https-keystore-init:
         condition: service_completed_successfully
@@ -235,8 +226,6 @@ services:
       - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service
       - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME=postgres
       - XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD=ds_issuer_service_admin_secret
-      - EDC_IAM_OAUTH2_JWKS_URL=http://mock-jwks-server:8080/jwks.json
-      - EDC_ENCRYPTION_STRICT=false
       - EDC_STATUSLIST_CALLBACK_ADDRESS=https://ds-issuer-service:6187/statuslist
       - EDC_WEB_HTTPS_KEYSTORE_PATH=/etc/xroad/ssl/ds-https.p12
       - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
@@ -252,10 +241,8 @@ services:
     networks:
       - xrd-ss-network
     ports:
-      - "0:6182"
       - "0:6183"
       - "0:6185"
-      - "0:6186"
       - "0:6187"
       - "0:9999"
     volumes:
@@ -269,26 +256,5 @@ services:
     depends_on:
       db-ds-issuer-service:
         condition: service_healthy
-      mock-jwks-server:
-        condition: service_healthy
       ds-https-keystore-init:
         condition: service_completed_successfully
-
-  mock-jwks-server:
-    image: python:3.11-alpine
-    command: >
-      sh -c "
-        mkdir -p  /tmp/jwks &&
-        echo '{\"keys\":['$(cat /jwks/public_key.json)']}' > /tmp/jwks/jwks.json &&
-        python3 -m http.server 8080 --directory /tmp/jwks
-      "
-    ports:
-      - "0:8080"
-    networks:
-      - xrd-ss-network
-    healthcheck:
-      interval: 5s
-      retries: 3
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/jwks.json"]
-    volumes:
-      - ./container-files/jwks/:/jwks

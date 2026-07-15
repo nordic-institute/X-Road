@@ -56,7 +56,6 @@ public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
                 "signer-with-hsm/",
                 "hurl/",
                 "gpg_keys/",
-                "jwks/",
                 "msglog_encryption_config/"
         };
     }

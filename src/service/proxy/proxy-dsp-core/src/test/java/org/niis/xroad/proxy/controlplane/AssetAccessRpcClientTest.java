@@ -125,7 +125,7 @@ class AssetAccessRpcClientTest {
         when(channelProperties.port()).thenReturn(server.getPort());
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
         when(clientProperties.participantContextId()).thenReturn("test-participant-ctx");
-        when(clientProperties.protocol()).thenReturn("dataspace-protocol-http:2025-1");
+        when(clientProperties.protocol()).thenReturn("http-dsp-profile-2025-1");
         when(clientProperties.cache()).thenReturn(cacheProperties);
         when(cacheProperties.enabled()).thenReturn(true);
         when(cacheProperties.defaultTtl()).thenReturn(Duration.ofMinutes(5));
@@ -162,7 +162,7 @@ class AssetAccessRpcClientTest {
         assertThat(request.getAssetId()).isEqualTo("asset-1");
         assertThat(request.getCounterPartyId()).isEqualTo("provider-1");
         assertThat(request.getCounterPartyAddress()).isEqualTo("http://provider/dsp");
-        assertThat(request.getProtocol()).isEqualTo("dataspace-protocol-http:2025-1");
+        assertThat(request.getProtocol()).isEqualTo("http-dsp-profile-2025-1");
     }
 
     @Test
