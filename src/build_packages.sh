@@ -13,7 +13,6 @@ source "${XROAD}/../.scripts/base-script.sh"
 HAS_DOCKER=""
 PACKAGE_ONLY=false
 BUILD_LOCALLY=true
-BUILD_IN_DOCKER=false
 BUILD_PACKAGES_FOR_RELEASES=()
 
 usage() {
@@ -42,9 +41,6 @@ currentBuildPlan() {
     if $BUILD_LOCALLY; then
       log_kv "  Compile/build" "locally" 3 5
     fi
-    if $BUILD_IN_DOCKER; then
-      log_kv "  Compile/build" "in Docker" 3 5
-    fi
     if [ ${#BUILD_PACKAGES_FOR_RELEASES[@]} -eq 0 ]; then
       log_info "  No specific release(s) provided -> Building all supported packages"
       BUILD_PACKAGES_FOR_RELEASES+=("resolute" "noble" "rpm-el9" "rpm-el10")
@@ -52,17 +48,6 @@ currentBuildPlan() {
     log_kv "  Building packages" "${BUILD_PACKAGES_FOR_RELEASES[*]}" 3 5
   fi
   echo ""
-}
-
-buildInDocker() {
-  test -n "$HAS_DOCKER" || errorExit "Error, docker is not installed/running."
-  log_info "Building in docker..."
-  # check if running attached to terminal
-  # makes it possible to stop build with Ctrl+C
-  if [ -t 1 ]; then OPT="-it"; fi
-
-  docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
-  docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build bash -c "./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
 }
 
 buildLocally() {
@@ -138,13 +123,9 @@ while [[ $# -gt 0 ]]; do
     shift
     PACKAGE_ONLY=true
     BUILD_LOCALLY=false
-    BUILD_IN_DOCKER=false
     ;;
   --docker-compile | -d)
     shift
-    PACKAGE_ONLY=false
-    BUILD_LOCALLY=false
-    BUILD_IN_DOCKER=true
     ;;
   --help | -h) usage 0 ;;
   -r)
@@ -163,9 +144,6 @@ currentBuildPlan
 
 if $BUILD_LOCALLY; then
   buildLocally "$@"
-fi
-if $BUILD_IN_DOCKER; then
-  buildInDocker "$@"
 fi
 
 if [ -n "$HAS_DOCKER" ]; then

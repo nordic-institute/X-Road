@@ -387,6 +387,51 @@ if $RUN_SMOKE; then
 
   rm -f "$FAKE_LOG"
 
+  # CI parse guard: build_packages.sh -d -r rpm-el9 --package-only
+  # Asserts that the CI arg order ("-d" first) is fully consumed: BUILD_LOCALLY=false
+  # (no compile_code.sh call), release=rpm-el9 selected (docker run targets rpm-el9
+  # image), and no other release images are invoked.  This guards against a regression
+  # where `-d` hits the `*) break` fallthrough and aborts the parse loop early.
+  (
+    rm -f "$FAKE_LOG"
+    export XROAD_HOME="$REPO_ROOT"
+    export IMAGE_REGISTRY="localhost:5555"
+    export IMAGE_TAG="latest"
+    bash "${REPO_ROOT}/src/build_packages.sh" -d -r rpm-el9 --package-only >/dev/null 2>&1 || true
+  )
+
+  _CI_LOG_CONTENT=""
+  if [[ -f "$FAKE_LOG" ]]; then _CI_LOG_CONTENT="$(cat "$FAKE_LOG")"; fi
+
+  # 1. compile_code.sh must NOT have been invoked (BUILD_LOCALLY must be false).
+  #    The script calls compile_code.sh via buildLocally(); no docker wraps it, so
+  #    absence of that call means BUILD_LOCALLY was false.  We verify indirectly:
+  #    if BUILD_LOCALLY were true, buildLocally runs ./compile_code.sh which would
+  #    exit non-zero (not present), killing the script before docker packaging runs.
+  #    Check: docker packaging WAS reached (fake docker log has an entry).
+  if [[ -n "$_CI_LOG_CONTENT" ]]; then
+    pass "build_packages.sh CI parse: -d consumed, packaging reached (docker called)"
+  else
+    fail "build_packages.sh CI parse: -d broke the parse loop — docker packaging never reached"
+  fi
+
+  # 2. Only rpm-el9 builder image was targeted, not other releases.
+  _CI_UNEXPECTED_RELEASE=""
+  for _rel in "deb-resolute" "deb-noble" "rpm-el10"; do
+    if printf '%s\n' "$_CI_LOG_CONTENT" | grep -qF "$_rel"; then
+      _CI_UNEXPECTED_RELEASE="$_rel"
+      break
+    fi
+  done
+  if [[ -z "$_CI_UNEXPECTED_RELEASE" ]]; then
+    pass "build_packages.sh CI parse: only rpm-el9 release targeted (no other release images)"
+  else
+    fail "build_packages.sh CI parse: unexpected release image '${_CI_UNEXPECTED_RELEASE}' targeted — parse produced wrong release set"
+    printf '%s\n' "$_CI_LOG_CONTENT" | sed 's/^/          /' >&2
+  fi
+
+  rm -f "$FAKE_LOG"
+
   # Smoke: build-images.sh no-args enumeration — assert it skips build-only rows.
   # The script exits before any docker build call (OTel jar absent), so we verify
   # the enumerated SERVICES set by parsing the CSV the same way the script does and
