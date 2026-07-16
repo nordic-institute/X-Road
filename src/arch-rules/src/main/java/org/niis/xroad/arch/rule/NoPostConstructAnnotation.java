@@ -25,10 +25,13 @@
  */
 package org.niis.xroad.arch.rule;
 
+import com.societegenerale.commons.plugin.model.RootClassFolder;
 import com.societegenerale.commons.plugin.rules.ArchRuleTest;
 import com.societegenerale.commons.plugin.service.ScopePathProvider;
 import com.societegenerale.commons.plugin.utils.ArchUtils;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
@@ -49,11 +52,21 @@ public class NoPostConstructAnnotation implements ArchRuleTest {
 
     @Override
     public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
+        RootClassFolder mainClassesFolder = scopePathProvider.getMainClassesPath();
+        if (mainClassesFolder == null) {
+            return;
+        }
+
+        String mainClassesPath = mainClassesFolder.getValue();
+        if (mainClassesPath == null || !Files.exists(Path.of(mainClassesPath))) {
+            return;
+        }
+
         noMethods().that().areDeclaredInClassesThat().areNotAnnotatedWith(APPLICATION_SCOPED)
                 .and().areDeclaredInClassesThat().areNotAnnotatedWith(SINGLETON)
                 .should().beAnnotatedWith(POST_CONSTRUCT)
                 .because(REASON)
                 .allowEmptyShould(false)
-                .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
+                .check(ArchUtils.importAllClassesInPackage(mainClassesFolder, packagePath, excludedPaths));
     }
 }
