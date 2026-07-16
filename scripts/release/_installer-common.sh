@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 #
 # Shared helpers for publishing the X-Road installer.
-# Sourced by s3-publish-installer.sh and artifactory-publish-installer.sh.
+# Sourced by installer-s3.sh and installer-artifactory.sh.
 #
 # Caller contract:
 #   - Must `set -euo pipefail` before sourcing.
@@ -19,7 +19,7 @@ GET_XROAD_SCRIPT="${PACKAGE_DIR}/get-xroad.sh"
 UPGRADE_XROAD_SCRIPT="${PACKAGE_DIR}/upgrade-xroad.sh"
 DOWNLOAD_MIGRATION_CLI_SCRIPT="${PACKAGE_DIR}/tasks/migration/download_migration_cli.sh"
 
-# Default caller cwd: core/deployment/security-server/. Caller may override.
+# Default caller cwd: core/scripts/release/. Caller may override.
 : "${REPO_ROOT:=../..}"
 
 prepare_staging() {

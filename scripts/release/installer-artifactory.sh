@@ -33,8 +33,8 @@ fi
 : "${ARTIFACTORY_USER:?ARTIFACTORY_USER is required}"
 : "${ARTIFACTORY_PASSWORD:?ARTIFACTORY_PASSWORD is required}"
 
-# shellcheck source=_publish-installer-common.sh
-source "$(dirname "${BASH_SOURCE[0]}")/_publish-installer-common.sh"
+# shellcheck source=_installer-common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/_installer-common.sh"
 
 FOLDER="$1"
 TARGET_BASE="${ARTIFACTORY_BASE_URL}/${ARTIFACTORY_REPO}/${FOLDER}"

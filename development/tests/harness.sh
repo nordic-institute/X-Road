@@ -94,11 +94,11 @@ SCOPE_SCRIPTS=(
   "scripts/packages/build-deb.sh"
   "scripts/packages/build-rpm.sh"
   "scripts/charts/publish.sh"
-  "deployment/security-server/artifactory-publish-installer.sh"
-  "deployment/security-server/s3-publish-installer.sh"
+  "scripts/release/installer-artifactory.sh"
+  "scripts/release/installer-s3.sh"
   "scripts/build-local.sh"
   "scripts/lib/base-script.sh"
-  "deployment/security-server/_publish-installer-common.sh"
+  "scripts/release/_installer-common.sh"
 )
 
 # ─── parse args ───────────────────────────────────────────────────────────────
@@ -235,11 +235,11 @@ if $REFRESH_MODE; then
   _refresh "build-builder.sh.usage" \
     bash "${REPO_ROOT}/scripts/images/build-builder.sh"
 
-  _refresh "artifactory-publish-installer.sh.usage" \
-    bash "${REPO_ROOT}/deployment/security-server/artifactory-publish-installer.sh"
+  _refresh "installer-artifactory.sh.usage" \
+    bash "${REPO_ROOT}/scripts/release/installer-artifactory.sh"
 
-  _refresh "s3-publish-installer.sh.usage" \
-    bash "${REPO_ROOT}/deployment/security-server/s3-publish-installer.sh"
+  _refresh "installer-s3.sh.usage" \
+    bash "${REPO_ROOT}/scripts/release/installer-s3.sh"
 
   echo "  Note: build-deb.sh and build-rpm.sh use .signature fixtures with"
   echo "        substring patterns — no --help/dry-run available. Edit manually."
@@ -307,14 +307,14 @@ if $RUN_BASELINES; then
 
   # installer-publish scripts — usage on missing arg; full output match.
   check_baseline \
-    "artifactory-publish-installer.sh usage on missing arg" \
-    "artifactory-publish-installer.sh.usage" \
-    bash "${REPO_ROOT}/deployment/security-server/artifactory-publish-installer.sh"
+    "installer-artifactory.sh usage on missing arg" \
+    "installer-artifactory.sh.usage" \
+    bash "${REPO_ROOT}/scripts/release/installer-artifactory.sh"
 
   check_baseline \
-    "s3-publish-installer.sh usage on missing arg" \
-    "s3-publish-installer.sh.usage" \
-    bash "${REPO_ROOT}/deployment/security-server/s3-publish-installer.sh"
+    "installer-s3.sh usage on missing arg" \
+    "installer-s3.sh.usage" \
+    bash "${REPO_ROOT}/scripts/release/installer-s3.sh"
 fi
 
 # ─── 5. FAKE-DOCKER SMOKE ─────────────────────────────────────────────────────

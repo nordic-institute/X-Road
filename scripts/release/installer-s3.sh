@@ -21,8 +21,8 @@ if [[ $# -lt 1 ]]; then
     usage
 fi
 
-# shellcheck source=_publish-installer-common.sh
-source "$(dirname "${BASH_SOURCE[0]}")/_publish-installer-common.sh"
+# shellcheck source=_installer-common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/_installer-common.sh"
 
 TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
 S3_FOLDER="$1/xroad-installer-${TIMESTAMP}"

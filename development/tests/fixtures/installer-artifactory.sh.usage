@@ -1,4 +1,4 @@
-Usage: deployment/security-server/artifactory-publish-installer.sh <folder-name>
+Usage: scripts/release/installer-artifactory.sh <folder-name>
 
 Uploads the X-Road installer archive, get-xroad.sh, upgrade-xroad.sh and
 migration-cli.jar to https://artifactory.niis.org/xroad-scripts/<folder-name>/.
