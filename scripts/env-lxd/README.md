@@ -2,18 +2,19 @@
 
 This uses native, locally built packages to deploy LXD based environment. LXC is used to manage containers.
 
+**Supported hosts: macOS and Linux (including WSL2 via the Linux path).**
+
 **Remember: most scripts are configurable, refer to their source or --help for more details.**
 
 ### Prerequisites
 
-- LXD host (linux, macOS via Lima, WSL2)
+- LXD host: macOS (via Lima VM) or Linux / WSL2 (direct)
 - LXC installed on the host
 
-### Usage within MacOS
+### Usage within macOS
 
 ```bash
-
-# Setup MacOS host (lima, lxc remote, socket_vmnet, ...).
+# Setup macOS host (Lima, LXC, socket_vmnet, ...).
 ./scripts/setup-mac.sh
 # Compile code -> create packages -> deploy.
 ./start-env.sh
@@ -23,38 +24,22 @@ This uses native, locally built packages to deploy LXD based environment. LXC is
 ansible run so the host can reach LXD containers directly (see
 [Direct host → container networking](#direct-host--container-networking)).
 
-### Usage within Linux
+### Usage within Linux or WSL2
 
-Since Linux doesn't require Lima, it should suffice to use local with lxd servers:
-```
-[lxd_servers]
-localhost ansible_connection=local
-...
-[all:vars]
-ansible_lxd_remote=local
-```
-and then:
-1. Create new inventory in `config/custom`
-2. Run `./start-env.sh --custom-inventory=config/custom/my-inventory.txt`
+Linux and WSL2 run LXD directly — no Lima VM is needed. You supply a custom
+inventory that points `lxd_servers` at `localhost` instead of a Lima SSH target.
 
-### Usage within other hosts
-
-It is assumed that LXD host is available on `127.0.0.1:28443`
-
-Default hosts assume presence of Lima, but you can specify your own custom inventory based on it.
-
-1. Create new inventory in `config/custom`
-2. Specify inventory in `start-env.sh` script.
+A ready-to-use sample inventory is at `config/custom/linux.sample.hosts`.
 
 ```bash
-
-#Setup LXC
-./scripts/setup-lxc.sh
-# Compile code -> create packages -> deploy.
+cp config/custom/linux.sample.hosts config/custom/my-inventory.txt
 ./start-env.sh --custom-inventory=config/custom/my-inventory.txt
 ```
 
-`start-env.sh` picks the right script by OS via its `applyHostNet` helper;
+For full setup instructions (LXD initialisation, group membership, DNS routing,
+WSL2-specific notes) see [`docs/linux-wsl-setup.md`](docs/linux-wsl-setup.md).
+
+`start-env.sh` picks the right network script by OS via its `applyHostNet` helper;
 `stop-env.sh` and `scripts/delete-env.sh` call the matching `cleanup` so
 the host's resolver doesn't linger pointing at a stopped bridge.
 

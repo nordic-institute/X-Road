@@ -1,5 +1,7 @@
 # Building X-Road
 
+For a full task→script map, see [`scripts/README.md`](../scripts/README.md).
+
 Running the X-Road software requires Linux (Ubuntu or RHEL). As a development environment, only Ubuntu (>=20.04, 22.04 recommended) is currently supported. It should be possible to use some other Linux distribution for development, but the instructions and helper scripts assume Ubuntu. Alternatively the software can be built entirely inside docker containers (see below) making the build host distribution agnostic but also a bit slower. If you are using some other operating system (e.g. Windows or macOS), the easiest option is to first install Ubuntu into a virtual machine.
 
 **Tools**

@@ -1,0 +1,54 @@
+
+[cs_servers]
+xrd-cs ansible_connection=lxd
+
+[cp_servers]
+#xrd-cp ansible_connection=lxd
+
+[ca_servers]
+xrd-ca ansible_connection=lxd ubuntu_releasever=noble
+
+[ss_servers]
+#xrd-ss0 ansible_connection=lxd
+#xrd-ss1 ansible_connection=lxd
+
+[ss_servers:children]
+ubuntu_ss
+rhel_ss
+
+[ubuntu_ss:children]
+ubuntu_hsm_ss
+
+[ubuntu_hsm_ss]
+xrd-ss1 ansible_connection=lxd
+
+[rhel_ss]
+xrd-ss0 ansible_connection=lxd
+
+[is_servers]
+xrd-is ansible_connection=lxd
+
+# On Linux/WSL2 LXD runs on localhost — no Lima SSH hop needed.
+[lxd_servers]
+localhost ansible_connection=local
+
+[compile_servers]
+localhost ansible_connection=local
+
+[hurl_servers]
+xrd-hurl ansible_connection=lxd ubuntu_releasever=noble
+
+[repo_servers]
+xrd-repo ansible_connection=lxd
+
+[jaeger_servers]
+xrd-jaeger ansible_connection=lxd
+
+### vars ###
+
+[ss_servers:vars]
+variant=vanilla
+
+[all:vars]
+# Point lxc at the local LXD socket instead of a Lima remote.
+ansible_lxd_remote=local
