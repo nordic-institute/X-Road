@@ -12,6 +12,7 @@ XROAD_SERVICES=(
   "xroad-opmonitor"
   "xroad-monitor"
   "xroad-proxy-ui-api"
+  "xroad-auxiliary-service"
 )
 
 wait_for_service_active() {
