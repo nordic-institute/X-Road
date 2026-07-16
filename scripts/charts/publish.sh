@@ -4,7 +4,7 @@ set -e
 
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 # Additional paths

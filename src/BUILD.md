@@ -29,10 +29,10 @@ The development environment should have at least 8GB of memory and 20GB of free 
 * Build builder images for each target distribution, then build the packages:
 
     ```
-    deployment/native-packages/docker/prepare-builder-image.sh deb-noble
-    deployment/native-packages/docker/prepare-builder-image.sh deb-resolute
-    deployment/native-packages/docker/prepare-builder-image.sh rpm-el9
-    deployment/native-packages/docker/prepare-builder-image.sh rpm-el10
+    scripts/images/build-builder.sh deb-noble
+    scripts/images/build-builder.sh deb-resolute
+    scripts/images/build-builder.sh rpm-el9
+    scripts/images/build-builder.sh rpm-el10
     scripts/package.sh --package-only
     ```
 

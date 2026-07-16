@@ -10,6 +10,7 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 # Paths
 SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
+DEV_DOCKER_DIR="${ROOT_DIR}/development/docker"
 SECRET_STORE_LOCAL="${ROOT_DIR}/deployment/native-packages/src/xroad/common/secret-store-local"
 CA_CONTAINER="${ROOT_DIR}/development/docker/testca-dev"
 
@@ -168,8 +169,8 @@ echo "==========================================================================
 build_start=$(date +%s)
 
 OPENBAO_IMAGE="${REGISTRY}/openbao-dev:${IMAGE_TAG}"
-OPENBAO_DOCKERFILE="${SCRIPT_DIR}/security-server/openbao/Dockerfile"
-OPENBAO_CONTEXT="${SCRIPT_DIR}/security-server/openbao"
+OPENBAO_DOCKERFILE="${DEV_DOCKER_DIR}/security-server/openbao/Dockerfile"
+OPENBAO_CONTEXT="${DEV_DOCKER_DIR}/security-server/openbao"
 
 build_cmd=(
   docker buildx build --progress=plain
@@ -260,8 +261,8 @@ echo "==========================================================================
 build_start=$(date +%s)
 
 POSTGRES_DEV_IMAGE="${REGISTRY}/postgres-dev:${IMAGE_TAG}"
-POSTGRES_DEV_DOCKERFILE="${SCRIPT_DIR}/postgres-dev/Dockerfile"
-POSTGRES_DEV_CONTEXT="${SCRIPT_DIR}/postgres-dev"
+POSTGRES_DEV_DOCKERFILE="${DEV_DOCKER_DIR}/postgres-dev/Dockerfile"
+POSTGRES_DEV_CONTEXT="${DEV_DOCKER_DIR}/postgres-dev"
 
 build_cmd=(
   docker buildx build --progress=plain
@@ -304,8 +305,8 @@ echo "==========================================================================
 build_start=$(date +%s)
 
 NGINX_CP_IMAGE="${REGISTRY}/nginx-cp:${IMAGE_TAG}"
-NGINX_CP_DOCKERFILE="${SCRIPT_DIR}/configuration-proxy/nginx/Dockerfile"
-NGINX_CP_CONTEXT="${SCRIPT_DIR}/configuration-proxy/nginx"
+NGINX_CP_DOCKERFILE="${DEV_DOCKER_DIR}/configuration-proxy/nginx/Dockerfile"
+NGINX_CP_CONTEXT="${DEV_DOCKER_DIR}/configuration-proxy/nginx"
 
 build_cmd=(
   docker buildx build --progress=plain

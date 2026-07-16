@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CORE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_DIR="${CORE_DIR}/src"
-IMAGES_DIR="${CORE_DIR}/deployment/security-server/images"
+BUILD_SECURITY_SERVER="${SCRIPT_DIR}/images/build-security-server.sh"
 
 source "${CORE_DIR}/scripts/lib/base-script.sh"
 
@@ -105,10 +105,10 @@ else
   log_info "--- Skipping compile (--no-build) ---"
 fi
 
-log_info "--- Building images (build-images.sh --push) ---"
+log_info "--- Building images (build-security-server.sh --push) ---"
 BUILD_IMAGES_ARGS=(--push)
 [[ "$NO_CACHE" == "true" ]] && BUILD_IMAGES_ARGS+=(--no-cache)
-(cd "$IMAGES_DIR" && IMAGE_REGISTRY="$REGISTRY" ./build-images.sh "${SERVICES[@]+"${SERVICES[@]}"}" "${BUILD_IMAGES_ARGS[@]}")
+IMAGE_REGISTRY="$REGISTRY" "${BUILD_SECURITY_SERVER}" "${SERVICES[@]+"${SERVICES[@]}"}" "${BUILD_IMAGES_ARGS[@]}"
 
 END_TIME=$(date +%s)
 echo

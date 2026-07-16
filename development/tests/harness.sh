@@ -86,14 +86,14 @@ normalize_output() { strip_ansi | strip_preamble | strip_abspath; }
 # ─── In-scope scripts (relative to REPO_ROOT) ─────────────────────────────────
 # These are the scripts this harness covers.  Paths are REPO_ROOT-relative.
 SCOPE_SCRIPTS=(
-  "deployment/security-server/images/build-images.sh"
+  "scripts/images/build-security-server.sh"
   "scripts/package.sh"
-  "development/docker/central-server/build-cs-dev-image.sh"
-  "development/docker/build-dev-images.sh"
-  "deployment/native-packages/docker/prepare-builder-image.sh"
-  "deployment/native-packages/build-deb.sh"
-  "deployment/native-packages/build-rpm.sh"
-  "deployment/security-server/k8s/publish-charts.sh"
+  "scripts/images/build-central-server.sh"
+  "scripts/images/build-dev-infra.sh"
+  "scripts/images/build-builder.sh"
+  "scripts/packages/build-deb.sh"
+  "scripts/packages/build-rpm.sh"
+  "scripts/charts/publish.sh"
   "deployment/security-server/artifactory-publish-installer.sh"
   "deployment/security-server/s3-publish-installer.sh"
   "scripts/build-local.sh"
@@ -214,26 +214,26 @@ if $REFRESH_MODE; then
     echo "  refreshed: ${fixture}"
   }
 
-  _refresh "build-images.sh.help" \
-    bash "${REPO_ROOT}/deployment/security-server/images/build-images.sh" --help
+  _refresh "build-security-server.sh.help" \
+    bash "${REPO_ROOT}/scripts/images/build-security-server.sh" --help
 
   _refresh "package.sh.help" \
     bash "${REPO_ROOT}/scripts/package.sh" --help
 
-  _refresh "build-cs-dev-image.sh.help" \
-    bash "${REPO_ROOT}/development/docker/central-server/build-cs-dev-image.sh" --help
+  _refresh "build-central-server.sh.help" \
+    bash "${REPO_ROOT}/scripts/images/build-central-server.sh" --help
 
-  _refresh "build-dev-images.sh.help" \
-    bash "${REPO_ROOT}/development/docker/build-dev-images.sh" --help
+  _refresh "build-dev-infra.sh.help" \
+    bash "${REPO_ROOT}/scripts/images/build-dev-infra.sh" --help
 
-  _refresh "publish-charts.sh.help" \
-    bash "${REPO_ROOT}/deployment/security-server/k8s/publish-charts.sh" --help
+  _refresh "publish.sh.help" \
+    bash "${REPO_ROOT}/scripts/charts/publish.sh" --help
 
   _refresh "build-local.sh.help" \
     bash "${REPO_ROOT}/scripts/build-local.sh" --help
 
-  _refresh "prepare-builder-image.sh.usage" \
-    bash "${REPO_ROOT}/deployment/native-packages/docker/prepare-builder-image.sh"
+  _refresh "build-builder.sh.usage" \
+    bash "${REPO_ROOT}/scripts/images/build-builder.sh"
 
   _refresh "artifactory-publish-installer.sh.usage" \
     bash "${REPO_ROOT}/deployment/security-server/artifactory-publish-installer.sh"
@@ -255,9 +255,9 @@ if $RUN_BASELINES; then
 
   # Scripts with --help (full output match)
   check_baseline \
-    "build-images.sh --help" \
-    "build-images.sh.help" \
-    bash "${REPO_ROOT}/deployment/security-server/images/build-images.sh" --help
+    "build-security-server.sh --help" \
+    "build-security-server.sh.help" \
+    bash "${REPO_ROOT}/scripts/images/build-security-server.sh" --help
 
   check_baseline \
     "package.sh --help" \
@@ -265,45 +265,45 @@ if $RUN_BASELINES; then
     bash "${REPO_ROOT}/scripts/package.sh" --help
 
   check_baseline \
-    "build-cs-dev-image.sh --help" \
-    "build-cs-dev-image.sh.help" \
-    bash "${REPO_ROOT}/development/docker/central-server/build-cs-dev-image.sh" --help
+    "build-central-server.sh --help" \
+    "build-central-server.sh.help" \
+    bash "${REPO_ROOT}/scripts/images/build-central-server.sh" --help
 
   check_baseline \
-    "build-dev-images.sh --help" \
-    "build-dev-images.sh.help" \
-    bash "${REPO_ROOT}/development/docker/build-dev-images.sh" --help
+    "build-dev-infra.sh --help" \
+    "build-dev-infra.sh.help" \
+    bash "${REPO_ROOT}/scripts/images/build-dev-infra.sh" --help
 
   check_baseline \
-    "publish-charts.sh --help" \
-    "publish-charts.sh.help" \
-    bash "${REPO_ROOT}/deployment/security-server/k8s/publish-charts.sh" --help
+    "publish.sh --help" \
+    "publish.sh.help" \
+    bash "${REPO_ROOT}/scripts/charts/publish.sh" --help
 
   check_baseline \
     "build-local.sh --help" \
     "build-local.sh.help" \
     bash "${REPO_ROOT}/scripts/build-local.sh" --help
 
-  # prepare-builder-image.sh — no --help flag; usage printed on missing arg (exit 1).
+  # build-builder.sh — no --help flag; usage printed on missing arg (exit 1).
   # Full output match after normalization (absolute path stripped to relative).
   check_baseline \
-    "prepare-builder-image.sh usage on missing arg" \
-    "prepare-builder-image.sh.usage" \
-    bash "${REPO_ROOT}/deployment/native-packages/docker/prepare-builder-image.sh"
+    "build-builder.sh usage on missing arg" \
+    "build-builder.sh.usage" \
+    bash "${REPO_ROOT}/scripts/images/build-builder.sh"
 
   # build-deb.sh — no --help, no dry-run; only stable offline output is the distro
   # validation error. Substring check is appropriate here.
   check_contains \
     "build-deb.sh rejects unknown distro" \
     "Unsupported distribution" \
-    bash "${REPO_ROOT}/deployment/native-packages/build-deb.sh" __badarg__
+    bash "${REPO_ROOT}/scripts/packages/build-deb.sh" __badarg__
 
   # build-rpm.sh — no --help, no dry-run; stable output is the packageVersion line.
   # Substring check is appropriate here.
   check_contains \
     "build-rpm.sh emits packageVersion line" \
     "using packageVersion" \
-    bash "${REPO_ROOT}/deployment/native-packages/build-rpm.sh" __testsuffix__
+    bash "${REPO_ROOT}/scripts/packages/build-rpm.sh" __testsuffix__
 
   # installer-publish scripts — usage on missing arg; full output match.
   check_baseline \
@@ -337,7 +337,7 @@ if $RUN_SMOKE; then
     pass "fake docker is first on PATH"
   fi
 
-  # Smoke: build-images.sh — relies on docker buildx.
+  # Smoke: build-security-server.sh — relies on docker buildx.
   # The script will fail after the fake `docker buildx use` call because it
   # proceeds to check for gradle.properties, which exists.  It will then try
   # to build services (which requires artifacts that don't exist), so we only
@@ -346,15 +346,15 @@ if $RUN_SMOKE; then
     rm -f "$FAKE_LOG"
     export IMAGE_REGISTRY="localhost:5555"
     export XROAD_HOME="$REPO_ROOT"
-    bash "${REPO_ROOT}/deployment/security-server/images/build-images.sh" \
+    bash "${REPO_ROOT}/scripts/images/build-security-server.sh" \
       --no-mirror proxy >/dev/null 2>&1 || true
   )
 
   if grep -q "docker" "$FAKE_LOG" 2>/dev/null; then
-    pass "build-images.sh invoked fake docker (no real daemon touched)"
+    pass "build-security-server.sh invoked fake docker (no real daemon touched)"
   else
     # The script exits before docker if artifacts are missing — that's expected.
-    skip "build-images.sh smoke (script exited before docker call — artifact prerequisite not met, expected)"
+    skip "build-security-server.sh smoke (script exited before docker call — artifact prerequisite not met, expected)"
   fi
 
   # Smoke: package.sh with --package-only — reaches docker ps call.
@@ -370,7 +370,7 @@ if $RUN_SMOKE; then
     skip "package.sh smoke (no docker call reached — git or other prerequisite absent)"
   fi
 
-  # Smoke: build-local.sh --no-build --no-registry skips Gradle; reaches docker via build-images.sh.
+  # Smoke: build-local.sh --no-build --no-registry skips Gradle; reaches docker via build-security-server.sh.
   (
     rm -f "$FAKE_LOG"
     export XROAD_HOME="$REPO_ROOT"
@@ -432,7 +432,7 @@ if $RUN_SMOKE; then
 
   rm -f "$FAKE_LOG"
 
-  # Smoke: build-images.sh no-args enumeration — assert it skips build-only rows.
+  # Smoke: build-security-server.sh no-args enumeration — assert it skips build-only rows.
   # The script exits before any docker build call (OTel jar absent), so we verify
   # the enumerated SERVICES set by parsing the CSV the same way the script does and
   # checking that (a) no row with dockerfile="-" is included, and (b) the set
@@ -473,25 +473,25 @@ if $RUN_SMOKE; then
       fi
     done
     if $_GUARD_OK; then
-      pass "build-images.sh no-args enum: build-only rows (dockerfile=-) excluded"
+      pass "build-security-server.sh no-args enum: build-only rows (dockerfile=-) excluded"
     else
-      fail "build-images.sh no-args enum: build-only row slipped through"
+      fail "build-security-server.sh no-args enum: build-only row slipped through"
     fi
   else
-    pass "build-images.sh no-args enum: no build-only rows in CSV (guard not needed yet)"
+    pass "build-security-server.sh no-args enum: no build-only rows in CSV (guard not needed yet)"
   fi
 
   # Verify the enumerated image set matches the pre-change baseline exactly.
   _expected_sorted=$(printf '%s\n' "${_EXPECTED_IMAGE_SERVICES[@]}" | sort)
   _actual_sorted=$(printf '%s\n' "${_ACTUAL_SERVICES[@]}" | sort)
   if [[ "$_expected_sorted" == "$_actual_sorted" ]]; then
-    pass "build-images.sh no-args enum: image set matches pre-change baseline (${#_ACTUAL_SERVICES[@]} services)"
+    pass "build-security-server.sh no-args enum: image set matches pre-change baseline (${#_ACTUAL_SERVICES[@]} services)"
   else
-    fail "build-images.sh no-args enum: image set diverged from baseline"
+    fail "build-security-server.sh no-args enum: image set diverged from baseline"
     diff <(printf '%s\n' "$_expected_sorted") <(printf '%s\n' "$_actual_sorted") | sed 's/^/          /' >&2 || true
   fi
 
-  # Fix 2 guard: build-images.sh "all" must produce the same real-image set as no-args.
+  # Fix 2 guard: build-security-server.sh "all" must produce the same real-image set as no-args.
   # Parse the CSV the same way the script's _enumerate_all_services() does (skipping
   # dockerfile="-" rows) and compare against the no-args set derived above.
   _ALL_SERVICES=()
@@ -504,9 +504,9 @@ if $RUN_SMOKE; then
 
   _all_sorted=$(printf '%s\n' "${_ALL_SERVICES[@]}" | sort)
   if [[ "$_all_sorted" == "$_actual_sorted" ]]; then
-    pass "build-images.sh 'all' enum: yields same ${#_ALL_SERVICES[@]}-service set as no-args (build-only rows excluded)"
+    pass "build-security-server.sh 'all' enum: yields same ${#_ALL_SERVICES[@]}-service set as no-args (build-only rows excluded)"
   else
-    fail "build-images.sh 'all' enum: set diverged from no-args enum"
+    fail "build-security-server.sh 'all' enum: set diverged from no-args enum"
     diff <(printf '%s\n' "$_actual_sorted") <(printf '%s\n' "$_all_sorted") | sed 's/^/          /' >&2 || true
   fi
 fi

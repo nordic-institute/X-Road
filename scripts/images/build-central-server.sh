@@ -16,7 +16,9 @@ set -e
 
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../../../scripts/lib/base-script.sh"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
+CS_DEV_DIR="${ROOT_DIR}/development/docker/central-server"
+source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 # Default configuration
 GRADLE_PROPERTIES="${XROAD_HOME}/src/gradle.properties"
@@ -127,7 +129,7 @@ PERF_PATH="${XROAD_HOME}/development/docker/postgres-dev/files/"
 # Validate packages directory
 if [[ ! -d "$PACKAGES_PATH" ]] || [[ ! "$(ls -A "$PACKAGES_PATH")" ]]; then
   log_error "Cannot find packages in $PACKAGES_PATH"
-  log_error "Please build Ubuntu 26.04 packages first using: ./deployment/native-packages/build-deb.sh resolute"
+  log_error "Please build Ubuntu 26.04 packages first using: ./scripts/packages/build-deb.sh resolute"
   exit 1
 fi
 
@@ -167,7 +169,7 @@ log_info "Image Name: $IMAGE_NAME"
 log_info "Version Tag: $VERSION"
 log_info "Platforms: ${PLATFORMS:-host platform}"
 log_info "Packages Path: $PACKAGES_PATH"
-log_info "Working Directory: $SCRIPT_DIR"
+log_info "Build Context: $CS_DEV_DIR"
 echo
 
 # Setup Docker Buildx for multi-platform builds
@@ -186,7 +188,7 @@ build_mirror_args "${XROAD_HOME}" "false"
 
 build_cmd=(
   docker buildx build --progress=plain
-  --file "$SCRIPT_DIR/Dockerfile"
+  --file "$CS_DEV_DIR/Dockerfile"
   --build-arg PACKAGE_SOURCE=internal
   --build-context "perf=$PERF_PATH"
   --build-context "packages=$PACKAGES_PATH"
@@ -202,7 +204,7 @@ fi
 build_cmd+=(
   --tag "${IMAGE_NAME}:${VERSION}"
   --push
-  "$SCRIPT_DIR"
+  "$CS_DEV_DIR"
 )
 
 # Execute build

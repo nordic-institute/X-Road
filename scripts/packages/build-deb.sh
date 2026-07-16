@@ -84,7 +84,7 @@ function prepare {
     rm -f "build/$1/"*.deb
 }
 
-DIR="$(cd "$(dirname $0)" && pwd)"
+DIR="$(cd "$(dirname "$0")/../../deployment/native-packages" && pwd)"
 cd "$DIR"
 
 # version was not given, use empty

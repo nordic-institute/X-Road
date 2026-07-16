@@ -82,13 +82,13 @@ aws ecr get-login-password --region eu-west-1 | \
     ${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
 (
-  cd core/deployment/security-server/images
+  cd core
   IMAGE_REGISTRY=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
-    ./build-images.sh --push --platforms linux/amd64,linux/arm64
+    ./scripts/images/build-security-server.sh --push --platforms linux/amd64,linux/arm64
 )
 ```
 
-`core/deployment/security-server/images/build-images.sh` honours `IMAGE_REGISTRY`; images are tagged and pushed there.
+`core/scripts/images/build-security-server.sh` honours `IMAGE_REGISTRY`; images are tagged and pushed there.
 
 ## Deploy
 

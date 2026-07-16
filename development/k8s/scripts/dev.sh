@@ -30,7 +30,7 @@ Mirrors core/development/native-lxd-stack/dev.sh for the k8s workflow.
 Options:
   -m <service>   Service name (required). One of:
                    ${SUPPORTED_SERVICES[*]}
-  -b             Build image via build-images.sh + push to localhost:5555
+  -b             Build image via build-security-server.sh + push to localhost:5555
   -d             Deploy: kind load docker-image + kubectl rollout restart
   -e <env>       Target env (default: dev). Only dev is kind-backed.
   -n <namespace> Security server namespace (default: ss)
@@ -129,10 +129,7 @@ handleBuild() {
 
   log_info "Building image '${SERVICE}' (build target: ${target})"
   require_bin docker "brew install --cask docker"
-  (
-    cd "${CORE_ROOT}/deployment/security-server/images"
-    IMAGE_REGISTRY="localhost:5555" ./build-images.sh "${target}" --push
-  )
+  IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" "${target}" --push
   log_success "Image built: localhost:5555/$(service_to_image):latest"
 }
 

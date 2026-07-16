@@ -119,7 +119,7 @@ if [[ $RELEASE == true ]]; then
 fi
 
 sed -i "s/^xroadVersion.*$/xroadVersion=$VERSION/" gradle.properties
-sed -i "s/^VERSION=$CURRENT_VERSION.*$/VERSION=$VERSION/" ../deployment/native-packages/build-rpm.sh
+sed -i "s/^VERSION=$CURRENT_VERSION.*$/VERSION=$VERSION/" ../scripts/packages/build-rpm.sh
 sed -i "s/{1:-$CURRENT_VERSION}/{1:-$VERSION}/" ../sidecar/docker-build.sh
 sed -i "s/xroad-security-server-sidecar:$CURRENT_VERSION-slim/xroad-security-server-sidecar:$VERSION-slim/" ../sidecar/kubernetes/security-server-sidecar-slim.yaml
 sed -i "s/xroad-security-server-sidecar:$CURRENT_VERSION/xroad-security-server-sidecar:$VERSION/" ../sidecar/kubernetes/security-server-sidecar.yaml
@@ -136,5 +136,5 @@ echo "Setting the last supported version to $LAST_SUPPORTED_VERSION"
 set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" ../deployment/native-packages/src/xroad/default-configuration/override-securityserver-ee.ini
 set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" ../deployment/native-packages/src/xroad/default-configuration/override-securityserver-fi.ini
 
-set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../deployment/native-packages/build-deb.sh
-set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../deployment/native-packages/build-rpm.sh
+set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../scripts/packages/build-deb.sh
+set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" ../scripts/packages/build-rpm.sh

@@ -38,7 +38,7 @@ fi
 
 warn "using packageVersion $SNAPSHOT"
 
-DIR=$(cd "$(dirname "$0")" && pwd)
+DIR=$(cd "$(dirname "$0")/../../deployment/native-packages" && pwd)
 cd "$DIR"
 
 RHEL_VER="$(rpm -E %rhel 2>/dev/null)"

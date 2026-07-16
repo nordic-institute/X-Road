@@ -96,10 +96,7 @@ handleBuildImages() {
     return
   fi
   log_info "Building X-Road container images into local registry (localhost:5555)"
-  (
-    cd "${CORE_ROOT}/deployment/security-server/images"
-    IMAGE_REGISTRY="localhost:5555" ./build-images.sh --push
-  )
+  IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" --push
 }
 
 handleAnsible() {

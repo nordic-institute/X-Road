@@ -4,7 +4,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 REGISTRY="localhost:5555"
@@ -36,7 +36,7 @@ echo ""
 
 # Test 1: Package charts (without push)
 log_info "Step 1: Packaging Helm charts locally..."
-./publish-charts.sh all
+./publish.sh all
 
 echo ""
 log_success "Charts packaged successfully"
@@ -45,7 +45,7 @@ echo ""
 # Test 2: Push charts to local registry
 log_info "Step 2: Pushing charts to ${REGISTRY}..."
 HELM_REGISTRY="${REGISTRY}/helm" \
-  ./publish-charts.sh all --push
+  ./publish.sh all --push
 
 echo ""
 log_success "Charts pushed successfully"

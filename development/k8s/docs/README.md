@@ -55,7 +55,7 @@ All live under `scripts/`:
 | `init-ss2.sh` | Hurl bootstrap for SS2 (assumes external CS/CA/SS0 are already running) |
 | `lint.sh` | Run `ansible-lint` + `yamllint` |
 
-Image build lives at `core/deployment/security-server/images/build-images.sh` — called automatically by `start-env.sh` and `dev.sh`.
+Image build lives at `core/scripts/images/build-security-server.sh` — called automatically by `start-env.sh` and `dev.sh`.
 
 ### Common flags for `start-env.sh`
 

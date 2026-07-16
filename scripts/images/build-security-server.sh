@@ -4,7 +4,8 @@ set -e
 
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
+IMAGES_DIR="${ROOT_DIR}/deployment/security-server/images"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 # Additional paths
@@ -278,14 +279,14 @@ for service in "${SERVICES[@]}"; do
     artifact_context_args+=(--build-context "build-artifacts=${artifact_path}")
   fi
 
-  # Build context directory is always the dockerfile's directory
-  context_dir="${SCRIPT_DIR}/$(dirname "$dockerfile")"
+  # Build context directory is always the dockerfile's directory (Dockerfiles stay in IMAGES_DIR)
+  context_dir="${IMAGES_DIR}/$(dirname "$dockerfile")"
 
   # Build command with ALL contexts
   build_cmd=(
     docker buildx build --progress=plain
     "${CACHE_FLAG[@]}"
-    --file "${SCRIPT_DIR}/${dockerfile}"
+    --file "${IMAGES_DIR}/${dockerfile}"
     --build-arg "REGISTRY=${REGISTRY}"
     --build-arg "IMAGE_TAG=${IMAGE_TAG}"
     --build-context "build=${BUILD_DIR}"

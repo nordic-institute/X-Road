@@ -148,12 +148,12 @@ jobs:
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
           -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
       - name: Build Security Server images
-        working-directory: ./deployment/security-server/images
+        working-directory: ./scripts/images
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
         run: |
-          ./build-images.sh --platforms linux/amd64,linux/arm64 --push
+          ./build-security-server.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -274,14 +274,14 @@ jobs:
         run: ./package.sh -d -r resolute --package-only
 
       - name: Build and push Central Server dev image
-        working-directory: ./development/docker/central-server
+        working-directory: ./scripts/images
         run: |
           echo "🏗️ Building Central Server dev image:"
           echo "  Registry: ${IMAGE_REGISTRY}"
           echo "  Version: ${SERVICE_IMAGE_TAG}"
           echo "  Branch: ${BRANCH_NAME}"
-          
-          ./build-cs-dev-image.sh \
+
+          ./build-central-server.sh \
             --environment ci \
             --registry ${{ env.IMAGE_REGISTRY }} \
             --version ${{ env.SERVICE_IMAGE_TAG }} \
@@ -289,11 +289,11 @@ jobs:
             --platforms linux/amd64
 
       - name: Build development images
-        working-directory: ./development/docker
+        working-directory: ./scripts/images
         run: |
           IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
-            ./build-dev-images.sh --push
+            ./build-dev-infra.sh --push
 
       - name: Log storage after all packaging
         if: always()

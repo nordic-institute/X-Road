@@ -59,7 +59,7 @@ buildBuilderImage() {
   local release="$1"
   test -n "$release" || errorExit "Error, release not specified."
 
-  "$XROAD/../deployment/native-packages/docker/prepare-builder-image.sh" "$release" || errorExit "Error preparing $release image."
+  "${XROAD}/images/build-builder.sh" "$release" || errorExit "Error preparing $release image."
 }
 
 runInBuilderImage() {
@@ -67,7 +67,7 @@ runInBuilderImage() {
   shift
   test -n "$release" || errorExit "Error, release not specified."
 
-  # Use same image name as prepare-builder-image.sh
+  # Use same image name as build-builder.sh
   local registry="${IMAGE_REGISTRY:-localhost:5555}"
   local tag="${IMAGE_TAG:-latest}"
   local image="${registry}/package-builder-${release}:${tag}"
@@ -99,7 +99,7 @@ prepareRedhatPackagesBuilderImages() {
 buildDebianPackages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
     if [[ "$release" == "resolute" || "$release" == "noble" ]]; then
-      runInBuilderImage "deb-$release" /workspace/deployment/native-packages/build-deb.sh "$release" "$PACKAGE_VERSION" || errorExit "Error building deb-$release packages."
+      runInBuilderImage "deb-$release" /workspace/scripts/packages/build-deb.sh "$release" "$PACKAGE_VERSION" || errorExit "Error building deb-$release packages."
     fi
   done
 }
@@ -107,7 +107,7 @@ buildDebianPackages() {
 buildRedhatPackages() {
   for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
     if [[ "$release" == "rpm-el9" || "$release" == "rpm-el10" ]]; then
-      runInBuilderImage "$release" /workspace/deployment/native-packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building $release packages."
+      runInBuilderImage "$release" /workspace/scripts/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building $release packages."
     fi
   done
 }
@@ -158,6 +158,5 @@ if [ -n "$HAS_DOCKER" ]; then
 
 else
   log_warn "Docker not installed, building only .deb packages for this distribution"
-  cd "$XROAD/../deployment/native-packages"
-  ./build-deb.sh "$(lsb_release -sc)" || errorExit "Error building deb packages."
+  "${XROAD}/packages/build-deb.sh" "$(lsb_release -sc)" || errorExit "Error building deb packages."
 fi

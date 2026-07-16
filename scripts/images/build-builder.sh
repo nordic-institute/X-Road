@@ -8,7 +8,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../../" && pwd)"
+BUILDER_DOCKER_DIR="${ROOT_DIR}/deployment/native-packages/docker"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 # Configuration from environment variables
@@ -131,8 +132,8 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
     log_info "Force build enabled, skipping registry check..."
   fi
 
-  if [[ ! -d "$SCRIPT_DIR/$release" ]]; then
-    log_error "Dockerfile directory not found: $SCRIPT_DIR/$release"
+  if [[ ! -d "$BUILDER_DOCKER_DIR/$release" ]]; then
+    log_error "Dockerfile directory not found: $BUILDER_DOCKER_DIR/$release"
     FAILED_BUILDS+=("$release")
     continue
   fi
@@ -159,12 +160,12 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
     log_info "  Platforms: ${BUILD_PLATFORMS}"
     if docker buildx build --progress=plain \
       --platform "$BUILD_PLATFORMS" \
-      --file "$SCRIPT_DIR/$release/Dockerfile" \
+      --file "$BUILDER_DOCKER_DIR/$release/Dockerfile" \
       --tag "$IMAGE_NAME" \
       "${CACHE_FLAG[@]}" \
       "${MIRROR_BUILD_ARGS[@]}" \
       --push \
-      "$SCRIPT_DIR/$release/" >/dev/null; then
+      "$BUILDER_DOCKER_DIR/$release/" >/dev/null; then
 
       BUILD_END=$(date +%s)
       DURATION=$((BUILD_END - BUILD_START))
@@ -181,7 +182,7 @@ for release in "${RELEASES_TO_PROCESS[@]}"; do
       log_info "  Platform: host"
     fi
 
-    if docker build --progress=plain -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${MIRROR_BUILD_ARGS[@]}" "$SCRIPT_DIR/$release/"; then
+    if docker build --progress=plain -t "$IMAGE_NAME" "${CACHE_FLAG[@]}" "${MIRROR_BUILD_ARGS[@]}" "$BUILDER_DOCKER_DIR/$release/"; then
       log_info "  Pushing to registry..."
       if docker push "$IMAGE_NAME" >/dev/null 2>&1; then
         BUILD_END=$(date +%s)
