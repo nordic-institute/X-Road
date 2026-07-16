@@ -45,6 +45,7 @@ import org.niis.xroad.edc.assetaccess.proto.AcquireAssetAccessResp;
 import org.niis.xroad.edc.assetaccess.proto.AssetAccessServiceGrpc;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
+import org.niis.xroad.edc.extension.assetaccess.util.DspExceptionWrapper;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
@@ -81,7 +82,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
     @Override
     @WithSpan("dsp-asset-acquire")
     public void acquire(AcquireAssetAccessReq request, StreamObserver<AcquireAssetAccessResp> responseObserver) {
-        responseHandler.handleRequest(responseObserver, () -> acquireInternal(request));
+        responseHandler.handleRequest(responseObserver, DspExceptionWrapper.wrap(() -> acquireInternal(request)));
     }
 
     private AcquireAssetAccessResp acquireInternal(AcquireAssetAccessReq request) {

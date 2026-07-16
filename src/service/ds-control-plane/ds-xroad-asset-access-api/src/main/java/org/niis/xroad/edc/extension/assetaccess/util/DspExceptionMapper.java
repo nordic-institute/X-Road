@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.edc.extension.assetaccess.util;
 
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -52,19 +52,17 @@ import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 /**
- * Translates DSP-origin {@link XrdRuntimeException}s into legacy XRoad error codes.
+ * Translates DSP-origin {@link XrdRuntimeException}s into common XRoad error codes.
  *
- * <p>Needed because {@code AbstractRpcClient} overwrites the structured {@code origin} field and
- * double-prefixes the wire code (e.g. {@code proxy.dataspace.dsp_catalog_fetch_failed}). The mapper
- * identifies DSP exceptions by scanning the {@code errorCode} string for a {@code dataspace.} segment
- * rather than relying on the structured origin enum.
+ * <p>The mapper identifies DSP exceptions by scanning the {@code errorCode} string for a {@code dataspace.}
+ * segment rather than relying on the structured origin enum.</p>
  */
 @UtilityClass
-class DspLegacyErrorMapper {
+class DspExceptionMapper {
 
     private static final String DATASPACE_SEGMENT = "dataspace.";
 
-    private static final Map<ErrorCode, ErrorCode> DSP_TO_LEGACY = Map.ofEntries(
+    private static final Map<ErrorCode, ErrorCode> DSP_TO_COMMON = Map.ofEntries(
             entry(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
             entry(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
             entry(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
@@ -77,7 +75,7 @@ class DspLegacyErrorMapper {
             entry(DSP_TRANSFER_FAILED, SERVICE_FAILED),
             entry(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR));
 
-    static XrdRuntimeException toLegacy(XrdRuntimeException ex) {
+    static XrdRuntimeException toCommon(XrdRuntimeException ex) {
         var dspCode = extractDspCode(ex.getErrorCode());
         if (dspCode == null) {
             return ex;
@@ -86,16 +84,16 @@ class DspLegacyErrorMapper {
         if (dspErrorCode == null) {
             return ex;
         }
-        var legacyCode = DSP_TO_LEGACY.get(dspErrorCode);
-        if (legacyCode == null) {
+        var errorCode = DSP_TO_COMMON.get(dspErrorCode);
+        if (errorCode == null) {
             return ex;
         }
         var metadata = Stream.concat(
                 Stream.of("originalCode=" + dspCode),
                 ex.getErrorCodeMetadata().stream()).toArray();
-        return new XrdRuntimeExceptionBuilder<>(legacyCode)
+        return new XrdRuntimeExceptionBuilder<>(errorCode)
                 .identifier(ex.getIdentifier())
-                .cause(ex.getCause())
+                .cause(ex)
                 .details(ex.getDetails())
                 .metadataItems(metadata)
                 .build();

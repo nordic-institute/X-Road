@@ -50,11 +50,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
-import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 /**
  * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
@@ -72,8 +69,6 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *       error (fail fast; no silent fallback).</li>
  * </ul>
  *
- * <p>Exhaustion of all candidates is translated to a legacy error code at the execute boundary
- * via {@link DspLegacyErrorMapper#toLegacy(XrdRuntimeException)}.
  */
 @Slf4j
 @ApplicationScoped
@@ -103,12 +98,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     @Nonnull
     public AssetAccessResponse execute(DspRequest request) {
         log.trace("execute({})", request);
-
-        try {
-            return acquireAssetAccessForService(request, request.serviceId());
-        } catch (XrdRuntimeException ex) {
-            throw DspLegacyErrorMapper.toLegacy(ex);
-        }
+        return acquireAssetAccessForService(request, request.serviceId());
     }
 
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
@@ -122,8 +112,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 serviceId, assetId, request.managementSubsystem(), candidates.size());
 
         if (candidates.isEmpty()) {
-            throw XrdRuntimeException.systemException(DSP_DATASET_NOT_FOUND)
-                    .origin(DATASPACE)
+            throw XrdRuntimeException.systemException(UNKNOWN_MEMBER)
                     .details("No candidate security servers found for service %s".formatted(serviceId))
                     .build();
         }
@@ -138,9 +127,8 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             var targets = useMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
             var target = targets.get(candidate.hostAddress());
             if (target == null) {
-                var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
-                        .origin(DATASPACE)
-                        .details("No DSP counter-party target configured for provider host-address \"%s\""
+                var ex = XrdRuntimeException.systemException(IO_ERROR)
+                        .details("No counter-party target configured for provider host-address \"%s\""
                                 .formatted(candidate.hostAddress()))
                         .build();
                 log.warn("No counter-party target for SS {} (address {}), trying next",
@@ -206,21 +194,15 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .map(XrdRuntimeException.class::cast)
                     .map(XrdRuntimeException::getCode)
                     .collect(Collectors.toSet());
-            if (xrdCodes.size() == 1 && !isRemoteNotFoundCode(xrdCodes.iterator().next())) {
+            if (xrdCodes.size() == 1) {
                 return remoteFailures.getFirst();
             }
         }
         var last = !remoteFailures.isEmpty() ? remoteFailures.getLast() : localFailures.getLast();
-        return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
-                .origin(DATASPACE)
+        return XrdRuntimeException.systemException(IO_ERROR)
                 .cause(last)
                 .details("All %d candidate security servers failed to acquire asset access for service %s"
                         .formatted(candidateCount, serviceId))
                 .build();
-    }
-
-    private static boolean isRemoteNotFoundCode(String errorCode) {
-        return errorCode != null
-                && (errorCode.endsWith(DSP_DATASET_NOT_FOUND.code()) || errorCode.endsWith(DSP_OFFERS_NOT_FOUND.code()));
     }
 }

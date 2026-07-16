@@ -67,6 +67,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_TIMEOUT;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_PARSE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATAADDRESS_INVALID;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.IO_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 @ExtendWith(MockitoExtension.class)
 class AssetAccessGrpcServiceTest {
@@ -231,23 +246,23 @@ class AssetAccessGrpcServiceTest {
 
     static Stream<Arguments> dspErrorCodes() {
         return Stream.of(
-                Arguments.of(ErrorCode.DSP_CATALOG_FETCH_FAILED),
-                Arguments.of(ErrorCode.DSP_CATALOG_PARSE_FAILED),
-                Arguments.of(ErrorCode.DSP_ACQUISITION_TIMEOUT),
-                Arguments.of(ErrorCode.DSP_DATASET_NOT_FOUND),
-                Arguments.of(ErrorCode.DSP_OFFERS_NOT_FOUND),
-                Arguments.of(ErrorCode.DSP_PULL_DISTRIBUTION_MISSING),
-                Arguments.of(ErrorCode.DSP_DATAADDRESS_INVALID),
-                Arguments.of(ErrorCode.DSP_NEGOTIATION_FAILED),
-                Arguments.of(ErrorCode.DSP_TRANSFER_FAILED),
-                Arguments.of(ErrorCode.DSP_ACQUISITION_FAILED),
-                Arguments.of(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED)
+                Arguments.of(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
+                Arguments.of(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
+                Arguments.of(DSP_ACQUISITION_TIMEOUT, IO_ERROR),
+                Arguments.of(DSP_ACQUISITION_FAILED, IO_ERROR),
+                Arguments.of(DSP_DATASET_NOT_FOUND, UNKNOWN_MEMBER),
+                Arguments.of(DSP_OFFERS_NOT_FOUND, UNKNOWN_MEMBER),
+                Arguments.of(DSP_PULL_DISTRIBUTION_MISSING, SERVICE_FAILED),
+                Arguments.of(DSP_DATAADDRESS_INVALID, SERVICE_FAILED),
+                Arguments.of(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
+                Arguments.of(DSP_TRANSFER_FAILED, SERVICE_FAILED),
+                Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR)
         );
     }
 
     @ParameterizedTest
     @MethodSource("dspErrorCodes")
-    void dspExceptionPropagatesWithDataspacePrefixedWireCode(ErrorCode dspCode) {
+    void dspExceptionMappedToCommonException(ErrorCode dspCode, ErrorCode expectedErrorCode) {
         stubParticipantContext();
         var dspException = XrdRuntimeException.systemException(dspCode)
                 .origin(ErrorOrigin.DATASPACE)
@@ -261,7 +276,8 @@ class AssetAccessGrpcServiceTest {
             stub.acquire(request);
             throw new AssertionError("Expected StatusRuntimeException");
         } catch (StatusRuntimeException ex) {
-            assertThat(extractErrorCode(ex)).isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + dspCode.code());
+            assertThat(extractErrorCode(ex)).isEqualTo(expectedErrorCode.code());
+            assertThat(extractMetadata(ex)).containsExactly("originalCode=" + dspCode.code());
         }
     }
 
@@ -282,7 +298,7 @@ class AssetAccessGrpcServiceTest {
             throw new AssertionError("Expected StatusRuntimeException");
         } catch (StatusRuntimeException ex) {
             assertThat(extractMetadata(ex))
-                    .containsExactly("my-asset-id", "extra-context");
+                    .containsExactly("originalCode=" + DSP_DATASET_NOT_FOUND.code(), "my-asset-id", "extra-context");
         }
     }
 
@@ -326,7 +342,7 @@ class AssetAccessGrpcServiceTest {
     }
 
     @Test
-    void plainRuntimeExceptionFromFutureBecomesDspAcquisitionFailed() {
+    void plainRuntimeExceptionFromFutureBecomesDspAcquisitionFailedMappedToIoError() {
         stubParticipantContext();
         when(assetAccessOrchestrator.acquireAssetAccess(any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(new RuntimeException("unexpected")));
@@ -335,8 +351,8 @@ class AssetAccessGrpcServiceTest {
             stub.acquire(baseRequest().build());
             throw new AssertionError("Expected StatusRuntimeException");
         } catch (StatusRuntimeException ex) {
-            assertThat(extractErrorCode(ex))
-                    .isEqualTo(ErrorOrigin.DATASPACE.toPrefix() + ErrorCode.DSP_ACQUISITION_FAILED.code());
+            assertThat(extractErrorCode(ex)).isEqualTo(IO_ERROR.code());
+            assertThat(extractMetadata(ex)).containsExactly("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
         }
     }
 

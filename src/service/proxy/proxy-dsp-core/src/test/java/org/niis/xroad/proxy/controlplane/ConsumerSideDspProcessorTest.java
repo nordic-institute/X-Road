@@ -471,18 +471,25 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void remoteDatasetNotFoundFromReachedProviderMapsToIoError() {
+    void remoteDatasetNotFoundFromReachedProviderMapsToUnknownMember() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_DATASET_NOT_FOUND.code()))
+                        ErrorCode.withCode("proxy." + ErrorCode.UNKNOWN_MEMBER.code()))
+                .metadataItems("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code())
                 .build();
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenThrow(dspException);
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).isCausedBy(ErrorCode.IO_ERROR)).isTrue());
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue();
+                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
+                    assertThat(xrd.getErrorCodeMetadata().getFirst())
+                            .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                });
     }
 
     @Test
@@ -492,7 +499,8 @@ class ConsumerSideDspProcessorTest {
                         new ProviderAddress(null, HOST_A),
                         new ProviderAddress(null, HOST_B)));
         var dspException = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
+                        ErrorCode.withCode("proxy." + ErrorCode.IO_ERROR.code()))
+                .metadataItems("originalCode=" + ErrorCode.DSP_CATALOG_FETCH_FAILED.code())
                 .build();
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenThrow(dspException);
@@ -509,7 +517,8 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_NEGOTIATION_FAILED.code()))
+                        ErrorCode.withCode("proxy." + ErrorCode.SERVICE_FAILED.code()))
+                .metadataItems("originalCode=" + ErrorCode.DSP_NEGOTIATION_FAILED.code())
                 .details("negotiation timed out")
                 .build();
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
@@ -526,7 +535,7 @@ class ConsumerSideDspProcessorTest {
                 });
     }
     @Test
-    void emptyCandidatesYieldsUnknownMemberWithOriginalDspCode() {
+    void emptyCandidatesYieldsUnknownMember() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of());
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
@@ -534,13 +543,11 @@ class ConsumerSideDspProcessorTest {
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
                     assertThat(xrd.isCausedBy(ErrorCode.UNKNOWN_MEMBER)).isTrue();
-                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
-                    assertThat(xrd.getErrorCodeMetadata().getFirst())
-                            .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                    assertThat(xrd.getErrorCodeMetadata()).isEmpty();
                 });
     }
     @Test
-    void missingCounterPartyTargetYieldsIoErrorWithOriginalDspCode() {
+    void missingCounterPartyTargetYieldsIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
@@ -548,13 +555,11 @@ class ConsumerSideDspProcessorTest {
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
                     assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
-                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
-                    assertThat(xrd.getErrorCodeMetadata().getFirst())
-                            .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(xrd.getErrorCodeMetadata()).isEmpty();
                 });
     }
     @Test
-    void allCandidatesFailedAggregationYieldsIoErrorWithOriginalDspCode() {
+    void allCandidatesFailedAggregationYieldsIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, HOST_A),
@@ -568,9 +573,7 @@ class ConsumerSideDspProcessorTest {
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
                     assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
-                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
-                    assertThat(xrd.getErrorCodeMetadata().getFirst())
-                            .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(xrd.getErrorCodeMetadata()).isEmpty();
                 });
     }
     @Test
@@ -578,7 +581,8 @@ class ConsumerSideDspProcessorTest {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         var dspException = XrdRuntimeException.systemException(
-                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
+                        ErrorCode.withCode("proxy." + ErrorCode.IO_ERROR.code()))
+                .metadataItems("originalCode=" + ErrorCode.DSP_CATALOG_FETCH_FAILED.code())
                 .build();
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
                 .thenThrow(dspException);
