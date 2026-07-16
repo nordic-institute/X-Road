@@ -1,13 +1,3 @@
-test-framework:
-  component-scan:
-    additional-packages:
-      - org.niis.xroad.cs.test
-  cucumber:
-    glue:
-      - "org.niis.xroad.cs.test"
-      - "org.niis.xroad.test.framework"
-    filter-tags: "not @Skip"
-
 "%cli":
   test-framework:
     working-dir: "test-framework-working-dir/"

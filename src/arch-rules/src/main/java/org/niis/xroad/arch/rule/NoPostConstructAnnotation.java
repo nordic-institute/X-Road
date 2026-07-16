@@ -25,14 +25,20 @@
  */
 package org.niis.xroad.arch.rule;
 
+import com.societegenerale.commons.plugin.model.RootClassFolder;
 import com.societegenerale.commons.plugin.rules.ArchRuleTest;
 import com.societegenerale.commons.plugin.service.ScopePathProvider;
 import com.societegenerale.commons.plugin.utils.ArchUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
+@Slf4j
 public class NoPostConstructAnnotation implements ArchRuleTest {
 
     private static final String POST_CONSTRUCT = "jakarta.annotation.PostConstruct";
@@ -49,11 +55,23 @@ public class NoPostConstructAnnotation implements ArchRuleTest {
 
     @Override
     public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
+        RootClassFolder mainClassesFolder = scopePathProvider.getMainClassesPath();
+        if (mainClassesFolder == null) {
+            log.debug("Skipping {}: module {} has no main classes folder", getClass().getSimpleName(), packagePath);
+            return;
+        }
+
+        String mainClassesPath = mainClassesFolder.getValue();
+        if (mainClassesPath == null || !Files.exists(Path.of(mainClassesPath))) {
+            log.debug("Skipping {}: main classes path {} does not exist", getClass().getSimpleName(), mainClassesPath);
+            return;
+        }
+
         noMethods().that().areDeclaredInClassesThat().areNotAnnotatedWith(APPLICATION_SCOPED)
                 .and().areDeclaredInClassesThat().areNotAnnotatedWith(SINGLETON)
                 .should().beAnnotatedWith(POST_CONSTRUCT)
                 .because(REASON)
                 .allowEmptyShould(false)
-                .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
+                .check(ArchUtils.importAllClassesInPackage(mainClassesFolder, packagePath, excludedPaths));
     }
 }

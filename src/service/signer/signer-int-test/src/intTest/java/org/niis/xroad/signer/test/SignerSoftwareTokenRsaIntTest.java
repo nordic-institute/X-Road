@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,28 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.signer.test;
 
-package org.niis.xroad.softtoken.signer.test;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
+/**
+ * 0110 - Signer: SoftToken key operations (RSA). Generates, uses and retires RSA keys/certs on
+ * {@code soft-token-000}. Scenarios build on each other's key/cert state and must run in this order; the
+ * next class (0120, EC) starts by deleting every key this class leaves behind.
+ */
+@Order(110)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class SignerSoftwareTokenRsaIntTest extends AbstractSignerSoftwareKeyOpsIntTest {
 
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
+    @Override
+    protected String tokenFriendlyName() {
+        return "soft-token-000";
     }
 
     @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.intTest.yaml",
-                ".env",
-                "signer-container-files/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return SoftTokenSignerIntTestSuite.class.getName();
+    protected KeyAlgorithm keyAlgorithm() {
+        return KeyAlgorithm.RSA;
     }
 }

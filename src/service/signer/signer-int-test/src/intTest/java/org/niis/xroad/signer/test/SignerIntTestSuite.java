@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,28 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.signer.test;
 
-package org.niis.xroad.softtoken.signer.test;
+import org.junit.platform.suite.api.ConfigurationParameter;
+import org.junit.platform.suite.api.DisableParentConfigurationParameters;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
-
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
-
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
-    }
-
-    @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.intTest.yaml",
-                ".env",
-                "signer-container-files/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return SoftTokenSignerIntTestSuite.class.getName();
-    }
+/**
+ * Entry point of the {@code intTest} task and {@link ConsoleIntTestRunner}: runs every scenario class as one
+ * serial suite in ascending class {@code @Order}. All classes exercise the same two signer tokens
+ * (soft-token-000, xrd-softhsm-0) on the same long-lived signer + secondary-signer containers with no state
+ * reset between classes - key/cert counts and even member-certificate totals asserted in later classes
+ * (e.g. hardware-token) depend on earlier classes (software-token) having already run, exactly as the
+ * legacy Cucumber suite's file-ordered scenario execution did. Overriding the parallel classpath default to
+ * serial, class-ordered execution here (rather than per-class {@code @ResourceLock}s) is the conservative
+ * choice for a suite this state-coupled.
+ */
+@Suite(failIfNoTests = false)
+@SelectPackages("org.niis.xroad.signer.test")
+@DisableParentConfigurationParameters
+@ConfigurationParameter(key = "junit.jupiter.testclass.order.default", value = "org.junit.jupiter.api.ClassOrderer$OrderAnnotation")
+@ConfigurationParameter(key = "junit.jupiter.extensions.autodetection.enabled", value = "true")
+public class SignerIntTestSuite {
 }

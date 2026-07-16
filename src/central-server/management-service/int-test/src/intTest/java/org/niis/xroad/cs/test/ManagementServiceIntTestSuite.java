@@ -25,26 +25,25 @@
  */
 package org.niis.xroad.cs.test;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import org.junit.platform.suite.api.ConfigurationParameter;
+import org.junit.platform.suite.api.DisableParentConfigurationParameters;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
-
-    public static void main(String[] args) {
-        new ConsoleIntTestRunner().run();
-    }
-
-    @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.intTest.yaml",
-                ".env",
-                "container-files/",
-                "test-data/"
-        };
-    }
-
-    @Override
-    protected String phasedSuiteClassName() {
-        return ManagementServiceIntTestSuite.class.getName();
-    }
+/**
+ * Entry point of the {@code intTest} task and {@link ConsoleIntTestRunner}: runs every scenario class as
+ * one serial suite in ascending class {@code @Order}. Every class drives management requests against the
+ * same CS admin-service container and the same MockServer admin-API stub - MockServer expectations are
+ * matched by request shape alone (method, path, auth header), not by test identity, and recorded requests
+ * are retrieved and reset per test, so two classes running concurrently would corrupt each other's
+ * "exactly one request received" assertions. Class order otherwise mirrors the retired feature files'
+ * numeric prefixes; the two {@code 080} features (client rename, maintenance-mode enable) are ordered by
+ * their original filename (alphabetical: "client-rename" before "maintenance-mode-enable").
+ */
+@Suite(failIfNoTests = false)
+@SelectPackages("org.niis.xroad.cs.test")
+@DisableParentConfigurationParameters
+@ConfigurationParameter(key = "junit.jupiter.testclass.order.default", value = "org.junit.jupiter.api.ClassOrderer$OrderAnnotation")
+@ConfigurationParameter(key = "junit.jupiter.extensions.autodetection.enabled", value = "true")
+public class ManagementServiceIntTestSuite {
 }
