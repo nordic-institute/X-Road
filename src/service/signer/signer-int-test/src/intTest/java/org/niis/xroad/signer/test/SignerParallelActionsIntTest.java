@@ -81,7 +81,7 @@ class SignerParallelActionsIntTest extends AbstractSignerIntTest {
     @DisplayName("Data sign is properly handled in parallel execution")
     void dataSignIsProperlyHandledInParallelExecution() {
         Step.when("digest can be signed in using key \"SignKey from CA\" from token \"xrd-softhsm-0\". "
-                        + "Called 50 times with 25 threads in parallel.",
+                        + "25 threads each sign 50 times in parallel (1250 signs total).",
                 () -> doConcurrentSign(50, 25));
     }
 
@@ -92,7 +92,7 @@ class SignerParallelActionsIntTest extends AbstractSignerIntTest {
         Step.when("signer service is restarted", () -> containerSetup.restartContainer(SIGNER));
         Step.and("tokens are listed", this::listTokens);
         Step.and("digest can be signed in using key \"SignKey from CA\" from token \"xrd-softhsm-0\". "
-                        + "Called 25 times with 5 threads in parallel.",
+                        + "5 threads each sign 25 times in parallel (125 signs total).",
                 () -> doConcurrentSign(25, 5));
     }
 

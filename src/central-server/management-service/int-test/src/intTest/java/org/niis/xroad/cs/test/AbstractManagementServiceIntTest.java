@@ -180,9 +180,10 @@ abstract class AbstractManagementServiceIntTest {
     protected void assertNoOtherHeadersThan(Response response, String allowedHeadersCsv) {
         Set<String> allowedHeaders = Arrays.stream(allowedHeadersCsv.split(","))
                 .map(String::trim)
+                .map(String::toLowerCase)
                 .collect(Collectors.toSet());
         response.getHeaders().forEach(header ->
-                assertThat(allowedHeaders).as("unexpected header %s", header.getName()).contains(header.getName()));
+                assertThat(allowedHeaders).as("unexpected header %s", header.getName()).contains(header.getName().toLowerCase()));
     }
 
     protected void adminApiIsMocked(int statusCode, ManagementRequestTypeDto type, int requestId) {
