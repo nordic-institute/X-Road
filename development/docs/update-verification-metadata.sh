@@ -20,8 +20,8 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../../.scripts/base-script.sh
-source "${SCRIPT_DIR}/../../.scripts/base-script.sh"
+# shellcheck source=../../scripts/lib/base-script.sh
+source "${SCRIPT_DIR}/../../scripts/lib/base-script.sh"
 set -u
 
 META="${XROAD_HOME}/src/gradle/verification-metadata.xml"

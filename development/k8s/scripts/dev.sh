@@ -105,7 +105,7 @@ service_to_build_target() {
 # Returns the gradle_path column from service-config.csv for the given build target.
 gradle_path_for_target() {
   local target="$1" csv line svc_name gradle_path
-  csv="${CORE_ROOT}/deployment/security-server/images/service-config.csv"
+  csv="${CORE_ROOT}/scripts/lib/service-config.csv"
   while IFS=',' read -r svc_name _ gradle_path _; do
     [[ "${svc_name}" == "${target}" ]] && { echo "${gradle_path}"; return 0; }
   done < <(tail -n +2 "${csv}")

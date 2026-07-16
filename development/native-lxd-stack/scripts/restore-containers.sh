@@ -7,7 +7,7 @@
 #   restore-containers.sh --name=custom --containers="xrd-ss0 xrd-cs"
 set -euo pipefail
 
-source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+source "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh"
 
 DEFAULT_CONTAINERS="xrd-ss0 xrd-ss1 xrd-cs"
 SNAPSHOT_NAME=""

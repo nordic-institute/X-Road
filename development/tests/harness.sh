@@ -97,7 +97,7 @@ SCOPE_SCRIPTS=(
   "deployment/security-server/artifactory-publish-installer.sh"
   "deployment/security-server/s3-publish-installer.sh"
   "development/build-local.sh"
-  ".scripts/base-script.sh"
+  "scripts/lib/base-script.sh"
   "deployment/security-server/_publish-installer-common.sh"
 )
 
@@ -444,7 +444,7 @@ if $RUN_SMOKE; then
     ds-issuer-service admin-service db-init configuration-proxy-base
     configuration-proxy
   )
-  _CSV="${REPO_ROOT}/deployment/security-server/images/service-config.csv"
+  _CSV="${REPO_ROOT}/scripts/lib/service-config.csv"
   _ACTUAL_SERVICES=()
   _BAD_DOCKERFILE_ROW=""
   while IFS= read -r _line || [[ -n "$_line" ]]; do

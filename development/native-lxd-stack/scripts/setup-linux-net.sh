@@ -10,8 +10,8 @@
 #   setup-linux-net.sh status    # show current state, no changes
 set -e
 
-if [[ -f "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh" ]]; then
-  source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+if [[ -f "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh" ]]; then
+  source "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh"
 else
   log_info()  { echo "[INFO] $*"; }
   log_error() { echo "[ERROR] $*" >&2; }

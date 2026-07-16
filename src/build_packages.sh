@@ -8,7 +8,7 @@ export XROAD=$(
 )
 
 # Source base script for common utilities and logging functions
-source "${XROAD}/../.scripts/base-script.sh"
+source "${XROAD}/../scripts/lib/base-script.sh"
 
 HAS_DOCKER=""
 PACKAGE_ONLY=false

@@ -7,7 +7,7 @@ CORE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_DIR="${CORE_DIR}/src"
 IMAGES_DIR="${CORE_DIR}/deployment/security-server/images"
 
-source "${CORE_DIR}/.scripts/base-script.sh"
+source "${CORE_DIR}/scripts/lib/base-script.sh"
 
 REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
 SKIP_TESTS="false"

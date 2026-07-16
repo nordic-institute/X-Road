@@ -5,12 +5,12 @@ set -e
 # Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../" && pwd)"
-source "${ROOT_DIR}/.scripts/base-script.sh"
+source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
 # Additional paths
 SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
-SERVICE_CONFIG_CSV="${SCRIPT_DIR}/service-config.csv"
+SERVICE_CONFIG_CSV="${ROOT_DIR}/scripts/lib/service-config.csv"
 
 # Show help
 show_help() {

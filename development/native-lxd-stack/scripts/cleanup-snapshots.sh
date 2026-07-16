@@ -6,7 +6,7 @@
 #   cleanup-snapshots.sh --all               [--containers="xrd-a xrd-b"]
 set -e
 
-source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+source "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh"
 
 DEFAULT_CONTAINERS="xrd-ss0 xrd-ss1 xrd-cs"
 CONTAINERS=""

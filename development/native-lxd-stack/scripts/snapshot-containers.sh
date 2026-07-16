@@ -14,7 +14,7 @@
 # RUNNING/STOPPED state afterwards.
 set -e
 
-source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+source "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh"
 
 # ---------- defaults ---------------------------------------------------------
 SNAPSHOT_NAME="custom"

@@ -1,5 +1,5 @@
 #!/bin/bash
-source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+source "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh"
 
 INVENTORY=$1
 shift

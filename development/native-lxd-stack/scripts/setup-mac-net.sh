@@ -11,8 +11,8 @@
 set -e
 
 # base-script.sh provides log_info / log_error if available; otherwise stub.
-if [[ -f "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh" ]]; then
-  source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+if [[ -f "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh" ]]; then
+  source "${BASH_SOURCE%/*}/../../../scripts/lib/base-script.sh"
 else
   log_info()  { echo "[INFO] $*"; }
   log_error() { echo "[ERROR] $*" >&2; }

@@ -12,7 +12,7 @@ K8S_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CORE_ROOT="$(cd "${K8S_ROOT}/../.." && pwd)"
 
 # shellcheck source=/dev/null
-source "${CORE_ROOT}/.scripts/base-script.sh"
+source "${CORE_ROOT}/scripts/lib/base-script.sh"
 
 STATE_DIR="${K8S_ROOT}/.state"
 mkdir -p "${STATE_DIR}"
