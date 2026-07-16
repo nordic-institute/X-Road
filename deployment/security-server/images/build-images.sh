@@ -96,18 +96,26 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# If no services specified, read all image-building rows from CSV.
+# Enumerate all image-building rows from CSV.
 # Rows with dockerfile="-" are build-only metadata entries (no Docker image); skip them.
-if [[ ${#SERVICES[@]} -eq 0 ]]; then
-  line_number=0
+_enumerate_all_services() {
+  local line_number=0
   while IFS= read -r line || [[ -n "$line" ]]; do
     line_number=$((line_number + 1))
     [[ $line_number -eq 1 ]] && continue # Skip header
     [[ -z "${line// /}" ]] && continue
     IFS=',' read -r svc_name dockerfile _ _ _ _ _ <<<"$line"
     [[ "$dockerfile" == "-" ]] && continue
-    SERVICES+=("$svc_name")
+    echo "$svc_name"
   done <"$SERVICE_CONFIG_CSV"
+}
+
+# If no services specified, or the single argument is "all", build every real image.
+if [[ ${#SERVICES[@]} -eq 0 ]] || [[ ${#SERVICES[@]} -eq 1 && "${SERVICES[0]}" == "all" ]]; then
+  SERVICES=()
+  while IFS= read -r svc; do
+    SERVICES+=("$svc")
+  done < <(_enumerate_all_services)
 fi
 
 # Determine environment and defaults

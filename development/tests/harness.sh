@@ -490,6 +490,25 @@ if $RUN_SMOKE; then
     fail "build-images.sh no-args enum: image set diverged from baseline"
     diff <(printf '%s\n' "$_expected_sorted") <(printf '%s\n' "$_actual_sorted") | sed 's/^/          /' >&2 || true
   fi
+
+  # Fix 2 guard: build-images.sh "all" must produce the same real-image set as no-args.
+  # Parse the CSV the same way the script's _enumerate_all_services() does (skipping
+  # dockerfile="-" rows) and compare against the no-args set derived above.
+  _ALL_SERVICES=()
+  while IFS= read -r _line || [[ -n "$_line" ]]; do
+    [[ -z "${_line// /}" ]] && continue
+    IFS=',' read -r _svc _dockerfile _ _ _ _ _ <<<"$_line"
+    [[ "$_dockerfile" == "-" ]] && continue
+    _ALL_SERVICES+=("$_svc")
+  done < <(tail -n +2 "$_CSV")
+
+  _all_sorted=$(printf '%s\n' "${_ALL_SERVICES[@]}" | sort)
+  if [[ "$_all_sorted" == "$_actual_sorted" ]]; then
+    pass "build-images.sh 'all' enum: yields same ${#_ALL_SERVICES[@]}-service set as no-args (build-only rows excluded)"
+  else
+    fail "build-images.sh 'all' enum: set diverged from no-args enum"
+    diff <(printf '%s\n' "$_actual_sorted") <(printf '%s\n' "$_all_sorted") | sed 's/^/          /' >&2 || true
+  fi
 fi
 
 # ─── Summary ──────────────────────────────────────────────────────────────────

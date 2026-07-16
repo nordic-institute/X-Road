@@ -2,7 +2,8 @@
 # Bootstrap Security Server 2 (k8s-hosted) via the shared hurl scenario.
 # Assumes external CS + CA + SS0 (native-lxd-stack / docker) are already running.
 
-source "${BASH_SOURCE%/*}/../../../.scripts/base-script.sh"
+# shellcheck source=./_common.sh
+source "${BASH_SOURCE%/*}/_common.sh"
 
 hurl --insecure \
   --variables-file "$XROAD_HOME/development/hurl/scenarios/k8-ss2/vars.env" \

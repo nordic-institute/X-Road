@@ -24,7 +24,7 @@ USAGE:
     ./build-dev-images.sh [options]
 
 OPTIONS:
-    --push                  Push images to registry (default: false)
+    --push                  Push images to registry (default: true)
     --no-cache              Disable Docker build cache
     --no-mirror             Skip package mirror configuration
     --help                  Show this help
