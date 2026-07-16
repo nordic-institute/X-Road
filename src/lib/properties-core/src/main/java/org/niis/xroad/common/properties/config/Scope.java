@@ -236,6 +236,11 @@ public abstract sealed class Scope {
         }
 
         @Override
+        public Optional<String> validationSummary() {
+            return validator.describe();
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (!(o instanceof DefaultConfigKey<?> that)) return false;
             return Objects.equals(key, that.key);

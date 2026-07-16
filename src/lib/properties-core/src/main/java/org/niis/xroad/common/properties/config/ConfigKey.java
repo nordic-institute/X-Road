@@ -49,4 +49,9 @@ public sealed interface ConfigKey<T> permits Scope.DefaultConfigKey {
     T convert(String rawValue);
 
     Validator.Result validate(T value);
+
+    /** @return human-readable summary of the validation constraint, empty when unconstrained */
+    default Optional<String> validationSummary() {
+        return Optional.empty();
+    }
 }

@@ -27,6 +27,8 @@
 
 package org.niis.xroad.common.properties.config;
 
+import java.time.Duration;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -44,6 +46,14 @@ public interface Validator<T> {
      * @return outcome
      */
     Result validate(T value);
+
+    /**
+     * @return short human-readable summary of the constraint for the property catalogue,
+     * empty when the validator imposes no meaningful constraint
+     */
+    default Optional<String> describe() {
+        return Optional.empty();
+    }
 
     /**
      * Validation outcome.
@@ -80,9 +90,19 @@ public interface Validator<T> {
      */
     static Validator<Integer> oneOf(Integer... allowed) {
         var permitted = Set.of(allowed);
-        return value -> permitted.contains(value)
-                ? Result.ok()
-                : Result.error("must be one of " + permitted);
+        return new Validator<>() {
+            @Override
+            public Result validate(Integer value) {
+                return permitted.contains(value)
+                        ? Result.ok()
+                        : Result.error("must be one of " + permitted);
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("one of " + permitted);
+            }
+        };
     }
 
     /**
@@ -91,9 +111,19 @@ public interface Validator<T> {
      * @return validator accepting integers within {@code [min, max]}
      */
     static Validator<Integer> range(int min, int max) {
-        return value -> value != null && value >= min && value <= max
-                ? Result.ok()
-                : Result.error("must be within [%d, %d]".formatted(min, max));
+        return new Validator<>() {
+            @Override
+            public Result validate(Integer value) {
+                return value != null && value >= min && value <= max
+                        ? Result.ok()
+                        : Result.error("must be within [%d, %d]".formatted(min, max));
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("within [%d, %d]".formatted(min, max));
+            }
+        };
     }
 
     /**
@@ -102,16 +132,53 @@ public interface Validator<T> {
      */
     static Validator<String> pattern(String regex) {
         var compiled = Pattern.compile(regex);
-        return value -> value != null && compiled.matcher(value).matches()
-                ? Result.ok()
-                : Result.error("must match " + regex);
+        return new Validator<>() {
+            @Override
+            public Result validate(String value) {
+                return value != null && compiled.matcher(value).matches()
+                        ? Result.ok()
+                        : Result.error("must match " + regex);
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("matches " + regex);
+            }
+        };
     }
 
     /** @return validator rejecting null/blank strings */
     static Validator<String> nonEmpty() {
-        return value -> value != null && !value.isBlank()
-                ? Result.ok()
-                : Result.error("must not be empty");
+        return new Validator<>() {
+            @Override
+            public Result validate(String value) {
+                return value != null && !value.isBlank()
+                        ? Result.ok()
+                        : Result.error("must not be empty");
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("non-empty");
+            }
+        };
+    }
+
+    /** @return validator rejecting null, zero, and negative durations */
+    static Validator<Duration> positive() {
+        return new Validator<>() {
+            @Override
+            public Result validate(Duration value) {
+                return value != null && !value.isZero() && !value.isNegative()
+                        ? Result.ok()
+                        : Result.error("must be a positive duration");
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("positive duration");
+            }
+        };
     }
 
     /**
@@ -121,9 +188,17 @@ public interface Validator<T> {
      * @return validator passing when both pass
      */
     static <T> Validator<T> and(Validator<T> first, Validator<T> second) {
-        return value -> {
-            var result = first.validate(value);
-            return result.valid() ? second.validate(value) : result;
+        return new Validator<>() {
+            @Override
+            public Result validate(T value) {
+                var result = first.validate(value);
+                return result.valid() ? second.validate(value) : result;
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return combine(first, second, " and ");
+            }
         };
     }
 
@@ -134,6 +209,25 @@ public interface Validator<T> {
      * @return validator passing when either passes
      */
     static <T> Validator<T> or(Validator<T> first, Validator<T> second) {
-        return value -> first.validate(value).valid() ? Result.ok() : second.validate(value);
+        return new Validator<>() {
+            @Override
+            public Result validate(T value) {
+                return first.validate(value).valid() ? Result.ok() : second.validate(value);
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return combine(first, second, " or ");
+            }
+        };
+    }
+
+    private static Optional<String> combine(Validator<?> first, Validator<?> second, String separator) {
+        var firstText = first.describe();
+        var secondText = second.describe();
+        if (firstText.isPresent() && secondText.isPresent()) {
+            return Optional.of(firstText.get() + separator + secondText.get());
+        }
+        return firstText.or(() -> secondText);
     }
 }
