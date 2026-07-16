@@ -65,7 +65,7 @@
     # loses all *.lxd resolution. setup-mac-net.sh re-inserts idempotently.
     - name: Re-apply mac->LXD network exceptions after dnsmasq change
       ansible.builtin.command:
-        cmd: "{{ playbook_dir }}/../../native-lxd-stack/scripts/setup-mac-net.sh"
+        cmd: "{{ playbook_dir }}/../../../scripts/env-lxd/scripts/setup-mac-net.sh"
       register: mac_net_reapply
       changed_when: "'inserting nft accept rules' in mac_net_reapply.stdout"
       when:

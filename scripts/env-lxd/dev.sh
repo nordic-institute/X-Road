@@ -1,5 +1,12 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+source "${ROOT_DIR}/scripts/lib/base-script.sh"
+
+SERVICE_CONFIG_CSV="${ROOT_DIR}/scripts/lib/service-config.csv"
+
 usage="
 ./dev.sh [-m <string>] [-b] [-d] [-p] [-h]
 
@@ -24,7 +31,6 @@ DEPLOY=false
 PACKAGE_DEPLOY=false
 INVENTORY_PATH="config/ansible_hosts.txt"
 
-# If s -option is provided find source packages from s3 bucket with given argument
 while getopts ":m:bdphi:" opt; do
   case $opt in
     b) BUILD=true ;;
@@ -52,7 +58,16 @@ shift $((OPTIND -1))
 
 if [ "$BUILD" = true ] ; then
   echo "Building module $MODULE"
-  source ../.scripts/build.sh $MODULE
+  gradleModule="$(resolve_module_gradle_path "$MODULE" "${SERVICE_CONFIG_CSV}")" || {
+    echo "Unknown module: $MODULE" >&2
+    exit 1
+  }
+  origin="$(pwd)"
+  cd "${ROOT_DIR}/src/"
+  set -o xtrace
+  ./gradlew clean build -x check -p "$gradleModule"
+  set +o xtrace
+  cd "$origin"
 fi
 
 if [ "$DEPLOY" = true ] ; then

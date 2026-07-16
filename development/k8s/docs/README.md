@@ -69,7 +69,7 @@ Image build lives at `core/scripts/images/build-security-server.sh` — called a
 
 ### Dev loop (single-service rebuild + redeploy)
 
-Mirrors `core/development/native-lxd-stack/dev.sh` for the k8s world. Rebuilds one service image, loads it directly into every kind node (bypassing the containerd pull cache), then rolls the matching Deployment.
+Mirrors `core/scripts/env-lxd/dev.sh` for the k8s world. Rebuilds one service image, loads it directly into every kind node (bypassing the containerd pull cache), then rolls the matching Deployment.
 
 ```bash
 ./scripts/dev.sh -bdm proxy            # rebuild + redeploy proxy

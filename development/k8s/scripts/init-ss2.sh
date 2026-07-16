@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bootstrap Security Server 2 (k8s-hosted) via the shared hurl scenario.
-# Assumes external CS + CA + SS0 (native-lxd-stack / docker) are already running.
+# Assumes external CS + CA + SS0 (env-lxd / docker) are already running.
 
 # shellcheck source=./_common.sh
 source "${BASH_SOURCE%/*}/_common.sh"
