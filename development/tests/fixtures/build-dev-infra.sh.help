@@ -3,7 +3,7 @@ Development Images Build Script
 Builds OpenBao and TestCA images for local development and integration testing.
 
 USAGE:
-    ./build-dev-images.sh [options]
+    ./build-dev-infra.sh [options]
 
 OPTIONS:
     --push                  Push images to registry (default: true)
@@ -25,11 +25,11 @@ IMAGES BUILT:
 
 EXAMPLES:
     # Build for local development
-    ./build-dev-images.sh
+    ./build-dev-infra.sh
 
     # Build with custom tag
-    IMAGE_TAG=7.8.0-TEST ./build-dev-images.sh
+    IMAGE_TAG=7.8.0-TEST ./build-dev-infra.sh
 
     # Build and push to registry
-    IMAGE_REGISTRY=ghcr.io/niis/x-road IMAGE_TAG=7.8.0 ./build-dev-images.sh --push
+    IMAGE_REGISTRY=ghcr.io/niis/x-road IMAGE_TAG=7.8.0 ./build-dev-infra.sh --push
 

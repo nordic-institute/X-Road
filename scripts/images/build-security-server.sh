@@ -19,7 +19,7 @@ show_help() {
 Security Server Images Build Script
 
 USAGE:
-    ./build-images.sh [service...] [options]
+    ./build-security-server.sh [service...] [options]
 
 SERVICES:
     <service_name>          Service name from service-config.csv
@@ -43,15 +43,15 @@ ENVIRONMENT VARIABLES:
 
 EXAMPLES:
     # Build all services for host platform (local dev)
-    ./build-images.sh all
+    ./build-security-server.sh all
 
     # Build specific services
-    ./build-images.sh proxy signer
+    ./build-security-server.sh proxy signer
 
     # Build and push multi-platform images (CI)
     IMAGE_REGISTRY=ghcr.io/niis/x-road \\
     IMAGE_TAG=7.8.0-123 \\
-      ./build-images.sh all --platforms linux/amd64,linux/arm64 --push
+      ./build-security-server.sh all --platforms linux/amd64,linux/arm64 --push
 
 EOF
   exit 0

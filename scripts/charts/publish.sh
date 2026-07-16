@@ -18,7 +18,7 @@ show_help() {
 Helm Chart Publishing Script for X-Road
 
 USAGE:
-    ./publish-charts.sh [chart...] [options]
+    ./publish.sh [chart...] [options]
 
 CHARTS:
     security-server         Security Server chart
@@ -88,7 +88,7 @@ CHARTS=(
 # Determine registry and defaults
 REGISTRY="${HELM_REGISTRY:-localhost:5555/helm}"
 
-# Auto-detect push behavior (same logic as build-images.sh)
+# Auto-detect push behavior (same logic as build-security-server.sh)
 if [[ -z "$PUSH" ]]; then
     if [[ "$REGISTRY" == "localhost:"* ]]; then
         PUSH="false"

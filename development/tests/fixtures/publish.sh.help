@@ -1,7 +1,7 @@
 Helm Chart Publishing Script for X-Road
 
 USAGE:
-    ./publish-charts.sh [chart...] [options]
+    ./publish.sh [chart...] [options]
 
 CHARTS:
     security-server         Security Server chart

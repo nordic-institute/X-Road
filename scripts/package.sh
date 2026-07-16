@@ -52,7 +52,7 @@ currentBuildPlan() {
 
 buildLocally() {
   log_info "Building locally..."
-  "${XROAD}/../src/compile-all.sh" "$@" || errorExit "Error running build of binaries."
+  "${XROAD}/compile-all.sh" "$@" || errorExit "Error running build of binaries."
 }
 
 buildBuilderImage() {

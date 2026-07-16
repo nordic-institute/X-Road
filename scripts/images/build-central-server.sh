@@ -2,7 +2,7 @@
 
 # Central Server Development Image Build Script
 # Supports both local development and CI environments
-# Usage: ./build-cs-dev-image.sh [options]
+# Usage: ./build-central-server.sh [options]
 #
 # Options:
 #   --registry REGISTRY     Registry URL (default: localhost:5555 for local, ghcr.io for CI)
@@ -39,7 +39,7 @@ show_help() {
 Central Server Development Image Build Script
 
 USAGE:
-    ./build-cs-dev-image.sh [options]
+    ./build-central-server.sh [options]
 
 OPTIONS:
     --registry REGISTRY     Registry URL (default: localhost:5555 for local, ghcr.io for CI)
@@ -56,16 +56,16 @@ ENVIRONMENT VARIABLES:
 
 EXAMPLES:
     # Local development build for host platform (after building packages)
-    ./build-cs-dev-image.sh
+    ./build-central-server.sh
 
     # Multi-platform build
-    ./build-cs-dev-image.sh --platforms linux/amd64,linux/arm64
+    ./build-central-server.sh --platforms linux/amd64,linux/arm64
 
     # Local build with custom registry
-    ./build-cs-dev-image.sh --registry my-registry.local:5000
+    ./build-central-server.sh --registry my-registry.local:5000
 
     # CI build with specific version
-    ./build-cs-dev-image.sh --environment ci --registry ghcr.io/org/repo --version 8.0.0-SNAPSHOT --platforms linux/amd64,linux/arm64
+    ./build-central-server.sh --environment ci --registry ghcr.io/org/repo --version 8.0.0-SNAPSHOT --platforms linux/amd64,linux/arm64
 
 VERSIONING:
     For local builds, the script constructs version from xroadVersion-xroadBuildType in src/gradle.properties.
