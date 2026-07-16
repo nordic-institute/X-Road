@@ -33,13 +33,13 @@ The development environment should have at least 8GB of memory and 20GB of free 
     deployment/native-packages/docker/prepare-builder-image.sh deb-resolute
     deployment/native-packages/docker/prepare-builder-image.sh rpm-el9
     deployment/native-packages/docker/prepare-builder-image.sh rpm-el10
-    ./build_packages.sh --package-only
+    scripts/package.sh --package-only
     ```
 
     Or build packages for specific releases only:
 
     ```
-    ./build_packages.sh --package-only -r noble -r rpm-el9
+    scripts/package.sh --package-only -r noble -r rpm-el9
     ```
 
 ## Building natively (without Docker)
@@ -50,7 +50,7 @@ The development environment should have at least 8GB of memory and 20GB of free 
 
 * Build the software and installation packages:
 
-    `./build_packages.sh`
+    `scripts/package.sh`
 
     If Docker is installed, the script will also build the .deb and .rpm packages in Docker containers. If Docker is not installed, only .deb packages for the current distribution will be built.
 

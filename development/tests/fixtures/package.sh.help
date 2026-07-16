@@ -11,4 +11,4 @@ Options:
 
 Options can be used individually or in combination.
 If provided, options must precede any additional arguments.
-Additional arguments are passed on to compile_code.sh
+Additional arguments are passed on to compile-all.sh

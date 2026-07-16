@@ -314,7 +314,7 @@ function handleBuild() {
       build_args+="--skip-tests "
     fi
 
-    ./../../src/build_packages.sh -r resolute -r rpm-el9 $build_args
+    ./../../scripts/package.sh -r resolute -r rpm-el9 $build_args
   fi
 }
 

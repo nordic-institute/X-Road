@@ -8,7 +8,7 @@ export XROAD=$(
 )
 
 # Source base script for common utilities and logging functions
-source "${XROAD}/../scripts/lib/base-script.sh"
+source "${XROAD}/lib/base-script.sh"
 
 HAS_DOCKER=""
 PACKAGE_ONLY=false
@@ -29,7 +29,7 @@ usage() {
   echo ""
   echo "Options can be used individually or in combination."
   echo "If provided, options must precede any additional arguments."
-  echo "Additional arguments are passed on to compile_code.sh"
+  echo "Additional arguments are passed on to compile-all.sh"
   test -z "$1" || exit "$1"
 }
 
@@ -52,8 +52,7 @@ currentBuildPlan() {
 
 buildLocally() {
   log_info "Building locally..."
-  cd $XROAD || errorExit "Error 'cd $XROAD'."
-  ./compile_code.sh "$@" || errorExit "Error running build of binaries."
+  "${XROAD}/../src/compile-all.sh" "$@" || errorExit "Error running build of binaries."
 }
 
 buildBuilderImage() {

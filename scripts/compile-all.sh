@@ -1,7 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../scripts/lib/base-script.sh"
+source "${SCRIPT_DIR}/lib/base-script.sh"
 resolve_java_home
+
+SRC_DIR="${SCRIPT_DIR}/../src"
 
 RELEASE="SNAPSHOT"
 
@@ -36,6 +38,6 @@ if [[ -n "$PARALLEL" ]]; then
     ARGUMENTS+=(--parallel)
 fi
 
-./gradlew "${ARGUMENTS[@]}"
+(cd "$SRC_DIR" && ./gradlew "${ARGUMENTS[@]}")
 
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

@@ -6,10 +6,10 @@
   hosts: compile_servers
   strategy: free
   tasks:
-    - name: Build packages using build_packages.sh
+    - name: Build packages using package.sh
       shell: |
-        cd {{ playbook_dir }}/../../src
-        ./build_packages.sh --package-only
+        cd {{ playbook_dir }}/../../scripts
+        ./package.sh --package-only
       args:
         executable: /bin/bash
   tags:
