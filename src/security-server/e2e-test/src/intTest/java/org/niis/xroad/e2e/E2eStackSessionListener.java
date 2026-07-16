@@ -25,11 +25,37 @@
  */
 package org.niis.xroad.e2e;
 
-import org.junit.platform.suite.api.ConfigurationParameter;
-import org.junit.platform.suite.api.SelectClasspathResource;
-import org.niis.xroad.test.framework.core.BaseTestRunner;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.container.E2eEnvSetup;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
-@SelectClasspathResource("/behavior")
-@ConfigurationParameter(key = "cucumber.filter.tags", value = "not @Skip")
-public class E2ETest extends BaseTestRunner {
+/**
+ * Provides the e2e environment once per JVM, via the {@code LauncherSessionListener} SPI. In
+ * {@code compose} mode (the default) it boots the three-stack topology (aux, ss0, ss1); in
+ * {@code lxd} mode it attaches to a pre-provisioned LXD environment.
+ */
+@Slf4j
+public class E2eStackSessionListener extends AbstractApiStackSessionListener {
+
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var configSource = ApiTestConfigSource.getInstance();
+        var properties = configSource.getCoreProperties();
+        var mode = properties.envMode();
+        log.info("e2e environment mode: {}", mode);
+        var setup = switch (mode) {
+            case "compose" -> new E2eEnvSetup(properties);
+            case "lxd" -> new LxdEnvSetup(configSource.buildConfigMapping(LxdEnvProperties.class), properties);
+            default -> throw new IllegalArgumentException("Unknown env-mode: " + mode + " — expected 'compose' or 'lxd'");
+        };
+        setup.start();
+        return setup;
+    }
+
+    @Override
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        return setup;
+    }
 }

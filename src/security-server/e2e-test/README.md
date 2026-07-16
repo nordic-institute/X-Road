@@ -11,17 +11,17 @@ selected by `test-framework.env-mode`:
 ## Running locally — Compose mode
 
 Compose mode is the default. The harness starts the Compose stack, runs the
-bootstrap, executes all non-skipped scenarios, then tears the stack down.
+bootstrap, executes the suite, then tears the stack down.
 
 ```bash
 cd core/src
 ./gradlew :security-server:e2e-test:e2eTest
 ```
 
-To serve the Allure report after the run:
+To run a single test class or method directly:
 
 ```bash
-./gradlew :security-server:e2e-test:e2eTest -Pe2eTestServeReport=true
+./gradlew :security-server:e2e-test:e2eTest --tests "SsProxyMessageFlowTest"
 ```
 
 ## Running locally — LXD mode
@@ -53,33 +53,37 @@ responsibility of the provisioning tooling.
    ./gradlew :security-server:e2e-test:e2eTestLxd
    ```
 
-The `e2eTestLxd` task sets `-Dtest-framework.env-mode=lxd` and filters to
-`not @Skip and not @compose-only`. Address defaults mirror the Ansible
-`vars.env` (`xrd-ss0.lxd`, `xrd-ss1.lxd`, etc.) and can be overridden via
-environment variables — see `test-framework.lxd.*` properties.
+The `e2eTestLxd` task sets the `test-framework.env-mode=lxd` system property
+and supports the same `--tests` narrowing as `e2eTest`. Address defaults mirror
+the Ansible `vars.env` (`xrd-ss0.lxd`, `xrd-ss1.lxd`, etc.) and can be
+overridden via environment variables — see `test-framework.lxd.*` properties.
 
-## Compose-only scenarios
+## Compose-only operations
 
-Scenarios that require Docker-specific operations (running commands inside a
-container, reading files from a container) or depend on a Compose-only feature
-overlay (HSM, batch signatures) must be tagged `@compose-only`. The LXD run
-filters them out.
+Tests never touch Docker or `lxc` directly: environment-specific operations go
+through the `E2eEnvironment` seam and the `MessagelogDbOps`/`MessagelogArchiveOps`
+interfaces, each implemented by both `E2eEnvSetup` (Compose) and `LxdEnvSetup`
+(LXD). Test methods declare these interfaces as parameters; the harness injects
+the active environment.
 
-**Maintenance rule:** if you add a scenario that uses an in-container operation
-or a Compose-only feature overlay, tag it `@compose-only` — or make it
-env-aware through the `E2eEnvironment` seam (see `MessagelogArchiveOps` for the
-pattern the 0200 message-log scenarios use). Without either, it will run in the
-LXD CI job and fail.
+**Maintenance rule:** if you add a test that needs an in-container operation or
+a Compose-only feature overlay (HSM, batch signatures), make it env-aware
+through those seams. If it genuinely cannot run on LXD, guard it with
 
-No scenario currently carries `@compose-only`; the filter and maintenance rule
-remain for future compose-specific scenarios.
+```java
+@DisabledIfSystemProperty(named = "test-framework.env-mode", matches = "lxd")
+```
+
+so both the Gradle task and the fat-jar CI run skip it. Without either, it will
+run in the LXD CI job and fail.
 
 ## CI
 
 The LXD suite runs on every pull request as a separate job (`lxd-e2e`) alongside
 the unchanged Compose e2e job (`e2e-tests`). Provisioning reuses the DEB/RPM
 package artifacts produced by the build job — nothing is rebuilt from source.
-A failed LXD run marks the PR checks red.
+A failed LXD run marks the PR checks red. The job runs the suite through the
+shadow jar with `java -Dtest-framework.env-mode=lxd -jar e2e-test-1.0.jar`.
 
 To narrow the LXD job back to manual dispatch only, change one line in
 `.github/workflows/build.yaml`:

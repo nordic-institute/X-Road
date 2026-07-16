@@ -175,7 +175,7 @@ jobs:
         # archive download) shell out to lxc, which needs the lxd group's socket access.
         run: |
           start=$(date +%s)
-          sg lxd -c 'java -Dtest-framework.env-mode=lxd "-Dtest-framework.cucumber.filter-tags=not @Skip and not @compose-only" -jar e2e-test-1.0.jar'
+          sg lxd -c 'java -Dtest-framework.env-mode=lxd -jar e2e-test-1.0.jar'
           echo "E2E_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Test report

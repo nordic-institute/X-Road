@@ -25,16 +25,14 @@
  */
 package org.niis.xroad.e2e;
 
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup.ContainerMapping;
+
 /**
- * Environment abstraction for the e2e test suite.
+ * Environment abstraction for the e2e test suite. Implemented by both the Compose facade
+ * ({@code E2eEnvSetup}) and the LXD adapter ({@code LxdEnvSetup}); tests declare this type (or one
+ * of the ops interfaces) as a method parameter and never touch environment-specific operations.
  */
 public interface E2eEnvironment {
-
-    String HURL = "hurl";
-    String DS_CONTROL_PLANE = "ds-control-plane";
-    String DS_IDENTITY_HUB = "ds-identity-hub";
-    String DS_ISSUER_SERVICE = "ds-issuer-service";
-    String DB_MESSAGELOG = "db-messagelog";
 
     /**
      * Resolves a service's reachable host and port from (env, service, port).
@@ -50,27 +48,4 @@ public interface E2eEnvironment {
      * Returns the security server address registered in the global configuration for the given environment.
      */
     String securityServerAddress(String env);
-
-    /**
-     * Resolved address of a service (host + port pair).
-     *
-     * @param host resolved hostname or IP
-     * @param port resolved TCP port
-     */
-    record ContainerMapping(String host, int port) {
-    }
-
-    /**
-     * Port constants used across the e2e test suite.
-     */
-    final class Port {
-        public static final int UI = 4000;
-        public static final int PROXY = 8080;
-        public static final int PROXY_HEALTHCHECK = 5588;
-        public static final int CONTROL_PLANE_PROTOCOL = 8183;
-        public static final int IDENTITY_HUB_CREDENTIALS = 7185;
-
-        private Port() {
-        }
-    }
 }

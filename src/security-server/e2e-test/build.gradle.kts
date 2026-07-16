@@ -6,8 +6,7 @@ plugins {
 }
 
 dependencies {
-  intTestImplementation(project(":tool:test-framework-core"))
-  intTestImplementation(libs.test.restassured)
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":lib:asic-core"))
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":common:common-message"))
@@ -68,19 +67,40 @@ tasks.register<Test>("e2eTest") {
   dependsOn(provider { tasks.named("copyComposeFiles") })
   useJUnitPlatform()
 
-  description = "Runs e2e tests."
+  description = "Runs the e2e test suite in scenario order on the single shared aux/ss0/ss1 stack. " +
+      "Pass --tests <pattern> to run a single class/method directly (IDE-friendly); " +
+      "the stack still boots via the LauncherSessionListener SPI."
   group = "verification"
 
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  val systemTestArgs = mutableListOf("-XX:MaxMetaspaceSize=200m")
-
-  if (project.hasProperty("e2eTestServeReport")) {
-    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("e2eTestServeReport")}"
+  // Select only the E2eSuite by default so the topology boots exactly once per run: the suite itself
+  // discovers and runs every scenario class. An unfiltered scan of testClassesDirs would otherwise let
+  // the Jupiter engine run each scenario class a second time alongside the suite engine's own run of it.
+  val suiteClass = "E2eSuite"
+  val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
+    request.args.any { it == "--tests" || it.startsWith("--tests=") }
+  }
+  include(if (singleTestFromCli) "**/*Test.class" else "**/$suiteClass.class")
+  doFirst {
+    val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+    val patterns = testFilter.commandLineIncludePatterns + testFilter.includePatterns
+    val targetsSuite = patterns.any { it.substringBefore('*').trimEnd('.').substringAfterLast('.') == suiteClass }
+    when {
+      // Naming the suite via --tests (e.g. the IDE gutter run on the suite class) must behave like the
+      // unfiltered run: select the suite class and drop the test-name filter. Otherwise Gradle matches the
+      // filter against the suite's nested scenario classes by their own names and strips every one of them.
+      targetsSuite -> {
+        setIncludes(setOf("**/$suiteClass.class"))
+        testFilter.setCommandLineIncludePatterns(emptyList())
+        testFilter.setIncludePatterns()
+      }
+      patterns.isNotEmpty() -> setIncludes(setOf("**/*Test.class"))
+    }
   }
 
-  jvmArgs(systemTestArgs)
+  jvmArgs("-XX:MaxMetaspaceSize=200m")
 
   maxHeapSize = "256m"
 
@@ -93,42 +113,38 @@ tasks.register<Test>("e2eTest") {
 }
 
 tasks.register<Test>("e2eTestLxd") {
-  dependsOn(provider { tasks.named("compileIntTestJava") })
   useJUnitPlatform()
 
-  description = "Runs e2e tests against a pre-provisioned LXD environment."
+  description = "Runs the e2e test suite against a pre-provisioned LXD environment. " +
+      "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
-  // Base tag expression; -Pe2eTestFilterTag appends "and @<tag>" for opt-in narrowing to a single
-  // feature/scenario (e.g. -Pe2eTestFilterTag=Messagelog to run only 0200-ss-messagelog.feature).
-  // NOTE: narrowing via the cucumber.features system property was tried and rejected — the
-  // cucumber-junit-platform-engine TestEngine auto-registers and reads that property independently
-  // of the junit-platform-suite-wrapped E2ETest, so every scenario runs twice. Tag/name filtering
-  // (test-framework.cucumber.filter-tags/filter-name) stays inside the single Suite-nested engine
-  // and has no such issue.
-  var filterTags = "not @Skip and not @compose-only"
-  if (project.hasProperty("e2eTestFilterTag")) {
-    filterTags += " and @${project.property("e2eTestFilterTag")}"
+  // Same suite selection as e2eTest: only the E2eSuite by default so scenario classes don't run twice.
+  val suiteClass = "E2eSuite"
+  val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
+    request.args.any { it == "--tests" || it.startsWith("--tests=") }
+  }
+  include(if (singleTestFromCli) "**/*Test.class" else "**/$suiteClass.class")
+  doFirst {
+    val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+    val patterns = testFilter.commandLineIncludePatterns + testFilter.includePatterns
+    val targetsSuite = patterns.any { it.substringBefore('*').trimEnd('.').substringAfterLast('.') == suiteClass }
+    when {
+      targetsSuite -> {
+        setIncludes(setOf("**/$suiteClass.class"))
+        testFilter.setCommandLineIncludePatterns(emptyList())
+        testFilter.setIncludePatterns()
+      }
+      patterns.isNotEmpty() -> setIncludes(setOf("**/*Test.class"))
+    }
   }
 
-  val systemTestArgs = mutableListOf(
-    "-XX:MaxMetaspaceSize=200m",
-    "-Dtest-framework.env-mode=lxd",
-    "-Dtest-framework.cucumber.filter-tags=$filterTags"
-  )
+  systemProperty("test-framework.env-mode", "lxd")
 
-  if (project.hasProperty("e2eTestServeReport")) {
-    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=${project.property("e2eTestServeReport")}"
-  }
-
-  if (project.hasProperty("e2eTestFilterName")) {
-    systemTestArgs += "-Dtest-framework.cucumber.filter-name=${project.property("e2eTestFilterName")}"
-  }
-
-  jvmArgs(systemTestArgs)
+  jvmArgs("-XX:MaxMetaspaceSize=200m")
 
   maxHeapSize = "256m"
 

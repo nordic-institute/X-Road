@@ -45,6 +45,14 @@ public interface ApiTestCoreProperties {
     @WithName("resource-dir")
     String resourceDir();
 
+    /**
+     * Target environment the test suite runs against: {@code compose} (harness-managed Docker
+     * Compose stack, the default) or {@code lxd} (pre-provisioned LXD containers).
+     */
+    @WithDefault("compose")
+    @WithName("env-mode")
+    String envMode();
+
     @WithName("allure")
     Allure allure();
 

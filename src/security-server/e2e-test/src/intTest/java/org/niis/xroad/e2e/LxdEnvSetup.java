@@ -25,10 +25,11 @@
  */
 package org.niis.xroad.e2e;
 
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.test.framework.core.config.TestFrameworkCoreProperties;
+import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
+import org.testcontainers.containers.Container;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,13 +47,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 /**
- * LXD-based implementation of the e2e environment.
- * Assumes the environment is already provisioned and bootstrapped by Ansible.
- * Bring-up and teardown are no-ops.
+ * LXD-based implementation of the e2e environment. Assumes the environment is already provisioned
+ * and bootstrapped by Ansible, so bring-up and teardown are no-ops. Extends {@link BaseComposeSetup}
+ * only to satisfy the api-test-core session-listener/extension lifecycle; the inherited compose
+ * accessors are overridden to fail loudly — test code must go through {@link E2eEnvironment} and the
+ * ops interfaces.
  */
 @Slf4j
-@RequiredArgsConstructor
-public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
+public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
@@ -63,7 +65,22 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
     private static final String CLEANUP_SUCCESS_MARKER = "Cleanup operation completed successfully";
 
     private final LxdEnvProperties lxdProperties;
-    private final TestFrameworkCoreProperties coreProperties;
+
+    public LxdEnvSetup(LxdEnvProperties lxdProperties, ApiTestCoreProperties coreProperties) {
+        super(coreProperties);
+        this.lxdProperties = lxdProperties;
+    }
+
+    @Override
+    public void start() {
+        log.info("Using pre-provisioned LXD environment (ss0={}, ss1={}); bring-up is externally managed",
+                lxdProperties.ss0Host(), lxdProperties.ss1Host());
+    }
+
+    @Override
+    public void stop() {
+        log.info("Leaving LXD environment running; teardown is externally managed");
+    }
 
     @Override
     public ContainerMapping getContainerMapping(String env, String service, int port) {
@@ -164,8 +181,8 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
 
         try {
             // Mirrors compose's decrypt-archives.sh: operates directly on the archive directory on
-            // the SS host, not on a prior local download — the 0200 decrypt scenarios never call
-            // "messsagelog archives are downloaded from" first.
+            // the SS host, not on a prior local download — the decrypt scenarios never download
+            // archives first.
             var listProcess = new ProcessBuilder(
                     lxdProperties.lxcCommand(), "exec", container, "--",
                     "find", ARCHIVE_DIR, "-maxdepth", "1", "-type", "f", "-name", filePrefix + "*.gpg")
@@ -201,7 +218,7 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
 
         // Native SS hosts have other content under /var/lib/xroad (a "backup" directory, dotfiles)
         // that compose's stripped-down message-log-cli image never has; only mlog-* archive files
-        // belong in the tarball serviceHasMessagelogArchivePresent later reads entry-by-entry.
+        // belong in the tarball the archive assertions later read entry-by-entry.
         run(lxdProperties.lxcCommand(), "exec", container, "--",
                 "sh", "-c", "cd %s && find . -maxdepth 1 -type f -name 'mlog-*' | tar czf %s -T -"
                         .formatted(remoteDir, remoteTarball));
@@ -216,8 +233,8 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
         Files.createDirectories(Path.of(outputDir));
         // COPYFILE_DISABLE suppresses BSD tar's AppleDouble ._* metadata entries when this runs on
         // macOS (harmless/absent on the ubuntu-24.04 CI runner's GNU tar), which would otherwise
-        // inflate the entry count serviceHasMessagelogArchivePresent and the decrypt count checks
-        // read back out of this tarball.
+        // inflate the entry count the archive assertions and the decrypt count checks read back
+        // out of this tarball.
         var processBuilder = new ProcessBuilder("tar", "czf", outputDir + "/messagelog-archives.tar.gz", "-C", sourceDir.toString(), ".");
         processBuilder.environment().put("COPYFILE_DISABLE", "1");
         var process = processBuilder.start();
@@ -311,5 +328,35 @@ public class LxdEnvSetup implements E2eEnvironment, MessagelogDbOps, MessagelogA
             log.warn("Probe {}:{} unreachable: {}", host, port, e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    protected String composeProjectName() {
+        throw new UnsupportedOperationException("LxdEnvSetup does not manage a compose stack");
+    }
+
+    @Override
+    public ContainerMapping getContainerMapping(String service, int originalPort) {
+        throw new UnsupportedOperationException("Use getContainerMapping(env, service, port); there is no compose stack");
+    }
+
+    @Override
+    public Container.ExecResult execInContainer(String container, String... command) {
+        throw new UnsupportedOperationException("Not supported on the LXD adapter; use the ops interfaces");
+    }
+
+    @Override
+    public void restartService(String containerName) {
+        throw new UnsupportedOperationException("Not supported on the LXD adapter");
+    }
+
+    @Override
+    public void copyFilesToContainer(String containerName, String classpathResource, String targetPath) {
+        throw new UnsupportedOperationException("Not supported on the LXD adapter");
+    }
+
+    @Override
+    public void copyFileFromContainer(String containerName, String containerPath, String localPath) {
+        throw new UnsupportedOperationException("Not supported on the LXD adapter");
     }
 }
