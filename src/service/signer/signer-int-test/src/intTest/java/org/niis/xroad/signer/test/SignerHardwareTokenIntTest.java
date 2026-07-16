@@ -67,12 +67,12 @@ class SignerHardwareTokenIntTest extends AbstractSignerIntTest {
     @Order(2)
     @DisplayName("Token has its friendly name updated")
     void tokenHasItsFriendlyNameUpdated() {
-        Step.when("friendly name \"" + TOKEN_HSM_0 + "\" is set for token with label \"" + TOKEN_LABEL + "\"",
+        Step.when("friendly name '%s' is set for token with label '%s'".formatted(TOKEN_HSM_0, TOKEN_LABEL),
                 () -> client().setTokenFriendlyName(tokenIdByLabel(TOKEN_LABEL), TOKEN_HSM_0));
         Step.and("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.then("token with label \"" + TOKEN_LABEL + "\" name is \"" + TOKEN_HSM_0 + "\"",
+        Step.then("token with label '%s' name is '%s'".formatted(TOKEN_LABEL, TOKEN_HSM_0),
                 () -> assertThat(client().getToken(tokenIdByLabel(TOKEN_LABEL)).getFriendlyName()).isEqualTo(TOKEN_HSM_0));
-        Step.and("token with label \"" + TOKEN_LABEL + "\" name is \"" + TOKEN_HSM_0 + "\" on secondary node",
+        Step.and("token with label '%s' name is '%s' on secondary node".formatted(TOKEN_LABEL, TOKEN_HSM_0),
                 () -> assertThat(client(SECONDARY).getToken(tokenIdByLabel(TOKEN_LABEL)).getFriendlyName()).isEqualTo(TOKEN_HSM_0));
     }
 
@@ -80,8 +80,9 @@ class SignerHardwareTokenIntTest extends AbstractSignerIntTest {
     @Order(3)
     @DisplayName("Token is in initialized")
     void tokenIsInitialized() {
-        Step.given("tokens list contains token \"" + TOKEN_HSM_0 + "\"", () -> assertThat(tokenIdByFriendlyName(TOKEN_HSM_0)).isNotNull());
-        Step.and("token \"" + TOKEN_HSM_0 + "\" status is \"OK\"",
+        Step.given("tokens list contains token '%s'".formatted(TOKEN_HSM_0),
+                () -> assertThat(tokenIdByFriendlyName(TOKEN_HSM_0)).isNotNull());
+        Step.and("token '%s' status is 'OK'".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).getStatus()).isEqualTo(TokenStatusInfo.OK));
     }
 
@@ -89,11 +90,11 @@ class SignerHardwareTokenIntTest extends AbstractSignerIntTest {
     @Order(4)
     @DisplayName("Token is activated")
     void tokenIsActivated() {
-        Step.given("token \"" + TOKEN_HSM_0 + "\" is not active",
+        Step.given("token '%s' is not active".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).isActive()).isFalse());
-        Step.when("token \"" + TOKEN_HSM_0 + "\" is logged in with pin \"" + PIN + "\"",
+        Step.when("token '%s' is logged in with pin '%s'".formatted(TOKEN_HSM_0, PIN),
                 () -> client().activateToken(tokenIdByFriendlyName(TOKEN_HSM_0), PIN.toCharArray()));
-        Step.then("token \"" + TOKEN_HSM_0 + "\" is active",
+        Step.then("token '%s' is active".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).isActive()).isTrue());
     }
 
@@ -101,9 +102,9 @@ class SignerHardwareTokenIntTest extends AbstractSignerIntTest {
     @Order(5)
     @DisplayName("Token is deactivated")
     void tokenIsDeactivated() {
-        Step.when("token \"" + TOKEN_HSM_0 + "\" is logged out",
+        Step.when("token '%s' is logged out".formatted(TOKEN_HSM_0),
                 () -> client().deactivateToken(tokenIdByFriendlyName(TOKEN_HSM_0)));
-        Step.then("token \"" + TOKEN_HSM_0 + "\" is not active",
+        Step.then("token '%s' is not active".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).isActive()).isFalse());
     }
 
@@ -111,11 +112,11 @@ class SignerHardwareTokenIntTest extends AbstractSignerIntTest {
     @Order(6)
     @DisplayName("Token pin update is not supported for hardware token")
     void tokenPinUpdateIsNotSupportedForHardwareToken() {
-        Step.given("token \"" + TOKEN_HSM_0 + "\" is not active",
+        Step.given("token '%s' is not active".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).isActive()).isFalse());
-        Step.and("token \"" + TOKEN_HSM_0 + "\" is logged in with pin \"" + PIN + "\"",
+        Step.and("token '%s' is logged in with pin '%s'".formatted(TOKEN_HSM_0, PIN),
                 () -> client().activateToken(tokenIdByFriendlyName(TOKEN_HSM_0), PIN.toCharArray()));
-        Step.when("token \"" + TOKEN_HSM_0 + "\" pin is update from \"" + PIN + "\" to \"4321\" fails with an error", () -> {
+        Step.when("token '%s' pin is update from '%s' to '4321' fails with an error".formatted(TOKEN_HSM_0, PIN), () -> {
             try {
                 client().updateTokenPin(tokenIdByFriendlyName(TOKEN_HSM_0), PIN.toCharArray(), "4321".toCharArray());
             } catch (XrdRuntimeException e) {
@@ -123,6 +124,7 @@ class SignerHardwareTokenIntTest extends AbstractSignerIntTest {
                         "\\[.*?\\] signer\\.internal_error: Software token not found", e);
             }
         });
-        Step.then("token \"" + TOKEN_HSM_0 + "\" is active", () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).isActive()).isTrue());
+        Step.then("token '%s' is active".formatted(TOKEN_HSM_0),
+                () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0).isActive()).isTrue());
     }
 }

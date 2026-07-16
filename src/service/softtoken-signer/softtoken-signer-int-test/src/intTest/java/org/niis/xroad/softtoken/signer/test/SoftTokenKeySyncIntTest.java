@@ -99,9 +99,9 @@ class SoftTokenKeySyncIntTest {
         signerClient = setup.getSignerClient();
         softTokenSignerSignClient = setup.getSoftTokenSignerSignClient();
 
-        Step.given("signer is initialized with PIN \"" + PIN + "\"",
+        Step.given("signer is initialized with PIN '%s'".formatted(PIN),
                 () -> signerClient.initSoftwareToken(PIN.toCharArray()));
-        Step.and("token \"" + TOKEN_SOFT_000 + "\" is logged in with PIN \"" + PIN + "\"", () -> {
+        Step.and("token '%s' is logged in with PIN '%s'".formatted(TOKEN_SOFT_000, PIN), () -> {
             var token = tokenByFriendlyName(TOKEN_SOFT_000);
             signerClient.activateToken(token.getId(), PIN.toCharArray());
         });
@@ -122,66 +122,66 @@ class SoftTokenKeySyncIntTest {
     @Test
     @DisplayName("Keys are synchronized on startup")
     void keysAreSynchronizedOnStartup() {
-        Step.given("signer has RSA key \"rsa-key\" on token \"soft-token-000\"", () -> generateKey("rsa-key", KeyAlgorithm.RSA));
-        Step.and("signer has EC key \"ec-key\" on token \"soft-token-000\"", () -> generateKey("ec-key", KeyAlgorithm.EC));
+        Step.given("signer has RSA key 'rsa-key' on token 'soft-token-000'", () -> generateKey("rsa-key", KeyAlgorithm.RSA));
+        Step.and("signer has EC key 'ec-key' on token 'soft-token-000'", () -> generateKey("ec-key", KeyAlgorithm.EC));
         Step.when("key synchronization completes", this::waitForSynchronization);
-        Step.then("softtoken-signer can sign with key \"rsa-key\"", () -> assertCanSign("rsa-key"));
-        Step.and("softtoken-signer can sign with key \"ec-key\"", () -> assertCanSign("ec-key"));
+        Step.then("softtoken-signer can sign with key 'rsa-key'", () -> assertCanSign("rsa-key"));
+        Step.and("softtoken-signer can sign with key 'ec-key'", () -> assertCanSign("ec-key"));
     }
 
     @Test
     @DisplayName("New key is synchronized after creation")
     void newKeyIsSynchronizedAfterCreation() {
-        Step.given("signer has RSA key \"existing-key\" on token \"soft-token-000\"",
+        Step.given("signer has RSA key 'existing-key' on token 'soft-token-000'",
                 () -> generateKey("existing-key", KeyAlgorithm.RSA));
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.when("new RSA key \"new-key\" generated for token \"soft-token-000\" in signer",
+        Step.when("new RSA key 'new-key' generated for token 'soft-token-000' in signer",
                 () -> generateKey("new-key", KeyAlgorithm.RSA));
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.then("softtoken-signer can sign with key \"new-key\"", () -> assertCanSign("new-key"));
+        Step.then("softtoken-signer can sign with key 'new-key'", () -> assertCanSign("new-key"));
     }
 
     @Test
     @DisplayName("Key deletion is synchronized")
     void keyDeletionIsSynchronized() {
-        Step.given("signer has RSA key \"key-to-delete\" on token \"soft-token-000\"",
+        Step.given("signer has RSA key 'key-to-delete' on token 'soft-token-000'",
                 () -> generateKey("key-to-delete", KeyAlgorithm.RSA));
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.when("key \"key-to-delete\" is deleted from signer", () -> deleteKey("key-to-delete"));
+        Step.when("key 'key-to-delete' is deleted from signer", () -> deleteKey("key-to-delete"));
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.then("softtoken-signer cannot sign with key \"key-to-delete\"", () -> assertCannotSign("key-to-delete"));
+        Step.then("softtoken-signer cannot sign with key 'key-to-delete'", () -> assertCannotSign("key-to-delete"));
     }
 
     @Test
     @DisplayName("Signature created by softtoken-signer is valid")
     void signatureCreatedByServiceIsValid() {
-        Step.given("signer has EC key \"sign-test-key\" on token \"soft-token-000\"",
+        Step.given("signer has EC key 'sign-test-key' on token 'soft-token-000'",
                 () -> generateKey("sign-test-key", KeyAlgorithm.EC));
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.when("signature is created with softtoken-signer using key \"sign-test-key\"",
+        Step.when("signature is created with softtoken-signer using key 'sign-test-key'",
                 () -> assertCanSign("sign-test-key"));
-        Step.then("signature can be verified with key \"sign-test-key\" public key",
+        Step.then("signature can be verified with key 'sign-test-key' public key",
                 () -> assertSignatureValid("sign-test-key"));
     }
 
     @Test
     @DisplayName("Token deactivation and reactivation restores key availability")
     void tokenDeactivationAndReactivationRestoresKeyAvailability() {
-        Step.given("signer has EC key \"test-key\" on token \"soft-token-000\"", () -> generateKey("test-key", KeyAlgorithm.EC));
+        Step.given("signer has EC key 'test-key' on token 'soft-token-000'", () -> generateKey("test-key", KeyAlgorithm.EC));
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.and("softtoken-signer can sign with key \"test-key\"", () -> assertCanSign("test-key"));
-        Step.when("token \"soft-token-000\" is deactivated", () -> {
+        Step.and("softtoken-signer can sign with key 'test-key'", () -> assertCanSign("test-key"));
+        Step.when("token 'soft-token-000' is deactivated", () -> {
             var token = tokenByFriendlyName(TOKEN_SOFT_000);
             signerClient.deactivateToken(token.getId());
         });
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.and("softtoken-signer cannot sign with key \"test-key\"", () -> assertCannotSign("test-key"));
-        Step.and("token \"soft-token-000\" is reactivated with PIN \"1234\"", () -> {
+        Step.and("softtoken-signer cannot sign with key 'test-key'", () -> assertCannotSign("test-key"));
+        Step.and("token 'soft-token-000' is reactivated with PIN '1234'", () -> {
             var token = tokenByFriendlyName(TOKEN_SOFT_000);
             signerClient.activateToken(token.getId(), PIN.toCharArray());
         });
         Step.and("key synchronization completes", this::waitForSynchronization);
-        Step.then("softtoken-signer can sign with key \"test-key\"", () -> assertCanSign("test-key"));
+        Step.then("softtoken-signer can sign with key 'test-key'", () -> assertCanSign("test-key"));
     }
 
     private void generateKey(String keyLabel, KeyAlgorithm algorithm) {

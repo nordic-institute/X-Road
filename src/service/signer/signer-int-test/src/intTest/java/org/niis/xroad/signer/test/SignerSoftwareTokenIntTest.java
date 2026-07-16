@@ -65,12 +65,12 @@ class SignerSoftwareTokenIntTest extends AbstractSignerIntTest {
     @Order(1)
     @DisplayName("Token has its friendly name updated")
     void tokenHasItsFriendlyNameUpdated() {
-        Step.when("name \"" + TOKEN_SOFT_000 + "\" is set for token with id \"0\"",
+        Step.when("name '%s' is set for token with id '0'".formatted(TOKEN_SOFT_000),
                 () -> client().setTokenFriendlyName(TOKEN_ID_0, TOKEN_SOFT_000));
-        Step.then("token with id \"0\" name is \"" + TOKEN_SOFT_000 + "\" on primary node",
+        Step.then("token with id '0' name is '%s' on primary node".formatted(TOKEN_SOFT_000),
                 () -> assertThat(client().getToken(TOKEN_ID_0).getFriendlyName()).isEqualTo(TOKEN_SOFT_000));
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.then("token with id \"0\" name is \"" + TOKEN_SOFT_000 + "\" on secondary node",
+        Step.then("token with id '0' name is '%s' on secondary node".formatted(TOKEN_SOFT_000),
                 () -> assertThat(client(SECONDARY).getToken(TOKEN_ID_0).getFriendlyName()).isEqualTo(TOKEN_SOFT_000));
     }
 
@@ -78,14 +78,14 @@ class SignerSoftwareTokenIntTest extends AbstractSignerIntTest {
     @Order(2)
     @DisplayName("Token is in initialized")
     void tokenIsInitialized() {
-        Step.given("tokens list contains token \"" + TOKEN_SOFT_000 + "\"", () -> assertThat(tokenIdByFriendlyName(TOKEN_SOFT_000))
+        Step.given("tokens list contains token '%s'".formatted(TOKEN_SOFT_000), () -> assertThat(tokenIdByFriendlyName(TOKEN_SOFT_000))
                 .isNotNull());
-        Step.and("token \"" + TOKEN_SOFT_000 + "\" status is \"NOT_INITIALIZED\"",
+        Step.and("token '%s' status is 'NOT_INITIALIZED'".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).getStatus()).isEqualTo(TokenStatusInfo.NOT_INITIALIZED));
-        Step.when("signer is initialized with pin \"" + PIN + "\"", () -> client().initSoftwareToken(PIN.toCharArray()));
-        Step.then("token \"" + TOKEN_SOFT_000 + "\" is not active",
+        Step.when("signer is initialized with pin '%s'".formatted(PIN), () -> client().initSoftwareToken(PIN.toCharArray()));
+        Step.then("token '%s' is not active".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).isActive()).isFalse());
-        Step.and("token \"" + TOKEN_SOFT_000 + "\" status is \"OK\"",
+        Step.and("token '%s' status is 'OK'".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).getStatus()).isEqualTo(TokenStatusInfo.OK));
     }
 
@@ -97,11 +97,11 @@ class SignerSoftwareTokenIntTest extends AbstractSignerIntTest {
         Step.and("waiting " + AUTOLOGIN_WAIT_SECONDS + " seconds for auto-login to take effect",
                 () -> sleepSeconds(AUTOLOGIN_WAIT_SECONDS));
         listTokens();
-        Step.given("token \"" + TOKEN_SOFT_000 + "\" is not active",
+        Step.given("token '%s' is not active".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).isActive()).isFalse());
-        Step.when("token \"" + TOKEN_SOFT_000 + "\" is logged in with pin \"" + PIN + "\"",
+        Step.when("token '%s' is logged in with pin '%s'".formatted(TOKEN_SOFT_000, PIN),
                 () -> client().activateToken(tokenIdByFriendlyName(TOKEN_SOFT_000), PIN.toCharArray()));
-        Step.then("token \"" + TOKEN_SOFT_000 + "\" is active",
+        Step.then("token '%s' is active".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).isActive()).isTrue());
     }
 
@@ -109,9 +109,9 @@ class SignerSoftwareTokenIntTest extends AbstractSignerIntTest {
     @Order(4)
     @DisplayName("Token is deactivated")
     void tokenIsDeactivated() {
-        Step.when("token \"" + TOKEN_SOFT_000 + "\" is logged out",
+        Step.when("token '%s' is logged out".formatted(TOKEN_SOFT_000),
                 () -> client().deactivateToken(tokenIdByFriendlyName(TOKEN_SOFT_000)));
-        Step.then("token \"" + TOKEN_SOFT_000 + "\" is not active",
+        Step.then("token '%s' is not active".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).isActive()).isFalse());
     }
 
@@ -119,17 +119,17 @@ class SignerSoftwareTokenIntTest extends AbstractSignerIntTest {
     @Order(5)
     @DisplayName("Autologin works properly when token pin is updated to match the autologin configuration")
     void autologinWorksWhenPinUpdatedToMatchAutologinConfig() {
-        Step.given("token \"" + TOKEN_SOFT_000 + "\" is not active",
+        Step.given("token '%s' is not active".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).isActive()).isFalse());
-        Step.and("token \"" + TOKEN_SOFT_000 + "\" is logged in with pin \"" + PIN + "\"",
+        Step.and("token '%s' is logged in with pin '%s'".formatted(TOKEN_SOFT_000, PIN),
                 () -> client().activateToken(tokenIdByFriendlyName(TOKEN_SOFT_000), PIN.toCharArray()));
-        Step.when("token \"" + TOKEN_SOFT_000 + "\" pin is updated from \"" + PIN + "\" to \"" + AUTOLOGIN_PIN + "\"",
+        Step.when("token '%s' pin is updated from '%s' to '%s'".formatted(TOKEN_SOFT_000, PIN, AUTOLOGIN_PIN),
                 () -> client().updateTokenPin(tokenIdByFriendlyName(TOKEN_SOFT_000), PIN.toCharArray(), AUTOLOGIN_PIN.toCharArray()));
         Step.and("signer service is restarted", () -> containerSetup.restartContainer(SIGNER));
         Step.and("waiting " + AUTOLOGIN_WAIT_SECONDS + " seconds for auto-login to take effect",
                 () -> sleepSeconds(AUTOLOGIN_WAIT_SECONDS));
         listTokens();
-        Step.then("token \"" + TOKEN_SOFT_000 + "\" is active",
+        Step.then("token '%s' is active".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000).isActive()).isTrue());
     }
 

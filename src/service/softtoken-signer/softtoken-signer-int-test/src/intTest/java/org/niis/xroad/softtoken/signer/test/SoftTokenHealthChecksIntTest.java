@@ -110,8 +110,8 @@ class SoftTokenHealthChecksIntTest {
     @DisplayName("Liveness probe reports UP after successful sync")
     void livenessProbeReportsUpAfterSuccessfulSync() {
         var response = Step.when("softtoken-signer liveness endpoint is queried", () -> queryHealthEndpoint("/q/health/live"));
-        Step.then("the health response status is \"UP\"", () -> assertStatus(response, "UP"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_LIVENESS\" with status \"UP\"",
+        Step.then("the health response status is 'UP'", () -> assertStatus(response, "UP"));
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_LIVENESS' with status 'UP'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_LIVENESS", "UP"));
     }
 
@@ -119,8 +119,8 @@ class SoftTokenHealthChecksIntTest {
     @DisplayName("Readiness probe reports UP after successful sync")
     void readinessProbeReportsUpAfterSuccessfulSync() {
         var response = Step.when("softtoken-signer readiness endpoint is queried", () -> queryHealthEndpoint("/q/health/ready"));
-        Step.then("the health response status is \"UP\"", () -> assertStatus(response, "UP"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with status \"UP\"",
+        Step.then("the health response status is 'UP'", () -> assertStatus(response, "UP"));
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with status 'UP'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_READINESS", "UP"));
     }
 
@@ -128,10 +128,10 @@ class SoftTokenHealthChecksIntTest {
     @DisplayName("Combined health endpoint reports UP")
     void combinedHealthEndpointReportsUp() {
         var response = Step.when("softtoken-signer health endpoint is queried", () -> queryHealthEndpoint("/q/health"));
-        Step.then("the health response status is \"UP\"", () -> assertStatus(response, "UP"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_LIVENESS\" with status \"UP\"",
+        Step.then("the health response status is 'UP'", () -> assertStatus(response, "UP"));
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_LIVENESS' with status 'UP'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_LIVENESS", "UP"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with status \"UP\"",
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with status 'UP'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_READINESS", "UP"));
     }
 
@@ -139,9 +139,9 @@ class SoftTokenHealthChecksIntTest {
     @DisplayName("Liveness probe includes threshold data")
     void livenessProbeIncludesThresholdData() {
         var response = Step.when("softtoken-signer liveness endpoint is queried", () -> queryHealthEndpoint("/q/health/live"));
-        Step.then("the health response contains check \"SOFTTOKEN_SYNC_LIVENESS\" with data \"threshold\" equal to 3",
+        Step.then("the health response contains check 'SOFTTOKEN_SYNC_LIVENESS' with data 'threshold' equal to 3",
                 () -> assertCheckDataEquals(response, "SOFTTOKEN_SYNC_LIVENESS", "threshold", LIVENESS_THRESHOLD));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_LIVENESS\" with data \"consecutive_failures\" equal to 0",
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_LIVENESS' with data 'consecutive_failures' equal to 0",
                 () -> assertCheckDataEquals(response, "SOFTTOKEN_SYNC_LIVENESS", "consecutive_failures", 0));
     }
 
@@ -149,9 +149,9 @@ class SoftTokenHealthChecksIntTest {
     @DisplayName("Readiness probe includes sync timing data")
     void readinessProbeIncludesSyncTimingData() {
         var response = Step.when("softtoken-signer readiness endpoint is queried", () -> queryHealthEndpoint("/q/health/ready"));
-        Step.then("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with data key \"last_successful_sync\"",
+        Step.then("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with data key 'last_successful_sync'",
                 () -> assertCheckHasDataKey(response, "SOFTTOKEN_SYNC_READINESS", "last_successful_sync"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with data key \"threshold_seconds\"",
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with data key 'threshold_seconds'",
                 () -> assertCheckHasDataKey(response, "SOFTTOKEN_SYNC_READINESS", "threshold_seconds"));
     }
 
@@ -163,8 +163,8 @@ class SoftTokenHealthChecksIntTest {
                 () -> awaitCheckStatus("/q/health/live", "SOFTTOKEN_SYNC_LIVENESS", "DOWN"));
         var response = Step.and("softtoken-signer liveness endpoint is queried", () -> queryHealthEndpoint("/q/health/live"));
         Step.then("the health response HTTP status code is 503", () -> assertHttpStatus(response, HTTP_SERVICE_UNAVAILABLE));
-        Step.and("the health response status is \"DOWN\"", () -> assertStatus(response, "DOWN"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_LIVENESS\" with status \"DOWN\"",
+        Step.and("the health response status is 'DOWN'", () -> assertStatus(response, "DOWN"));
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_LIVENESS' with status 'DOWN'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_LIVENESS", "DOWN"));
         Step.and("signer service is started", () -> containerSetup.startContainer(SIGNER, true));
     }
@@ -180,10 +180,10 @@ class SoftTokenHealthChecksIntTest {
                 () -> awaitCheckStatus("/q/health/ready", "SOFTTOKEN_SYNC_READINESS", "DOWN"));
         var response = Step.and("softtoken-signer readiness endpoint is queried", () -> queryHealthEndpoint("/q/health/ready"));
         Step.then("the health response HTTP status code is 503", () -> assertHttpStatus(response, HTTP_SERVICE_UNAVAILABLE));
-        Step.and("the health response status is \"DOWN\"", () -> assertStatus(response, "DOWN"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with status \"DOWN\"",
+        Step.and("the health response status is 'DOWN'", () -> assertStatus(response, "DOWN"));
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with status 'DOWN'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_READINESS", "DOWN"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with data key \"elapsed_seconds\"",
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with data key 'elapsed_seconds'",
                 () -> assertCheckHasDataKey(response, "SOFTTOKEN_SYNC_READINESS", "elapsed_seconds"));
         Step.and("signer service is started", () -> containerSetup.startContainer(SIGNER, true));
     }
@@ -199,10 +199,10 @@ class SoftTokenHealthChecksIntTest {
                 () -> awaitCheckStatus("/q/health/live", "SOFTTOKEN_SYNC_LIVENESS", "UP"));
         var response = Step.and("softtoken-signer health endpoint is queried", () -> queryHealthEndpoint("/q/health"));
         Step.then("the health response HTTP status code is 200", () -> assertHttpStatus(response, HTTP_OK));
-        Step.and("the health response status is \"UP\"", () -> assertStatus(response, "UP"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_LIVENESS\" with status \"UP\"",
+        Step.and("the health response status is 'UP'", () -> assertStatus(response, "UP"));
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_LIVENESS' with status 'UP'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_LIVENESS", "UP"));
-        Step.and("the health response contains check \"SOFTTOKEN_SYNC_READINESS\" with status \"UP\"",
+        Step.and("the health response contains check 'SOFTTOKEN_SYNC_READINESS' with status 'UP'",
                 () -> assertCheckStatus(response, "SOFTTOKEN_SYNC_READINESS", "UP"));
     }
 

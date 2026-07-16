@@ -60,12 +60,12 @@ class SignerSoftwareTokenEcIntTest extends AbstractSignerSoftwareKeyOpsIntTest {
     @Order(0)
     @DisplayName("Previous Keys are deleted")
     void previousKeysAreDeleted() {
-        Step.when("token \"soft-token-000\" has exact keys \"First key,Second key,KeyX,SignKey from CA,AuthKey from CA\"",
+        Step.when("token 'soft-token-000' has exact keys 'First key,Second key,KeyX,SignKey from CA,AuthKey from CA'",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "KeyX", "SignKey from CA", "AuthKey from CA")));
-        Step.then("key \"First key\" is deleted from token \"soft-token-000\"", () -> deleteKey("First key"));
-        Step.and("key \"Second key\" is deleted from token \"soft-token-000\"", () -> deleteKey("Second key"));
-        Step.and("key \"KeyX\" is deleted from token \"soft-token-000\"", () -> deleteKey("KeyX"));
-        Step.and("key \"SignKey from CA\" is deleted from token \"soft-token-000\"", () -> deleteKey("SignKey from CA"));
-        Step.and("key \"AuthKey from CA\" is deleted from token \"soft-token-000\"", () -> deleteKey("AuthKey from CA"));
+        Step.then("key 'First key' is deleted from token 'soft-token-000'", () -> deleteKey("First key"));
+        Step.and("key 'Second key' is deleted from token 'soft-token-000'", () -> deleteKey("Second key"));
+        Step.and("key 'KeyX' is deleted from token 'soft-token-000'", () -> deleteKey("KeyX"));
+        Step.and("key 'SignKey from CA' is deleted from token 'soft-token-000'", () -> deleteKey("SignKey from CA"));
+        Step.and("key 'AuthKey from CA' is deleted from token 'soft-token-000'", () -> deleteKey("AuthKey from CA"));
     }
 }

@@ -55,6 +55,7 @@ import static org.niis.xroad.signer.test.container.SignerIntTestContainerSetup.S
  */
 @Order(400)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@SuppressWarnings("java:S1192")
 class SignerSecondaryNodeIntTest extends AbstractSignerIntTest {
 
     private static final String TOKEN_SOFT_000 = "soft-token-000";
@@ -84,9 +85,9 @@ class SignerSecondaryNodeIntTest extends AbstractSignerIntTest {
     @Order(2)
     @DisplayName("Activate token on secondary node")
     void activateTokenOnSecondaryNode() {
-        Step.when("token \"" + TOKEN_SOFT_000 + "\" is logged in with pin \"" + AUTOLOGIN_PIN + "\" on secondary node",
+        Step.when("token '%s' is logged in with pin '%s' on secondary node".formatted(TOKEN_SOFT_000, AUTOLOGIN_PIN),
                 () -> client(SECONDARY).activateToken(tokenIdByFriendlyName(TOKEN_SOFT_000), AUTOLOGIN_PIN.toCharArray()));
-        Step.then("token \"" + TOKEN_SOFT_000 + "\" is active on secondary node",
+        Step.then("token '%s' is active on secondary node".formatted(TOKEN_SOFT_000),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_SOFT_000, SECONDARY).isActive()).isTrue());
         Step.and("Update token pin on secondary node not allowed", () -> assertAccessDenied(
                 () -> client(SECONDARY).updateTokenPin("0", AUTOLOGIN_PIN.toCharArray(), "pin".toCharArray())));
@@ -98,26 +99,26 @@ class SignerSecondaryNodeIntTest extends AbstractSignerIntTest {
     @Order(3)
     @DisplayName("Signing data on secondary node")
     void signingDataOnSecondaryNode() {
-        Step.given("new RSA key \"key-test-secondary-1\" generated for token \"" + TOKEN_SOFT_000 + "\"",
+        Step.given("new RSA key 'key-test-secondary-1' generated for token '%s'".formatted(TOKEN_SOFT_000),
                 () -> generateKey(TOKEN_SOFT_000, "key-test-secondary-1", KeyAlgorithm.RSA));
-        Step.and("new EC key \"key-test-secondary-2\" generated for token \"" + TOKEN_SOFT_000 + "\"",
+        Step.and("new EC key 'key-test-secondary-2' generated for token '%s'".formatted(TOKEN_SOFT_000),
                 () -> generateKey(TOKEN_SOFT_000, "key-test-secondary-2", KeyAlgorithm.EC));
-        Step.and("new RSA key \"key-test-secondary-3\" generated for token \"" + TOKEN_HSM_0 + "\"",
+        Step.and("new RSA key 'key-test-secondary-3' generated for token '%s'".formatted(TOKEN_HSM_0),
                 () -> generateKey(TOKEN_HSM_0, "key-test-secondary-3", KeyAlgorithm.RSA));
-        Step.and("new EC key \"key-test-secondary-4\" generated for token \"" + TOKEN_HSM_0 + "\"",
+        Step.and("new EC key 'key-test-secondary-4' generated for token '%s'".formatted(TOKEN_HSM_0),
                 () -> generateKey(TOKEN_HSM_0, "key-test-secondary-4", KeyAlgorithm.EC));
         Step.and("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.when("token \"" + TOKEN_HSM_0 + "\" is logged in with pin \"" + HSM_PIN + "\" on secondary node",
+        Step.when("token '%s' is logged in with pin '%s' on secondary node".formatted(TOKEN_HSM_0, HSM_PIN),
                 () -> client(SECONDARY).activateToken(tokenIdByFriendlyName(TOKEN_HSM_0), HSM_PIN.toCharArray()));
-        Step.and("token \"" + TOKEN_SOFT_000 + "\" is logged in with pin \"" + AUTOLOGIN_PIN + "\" on secondary node",
+        Step.and("token '%s' is logged in with pin '%s' on secondary node".formatted(TOKEN_SOFT_000, AUTOLOGIN_PIN),
                 () -> client(SECONDARY).activateToken(tokenIdByFriendlyName(TOKEN_SOFT_000), AUTOLOGIN_PIN.toCharArray()));
-        Step.then("digest can be signed using key \"key-test-secondary-1\" from token \"" + TOKEN_SOFT_000 + "\" on secondary node",
+        Step.then("digest can be signed using key 'key-test-secondary-1' from token '%s' on secondary node".formatted(TOKEN_SOFT_000),
                 () -> assertCanSignOnSecondary(TOKEN_SOFT_000, "key-test-secondary-1"));
-        Step.and("digest can be signed using key \"key-test-secondary-2\" from token \"" + TOKEN_SOFT_000 + "\" on secondary node",
+        Step.and("digest can be signed using key 'key-test-secondary-2' from token '%s' on secondary node".formatted(TOKEN_SOFT_000),
                 () -> assertCanSignOnSecondary(TOKEN_SOFT_000, "key-test-secondary-2"));
-        Step.and("digest can be signed using key \"key-test-secondary-3\" from token \"" + TOKEN_HSM_0 + "\" on secondary node",
+        Step.and("digest can be signed using key 'key-test-secondary-3' from token '%s' on secondary node".formatted(TOKEN_HSM_0),
                 () -> assertCanSignOnSecondary(TOKEN_HSM_0, "key-test-secondary-3"));
-        Step.and("digest can be signed using key \"key-test-secondary-4\" from token \"" + TOKEN_HSM_0 + "\" on secondary node",
+        Step.and("digest can be signed using key 'key-test-secondary-4' from token '%s' on secondary node".formatted(TOKEN_HSM_0),
                 () -> assertCanSignOnSecondary(TOKEN_HSM_0, "key-test-secondary-4"));
     }
 
@@ -125,17 +126,17 @@ class SignerSecondaryNodeIntTest extends AbstractSignerIntTest {
     @Order(4)
     @DisplayName("Loading token with transient certificate from HSM")
     void loadingTokenWithTransientCertificateFromHsm() {
-        Step.given("all keys are deleted from token \"" + TOKEN_HSM_0 + "\"", this::deleteAllHsmKeys);
-        Step.and("token \"" + TOKEN_HSM_0 + "\" has 0 key on primary node", () -> assertKeyCount(PRIMARY, 0));
+        Step.given("all keys are deleted from token '%s'".formatted(TOKEN_HSM_0), this::deleteAllHsmKeys);
+        Step.and("token '%s' has 0 key on primary node".formatted(TOKEN_HSM_0), () -> assertKeyCount(PRIMARY, 0));
         Step.and("primary node is refreshed", () -> client(PRIMARY).refreshModules());
         Step.and("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.when("new key with id \"1357\" and certificate magically appears on HSM", () -> newKeyAppearsOnHsm("1357"));
+        Step.when("new key with id '1357' and certificate magically appears on HSM", () -> newKeyAppearsOnHsm("1357"));
         Step.and("primary node is refreshed", () -> client(PRIMARY).refreshModules());
         Step.and("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.then("token \"" + TOKEN_HSM_0 + "\" has 1 key on secondary node", () -> assertKeyCount(SECONDARY, 1));
-        Step.and("token \"" + TOKEN_HSM_0 + "\" token is not saved to configuration on primary node",
+        Step.then("token '%s' has 1 key on secondary node".formatted(TOKEN_HSM_0), () -> assertKeyCount(SECONDARY, 1));
+        Step.and("token '%s' token is not saved to configuration on primary node".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0, PRIMARY).isSavedToConfiguration()).isFalse());
-        Step.and("token \"" + TOKEN_HSM_0 + "\" token is not saved to configuration on secondary node",
+        Step.and("token '%s' token is not saved to configuration on secondary node".formatted(TOKEN_HSM_0),
                 () -> assertThat(tokenInfoByFriendlyName(TOKEN_HSM_0, SECONDARY).isSavedToConfiguration()).isFalse());
     }
 

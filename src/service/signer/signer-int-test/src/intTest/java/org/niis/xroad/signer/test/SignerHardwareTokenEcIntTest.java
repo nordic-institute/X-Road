@@ -59,12 +59,12 @@ class SignerHardwareTokenEcIntTest extends AbstractSignerHardwareKeyOpsIntTest {
     @Order(15)
     @DisplayName("Previous Keys are deleted")
     void previousKeysAreDeleted() {
-        Step.when("token has exact keys \"First key,Second key,KeyX,SignKey from CA,BadAuthKey from CA\"",
+        Step.when("token has exact keys 'First key,Second key,KeyX,SignKey from CA,BadAuthKey from CA'",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "KeyX", "SignKey from CA", "BadAuthKey from CA")));
-        Step.then("key \"First key\" is deleted from token", () -> deleteKey("First key"));
-        Step.and("key \"Second key\" is deleted from token", () -> deleteKey("Second key"));
-        Step.and("key \"KeyX\" is deleted from token", () -> deleteKey("KeyX"));
-        Step.and("key \"BadAuthKey from CA\" is deleted from token", () -> deleteKey("BadAuthKey from CA"));
-        Step.and("key \"SignKey from CA\" is deleted from token", () -> deleteKey("SignKey from CA"));
+        Step.then("key 'First key' is deleted from token", () -> deleteKey("First key"));
+        Step.and("key 'Second key' is deleted from token", () -> deleteKey("Second key"));
+        Step.and("key 'KeyX' is deleted from token", () -> deleteKey("KeyX"));
+        Step.and("key 'BadAuthKey from CA' is deleted from token", () -> deleteKey("BadAuthKey from CA"));
+        Step.and("key 'SignKey from CA' is deleted from token", () -> deleteKey("SignKey from CA"));
     }
 }

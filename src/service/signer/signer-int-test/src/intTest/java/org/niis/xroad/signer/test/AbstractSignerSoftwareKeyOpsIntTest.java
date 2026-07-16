@@ -116,17 +116,17 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(1)
     @DisplayName("Keys are generated")
     void keysAreGenerated() {
-        Step.when("new RSA key \"key-1\" generated for token \"soft-token-000\"", () -> generateKey("First key"));
-        Step.when("new RSA key \"key-2\" generated for token \"soft-token-000\"", () -> generateKey("Second key"));
-        Step.when("new RSA key \"key-3\" generated for token \"soft-token-000\"", () -> generateKey("Third key"));
-        Step.then("token \"soft-token-000\" has exact keys \"First key,Second key,Third key\"",
+        Step.when("new RSA key 'key-1' generated for token 'soft-token-000'", () -> generateKey("First key"));
+        Step.when("new RSA key 'key-2' generated for token 'soft-token-000'", () -> generateKey("Second key"));
+        Step.when("new RSA key 'key-3' generated for token 'soft-token-000'", () -> generateKey("Third key"));
+        Step.then("token 'soft-token-000' has exact keys 'First key,Second key,Third key'",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "Third key")));
-        Step.and("sign mechanism for token \"soft-token-000\" key \"Second key\" is not null",
+        Step.and("sign mechanism for token 'soft-token-000' key 'Second key' is not null",
                 () -> assertThat(findKeyInToken(tokenFriendlyName(), "Second key").getSignMechanismName()).isNotBlank());
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.then("token \"soft-token-000\" has exact keys \"First key,Second key,Third key\" on secondary node",
+        Step.then("token 'soft-token-000' has exact keys 'First key,Second key,Third key' on secondary node",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "Third key"), SECONDARY));
-        Step.and("sign mechanism for token \"soft-token-000\" key \"Second key\" is not null on secondary node",
+        Step.and("sign mechanism for token 'soft-token-000' key 'Second key' is not null on secondary node",
                 () -> assertThat(findKeyInToken(tokenFriendlyName(), "Second key", SECONDARY).getSignMechanismName()).isNotBlank());
         Step.and("set name for key not allowed on secondary node",
                 () -> assertAccessDenied(() -> client(SECONDARY).setKeyFriendlyName(scenarioKeyId, "keyFriendlyName")));
@@ -136,13 +136,13 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(2)
     @DisplayName("Key is deleted")
     void keyIsDeleted() {
-        Step.given("new RSA key \"key-X\" generated for token \"soft-token-000\"", () -> generateKey("KeyX"));
+        Step.given("new RSA key 'key-X' generated for token 'soft-token-000'", () -> generateKey("KeyX"));
         Step.then("token info can be retrieved by key id", () -> assertTokenInfoRetrievableByKeyId());
-        Step.when("key \"Third key\" is deleted from token \"soft-token-000\"", () -> deleteKey("Third key"));
-        Step.then("token \"soft-token-000\" has exact keys \"First key,Second key,KeyX\"",
+        Step.when("key 'Third key' is deleted from token 'soft-token-000'", () -> deleteKey("Third key"));
+        Step.then("token 'soft-token-000' has exact keys 'First key,Second key,KeyX'",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "KeyX")));
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.then("token \"soft-token-000\" has exact keys \"First key,Second key,KeyX\" on secondary node",
+        Step.then("token 'soft-token-000' has exact keys 'First key,Second key,KeyX' on secondary node",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "KeyX"), SECONDARY));
     }
 
@@ -150,15 +150,15 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(3)
     @DisplayName("A key with Sign certificate is created")
     void keyWithSignCertificateIsCreated() {
-        Step.given("new RSA key \"key-10\" generated for token \"soft-token-000\"", () -> generateKey("SignKey from CA"));
-        Step.and("token \"soft-token-000\" has exact keys \"First key,Second key,KeyX,SignKey from CA\"",
+        Step.given("new RSA key 'key-10' generated for token 'soft-token-000'", () -> generateKey("SignKey from CA"));
+        Step.and("token 'soft-token-000' has exact keys 'First key,Second key,KeyX,SignKey from CA'",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "KeyX", "SignKey from CA")));
-        Step.and("sign mechanism for token \"soft-token-000\" key \"SignKey from CA\" is not null",
+        Step.and("sign mechanism for token 'soft-token-000' key 'SignKey from CA' is not null",
                 () -> assertThat(findKeyInToken(tokenFriendlyName(), "SignKey from CA").getSignMechanismName()).isNotBlank());
-        Step.when("the SIGNING cert request is generated for key \"SignKey from CA\" for client MANAGEMENT",
+        Step.when("the SIGNING cert request is generated for key 'SignKey from CA' for client MANAGEMENT",
                 () -> generateCertRequest("SIGNING", "SignKey from CA", MANAGEMENT_CLIENT));
         Step.and("SIGN CSR is processed by test CA", () -> processCsr(AbstractSignerIntTest.CsrType.SIGN));
-        Step.and("Generated certificate with initial status \"registered\" is imported for MANAGEMENT",
+        Step.and("Generated certificate with initial status 'registered' is imported for MANAGEMENT",
                 () -> importCertFromFile(CertificateInfo.STATUS_REGISTERED, MANAGEMENT_CLIENT));
         Step.then("token info can be retrieved by key id", () -> assertTokenInfoRetrievableByKeyId());
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
@@ -169,15 +169,15 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(4)
     @DisplayName("A key with Auth certificate is created")
     void keyWithAuthCertificateIsCreated() {
-        Step.given("new RSA key \"key-20\" generated for token \"soft-token-000\"", () -> generateKey("AuthKey from CA"));
-        Step.and("token \"soft-token-000\" has exact keys \"...,AuthKey from CA\"",
+        Step.given("new RSA key 'key-20' generated for token 'soft-token-000'", () -> generateKey("AuthKey from CA"));
+        Step.and("token 'soft-token-000' has exact keys '...,AuthKey from CA'",
                 () -> assertTokenHasExactKeys(List.of("First key", "Second key", "KeyX", "SignKey from CA", "AuthKey from CA")));
-        Step.and("sign mechanism for token \"soft-token-000\" key \"AuthKey from CA\" is not null",
+        Step.and("sign mechanism for token 'soft-token-000' key 'AuthKey from CA' is not null",
                 () -> assertThat(findKeyInToken(tokenFriendlyName(), "AuthKey from CA").getSignMechanismName()).isNotBlank());
-        Step.when("the AUTHENTICATION cert request is generated for key \"AuthKey from CA\" for client MANAGEMENT",
+        Step.when("the AUTHENTICATION cert request is generated for key 'AuthKey from CA' for client MANAGEMENT",
                 () -> generateCertRequest("AUTHENTICATION", "AuthKey from CA", MANAGEMENT_CLIENT));
         Step.and("CSR is processed by test CA", () -> processCsr(AbstractSignerIntTest.CsrType.AUTO));
-        Step.and("Generated certificate with initial status \"registered\" is imported for MANAGEMENT",
+        Step.and("Generated certificate with initial status 'registered' is imported for MANAGEMENT",
                 () -> importCertFromFile(CertificateInfo.STATUS_REGISTERED, MANAGEMENT_CLIENT));
         Step.then("token info can be retrieved by key id", () -> assertTokenInfoRetrievableByKeyId());
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
@@ -188,8 +188,8 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(5)
     @DisplayName("Sign fails with an unknown algorithm error")
     void signFailsWithUnknownAlgorithmError() {
-        Step.given("digest can be signed using key \"KeyX\" from token \"soft-token-000\"", () -> assertCanSign("KeyX"));
-        Step.and("Signing with unknown algorithm fails using key \"KeyX\" from token \"soft-token-000\"",
+        Step.given("digest can be signed using key 'KeyX' from token 'soft-token-000'", () -> assertCanSign("KeyX"));
+        Step.and("Signing with unknown algorithm fails using key 'KeyX' from token 'soft-token-000'",
                 this::assertSignWithUnknownAlgorithmFails);
     }
 
@@ -197,14 +197,14 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(6)
     @DisplayName("Generate/Regenerate cert request")
     void generateRegenerateCertRequest() {
-        Step.when("the SIGNING cert request is generated for key \"Second key\" for client member-2",
+        Step.when("the SIGNING cert request is generated for key 'Second key' for client member-2",
                 () -> generateCertRequest("SIGNING", "Second key", MEMBER_2));
         Step.and("token and key can be retrieved by cert request", () -> assertTokenAndKeyRetrievableByCertRequest());
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
         Step.then("token and key can be retrieved by cert request on secondary node",
                 () -> assertTokenAndKeyRetrievableByCertRequest(SECONDARY));
         Step.then("cert request can be deleted", () -> client().deleteCertRequest(scenarioCsrId));
-        Step.when("the SIGNING cert request is generated for key \"Second key\" for client member-2 (again)",
+        Step.when("the SIGNING cert request is generated for key 'Second key' for client member-2 (again)",
                 () -> generateCertRequest("SIGNING", "Second key", MEMBER_2));
         Step.and("cert request is regenerated", () -> client().regenerateCertRequest(scenarioCsrId, CertificateRequestFormat.DER));
     }
@@ -213,26 +213,26 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(7)
     @DisplayName("Self Signed certificate can be (re)imported")
     void selfSignedCertificateCanBeReimported() {
-        Step.given("tokens list contains token \"soft-token-000\"",
+        Step.given("tokens list contains token 'soft-token-000'",
                 () -> assertThat(tokenIdByFriendlyName(tokenFriendlyName())).isNotNull());
         Step.when("Wrong Certificate is not imported for client member-2", this::assertWrongCertificateImportFails);
-        Step.and("self signed cert generated for key \"Second key\", client member-2",
+        Step.and("self signed cert generated for key 'Second key', client member-2",
                 () -> generateSelfSignedCert("Second key", MEMBER_2));
         Step.and("certificate info can be retrieved by cert hash", () -> assertCertificateRetrievableByHash());
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
         Step.then("certificate info can be retrieved by cert hash on secondary node",
                 () -> assertCertificateRetrievableByHash(SECONDARY));
         Step.when("certificate can be deleted", () -> client().deleteCert(certInfo.getId()));
-        Step.then("token \"soft-token-000\" key \"Second key\" has 0 certificates",
+        Step.then("token 'soft-token-000' key 'Second key' has 0 certificates",
                 () -> assertKeyHasCertificateCount("Second key", 0));
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.and("token \"soft-token-000\" key \"Second key\" has 0 certificates on secondary node",
+        Step.and("token 'soft-token-000' key 'Second key' has 0 certificates on secondary node",
                 () -> assertKeyHasCertificateCount("Second key", 0, SECONDARY));
         Step.when("Certificate is imported for client member-2",
                 () -> scenarioKeyId = client().importCert(scenarioCert, CertificateInfo.STATUS_REGISTERED, clientId(MEMBER_2)));
-        Step.then("token \"soft-token-000\" key \"Second key\" has 1 certificates", () -> assertKeyHasCertificateCount("Second key", 1));
+        Step.then("token 'soft-token-000' key 'Second key' has 1 certificates", () -> assertKeyHasCertificateCount("Second key", 1));
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
-        Step.and("token \"soft-token-000\" key \"Second key\" has 1 certificates on secondary node",
+        Step.and("token 'soft-token-000' key 'Second key' has 1 certificates on secondary node",
                 () -> assertKeyHasCertificateCount("Second key", 1, SECONDARY));
     }
 
@@ -240,13 +240,13 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(8)
     @DisplayName("Self signed certificate")
     void selfSignedCertificate() {
-        Step.given("token \"soft-token-000\" key \"First key\" has 0 certificates", () -> assertKeyHasCertificateCount("First key", 0));
-        Step.when("self signed cert generated for key \"First key\", client member-1",
+        Step.given("token 'soft-token-000' key 'First key' has 0 certificates", () -> assertKeyHasCertificateCount("First key", 0));
+        Step.when("self signed cert generated for key 'First key', client member-1",
                 () -> generateSelfSignedCert("First key", MEMBER_1));
-        Step.then("token \"soft-token-000\" key \"First key\" has 1 certificates", () -> assertKeyHasCertificateCount("First key", 1));
+        Step.then("token 'soft-token-000' key 'First key' has 1 certificates", () -> assertKeyHasCertificateCount("First key", 1));
         Step.and("keyId can be retrieved by cert hash", () -> assertKeyIdRetrievableByCertHash());
         Step.and("token and keyId can be retrieved by cert hash", () -> assertTokenAndKeyIdRetrievableByCertHash());
-        Step.and("certificate can be signed using key \"First key\" from token \"soft-token-000\"",
+        Step.and("certificate can be signed using key 'First key' from token 'soft-token-000'",
                 this::assertCertificateCanBeSignedUsingFirstKey);
         Step.when("secondary node sync is forced", () -> client(SECONDARY).refreshModules());
         Step.then("keyId can be retrieved by cert hash on secondary node", () -> assertKeyIdRetrievableByCertHash(SECONDARY));
@@ -258,7 +258,7 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(9)
     @DisplayName("Member signing info can be retrieved")
     void memberSigningInfoCanBeRetrieved() {
-        Step.given("tokens list contains token \"soft-token-000\"",
+        Step.given("tokens list contains token 'soft-token-000'",
                 () -> assertThat(tokenIdByFriendlyName(tokenFriendlyName())).isNotNull());
         Step.and("Member signing info for client MANAGEMENT is retrieved",
                 () -> client().getMemberSigningInfo(clientId(MANAGEMENT_CLIENT)));
@@ -268,8 +268,8 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(10)
     @DisplayName("Member certs are retrieved")
     void memberCertsAreRetrieved() {
-        Step.then("member \"" + MEMBER_1 + "\" has 1 certificate", () -> assertMemberHasCertificateCount(MEMBER_1, 1));
-        Step.then("member \"" + MEMBER_1 + "\" has 1 certificate on secondary node",
+        Step.then("member '%s' has 1 certificate".formatted(MEMBER_1), () -> assertMemberHasCertificateCount(MEMBER_1, 1));
+        Step.then("member '%s' has 1 certificate on secondary node".formatted(MEMBER_1),
                 () -> assertMemberHasCertificateCount(MEMBER_1, 1, SECONDARY));
     }
 
@@ -277,11 +277,11 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(11)
     @DisplayName("Cert status can be updated")
     void certStatusCanBeUpdated() {
-        Step.given("self signed cert generated for key \"KeyX\", client member-2", () -> generateSelfSignedCert("KeyX", MEMBER_2));
+        Step.given("self signed cert generated for key 'KeyX', client member-2", () -> generateSelfSignedCert("KeyX", MEMBER_2));
         Step.and("certificate info can be retrieved by cert hash", () -> assertCertificateRetrievableByHash());
         Step.then("certificate can be deactivated", () -> client().deactivateCert(certInfo.getId()));
         Step.and("certificate can be activated", () -> client().activateCert(certInfo.getId()));
-        Step.and("certificate status can be changed to \"deletion in progress\"",
+        Step.and("certificate status can be changed to 'deletion in progress'",
                 () -> client().setCertStatus(certInfo.getId(), "deletion in progress"));
         Step.and("certificate can be deleted", () -> client().deleteCert(certInfo.getId()));
     }
@@ -290,7 +290,7 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(12)
     @DisplayName("Miscellaneous checks")
     void miscellaneousChecks() {
-        Step.given("check token \"soft-token-000\" key \"First key\" batch signing enabled", () ->
+        Step.given("check token 'soft-token-000' key 'First key' batch signing enabled", () ->
                 assertThat(client().isTokenBatchSigningEnabled(findKeyInToken(tokenFriendlyName(), "First key").getId())).isNotNull());
     }
 
@@ -327,10 +327,10 @@ abstract class AbstractSignerSoftwareKeyOpsIntTest extends AbstractSignerIntTest
     @Order(15)
     @DisplayName("Ocsp responses verified on certificate activation")
     void ocspResponsesVerifiedOnCertificateActivation() {
-        Step.when("the SIGNING cert request is generated for key \"SignKey from CA\" for client MANAGEMENT",
+        Step.when("the SIGNING cert request is generated for key 'SignKey from CA' for client MANAGEMENT",
                 () -> generateCertRequest("SIGNING", "SignKey from CA", MANAGEMENT_CLIENT));
         Step.and("SIGN CSR is processed by test CA", () -> processCsr(AbstractSignerIntTest.CsrType.SIGN));
-        Step.and("Generated certificate with initial status \"registered\" is imported for MANAGEMENT",
+        Step.and("Generated certificate with initial status 'registered' is imported for MANAGEMENT",
                 () -> importCertFromFile(CertificateInfo.STATUS_REGISTERED, MANAGEMENT_CLIENT));
         Step.then("certificate can be activated", () -> client().activateCert(certInfo.getId()));
         Step.when("ocsp responses are set to REVOKED", this::setRevokedOcspResponse);
