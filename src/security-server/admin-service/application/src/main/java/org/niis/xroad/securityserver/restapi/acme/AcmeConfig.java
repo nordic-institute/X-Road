@@ -30,11 +30,30 @@ package org.niis.xroad.securityserver.restapi.acme;
 import ee.ria.xroad.common.FilePaths;
 
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public interface AcmeConfig {
 
     Path ACME_ACCOUNT_KEYSTORE_PATH =   FilePaths.BASE_CONF_PATH.resolve("ssl/acme.p12");
     Path ACME_CHALLENGE_PATH = FilePaths.BASE_CONF_PATH.resolve("acme-challenge");
+
+    Pattern ACME_CHALLENGE_TOKEN_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
+
+    /**
+     * Validates an ACME HTTP-01 challenge token received from an (untrusted) ACME server before it is used
+     * to build a file path under {@link #ACME_CHALLENGE_PATH}.
+     * <p>
+     * Rejects anything that is not a plain RFC 8555 base64url token, and, as defense in depth, verifies that
+     * resolving the token under {@link #ACME_CHALLENGE_PATH} does not escape that directory.
+     */
+    static boolean isValidChallengeToken(String token) {
+        if (token == null || !ACME_CHALLENGE_TOKEN_PATTERN.matcher(token).matches()) {
+            return false;
+        }
+        Path normalizedBase = ACME_CHALLENGE_PATH.normalize();
+        Path resolved = normalizedBase.resolve(token).normalize();
+        return resolved.startsWith(normalizedBase);
+    }
 
     /**
      * raw usage with default in org.niis.xroad.securityserver.restapi.config.AcmeBeanConfig.IsAcmeCertRenewalJobsActive
