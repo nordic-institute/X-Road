@@ -1,7 +1,3 @@
-test-framework:
-  selenide:
-    enabled: false
-
 "%cli":
   test-framework:
     working-dir: "test-framework-working-dir/"

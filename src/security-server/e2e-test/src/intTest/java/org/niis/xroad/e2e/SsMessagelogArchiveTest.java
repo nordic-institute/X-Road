@@ -79,7 +79,7 @@ class SsMessagelogArchiveTest extends E2eTest {
     void ss0MessagelogsAreArchivedAndRemoved(E2eEnvSetup env) {
         given("the environment is initialized", () -> assertThat(env.isAuxHurlRunning()).isFalse());
 
-        and("message log \"archive DEV\" is triggered on ss0", () -> triggerMessageLogCommand(env, "ss0", "archive DEV"));
+        and("message log 'archive DEV' is triggered on ss0", () -> triggerMessageLogCommand(env, "ss0", "archive DEV"));
         and("global configuration is fetched from ss0's proxy for messagelog verification",
                 () -> fetchGlobalConfForMessagelogVerification(env, "ss0"));
         and("messagelog archives are downloaded from ss0 message-log-cli", () ->
@@ -88,7 +88,7 @@ class SsMessagelogArchiveTest extends E2eTest {
         then("ss0 has 20 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss0", 20));
 
-        when("message log \"cleanup\" is triggered on ss0", () -> triggerMessageLogCommand(env, "ss0", "cleanup"));
+        when("message log 'cleanup' is triggered on ss0", () -> triggerMessageLogCommand(env, "ss0", "cleanup"));
         then("ss0 contains 0 messagelog entries", () -> assertMessagelogEntryCount(env, "ss0", 0));
     }
 
@@ -96,8 +96,8 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Order(2)
     @DisplayName("SS1 messagelog is successfully archived and removed from database")
     void ss1MessagelogIsArchivedAndRemoved(E2eEnvSetup env) {
-        when("message log \"archive DEV\" is triggered on ss1", () -> triggerMessageLogCommand(env, "ss1", "archive DEV"));
-        and("message log \"cleanup\" is triggered on ss1", () -> triggerMessageLogCommand(env, "ss1", "cleanup"));
+        when("message log 'archive DEV' is triggered on ss1", () -> triggerMessageLogCommand(env, "ss1", "archive DEV"));
+        and("message log 'cleanup' is triggered on ss1", () -> triggerMessageLogCommand(env, "ss1", "cleanup"));
         and("messagelog archives are downloaded from ss1 message-log-cli", () ->
                 downloadMessageLogArchives(env, "ss1", SsStackSetup.MESSAGE_LOG_CLI, "/var/lib/xroad", "ss1"));
 
@@ -108,7 +108,7 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Order(3)
     @DisplayName("DEV/COM/4321 messagelogs can be decrypted with key 8A4BB80EEE081BDE")
     void dev4321MessagelogsCanBeDecryptedWithKey1(E2eEnvSetup env) {
-        then("ss1 messagelog archives \"mlog-DEV_COM_4321\" can be decrypted using key \"8A4BB80EEE081BDE\"", () ->
+        then("ss1 messagelog archives 'mlog-DEV_COM_4321' can be decrypted using key '8A4BB80EEE081BDE'", () ->
                 assertArchivesCanBeDecrypted(env, "ss1", "mlog-DEV_COM_4321", "8A4BB80EEE081BDE"));
         and("ss1/8A4BB80EEE081BDE has 10 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss1/8A4BB80EEE081BDE", 10));
@@ -118,7 +118,7 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Order(4)
     @DisplayName("DEV/COM/4321 messagelogs can be decrypted with key E93952B01C2D2EA5")
     void dev4321MessagelogsCanBeDecryptedWithKey2(E2eEnvSetup env) {
-        then("ss1 messagelog archives \"mlog-DEV_COM_4321\" can be decrypted using key \"E93952B01C2D2EA5\"", () ->
+        then("ss1 messagelog archives 'mlog-DEV_COM_4321' can be decrypted using key 'E93952B01C2D2EA5'", () ->
                 assertArchivesCanBeDecrypted(env, "ss1", "mlog-DEV_COM_4321", "E93952B01C2D2EA5"));
         and("ss1/E93952B01C2D2EA5 has 10 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss1/E93952B01C2D2EA5", 10));
@@ -128,7 +128,7 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Order(5)
     @DisplayName("DEV/COM/1234 messagelogs can be decrypted with key 3BD9C292C63580F8")
     void dev1234MessagelogsCanBeDecryptedWithKey3(E2eEnvSetup env) {
-        when("ss1 messagelog archives \"mlog-DEV_COM_1234_test-consumer\" can be decrypted using key \"3BD9C292C63580F8\"", () ->
+        when("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can be decrypted using key '3BD9C292C63580F8'", () ->
                 assertArchivesCanBeDecrypted(env, "ss1", "mlog-DEV_COM_1234_test-consumer", "3BD9C292C63580F8"));
         and("ss1/3BD9C292C63580F8 has 2 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss1/3BD9C292C63580F8", 2));
@@ -138,11 +138,11 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Order(6)
     @DisplayName("messagelogs decryption with other keys fails")
     void messagelogDecryptionWithOtherKeysFails(E2eEnvSetup env) {
-        given("ss1 messagelog archives \"mlog-DEV_COM_4321\" can not be decrypted using key \"3BD9C292C63580F8\"", () ->
+        given("ss1 messagelog archives 'mlog-DEV_COM_4321' can not be decrypted using key '3BD9C292C63580F8'", () ->
                 assertArchivesCannotBeDecrypted(env, "ss1", "mlog-DEV_COM_4321", "3BD9C292C63580F8"));
-        and("ss1 messagelog archives \"mlog-DEV_COM_1234_test-consumer\" can not be decrypted using key \"E93952B01C2D2EA5\"", () ->
+        and("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can not be decrypted using key 'E93952B01C2D2EA5'", () ->
                 assertArchivesCannotBeDecrypted(env, "ss1", "mlog-DEV_COM_1234_test-consumer", "E93952B01C2D2EA5"));
-        and("ss1 messagelog archives \"mlog-DEV_COM_1234_test-consumer\" can not be decrypted using key \"8A4BB80EEE081BDE\"", () ->
+        and("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can not be decrypted using key '8A4BB80EEE081BDE'", () ->
                 assertArchivesCannotBeDecrypted(env, "ss1", "mlog-DEV_COM_1234_test-consumer", "8A4BB80EEE081BDE"));
     }
 

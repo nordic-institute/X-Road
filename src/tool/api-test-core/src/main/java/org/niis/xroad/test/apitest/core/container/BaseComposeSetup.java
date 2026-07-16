@@ -175,9 +175,24 @@ public abstract class BaseComposeSetup {
     }
 
     /**
+     * Called before the stack is stopped, while its containers are still running. Override to copy
+     * diagnostic files out of containers whose logging never reaches the streamed stdout
+     * (e.g. {@link #copyXRoadLogsFromContainer}).
+     */
+    protected void onPreStop() {
+    }
+
+    /**
      * Stops the compose stack and the stats monitor.
      */
     public void stop() {
+        if (env != null) {
+            try {
+                onPreStop();
+            } catch (Exception e) {
+                log.warn("Pre-stop hook failed", e);
+            }
+        }
         if (dockerStatsMonitor != null) {
             dockerStatsMonitor.close();
         }

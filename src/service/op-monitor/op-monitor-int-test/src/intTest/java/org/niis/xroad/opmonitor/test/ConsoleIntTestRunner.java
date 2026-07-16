@@ -25,27 +25,27 @@
  */
 package org.niis.xroad.opmonitor.test;
 
-import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
+import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
-public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
+public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
 
     public static void main(String[] args) {
         new ConsoleIntTestRunner().run();
     }
 
     @Override
-    protected String getTestClassName() {
-        return OpMonitorIntTest.class.getName();
-    }
-
-    @Override
-    protected String[] getResourcesToExtract() {
+    protected String[] resourceFiles() {
         return new String[]{
                 "compose.intTest.yaml",
                 "db-init.dockerfile",
                 ".env",
-                "container-container-files/",
+                "container-files/",
                 "test-data/"
         };
+    }
+
+    @Override
+    protected String phasedSuiteClassName() {
+        return OpMonitorIntTest.class.getName();
     }
 }

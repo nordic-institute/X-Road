@@ -70,4 +70,11 @@ class CsApiTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(CS, createLogConsumer(CS))
                 .withLogConsumer(MOCK_SERVER, createLogConsumer(MOCK_SERVER));
     }
+
+    @Override
+    protected void onPreStop() {
+        // cs-admin-service logs only to /var/log/xroad (no console appender) - without this copy its
+        // logs are absent from CI failure artifacts
+        copyXRoadLogsFromContainer(CS, "cs");
+    }
 }

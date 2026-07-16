@@ -37,10 +37,8 @@ quarkus-vault = "4.7.0"
 smallryeConfig = "3.17.2"
 microprofile = "3.1.1"
 feign = "13.13"
-testCucumber = "7.34.4"
 testContainers = "2.0.5"
 testAllure = "2.34.0"
-testSelenide = "7.16.2"
 shadowPlugin = "9.4.3"
 owaspDependencyCheck = "12.2.2"
 edc = "0.18.0"
@@ -146,25 +144,16 @@ jclOverSlf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
 julOverSlf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version.ref = "feign" }
-feign-jackson = { module = "io.github.openfeign:feign-jackson3", version.ref = "feign" }
-feign-slf4j = { module = "io.github.openfeign:feign-slf4j", version.ref = "feign" }
 
 # Testing libraries
-test-selenide-core = { module = "com.codeborne:selenide", version.ref = "testSelenide" }
-test-selenide-grid = { module = "com.codeborne:selenide-grid", version.ref = "testSelenide" }
-test-allure-selenide = { module = "io.qameta.allure:allure-selenide", version.ref = "testAllure" }
-test-allure-cucumber7 = { module = "io.qameta.allure:allure-cucumber7-jvm", version.ref = "testAllure" }
 test-allure-junitPlatform = { module = "io.qameta.allure:allure-junit-platform", version.ref = "testAllure" }
 test-allure-commandline = { module = "io.qameta.allure:allure-commandline", version.ref = "testAllure" }
 test-allure-attachments = { module = "io.qameta.allure:allure-attachments", version.ref = "testAllure" }
 test-restassured = { module = "io.rest-assured:rest-assured", version = "5.5.6" }
 
-cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "testCucumber" }
-cucumber-spring = { module = "io.cucumber:cucumber-spring", version.ref = "testCucumber" }
-cucumber-junit = { module = "io.cucumber:cucumber-junit-platform-engine", version.ref = "testCucumber" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
-mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "5.15.0" }
+mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "7.4.0" }
 
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
