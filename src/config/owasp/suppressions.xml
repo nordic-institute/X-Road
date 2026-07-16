@@ -121,29 +121,33 @@
   </suppress>
 
   <!-- ============================================================
-       D4: MockServer 5.15.0 (test-scope only via management-service int-test).
+       D4: MockServer 7.4.0 (test-scope only via management-service int-test).
        CVE-2021-32827 (SSRF via mockserver-core). Not in production runtime classpath.
        ============================================================ -->
   <suppress>
     <notes><![CDATA[
-      org.mock-server:mockserver-core / mockserver-client-java 5.15.0 are pulled in only by
+      org.mock-server:mockserver-core / mockserver-client-java 7.4.0 are pulled in only by
       `central-server:management-service:int-test` (intTest scope, admin-API stub). Not in production runtime classpath.
       CVE-2021-32827 requires running the MockServer instance as a test fixture, no production impact.
+      NVD records no fixed-version bound for this CVE (the CPE range marks every mockserver version vulnerable,
+      including the resumed 6.x/7.x line), so the suppression is needed regardless of version.
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.mock-server/mockserver-(core|client-java)@.*$</packageUrl>
     <cve>CVE-2021-32827</cve>
   </suppress>
 
   <!-- ============================================================
-       D6: commons-beanutils 1.9.4 (test-scope only via Allure CLI + MockServer).
-       Investigated 2026-05-25: pulled via opencsv -> allure-plugin-api and velocity-tools-generic -> mockserver-core.
+       D6: commons-beanutils 1.9.4 (test-scope only via Allure CLI).
+       Investigated 2026-05-25: pulled via opencsv -> allure-plugin-api.
        ============================================================ -->
   <suppress>
     <notes><![CDATA[
-      commons-beanutils 1.9.4 (CVE-2025-48734) reached via:
-        - com.opencsv:opencsv -> io.qameta.allure:allure-plugin-api -> allure-commandline (test reporting)
-        - org.apache.velocity.tools:velocity-tools-generic -> org.mock-server:mockserver-core (test mocking)
-      Both paths are test-runtime only. Verified absent from production runtimeClasspath 2026-05-25.
+      commons-beanutils 1.9.4 (CVE-2025-48734) reached via
+      com.opencsv:opencsv -> io.qameta.allure:allure-plugin-api -> allure-commandline (test reporting).
+      Test-runtime only. Verified absent from production runtimeClasspath 2026-05-25.
+      The former second path (velocity-tools-generic -> mockserver-core) died with MockServer 7.4.0, which
+      depends on commons-beanutils 1.11.0 directly (the CVE-fixed line) - classpaths containing mockserver
+      resolve 1.11.0; only the allure-only test classpaths still resolve 1.9.4.
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/commons-beanutils/commons-beanutils@.*$</packageUrl>
     <cve>CVE-2025-48734</cve>

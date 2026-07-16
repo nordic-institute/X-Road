@@ -153,7 +153,7 @@ test-restassured = { module = "io.rest-assured:rest-assured", version = "5.5.6" 
 
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
-mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "5.15.0" }
+mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "7.4.0" }
 
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }

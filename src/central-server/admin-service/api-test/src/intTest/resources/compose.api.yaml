@@ -33,7 +33,7 @@ services:
         condition: service_completed_successfully
 
   mock-server:
-    image: mockserver/mockserver:mockserver-5.15.0
+    image: mockserver/mockserver:mockserver-7.4.0
     ports:
       - "0:1080"
     deploy:
