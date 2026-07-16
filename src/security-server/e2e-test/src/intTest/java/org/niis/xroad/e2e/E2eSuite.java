@@ -23,17 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.glue;
+package org.niis.xroad.e2e;
 
-import org.niis.xroad.e2e.EnvSetup;
-import org.niis.xroad.test.framework.core.report.TestReportService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.platform.suite.api.ConfigurationParameter;
+import org.junit.platform.suite.api.DisableParentConfigurationParameters;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-public abstract class BaseE2EStepDefs {
-    @Autowired
-    protected TestReportService testReportService;
-
-    @Autowired
-    protected EnvSetup envSetup;
-
+/**
+ * Default entry point of the {@code e2eTest} task and {@link ConsoleE2ETestRunner}: runs the tier as
+ * one serial suite in ascending class {@code @Order}, because the test classes are state-coupled.
+ */
+@Suite(failIfNoTests = false)
+@SelectPackages("org.niis.xroad.e2e")
+@DisableParentConfigurationParameters
+@ConfigurationParameter(key = "junit.jupiter.testclass.order.default", value = "org.junit.jupiter.api.ClassOrderer$OrderAnnotation")
+@ConfigurationParameter(key = "junit.jupiter.extensions.autodetection.enabled", value = "true")
+public class E2eSuite {
 }

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,8 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.e2e;
 
-package org.niis.xroad.e2e.glue;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.container.E2eEnvSetup;
+import org.niis.xroad.test.apitest.core.config.AbstractApiStackSessionListener;
+import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
-public class DsStepDefs extends BaseE2EStepDefs {
+/**
+ * Boots the three-stack topology (aux, ss0, ss1) once per JVM, via the {@code LauncherSessionListener} SPI.
+ */
+@Slf4j
+public class E2eStackSessionListener extends AbstractApiStackSessionListener {
+
+    @Override
+    protected BaseComposeSetup buildAndStartSetup() {
+        var properties = ApiTestConfigSource.getInstance().getCoreProperties();
+        var setup = new E2eEnvSetup(properties);
+        log.info("Starting e2e three-stack topology (aux, ss0, ss1)");
+        setup.start();
+        return setup;
+    }
+
+    @Override
+    protected Object buildAndEnsureBaseline(BaseComposeSetup setup) {
+        return setup;
+    }
 }

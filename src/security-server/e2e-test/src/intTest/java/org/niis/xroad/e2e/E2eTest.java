@@ -23,30 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.glue;
+package org.niis.xroad.e2e;
 
-import io.cucumber.java.en.Step;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.e2e.EnvSetup;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.containers.ContainerState;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.test.apitest.core.junit.ApiStackExtension;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.niis.xroad.e2e.EnvSetup.HURL;
-
-@Slf4j
-@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
-public class CsInitStepDefs extends BaseE2EStepDefs {
-    @Autowired
-    private EnvSetup envSetup;
-
-    @SuppressWarnings("squid:S5960")
-    @Step("Environment is initialized")
-    public void csIsInitialized() {
-        var hulRunning = envSetup.getContainerByServiceName("aux", HURL)
-                .map(ContainerState::isRunning)
-                .orElse(true);
-
-        assertFalse(hulRunning);
-    }
+/**
+ * Base class for the e2e test suite. Boots the shared aux/ss0/ss1 topology once per JVM; subclasses
+ * obtain it by declaring an {@code E2eEnvSetup} method parameter.
+ */
+@ExtendWith(ApiStackExtension.class)
+public abstract class E2eTest {
 }
