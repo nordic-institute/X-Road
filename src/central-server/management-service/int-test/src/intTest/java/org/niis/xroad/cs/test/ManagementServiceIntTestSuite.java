@@ -27,7 +27,7 @@ package org.niis.xroad.cs.test;
 
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.DisableParentConfigurationParameters;
-import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 
 /**
@@ -41,19 +41,7 @@ import org.junit.platform.suite.api.Suite;
  * their original filename (alphabetical: "client-rename" before "maintenance-mode-enable").
  */
 @Suite(failIfNoTests = false)
-@SelectClasses({
-        EndpointSecurityIntTest.class,
-        ClientRegistrationIntTest.class,
-        OwnerChangeIntTest.class,
-        ClientDeletionIntTest.class,
-        AuthCertDeletionIntTest.class,
-        AddressChangeIntTest.class,
-        ClientDisableIntTest.class,
-        ClientEnableIntTest.class,
-        ClientRenameIntTest.class,
-        MaintenanceModeEnableIntTest.class,
-        MaintenanceModeDisableIntTest.class
-})
+@SelectPackages("org.niis.xroad.cs.test")
 @DisableParentConfigurationParameters
 @ConfigurationParameter(key = "junit.jupiter.testclass.order.default", value = "org.junit.jupiter.api.ClassOrderer$OrderAnnotation")
 @ConfigurationParameter(key = "junit.jupiter.extensions.autodetection.enabled", value = "true")

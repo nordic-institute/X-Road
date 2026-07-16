@@ -27,7 +27,7 @@ package org.niis.xroad.signer.test;
 
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.DisableParentConfigurationParameters;
-import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 
 /**
@@ -41,17 +41,7 @@ import org.junit.platform.suite.api.Suite;
  * choice for a suite this state-coupled.
  */
 @Suite(failIfNoTests = false)
-@SelectClasses({
-        SignerGeneralIntTest.class,
-        SignerSoftwareTokenIntTest.class,
-        SignerSoftwareTokenRsaIntTest.class,
-        SignerSoftwareTokenEcIntTest.class,
-        SignerHardwareTokenIntTest.class,
-        SignerHardwareTokenRsaIntTest.class,
-        SignerHardwareTokenEcIntTest.class,
-        SignerParallelActionsIntTest.class,
-        SignerSecondaryNodeIntTest.class
-})
+@SelectPackages("org.niis.xroad.signer.test")
 @DisableParentConfigurationParameters
 @ConfigurationParameter(key = "junit.jupiter.testclass.order.default", value = "org.junit.jupiter.api.ClassOrderer$OrderAnnotation")
 @ConfigurationParameter(key = "junit.jupiter.extensions.autodetection.enabled", value = "true")
