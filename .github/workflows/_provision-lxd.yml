@@ -25,7 +25,8 @@ on:
 jobs:
   lxd-e2e:
     name: lxd-e2e
-    runs-on: ubuntu-24.04
+    runs-on:
+      labels: xrd-runner-8c
     timeout-minutes: 120
     env:
       ANSIBLE_CONFIG: config/ansible.cfg
