@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
@@ -41,8 +41,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,17 +50,22 @@ import java.util.Map;
 @Configuration(proxyBeanMethods = false)
 public class XRoadConfigBeanConfiguration {
 
+    /**
+     * Admin-service's deliberate deviations from the shared DSL defaults. Everything else resolves from the
+     * packaged defaults (equal to the values previously duplicated in {@code application.yml}) or DB overrides.
+     */
     @Bean
-    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, Environment environment) {
+    XRoadConfigOverrides xRoadConfigOverrides(@Value("${XROAD_HOST:localhost}") String rpcCertCommonName) {
+        return new XRoadConfigOverrides(Map.of(
+                "xroad.common-global-conf.refresh-rate", "-1",
+                "xroad.proxy-ui-api.tls.certificate-provisioning.common-name", rpcCertCommonName));
+    }
+
+    @Bean
+    XRoadConfig xRoadConfig(@Value("${spring.application.name}") String appName, Environment environment,
+                            XRoadConfigOverrides overrides) {
         var deploymentMode = environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
-        var providers = List.<ConfigKeyProvider>of(
-                CommonRpcConfigKeys.instance(),
-                CommonConfigKeys.instance(),
-                AdminServiceConfigKeys.instance(),
-                OcspVerifierConfigKeys.instance(),
-                GlobalConfConfigKeys.instance(),
-                ServerConfConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CommonRpcConfigKeys.instance())
                 .register(CommonConfigKeys.instance())
@@ -70,23 +73,10 @@ public class XRoadConfigBeanConfiguration {
                 .register(OcspVerifierConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
                 .register(ServerConfConfigKeys.instance())
-                .overrides(springEnvironmentOverrides(providers, environment))
+                .overrides(overrides.values())
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
-    }
-
-    private static Map<String, String> springEnvironmentOverrides(List<ConfigKeyProvider> providers, Environment environment) {
-        var result = new HashMap<String, String>();
-        for (var provider : providers) {
-            for (var key : provider.keys()) {
-                var value = environment.getProperty(key.key());
-                if (value != null) {
-                    result.put(key.key(), value);
-                }
-            }
-        }
-        return result;
     }
 
     @Bean
