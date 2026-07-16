@@ -121,13 +121,13 @@
   </suppress>
 
   <!-- ============================================================
-       D4: MockServer 5.15.0 (test-scope only via test-framework-core).
+       D4: MockServer 5.15.0 (test-scope only via management-service int-test).
        CVE-2021-32827 (SSRF via mockserver-core). Not in production runtime classpath.
        ============================================================ -->
   <suppress>
     <notes><![CDATA[
       org.mock-server:mockserver-core / mockserver-client-java 5.15.0 are pulled in only by
-      `tool:test-framework-core` for test harness mocking. Not in production runtime classpath.
+      `central-server:management-service:int-test` (intTest scope, admin-API stub). Not in production runtime classpath.
       CVE-2021-32827 requires running the MockServer instance as a test fixture, no production impact.
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.mock-server/mockserver-(core|client-java)@.*$</packageUrl>
