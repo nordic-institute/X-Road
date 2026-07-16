@@ -319,6 +319,7 @@
       "http_challenge_file_creation": "Не удалось создать файл HTTP-запроса для ACME",
       "http_challenge_file_deletion": "Не удалось удалить файл HTTP-запроса для ACME",
       "http_challenge_missing": "В данный момент X-Road поддерживает только HTTP-запрос, но он отсутствует в возможных опциях ACME сервера",
+      "http_challenge_token_invalid": "Сервер ACME вернул недопустимый токен HTTP-запроса",
       "order_creation_failure": "Не удалось создать новый заказ на сервере ACME",
       "order_finalization_failure": "Не удалось завершить заказ на сервере ACME"
     },
