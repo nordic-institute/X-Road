@@ -26,10 +26,12 @@
 package org.niis.xroad.confclient.common.service;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -50,6 +52,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +77,11 @@ class ConfigurationClientTest {
 
     @Mock
     ConfigurationClientConfig clientProperties;
+
+    @BeforeEach
+    void setClock() {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC));
+    }
 
     /**
      * Test to ensure a simple configuration will be downloaded.
