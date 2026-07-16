@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.cs.management.core.configuration;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
@@ -38,8 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,20 +48,26 @@ import java.util.Map;
 @Configuration(proxyBeanMethods = false)
 public class XRoadConfigBeanConfiguration {
 
+    /**
+     * Management-service's deliberate deviations from the shared DSL defaults. Everything else resolves from
+     * the packaged defaults (equal to the values in application.yml) or container defaults.
+     */
+    @Bean
+    XRoadConfigOverrides xRoadConfigOverrides(@Value("${XROAD_HOST:localhost}") String rpcCertCommonName) {
+        return new XRoadConfigOverrides(Map.of(
+                "xroad.management-service.tls.certificate-provisioning.common-name", rpcCertCommonName));
+    }
+
     @Bean
     XRoadConfig xRoadConfig(@Value("${spring.application.name:centralserver-management-service}") String appName,
-                            Environment environment) {
+                            Environment environment, XRoadConfigOverrides overrides) {
         var deploymentMode = environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
-        var providers = List.<ConfigKeyProvider>of(
-                CsManagementServiceConfigKeys.instance(),
-                OcspVerifierConfigKeys.instance(),
-                GlobalConfConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CsManagementServiceConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
-                .overrides(springEnvironmentOverrides(providers, environment))
+                .overrides(overrides.values())
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
@@ -77,18 +81,5 @@ public class XRoadConfigBeanConfiguration {
     @Bean
     ManagementServiceTlsProperties managementServiceTlsProperties(XRoadConfig xRoadConfig) {
         return new ManagementServiceTlsProperties(xRoadConfig);
-    }
-
-    private static Map<String, String> springEnvironmentOverrides(List<ConfigKeyProvider> providers, Environment environment) {
-        var result = new HashMap<String, String>();
-        for (var provider : providers) {
-            for (var key : provider.keys()) {
-                var value = environment.getProperty(key.key());
-                if (value != null) {
-                    result.put(key.key(), value);
-                }
-            }
-        }
-        return result;
     }
 }

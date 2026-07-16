@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.cs.registrationservice.config;
 
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.CsRegistrationServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
@@ -38,10 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Wires the {@link XRoadConfig} resolver for the central-server registration-service (DB overrides via the
  * {@code configuration_properties} table + packaged DSL defaults) and the registration-service property bean
@@ -50,20 +46,22 @@ import java.util.Map;
 @Configuration(proxyBeanMethods = false)
 public class XRoadConfigBeanConfiguration {
 
+    /** Registration-service has no deliberate deviations from the shared DSL defaults. */
+    @Bean
+    XRoadConfigOverrides xRoadConfigOverrides() {
+        return XRoadConfigOverrides.none();
+    }
+
     @Bean
     XRoadConfig xRoadConfig(@Value("${spring.application.name:centralserver-registration-service}") String appName,
-                            Environment environment) {
+                            Environment environment, XRoadConfigOverrides overrides) {
         var deploymentMode = environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
-        var providers = List.<ConfigKeyProvider>of(
-                CsRegistrationServiceConfigKeys.instance(),
-                OcspVerifierConfigKeys.instance(),
-                GlobalConfConfigKeys.instance());
         return XRoadConfigBuilder.create()
                 .register(CsRegistrationServiceConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .register(GlobalConfConfigKeys.instance())
-                .overrides(springEnvironmentOverrides(providers, environment))
+                .overrides(overrides.values())
                 .deploymentMode(deploymentMode)
                 .dbOverrides(appName)
                 .build();
@@ -72,18 +70,5 @@ public class XRoadConfigBeanConfiguration {
     @Bean
     RegistrationServiceProperties registrationServiceProperties(XRoadConfig xRoadConfig) {
         return new RegistrationServiceProperties(xRoadConfig);
-    }
-
-    private static Map<String, String> springEnvironmentOverrides(List<ConfigKeyProvider> providers, Environment environment) {
-        var result = new HashMap<String, String>();
-        for (var provider : providers) {
-            for (var key : provider.keys()) {
-                var value = environment.getProperty(key.key());
-                if (value != null) {
-                    result.put(key.key(), value);
-                }
-            }
-        }
-        return result;
     }
 }

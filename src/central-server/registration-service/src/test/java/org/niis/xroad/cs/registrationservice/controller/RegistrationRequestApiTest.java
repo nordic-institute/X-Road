@@ -39,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
+import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
@@ -51,14 +52,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.KeyPairGenerator;
 import java.util.Collections;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -76,12 +76,6 @@ class RegistrationRequestApiTest {
                     .dynamicPort())
             .build();
 
-    @DynamicPropertySource
-    static void registerApiBaseUrl(DynamicPropertyRegistry registry) {
-        registry.add("xroad.registration-service.api-base-url",
-                () -> String.format("http://127.0.0.1:%d/api/v1", wireMockRule.getPort()));
-    }
-
     @Autowired
     private GlobalConfProvider globalConfProvider;
 
@@ -91,6 +85,14 @@ class RegistrationRequestApiTest {
         @Primary
         GlobalConfProvider testGlobalConfProvider() {
             return new TestGlobalConf();
+        }
+
+        @Bean
+        @Primary
+        XRoadConfigOverrides testXRoadConfigOverrides() {
+            return new XRoadConfigOverrides(Map.of(
+                    "xroad.registration-service.api-base-url",
+                    "http://127.0.0.1:%d/api/v1".formatted(wireMockRule.getPort())));
         }
     }
 
