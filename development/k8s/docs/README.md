@@ -19,31 +19,31 @@ python -m pip install -r requirements.txt
 ansible-galaxy collection install -r requirements.yml
 ```
 
-Keep the venv activated when running `scripts/*.sh` or `ansible-playbook` directly. `scripts/_common.sh` auto-activates `.venv/` if present, so new shells don't need the manual `source`.
+Keep the venv activated when running ansible-playbook directly. `scripts/env-k8s/_common.sh` auto-activates `.venv/` if present, so new shells don't need the manual `source`.
 
 ## Usage
 
 Bring up the dev environment:
 
 ```bash
-./scripts/start-env.sh --env=dev
+core/scripts/env-k8s/start-env.sh --env=dev
 ```
 
 Tear it down:
 
 ```bash
-./scripts/delete-env.sh --env=dev
+core/scripts/env-k8s/delete-env.sh --env=dev
 ```
 
 Restart port-forwards after a `kubectl` hiccup:
 
 ```bash
-./scripts/port-forward.sh --env=dev
+core/scripts/env-k8s/port-forward.sh --env=dev
 ```
 
 ### Scripts
 
-All live under `scripts/`:
+All live under `core/scripts/env-k8s/`:
 
 | Script | Purpose |
 |---|---|
@@ -63,7 +63,7 @@ Image build lives at `core/scripts/images/build-security-server.sh` — called a
 - `--recreate` — delete the existing kind cluster before bringing it back up
 - `--skip-images` — don't rebuild the Security Server container images
 - `--skip-forward` — don't start port-forwards
-- `--skip-init` — don't run `scripts/init-ss2.sh` (hurl bootstrap against external CS/CA/SS0)
+- `--skip-init` — don't run `scripts/env-k8s/init-ss2.sh` (hurl bootstrap against external CS/CA/SS0)
 - `--skip-preflight` — skip tooling check
 - `-e VAR=VAL` — forwarded to `ansible-playbook --extra-vars`
 
@@ -72,10 +72,10 @@ Image build lives at `core/scripts/images/build-security-server.sh` — called a
 Mirrors `core/scripts/env-lxd/dev.sh` for the k8s world. Rebuilds one service image, loads it directly into every kind node (bypassing the containerd pull cache), then rolls the matching Deployment.
 
 ```bash
-./scripts/dev.sh -bdm proxy            # rebuild + redeploy proxy
-./scripts/dev.sh -dm proxy-ui-api      # redeploy latest image only (no build)
-./scripts/dev.sh -bm signer            # rebuild only, deploy later
-./scripts/dev.sh -h                    # help + supported service names
+core/scripts/env-k8s/dev.sh -bdm proxy            # rebuild + redeploy proxy
+core/scripts/env-k8s/dev.sh -dm proxy-ui-api      # redeploy latest image only (no build)
+core/scripts/env-k8s/dev.sh -bm signer            # rebuild only, deploy later
+core/scripts/env-k8s/dev.sh -h                    # help + supported service names
 ```
 
 Works against the current kubectl context. For non-`dev` envs (EKS, test-on-Artifactory) the `kind load` step will fail and you should instead push to the target registry.
@@ -83,7 +83,7 @@ Works against the current kubectl context. For non-`dev` envs (EKS, test-on-Arti
 ### Linting
 
 ```bash
-./scripts/lint.sh                                    # ansible-lint + yamllint
+core/scripts/env-k8s/lint.sh                      # ansible-lint + yamllint
 ```
 
 ## Environments

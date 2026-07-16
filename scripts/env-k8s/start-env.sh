@@ -75,7 +75,7 @@ parse_arguments() {
 
 handlePreflight() {
   [[ "${SKIP_PREFLIGHT}" == true ]] && { log_info "Skipping preflight"; return; }
-  SKIP_INIT="${SKIP_INIT}" "${K8S_ROOT}/scripts/preflight.sh"
+  SKIP_INIT="${SKIP_INIT}" "${CORE_ROOT}/scripts/env-k8s/preflight.sh"
 }
 
 handleRecreate() {
@@ -83,7 +83,7 @@ handleRecreate() {
   log_info "Recreating environment — running delete first"
   local delete_args=(--env="${ENV_NAME}" --force)
   [[ -n "${CUSTOM_INVENTORY}" ]] && delete_args+=(--custom-inventory="${CUSTOM_INVENTORY}")
-  "${K8S_ROOT}/scripts/delete-env.sh" "${delete_args[@]}"
+  "${CORE_ROOT}/scripts/env-k8s/delete-env.sh" "${delete_args[@]}"
 }
 
 handleBuildImages() {
@@ -118,12 +118,12 @@ handleAnsible() {
 
 handlePortForward() {
   [[ "${SKIP_FORWARD}" == true ]] && { log_info "Skipping port-forward"; return; }
-  "${K8S_ROOT}/scripts/port-forward.sh" --env="${ENV_NAME}"
+  "${CORE_ROOT}/scripts/env-k8s/port-forward.sh" --env="${ENV_NAME}"
 }
 
 handleInitialize() {
   [[ "${SKIP_INIT}" == true ]] && { log_info "Skipping hurl init"; return; }
-  local init_script="${K8S_ROOT}/scripts/init-ss2.sh"
+  local init_script="${CORE_ROOT}/scripts/env-k8s/init-ss2.sh"
   if [[ ! -x "${init_script}" ]]; then
     log_warn "${init_script} not found or not executable; skipping"
     return

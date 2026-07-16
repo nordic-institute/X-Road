@@ -1,6 +1,6 @@
 ### Test that random SOAP service works (originating from ss2)
 ### Requires the k8s dev env running with port-forwards live
-### (core/development/k8s/scripts/start-env.sh). Select the `ss2` env.
+### (core/scripts/env-k8s/start-env.sh). Select the `ss2` env.
 POST http://{{host}}:{{proxy_port}}
 Content-Type: text/xml
 

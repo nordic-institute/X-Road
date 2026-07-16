@@ -7,9 +7,9 @@ if [[ -z "${BASH_VERSION}" ]]; then
   exit 1
 fi
 
-# scripts/_common.sh -> k8s/ -> development/ -> core/
-K8S_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CORE_ROOT="$(cd "${K8S_ROOT}/../.." && pwd)"
+# scripts/env-k8s/_common.sh -> scripts/ -> core/
+CORE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+K8S_ROOT="${CORE_ROOT}/development/k8s"
 
 # shellcheck source=/dev/null
 source "${CORE_ROOT}/scripts/lib/base-script.sh"
