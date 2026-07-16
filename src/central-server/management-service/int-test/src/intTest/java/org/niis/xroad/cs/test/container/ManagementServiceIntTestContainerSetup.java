@@ -79,6 +79,13 @@ public class ManagementServiceIntTestContainerSetup extends BaseComposeSetup {
         new LiquibaseExecutor(new ContainerDatabaseProvider(this)).executeChangesets();
     }
 
+    @Override
+    protected void onPreStop() {
+        // cs-admin-service logs only to /var/log/xroad (no console appender) - without this copy its
+        // logs are absent from CI failure artifacts
+        copyXRoadLogsFromContainer(CS, "cs");
+    }
+
     /**
      * Base URL of the CS admin-service container hosting the management-request endpoint under test.
      */
