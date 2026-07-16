@@ -27,11 +27,16 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +45,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,10 +62,30 @@ import static org.junit.jupiter.api.Assertions.fail;
  * Tests to verify configuration downloading procedure.
  */
 @Slf4j
+@Execution(ExecutionMode.SAME_THREAD)
 class ConfigurationClientTest {
 
     @TempDir
     File tempDir;
+
+    private Clock previousClock;
+
+    @BeforeEach
+    void pinClockBeforeFixtureExpiry() {
+        previousClock = TimeUtils.getClock();
+        // Signed fixtures carry Expire-date 2026-05-20T17:42:55Z.
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
+    }
+
+    @AfterEach
+    void restoreClock() {
+        TimeUtils.setClock(previousClock);
+    }
+
+    @BeforeEach
+    void setClock() {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC));
+    }
 
     /**
      * Test to ensure a simple configuration will be downloaded.
