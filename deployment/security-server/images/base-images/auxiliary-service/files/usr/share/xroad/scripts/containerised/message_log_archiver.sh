@@ -58,17 +58,33 @@ fi
 
 echo "Job '${jobname}' created successfully. Waiting for completion..."
 
-# Wait for the job to complete (success or failure). --timeout=0 means wait indefinitely.
-if kubectl wait --for=condition=complete --timeout=0 "job/${jobname}" 2>/dev/null; then
-  echo "Job '${jobname}' completed successfully."
-  exit 0
-fi
+# Poll the Job's status instead of a single "kubectl wait --for=condition=complete",
+# so a failing Job is reported as soon as its failed condition appears rather than
+# only after a long complete-condition timeout has elapsed.
+poll_interval_seconds=5
+max_wait_seconds=$((6 * 60 * 60))
+waited_seconds=0
 
-# If we get here, the job did not complete successfully. Check if it failed.
-if kubectl wait --for=condition=failed --timeout=0 "job/${jobname}" 2>/dev/null; then
-  echo "Job '${jobname}' failed." >&2
-  kubectl logs "job/${jobname}" --tail=50 2>/dev/null >&2
-  exit 1
-fi
+while true; do
+  job_status=$(kubectl get "job/${jobname}" -o jsonpath='{.status.succeeded}:{.status.failed}' 2>/dev/null)
+  succeeded_count="${job_status%%:*}"
+  failed_count="${job_status##*:}"
 
-abort "Job '${jobname}' ended in an unexpected state."
+  if [[ "${succeeded_count:-0}" -gt 0 ]]; then
+    echo "Job '${jobname}' completed successfully."
+    exit 0
+  fi
+
+  if [[ "${failed_count:-0}" -gt 0 ]]; then
+    echo "Job '${jobname}' failed." >&2
+    kubectl logs "job/${jobname}" --tail=50 >&2 2>/dev/null
+    exit 1
+  fi
+
+  if [[ "$waited_seconds" -ge "$max_wait_seconds" ]]; then
+    abort "Job '${jobname}' did not reach a terminal state within ${max_wait_seconds}s."
+  fi
+
+  sleep "$poll_interval_seconds"
+  waited_seconds=$((waited_seconds + poll_interval_seconds))
+done
