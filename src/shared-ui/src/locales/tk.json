@@ -139,9 +139,6 @@
         "title": "Faýl eýýäm bar"
       },
       "success": "{file} ätiýaçlyk nusgasy üstünlikli ýüklenildi"
-    },
-    "compatibility": {
-      "notCompatibleHint": "Ätiýaçlyk nusgasynyň wersiýasy häzirki serwer wersiýasy bilen gabat gelmeýär"
     }
   },
   "cert": {

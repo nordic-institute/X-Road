@@ -92,7 +92,7 @@ create_backup_tarball () {
 }
 
 write_backup_metadata () {
-  echo "{\"version\":\"${BACKUP_FORMAT_VERSION_LABEL}\",\"server_type\":\"security\"}" > "${BACKUP_FILENAME}.metadata"
+  write_backup_metadata_json "${BACKUP_FILENAME}.metadata" "${BACKUP_FORMAT_VERSION_LABEL}" "security"
 }
 
 check_backup_file_name () {

@@ -32,8 +32,8 @@ import java.time.format.DateTimeFormatter;
 @UtilityClass
 public class BackupUtils {
 
-    private final DateTimeFormatter BACKUP_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
-    private final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
+    private static final DateTimeFormatter BACKUP_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private static final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
 
     public String generateBackupFileName() {
         return String.format(FILE_NAME_FORMAT, TimeUtils.localDateTimeNow().format(BACKUP_DATE_FORMAT));

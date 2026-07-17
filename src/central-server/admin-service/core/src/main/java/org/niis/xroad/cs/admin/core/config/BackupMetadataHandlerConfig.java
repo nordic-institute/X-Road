@@ -26,26 +26,26 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import ee.ria.xroad.common.util.BackupMetadataHandler;
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.nio.file.Path;
+
 @Configuration
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "xroad.admin-service.backup-metadata")
-public class BackupMetadataProperties {
+public class BackupMetadataHandlerConfig {
 
-    /**
-     * Path to the file containing the current backup format version, used to determine backup compatibility.
-     * '/usr/share/xroad/scripts/_backup_format_version' by default.
-     */
-    private String backupFormatVersionFilePath;
+    private static final String EXPECTED_SERVER_TYPE = "central";
 
-    /**
-     * Path to the script that parses an uploaded backup's tar label and writes its ".metadata" file.
-     * '/usr/share/xroad/scripts/_create_backup_metadata.sh' by default.
-     */
-    private String createBackupMetadataPath;
+    @Bean
+    public BackupMetadataHandler backupMetadataHandler(ExternalProcessRunner externalProcessRunner, BackupConfig backupConfig) {
+        return new BackupMetadataHandler(
+                externalProcessRunner,
+                backupConfig.getBackupFormatVersionFilePath(),
+                backupConfig.getCreateBackupMetadataPath(),
+                Path.of(backupConfig.getConfBackupPath()),
+                EXPECTED_SERVER_TYPE);
+    }
 }

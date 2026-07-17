@@ -139,9 +139,6 @@
         "title": "Arquivo já existe"
       },
       "success": "Backup {file} enviado com sucesso"
-    },
-    "compatibility": {
-      "notCompatibleHint": "A versão do backup não é compatível com a versão atual do servidor"
     }
   },
   "cert": {

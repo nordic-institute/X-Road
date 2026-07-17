@@ -130,6 +130,13 @@ has_command () {
     command -v "$1" &>/dev/null
 }
 
+write_backup_metadata_json () {
+  local metadata_file="$1"
+  local version="$2"
+  local server_type="$3"
+  echo "{\"version\":\"${version}\",\"server_type\":\"${server_type}\"}" > "${metadata_file}"
+}
+
 get_server_prop () {
   local value
   if ! value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null); then

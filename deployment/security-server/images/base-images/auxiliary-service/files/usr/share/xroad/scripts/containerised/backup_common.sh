@@ -9,3 +9,10 @@ BACKUP_FORMAT_VERSION_LABEL="$(cat /usr/share/xroad/scripts/containerised/backup
 make_tarball_label () {
   TARBALL_LABEL="security_${BACKUP_FORMAT_VERSION_LABEL}_${SECURITY_SERVER_ID}"
 }
+
+write_backup_metadata_json () {
+  local metadata_file="$1"
+  local version="$2"
+  local server_type="$3"
+  echo "{\"version\":\"${version}\",\"server_type\":\"${server_type}\"}" > "${metadata_file}"
+}

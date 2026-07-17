@@ -141,9 +141,6 @@
         "title": "Fail on juba olemas"
       },
       "success": "Varukoopia {file} edukalt üles laaditud"
-    },
-    "compatibility": {
-      "notCompatibleHint": "Varukoopia versioon ei ühildu praeguse serveri versiooniga"
     }
   },
   "cert": {

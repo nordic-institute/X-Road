@@ -203,9 +203,6 @@
         "title": "File already exists"
       },
       "success": "Backup {file} uploaded successfully"
-    },
-    "compatibility": {
-      "notCompatibleHint": "Backup version is not compatible with the current server version"
     }
   },
   "cert": {

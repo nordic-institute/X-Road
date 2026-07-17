@@ -113,5 +113,5 @@ if [ -z "$BACKUP_LABEL_VERSION" ]; then
 fi
 
 log "Parsed backup format version: $BACKUP_LABEL_VERSION (server type: $BACKUP_LABEL_SERVER_TYPE)"
-echo "{\"version\":\"${BACKUP_LABEL_VERSION}\",\"server_type\":\"${BACKUP_LABEL_SERVER_TYPE}\"}" > "${BACKUP_FILE}.metadata"
+write_backup_metadata_json "${BACKUP_FILE}.metadata" "${BACKUP_LABEL_VERSION}" "${BACKUP_LABEL_SERVER_TYPE}"
 
