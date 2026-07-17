@@ -27,7 +27,6 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -45,11 +44,8 @@ public class ConfProxyInstanceConfig {
 
     private String tokenId;
     private String signingKeyId;
-    @Getter
     private String keyAlgorithm = "RSA";
-    @Getter
     private String sourceAnchorFileUri;
-    @Getter
     private int validityInterval = 600;
 
     public Optional<String> tokenId() {
@@ -58,5 +54,17 @@ public class ConfProxyInstanceConfig {
 
     public Optional<String> signingKeyId() {
         return Optional.ofNullable(signingKeyId);
+    }
+
+    public String keyAlgorithm() {
+        return keyAlgorithm;
+    }
+
+    public String sourceAnchorFileUri() {
+        return sourceAnchorFileUri;
+    }
+
+    public int validityInterval() {
+        return validityInterval;
     }
 }
