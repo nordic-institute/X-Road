@@ -121,6 +121,7 @@ public class CsBaselineSeeder {
     /** DB id of the seeded security officer API key; history rows record the acting user as {@code api-key-<id>}. */
     public static final long SECURITY_OFFICER_KEY_ID = 9000003L;
     private static final long SYSTEM_ADMINISTRATOR_ONLY_KEY_ID = 9000004L;
+    private static final long MANAGEMENT_SERVICE_ONLY_KEY_ID = 9000005L;
     private static final String MEMBER_CLASS_SEED_NS = "mclass";
     private static final String MEMBER_SEED_NS = "member";
     private static final String SUBSYSTEM_SEED_NS = "subsys";
@@ -170,6 +171,14 @@ public class CsBaselineSeeder {
     public AdminApiSession newSystemAdministratorOnlySession() {
         return Step.given("system administrator only session opened",
                 () -> new AdminApiSession(adminBaseUrl, AdminApiSession.SYSTEM_ADMINISTRATOR_ONLY_TOKEN));
+    }
+
+    /**
+     * Opens a new admin API session authenticated as management service only ({@code XROAD_MANAGEMENT_SERVICE}).
+     */
+    public AdminApiSession newManagementServiceOnlySession() {
+        return Step.given("management service only session opened",
+                () -> new AdminApiSession(adminBaseUrl, AdminApiSession.MANAGEMENT_SERVICE_ONLY_TOKEN));
     }
 
     /**
@@ -246,6 +255,7 @@ public class CsBaselineSeeder {
         seedRegistrationOfficerApiKey();
         seedSecurityOfficerApiKey();
         seedSystemAdministratorOnlyApiKey();
+        seedManagementServiceOnlyApiKey();
 
         var session = new AdminApiSession(adminBaseUrl);
         ensureInitialized(session);
@@ -750,6 +760,35 @@ public class CsBaselineSeeder {
                     """.formatted(encodedKey));
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to seed system administrator only API key into CS DB", e);
+        }
+    }
+
+    private void seedManagementServiceOnlyApiKey() {
+        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
+        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
+                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
+        var username = readContainerProperty("spring.datasource.username");
+        var password = readContainerProperty("spring.datasource.password");
+        var encodedKey = sha256Hex(AdminApiSession.MANAGEMENT_SERVICE_ONLY_TOKEN);
+
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
+                var stmt = conn.createStatement()) {
+            stmt.execute("""
+                    INSERT INTO centerui.apikey (id, encodedkey)
+                    SELECT %d, '%s'
+                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = '%s')
+                    """.formatted(MANAGEMENT_SERVICE_ONLY_KEY_ID, encodedKey, encodedKey));
+            stmt.execute("""
+                    INSERT INTO centerui.apikey_roles (id, apikey_id, role)
+                    SELECT nextval('centerui.apikey_roles_id_seq'), a.id, 'XROAD_MANAGEMENT_SERVICE'
+                    FROM centerui.apikey a
+                    WHERE a.encodedkey = '%s'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id
+                          AND r.role = 'XROAD_MANAGEMENT_SERVICE')
+                    """.formatted(encodedKey));
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to seed management service only API key into CS DB", e);
         }
     }
 
