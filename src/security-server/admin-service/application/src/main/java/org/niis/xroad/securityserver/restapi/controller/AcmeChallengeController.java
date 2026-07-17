@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.controller;
 
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -44,12 +44,10 @@ public class AcmeChallengeController {
 
     @GetMapping(value = "/.well-known/acme-challenge/{token}")
     public ResponseEntity<String> getChallenge(@PathVariable("token") String token) throws IOException {
-        String baseDirectory = "/etc/xroad/acme-challenge";
-        File file = new File(baseDirectory, token);
-        if (!file.getParent().equals(baseDirectory)) {
+        if (!AcmeConfig.isValidChallengeToken(token)) {
             throw new BadRequestException(INVALID_URL.build());
         }
-        FileSystemResource fileSystemResource = new FileSystemResource(file);
+        FileSystemResource fileSystemResource = new FileSystemResource(AcmeConfig.ACME_CHALLENGE_PATH.resolve(token));
         return new ResponseEntity<>(fileSystemResource.getContentAsString(StandardCharsets.UTF_8), HttpStatus.OK);
     }
 

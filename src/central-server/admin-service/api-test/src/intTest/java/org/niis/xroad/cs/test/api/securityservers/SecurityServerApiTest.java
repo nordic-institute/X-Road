@@ -94,7 +94,7 @@ class SecurityServerApiTest extends CsApiTest {
 
         var client = new SecurityServersAdminClient(session);
 
-        Step.when("server list is sorted by " + sortField + " " + (desc ? "desc" : "asc"), () -> {
+        Step.when("server list is sorted by '%s' '%s'".formatted(sortField, desc ? "desc" : "asc"), () -> {
             var values = client.findSecurityServers(Map.of(
                             "q", ns,
                             "sort", sortField,

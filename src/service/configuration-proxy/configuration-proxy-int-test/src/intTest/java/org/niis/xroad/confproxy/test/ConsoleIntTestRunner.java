@@ -25,21 +25,16 @@
  */
 package org.niis.xroad.confproxy.test;
 
-import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
+import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
-public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
+public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
 
     public static void main(String[] args) {
         new ConsoleIntTestRunner().run();
     }
 
     @Override
-    protected String getTestClassName() {
-        return ConfProxyIntTest.class.getName();
-    }
-
-    @Override
-    protected String[] getResourcesToExtract() {
+    protected String[] resourceFiles() {
         return new String[]{
                 "compose.main.yaml",
                 "compose.intTest.yaml",
@@ -47,5 +42,10 @@ public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
                 "nginx-container-files/",
                 "cp-container-files/"
         };
+    }
+
+    @Override
+    protected String phasedSuiteClassName() {
+        return ConfProxyIntTestSuite.class.getName();
     }
 }

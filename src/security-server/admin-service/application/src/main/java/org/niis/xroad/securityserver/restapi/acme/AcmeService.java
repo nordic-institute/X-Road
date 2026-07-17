@@ -307,6 +307,9 @@ public final class AcmeService {
                 Http01Challenge httpChallenge = auth.findChallenge(Http01Challenge.class)
                         .orElseThrow(() -> new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_MISSING.build()));
                 String token = httpChallenge.getToken();
+                if (!AcmeConfig.isValidChallengeToken(token)) {
+                    throw new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_TOKEN_INVALID.build());
+                }
                 String content = httpChallenge.getAuthorization();
                 var acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token);
                 try {

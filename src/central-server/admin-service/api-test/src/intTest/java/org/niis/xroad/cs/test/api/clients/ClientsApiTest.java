@@ -205,7 +205,7 @@ class ClientsApiTest extends CsApiTest {
         var session = Step.given("admin session", seeder::newSession);
         var clients = new ClientsAdminClient(session);
 
-        Step.when("invalid query returns 400 with " + expectedErrorCode, () ->
+        Step.when("invalid query returns 400 with '%s'".formatted(expectedErrorCode), () ->
                 clients.findClients(params)
                         .statusCode(400)
                         .body("error.code", equalTo(expectedErrorCode)));
