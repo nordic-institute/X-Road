@@ -21,6 +21,11 @@
 # Tipo de banco (true = remoto, false = local na mesma VM)
 use_remote_db: true
 
+# Banco gerenciado (RDS/Aurora)?
+# true  = banco gerenciado (AWS RDS, Aurora) — SEM acesso SSH ao servidor de banco
+# false = banco on-premises — COM acesso SSH (permite instalar pacotes via Ansible)
+db_is_managed: false
+
 # ─── Conexão com o PostgreSQL ─────────────────────────────────────────────────
 # Formato: host:porta
 # Exemplos:

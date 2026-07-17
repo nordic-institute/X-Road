@@ -55,7 +55,7 @@
       ══════════════════════════════════════════════════════════════
        URL:       https://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:4000
        Usuário:   {{ _admin_user }}
-       Banco:     {{ _database_host_full }} ({{ 'REMOTO/RDS' if _use_remote_db else 'LOCAL' }})
+       Banco:     {{ _database_host_full }} ({{ 'RDS/Aurora' if (db_is_managed | default(false) | bool) else ('REMOTO on-premises' if _use_remote_db else 'LOCAL') }})
        Messagelog: {{ 'habilitado' if xvia_enable_messagelog | default(true) | bool else 'desabilitado' }}
        Proxy Mem: {{ xvia_proxy_memory }}MB
       ══════════════════════════════════════════════════════════════

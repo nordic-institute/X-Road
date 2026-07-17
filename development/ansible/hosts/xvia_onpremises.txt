@@ -29,7 +29,11 @@ ss2.exemplo.gov.br ansible_host=192.168.1.21 ansible_ssh_user=ubuntu ansible_ssh
 ca.exemplo.gov.br ansible_host=192.168.1.5 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
 
 # ─── Database Server ──────────────────────────────────────────────────────────
-# Servidor PostgreSQL remoto. Necessário para instalar postgresql-contrib.
+# Servidor PostgreSQL remoto COM acesso SSH (on-premises).
+# O Ansible usa delegate_to para instalar postgresql-contrib neste host.
+#
+# CENÁRIO ON-PREMISES: descomente e preencha o host abaixo.
+# CENÁRIO RDS/Aurora:  deixe vazio e defina db_is_managed=true em [all:vars].
 [db_servers]
 db.exemplo.gov.br ansible_host=192.168.1.50 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
 
@@ -60,6 +64,11 @@ use_remote_db=true
 database_host=192.168.1.50:5432
 database_admin_user=postgres
 # database_admin_password via -e na CLI (NÃO armazenar aqui em produção)
+
+# Banco gerenciado (RDS/Aurora)?
+#   false = on-premises (Ansible instala postgresql-contrib via SSH em [db_servers])
+#   true  = RDS/Aurora  (sem SSH; extensão hstore criada via CREATE EXTENSION)
+db_is_managed=false
 
 # ─── Senhas customizadas dos bancos (opcionais) ──────────────────────────────
 # Se não definidas, usam os defaults do vars_files/xvia_database.yml

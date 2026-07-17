@@ -117,17 +117,47 @@
   changed_when: false
   no_log: true
 
-- name: "CS — Ensure postgresql-contrib is installed on DB server"
+- name: "CS — Ensure postgresql-contrib is installed on DB server (on-premises)"
   apt:
     name: "postgresql-{{ xvia_pg_version | default('16') }}-contrib"
     state: present
     update_cache: yes
-  delegate_to: "{{ groups['db_servers'][0] }}"
+  delegate_to: "{{ groups['db_servers'][0] if (groups['db_servers'] | default([])) | length > 0 else inventory_hostname }}"
   become: true
   when:
     - _use_remote_db | bool
-    - groups['db_servers'] is defined
-    - groups['db_servers'] | length > 0
+    - not (db_is_managed | default(false) | bool)
+    - (groups['db_servers'] | default([])) | length > 0
+  ignore_errors: true
+  register: _contrib_install
+
+- name: "CS — AVISO: postgresql-contrib não pôde ser instalado automaticamente"
+  debug:
+    msg: >
+      ATENÇÃO: Não foi possível instalar postgresql-contrib no servidor de banco ({{ _db_host }}).
+      Instale manualmente no servidor de banco: sudo apt-get install -y postgresql-{{ xvia_pg_version | default('16') }}-contrib
+  when:
+    - _contrib_install is defined
+    - _contrib_install is failed
+
+- name: "CS — AVISO: banco gerenciado (RDS/Aurora) detectado"
+  debug:
+    msg: >
+      INFO: Banco gerenciado (RDS/Aurora) detectado — instalação de postgresql-contrib via SSH não é
+      necessária. A extensão hstore será criada via SQL (CREATE EXTENSION) diretamente.
+  when:
+    - _use_remote_db | bool
+    - db_is_managed | default(false) | bool
+
+- name: "CS — AVISO: db_servers vazio, não é possível instalar postgresql-contrib"
+  debug:
+    msg: >
+      ATENÇÃO: use_remote_db=true mas nenhum host em [db_servers] e db_is_managed=false.
+      Adicione o servidor de banco ao grupo [db_servers] no inventário ou defina db_is_managed=true para RDS/Aurora.
+  when:
+    - _use_remote_db | bool
+    - not (db_is_managed | default(false) | bool)
+    - (groups['db_servers'] | default([])) | length == 0
 
 - name: "CS — Install hstore extension"
   shell: >

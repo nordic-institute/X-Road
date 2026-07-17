@@ -28,10 +28,15 @@ ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 # Central Servers (se necessário)
 [cs_servers]
 
+# Database Server remoto (necessário se use_remote_db=true)
+[db_servers]
+# Exemplo: db.exemplo.gov.br ansible_host=10.0.1.50 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/xvia-key.pem
+
 # Super grupo com todos os servidores
 [xvia:children]
 ss_servers
 cs_servers
+db_servers
 
 [all:vars]
 # Usuário admin da UI do X-Road
