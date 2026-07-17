@@ -81,6 +81,7 @@ log "Reading tar label for backup file: $BACKUP_FILE"
 # label) can't leave behind a stale verdict from a previous run against this filename.
 rm -f "${BACKUP_FILE}.metadata"
 
+mkdir -p /var/tmp/xroad
 TEMP_GPG_DIR=$(mktemp -d /var/tmp/xroad/gpgtmp.XXXXXX)
 TEMP_TAR_FILE=${TEMP_GPG_DIR}/decrypted_temporary.tar
 trap 'rm -rf "$TEMP_GPG_DIR"' EXIT
