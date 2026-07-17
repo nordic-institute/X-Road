@@ -264,7 +264,7 @@ public class CsBaselineSeeder {
      * @return the member class code (e.g. {@code mclassMyTest01})
      */
     public synchronized String seedMemberClass(AdminApiSession session, String namespace) {
-        return Step.given("test environment seeded: member class ns=" + namespace, () -> {
+        return Step.given("test environment seeded: member class ns='%s'".formatted(namespace), () -> {
             var code = MEMBER_CLASS_SEED_NS + namespace;
             var client = new MemberClassesAdminClient(session);
             var existing = client.listMemberClassCodes();
@@ -291,7 +291,7 @@ public class CsBaselineSeeder {
      * @return the X-Road member identifier in {@code CS:memberClass:memberCode} form
      */
     public synchronized String seedMember(AdminApiSession session, String namespace, String memberClass) {
-        return Step.given("test environment seeded: member ns=" + namespace + " class=" + memberClass, () -> {
+        return Step.given("test environment seeded: member ns='%s' class='%s'".formatted(namespace, memberClass), () -> {
             var memberCode = MEMBER_SEED_NS + namespace;
             var memberId = "%s:%s:%s".formatted(INSTANCE_IDENTIFIER, memberClass, memberCode);
             var members = new MembersAdminClient(session);
@@ -320,7 +320,7 @@ public class CsBaselineSeeder {
      * @return the X-Road subsystem identifier in {@code CS:class:code:subsystemCode} form
      */
     public synchronized String seedSubsystem(AdminApiSession session, String namespace, String memberId) {
-        return Step.given("test environment seeded: subsystem ns=" + namespace + " member=" + memberId, () -> {
+        return Step.given("test environment seeded: subsystem ns='%s' member='%s'".formatted(namespace, memberId), () -> {
             var subsystemCode = SUBSYSTEM_SEED_NS + namespace;
             var subsystemId = memberId + ":" + subsystemCode;
             var idParts = memberId.split(":");
@@ -352,7 +352,7 @@ public class CsBaselineSeeder {
      * @return the security server identifier in {@code CS:class:code:serverCode} form
      */
     public synchronized String seedSecurityServer(AdminApiSession session, String namespace, String memberId) {
-        return Step.given("test environment seeded: security server ns=" + namespace + " owner=" + memberId, () -> {
+        return Step.given("test environment seeded: security server ns='%s' owner='%s'".formatted(namespace, memberId), () -> {
             var serverCode = "ss" + namespace;
             var serverId = memberId + ":" + serverCode;
 

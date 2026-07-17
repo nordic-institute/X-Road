@@ -104,7 +104,7 @@ class InitializationApiTest extends CsApiTest {
             CsBaselineSeeder seeder) {
         var init = new InitializationAdminClient(seeder.newSession());
 
-        when("POST /initialization with invalid params returns 400 and error code " + errorCode, () ->
+        when("POST /initialization with invalid params returns 400 and error code '%s'".formatted(errorCode), () ->
                 init.postInitialization(address, instanceIdentifier, tokenPin)
                         .statusCode(400)
                         .body("error.code", equalTo(errorCode)));

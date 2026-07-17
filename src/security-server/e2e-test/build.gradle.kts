@@ -165,7 +165,3 @@ tasks.named<ShadowJar>("shadowJar") {
   dependsOn(provider { tasks.named("copyComposeFiles") })
 }
 
-archUnit {
-  setSkip(true)
-}
-

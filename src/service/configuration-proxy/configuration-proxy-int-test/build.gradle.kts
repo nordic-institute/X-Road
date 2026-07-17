@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":service:configuration-proxy:configuration-proxy-core")) {
     exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
   }
@@ -32,46 +32,21 @@ intTestShadowJar {
   mainClass("org.niis.xroad.confproxy.test.ConsoleIntTestRunner")
 }
 
+intTestPhasedSuite {
+  phasedSuiteClass = "ConfProxyIntTestSuite"
+  productName = "Configuration Proxy"
+}
+
 val copyMainComposeFile by tasks.registering(Copy::class) {
-  description = "Copies main compose.yaml and nginx config to build directory"
+  description = "Copies main compose.yaml to build directory"
   group = "verification"
 
   from("../../../../development/docker/configuration-proxy/compose.yaml") {
     rename { "compose.main.yaml" }
   }
-  from("../../../../development/docker/configuration-proxy/nginx-confproxy.conf")
   into("build/resources/intTest")
-}
-
-tasks.register<Test>("intTest") {
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-  dependsOn(copyMainComposeFile)
-
-  useJUnitPlatform()
-
-  description = "Runs integration tests."
-  group = "verification"
-
-  testClassesDirs = sourceSets["intTest"].output.classesDirs
-  classpath = sourceSets["intTest"].runtimeClasspath
-
-  testLogging {
-    showStackTraces = true
-    showExceptions = true
-    showCauses = true
-    showStandardStreams = true
-  }
-}
-
-tasks.named<Checkstyle>("checkstyleIntTest") {
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-  dependsOn(provider { tasks.named("copyMainComposeFile") })
 }
 
 tasks.named<ShadowJar>("shadowJar") {
   dependsOn(provider { tasks.named("copyMainComposeFile") })
-}
-
-archUnit {
-  setSkip(true)
 }

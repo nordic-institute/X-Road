@@ -27,17 +27,20 @@
 package org.niis.xroad.cs.test.service;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.test.IntTestComposeSetup;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.cs.test.container.ManagementServiceIntTestContainerSetup;
 
-import static org.niis.xroad.cs.test.IntTestComposeSetup.POSTGRES;
+import static org.niis.xroad.cs.test.container.ManagementServiceIntTestContainerSetup.POSTGRES;
 
-@Component
+/**
+ * Resolves the centerui database's JDBC URL and credentials from the running CS admin-service
+ * container so {@link LiquibaseExecutor} can connect to it directly.
+ */
 @RequiredArgsConstructor
 public class ContainerDatabaseProvider {
     private static final String ROOT_PROPERTIES_PATH = "/etc/xroad.properties";
     private static final String DB_PROPERTIES_PATH = "/etc/xroad/db.properties";
-    private final IntTestComposeSetup intTestSetup;
+
+    private final ManagementServiceIntTestContainerSetup containerSetup;
 
     private String jdbcUrl;
     private String adminUsername;
@@ -47,7 +50,7 @@ public class ContainerDatabaseProvider {
 
     public String getJdbcUrl() {
         if (jdbcUrl == null) {
-            var postgresContainer = intTestSetup.getContainerMapping(POSTGRES, IntTestComposeSetup.Port.DB);
+            var postgresContainer = containerSetup.getContainerMapping(POSTGRES, ManagementServiceIntTestContainerSetup.Port.DB);
 
             jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public".formatted(
                     postgresContainer.host(),
@@ -59,7 +62,7 @@ public class ContainerDatabaseProvider {
 
     public String getAdminUsername() {
         if (adminUsername == null) {
-            var result = intTestSetup.execInContainer(IntTestComposeSetup.CS,
+            var result = containerSetup.execInContainer(ManagementServiceIntTestContainerSetup.CS,
                     "awk", "/centerui.database.admin_user/ {print $3}", ROOT_PROPERTIES_PATH);
             adminUsername = result.getStdout().trim();
         }
@@ -68,7 +71,7 @@ public class ContainerDatabaseProvider {
 
     public String getAdminPassword() {
         if (adminPassword == null) {
-            var result = intTestSetup.execInContainer(IntTestComposeSetup.CS,
+            var result = containerSetup.execInContainer(ManagementServiceIntTestContainerSetup.CS,
                     "awk", "/centerui.database.admin_password/ {print $3}", ROOT_PROPERTIES_PATH);
             adminPassword = result.getStdout().trim();
         }
@@ -77,7 +80,7 @@ public class ContainerDatabaseProvider {
 
     public String getUsername() {
         if (username == null) {
-            var result = intTestSetup.execInContainer(IntTestComposeSetup.CS,
+            var result = containerSetup.execInContainer(ManagementServiceIntTestContainerSetup.CS,
                     "awk", "/spring.datasource.username/ {print $3}", DB_PROPERTIES_PATH);
             username = result.getStdout().trim();
         }
@@ -86,7 +89,7 @@ public class ContainerDatabaseProvider {
 
     public String getPassword() {
         if (password == null) {
-            var result = intTestSetup.execInContainer(IntTestComposeSetup.CS,
+            var result = containerSetup.execInContainer(ManagementServiceIntTestContainerSetup.CS,
                     "awk", "/spring.datasource.password/ {print $3}", DB_PROPERTIES_PATH);
             password = result.getStdout().trim();
         }

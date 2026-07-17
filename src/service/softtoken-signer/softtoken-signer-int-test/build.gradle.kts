@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":service:signer:signer-client"))
   intTestImplementation(project(":service:softtoken-signer:softtoken-signer-application")) {
     exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
@@ -13,7 +13,6 @@ dependencies {
   intTestImplementation(project(":common:common-core"))
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:properties-core"))
-  intTestImplementation(libs.test.restassured)
 }
 
 intTestComposeEnv {
@@ -46,6 +45,8 @@ tasks.register<Test>("intTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
+  include("**/*IntTest.class")
+
   testLogging {
     showStackTraces = true
     showExceptions = true
@@ -56,8 +57,4 @@ tasks.register<Test>("intTest") {
 
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
-}
-
-archUnit {
-  setSkip(true)
 }

@@ -145,7 +145,7 @@ public class SsBaselineSeeder {
      * @return the full client identifier ({@code DEV:COM:1234:<subsystemCode>})
      */
     public synchronized String seedSubsystem(AdminApiSession adminSession, String namespace) {
-        return Step.given("test environment seeded: subsystem " + namespace, () -> {
+        return Step.given("test environment seeded: subsystem '%s'".formatted(namespace), () -> {
             var subsystemCode = SUBSYSTEM_SEED_NS + namespace;
             var clientId = "DEV:%s:%s:%s".formatted(SS_OWNER_CLASS, SS_OWNER_CODE, subsystemCode);
             var clients = new ClientsAdminClient(adminSession);
@@ -167,7 +167,7 @@ public class SsBaselineSeeder {
      * @return seed result containing the client ID and service description ID
      */
     public synchronized SeedResult seedClientWithOpenApiService(String namespace, String specUrl, String serviceCode) {
-        return Step.given("test environment seeded: OpenAPI service " + serviceCode + " (ns=" + namespace + ")", () -> {
+        return Step.given("test environment seeded: OpenAPI service '%s' (ns='%s')".formatted(serviceCode, namespace), () -> {
             var subsystemCode = SUBSYSTEM_SEED_NS + namespace;
             var clientId = "DEV:%s:%s:%s".formatted(SS_OWNER_CLASS, SS_OWNER_CODE, subsystemCode);
 
@@ -206,7 +206,7 @@ public class SsBaselineSeeder {
      * @return the client identifier ({@code DEV:COM:1234:<subsystemCode>}) for use in assertions
      */
     public synchronized SeedResult seedClientWithRestService(String namespace, String serviceUrl, String serviceCode) {
-        return Step.given("test environment seeded: REST service " + serviceCode + " (ns=" + namespace + ")", () -> {
+        return Step.given("test environment seeded: REST service '%s' (ns='%s')".formatted(serviceCode, namespace), () -> {
             var subsystemCode = SUBSYSTEM_SEED_NS + namespace;
             var clientId = "DEV:%s:%s:%s".formatted(SS_OWNER_CLASS, SS_OWNER_CODE, subsystemCode);
 
@@ -395,7 +395,7 @@ public class SsBaselineSeeder {
      * @return the seeding result containing the client identifier and service description ID
      */
     public synchronized SeedResult seedClientWithWsdlService(String namespace, String wsdlUrl) {
-        return Step.given("test environment seeded: WSDL service (ns=" + namespace + ")", () -> {
+        return Step.given("test environment seeded: WSDL service (ns='%s')".formatted(namespace), () -> {
             var subsystemCode = SUBSYSTEM_SEED_NS + namespace;
             var clientId = "DEV:%s:%s:%s".formatted(SS_OWNER_CLASS, SS_OWNER_CODE, subsystemCode);
 

@@ -26,7 +26,3 @@ intTestShadowJar {
     archiveBaseName("central-server-api-test")
     mainClass("org.niis.xroad.cs.test.api.ConsoleApiTestRunner")
 }
-
-archUnit {
-    setSkip(true)
-}
