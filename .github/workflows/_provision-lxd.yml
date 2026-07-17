@@ -1,7 +1,7 @@
 name: LXD e2e
 
 # Provisions the native-lxd-stack from pre-built DEB/RPM package artifacts,
-# bootstraps the federation via hurl, then runs the Security Server e2e suite
+# bootstraps the X-Road environment via hurl, then runs the Security Server e2e suite
 # in LXD mode (not @Skip and not @compose-only) and publishes results.
 #
 # To narrow this job back to manual dispatch only, change the `if` in the
@@ -31,7 +31,7 @@ jobs:
     env:
       ANSIBLE_CONFIG: config/ansible.cfg
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.ref }}
 
@@ -165,7 +165,7 @@ jobs:
           echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Setup Java
-        uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: 'temurin'
           java-version: '25'
