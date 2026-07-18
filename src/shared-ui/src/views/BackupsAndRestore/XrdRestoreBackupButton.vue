@@ -25,14 +25,21 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdBtn
-    v-if="canBackup"
-    data-test="backup-restore"
-    variant="text"
-    color="tertiary"
-    text="action.restore"
-    @click="showConfirmation = true"
-  />
+  <v-tooltip v-if="canBackup" :disabled="compatible">
+    <template #activator="{ props: tooltipProps }">
+      <span v-bind="tooltipProps">
+        <XrdBtn
+          data-test="backup-restore"
+          variant="text"
+          color="tertiary"
+          text="action.restore"
+          :disabled="!compatible"
+          @click="showConfirmation = true"
+        />
+      </span>
+    </template>
+    {{ $t('backup.restoreFromBackup.incompatibleTooltip') }}
+  </v-tooltip>
   <XrdConfirmDialog
     v-if="showConfirmation && canBackup"
     :loading="restoring"
@@ -65,6 +72,10 @@ const props = defineProps({
   backupHandler: {
     type: Object as PropType<BackupHandler>,
     required: true,
+  },
+  compatible: {
+    type: Boolean,
+    default: true,
   },
 });
 

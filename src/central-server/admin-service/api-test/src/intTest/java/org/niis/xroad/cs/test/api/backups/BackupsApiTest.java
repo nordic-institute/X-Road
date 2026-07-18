@@ -60,6 +60,7 @@ class BackupsApiTest extends CsApiTest {
         final var filename = given("a new backup is created", () ->
                 backups.createBackup()
                         .statusCode(201)
+                        .body("compatible", equalTo(true))
                         .body("filename", notNullValue())
                         .extract()
                         .jsonPath()
@@ -266,6 +267,34 @@ class BackupsApiTest extends CsApiTest {
         } finally {
             if (backups.backupExists("test_backup.gpg")) {
                 backups.deleteBackup("test_backup.gpg");
+            }
+        }
+    }
+
+    @Test
+    @ResourceLock("backups")
+    @DisplayName("Backup uploaded with incompatible format is marked incompatible in response and in list")
+    void uploadedIncompatibleBackupIsMarkedIncompatible(CsBaselineSeeder seeder) throws IOException {
+        var backups = new BackupsAdminClient(seeder.newSession());
+        var fileBytes = loadFile("files/backups/cs-backup-incompatible.gpg");
+
+        given("cs-backup-incompatible.gpg is uploaded", () ->
+                backups.uploadBackup("cs-backup-incompatible.gpg", fileBytes, false)
+                        .statusCode(201)
+                        .body("compatible", equalTo(false)));
+
+        try {
+            then("the uploaded backup is shown as incompatible in GET /backups", () -> {
+                var compatible = backups.listBackupsRaw().stream()
+                        .filter(b -> "cs-backup-incompatible.gpg".equals(b.get("filename")))
+                        .map(b -> b.get("compatible"))
+                        .findFirst()
+                        .orElse(null);
+                assertThat(compatible).isEqualTo(false);
+            });
+        } finally {
+            if (backups.backupExists("cs-backup-incompatible.gpg")) {
+                backups.deleteBackup("cs-backup-incompatible.gpg");
             }
         }
     }

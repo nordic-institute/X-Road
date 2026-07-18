@@ -31,6 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.auxiliaryservice.core.backup.BackupItem;
+import org.niis.xroad.auxiliaryservice.core.backup.BackupMetadataService;
 import org.niis.xroad.auxiliaryservice.core.backup.BackupValidator;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -63,6 +64,7 @@ public class FileSystemBackupRepository implements BackupRepository {
 
     private final BackupProperties backupProperties;
     private final BackupValidator backupValidator;
+    private final BackupMetadataService backupMetadataService;
 
     @Override
     public Collection<BackupItem> listBackups() {
@@ -78,7 +80,10 @@ public class FileSystemBackupRepository implements BackupRepository {
                     .filter(path -> backupValidator.isValidBackupFilename(path.getFileName().toString()))
                     .map(path -> {
                         var file = path.toFile();
-                        return new BackupItem(file.getName(), getCreatedAt(file.toPath()));
+                        return new BackupItem(
+                                file.getName(),
+                                getCreatedAt(file.toPath()),
+                                backupMetadataService.isBackupCompatible(path));
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
@@ -114,7 +119,11 @@ public class FileSystemBackupRepository implements BackupRepository {
         var path = getAbsoluteBackupFilePath(name);
         try {
             Files.write(path, content);
-            return new BackupItem(name, getCreatedAt(path));
+            backupMetadataService.createMetadata(path);
+            return new BackupItem(
+                    name,
+                    getCreatedAt(path),
+                    backupMetadataService.isBackupCompatible(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
             throw XrdRuntimeException.systemException(INVALID_BACKUP_FILE, name);

@@ -17,9 +17,11 @@ OPENBAO_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_openbao_db.sh"
 OPENBAO_DATABASE_RESTORE_SCRIPT="/usr/share/xroad/scripts/restore_openbao_db.sh"
 COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
-# This version number must be increased when we introduce changes that make
-# earlier backup files incompatible with the current system.
-XROAD_VERSION_LABEL="XROAD_7.1"
+# The value in this file must be increased when we introduce changes that make earlier
+# backup files incompatible with the current system. BackupMetadataService (Java) reads
+# the same file to determine backup compatibility for the admin UI, so this is the
+# single place to bump when the backup format changes.
+BACKUP_FORMAT_VERSION_LABEL="$(cat /usr/share/xroad/scripts/_backup_format_version)"
 
 die () {
     echo >&2 "$@"
@@ -105,15 +107,15 @@ check_server_type () {
   esac
 }
 
-# XXX The tarball label is simply an underscore-separated list of the input
-# parameters.
+# The tarball label encodes server type, backup format version, and server
+# identity: <server_type>_<format_version>_<identity>.
 make_tarball_label () {
   case ${SERVER_TYPE} in
     security)
-      TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
+      TARBALL_LABEL="security_${BACKUP_FORMAT_VERSION_LABEL}_${SECURITY_SERVER_ID}"
       ;;
     central)
-      TARBALL_LABEL="central_${XROAD_VERSION_LABEL}_${INSTANCE_ID}"
+      TARBALL_LABEL="central_${BACKUP_FORMAT_VERSION_LABEL}_${INSTANCE_ID}"
       if [ -n "${CENTRAL_SERVER_HA_NODE_NAME}" ] ; then
         TARBALL_LABEL="${TARBALL_LABEL}_${CENTRAL_SERVER_HA_NODE_NAME}"
       fi
@@ -126,6 +128,13 @@ make_tarball_label () {
 
 has_command () {
     command -v "$1" &>/dev/null
+}
+
+write_backup_metadata_json () {
+  local metadata_file="$1"
+  local version="$2"
+  local server_type="$3"
+  echo "{\"version\":\"${version}\",\"server_type\":\"${server_type}\"}" > "${metadata_file}"
 }
 
 get_server_prop () {

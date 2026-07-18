@@ -86,7 +86,10 @@ public class AuxiliaryServiceRpcClient extends AbstractRpcClient {
     public Collection<BackupInfo> listBackups() {
         var response = exec(() -> backupServiceBlockingStub.listBackups(Empty.getDefaultInstance()));
         return response.getBackupItemsList().stream()
-                .map(item -> new BackupInfo(item.getName(), toInstant(item.getCreatedAt())))
+                .map(item -> new BackupInfo(
+                        item.getName(),
+                        toInstant(item.getCreatedAt()),
+                        item.getBackupCompatible()))
                 .toList();
     }
 
@@ -110,7 +113,7 @@ public class AuxiliaryServiceRpcClient extends AbstractRpcClient {
                         .setIgnoreWarnings(ignoreWarnings)
                         .build()));
 
-        return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
+        return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()), response.getBackupCompatible());
     }
 
     public BackupInfo createBackup(String securityServerId) {
@@ -119,7 +122,7 @@ public class AuxiliaryServiceRpcClient extends AbstractRpcClient {
                 .build();
 
         var response = exec(() -> backupServiceBlockingStub.createBackup(request));
-        return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
+        return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()), response.getBackupCompatible());
     }
 
     public void restoreFromBackup(String name, String securityServerId) {

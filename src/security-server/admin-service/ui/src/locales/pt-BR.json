@@ -1318,6 +1318,8 @@
               "script-path": "Caminho para o script de backup manual.",
               "restore-script-path": "Caminho para o script de restauração de backup.",
               "generate-gpg-keypair-path": "Caminho para o script que gera um par de chaves GPG para criptografia de backup.",
+              "create-backup-metadata-path": "Caminho para o script que analisa o rótulo tar de um backup enviado e grava seu arquivo \".metadata\".",
+              "backup-format-version-file-path": "Caminho para o arquivo que contém a versão atual do formato de backup, usada para determinar a compatibilidade do backup.",
               "gpgkeys-home": "Diretório utilizado como GNUPGHOME para operações GPG de backup.",
               "encryption-enabled": "Quando habilitado, os arquivos de backup são criptografados com GPG.",
               "encryption-keyids": "IDs de chave GPG separados por vírgulas utilizados para criptografar os arquivos de backup."

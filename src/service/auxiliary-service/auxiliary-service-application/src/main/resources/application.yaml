@@ -20,6 +20,8 @@ quarkus:
         autobackup-script-path: /usr/share/xroad/scripts/containerised/autobackup.sh
         script-path: /usr/share/xroad/scripts/containerised/create_backup.sh
         restore-script-path: /usr/share/xroad/scripts/containerised/restore_backup.sh
+        create-backup-metadata-path: /usr/share/xroad/scripts/containerised/create_backup_metadata.sh
+        backup-format-version-file-path: /usr/share/xroad/scripts/containerised/backup_format_version
       message-log:
         command-path: /usr/share/xroad/scripts/containerised/message_log_archiver.sh
 

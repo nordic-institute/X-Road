@@ -27,13 +27,18 @@
 
 package org.niis.xroad.auxiliaryservice.core.config;
 
+import ee.ria.xroad.common.util.BackupMetadataHandler;
 import ee.ria.xroad.common.util.process.BlockingProcessRunner;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Typed;
 
+import java.nio.file.Path;
+
 public class AuxiliaryServiceConfig {
+
+    private static final String EXPECTED_BACKUP_SERVER_TYPE = "security";
 
     @ApplicationScoped
     ExternalProcessRunner externalProcessRunner() {
@@ -44,5 +49,15 @@ public class AuxiliaryServiceConfig {
     @Typed(BlockingProcessRunner.class)
     BlockingProcessRunner blockingProcessRunner() {
         return new BlockingProcessRunner();
+    }
+
+    @ApplicationScoped
+    BackupMetadataHandler backupMetadataHandler(ExternalProcessRunner externalProcessRunner, BackupProperties backupProperties) {
+        return new BackupMetadataHandler(
+                externalProcessRunner,
+                backupProperties.backupFormatVersionFilePath(),
+                backupProperties.createBackupMetadataPath(),
+                Path.of(backupProperties.location()),
+                EXPECTED_BACKUP_SERVER_TYPE);
     }
 }

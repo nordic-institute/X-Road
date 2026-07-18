@@ -31,6 +31,7 @@ import java.time.Instant;
 
 public record BackupInfo(
         String name,
-        Instant createdAt
+        Instant createdAt,
+        boolean compatible
 ) {
 }

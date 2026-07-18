@@ -74,6 +74,14 @@ public interface BackupProperties {
     @WithDefault("/usr/share/xroad/scripts/generate_gpg_keypair.sh")
     String generateGpgKeypairScriptPath();
 
+    @WithName("create-backup-metadata-path")
+    @WithDefault("/usr/share/xroad/scripts/_create_backup_metadata.sh")
+    String createBackupMetadataPath();
+
+    @WithName("backup-format-version-file-path")
+    @WithDefault("/usr/share/xroad/scripts/_backup_format_version")
+    String backupFormatVersionFilePath();
+
     @WithName("gpgkeys-home")
     @WithDefault("/etc/xroad/gpghome")
     String gpgKeysHomePath();

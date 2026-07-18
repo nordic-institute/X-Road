@@ -32,6 +32,7 @@ import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.BackupFile;
 import org.niis.xroad.cs.admin.core.config.BackupConfig;
+import org.niis.xroad.cs.admin.core.service.BackupMetadataService;
 import org.niis.xroad.cs.admin.core.service.BackupValidator;
 import org.springframework.stereotype.Repository;
 
@@ -65,6 +66,7 @@ public class BackupRepository {
 
     private final BackupValidator backupValidator;
     private final BackupConfig backupConfig;
+    private final BackupMetadataService backupMetadataService;
 
     /**
      * Read backup files from configuration backup path
@@ -83,22 +85,13 @@ public class BackupRepository {
                     .filter(path -> backupValidator.isValidBackupFilename(path.getFileName().toString()))
                     .map(path -> {
                         var file = path.toFile();
-                        return new BackupFile(file.getName(), getCreatedAt(file.toPath()));
+                        return new BackupFile(file.getName(), getCreatedAt(file.toPath()),
+                                backupMetadataService.isBackupCompatible(path));
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
             log.error("can't read backup files from configuration path ({})", backupConfig.getConfBackupPath(), ioe);
             return Collections.emptyList();
-        }
-    }
-
-    private OffsetDateTime getCreatedAt(Path path) {
-        try {
-            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-            return attr.creationTime().toInstant().atOffset(ZoneOffset.UTC);
-        } catch (IOException ioe) {
-            log.error("can't read backup file's creation time ({})", path);
-            return null;
         }
     }
 
@@ -113,6 +106,7 @@ public class BackupRepository {
         var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.deleteIfExists(path);
+            backupMetadataService.deleteMetadata(path);
         } catch (IOException ioe) {
             log.error("can't delete backup file ({})", path);
             throw new NotFoundException(BACKUP_DELETION_FAILED.build(filename));
@@ -141,9 +135,9 @@ public class BackupRepository {
      * Writes backup file's content to disk
      * @param filename backup filename
      * @param content  backup contents
-     * @return backup creation date
+     * @return the newly written backup
      */
-    public OffsetDateTime writeBackupFile(String filename, byte[] content) {
+    public BackupFile writeBackupFile(String filename, byte[] content) {
         if (!backupValidator.isValidBackupFilename(filename)) {
             throw new BadRequestException(INVALID_FILENAME.build(filename));
         }
@@ -155,7 +149,8 @@ public class BackupRepository {
         var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.write(path, content);
-            return getCreatedAt(path);
+            backupMetadataService.createMetadata(path);
+            return new BackupFile(filename, getCreatedAt(path), backupMetadataService.isBackupCompatible(path));
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
             throw new InternalServerErrorException(ioe, INVALID_BACKUP_FILE.build());
@@ -182,7 +177,6 @@ public class BackupRepository {
         return resolved;
     }
 
-
     /**
      * Check if a backup file with the given name already exists
      * @param filename backup filename
@@ -190,5 +184,15 @@ public class BackupRepository {
      */
     public boolean fileExists(String filename) {
         return getAbsoluteBackupFilePath(filename).toFile().exists();
+    }
+
+    private OffsetDateTime getCreatedAt(Path path) {
+        try {
+            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+            return attr.creationTime().toInstant().atOffset(ZoneOffset.UTC);
+        } catch (IOException ioe) {
+            log.error("can't read backup file's creation time ({})", path);
+            return null;
+        }
     }
 }
