@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 /**
  * Keys for the {@code xroad.health-check} scope, shared across all apps that embed
@@ -39,8 +40,8 @@ import org.niis.xroad.common.properties.config.Scope;
 @SuppressWarnings("checkstyle:MagicNumber")
 public final class HealthCheckConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope HEALTH_CHECK = Scope.of("xroad.health-check");
-    private static final Scope MEMORY = HEALTH_CHECK.child("memory");
+    private static final Prefix HEALTH_CHECK = Prefix.of(Category.COMMON, "xroad.health-check");
+    private static final Prefix MEMORY = HEALTH_CHECK.subPrefix("memory");
 
     private static final HealthCheckConfigKeys INSTANCE = new HealthCheckConfigKeys();
 
@@ -59,7 +60,7 @@ public final class HealthCheckConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return HEALTH_CHECK;
     }
 }

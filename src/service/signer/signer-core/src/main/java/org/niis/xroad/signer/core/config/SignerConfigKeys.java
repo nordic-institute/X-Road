@@ -27,9 +27,10 @@ package org.niis.xroad.signer.core.config;
 
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -55,12 +56,12 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
             .build();
     private static final TypeReference<Map<String, SignerModuleConfig>> MODULES_TYPE = new TypeReference<>() { };
 
-    private static final Scope SIGNER = Scope.of("xroad.signer", "signer");
-    private static final Scope AUTOLOGIN = SIGNER.child("autologin");
-    private static final Scope AUTOLOGIN_RETRY = AUTOLOGIN.child("retry");
-    private static final Scope HWTOKEN = SIGNER.child("addon").child("hwtoken");
-    private static final Scope PIN_HASHER = SIGNER.child("pin-hasher");
-    private static final Scope RPC = SIGNER.child("rpc");
+    private static final Prefix SIGNER = Prefix.of(Category.SIGNER, "xroad.signer");
+    private static final Prefix AUTOLOGIN = SIGNER.subPrefix("autologin");
+    private static final Prefix AUTOLOGIN_RETRY = AUTOLOGIN.subPrefix("retry");
+    private static final Prefix HWTOKEN = SIGNER.subPrefix("addon").subPrefix("hwtoken");
+    private static final Prefix PIN_HASHER = SIGNER.subPrefix("pin-hasher");
+    private static final Prefix RPC = SIGNER.subPrefix("rpc");
 
     private static final SignerConfigKeys INSTANCE = new SignerConfigKeys();
 
@@ -266,7 +267,7 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return SIGNER;
     }
 

@@ -27,9 +27,10 @@
 
 package org.niis.xroad.messagelog;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -50,9 +51,9 @@ public final class MessageLogEncryptionConfigKeys implements ConfigKeyProvider {
     private static final ObjectMapper MAPPER = JsonMapper.builder().build();
     private static final TypeReference<Map<String, Set<String>>> GROUPING_TYPE = new TypeReference<>() { };
 
-    private static final Scope MESSAGE_LOG_ENCRYPTION = Scope.of("xroad.message-log-encryption");
-    private static final Scope ARCHIVE = MESSAGE_LOG_ENCRYPTION.child("archive");
-    private static final Scope DB = MESSAGE_LOG_ENCRYPTION.child("db");
+    private static final Prefix MESSAGE_LOG_ENCRYPTION = Prefix.of(Category.COMMON, "xroad.message-log-encryption");
+    private static final Prefix ARCHIVE = MESSAGE_LOG_ENCRYPTION.subPrefix("archive");
+    private static final Prefix DB = MESSAGE_LOG_ENCRYPTION.subPrefix("db");
 
     private static final MessageLogEncryptionConfigKeys INSTANCE = new MessageLogEncryptionConfigKeys();
 
@@ -104,7 +105,7 @@ public final class MessageLogEncryptionConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return MESSAGE_LOG_ENCRYPTION;
     }
 

@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -40,10 +41,10 @@ import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class OpMonitorConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope OP_MONITOR = Scope.of("xroad.op-monitor");
-    private static final Scope RPC = OP_MONITOR.child("rpc");
-    private static final Scope TLS = OP_MONITOR.child("tls");
-    private static final Scope CERT_PROVISIONING = TLS.child("certificate-provisioning");
+    private static final Prefix OP_MONITOR = Prefix.of(Category.OP_MONITOR_DAEMON, "xroad.op-monitor");
+    private static final Prefix RPC = OP_MONITOR.subPrefix("rpc");
+    private static final Prefix TLS = OP_MONITOR.subPrefix("tls");
+    private static final Prefix CERT_PROVISIONING = TLS.subPrefix("certificate-provisioning");
 
     private static final OpMonitorConfigKeys INSTANCE = new OpMonitorConfigKeys();
 
@@ -170,7 +171,7 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return OP_MONITOR;
     }
 }

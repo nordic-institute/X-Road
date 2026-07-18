@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 import java.util.List;
@@ -43,33 +44,33 @@ import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 /**
  * Keys for the {@code xroad.proxy} scope, mirroring the nested structure of the legacy
  * {@code ProxyProperties} {@code @ConfigMapping}. Sub-scopes (client-proxy, server,
- * ocsp-responder, addon, …) are created via {@link Scope#child(String)} so every key
+ * ocsp-responder, addon, …) are created via {@link Prefix#child(String)} so every key
  * still registers with the root {@code proxy} scope.
  */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class ProxyConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope PROXY = Scope.of("xroad.proxy");
-    private static final Scope CLIENT_PROXY = PROXY.child("client-proxy");
-    private static final Scope SERVER = PROXY.child("server");
-    private static final Scope OCSP_RESPONDER = PROXY.child("ocsp-responder");
-    private static final Scope ADDON = PROXY.child("addon");
-    private static final Scope ADDON_PROXY_MONITOR = ADDON.child("proxy-monitor");
-    private static final Scope ADDON_META_SERVICES = ADDON.child("meta-services");
-    private static final Scope ADDON_OP_MONITOR = ADDON.child("op-monitor");
-    private static final Scope ADDON_OP_MONITOR_BUFFER = ADDON_OP_MONITOR.child("buffer");
-    private static final Scope ADDON_OP_MONITOR_CONNECTION = ADDON_OP_MONITOR.child("connection");
-    private static final Scope TLS = PROXY.child("tls");
-    private static final Scope TLS_CERT_PROVISIONING = TLS.child("certificate-provisioning");
-    private static final Scope ANTI_DOS = Scope.of("xroad.anti-dos");
-    private static final Scope HEALTH_CHECK = PROXY.child("health-check");
-    private static final Scope HEALTH_CHECK_AUTH_KEY = HEALTH_CHECK.child("auth-key");
-    private static final Scope HEALTH_CHECK_HSM = HEALTH_CHECK.child("hsm");
-    private static final Scope MESSAGE_LOG = PROXY.child("message-log");
-    private static final Scope MESSAGE_LOG_TIMESTAMPER = MESSAGE_LOG.child("timestamper");
-    private static final Scope RPC = PROXY.child("rpc");
-    private static final Scope DSP = PROXY.child("dsp");
-    private static final Scope DSP_CACHE = DSP.child("cache");
+    private static final Prefix PROXY = Prefix.of(Category.PROXY, "xroad.proxy");
+    private static final Prefix CLIENT_PROXY = PROXY.subPrefix("client-proxy");
+    private static final Prefix SERVER = PROXY.subPrefix("server");
+    private static final Prefix OCSP_RESPONDER = PROXY.subPrefix("ocsp-responder");
+    private static final Prefix ADDON = PROXY.subPrefix("addon");
+    private static final Prefix ADDON_PROXY_MONITOR = ADDON.subPrefix("proxy-monitor");
+    private static final Prefix ADDON_META_SERVICES = ADDON.subPrefix("meta-services");
+    private static final Prefix ADDON_OP_MONITOR = ADDON.subPrefix("op-monitor");
+    private static final Prefix ADDON_OP_MONITOR_BUFFER = ADDON_OP_MONITOR.subPrefix("buffer");
+    private static final Prefix ADDON_OP_MONITOR_CONNECTION = ADDON_OP_MONITOR.subPrefix("connection");
+    private static final Prefix TLS = PROXY.subPrefix("tls");
+    private static final Prefix TLS_CERT_PROVISIONING = TLS.subPrefix("certificate-provisioning");
+    private static final Prefix ANTI_DOS = Prefix.of(Category.PROXY, "xroad.anti-dos");
+    private static final Prefix HEALTH_CHECK = PROXY.subPrefix("health-check");
+    private static final Prefix HEALTH_CHECK_AUTH_KEY = HEALTH_CHECK.subPrefix("auth-key");
+    private static final Prefix HEALTH_CHECK_HSM = HEALTH_CHECK.subPrefix("hsm");
+    private static final Prefix MESSAGE_LOG = PROXY.subPrefix("message-log");
+    private static final Prefix MESSAGE_LOG_TIMESTAMPER = MESSAGE_LOG.subPrefix("timestamper");
+    private static final Prefix RPC = PROXY.subPrefix("rpc");
+    private static final Prefix DSP = PROXY.subPrefix("dsp");
+    private static final Prefix DSP_CACHE = DSP.subPrefix("cache");
 
     private static final ProxyConfigKeys INSTANCE = new ProxyConfigKeys();
 
@@ -788,7 +789,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return PROXY;
     }
 

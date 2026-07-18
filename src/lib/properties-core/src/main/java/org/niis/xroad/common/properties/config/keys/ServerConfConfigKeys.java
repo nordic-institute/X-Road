@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 /**
  * Shared server configuration cache keys ({@code xroad.common-server-conf.*}), consumed by both Quarkus and
@@ -37,7 +38,7 @@ import org.niis.xroad.common.properties.config.Scope;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class ServerConfConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope SERVER_CONF = Scope.of("xroad.common-server-conf");
+    private static final Prefix SERVER_CONF = Prefix.of(Category.COMMON, "xroad.common-server-conf");
 
     private static final ServerConfConfigKeys INSTANCE = new ServerConfConfigKeys();
 
@@ -76,7 +77,7 @@ public final class ServerConfConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return SERVER_CONF;
     }
 }

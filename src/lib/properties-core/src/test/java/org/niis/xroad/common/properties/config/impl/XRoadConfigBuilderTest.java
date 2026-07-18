@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.DeploymentMode;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.util.Map;
 
@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class XRoadConfigBuilderTest {
 
-    private final Scope scope = Scope.of("xroad.test");
+    private final Prefix scope = Prefix.of("xroad.test");
     private final ConfigKey<String> withContainerDefault = scope.string("with-container")
             .withDefaultValue("native").withContainerDefaultValue("container").build();
     private final ConfigKey<String> nativeOnly = scope.string("native-only")
@@ -84,9 +84,9 @@ class XRoadConfigBuilderTest {
 
     @Test
     void nestedGrandchildKeyBuildsFullPathRegistersOnRootAndResolves() {
-        var root = Scope.of("xroad.test");
+        var root = Prefix.of("xroad.test");
         // a scope with a child, whose child has its own child
-        var signerChannel = root.child("channel").child("signer");
+        var signerChannel = root.subPrefix("channel").subPrefix("signer");
         var hostKey = signerChannel.string("host").withDefaultValue("127.0.0.1").build();
 
         // the key path is the full root -> child -> grandchild path

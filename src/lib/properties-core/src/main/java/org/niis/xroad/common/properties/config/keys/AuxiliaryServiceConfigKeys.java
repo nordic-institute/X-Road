@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -37,12 +38,12 @@ import java.time.Duration;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope AUXILIARY_SERVICE = Scope.of("xroad.auxiliary-service", "auxiliary-service");
-    private static final Scope BACKUP = AUXILIARY_SERVICE.child("backup");
-    private static final Scope MESSAGE_LOG = AUXILIARY_SERVICE.child("message-log");
-    private static final Scope RPC = AUXILIARY_SERVICE.child("rpc");
-    private static final Scope READINESS_CHECK = AUXILIARY_SERVICE.child("readiness-check");
-    private static final Scope READINESS_CHECK_KUBERNETES = READINESS_CHECK.child("kubernetes");
+    private static final Prefix AUXILIARY_SERVICE = Prefix.of(Category.AUXILIARY_SERVICE, "xroad.auxiliary-service");
+    private static final Prefix BACKUP = AUXILIARY_SERVICE.subPrefix("backup");
+    private static final Prefix MESSAGE_LOG = AUXILIARY_SERVICE.subPrefix("message-log");
+    private static final Prefix RPC = AUXILIARY_SERVICE.subPrefix("rpc");
+    private static final Prefix READINESS_CHECK = AUXILIARY_SERVICE.subPrefix("readiness-check");
+    private static final Prefix READINESS_CHECK_KUBERNETES = READINESS_CHECK.subPrefix("kubernetes");
 
     private static final AuxiliaryServiceConfigKeys INSTANCE = new AuxiliaryServiceConfigKeys();
 
@@ -205,7 +206,7 @@ public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return AUXILIARY_SERVICE;
     }
 }

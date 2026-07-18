@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -36,8 +37,8 @@ import java.time.Duration;
 @SuppressWarnings("checkstyle:MagicNumber")
 final class MonitorConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope ENV_MONITOR = Scope.of("xroad.env-monitor", "monitor");
-    private static final Scope RPC = ENV_MONITOR.child("rpc");
+    private static final Prefix ENV_MONITOR = Prefix.of(Category.MONITOR, "xroad.env-monitor");
+    private static final Prefix RPC = ENV_MONITOR.subPrefix("rpc");
 
     private static final MonitorConfigKeys INSTANCE = new MonitorConfigKeys();
 
@@ -103,7 +104,7 @@ final class MonitorConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return ENV_MONITOR;
     }
 }

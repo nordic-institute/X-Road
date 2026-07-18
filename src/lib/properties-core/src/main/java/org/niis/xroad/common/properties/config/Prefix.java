@@ -35,15 +35,18 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public abstract sealed class Scope {
+public abstract sealed class Prefix {
 
     private final String rootPath;
 
-    private Scope(String rootPath) {
+    private Prefix(String rootPath) {
         this.rootPath = rootPath;
     }
 
     public abstract Optional<String> name();
+
+    /** @return target scope this prefix (and its keys) belong to; {@link Category#COMMON} when unscoped */
+    public abstract Category category();
 
     public abstract List<ConfigKey<?>> keys();
 
@@ -51,7 +54,9 @@ public abstract sealed class Scope {
         return rootPath;
     }
 
-    public Scope child(String pathSegment) {
+    /** @param pathSegment nested segment appended to this prefix's path
+     *  @return a nested prefix inheriting this prefix's {@link Category} */
+    public Prefix subPrefix(String pathSegment) {
         return new ChildScope(this, rootPath() + "." + pathSegment);
     }
 
@@ -87,34 +92,50 @@ public abstract sealed class Scope {
         return new GeneralKeyBuilder<T>(this, shortKey, type);
     }
 
-    public static Scope of(String rootPath) {
+    public static Prefix of(String rootPath) {
         Objects.requireNonNull(rootPath, "scope rootPath is null");
-        return new RootScope(rootPath, null);
+        return new RootScope(rootPath, null, Category.COMMON);
     }
 
-    public static Scope of(String rootPath, String name) {
+    public static Prefix of(String rootPath, String name) {
         Objects.requireNonNull(rootPath, "scope rootPath is null");
         Objects.requireNonNull(name, "scope name is null");
-        return new RootScope(rootPath, name);
+        return new RootScope(rootPath, name, Category.COMMON);
     }
 
-    private static final class RootScope extends Scope {
+    /**
+     * The design's {@code Prefix.of(scope, path)}: declare a prefix bound to an explicit target scope.
+     * The single-arg {@link #of(String)} defaults the scope to {@link Category#COMMON}.
+     *
+     * @param scope    target scope for every key under this prefix
+     * @param rootPath dotted key prefix, e.g. {@code xroad.signer}
+     * @return the prefix
+     */
+    public static Prefix of(Category scope, String rootPath) {
+        Objects.requireNonNull(scope, "scope is null");
+        Objects.requireNonNull(rootPath, "scope rootPath is null");
+        return new RootScope(rootPath, null, scope);
+    }
+
+    private static final class RootScope extends Prefix {
         private final String name;
+        private final Category category;
         private final List<ConfigKey<?>> keys = new ArrayList<>();
 
-        private RootScope(String rootPath, String name) {
+        private RootScope(String rootPath, String name, Category category) {
             super(rootPath);
             this.name = name;
+            this.category = category;
         }
-
-        public ChildScope child(String path) {
-            return new ChildScope(this, rootPath() + "." + path);
-        }
-
 
         @Override
         public Optional<String> name() {
             return Optional.ofNullable(name);
+        }
+
+        @Override
+        public Category category() {
+            return category;
         }
 
         @Override
@@ -123,11 +144,11 @@ public abstract sealed class Scope {
         }
     }
 
-    private static final class ChildScope extends Scope {
+    private static final class ChildScope extends Prefix {
 
-        private final Scope parent;
+        private final Prefix parent;
 
-        private ChildScope(Scope parent, String rootPath) {
+        private ChildScope(Prefix parent, String rootPath) {
             super(rootPath);
             this.parent = parent;
         }
@@ -135,6 +156,11 @@ public abstract sealed class Scope {
         @Override
         public Optional<String> name() {
             return parent.name();
+        }
+
+        @Override
+        public Category category() {
+            return parent.category();
         }
 
         @Override
@@ -146,6 +172,7 @@ public abstract sealed class Scope {
     public static final class DefaultConfigKey<T> implements ConfigKey<T> {
 
         private final String scopeName;
+        private final Category category;
         private final String key;
         private final Class<T> type;
         private final String defaultValue;
@@ -154,6 +181,7 @@ public abstract sealed class Scope {
         private final Validator<T> validator;
 
         private DefaultConfigKey(String scopeName,
+                                 Category category,
                                  String key, Class<T> type,
                                  String defaultValue,
                                  String containerDefaultValue,
@@ -171,6 +199,7 @@ public abstract sealed class Scope {
             validateDefault(key, containerDefaultValue, converter, validator);
 
             this.scopeName = scopeName;
+            this.category = category;
             this.key = key;
             this.type = type;
             this.defaultValue = defaultValue;
@@ -193,6 +222,11 @@ public abstract sealed class Scope {
         @Override
         public Optional<String> scopeName() {
             return Optional.ofNullable(scopeName);
+        }
+
+        @Override
+        public Category category() {
+            return category;
         }
 
         @Override
@@ -254,7 +288,7 @@ public abstract sealed class Scope {
 
     @RequiredArgsConstructor
     private abstract static sealed class Builder<T, KB extends Builder<T, KB>> {
-        protected final Scope scope;
+        protected final Prefix scope;
         protected final String shortKey;
         protected final Class<T> type;
 
@@ -286,7 +320,7 @@ public abstract sealed class Scope {
         public ConfigKey<T> build() {
             var key = scope.rootPath() + "." + shortKey;
 
-            var configKey = new DefaultConfigKey<>(scope.name().orElse(null), key, type, defaultValue,
+            var configKey = new DefaultConfigKey<>(scope.name().orElse(null), scope.category(), key, type, defaultValue,
                     containerDefaultValue, converter, validator);
 
             if (defaultValue != null) {
@@ -310,7 +344,7 @@ public abstract sealed class Scope {
 
     public static final class StringKeyBuilder extends Builder<String, StringKeyBuilder> {
 
-        private StringKeyBuilder(Scope scope, String shortKey) {
+        private StringKeyBuilder(Prefix scope, String shortKey) {
             super(scope, shortKey, String.class);
             converter = Function.identity();
         }
@@ -319,7 +353,7 @@ public abstract sealed class Scope {
 
     public static final class StringArrayKeyBuilder extends Builder<String[], StringArrayKeyBuilder> {
 
-        private StringArrayKeyBuilder(Scope scope, String shortKey) {
+        private StringArrayKeyBuilder(Prefix scope, String shortKey) {
             super(scope, shortKey, String[].class);
             converter = raw -> Stream.of(raw.split(","))
                     .map(String::trim)
@@ -330,7 +364,7 @@ public abstract sealed class Scope {
 
     public static final class IntKeyBuilder extends Builder<Integer, IntKeyBuilder> {
 
-        private IntKeyBuilder(Scope scope, String shortKey) {
+        private IntKeyBuilder(Prefix scope, String shortKey) {
             super(scope, shortKey, Integer.class);
             converter = Integer::parseInt;
         }
@@ -344,7 +378,7 @@ public abstract sealed class Scope {
 
     public static final class LongKeyBuilder extends Builder<Long, LongKeyBuilder> {
 
-        private LongKeyBuilder(Scope scope, String shortKey) {
+        private LongKeyBuilder(Prefix scope, String shortKey) {
             super(scope, shortKey, Long.class);
             converter = Long::parseLong;
         }
@@ -357,7 +391,7 @@ public abstract sealed class Scope {
 
     public static final class EnumKeyBuilder<E extends Enum<E>> extends Builder<E, EnumKeyBuilder<E>> {
 
-        private EnumKeyBuilder(Scope scope, String shortKey, Class<E> type) {
+        private EnumKeyBuilder(Prefix scope, String shortKey, Class<E> type) {
             super(scope, shortKey, type);
             converter = raw -> Enum.valueOf(type, raw);
         }
@@ -370,7 +404,7 @@ public abstract sealed class Scope {
 
     public static final class DurationKeyBuilder extends Builder<Duration, DurationKeyBuilder> {
 
-        private DurationKeyBuilder(Scope scope, String shortKey) {
+        private DurationKeyBuilder(Prefix scope, String shortKey) {
             super(scope, shortKey, Duration.class);
             converter = DurationConverter::parseDuration;
         }
@@ -383,7 +417,7 @@ public abstract sealed class Scope {
 
     public static final class BooleanKeyBuilder extends Builder<Boolean, BooleanKeyBuilder> {
 
-        private BooleanKeyBuilder(Scope scope, String shortKey) {
+        private BooleanKeyBuilder(Prefix scope, String shortKey) {
             super(scope, shortKey, Boolean.class);
             converter = Boolean::parseBoolean;
         }
@@ -401,7 +435,7 @@ public abstract sealed class Scope {
 
     public static final class GeneralKeyBuilder<T> extends Builder<T, GeneralKeyBuilder<T>> {
 
-        private GeneralKeyBuilder(Scope scope, String shortKey, Class<T> type) {
+        private GeneralKeyBuilder(Prefix scope, String shortKey, Class<T> type) {
             super(scope, shortKey, type);
         }
 

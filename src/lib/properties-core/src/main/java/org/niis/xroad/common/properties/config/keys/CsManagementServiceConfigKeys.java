@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -41,9 +42,9 @@ import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope MANAGEMENT = Scope.of("xroad.management-service");
-    private static final Scope TLS_CERT_PROVISIONING = MANAGEMENT.child("tls").child("certificate-provisioning");
-    private static final Scope HTTP_CLIENT = MANAGEMENT.child("http-client-properties");
+    private static final Prefix MANAGEMENT = Prefix.of(Category.MANAGEMENT_SERVICE, "xroad.management-service");
+    private static final Prefix TLS_CERT_PROVISIONING = MANAGEMENT.subPrefix("tls").subPrefix("certificate-provisioning");
+    private static final Prefix HTTP_CLIENT = MANAGEMENT.subPrefix("http-client-properties");
 
     private static final CsManagementServiceConfigKeys INSTANCE = new CsManagementServiceConfigKeys();
 
@@ -153,7 +154,7 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return MANAGEMENT;
     }
 }

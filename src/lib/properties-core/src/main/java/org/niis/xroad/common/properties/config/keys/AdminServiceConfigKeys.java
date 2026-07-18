@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 import java.util.List;
@@ -48,14 +49,14 @@ import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class AdminServiceConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope ADMIN = Scope.of("xroad.proxy-ui-api");
-    private static final Scope TLS_CERT_PROVISIONING = ADMIN.child("tls").child("certificate-provisioning");
-    private static final Scope ROLE_MAPPINGS = ADMIN.child("complementary-user-role-mappings");
-    private static final Scope DATASPACE = ADMIN.child("dataspace");
+    private static final Prefix ADMIN = Prefix.of(Category.PROXY_UI_API, "xroad.proxy-ui-api");
+    private static final Prefix TLS_CERT_PROVISIONING = ADMIN.subPrefix("tls").subPrefix("certificate-provisioning");
+    private static final Prefix ROLE_MAPPINGS = ADMIN.subPrefix("complementary-user-role-mappings");
+    private static final Prefix DATASPACE = ADMIN.subPrefix("dataspace");
 
     // admin-service config that lives at the top-level xroad.* namespace (not under xroad.proxy-ui-api),
     // stored as a single YAML document per key and parsed by the consuming beans
-    private static final Scope XROAD = Scope.of("xroad");
+    private static final Prefix XROAD = Prefix.of(Category.COMMON, "xroad");
 
     private static final AdminServiceConfigKeys INSTANCE = new AdminServiceConfigKeys();
 
@@ -473,7 +474,7 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return ADMIN;
     }
 

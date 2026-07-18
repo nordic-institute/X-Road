@@ -59,7 +59,7 @@ class ValidatorTest {
 
     @Test
     void negativeDurationDefaultWithPositiveFailsAtBuild() {
-        var builder = Scope.of("xroad.signer")
+        var builder = Prefix.of("xroad.signer")
                 .keyDuration("csr-timeout")
                 .withValidator(Validator.positive())
                 .withDefaultValue(Duration.ofSeconds(-1));
@@ -71,7 +71,7 @@ class ValidatorTest {
 
     @Test
     void positiveDurationDefaultBuildsCleanly() {
-        var key = Scope.of("xroad.signer")
+        var key = Prefix.of("xroad.signer")
                 .keyDuration("csr-timeout")
                 .withValidator(Validator.positive())
                 .withDefaultValue(Duration.ofSeconds(30))

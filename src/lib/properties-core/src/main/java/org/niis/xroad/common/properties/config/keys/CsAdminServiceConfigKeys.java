@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -43,11 +44,11 @@ import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope ADMIN = Scope.of("xroad.admin-service");
-    private static final Scope TLS_CERT_PROVISIONING = ADMIN.child("tls").child("certificate-provisioning");
-    private static final Scope ROLE_MAPPINGS = ADMIN.child("complementary-user-role-mappings");
-    private static final Scope GLOBAL_CONF_GENERATOR = ADMIN.child("global-conf-generator");
-    private static final Scope MANAGEMENT_REQUESTS = ADMIN.child("management-requests");
+    private static final Prefix ADMIN = Prefix.of(Category.ADMIN_SERVICE, "xroad.admin-service");
+    private static final Prefix TLS_CERT_PROVISIONING = ADMIN.subPrefix("tls").subPrefix("certificate-provisioning");
+    private static final Prefix ROLE_MAPPINGS = ADMIN.subPrefix("complementary-user-role-mappings");
+    private static final Prefix GLOBAL_CONF_GENERATOR = ADMIN.subPrefix("global-conf-generator");
+    private static final Prefix MANAGEMENT_REQUESTS = ADMIN.subPrefix("management-requests");
 
     private static final CsAdminServiceConfigKeys INSTANCE = new CsAdminServiceConfigKeys();
 
@@ -299,7 +300,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return ADMIN;
     }
 }

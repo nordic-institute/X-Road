@@ -27,16 +27,17 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
 /** Common keys, registered by every process. */
 public final class CommonConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope COMMON = Scope.of("xroad.common");
+    private static final Prefix COMMON = Prefix.of(Category.COMMON, "xroad.common");
 
     private static final CommonConfigKeys INSTANCE = new CommonConfigKeys();
 
@@ -61,7 +62,7 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return COMMON;
     }
 }

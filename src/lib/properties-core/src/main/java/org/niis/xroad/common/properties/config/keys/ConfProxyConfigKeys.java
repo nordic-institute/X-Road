@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -49,9 +50,9 @@ public final class ConfProxyConfigKeys implements ConfigKeyProvider {
     private static final ObjectMapper MAPPER = JsonMapper.builder().build();
     private static final TypeReference<Map<String, ConfProxyInstanceConfig>> INSTANCES_TYPE = new TypeReference<>() { };
 
-    private static final Scope ROOT = Scope.of("xroad.configuration-proxy");
-    private static final Scope TLS = ROOT.child("tls");
-    private static final Scope TLS_CERT_PROVISIONING = TLS.child("certificate-provisioning");
+    private static final Prefix ROOT = Prefix.of(Category.CONFIGURATION_PROXY, "xroad.configuration-proxy");
+    private static final Prefix TLS = ROOT.subPrefix("tls");
+    private static final Prefix TLS_CERT_PROVISIONING = TLS.subPrefix("certificate-provisioning");
 
     private static final ConfProxyConfigKeys INSTANCE = new ConfProxyConfigKeys();
 
@@ -162,7 +163,7 @@ public final class ConfProxyConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return ROOT;
     }
 

@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -41,9 +42,9 @@ import java.time.Duration;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class CsRegistrationServiceConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope REGISTRATION = Scope.of("xroad.registration-service");
-    private static final Scope HTTP_CLIENT = REGISTRATION.child("http-client-properties");
-    private static final Scope VAULT_RETRY = REGISTRATION.child("vault-retry");
+    private static final Prefix REGISTRATION = Prefix.of(Category.REGISTRATION_SERVICE, "xroad.registration-service");
+    private static final Prefix HTTP_CLIENT = REGISTRATION.subPrefix("http-client-properties");
+    private static final Prefix VAULT_RETRY = REGISTRATION.subPrefix("vault-retry");
 
     private static final CsRegistrationServiceConfigKeys INSTANCE = new CsRegistrationServiceConfigKeys();
 
@@ -138,7 +139,7 @@ public final class CsRegistrationServiceConfigKeys implements ConfigKeyProvider 
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return REGISTRATION;
     }
 }

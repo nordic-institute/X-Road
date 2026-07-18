@@ -25,16 +25,17 @@
  */
 package org.niis.xroad.signer.common.config;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.util.List;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public final class SignerKeyConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope SIGNER = Scope.of("xroad.signer", "signer");
+    private static final Prefix SIGNER = Prefix.of(Category.SIGNER, "xroad.signer");
     private static final SignerKeyConfigKeys INSTANCE = new SignerKeyConfigKeys();
 
     public static final ConfigKey<Integer> KEY_LENGTH = SIGNER
@@ -55,7 +56,7 @@ public final class SignerKeyConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return SIGNER;
     }
 

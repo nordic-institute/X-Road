@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
@@ -37,8 +38,8 @@ import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class ConfClientConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope CONFIGURATION_CLIENT = Scope.of("xroad.configuration-client");
-    private static final Scope RPC = CONFIGURATION_CLIENT.child("rpc");
+    private static final Prefix CONFIGURATION_CLIENT = Prefix.of(Category.CONFIGURATION_CLIENT, "xroad.configuration-client");
+    private static final Prefix RPC = CONFIGURATION_CLIENT.subPrefix("rpc");
 
     private static final ConfClientConfigKeys INSTANCE = new ConfClientConfigKeys();
 
@@ -128,7 +129,7 @@ public final class ConfClientConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return CONFIGURATION_CLIENT;
     }
 }

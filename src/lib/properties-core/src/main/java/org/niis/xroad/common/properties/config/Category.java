@@ -27,34 +27,36 @@
 
 package org.niis.xroad.common.properties.config;
 
-import java.util.Optional;
+/**
+ * UI grouping a declared property belongs to — the panel/section the system-parameters view lists it under.
+ * Purely registry metadata for display; it is not persisted ({@code configuration_properties} is keyed by
+ * {@code property_key} alone). {@link #COMMON} groups shared keys not owned by a single service.
+ */
+public enum Category {
 
-public sealed interface ConfigKey<T> permits Prefix.DefaultConfigKey {
-    Optional<String> scopeName();
+    COMMON("Common"),
+    PROXY("Proxy"),
+    SIGNER("Signer"),
+    SOFTTOKEN_SIGNER("Soft token signer"),
+    PROXY_UI_API("Admin UI"),
+    OP_MONITOR_DAEMON("Operational monitoring"),
+    MONITOR("Environmental monitoring"),
+    CONFIGURATION_CLIENT("Configuration client"),
+    AUXILIARY_SERVICE("Auxiliary service"),
+    MESSAGE_LOG_ARCHIVER("Message log archiver"),
+    ADMIN_SERVICE("Admin service"),
+    MANAGEMENT_SERVICE("Management service"),
+    REGISTRATION_SERVICE("Registration service"),
+    CONFIGURATION_PROXY("Configuration proxy");
 
-    /** @return target scope (deployment/app) this key belongs to; {@link Category#COMMON} when unscoped */
-    Category category();
+    private final String label;
 
-    String key();
+    Category(String label) {
+        this.label = label;
+    }
 
-    String defaultValue();
-
-    T convertedDefaultValue();
-
-    /** @return the raw container-mode default, or {@code null} when none is declared (falls back to {@link #defaultValue()}). */
-    String containerDefaultValue();
-
-    /** @return the converted container-mode default, or {@code null} when none is declared. */
-    T convertedContainerDefaultValue();
-
-    Class<T> type();
-
-    T convert(String rawValue);
-
-    Validator.Result validate(T value);
-
-    /** @return human-readable summary of the validation constraint, empty when unconstrained */
-    default Optional<String> validationSummary() {
-        return Optional.empty();
+    /** @return human-readable label for the system-parameters UI grouping */
+    public String label() {
+        return label;
     }
 }

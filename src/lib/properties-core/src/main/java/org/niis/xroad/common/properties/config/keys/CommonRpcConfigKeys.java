@@ -27,9 +27,10 @@
 
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 import java.util.List;
@@ -40,17 +41,17 @@ import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope ROOT = Scope.of("xroad.common-rpc");
-    private static final Scope CERT_PROVISIONING = ROOT.child("certificate-provisioning");
-    private static final Scope CHANNEL = ROOT.child("channel");
-    private static final Scope CHANNEL_SIGNER = CHANNEL.child("signer");
-    private static final Scope CHANNEL_SOFTTOKEN_SIGNER = CHANNEL.child("softtoken-signer");
-    private static final Scope CHANNEL_OP_MONITOR = CHANNEL.child("op-monitor");
-    private static final Scope CHANNEL_ENV_MONITOR = CHANNEL.child("env-monitor");
-    private static final Scope CHANNEL_CONF_CLIENT = CHANNEL.child("configuration-client");
-    private static final Scope CHANNEL_PROXY = CHANNEL.child("proxy");
-    private static final Scope CHANNEL_AUXILIARY_SERVICE = CHANNEL.child("auxiliary-service");
-    private static final Scope CHANNEL_ASSET_ACCESS = CHANNEL.child("asset-access");
+    private static final Prefix ROOT = Prefix.of(Category.COMMON, "xroad.common-rpc");
+    private static final Prefix CERT_PROVISIONING = ROOT.subPrefix("certificate-provisioning");
+    private static final Prefix CHANNEL = ROOT.subPrefix("channel");
+    private static final Prefix CHANNEL_SIGNER = CHANNEL.subPrefix("signer");
+    private static final Prefix CHANNEL_SOFTTOKEN_SIGNER = CHANNEL.subPrefix("softtoken-signer");
+    private static final Prefix CHANNEL_OP_MONITOR = CHANNEL.subPrefix("op-monitor");
+    private static final Prefix CHANNEL_ENV_MONITOR = CHANNEL.subPrefix("env-monitor");
+    private static final Prefix CHANNEL_CONF_CLIENT = CHANNEL.subPrefix("configuration-client");
+    private static final Prefix CHANNEL_PROXY = CHANNEL.subPrefix("proxy");
+    private static final Prefix CHANNEL_AUXILIARY_SERVICE = CHANNEL.subPrefix("auxiliary-service");
+    private static final Prefix CHANNEL_ASSET_ACCESS = CHANNEL.subPrefix("asset-access");
 
     private static final CommonRpcConfigKeys INSTANCE = new CommonRpcConfigKeys();
 
@@ -313,7 +314,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return ROOT;
     }
 

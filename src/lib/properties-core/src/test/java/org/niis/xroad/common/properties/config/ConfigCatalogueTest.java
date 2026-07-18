@@ -39,7 +39,7 @@ class ConfigCatalogueTest {
 
     @Test
     void projectsDeclaredKeysWithScopeTypeDefaultAndSummary() {
-        var scope = Scope.of("xroad.signer", "signer");
+        var scope = Prefix.of("xroad.signer", "signer");
         scope.integer("key-length").withValidator(oneOf(2048, 3072)).withDefaultValue(2048).build();
         ConfigKeyProvider provider = () -> scope;
 
@@ -56,7 +56,7 @@ class ConfigCatalogueTest {
 
     @Test
     void entryForUnvalidatedKeyHasNoSummary() {
-        var scope = Scope.of("xroad.signer", "signer");
+        var scope = Prefix.of("xroad.signer", "signer");
         scope.bool("enforce-token-pin-policy").withDefaultValue(false).build();
         ConfigKeyProvider provider = () -> scope;
 
@@ -67,7 +67,7 @@ class ConfigCatalogueTest {
 
     @Test
     void scopeLessGlobalEnumeratesWithEmptyScope() {
-        var scope = Scope.of("xroad");
+        var scope = Prefix.of("xroad");
         scope.string("instance-country").build();
         ConfigKeyProvider provider = () -> scope;
 
@@ -79,9 +79,9 @@ class ConfigCatalogueTest {
 
     @Test
     void aggregatesKeysAcrossMultipleProviders() {
-        var signer = Scope.of("xroad.signer", "signer");
+        var signer = Prefix.of("xroad.signer", "signer");
         signer.integer("key-length").withDefaultValue(2048).build();
-        var proxy = Scope.of("xroad.proxy", "proxy");
+        var proxy = Prefix.of("xroad.proxy", "proxy");
         proxy.bool("verify-client-cert").withDefaultValue(true).build();
 
         var entries = ConfigCatalogue.from(List.of(() -> signer, () -> proxy));

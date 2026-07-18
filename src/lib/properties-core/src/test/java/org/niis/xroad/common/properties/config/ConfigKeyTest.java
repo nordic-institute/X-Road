@@ -37,7 +37,7 @@ class ConfigKeyTest {
 
     @Test
     void buildPopulatesRecordFields() {
-        var key = Scope.of("xroad.signer").integer("key-length").withDefaultValue(2048).build();
+        var key = Prefix.of("xroad.signer").integer("key-length").withDefaultValue(2048).build();
 
         assertThat(key.key()).isEqualTo("xroad.signer.key-length");
         assertThat(key.type()).isEqualTo(Integer.class);
@@ -46,14 +46,14 @@ class ConfigKeyTest {
 
     @Test
     void subScopeShortKeyUsesFullPathButKeepsShortName() {
-        var key = Scope.of("xroad.proxy").child("client-proxy").integer("client-http-port").withDefaultValue(8080).build();
+        var key = Prefix.of("xroad.proxy").subPrefix("client-proxy").integer("client-http-port").withDefaultValue(8080).build();
 
         assertThat(key.key()).isEqualTo("xroad.proxy.client-proxy.client-http-port");
     }
 
     @Test
     void buildValidatesDeclaredDefaultAndThrowsNamingTheKey() {
-        var builder = Scope.of("xroad.signer")
+        var builder = Prefix.of("xroad.signer")
                 .integer("key-length")
                 .withValidator(oneOf(2048, 3072, 4096))
                 .withDefaultValue(1234);
@@ -65,7 +65,7 @@ class ConfigKeyTest {
 
     @Test
     void validDefaultPassesValidation() {
-        var key = Scope.of("xroad.signer")
+        var key = Prefix.of("xroad.signer")
                 .integer("key-length")
                 .withValidator(oneOf(2048, 3072, 4096))
                 .withDefaultValue(3072)
@@ -76,7 +76,7 @@ class ConfigKeyTest {
 
     @Test
     void absentDefaultIsAllowedAndNotValidated() {
-        var key = Scope.of("xroad.common")
+        var key = Prefix.of("xroad.common")
                 .string("instance-country")
                 .withValidator(Validator.nonEmpty())
                 .build();
@@ -86,7 +86,7 @@ class ConfigKeyTest {
 
     @Test
     void shortKeyMayContainDots() {
-        var key = Scope.of("xroad.signer").string("auth.method").build();
+        var key = Prefix.of("xroad.signer").string("auth.method").build();
 
         assertThat(key.key()).isEqualTo("xroad.signer.auth.method");
     }

@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 /**
  * Shared OCSP verifier keys ({@code xroad.common-ocsp-verifier.*}), consumed by both Quarkus and Spring products.
@@ -36,7 +37,7 @@ import org.niis.xroad.common.properties.config.Scope;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class OcspVerifierConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope OCSP_VERIFIER = Scope.of("xroad.common-ocsp-verifier");
+    private static final Prefix OCSP_VERIFIER = Prefix.of(Category.COMMON, "xroad.common-ocsp-verifier");
 
     private static final OcspVerifierConfigKeys INSTANCE = new OcspVerifierConfigKeys();
 
@@ -55,7 +56,7 @@ public final class OcspVerifierConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return OCSP_VERIFIER;
     }
 }

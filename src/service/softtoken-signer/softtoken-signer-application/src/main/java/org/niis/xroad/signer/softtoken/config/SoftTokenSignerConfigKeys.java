@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.signer.softtoken.config;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -36,11 +37,11 @@ import java.time.Duration;
 @SuppressWarnings("checkstyle:MagicNumber")
 final class SoftTokenSignerConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope SOFTTOKEN_SIGNER = Scope.of("xroad.softtoken-signer", "softtoken-signer");
-    private static final Scope HEALTH_CHECK = SOFTTOKEN_SIGNER.child("health-check");
-    private static final Scope KEY_SYNC = HEALTH_CHECK.child("key-sync");
-    private static final Scope KEYS = SOFTTOKEN_SIGNER.child("keys");
-    private static final Scope RPC = SOFTTOKEN_SIGNER.child("rpc");
+    private static final Prefix SOFTTOKEN_SIGNER = Prefix.of(Category.SOFTTOKEN_SIGNER, "xroad.softtoken-signer");
+    private static final Prefix HEALTH_CHECK = SOFTTOKEN_SIGNER.subPrefix("health-check");
+    private static final Prefix KEY_SYNC = HEALTH_CHECK.subPrefix("key-sync");
+    private static final Prefix KEYS = SOFTTOKEN_SIGNER.subPrefix("keys");
+    private static final Prefix RPC = SOFTTOKEN_SIGNER.subPrefix("rpc");
 
     private static final SoftTokenSignerConfigKeys INSTANCE = new SoftTokenSignerConfigKeys();
 
@@ -96,7 +97,7 @@ final class SoftTokenSignerConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return SOFTTOKEN_SIGNER;
     }
 }

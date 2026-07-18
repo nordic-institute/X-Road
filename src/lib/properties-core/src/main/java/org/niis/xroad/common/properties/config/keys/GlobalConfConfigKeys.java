@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.common.properties.config.keys;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
@@ -40,7 +41,7 @@ import java.time.Duration;
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class GlobalConfConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope GLOBAL_CONF = Scope.of("xroad.common-global-conf");
+    private static final Prefix GLOBAL_CONF = Prefix.of(Category.COMMON, "xroad.common-global-conf");
 
     private static final GlobalConfConfigKeys INSTANCE = new GlobalConfConfigKeys();
 
@@ -70,7 +71,7 @@ public final class GlobalConfConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return GLOBAL_CONF;
     }
 }

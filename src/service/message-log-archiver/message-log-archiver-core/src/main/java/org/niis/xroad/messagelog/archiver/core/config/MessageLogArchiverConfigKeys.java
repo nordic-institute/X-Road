@@ -26,15 +26,16 @@
  */
 package org.niis.xroad.messagelog.archiver.core.config;
 
+import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Scope;
+import org.niis.xroad.common.properties.config.Prefix;
 
 /** DSL config keys for the {@code xroad.message-log-archiver} namespace. */
 @SuppressWarnings("checkstyle:MagicNumber")
 public final class MessageLogArchiverConfigKeys implements ConfigKeyProvider {
 
-    private static final Scope ARCHIVER = Scope.of("xroad.message-log-archiver", "message-log-archiver");
+    private static final Prefix ARCHIVER = Prefix.of(Category.MESSAGE_LOG_ARCHIVER, "xroad.message-log-archiver");
 
     private static final MessageLogArchiverConfigKeys INSTANCE = new MessageLogArchiverConfigKeys();
 
@@ -88,7 +89,7 @@ public final class MessageLogArchiverConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Scope scope() {
+    public Prefix scope() {
         return ARCHIVER;
     }
 }

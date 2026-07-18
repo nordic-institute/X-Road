@@ -36,7 +36,7 @@ import java.util.List;
 public interface ConfigKeyProvider {
 
     /** @return single scope this provider's keys belong to */
-    Scope scope();
+    Prefix scope();
 
     /** @return keys this provider declares (defaults to scope().keys()) */
     default List<ConfigKey<?>> keys() {
