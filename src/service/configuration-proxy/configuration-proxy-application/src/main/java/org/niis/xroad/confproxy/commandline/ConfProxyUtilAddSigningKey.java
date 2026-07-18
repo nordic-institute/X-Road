@@ -34,6 +34,7 @@ import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import java.time.Instant;
 import java.util.Date;
 
 import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
@@ -88,7 +89,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
     private void addSigningKey(final ConfProxyProperties conf,
                                final String keyId) throws Exception {
         final byte[] certBytes = signerRpcClient.generateSelfSignedCert(keyId, null, SIGNING, "N/A",
-                new Date(0), new Date(Integer.MAX_VALUE));
+                new Date(0), Date.from(Instant.ofEpochSecond(Integer.MAX_VALUE)));
         conf.saveCert(keyId, certBytes);
         System.out.println("Saved self-signed certificate to cert_"
                 + keyId + ".pem");
