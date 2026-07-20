@@ -101,20 +101,11 @@ public class DbSourceRepository {
 
 
     private void prepareQueries(DbSourceConfig config) {
-        selectAllStatement = """
-                WITH ranked_props AS (
-                    SELECT c.property_key, c.property_value,
-                           row_number() OVER (PARTITION BY c.property_key ORDER BY c.scope NULLS LAST) AS rn
-                    FROM %s c
-                    WHERE c.scope IS NULL OR c.scope = '%s'
-                )
-                SELECT conf.property_key, conf.property_value
-                FROM ranked_props conf WHERE conf.rn = 1
-                """.formatted(config.getTableName(), config.getAppName());
+        selectAllStatement = "SELECT c.property_key, c.property_value FROM %s c".formatted(config.getTableName());
 
-        selectValueStatement = selectAllStatement + " AND conf.property_key = ?";
+        selectValueStatement = "SELECT c.property_key, c.property_value FROM %s c WHERE c.property_key = ?"
+                .formatted(config.getTableName());
 
-        selectKeysStatement = "SELECT DISTINCT conf.property_key FROM %s conf WHERE conf.scope IS NULL or conf.scope = '%s'"
-                .formatted(config.getTableName(), config.getAppName());
+        selectKeysStatement = "SELECT c.property_key FROM %s c".formatted(config.getTableName());
     }
 }

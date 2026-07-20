@@ -101,7 +101,7 @@ public final class XRoadConfigBuilder {
      * {@code DB_CONFIG_SOURCE_*} environment. No-op when the DB config source is disabled or
      * its URL is unset, so callers fall back to packaged defaults. Reuses the framework-neutral
      * {@link CachedDbConfigSource}.
-     * @param appName application name (drives the read-pool name and scope filtering)
+     * @param appName application name (drives the read-pool name)
      * @return this builder
      */
     public XRoadConfigBuilder dbOverrides(String appName) {
