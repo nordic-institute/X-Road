@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -73,6 +74,11 @@ class ConfigurationParserTest {
     @BeforeEach
     void setClock() {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC));
+    }
+
+    @AfterEach
+    void resetClock() {
+        TimeUtils.setClock(Clock.systemUTC());
     }
 
     /**

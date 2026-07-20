@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,6 +82,11 @@ class ConfigurationClientTest {
     @BeforeEach
     void setClock() {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC));
+    }
+
+    @AfterEach
+    void resetClock() {
+        TimeUtils.setClock(Clock.systemUTC());
     }
 
     /**
