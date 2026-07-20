@@ -1,19 +1,21 @@
 /*
  * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,6 +37,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+/**
+ * A dotted key-path prefix (e.g. {@code xroad.signer}) that keys are declared under, bound to a
+ * {@link Category} for UI grouping. Nested segments are created with {@link #subPrefix(String)} and inherit
+ * the parent's category. Declare a prefix with {@link #of(Category, String)}, or {@link #of(String)} which
+ * defaults to {@link Category#COMMON}.
+ */
 public abstract sealed class Prefix {
 
     private final String rootPath;
@@ -43,21 +51,23 @@ public abstract sealed class Prefix {
         this.rootPath = rootPath;
     }
 
-    public abstract Optional<String> name();
-
-    /** @return target scope this prefix (and its keys) belong to; {@link Category#COMMON} when unscoped */
+    /** @return UI grouping this prefix (and its keys) belong to; {@link Category#COMMON} when unscoped */
     public abstract Category category();
 
+    /** @return keys declared under the root of this prefix tree */
     public abstract List<ConfigKey<?>> keys();
 
+    /** @return dotted key prefix, e.g. {@code xroad.signer} */
     public String rootPath() {
         return rootPath;
     }
 
-    /** @param pathSegment nested segment appended to this prefix's path
-     *  @return a nested prefix inheriting this prefix's {@link Category} */
+    /**
+     * @param pathSegment nested segment appended to this prefix's path
+     * @return a nested prefix inheriting this prefix's {@link Category}
+     */
     public Prefix subPrefix(String pathSegment) {
-        return new ChildScope(this, rootPath() + "." + pathSegment);
+        return new ChildPrefix(this, rootPath() + "." + pathSegment);
     }
 
     public StringKeyBuilder string(String shortKey) {
@@ -92,45 +102,37 @@ public abstract sealed class Prefix {
         return new GeneralKeyBuilder<T>(this, shortKey, type);
     }
 
+    /**
+     * Declare a prefix in the {@link Category#COMMON} UI grouping (shared keys not owned by a single service).
+     *
+     * @param rootPath dotted key prefix, e.g. {@code xroad.common-rpc}
+     * @return the prefix
+     */
     public static Prefix of(String rootPath) {
-        Objects.requireNonNull(rootPath, "scope rootPath is null");
-        return new RootScope(rootPath, null, Category.COMMON);
-    }
-
-    public static Prefix of(String rootPath, String name) {
-        Objects.requireNonNull(rootPath, "scope rootPath is null");
-        Objects.requireNonNull(name, "scope name is null");
-        return new RootScope(rootPath, name, Category.COMMON);
+        Objects.requireNonNull(rootPath, "rootPath is null");
+        return new RootPrefix(rootPath, Category.COMMON);
     }
 
     /**
-     * The design's {@code Prefix.of(scope, path)}: declare a prefix bound to an explicit target scope.
-     * The single-arg {@link #of(String)} defaults the scope to {@link Category#COMMON}.
+     * Declare a prefix bound to an explicit UI {@link Category}.
      *
-     * @param scope    target scope for every key under this prefix
+     * @param category UI grouping for every key under this prefix
      * @param rootPath dotted key prefix, e.g. {@code xroad.signer}
      * @return the prefix
      */
-    public static Prefix of(Category scope, String rootPath) {
-        Objects.requireNonNull(scope, "scope is null");
-        Objects.requireNonNull(rootPath, "scope rootPath is null");
-        return new RootScope(rootPath, null, scope);
+    public static Prefix of(Category category, String rootPath) {
+        Objects.requireNonNull(category, "category is null");
+        Objects.requireNonNull(rootPath, "rootPath is null");
+        return new RootPrefix(rootPath, category);
     }
 
-    private static final class RootScope extends Prefix {
-        private final String name;
+    private static final class RootPrefix extends Prefix {
         private final Category category;
         private final List<ConfigKey<?>> keys = new ArrayList<>();
 
-        private RootScope(String rootPath, String name, Category category) {
+        private RootPrefix(String rootPath, Category category) {
             super(rootPath);
-            this.name = name;
             this.category = category;
-        }
-
-        @Override
-        public Optional<String> name() {
-            return Optional.ofNullable(name);
         }
 
         @Override
@@ -144,18 +146,13 @@ public abstract sealed class Prefix {
         }
     }
 
-    private static final class ChildScope extends Prefix {
+    private static final class ChildPrefix extends Prefix {
 
         private final Prefix parent;
 
-        private ChildScope(Prefix parent, String rootPath) {
+        private ChildPrefix(Prefix parent, String rootPath) {
             super(rootPath);
             this.parent = parent;
-        }
-
-        @Override
-        public Optional<String> name() {
-            return parent.name();
         }
 
         @Override
@@ -171,7 +168,6 @@ public abstract sealed class Prefix {
 
     public static final class DefaultConfigKey<T> implements ConfigKey<T> {
 
-        private final String scopeName;
         private final Category category;
         private final String key;
         private final Class<T> type;
@@ -180,8 +176,7 @@ public abstract sealed class Prefix {
         private final Function<String, T> converter;
         private final Validator<T> validator;
 
-        private DefaultConfigKey(String scopeName,
-                                 Category category,
+        private DefaultConfigKey(Category category,
                                  String key, Class<T> type,
                                  String defaultValue,
                                  String containerDefaultValue,
@@ -198,7 +193,6 @@ public abstract sealed class Prefix {
             validateDefault(key, defaultValue, converter, validator);
             validateDefault(key, containerDefaultValue, converter, validator);
 
-            this.scopeName = scopeName;
             this.category = category;
             this.key = key;
             this.type = type;
@@ -217,11 +211,6 @@ public abstract sealed class Prefix {
                             "Invalid default for %s: %s".formatted(key, result.message()));
                 }
             }
-        }
-
-        @Override
-        public Optional<String> scopeName() {
-            return Optional.ofNullable(scopeName);
         }
 
         @Override
@@ -288,7 +277,7 @@ public abstract sealed class Prefix {
 
     @RequiredArgsConstructor
     private abstract static sealed class Builder<T, KB extends Builder<T, KB>> {
-        protected final Prefix scope;
+        protected final Prefix prefix;
         protected final String shortKey;
         protected final Class<T> type;
 
@@ -318,9 +307,9 @@ public abstract sealed class Prefix {
         }
 
         public ConfigKey<T> build() {
-            var key = scope.rootPath() + "." + shortKey;
+            var key = prefix.rootPath() + "." + shortKey;
 
-            var configKey = new DefaultConfigKey<>(scope.name().orElse(null), scope.category(), key, type, defaultValue,
+            var configKey = new DefaultConfigKey<>(prefix.category(), key, type, defaultValue,
                     containerDefaultValue, converter, validator);
 
             if (defaultValue != null) {
@@ -331,9 +320,9 @@ public abstract sealed class Prefix {
                 }
             }
 
-            // every key (root or nested) is tracked on the root scope, so provider.keys() returns the whole tree
-            var root = scope;
-            while (root instanceof ChildScope child) {
+            // every key (root or nested) is tracked on the root prefix, so provider.keys() returns the whole tree
+            var root = prefix;
+            while (root instanceof ChildPrefix child) {
                 root = child.parent;
             }
             root.keys().add(configKey);
@@ -344,8 +333,8 @@ public abstract sealed class Prefix {
 
     public static final class StringKeyBuilder extends Builder<String, StringKeyBuilder> {
 
-        private StringKeyBuilder(Prefix scope, String shortKey) {
-            super(scope, shortKey, String.class);
+        private StringKeyBuilder(Prefix prefix, String shortKey) {
+            super(prefix, shortKey, String.class);
             converter = Function.identity();
         }
 
@@ -353,8 +342,8 @@ public abstract sealed class Prefix {
 
     public static final class StringArrayKeyBuilder extends Builder<String[], StringArrayKeyBuilder> {
 
-        private StringArrayKeyBuilder(Prefix scope, String shortKey) {
-            super(scope, shortKey, String[].class);
+        private StringArrayKeyBuilder(Prefix prefix, String shortKey) {
+            super(prefix, shortKey, String[].class);
             converter = raw -> Stream.of(raw.split(","))
                     .map(String::trim)
                     .toArray(String[]::new);
@@ -364,8 +353,8 @@ public abstract sealed class Prefix {
 
     public static final class IntKeyBuilder extends Builder<Integer, IntKeyBuilder> {
 
-        private IntKeyBuilder(Prefix scope, String shortKey) {
-            super(scope, shortKey, Integer.class);
+        private IntKeyBuilder(Prefix prefix, String shortKey) {
+            super(prefix, shortKey, Integer.class);
             converter = Integer::parseInt;
         }
 
@@ -378,8 +367,8 @@ public abstract sealed class Prefix {
 
     public static final class LongKeyBuilder extends Builder<Long, LongKeyBuilder> {
 
-        private LongKeyBuilder(Prefix scope, String shortKey) {
-            super(scope, shortKey, Long.class);
+        private LongKeyBuilder(Prefix prefix, String shortKey) {
+            super(prefix, shortKey, Long.class);
             converter = Long::parseLong;
         }
 
@@ -391,8 +380,8 @@ public abstract sealed class Prefix {
 
     public static final class EnumKeyBuilder<E extends Enum<E>> extends Builder<E, EnumKeyBuilder<E>> {
 
-        private EnumKeyBuilder(Prefix scope, String shortKey, Class<E> type) {
-            super(scope, shortKey, type);
+        private EnumKeyBuilder(Prefix prefix, String shortKey, Class<E> type) {
+            super(prefix, shortKey, type);
             converter = raw -> Enum.valueOf(type, raw);
         }
 
@@ -404,8 +393,8 @@ public abstract sealed class Prefix {
 
     public static final class DurationKeyBuilder extends Builder<Duration, DurationKeyBuilder> {
 
-        private DurationKeyBuilder(Prefix scope, String shortKey) {
-            super(scope, shortKey, Duration.class);
+        private DurationKeyBuilder(Prefix prefix, String shortKey) {
+            super(prefix, shortKey, Duration.class);
             converter = DurationConverter::parseDuration;
         }
 
@@ -417,8 +406,8 @@ public abstract sealed class Prefix {
 
     public static final class BooleanKeyBuilder extends Builder<Boolean, BooleanKeyBuilder> {
 
-        private BooleanKeyBuilder(Prefix scope, String shortKey) {
-            super(scope, shortKey, Boolean.class);
+        private BooleanKeyBuilder(Prefix prefix, String shortKey) {
+            super(prefix, shortKey, Boolean.class);
             converter = Boolean::parseBoolean;
         }
 
@@ -435,8 +424,8 @@ public abstract sealed class Prefix {
 
     public static final class GeneralKeyBuilder<T> extends Builder<T, GeneralKeyBuilder<T>> {
 
-        private GeneralKeyBuilder(Prefix scope, String shortKey, Class<T> type) {
-            super(scope, shortKey, type);
+        private GeneralKeyBuilder(Prefix prefix, String shortKey, Class<T> type) {
+            super(prefix, shortKey, type);
         }
 
         public GeneralKeyBuilder<T> withConverter(Function<String, T> converter) {

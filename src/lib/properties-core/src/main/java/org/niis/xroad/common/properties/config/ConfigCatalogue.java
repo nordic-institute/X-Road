@@ -41,17 +41,17 @@ public final class ConfigCatalogue {
     }
 
     /**
-     * One declared property as seen by the catalogue: its effective key, scope grouping label,
+     * One declared property as seen by the catalogue: its effective key, UI {@link Category} grouping,
      * value type, declared default (raw), and validation summary.
      *
      * @param key               effective key, e.g. {@code xroad.signer.key-length}
-     * @param scope             scope grouping label, empty for scope-less globals
+     * @param category          UI grouping ({@link Category#COMMON} when unscoped)
      * @param type              declared value type
      * @param defaultValue      raw declared default, {@code null} when none is declared
      * @param validationSummary human-readable constraint, empty when unconstrained
      */
     public record Entry(String key,
-                        Optional<String> scope,
+                        Category category,
                         Class<?> type,
                         String defaultValue,
                         Optional<String> validationSummary) {
@@ -61,7 +61,7 @@ public final class ConfigCatalogue {
          * @return catalogue entry for {@code key}
          */
         public static Entry of(ConfigKey<?> key) {
-            return new Entry(key.key(), key.scopeName(), key.type(), key.defaultValue(), key.validationSummary());
+            return new Entry(key.key(), key.category(), key.type(), key.defaultValue(), key.validationSummary());
         }
     }
 

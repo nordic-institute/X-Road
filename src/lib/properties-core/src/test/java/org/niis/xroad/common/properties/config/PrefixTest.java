@@ -34,7 +34,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class ScopeTest {
+class PrefixTest {
 
     @Test
     void ofRequiresNonNullRootPath() {
@@ -42,31 +42,31 @@ class ScopeTest {
     }
 
     @Test
-    void rootScopeExposesRootPathAndEmptyName() {
-        var scope = Prefix.of("xroad.proxy");
+    void singleArgPrefixExposesRootPathAndCommonCategory() {
+        var prefix = Prefix.of("xroad.proxy");
 
-        assertThat(scope.rootPath()).isEqualTo("xroad.proxy");
-        assertThat(scope.name()).isEmpty();
+        assertThat(prefix.rootPath()).isEqualTo("xroad.proxy");
+        assertThat(prefix.category()).isEqualTo(Category.COMMON);
     }
 
     @Test
-    void namedRootScopeExposesNameAndRejectsNullName() {
-        var scope = Prefix.of("xroad.proxy", "proxy");
+    void explicitPrefixExposesCategoryAndRejectsNullCategory() {
+        var prefix = Prefix.of(Category.PROXY, "xroad.proxy");
 
-        assertThat(scope.rootPath()).isEqualTo("xroad.proxy");
-        assertThat(scope.name()).contains("proxy");
-        assertThatThrownBy(() -> Prefix.of("xroad.proxy", null)).isInstanceOf(NullPointerException.class);
+        assertThat(prefix.rootPath()).isEqualTo("xroad.proxy");
+        assertThat(prefix.category()).isEqualTo(Category.PROXY);
+        assertThatThrownBy(() -> Prefix.of(null, "xroad.proxy")).isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    void childChainsRootPathAndInheritsName() {
-        var buffer = Prefix.of("xroad.proxy", "proxy")
+    void subPrefixChainsRootPathAndInheritsCategory() {
+        var buffer = Prefix.of(Category.PROXY, "xroad.proxy")
                 .subPrefix("addon")
                 .subPrefix("op-monitor")
                 .subPrefix("buffer");
 
         assertThat(buffer.rootPath()).isEqualTo("xroad.proxy.addon.op-monitor.buffer");
-        assertThat(buffer.name()).contains("proxy");
+        assertThat(buffer.category()).isEqualTo(Category.PROXY);
     }
 
     @Test
@@ -81,35 +81,35 @@ class ScopeTest {
 
     @Test
     void builderFactoriesCarryDeclaredType() {
-        var scope = Prefix.of("xroad.svc");
+        var prefix = Prefix.of("xroad.svc");
 
-        assertThat(scope.integer("i").build().type()).isEqualTo(Integer.class);
-        assertThat(scope.longValue("l").build().type()).isEqualTo(Long.class);
-        assertThat(scope.bool("b").build().type()).isEqualTo(Boolean.class);
-        assertThat(scope.string("s").build().type()).isEqualTo(String.class);
-        assertThat(scope.stringArray("a").build().type()).isEqualTo(String[].class);
-        assertThat(scope.keyDuration("d").build().type()).isEqualTo(Duration.class);
-        assertThat(scope.keyEnum("e", Mode.class).build().type()).isEqualTo(Mode.class);
+        assertThat(prefix.integer("i").build().type()).isEqualTo(Integer.class);
+        assertThat(prefix.longValue("l").build().type()).isEqualTo(Long.class);
+        assertThat(prefix.bool("b").build().type()).isEqualTo(Boolean.class);
+        assertThat(prefix.string("s").build().type()).isEqualTo(String.class);
+        assertThat(prefix.stringArray("a").build().type()).isEqualTo(String[].class);
+        assertThat(prefix.keyDuration("d").build().type()).isEqualTo(Duration.class);
+        assertThat(prefix.keyEnum("e", Mode.class).build().type()).isEqualTo(Mode.class);
     }
 
     @Test
-    void keysTrackedOnRootInDeclarationOrderAcrossNestedScopes() {
+    void keysTrackedOnRootInDeclarationOrderAcrossNestedPrefixes() {
         var root = Prefix.of("xroad.proxy");
         var rootKey = root.integer("admin-port").build();
         var childKey = root.subPrefix("client-proxy").bool("reuse").build();
         var grandChildKey = root.subPrefix("addon").subPrefix("op-monitor").bool("enabled").build();
 
-        // every key — root, child, grandchild — is tracked on the root scope, in declaration order
+        // every key — root, child, grandchild — is tracked on the root prefix, in declaration order
         assertThat(root.keys()).containsExactly(rootKey, childKey, grandChildKey);
     }
 
     @Test
-    void childScopeDoesNotTrackKeysItself() {
+    void subPrefixDoesNotTrackKeysItself() {
         var root = Prefix.of("xroad.proxy");
         var child = root.subPrefix("client-proxy");
         child.bool("reuse").build();
 
-        // tracking lives on the root scope only
+        // tracking lives on the root prefix only
         assertThat(child.keys()).isEmpty();
         assertThat(root.keys()).hasSize(1);
     }

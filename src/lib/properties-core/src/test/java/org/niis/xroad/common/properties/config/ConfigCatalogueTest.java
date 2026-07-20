@@ -38,17 +38,17 @@ import static org.niis.xroad.common.properties.config.Validator.oneOf;
 class ConfigCatalogueTest {
 
     @Test
-    void projectsDeclaredKeysWithScopeTypeDefaultAndSummary() {
-        var scope = Prefix.of("xroad.signer", "signer");
-        scope.integer("key-length").withValidator(oneOf(2048, 3072)).withDefaultValue(2048).build();
-        ConfigKeyProvider provider = () -> scope;
+    void projectsDeclaredKeysWithCategoryTypeDefaultAndSummary() {
+        var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
+        prefix.integer("key-length").withValidator(oneOf(2048, 3072)).withDefaultValue(2048).build();
+        ConfigKeyProvider provider = () -> prefix;
 
         var entries = ConfigCatalogue.from(List.of(provider));
 
         assertThat(entries).hasSize(1);
         var entry = entries.getFirst();
         assertThat(entry.key()).isEqualTo("xroad.signer.key-length");
-        assertThat(entry.scope()).contains("signer");
+        assertThat(entry.category()).isEqualTo(Category.SIGNER);
         assertThat(entry.type()).isEqualTo(Integer.class);
         assertThat(entry.defaultValue()).isEqualTo("2048");
         assertThat(entry.validationSummary().orElseThrow()).startsWith("one of").contains("2048", "3072");
@@ -56,9 +56,9 @@ class ConfigCatalogueTest {
 
     @Test
     void entryForUnvalidatedKeyHasNoSummary() {
-        var scope = Prefix.of("xroad.signer", "signer");
-        scope.bool("enforce-token-pin-policy").withDefaultValue(false).build();
-        ConfigKeyProvider provider = () -> scope;
+        var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
+        prefix.bool("enforce-token-pin-policy").withDefaultValue(false).build();
+        ConfigKeyProvider provider = () -> prefix;
 
         var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
 
@@ -66,22 +66,22 @@ class ConfigCatalogueTest {
     }
 
     @Test
-    void scopeLessGlobalEnumeratesWithEmptyScope() {
-        var scope = Prefix.of("xroad");
-        scope.string("instance-country").build();
-        ConfigKeyProvider provider = () -> scope;
+    void singleArgPrefixEnumeratesAsCommonCategory() {
+        var prefix = Prefix.of("xroad");
+        prefix.string("instance-country").build();
+        ConfigKeyProvider provider = () -> prefix;
 
         var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
 
         assertThat(entry.key()).isEqualTo("xroad.instance-country");
-        assertThat(entry.scope()).isEmpty();
+        assertThat(entry.category()).isEqualTo(Category.COMMON);
     }
 
     @Test
     void aggregatesKeysAcrossMultipleProviders() {
-        var signer = Prefix.of("xroad.signer", "signer");
+        var signer = Prefix.of(Category.SIGNER, "xroad.signer");
         signer.integer("key-length").withDefaultValue(2048).build();
-        var proxy = Prefix.of("xroad.proxy", "proxy");
+        var proxy = Prefix.of(Category.PROXY, "xroad.proxy");
         proxy.bool("verify-client-cert").withDefaultValue(true).build();
 
         var entries = ConfigCatalogue.from(List.of(() -> signer, () -> proxy));

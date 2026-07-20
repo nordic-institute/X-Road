@@ -30,9 +30,8 @@ package org.niis.xroad.common.properties.config;
 import java.util.Optional;
 
 public sealed interface ConfigKey<T> permits Prefix.DefaultConfigKey {
-    Optional<String> scopeName();
 
-    /** @return target scope (deployment/app) this key belongs to; {@link Category#COMMON} when unscoped */
+    /** @return UI grouping this key belongs to; {@link Category#COMMON} when unscoped */
     Category category();
 
     String key();
