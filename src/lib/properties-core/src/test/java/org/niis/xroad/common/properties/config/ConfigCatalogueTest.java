@@ -97,4 +97,20 @@ class ConfigCatalogueTest {
         assertThat(entries).isNotEmpty();
         assertThat(entries).allSatisfy(entry -> assertThat(entry.key()).isNotBlank());
     }
+
+    @Test
+    void exposedReturnsOnlyKeysMarkedExposedInUi() {
+        var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
+        prefix.integer("key-length").withDefaultValue(2048).exposedInUi().build();
+        prefix.string("internal-detail").build();
+        ConfigKeyProvider provider = () -> prefix;
+
+        assertThat(ConfigCatalogue.from(List.of(provider))).hasSize(2);
+        assertThat(ConfigCatalogue.exposed(List.of(provider)))
+                .singleElement()
+                .satisfies(entry -> {
+                    assertThat(entry.key()).isEqualTo("xroad.signer.key-length");
+                    assertThat(entry.exposedInUi()).isTrue();
+                });
+    }
 }

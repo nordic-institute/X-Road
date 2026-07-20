@@ -169,6 +169,7 @@ public abstract sealed class Prefix {
     public static final class DefaultConfigKey<T> implements ConfigKey<T> {
 
         private final Category category;
+        private final boolean exposedInUi;
         private final String key;
         private final Class<T> type;
         private final String defaultValue;
@@ -177,6 +178,7 @@ public abstract sealed class Prefix {
         private final Validator<T> validator;
 
         private DefaultConfigKey(Category category,
+                                 boolean exposedInUi,
                                  String key, Class<T> type,
                                  String defaultValue,
                                  String containerDefaultValue,
@@ -194,6 +196,7 @@ public abstract sealed class Prefix {
             validateDefault(key, containerDefaultValue, converter, validator);
 
             this.category = category;
+            this.exposedInUi = exposedInUi;
             this.key = key;
             this.type = type;
             this.defaultValue = defaultValue;
@@ -216,6 +219,11 @@ public abstract sealed class Prefix {
         @Override
         public Category category() {
             return category;
+        }
+
+        @Override
+        public boolean exposedInUi() {
+            return exposedInUi;
         }
 
         @Override
@@ -285,11 +293,19 @@ public abstract sealed class Prefix {
         protected Function<String, T> converter;
         protected String defaultValue;
         protected String containerDefaultValue;
+        protected boolean exposedInUi;
 
 
         @SuppressWarnings("unchecked")
         public KB withValidator(Validator<T> val) {
             this.validator = val;
+            return (KB) this;
+        }
+
+        /** Marks the key as shown/editable in the system-parameters UI (internal keys stay hidden by default). */
+        @SuppressWarnings("unchecked")
+        public KB exposedInUi() {
+            this.exposedInUi = true;
             return (KB) this;
         }
 
@@ -309,7 +325,7 @@ public abstract sealed class Prefix {
         public ConfigKey<T> build() {
             var key = prefix.rootPath() + "." + shortKey;
 
-            var configKey = new DefaultConfigKey<>(prefix.category(), key, type, defaultValue,
+            var configKey = new DefaultConfigKey<>(prefix.category(), exposedInUi, key, type, defaultValue,
                     containerDefaultValue, converter, validator);
 
             if (defaultValue != null) {

@@ -34,6 +34,11 @@ public sealed interface ConfigKey<T> permits Prefix.DefaultConfigKey {
     /** @return UI grouping this key belongs to; {@link Category#COMMON} when unscoped */
     Category category();
 
+    /** @return whether this key is shown/editable in the system-parameters UI; internal keys default to false */
+    default boolean exposedInUi() {
+        return false;
+    }
+
     String key();
 
     String defaultValue();

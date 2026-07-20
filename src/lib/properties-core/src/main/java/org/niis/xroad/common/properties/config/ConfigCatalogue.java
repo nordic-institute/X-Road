@@ -42,18 +42,20 @@ public final class ConfigCatalogue {
 
     /**
      * One declared property as seen by the catalogue: its effective key, UI {@link Category} grouping,
-     * value type, declared default (raw), and validation summary.
+     * value type, declared default (raw), whether it is shown in the UI, and validation summary.
      *
      * @param key               effective key, e.g. {@code xroad.signer.key-length}
      * @param category          UI grouping ({@link Category#COMMON} when unscoped)
      * @param type              declared value type
      * @param defaultValue      raw declared default, {@code null} when none is declared
+     * @param exposedInUi       whether the system-parameters UI shows/edits this key
      * @param validationSummary human-readable constraint, empty when unconstrained
      */
     public record Entry(String key,
                         Category category,
                         Class<?> type,
                         String defaultValue,
+                        boolean exposedInUi,
                         Optional<String> validationSummary) {
 
         /**
@@ -61,7 +63,8 @@ public final class ConfigCatalogue {
          * @return catalogue entry for {@code key}
          */
         public static Entry of(ConfigKey<?> key) {
-            return new Entry(key.key(), key.category(), key.type(), key.defaultValue(), key.validationSummary());
+            return new Entry(key.key(), key.category(), key.type(), key.defaultValue(),
+                    key.exposedInUi(), key.validationSummary());
         }
     }
 
@@ -73,6 +76,16 @@ public final class ConfigCatalogue {
         return providers.stream()
                 .flatMap(provider -> provider.keys().stream())
                 .map(Entry::of)
+                .toList();
+    }
+
+    /**
+     * @param providers providers whose declared keys make up the catalogue
+     * @return only the keys marked {@link Entry#exposedInUi()} — the system-parameters UI catalogue
+     */
+    public static List<Entry> exposed(List<ConfigKeyProvider> providers) {
+        return from(providers).stream()
+                .filter(Entry::exposedInUi)
                 .toList();
     }
 }
