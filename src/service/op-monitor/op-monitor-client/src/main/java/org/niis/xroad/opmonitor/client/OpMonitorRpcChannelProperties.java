@@ -40,6 +40,10 @@ public class OpMonitorRpcChannelProperties extends XRoadRpcChannelProperties {
                 CommonRpcConfigKeys.CHANNEL_OP_MONITOR_DEADLINE_AFTER);
     }
 
+    public OpMonitorRpcChannelProperties() {
+        this(null);
+    }
+
     @Override
     public String toString() {
         return "OpMonitorRpcChannelProperties(" + super.toString() + ")";

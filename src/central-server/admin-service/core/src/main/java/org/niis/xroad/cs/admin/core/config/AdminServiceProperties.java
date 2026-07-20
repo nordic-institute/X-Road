@@ -192,6 +192,16 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     }
 
     @Override
+    public String getBackupFormatVersionFilePath() {
+        return config.value(CsAdminServiceConfigKeys.BACKUP_FORMAT_VERSION_FILE_PATH);
+    }
+
+    @Override
+    public String getCreateBackupMetadataPath() {
+        return config.value(CsAdminServiceConfigKeys.CREATE_BACKUP_METADATA_PATH);
+    }
+
+    @Override
     public String getKeyManagementApiWhitelist() {
         return config.value(CsAdminServiceConfigKeys.KEY_MANAGEMENT_API_WHITELIST);
     }

@@ -177,6 +177,16 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .string("conf-backup-path")
             .withDefaultValue("/var/lib/xroad/backup/")
             .build();
+    /** {@code xroad.admin-service.backup-format-version-file-path}. */
+    public static final ConfigKey<String> BACKUP_FORMAT_VERSION_FILE_PATH = ADMIN
+            .string("backup-format-version-file-path")
+            .withDefaultValue("/usr/share/xroad/scripts/_backup_format_version")
+            .build();
+    /** {@code xroad.admin-service.create-backup-metadata-path}. */
+    public static final ConfigKey<String> CREATE_BACKUP_METADATA_PATH = ADMIN
+            .string("create-backup-metadata-path")
+            .withDefaultValue("/usr/share/xroad/scripts/_create_backup_metadata.sh")
+            .build();
     /** {@code xroad.admin-service.key-management-api-whitelist}. */
     public static final ConfigKey<String> KEY_MANAGEMENT_API_WHITELIST = ADMIN
             .string("key-management-api-whitelist")

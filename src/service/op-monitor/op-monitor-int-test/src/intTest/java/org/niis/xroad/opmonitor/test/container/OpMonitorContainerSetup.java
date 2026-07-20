@@ -27,10 +27,11 @@ package org.niis.xroad.opmonitor.test.container;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
-import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
@@ -80,20 +81,21 @@ public class OpMonitorContainerSetup extends BaseComposeSetup {
     @Override
     @SneakyThrows
     protected void onPostStart() {
+        var mapping = getContainerMapping(OP_MONITOR, CommonRpcConfigKeys.CHANNEL_OP_MONITOR_PORT.convertedDefaultValue());
         var properties = new OpMonitorRpcChannelProperties() {
             @Override
             public String host() {
-                return getContainerMapping(OP_MONITOR, Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT)).host();
+                return mapping.host();
             }
 
             @Override
             public int port() {
-                return getContainerMapping(OP_MONITOR, Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_PORT)).port();
+                return mapping.port();
             }
 
             @Override
             public int deadlineAfter() {
-                return Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_DEADLINE_AFTER);
+                return CommonRpcConfigKeys.CHANNEL_OP_MONITOR_DEADLINE_AFTER.convertedDefaultValue();
             }
         };
 

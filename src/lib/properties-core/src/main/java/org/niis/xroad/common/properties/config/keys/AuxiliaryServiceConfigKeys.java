@@ -106,6 +106,22 @@ public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /** {@code xroad.auxiliary-service.backup.create-backup-metadata-path}. */
+    public static final ConfigKey<String> BACKUP_CREATE_BACKUP_METADATA_PATH = BACKUP
+            .string("create-backup-metadata-path")
+            .withDefaultValue("/usr/share/xroad/scripts/_create_backup_metadata.sh")
+            .withContainerDefaultValue("/usr/share/xroad/scripts/containerised/create_backup_metadata.sh")
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.auxiliary-service.backup.backup-format-version-file-path}. */
+    public static final ConfigKey<String> BACKUP_FORMAT_VERSION_FILE_PATH = BACKUP
+            .string("backup-format-version-file-path")
+            .withDefaultValue("/usr/share/xroad/scripts/_backup_format_version")
+            .withContainerDefaultValue("/usr/share/xroad/scripts/containerised/backup_format_version")
+            .exposedInUi()
+            .build();
+
     /** {@code xroad.auxiliary-service.backup.generate-gpg-keypair-path}. */
     public static final ConfigKey<String> BACKUP_GENERATE_GPG_KEYPAIR_PATH = BACKUP
             .string("generate-gpg-keypair-path")

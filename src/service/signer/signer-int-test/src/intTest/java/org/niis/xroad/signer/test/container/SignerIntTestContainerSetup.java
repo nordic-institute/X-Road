@@ -30,6 +30,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
@@ -60,8 +61,8 @@ public class SignerIntTestContainerSetup extends BaseComposeSetup {
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
 
-    private static final int SIGNER_GRPC_PORT = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_PORT);
-    private static final int DEFAULT_DEADLINE_MILLIS = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_DEADLINE_AFTER);
+    private static final int SIGNER_GRPC_PORT = CommonRpcConfigKeys.CHANNEL_SIGNER_PORT.convertedDefaultValue();
+    private static final int DEFAULT_DEADLINE_MILLIS = CommonRpcConfigKeys.CHANNEL_SIGNER_DEADLINE_AFTER.convertedDefaultValue();
     private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
 

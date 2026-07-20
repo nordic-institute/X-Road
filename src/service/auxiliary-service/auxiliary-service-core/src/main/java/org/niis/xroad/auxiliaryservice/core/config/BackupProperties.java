@@ -38,8 +38,10 @@ import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfi
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_DELETE_OLD_BACKUPS_CRON;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_KEEP_FOR;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_SCRIPT_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_CREATE_BACKUP_METADATA_PATH;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_ENCRYPTION_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_ENCRYPTION_KEYIDS;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_FORMAT_VERSION_FILE_PATH;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_GENERATE_GPG_KEYPAIR_PATH;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_GPGKEYS_HOME;
 import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_LOCATION;
@@ -84,13 +86,17 @@ public class BackupProperties {
         return xRoadConfig.value(BACKUP_RESTORE_SCRIPT_PATH);
     }
 
-    @WithName("create-backup-metadata-path")
-    @WithDefault("/usr/share/xroad/scripts/_create_backup_metadata.sh")
-    String createBackupMetadataPath();
+    public String createBackupMetadataPath() {
+        return xRoadConfig.value(BACKUP_CREATE_BACKUP_METADATA_PATH);
+    }
 
-    @WithName("backup-format-version-file-path")
-    @WithDefault("/usr/share/xroad/scripts/_backup_format_version")
-    String backupFormatVersionFilePath();
+    public String backupFormatVersionFilePath() {
+        return xRoadConfig.value(BACKUP_FORMAT_VERSION_FILE_PATH);
+    }
+
+    public String generateGpgKeypairScriptPath() {
+        return xRoadConfig.value(BACKUP_GENERATE_GPG_KEYPAIR_PATH);
+    }
 
     public String gpgKeysHomePath() {
         return xRoadConfig.value(BACKUP_GPGKEYS_HOME);
