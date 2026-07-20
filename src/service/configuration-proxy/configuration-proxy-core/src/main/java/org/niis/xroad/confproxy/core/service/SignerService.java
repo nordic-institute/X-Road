@@ -33,6 +33,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import java.time.Instant;
 import java.util.Date;
 
 import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
@@ -42,7 +43,7 @@ import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
 @RequiredArgsConstructor
 public class SignerService {
     private static final String SOFTWARE_TOKEN_ID = "0";
-    private static final Date FAR_FUTURE = new Date(Integer.MAX_VALUE);
+    private static final Date FAR_FUTURE = Date.from(Instant.ofEpochSecond(Integer.MAX_VALUE));
     private static final Date FAR_PAST = new Date(0);
     private final SignerRpcClient signerRpcClient;
 
