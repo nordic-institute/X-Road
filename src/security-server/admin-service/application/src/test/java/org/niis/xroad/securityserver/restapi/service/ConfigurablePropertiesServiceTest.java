@@ -45,6 +45,7 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -58,6 +59,11 @@ class ConfigurablePropertiesServiceTest {
     private static final String PROPERTY_VALUE_2 = "11000";
     private static final String DEFAULT_VALUE = "5000";
     private static final String SCOPE = "proxy-ui-api";
+
+    // a key declared by the DSL catalogue (ProxyConfigKeys) rather than the residual yaml
+    private static final String CATALOGUE_PROPERTY_NAME = "xroad.proxy.admin-port";
+    private static final String CATALOGUE_DEFAULT_VALUE = "5566";
+    private static final String CATALOGUE_SCOPE = "proxy";
 
     @Mock
     private ConfigurablePropertiesDefinition configurableProperties;
@@ -76,7 +82,21 @@ class ConfigurablePropertiesServiceTest {
         when(configurableProperties.getConfigurableProperties()).thenReturn(List.of());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(0, systemParameters.size());
+
+        assertTrue(systemParameters.stream().noneMatch(p -> PROPERTY_NAME.equals(p.getPropertyName())));
+    }
+
+    @Test
+    void getConfigurationPropertiesIncludesDslCatalogueDerivedProperty() {
+        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of());
+        when(repository.findAll()).thenReturn(List.of());
+
+        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, CATALOGUE_PROPERTY_NAME);
+        assertEquals(CATALOGUE_DEFAULT_VALUE, parameter.getDefaultValue());
+        assertEquals(CATALOGUE_SCOPE, parameter.getScope());
+        assertNull(parameter.getCurrentValue());
     }
 
     @Test
@@ -89,8 +109,7 @@ class ConfigurablePropertiesServiceTest {
         when(repository.findAll()).thenReturn(List.of());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(1, systemParameters.size());
-        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertCommonConfigurablePropertyDtoFields(parameter);
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
@@ -110,8 +129,7 @@ class ConfigurablePropertiesServiceTest {
         when(repository.findAll()).thenReturn(List.of(entity));
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(1, systemParameters.size());
-        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertCommonConfigurablePropertyDtoFields(parameter);
         assertEquals(SCOPE, parameter.getScope());
         assertEquals(PROPERTY_VALUE_2, parameter.getCurrentValue());
@@ -130,8 +148,7 @@ class ConfigurablePropertiesServiceTest {
         when(repository.findAll()).thenReturn(List.of(entity));
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(1, systemParameters.size());
-        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertCommonConfigurablePropertyDtoFields(parameter);
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
@@ -249,6 +266,14 @@ class ConfigurablePropertiesServiceTest {
         assertEquals(SCOPE, capturedEntity.getScope());
 
         verifyNoInteractions(existingValueConsumer);
+    }
+
+    private static SecurityServerConfigurablePropertyDto findProperty(
+            Set<SecurityServerConfigurablePropertyDto> properties, String propertyName) {
+        return properties.stream()
+                .filter(p -> propertyName.equals(p.getPropertyName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Property not found: " + propertyName));
     }
 
     private static void assertCommonConfigurablePropertyDtoFields(SecurityServerConfigurablePropertyDto parameter) {

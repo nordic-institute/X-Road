@@ -28,9 +28,23 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigCatalogue;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition.ConfigurableProperty;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -43,6 +57,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
 
@@ -57,6 +72,24 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
 public class ConfigurablePropertiesService {
 
     private static final Consumer<String> NOOP_VALUE_CONSUMER = _ -> { };
+
+    /**
+     * Providers whose exposed keys make up the Security Server's aggregated system-parameters catalogue.
+     * Kept in sync with the residual {@code configurable-properties.yaml}: any provider whose keys should
+     * surface in the system-parameters UI belongs here instead of the yaml.
+     */
+    private static final List<ConfigKeyProvider> SS_PROVIDERS = List.of(
+            CommonConfigKeys.instance(),
+            CommonRpcConfigKeys.instance(),
+            ProxyConfigKeys.instance(),
+            ConfClientConfigKeys.instance(),
+            OpMonitorConfigKeys.instance(),
+            AuxiliaryServiceConfigKeys.instance(),
+            AdminServiceConfigKeys.instance(),
+            OcspVerifierConfigKeys.instance(),
+            GlobalConfConfigKeys.instance(),
+            ServerConfConfigKeys.instance(),
+            HealthCheckConfigKeys.instance());
 
     private final ConfigurablePropertiesDefinition configurableProperties;
     private final ConfigurationPropertyRepository repository;
@@ -73,7 +106,7 @@ public class ConfigurablePropertiesService {
      */
     public Set<SecurityServerConfigurablePropertyDto> getConfigurationProperties() {
         var currentPropertiesValues = repository.findAll();
-        return configurableProperties.getConfigurableProperties()
+        return getAllPropertyDefinitions()
                 .stream()
                 .map(param -> toSecurityServerSystemParameterDto(param, currentPropertiesValues))
                 .collect(Collectors.toSet());
@@ -130,15 +163,15 @@ public class ConfigurablePropertiesService {
     }
 
     private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(
-            ConfigurableProperty parameter, List<ConfigurationPropertyEntity> storedValues) {
+            PropertyDefinition parameter, List<ConfigurationPropertyEntity> storedValues) {
         var systemPropertyDto = new SecurityServerConfigurablePropertyDto();
-        systemPropertyDto.setPropertyName(parameter.getPropertyName());
-        systemPropertyDto.setDefaultValue(parameter.getDefaultValue());
-        systemPropertyDto.setScope(parameter.getScope());
+        systemPropertyDto.setPropertyName(parameter.propertyName());
+        systemPropertyDto.setDefaultValue(parameter.defaultValue());
+        systemPropertyDto.setScope(parameter.scope());
         storedValues.stream()
                 .filter(v ->
-                        v.getPropertyKey().equals(parameter.getPropertyName())
-                                && Objects.equals(v.getScope(), parameter.getScope()))
+                        v.getPropertyKey().equals(parameter.propertyName())
+                                && Objects.equals(v.getScope(), parameter.scope()))
                 .map(ConfigurationPropertyEntity::getPropertyValue)
                 .findAny()
                 .ifPresent(systemPropertyDto::setCurrentValue);
@@ -146,8 +179,40 @@ public class ConfigurablePropertiesService {
     }
 
     private boolean isPropertyConfigurable(String propertyKey, String scope) {
-        return configurableProperties.getConfigurableProperties().stream()
-                .anyMatch(p -> p.getPropertyName().equals(propertyKey) && Objects.equals(p.getScope(), scope));
+        return getAllPropertyDefinitions().stream()
+                .anyMatch(p -> p.propertyName().equals(propertyKey) && Objects.equals(p.scope(), scope));
+    }
+
+    /**
+     * Merges the DSL-derived catalogue ({@link #SS_PROVIDERS}) with the residual
+     * {@code configurable-properties.yaml} definitions into a single flat list.
+     */
+    private List<PropertyDefinition> getAllPropertyDefinitions() {
+        return Stream.concat(
+                        ConfigCatalogue.exposed(SS_PROVIDERS).stream()
+                                .map(entry -> new PropertyDefinition(
+                                        entry.key(), entry.defaultValue(), categoryToScope(entry.category()))),
+                        configurableProperties.getConfigurableProperties().stream()
+                                .map(property -> new PropertyDefinition(
+                                        property.getPropertyName(), property.getDefaultValue(), property.getScope())))
+                .toList();
+    }
+
+    /**
+     * Maps a DSL {@link Category} to the legacy scope string the {@code configuration_properties} table and the
+     * UI expect. Transitional: removed once the {@code scope} column is dropped (see issue 06).
+     */
+    private static String categoryToScope(Category category) {
+        return switch (category) {
+            case PROXY -> "proxy";
+            case PROXY_UI_API -> "proxy-ui-api";
+            case OP_MONITOR_DAEMON -> "op-monitor-daemon";
+            case CONFIGURATION_CLIENT -> "configuration-client";
+            case AUXILIARY_SERVICE -> "auxiliary-service";
+            case COMMON -> null;
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
     }
 
     private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey, String scope) {
@@ -155,5 +220,8 @@ public class ConfigurablePropertiesService {
         entity.setPropertyKey(propertyKey);
         entity.setScope(scope);
         return entity;
+    }
+
+    private record PropertyDefinition(String propertyName, String defaultValue, String scope) {
     }
 }
