@@ -51,6 +51,7 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
             .string("temp-files-path")
             .withValidator(nonEmpty())
             .withDefaultValue("/var/tmp/xroad/")
+            .exposedInUi()
             .build();
 
     private CommonConfigKeys() {

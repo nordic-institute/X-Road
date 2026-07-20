@@ -46,26 +46,31 @@ public final class ServerConfConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CACHE_PERIOD = SERVER_CONF
             .integer("cache-period")
             .withDefaultValue(60)
+            .exposedInUi()
             .build();
     /** {@code xroad.common-server-conf.client-cache-size}. */
     public static final ConfigKey<Long> CLIENT_CACHE_SIZE = SERVER_CONF
             .longValue("client-cache-size")
             .withDefaultValue(100)
+            .exposedInUi()
             .build();
     /** {@code xroad.common-server-conf.service-cache-size}. */
     public static final ConfigKey<Long> SERVICE_CACHE_SIZE = SERVER_CONF
             .longValue("service-cache-size")
             .withDefaultValue(1000)
+            .exposedInUi()
             .build();
     /** {@code xroad.common-server-conf.service-endpoints-cache-size}. */
     public static final ConfigKey<Long> SERVICE_ENDPOINTS_CACHE_SIZE = SERVER_CONF
             .longValue("service-endpoints-cache-size")
             .withDefaultValue(100000)
+            .exposedInUi()
             .build();
     /** {@code xroad.common-server-conf.acl-cache-size}. */
     public static final ConfigKey<Long> ACL_CACHE_SIZE = SERVER_CONF
             .longValue("acl-cache-size")
             .withDefaultValue(100000)
+            .exposedInUi()
             .build();
 
     private ServerConfConfigKeys() {

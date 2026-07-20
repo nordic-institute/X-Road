@@ -61,6 +61,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> USE_TLS = ROOT
             .bool("use-tls")
             .withDefaultValue(true)
+            .exposedInUi()
             .build();
 
     // --- certificate-provisioning ---
@@ -105,30 +106,35 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Duration> CERT_PROVISIONING_REFRESH_INTERVAL = CERT_PROVISIONING
             .keyDuration("refresh-interval")
             .withDefaultValue(Duration.ofHours(5))
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.certificate-provisioning.retry-delay}. */
     public static final ConfigKey<Duration> CERT_PROVISIONING_RETRY_DELAY = CERT_PROVISIONING
             .keyDuration("retry-delay")
             .withDefaultValue(Duration.ofSeconds(5))
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.certificate-provisioning.retry-exponential-backoff-multiplier}. */
     public static final ConfigKey<String> CERT_PROVISIONING_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = CERT_PROVISIONING
             .string("retry-exponential-backoff-multiplier")
             .withDefaultValue("1.5")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.certificate-provisioning.retry-max-attempts}. */
     public static final ConfigKey<Integer> CERT_PROVISIONING_RETRY_MAX_ATTEMPTS = CERT_PROVISIONING
             .integer("retry-max-attempts")
             .withDefaultValue(10)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.certificate-provisioning.retry-timeout}. */
     public static final ConfigKey<Duration> CERT_PROVISIONING_RETRY_TIMEOUT = CERT_PROVISIONING
             .keyDuration("retry-timeout")
             .withDefaultValue(Duration.ofSeconds(60))
+            .exposedInUi()
             .build();
 
     // --- channel.signer ---
@@ -186,18 +192,21 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .string("host")
             .withDefaultValue("127.0.0.1")
             .withContainerDefaultValue("op-monitor")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.op-monitor.port}. */
     public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_PORT = CHANNEL_OP_MONITOR
             .integer("port")
             .withDefaultValue(2081)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.op-monitor.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_DEADLINE_AFTER = CHANNEL_OP_MONITOR
             .integer("deadline-after")
             .withDefaultValue(60000)
+            .exposedInUi()
             .build();
 
     // --- channel.env-monitor ---
@@ -207,18 +216,21 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .string("host")
             .withDefaultValue("127.0.0.1")
             .withContainerDefaultValue("monitor")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.env-monitor.port}. */
     public static final ConfigKey<Integer> CHANNEL_ENV_MONITOR_PORT = CHANNEL_ENV_MONITOR
             .integer("port")
             .withDefaultValue(2552)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.env-monitor.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_ENV_MONITOR_DEADLINE_AFTER = CHANNEL_ENV_MONITOR
             .integer("deadline-after")
             .withDefaultValue(60000)
+            .exposedInUi()
             .build();
 
     // --- channel.configuration-client ---
@@ -228,18 +240,21 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .string("host")
             .withDefaultValue("127.0.0.1")
             .withContainerDefaultValue("configuration-client")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.configuration-client.port}. */
     public static final ConfigKey<Integer> CHANNEL_CONF_CLIENT_PORT = CHANNEL_CONF_CLIENT
             .integer("port")
             .withDefaultValue(5665)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.configuration-client.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_CONF_CLIENT_DEADLINE_AFTER = CHANNEL_CONF_CLIENT
             .integer("deadline-after")
             .withDefaultValue(60000)
+            .exposedInUi()
             .build();
 
     // --- channel.proxy ---
@@ -249,18 +264,21 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .string("host")
             .withDefaultValue("127.0.0.1")
             .withContainerDefaultValue("proxy")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.proxy.port}. */
     public static final ConfigKey<Integer> CHANNEL_PROXY_PORT = CHANNEL_PROXY
             .integer("port")
             .withDefaultValue(5567)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.proxy.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_PROXY_DEADLINE_AFTER = CHANNEL_PROXY
             .integer("deadline-after")
             .withDefaultValue(60000)
+            .exposedInUi()
             .build();
 
     // --- channel.auxiliary-service ---
@@ -270,18 +288,21 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
             .string("host")
             .withDefaultValue("127.0.0.1")
             .withContainerDefaultValue("auxiliary-service")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.auxiliary-service.port}. */
     public static final ConfigKey<Integer> CHANNEL_AUXILIARY_SERVICE_PORT = CHANNEL_AUXILIARY_SERVICE
             .integer("port")
             .withDefaultValue(7665)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.common-rpc.channel.auxiliary-service.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_AUXILIARY_SERVICE_DEADLINE_AFTER = CHANNEL_AUXILIARY_SERVICE
             .integer("deadline-after")
             .withDefaultValue(60000)
+            .exposedInUi()
             .build();
 
     // --- channel.asset-access ---

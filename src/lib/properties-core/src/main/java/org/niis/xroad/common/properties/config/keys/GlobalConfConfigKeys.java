@@ -50,16 +50,19 @@ public final class GlobalConfConfigKeys implements ConfigKeyProvider {
             .string("source")
             .withDefaultValue("FILESYSTEM")
             .withContainerDefaultValue("REMOTE")
+            .exposedInUi()
             .build();
     /** {@code xroad.common-global-conf.refresh-rate}. */
     public static final ConfigKey<Duration> REFRESH_RATE = GLOBAL_CONF
             .keyDuration("refresh-rate")
             .withDefaultValue(Duration.ofSeconds(60))
+            .exposedInUi()
             .build();
     /** {@code xroad.common-global-conf.configuration-path}. */
     public static final ConfigKey<String> CONFIGURATION_PATH = GLOBAL_CONF
             .string("configuration-path")
             .withDefaultValue("/etc/xroad/globalconf")
+            .exposedInUi()
             .build();
 
     private GlobalConfConfigKeys() {

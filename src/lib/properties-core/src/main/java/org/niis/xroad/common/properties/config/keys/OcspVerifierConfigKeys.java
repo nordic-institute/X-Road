@@ -45,6 +45,7 @@ public final class OcspVerifierConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CACHE_PERIOD = OCSP_VERIFIER
             .integer("cache-period")
             .withDefaultValue(60)
+            .exposedInUi()
             .build();
 
     private OcspVerifierConfigKeys() {
