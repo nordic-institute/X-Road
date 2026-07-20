@@ -113,9 +113,9 @@
 # --- Memória do proxy ---
 - name: Configure proxy memory
   lineinfile:
-    path: /etc/xroad/services/proxy.conf
+    path: /etc/xroad/services/local.conf
     regexp: '^XROAD_PROXY_PARAMS='
-    line: 'XROAD_PROXY_PARAMS=" -Xms{{ xvia_proxy_memory }}m -Xmx{{ xvia_proxy_memory }}m -XX:MaxMetaspaceSize=140m -XX:+UseG1GC -Dfile.encoding=UTF-8 -Xshare:auto -Djdk.tls.ephemeralDHKeySize=2048 $XROAD_PROXY_PARAMS"'
+    line: 'XROAD_PROXY_PARAMS="$XROAD_PROXY_PARAMS -Xms{{ xvia_proxy_memory }}m -Xmx{{ xvia_proxy_memory }}m -XX:MaxMetaspaceSize=140m"'
     create: yes
   when: xvia_proxy_memory != "d"
 
