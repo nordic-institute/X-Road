@@ -67,6 +67,9 @@
 - name: Install host-level monitoring (Netdata)
   hosts: lxd_servers
   become: true
+  # Role uses no gathered facts; skip the setup task so it doesn't escalate
+  # (and demand a host sudo password) on native Linux when the role is gated out.
+  gather_facts: false
   strategy: free
   roles:
     - role: netdata
