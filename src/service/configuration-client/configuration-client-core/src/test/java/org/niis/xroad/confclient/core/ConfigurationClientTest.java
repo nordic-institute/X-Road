@@ -92,6 +92,11 @@ class ConfigurationClientTest {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC));
     }
 
+    @AfterEach
+    void resetClock() {
+        TimeUtils.setClock(Clock.systemUTC());
+    }
+
     /**
      * Test to ensure a simple configuration will be downloaded.
      *
