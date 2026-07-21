@@ -47,7 +47,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
     depends_on:
       db-serverconf-signer-config-seed:
         condition: service_completed_successfully
@@ -93,7 +93,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
     depends_on:
       db-serverconf-signer-config-seed:
         condition: service_completed_successfully
@@ -117,6 +117,8 @@ services:
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
           "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.common-rpc.use-tls', 'false', 'signer', now(), now()),
+             ('xroad.common-global-conf.source', 'FILESYSTEM', 'signer', now(), now()),
              ('xroad.signer.addon.hwtoken.enabled', 'true', 'signer', now(), now()),
              ('xroad.signer.addon.hwtoken.session-pool-enabled', 'true', 'signer', now(), now()),
              ('xroad.signer.addon.hwtoken.session-pool-max-total', '3', 'signer', now(), now()),

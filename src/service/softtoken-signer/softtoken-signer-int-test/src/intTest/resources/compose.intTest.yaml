@@ -57,6 +57,31 @@ services:
         limits:
           memory: 512M
 
+  db-serverconf-config-seed:
+    image: postgres:18
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U serverconf; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+             ('xroad.common-rpc.use-tls', 'false', 'signer', now(), now()),
+             ('xroad.common-global-conf.source', 'FILESYSTEM', 'signer', now(), now()),
+             ('xroad.common-rpc.channel.signer.deadline-after', '2000', 'signer', now(), now()),
+             ('xroad.softtoken-signer.keys.sync-rate', 'PT2S', 'signer', now(), now()),
+             ('xroad.softtoken-signer.health-check.key-sync.max-sync-age', 'PT10S', 'signer', now(), now()),
+             ('xroad.softtoken-signer.health-check.key-sync.max-consecutive-failures', '3', 'signer', now(), now())
+           ON CONFLICT DO NOTHING;"
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   signer:
     image: ${SIGNER_IMG}
     pull_policy: always
@@ -67,6 +92,10 @@ services:
       - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_COMMON_RPC_USE_TLS=false
       - XROAD_COMMON_GLOBAL_CONF_SOURCE=FILESYSTEM
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
@@ -80,9 +109,9 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
     depends_on:
-      db-serverconf-init:
+      db-serverconf-config-seed:
         condition: service_completed_successfully
       openbao:
         condition: service_healthy
@@ -104,6 +133,10 @@ services:
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_COMMON_RPC_USE_TLS=false
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
       - XROAD_SOFTTOKEN_SIGNER_RPC_LISTEN_ADDRESS=0.0.0.0
       - XROAD_SOFTTOKEN_SIGNER_KEYS_SYNC_RATE=2S
       - XROAD_SOFTTOKEN_SIGNER_HEALTH_CHECK_KEY_SYNC_MAX_CONSECUTIVE_FAILURES=3
@@ -118,7 +151,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:4099/q/health/live" ]
     depends_on:
       signer:
         condition: service_healthy

@@ -26,7 +26,7 @@
 package org.niis.xroad.signer.core.config;
 
 import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithName;
+import io.smallrye.config.WithParentName;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 
@@ -101,7 +101,7 @@ public class SignerAutologinProperties {
     }
 
     /** Token PIN holder — remains on SmallRye so secrets stay in the env/file layer. */
-    @ConfigMapping(prefix = "xroad.signer.autologin")
+    @ConfigMapping(prefix = "xroad.signer.autologin.tokens")
     public interface Tokens {
         /**
          * Map of token PINs keyed by token ID for initial insertion into OpenBao.
@@ -119,7 +119,7 @@ public class SignerAutologinProperties {
          * XROAD_SIGNER_AUTOLOGIN_TOKENS__SOFTTOKEN_1__PIN=another-secret
          * </pre>
          */
-        @WithName("tokens")
+        @WithParentName
         Map<String, TokenConfig> tokens();
     }
 
