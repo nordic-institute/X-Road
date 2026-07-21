@@ -122,6 +122,7 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
             .string("listen-address")
             .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("0.0.0.0")
             .exposedInUi()
             .build();
 
