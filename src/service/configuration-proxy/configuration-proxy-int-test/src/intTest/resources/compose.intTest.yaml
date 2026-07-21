@@ -4,6 +4,8 @@ services:
   signer:
     environment:
       - QUARKUS_LOG_LEVEL=INFO
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
 
   # xroad.configuration-proxy.* config now resolves through the XRoadConfig DSL (DB overrides +
   # packaged defaults), not env vars. Test-specific overrides are seeded into configuration_properties
@@ -35,6 +37,8 @@ services:
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-confproxy:5432/confproxy
       - DB_CONFIG_SOURCE_USERNAME=confproxy
       - DB_CONFIG_SOURCE_PASSWORD=secret
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
     ports:
       - "0:4000"
       - "0:4099"
