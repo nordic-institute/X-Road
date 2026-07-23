@@ -37,6 +37,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
@@ -100,6 +101,7 @@ class ApplicationIpRateLimitTest {
                     .register(OcspVerifierConfigKeys.instance())
                     .register(GlobalConfConfigKeys.instance())
                     .register(ServerConfConfigKeys.instance())
+                    .register(DataspaceConfigKeys.instance())
                     .overrides(Map.of(
                             "xroad.proxy-ui-api.rate-limit-requests-per-minute", "10",
                             "xroad.proxy-ui-api.rate-limit-requests-per-second", "5",

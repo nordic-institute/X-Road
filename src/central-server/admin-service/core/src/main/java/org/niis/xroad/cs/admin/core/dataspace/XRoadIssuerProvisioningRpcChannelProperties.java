@@ -27,29 +27,17 @@
 package org.niis.xroad.cs.admin.core.dataspace;
 
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-/**
- * Wires the gRPC client to the issuer provisioning service and its configuration properties.
- */
-@Configuration
-public class DataspaceIssuerRpcConfig {
+/** XRoadConfig-backed implementation of {@link IssuerProvisioningRpcChannelProperties}. */
+public class XRoadIssuerProvisioningRpcChannelProperties extends XRoadRpcChannelProperties
+        implements IssuerProvisioningRpcChannelProperties {
 
-    @Bean
-    DataspaceIssuerProperties dataspaceIssuerProperties(XRoadConfig xRoadConfig) {
-        return new DataspaceIssuerProperties(xRoadConfig);
-    }
-
-    @Bean
-    IssuerProvisioningRpcChannelProperties issuerProvisioningRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new XRoadIssuerProvisioningRpcChannelProperties(xRoadConfig);
-    }
-
-    @Bean
-    IssuerProvisioningRpcClient issuerProvisioningRpcClient(
-            RpcChannelFactory rpcChannelFactory, IssuerProvisioningRpcChannelProperties channelProperties) {
-        return new IssuerProvisioningRpcClient(rpcChannelFactory, channelProperties);
+    public XRoadIssuerProvisioningRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_HOST,
+                DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_PORT,
+                DataspaceConfigKeys.ISSUER_PROVISIONING_RPC_DEADLINE_AFTER);
     }
 }

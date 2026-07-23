@@ -27,7 +27,6 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
-import lombok.Setter;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcChannelProperties;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
 import org.niis.xroad.common.properties.config.XRoadConfig;
@@ -42,8 +41,6 @@ import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -51,67 +48,28 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({SpringRpcConfig.class,
         SpringSignerClientConfiguration.class})
-@EnableConfigurationProperties({
-        RpcClientsConfig.SpringIdentityHubProvisioningRpcChannelProperties.class,
-        RpcClientsConfig.SpringControlPlaneProvisioningRpcChannelProperties.class})
 class RpcClientsConfig {
 
     @Bean
+    IdentityHubProvisioningRpcChannelProperties identityHubProvisioningRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadIdentityHubProvisioningRpcChannelProperties(xRoadConfig);
+    }
+
+    @Bean
     IdentityHubProvisioningRpcClient identityHubProvisioningRpcClient(RpcChannelFactory rpcChannelFactory,
-                                                                      SpringIdentityHubProvisioningRpcChannelProperties channelProperties) {
+                                                                      IdentityHubProvisioningRpcChannelProperties channelProperties) {
         return new IdentityHubProvisioningRpcClient(rpcChannelFactory, channelProperties);
     }
 
-    @Setter
-    @ConfigurationProperties(prefix = IdentityHubProvisioningRpcChannelProperties.PREFIX)
-    static class SpringIdentityHubProvisioningRpcChannelProperties implements IdentityHubProvisioningRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
+    @Bean
+    ControlPlaneProvisioningRpcChannelProperties controlPlaneProvisioningRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadControlPlaneProvisioningRpcChannelProperties(xRoadConfig);
     }
 
     @Bean
     ControlPlaneProvisioningRpcClient controlPlaneProvisioningRpcClient(
-            RpcChannelFactory rpcChannelFactory, SpringControlPlaneProvisioningRpcChannelProperties channelProperties) {
+            RpcChannelFactory rpcChannelFactory, ControlPlaneProvisioningRpcChannelProperties channelProperties) {
         return new ControlPlaneProvisioningRpcClient(rpcChannelFactory, channelProperties);
-    }
-
-    @Setter
-    @ConfigurationProperties(prefix = ControlPlaneProvisioningRpcChannelProperties.PREFIX)
-    static class SpringControlPlaneProvisioningRpcChannelProperties implements ControlPlaneProvisioningRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
     }
 
     @Bean
