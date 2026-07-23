@@ -16,6 +16,43 @@ get_yaml_prop() {
   /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
 }
 
+seed_configuration_properties() {
+  local seed_file="/etc/xroad/configuration-properties.seed"
+  local line key val
+  declare -A props
+
+  if [ -f "$seed_file" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      line="$(echo "${line%%#*}" | xargs)"
+      [ -z "$line" ] && continue
+      props["${line%%=*}"]="${line#*=}"
+    done <"$seed_file"
+  fi
+
+  for line in $XROAD_CONFIG_SEED; do
+    props["${line%%=*}"]="${line#*=}"
+  done
+
+  local rows=""
+  for key in "${!props[@]}"; do
+    val="${props[$key]//\'/\'\'}"
+    rows+="('${key//\'/\'\'}','$val',NULL,now(),now()),"
+  done
+  [ -z "$rows" ] && return 0
+  rows="${rows%,}"
+
+  log "Seeding ${#props[@]} configuration_properties"
+  pg_isready -q -t 2 || pg_ctlcluster 18 main start
+  wait_db
+  su -c "psql -q centerui_production" postgres <<EOF
+SET ROLE centerui;
+INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+VALUES $rows
+ON CONFLICT DO NOTHING;
+EOF
+  pg_ctlcluster 18 main stop
+}
+
 log "Starting X-Road central server version $INSTALLED_VERSION"
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
@@ -119,5 +156,7 @@ if [ -f "$DS_HTTPS_CERT" ]; then
       -keystore "$JVM_CACERTS" -storepass changeit || warn "Failed to import ds-https certificate"
   fi
 fi
+
+seed_configuration_properties
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
