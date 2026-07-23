@@ -17,20 +17,17 @@ get_yaml_prop() {
 }
 
 seed_configuration_properties() {
-  local seed_file="/etc/xroad/configuration-properties.seed"
-  local line key val
+  local seed_dir="/etc/xroad/db-config-seed"
+  [ -d "$seed_dir" ] || return 0
+  local file key val
   declare -A props
 
-  if [ -f "$seed_file" ]; then
-    while IFS= read -r line || [ -n "$line" ]; do
-      line="$(echo "${line%%#*}" | xargs)"
-      [ -z "$line" ] && continue
-      props["${line%%=*}"]="${line#*=}"
-    done <"$seed_file"
-  fi
-
-  for line in $XROAD_CONFIG_SEED; do
-    props["${line%%=*}"]="${line#*=}"
+  for file in "$seed_dir"/*.properties; do
+    [ -e "$file" ] || continue
+    while IFS= read -r key; do
+      [ -z "$key" ] && continue
+      props["$key"]="$(crudini --get "$file" "" "$key")"
+    done < <(crudini --get "$file" "")
   done
 
   local rows=""
