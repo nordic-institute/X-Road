@@ -102,32 +102,10 @@ public final class AcmeService {
                                                                 ApprovedCAInfo caInfo,
                                                                 String memberId,
                                                                 byte[] certRequest) {
-        KeyPair keyPair;
-        try {
-            keyPair = getAccountKeyPair(memberId, keyUsage, caInfo);
-        } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
-            throw new AcmeServiceException(e, AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR.build());
-        }
-
-        Account account;
-        try {
-            account = startSession(keyUsage, caInfo, keyPair, memberId);
-        } catch (AcmeException e) {
-            throw new AcmeServiceException(e, AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE.build());
-        }
-
-        Order order;
-        try {
-            order = createOrder(commonName, subjectAltName, account);
-        } catch (AcmeException e) {
-            throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_CREATION_FAILURE.build());
-        }
-
-        try {
-            doAuthorizationAndFinalizeOrder(certRequest, order);
-        } catch (AcmeException e) {
-            throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE.build());
-        }
+        KeyPair keyPair = getAccountKeyPair(memberId, keyUsage, caInfo);
+        Account account = startSession(keyUsage, caInfo, keyPair, memberId);
+        Order order = createOrder(commonName, subjectAltName, account);
+        doAuthorizationAndFinalizeOrder(certRequest, order);
 
         Certificate cert = getCertificate(order);
 
@@ -165,8 +143,7 @@ public final class AcmeService {
         }
     }
 
-    private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo)
-            throws GeneralSecurityException, IOException, OperatorCreationException {
+    private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
         String alias = getAlias(memberId, keyUsage, caInfo);
         File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
         KeyStore keyStore;
@@ -178,39 +155,43 @@ public final class AcmeService {
                 storePassword = acmeProperties.createNewAccountKeystorePassword();
             }
         }
-        if (acmeKeystoreFile.exists()) {
-            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
-        } else {
-            keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(null, storePassword);
-        }
-        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-        KeyPair keyPair;
-        if (certificate != null) {
-            log.debug("Loading keypair");
-            PublicKey publicKey = certificate.getPublicKey();
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, alias.toCharArray());
-            keyPair = new KeyPair(publicKey, privateKey);
-        } else {
-            log.debug("Creating keypair");
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
-            keyPair = keyPairGenerator.generateKeyPair();
-
-            long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
-            X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
-
-            keyStore.setKeyEntry(
-                    alias,
-                    keyPair.getPrivate(),
-                    alias.toCharArray(),
-                    certificateChain);
-            try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
-                keyStore.store(outputStream, storePassword);
-                outputStream.flush();
+        try {
+            if (acmeKeystoreFile.exists()) {
+                keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
+            } else {
+                keyStore = KeyStore.getInstance("PKCS12");
+                keyStore.load(null, storePassword);
             }
+            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
+            KeyPair keyPair;
+            if (certificate != null) {
+                log.debug("Loading keypair");
+                PublicKey publicKey = certificate.getPublicKey();
+                PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, alias.toCharArray());
+                keyPair = new KeyPair(publicKey, privateKey);
+            } else {
+                log.debug("Creating keypair");
+                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+                keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
+                keyPair = keyPairGenerator.generateKeyPair();
+
+                long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
+                X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
+
+                keyStore.setKeyEntry(
+                        alias,
+                        keyPair.getPrivate(),
+                        alias.toCharArray(),
+                        certificateChain);
+                try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
+                    keyStore.store(outputStream, storePassword);
+                    outputStream.flush();
+                }
+            }
+            return keyPair;
+        } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR.build());
         }
-        return keyPair;
     }
 
     private String getAlias(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
@@ -224,28 +205,32 @@ public final class AcmeService {
         return alias;
     }
 
-    private Account startSession(KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberId) throws AcmeException {
-        log.info("Creating session with directory url: {}", caInfo.getAcmeServerDirectoryUrl());
-        String acmeUri;
-        if (caInfo.getAuthenticationCertificateProfileId() != null) {
-            acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema());
-        } else {
-            acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", AcmeCustomSchema.XRD_ACME.getSchema());
+    private Account startSession(KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberId) {
+        try {
+            log.info("Creating session with directory url: {}", caInfo.getAcmeServerDirectoryUrl());
+            String acmeUri;
+            if (caInfo.getAuthenticationCertificateProfileId() != null) {
+                acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema());
+            } else {
+                acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", AcmeCustomSchema.XRD_ACME.getSchema());
+            }
+            Session session = new Session(acmeUri);
+            Metadata metadata = getMetadata(session);
+            log.debug("ACME server metadata: {}", metadata.getJSON().toString());
+            log.debug("Creating account");
+            AccountBuilder accountBuilder = new AccountBuilder()
+                    .agreeToTermsOfService()
+                    .useKeyPair(keyPair);
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId))
+                    .ifPresent(accountBuilder::addContact);
+            if (metadata.isExternalAccountRequired()) {
+                accountWithEabCredentials(accountBuilder, keyUsage, caInfo, memberId);
+            }
+            return accountBuilder.create(session);
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE.build());
         }
-        Session session = new Session(acmeUri);
-        Metadata metadata = getMetadata(session);
-        log.debug("ACME server metadata: {}", metadata.getJSON().toString());
-        log.debug("Creating account");
-        AccountBuilder accountBuilder = new AccountBuilder()
-                .agreeToTermsOfService()
-                .useKeyPair(keyPair);
-        Optional.ofNullable(mailNotificationProperties.getContacts())
-                .map(contacts -> contacts.get(memberId))
-                .ifPresent(accountBuilder::addContact);
-        if (metadata.isExternalAccountRequired()) {
-            accountWithEabCredentials(accountBuilder, keyUsage, caInfo, memberId);
-        }
-        return accountBuilder.create(session);
     }
 
     private void accountWithEabCredentials(AccountBuilder accountBuilder, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, String memberId) {
@@ -291,16 +276,19 @@ public final class AcmeService {
         }
     }
 
-    private Order createOrder(String commonName, String subjectAltName, Account account) throws AcmeException {
-        log.debug("Creating new order");
-        return account.newOrder()
-                .domains(subjectAltName != null ? subjectAltName : commonName)
-                .notAfter(Instant.now().plus(Period.ofDays(ORDER_NOT_AFTER_DAYS)))
-                .create();
+    private Order createOrder(String commonName, String subjectAltName, Account account) {
+        try {
+            log.debug("Creating new order");
+            return account.newOrder()
+                    .domains(subjectAltName != null ? subjectAltName : commonName)
+                    .notAfter(Instant.now().plus(Period.ofDays(ORDER_NOT_AFTER_DAYS)))
+                    .create();
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_CREATION_FAILURE.build());
+        }
     }
 
-    private void doAuthorizationAndFinalizeOrder(byte[] certRequest, Order order)
-            throws AcmeException {
+    private void doAuthorizationAndFinalizeOrder(byte[] certRequest, Order order) {
         log.debug("Starting authorization");
         for (Authorization auth : order.getAuthorizations()) {
             if (auth.getStatus() == Status.PENDING) {
@@ -329,8 +317,12 @@ public final class AcmeService {
                 } catch (IOException e) {
                     throw new AcmeServiceException(e, AcmeDeviationMessage.HTTP_CHALLENGE_FILE_DELETION.build());
                 }
-                log.debug("Finalizing order");
-                order.execute(certRequest);
+                try {
+                    log.debug("Finalizing order");
+                    order.execute(certRequest);
+                } catch (AcmeException e) {
+                    throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE.build());
+                }
             }
         }
     }
@@ -383,13 +375,7 @@ public final class AcmeService {
     }
 
     private Login getLogin(String memberId, ApprovedCAInfo approvedCA, KeyUsageInfo keyUsage) {
-        KeyPair accountKeyPair;
-        try {
-            accountKeyPair = getAccountKeyPair(memberId, keyUsage, approvedCA);
-        } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
-            throw new AcmeServiceException(e, AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR.build());
-        }
-
+        KeyPair accountKeyPair = getAccountKeyPair(memberId, keyUsage, approvedCA);
         Session session = new Session(approvedCA.getAcmeServerDirectoryUrl());
         try {
             AccountBuilder accountBuilder = new AccountBuilder()
@@ -463,12 +449,7 @@ public final class AcmeService {
         } catch (AcmeException e) {
             throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_CREATION_FAILURE.build());
         }
-
-        try {
-            doAuthorizationAndFinalizeOrder(newCsr, order);
-        } catch (AcmeException e) {
-            throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE.build());
-        }
+        doAuthorizationAndFinalizeOrder(newCsr, order);
 
         Certificate cert = getCertificate(order);
 

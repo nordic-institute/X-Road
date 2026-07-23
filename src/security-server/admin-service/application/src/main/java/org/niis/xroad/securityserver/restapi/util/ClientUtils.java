@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.util;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.List;
@@ -53,10 +54,10 @@ public final class ClientUtils {
             if (!clientId.memberEquals(certificateInfo.getMemberId())) {
                 continue;
             }
-            String ocspResponseStatus = null;
+            String ocspResponseStatus;
             try {
                 ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
-            } catch (OcspUtils.OcspStatusExtractionException e) {
+            } catch (XrdRuntimeException e) {
                 log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId, e);
                 break;
             }

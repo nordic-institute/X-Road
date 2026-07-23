@@ -150,19 +150,9 @@ public final class WsdlParser {
 
     }
 
-    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws WSDLException {
+    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) {
         log.info("running WSDL parser");
-        WSDLFactory wsdlFactory = WSDLFactory.newInstance(
-                "com.ibm.wsdl.factory.WSDLFactoryImpl");
-
-        WSDLReader wsdlReader = wsdlFactory.newWSDLReader();
-        wsdlReader.setFeature("javax.wsdl.importDocuments", false);
-        wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
-
-        Definition definition =
-                wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
-
-        Collection<Service> services = definition.getServices().values();
+        Collection<Service> services = getServices(wsdlUrl);
 
         Map<String, ServiceInfo> result = new HashMap<>();
 
@@ -187,6 +177,25 @@ public final class WsdlParser {
 
         return result.values();
     }
+
+    private Collection<Service> getServices(String wsdlUrl) {
+        try {
+            WSDLFactory wsdlFactory = WSDLFactory.newInstance(
+                    "com.ibm.wsdl.factory.WSDLFactoryImpl");
+
+            WSDLReader wsdlReader = wsdlFactory.newWSDLReader();
+            wsdlReader.setFeature("javax.wsdl.importDocuments", false);
+            wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
+
+            Definition definition =
+                    wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
+
+            return (Collection<Service>) definition.getServices().values();
+        } catch (WSDLException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
 
     private static boolean hasSoapOverHttpBinding(Port port) {
         for (ExtensibilityElement ext : (List<ExtensibilityElement>) port.getBinding().getExtensibilityElements()) {
@@ -386,11 +395,21 @@ public final class WsdlParser {
                     }
             };
 
-            SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-            ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, trustAllCerts, new SecureRandom());
+
+            SSLContext ctx = createSslContext(trustAllCerts);
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
+        }
+
+        private SSLContext createSslContext(TrustManager[] trustAllCerts) {
+            try {
+                SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+                ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, trustAllCerts, new SecureRandom());
+                return ctx;
+            } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                throw XrdRuntimeException.systemException(e);
+            }
         }
     }
 
