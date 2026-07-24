@@ -24,6 +24,7 @@ services:
       - xroad-network
     volumes:
       - ds-https-keystore:/etc/xroad/ds-ssl:ro
+      - ./container-files/etc/xroad/db-config-seed/50-e2e.properties:/etc/xroad/db-config-seed/50-e2e.properties:ro
     depends_on:
       ds-https-keystore-init:
         condition: service_completed_successfully
