@@ -52,6 +52,7 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> LISTEN_ADDRESS = OP_MONITOR
             .string("listen-address")
             .withDefaultValue("localhost")
+            .withContainerDefaultValue("0.0.0.0")
             .exposedInUi()
             .build();
 

@@ -479,6 +479,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> ADDON_OP_MONITOR_CONNECTION_HOST = ADDON_OP_MONITOR_CONNECTION
             .string("host")
             .withDefaultValue("localhost")
+            .withContainerDefaultValue("op-monitor")
             .exposedInUi()
             .build();
 
@@ -821,6 +822,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> DSP_LISTEN_ADDRESS = DSP
             .string("listen-address")
             .withDefaultValue("127.0.0.1")
+            .withContainerDefaultValue("0.0.0.0")
             .build();
 
     /** {@code xroad.proxy.dsp.listen-port}. */
