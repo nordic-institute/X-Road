@@ -53,6 +53,9 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     private static final Prefix CHANNEL_AUXILIARY_SERVICE = CHANNEL.subPrefix("auxiliary-service");
     private static final Prefix CHANNEL_ASSET_ACCESS = CHANNEL.subPrefix("asset-access");
 
+    private static final String DEADLINE_AFTER = "deadline-after";
+    private static final String LOCALHOST_IP = "127.0.0.1";
+
     private static final CommonRpcConfigKeys INSTANCE = new CommonRpcConfigKeys();
 
     // --- root ---
@@ -87,7 +90,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .build();
 
     /** {@code xroad.common-rpc.certificate-provisioning.ttl}. */
@@ -142,7 +145,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.signer.host}. */
     public static final ConfigKey<String> CHANNEL_SIGNER_HOST = CHANNEL_SIGNER
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("signer")
             .build();
 
@@ -154,7 +157,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.signer.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_SIGNER_DEADLINE_AFTER = CHANNEL_SIGNER
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();
 
@@ -163,7 +166,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.softtoken-signer.host}. */
     public static final ConfigKey<String> CHANNEL_SOFTTOKEN_SIGNER_HOST = CHANNEL_SOFTTOKEN_SIGNER
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("softtoken-signer")
             .build();
 
@@ -175,7 +178,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.softtoken-signer.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_SOFTTOKEN_SIGNER_DEADLINE_AFTER = CHANNEL_SOFTTOKEN_SIGNER
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();
 
@@ -190,7 +193,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.op-monitor.host}. */
     public static final ConfigKey<String> CHANNEL_OP_MONITOR_HOST = CHANNEL_OP_MONITOR
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("op-monitor")
             .exposedInUi()
             .build();
@@ -204,7 +207,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.op-monitor.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_OP_MONITOR_DEADLINE_AFTER = CHANNEL_OP_MONITOR
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .exposedInUi()
             .build();
@@ -214,7 +217,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.env-monitor.host}. */
     public static final ConfigKey<String> CHANNEL_ENV_MONITOR_HOST = CHANNEL_ENV_MONITOR
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("monitor")
             .exposedInUi()
             .build();
@@ -228,7 +231,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.env-monitor.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_ENV_MONITOR_DEADLINE_AFTER = CHANNEL_ENV_MONITOR
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .exposedInUi()
             .build();
@@ -238,7 +241,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.configuration-client.host}. */
     public static final ConfigKey<String> CHANNEL_CONF_CLIENT_HOST = CHANNEL_CONF_CLIENT
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("configuration-client")
             .exposedInUi()
             .build();
@@ -252,7 +255,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.configuration-client.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_CONF_CLIENT_DEADLINE_AFTER = CHANNEL_CONF_CLIENT
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .exposedInUi()
             .build();
@@ -262,7 +265,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.proxy.host}. */
     public static final ConfigKey<String> CHANNEL_PROXY_HOST = CHANNEL_PROXY
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("proxy")
             .exposedInUi()
             .build();
@@ -276,7 +279,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.proxy.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_PROXY_DEADLINE_AFTER = CHANNEL_PROXY
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .exposedInUi()
             .build();
@@ -286,7 +289,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.auxiliary-service.host}. */
     public static final ConfigKey<String> CHANNEL_AUXILIARY_SERVICE_HOST = CHANNEL_AUXILIARY_SERVICE
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("auxiliary-service")
             .exposedInUi()
             .build();
@@ -300,7 +303,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.auxiliary-service.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_AUXILIARY_SERVICE_DEADLINE_AFTER = CHANNEL_AUXILIARY_SERVICE
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .exposedInUi()
             .build();
@@ -310,7 +313,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.asset-access.host}. */
     public static final ConfigKey<String> CHANNEL_ASSET_ACCESS_HOST = CHANNEL_ASSET_ACCESS
             .string("host")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue("ds-control-plane")
             .build();
 
@@ -322,7 +325,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.common-rpc.channel.asset-access.deadline-after}. */
     public static final ConfigKey<Integer> CHANNEL_ASSET_ACCESS_DEADLINE_AFTER = CHANNEL_ASSET_ACCESS
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();
 

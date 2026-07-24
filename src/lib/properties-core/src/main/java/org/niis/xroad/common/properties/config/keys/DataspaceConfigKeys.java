@@ -42,6 +42,8 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     private static final Prefix CONTROL_PLANE_PROVISIONING_RPC = DATASPACE.subPrefix("control-plane-provisioning").subPrefix("rpc");
     private static final Prefix IDENTITY_HUB_PROVISIONING_RPC = DATASPACE.subPrefix("identity-hub-provisioning").subPrefix("rpc");
 
+    private static final String DEADLINE_AFTER = "deadline-after";
+
     private static final DataspaceConfigKeys INSTANCE = new DataspaceConfigKeys();
 
     /** {@code xroad.dataspace.issuer.host}. */
@@ -82,7 +84,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.dataspace.issuer-provisioning.rpc.deadline-after}. */
     public static final ConfigKey<Integer> ISSUER_PROVISIONING_RPC_DEADLINE_AFTER = ISSUER_PROVISIONING_RPC
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();
 
@@ -100,7 +102,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.dataspace.control-plane-provisioning.rpc.deadline-after}. */
     public static final ConfigKey<Integer> CONTROL_PLANE_PROVISIONING_RPC_DEADLINE_AFTER = CONTROL_PLANE_PROVISIONING_RPC
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();
 
@@ -118,7 +120,7 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.dataspace.identity-hub-provisioning.rpc.deadline-after}. */
     public static final ConfigKey<Integer> IDENTITY_HUB_PROVISIONING_RPC_DEADLINE_AFTER = IDENTITY_HUB_PROVISIONING_RPC
-            .integer("deadline-after")
+            .integer(DEADLINE_AFTER)
             .withDefaultValue(60000)
             .build();
 

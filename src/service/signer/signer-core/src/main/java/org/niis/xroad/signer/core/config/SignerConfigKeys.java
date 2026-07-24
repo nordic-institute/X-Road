@@ -63,6 +63,8 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     private static final Prefix PIN_HASHER = SIGNER.subPrefix("pin-hasher");
     private static final Prefix RPC = SIGNER.subPrefix("rpc");
 
+    private static final String ENABLED = "enabled";
+
     private static final SignerConfigKeys INSTANCE = new SignerConfigKeys();
 
     /** {@code xroad.signer.selfsigned-cert-digest-algorithm} */
@@ -149,7 +151,7 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.signer.autologin.enabled} */
     public static final ConfigKey<Boolean> AUTOLOGIN_ENABLED = AUTOLOGIN
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(false)
             .build();
 
@@ -179,7 +181,7 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.signer.addon.hwtoken.enabled} */
     public static final ConfigKey<Boolean> HWTOKEN_ENABLED = HWTOKEN
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(false)
             .build();
 
@@ -241,7 +243,7 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.signer.rpc.enabled} */
     public static final ConfigKey<Boolean> RPC_ENABLED = RPC
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .build();
 

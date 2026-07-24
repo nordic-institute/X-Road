@@ -72,6 +72,11 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final Prefix DSP = PROXY.subPrefix("dsp");
     private static final Prefix DSP_CACHE = DSP.subPrefix("cache");
 
+    private static final String ENABLED = "enabled";
+    private static final String LISTEN_ADDRESS = "listen-address";
+    private static final String JETTY_CONFIGURATION_FILE = "jetty-configuration-file";
+    private static final String ANY_ADDRESS = "0.0.0.0";
+
     private static final ProxyConfigKeys INSTANCE = new ProxyConfigKeys();
 
     // --- xroad.proxy ---------------------------------------------------------
@@ -113,7 +118,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.health-check-interface}. */
     public static final ConfigKey<String> HEALTH_CHECK_INTERFACE = PROXY
             .string("health-check-interface")
-            .withDefaultValue("0.0.0.0")
+            .withDefaultValue(ANY_ADDRESS)
             .exposedInUi()
             .build();
 
@@ -191,7 +196,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.client-proxy.connector-host}. */
     public static final ConfigKey<String> CLIENT_PROXY_CONNECTOR_HOST = CLIENT_PROXY
             .string("connector-host")
-            .withDefaultValue("0.0.0.0")
+            .withDefaultValue(ANY_ADDRESS)
             .exposedInUi()
             .build();
 
@@ -211,7 +216,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.client-proxy.jetty-configuration-file}. */
     public static final ConfigKey<String> CLIENT_PROXY_JETTY_CONFIGURATION_FILE = CLIENT_PROXY
-            .string("jetty-configuration-file")
+            .string(JETTY_CONFIGURATION_FILE)
             .withDefaultValue("classpath:jetty/clientproxy.xml")
             .exposedInUi()
             .build();
@@ -337,8 +342,8 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.server.listen-address}. */
     public static final ConfigKey<String> SERVER_LISTEN_ADDRESS = SERVER
-            .string("listen-address")
-            .withDefaultValue("0.0.0.0")
+            .string(LISTEN_ADDRESS)
+            .withDefaultValue(ANY_ADDRESS)
             .exposedInUi()
             .build();
 
@@ -358,7 +363,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.server.jetty-configuration-file}. */
     public static final ConfigKey<String> SERVER_JETTY_CONFIGURATION_FILE = SERVER
-            .string("jetty-configuration-file")
+            .string(JETTY_CONFIGURATION_FILE)
             .withDefaultValue("classpath:jetty/serverproxy.xml")
             .exposedInUi()
             .build();
@@ -380,8 +385,8 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.ocsp-responder.listen-address}. */
     public static final ConfigKey<String> OCSP_RESPONDER_LISTEN_ADDRESS = OCSP_RESPONDER
-            .string("listen-address")
-            .withDefaultValue("0.0.0.0")
+            .string(LISTEN_ADDRESS)
+            .withDefaultValue(ANY_ADDRESS)
             .exposedInUi()
             .build();
 
@@ -408,7 +413,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.ocsp-responder.jetty-configuration-file}. */
     public static final ConfigKey<String> OCSP_RESPONDER_JETTY_CONFIGURATION_FILE = OCSP_RESPONDER
-            .string("jetty-configuration-file")
+            .string(JETTY_CONFIGURATION_FILE)
             .withDefaultValue("classpath:jetty/ocsp-responder.xml")
             .exposedInUi()
             .build();
@@ -417,21 +422,21 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.addon.proxy-monitor.enabled}. */
     public static final ConfigKey<Boolean> ADDON_PROXY_MONITOR_ENABLED = ADDON_PROXY_MONITOR
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .exposedInUi()
             .build();
 
     /** {@code xroad.proxy.addon.meta-services.enabled}. */
     public static final ConfigKey<Boolean> ADDON_META_SERVICES_ENABLED = ADDON_META_SERVICES
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .exposedInUi()
             .build();
 
     /** {@code xroad.proxy.addon.op-monitor.enabled}. */
     public static final ConfigKey<Boolean> ADDON_OP_MONITOR_ENABLED = ADDON_OP_MONITOR
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(false)
             .exposedInUi()
             .build();
@@ -604,7 +609,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.anti-dos.enabled}. */
     public static final ConfigKey<Boolean> ANTI_DOS_ENABLED = ANTI_DOS
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .exposedInUi()
             .build();
@@ -675,7 +680,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.message-log.enabled}. */
     public static final ConfigKey<Boolean> MESSAGE_LOG_ENABLED = MESSAGE_LOG
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .exposedInUi()
             .build();
@@ -785,16 +790,16 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.rpc.enabled}. */
     public static final ConfigKey<Boolean> RPC_ENABLED = RPC
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .exposedInUi()
             .build();
 
     /** {@code xroad.proxy.rpc.listen-address}. */
     public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
-            .string("listen-address")
+            .string(LISTEN_ADDRESS)
             .withDefaultValue("127.0.0.1")
-            .withContainerDefaultValue("0.0.0.0")
+            .withContainerDefaultValue(ANY_ADDRESS)
             .exposedInUi()
             .build();
 
@@ -820,9 +825,9 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.dsp.listen-address}. */
     public static final ConfigKey<String> DSP_LISTEN_ADDRESS = DSP
-            .string("listen-address")
+            .string(LISTEN_ADDRESS)
             .withDefaultValue("127.0.0.1")
-            .withContainerDefaultValue("0.0.0.0")
+            .withContainerDefaultValue(ANY_ADDRESS)
             .build();
 
     /** {@code xroad.proxy.dsp.listen-port}. */
@@ -857,7 +862,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
 
     /** {@code xroad.proxy.dsp.cache.enabled}. */
     public static final ConfigKey<Boolean> DSP_CACHE_ENABLED = DSP_CACHE
-            .bool("enabled")
+            .bool(ENABLED)
             .withDefaultValue(true)
             .build();
 
