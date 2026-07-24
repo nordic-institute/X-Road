@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -292,38 +293,57 @@ public final class AcmeService {
         log.debug("Starting authorization");
         for (Authorization auth : order.getAuthorizations()) {
             if (auth.getStatus() == Status.PENDING) {
-                Http01Challenge httpChallenge = auth.findChallenge(Http01Challenge.class)
-                        .orElseThrow(() -> new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_MISSING.build()));
-                String token = httpChallenge.getToken();
-                if (!AcmeConfig.isValidChallengeToken(token)) {
-                    throw new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_TOKEN_INVALID.build());
-                }
-                String content = httpChallenge.getAuthorization();
-                var acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token);
-                try {
-                    AtomicSave.execute(acmeChallenge, "tmp_challenge",
-                            out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
-                } catch (Exception e) {
-                    throw new AcmeServiceException(e, AcmeDeviationMessage.HTTP_CHALLENGE_FILE_CREATION.build());
-                }
-                try {
-                    httpChallenge.trigger();
-                } catch (AcmeException e) {
-                    throw new AcmeServiceException(e, AcmeDeviationMessage.CHALLENGE_TRIGGER_FAILURE.build());
-                }
-                waitForTheChallengeToBeCompleted(httpChallenge);
-                try {
-                    Files.delete(acmeChallenge);
-                } catch (IOException e) {
-                    throw new AcmeServiceException(e, AcmeDeviationMessage.HTTP_CHALLENGE_FILE_DELETION.build());
-                }
-                try {
-                    log.debug("Finalizing order");
-                    order.execute(certRequest);
-                } catch (AcmeException e) {
-                    throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE.build());
-                }
+                authorizeAndFinalizeOrder(auth, certRequest, order);
             }
+        }
+    }
+
+    private void authorizeAndFinalizeOrder(Authorization auth, byte[] certRequest, Order order) {
+        Http01Challenge httpChallenge = auth.findChallenge(Http01Challenge.class)
+                .orElseThrow(() -> new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_MISSING.build()));
+        String token = httpChallenge.getToken();
+        if (!AcmeConfig.isValidChallengeToken(token)) {
+            throw new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_TOKEN_INVALID.build());
+        }
+        var acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token);
+        writeChallengeFile(acmeChallenge, httpChallenge.getAuthorization());
+        triggerChallenge(httpChallenge);
+        waitForTheChallengeToBeCompleted(httpChallenge);
+        deleteChallengeFile(acmeChallenge);
+        finalizeOrder(order, certRequest);
+    }
+
+    private void writeChallengeFile(Path acmeChallenge, String content) {
+        try {
+            AtomicSave.execute(acmeChallenge, "tmp_challenge",
+                    out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.HTTP_CHALLENGE_FILE_CREATION.build());
+        }
+    }
+
+    private void triggerChallenge(Http01Challenge httpChallenge) {
+        try {
+            httpChallenge.trigger();
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.CHALLENGE_TRIGGER_FAILURE.build());
+        }
+    }
+
+    private void deleteChallengeFile(Path acmeChallenge) {
+        try {
+            Files.delete(acmeChallenge);
+        } catch (IOException e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.HTTP_CHALLENGE_FILE_DELETION.build());
+        }
+    }
+
+    private void finalizeOrder(Order order, byte[] certRequest) {
+        try {
+            log.debug("Finalizing order");
+            order.execute(certRequest);
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(e, AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE.build());
         }
     }
 
