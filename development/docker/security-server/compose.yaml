@@ -144,6 +144,33 @@ services:
           memory: 64M
         limits:
           memory: 512M
+  # Single place for the stack's configuration_properties seeds. The XRoadConfig DSL resolves
+  # DB overrides and packaged defaults only (env vars and local.yaml are ignored), so every
+  # non-default xroad.* value must be a row here; services read it via DB_CONFIG_SOURCE_*.
+  db-serverconf-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.proxy.dsp.participant-context-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', 'proxy', now(), now()),
+        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', 'proxy-ui-api', now(), now())
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
   configuration-client:
     image: ${CONFIGURATION_CLIENT_IMG}
     pull_policy: always
@@ -178,6 +205,8 @@ services:
         condition: service_healthy
       db-serverconf-init:
         condition: service_completed_successfully
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
   monitor:
     image: ${MONITOR_IMG}
     pull_policy: always
@@ -187,9 +216,6 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
-      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
-      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
@@ -222,7 +248,6 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
@@ -252,15 +277,13 @@ services:
     environment:
       - DEBUG=true
       - XROAD_HOST=proxy
-      - XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID=${DSP_PARTICIPANT_ID:-xrd-ss}
-      - XROAD_PROXY_DSP_LISTEN_ADDRESS=0.0.0.0
-      - XROAD_COMMON_RPC_CHANNEL_ASSET_ACCESS_HOST=ds-control-plane
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
-      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
-      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
@@ -280,6 +303,8 @@ services:
       - ds-https-keystore:/etc/xroad/ssl:ro
     depends_on:
       db-serverconf-init:
+        condition: service_completed_successfully
+      db-serverconf-config-seed:
         condition: service_completed_successfully
       signer:
         condition: service_healthy
@@ -301,11 +326,6 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
-      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
-      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
-      - XROAD_COMMON_RPC_CHANNEL_AUXILIARY_SERVICE_HOST=auxiliary-service
-      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
@@ -314,7 +334,6 @@ services:
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_PROXY_UI_API_PROXY_SERVER_URL=https://proxy:8443
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
@@ -331,6 +350,8 @@ services:
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
       signer:
         condition: service_healthy
     deploy:
@@ -345,12 +366,15 @@ services:
     environment:
       - DEBUG=true
       - XROAD_HOST=auxiliary-service
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
       - XROAD_SERVERCONF_DB_PASSWORD=secret
       - XROAD_SERVERCONF_DB_ADMIN_PASSWORD=admin_secret
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     healthcheck:
       interval: 5s
       retries: 40
@@ -366,6 +390,8 @@ services:
     depends_on:
       openbao:
         condition: service_healthy
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
 volumes:
   ds-https-keystore:
 

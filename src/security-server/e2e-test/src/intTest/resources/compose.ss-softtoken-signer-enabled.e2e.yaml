@@ -1,8 +1,32 @@
 services:
+  config-seed-softtoken:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.common-rpc.channel.softtoken-signer.enabled', 'true', NULL, now(), now())
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   proxy:
-    environment:
-      - XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_ENABLED=true
-      - XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_HOST=softtoken-signer
+    depends_on:
+      config-seed-softtoken:
+        condition: service_completed_successfully
   softtoken-signer:
     image: ${SOFTTOKEN_SIGNER_IMG}
     pull_policy: always
@@ -14,6 +38,5 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
     ports:
       - "0:9999" # debug

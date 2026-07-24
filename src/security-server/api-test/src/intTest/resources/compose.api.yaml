@@ -230,7 +230,6 @@ services:
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS=1
       # op-monitor overrides (listen-address, scheme, tls cert-refresh, records offset) moved to the
       # configuration_properties DB-override layer (scope='op-monitor-daemon') - see seed service below.
       - DB_CONFIG_SOURCE_ENABLED=true

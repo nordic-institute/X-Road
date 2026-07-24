@@ -85,7 +85,6 @@ services:
       JAVA_OPTS: -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "60"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       DB_CONFIG_SOURCE_ENABLED: "true"
@@ -127,7 +126,6 @@ services:
       JAVA_OPTS: -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "signer"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
@@ -180,13 +178,8 @@ services:
       JAVA_OPTS: -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "proxy"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
-      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
-      XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_HOST: "op-monitor"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_SCHEME: https
       XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
-      XROAD_PROXY_DSP_LISTEN_ADDRESS: "0.0.0.0"
-      XROAD_COMMON_RPC_CHANNEL_ASSET_ACCESS_HOST: "ds-control-plane"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
@@ -231,11 +224,6 @@ services:
       DEBUG_PORT: "9999"
       XROAD_HOST: "proxy-ui-api"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
-      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
-      XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy"
-      XROAD_COMMON_RPC_CHANNEL_AUXILIARY_SERVICE_HOST: "auxiliary-service"
-      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
@@ -284,10 +272,6 @@ services:
       DEBUG_PORT: "9999"
       XROAD_HOST: "monitor"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
-      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
-      XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy"
-      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
@@ -331,10 +315,8 @@ services:
       JAVA_OPTS: -XX:MaxMetaspaceSize=120m
       DEBUG_PORT: "9999"
       XROAD_HOST: "op-monitor"
-      XROAD_OP_MONITOR_LISTEN_ADDRESS: 0.0.0.0
       XROAD_OP_MONITOR_SCHEME: https
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-opmonitor:5432/op-monitor"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME: "opmonitor"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
@@ -386,7 +368,6 @@ services:
     env:
       JAVA_OPTS: -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "auxiliary-service"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_SERVERCONF_DB_HOST: "db-serverconf"
       XROAD_SERVERCONF_DB_PORT: "5432"
@@ -482,7 +463,6 @@ services:
       XROAD_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
       XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME: "ds_control_plane"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"
@@ -623,7 +603,6 @@ services:
     env:
       HOSTNAME: "ds-issuer-service"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service"
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME: "ds_issuer_service"
       EDC_IAM_DID_WEB_USE_HTTPS: "false"

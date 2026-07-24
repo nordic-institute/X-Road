@@ -1,19 +1,48 @@
 services:
+  config-seed-e2e:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.proxy.message-log.timestamper.timestamp-immediately', 'true', 'proxy', now(), now()),
+        ('xroad.proxy.dsp.serverproxy-endpoint', 'https://${DSP_PARTICIPANT_ID:-xrd-ss}:5500', 'proxy', now(), now()),
+        ('xroad.common-global-conf.refresh-rate', '10S', NULL, now(), now()),
+        ('xroad.configuration-client.update-interval', '10', 'configuration-client', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.enabled', 'true', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://${ENV_PREFIX:-}ds-identity-hub:7182', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.participant-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.management-context-enabled', '${DSP_MGMT_CONTEXT:-false}', 'proxy-ui-api', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:cs%3A6183:issuer', 'proxy-ui-api', now(), now())
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   proxy:
-    environment:
-      - XROAD_PROXY_MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY=true
-      - XROAD_PROXY_DSP_SERVERPROXY_ENDPOINT=https://${DSP_PARTICIPANT_ID:-xrd-ss}:5500
-      - XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE=10S
+    depends_on:
+      config-seed-e2e:
+        condition: service_completed_successfully
   configuration-client:
-    environment:
-      - XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL=10
+    depends_on:
+      config-seed-e2e:
+        condition: service_completed_successfully
   ui:
-    environment:
-      - XROAD_PROXY_UI_API_DATASPACE_ENABLED=true
-      - XROAD_PROXY_UI_API_DATASPACE_IDENTITY_HUB_URL=https://${ENV_PREFIX:-}ds-identity-hub:7182
-      - XROAD_PROXY_UI_API_DATASPACE_PARTICIPANT_ID=${DSP_PARTICIPANT_ID:-xrd-ss}
-      - XROAD_PROXY_UI_API_DATASPACE_MANAGEMENT_CONTEXT_ENABLED=${DSP_MGMT_CONTEXT:-false}
-      - XROAD_PROXY_UI_API_DATASPACE_ISSUER_DID=did:web:cs%3A6183:issuer
+    depends_on:
+      config-seed-e2e:
+        condition: service_completed_successfully
   db-messagelog:
     ports:
       - "0:5432"
