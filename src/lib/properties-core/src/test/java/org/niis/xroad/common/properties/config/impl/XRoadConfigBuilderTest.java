@@ -83,6 +83,26 @@ class XRoadConfigBuilderTest {
     }
 
     @Test
+    void ignoredEnvVarsReportsEnvEntriesMatchingRegisteredKeys() {
+        var builder = XRoadConfigBuilder.create().register(provider);
+
+        var ignored = builder.ignoredEnvVars(Map.of(
+                "XROAD_TEST_WITH_CONTAINER", "from-env",
+                "XROAD_TEST_UNKNOWN_KEY", "not-registered",
+                "XROAD_HOST", "not-a-dsl-key",
+                "PATH", "/usr/bin"));
+
+        assertThat(ignored).containsExactly("XROAD_TEST_WITH_CONTAINER");
+    }
+
+    @Test
+    void ignoredEnvVarsEmptyWhenNoEnvEntryMatches() {
+        var builder = XRoadConfigBuilder.create().register(provider);
+
+        assertThat(builder.ignoredEnvVars(Map.of("XROAD_HOST", "cs", "HOME", "/root"))).isEmpty();
+    }
+
+    @Test
     void nestedGrandchildKeyBuildsFullPathRegistersOnRootAndResolves() {
         var root = Prefix.of("xroad.test");
         // a scope with a child, whose child has its own child

@@ -41,6 +41,7 @@ import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -120,7 +121,30 @@ public final class XRoadConfigBuilder {
 
     /** @return resolved configuration with values cached at build time */
     public XRoadConfig build() {
+        warnIgnoredEnvVars(System.getenv());
         return new DefaultXRoadConfig(providers, overrides, deploymentMode);
+    }
+
+    void warnIgnoredEnvVars(Map<String, String> env) {
+        var ignored = ignoredEnvVars(env);
+        if (!ignored.isEmpty()) {
+            log.warn("Environment variable(s) [{}] match registered xroad.* config keys but are IGNORED: "
+                            + "XRoadConfig resolves DB overrides and packaged defaults only. "
+                            + "Set the value(s) in the configuration_properties table instead.",
+                    String.join(", ", ignored));
+        }
+    }
+
+    List<String> ignoredEnvVars(Map<String, String> env) {
+        return providers.stream()
+                .flatMap(provider -> provider.keys().stream())
+                .map(key -> toEnvVarName(key.key()))
+                .filter(env::containsKey)
+                .toList();
+    }
+
+    private static String toEnvVarName(String key) {
+        return key.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "_");
     }
 
     /**
