@@ -111,6 +111,7 @@ public class ConfigurationRestorationServiceImpl implements ConfigurationRestora
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
             throw new InternalServerErrorException(e, BACKUP_RESTORATION_FAILED.build());
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new InternalServerErrorException(e, BACKUP_RESTORATION_INTERRUPTED.build());
         } finally {
             eventPublisher.publishEvent(BackupRestoreEvent.END);

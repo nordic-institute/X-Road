@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
@@ -102,8 +103,7 @@ public class InternalTlsCertificateService {
             CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
             writeFileToArchive(tarOutputStream, pemStream.toByteArray(), CERT_PEM_FILENAME);
             writeFileToArchive(tarOutputStream, certificate.getEncoded(), CERT_CER_FILENAME);
-
-        } catch (Exception e) {
+        } catch (IOException | CertificateEncodingException | XrdRuntimeException e) {
             log.error("writing certificate file failed", e);
             throw XrdRuntimeException.systemException(e);
         }

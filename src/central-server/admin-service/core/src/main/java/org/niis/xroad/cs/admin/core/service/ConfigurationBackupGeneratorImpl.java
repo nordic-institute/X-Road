@@ -95,7 +95,8 @@ public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGene
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             throw new InternalServerErrorException(e, BACKUP_GENERATION_FAILED.build());
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build());
+            Thread.currentThread().interrupt();
+            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
         }
 
         Optional<BackupFile> backupFile = backupService.getBackup(filename);

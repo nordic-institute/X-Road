@@ -30,7 +30,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
@@ -129,15 +128,17 @@ public final class WsdlParser {
             throw new WsdlNotFoundException(e);
         } catch (Exception e) {
             log.error("Reading WSDL from {} failed", wsdlUrl, e);
-            throw new WsdlParseException(clarifyWsdlParsingException(e));
+            throw new WsdlParseException(clarifyWsdlParsingException(unwrapOriginalCause(e)));
         }
+    }
+
+    private static Exception unwrapOriginalCause(Exception e) {
+        return e instanceof XrdRuntimeException && e.getCause() instanceof Exception cause ? cause : e;
     }
 
     private static Exception clarifyWsdlParsingException(Exception e) {
         if (identicalOperationsUnderSamePort(e)) {
-            return XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR)
-                    .details("WSDL violates specification: " + e.getMessage())
-                    .build();
+            return XrdRuntimeException.systemInternalError("WSDL violates specification: " + e.getMessage());
         }
 
         return e;
