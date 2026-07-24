@@ -191,7 +191,7 @@ public final class WsdlParser {
             Definition definition =
                     wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
 
-            return (Collection<Service>) definition.getServices().values();
+            return definition.getServices().values();
         } catch (WSDLException e) {
             throw XrdRuntimeException.systemException(e);
         }
@@ -370,7 +370,7 @@ public final class WsdlParser {
             // no-op
         }
 
-        private void configureHttps(HttpsURLConnection conn) throws NoSuchAlgorithmException, KeyManagementException {
+        private void configureHttps(HttpsURLConnection conn) {
             TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override
