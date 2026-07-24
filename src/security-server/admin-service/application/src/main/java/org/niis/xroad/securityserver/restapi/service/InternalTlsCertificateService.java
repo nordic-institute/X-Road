@@ -103,7 +103,10 @@ public class InternalTlsCertificateService {
             CryptoUtils.writeCertificatePem(certificate.getEncoded(), pemStream);
             writeFileToArchive(tarOutputStream, pemStream.toByteArray(), CERT_PEM_FILENAME);
             writeFileToArchive(tarOutputStream, certificate.getEncoded(), CERT_CER_FILENAME);
-        } catch (IOException | CertificateEncodingException | XrdRuntimeException e) {
+        } catch (XrdRuntimeException e) {
+            log.error("writing certificate file failed", e);
+            throw e;
+        } catch (IOException | CertificateEncodingException e) {
             log.error("writing certificate file failed", e);
             throw XrdRuntimeException.systemException(e);
         }
