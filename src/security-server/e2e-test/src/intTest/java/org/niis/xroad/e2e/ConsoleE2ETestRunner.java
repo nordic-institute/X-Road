@@ -50,11 +50,11 @@ public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
                 "compose.ss-msglog.e2e.yaml",
                 "compose.ss-opmonitor.e2e.yaml",
                 ".env",
+                "container-files/",
                 "wiremock_mappings/",
                 "signer-with-hsm/",
                 "hurl/",
-                "gpg_keys/",
-                "msglog_encryption_config/"
+                "gpg_keys/"
         };
     }
 
