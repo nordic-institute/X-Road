@@ -118,4 +118,20 @@
             UPDATE configuration_sources SET active_key_id = (SELECT id FROM configuration_signing_keys where key_identifier = 'BAE59C0FA417D2CD65FAB7DB5E493D0D6053B777') WHERE source_type = 'external';
         </sql>
     </changeSet>
+
+    <changeSet id="configuration-properties-testdata" author="ovidijus">
+        <comment>Management-service config via the DB override layer. The api-token pairs with the
+            XROAD_MANAGEMENT_SERVICE apikey above; the service is restarted after this changelog runs
+            so it resolves these values instead of the container-start seeds.
+        </comment>
+        <sql>
+            INSERT INTO configuration_properties
+                (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.management-service.api-token', 'de628164-9485-409c-b654-7dda28bb3872', NULL, now(), now()),
+                   ('xroad.management-service.api-base-url', 'http://mock-server:1080', NULL, now(), now()),
+                   ('xroad.management-service.rate-limit-requests-per-second', '100', NULL, now(), now()),
+                   ('xroad.management-service.rate-limit-requests-per-minute', '1000', NULL, now(), now()),
+                   ('xroad.common-rpc.use-tls', 'false', NULL, now(), now());
+        </sql>
+    </changeSet>
 </databaseChangeLog>
