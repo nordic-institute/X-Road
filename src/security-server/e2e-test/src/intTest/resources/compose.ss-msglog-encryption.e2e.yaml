@@ -1,11 +1,44 @@
 services:
+  config-seed-msglog-encryption:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.message-log-encryption.db.encryption-enabled', 'true', NULL, now(), now()),
+        ('xroad.message-log-encryption.archive.encryption-enabled', 'true', NULL, now(), now()),
+        ('xroad.message-log-encryption.archive.default-key-id', '3BD9C292C63580F8', NULL, now(), now()),
+        ('xroad.message-log-encryption.archive.grouping-strategy', 'SUBSYSTEM', NULL, now(), now()),
+        ('xroad.message-log-encryption.archive.grouping-keys',
+         '{"not/existing/member":["8A4BB80EEE081BDE"],"DEV/COM/4321":["E93952B01C2D2EA5","8A4BB80EEE081BDE"],"another/fake/member":["1234567890ABCDEF"]}',
+         NULL, now(), now())
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   proxy:
-    volumes:
-        - ./msglog_encryption_config:/opt/app/config
+    depends_on:
+      config-seed-msglog-encryption:
+        condition: service_completed_successfully
   openbao:
     volumes:
       - ./gpg_keys:/gpg-keys
   message-log-cli:
     volumes:
       - ./gpg_keys:/gpg-keys
-      - ./msglog_encryption_config:/opt/app/config
+    depends_on:
+      config-seed-msglog-encryption:
+        condition: service_completed_successfully
