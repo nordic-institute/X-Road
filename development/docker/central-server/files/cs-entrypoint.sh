@@ -12,10 +12,6 @@ wait_db() {
   done
 }
 
-get_yaml_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
-}
-
 seed_configuration_properties() {
   local seed_dir="/etc/xroad/db-config-seed"
   [ -d "$seed_dir" ] || return 0
@@ -82,14 +78,14 @@ then
     unset XROAD_TOKEN_PIN
 fi
 
-CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
-
-if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.api-token") ]]; then
-  log "Creating API token for registration service..."
+pg_isready -q -t 2 || pg_ctlcluster 18 main start
+wait_db
+TOKEN_ROWS=$(su -c "psql -qtA centerui_production -c \"SET ROLE centerui; SELECT count(*) FROM configuration_properties \
+  WHERE property_key IN ('xroad.registration-service.api-token', 'xroad.management-service.api-token');\"" postgres)
+if [ "$TOKEN_ROWS" != "2" ]; then
+  log "Creating API token for registration/management service..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   ENCODED=$(echo -n "$TOKEN" | sha256sum -b | cut -d' ' -f1)
-  pg_ctlcluster 18 main start
-  wait_db
   su -c "psql -q centerui_production" postgres <<EOF
 SET ROLE centerui;
 DO \$\$
@@ -102,11 +98,13 @@ BEGIN
 END
 \$\$
 ;
+INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+('xroad.registration-service.api-token', '$TOKEN', NULL, now(), now()),
+('xroad.management-service.api-token', '$TOKEN', NULL, now(), now())
+ON CONFLICT DO NOTHING;
 EOF
-  pg_ctlcluster 18 main stop
-  /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" xroad.registration-service.api-token "$TOKEN"
-  /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" xroad.management-service.api-token "$TOKEN"
 fi
+pg_ctlcluster 18 main stop
 
 log "Enabling public postgres access.."
 sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
