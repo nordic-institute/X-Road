@@ -21,8 +21,8 @@
   },
   "adminUsers": {
     "role": {
-      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
-      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
+      "XROAD_SECURITYSERVER_OBSERVER": "Serveri Vaatleja",
+      "XROAD_SERVICE_ADMINISTRATOR": "Teenuse Administraator"
     }
   },
   "alert": {
