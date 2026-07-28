@@ -29,7 +29,7 @@
     mode: "0755"
 
 # ---------------------------------------------------------------------------
-# 3. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees
+# 2. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
 #    EDC's @Setting resolution. These must exist before the unit's first start.
 #
@@ -69,7 +69,7 @@
               password: "changeit"
 
 # ---------------------------------------------------------------------------
-# 4. TLS keystore for DS services. Must be on disk before ds-* units start.
+# 3. TLS keystore for DS services. Must be on disk before ds-* units start.
 #    Also installs xrd-ca into the system trust store.
 #
 # TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
