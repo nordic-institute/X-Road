@@ -143,3 +143,6 @@ xroad:
           - 127.0.0.1
     key-management-api-whitelist: 127.0.0.0/8, ::1
     regular-api-whitelist: 0.0.0.0/0, ::/0
+  dataspace:
+    issuer:
+      host: ${XROAD_HOST:localhost}

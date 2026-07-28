@@ -3,10 +3,6 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
-      # Co-located Issuer Service: CS-init provisions it over loopback gRPC (the
-      # default RPC host 127.0.0.1 matches the issuer server-cert IP SAN).
-      # Publish the issuer DID under the `cs` host.
-      - XROAD_DATASPACE_ISSUER_HOST=cs
     deploy:
       resources:
         reservations:
