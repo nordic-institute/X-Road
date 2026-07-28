@@ -87,7 +87,7 @@ normalize_output() { strip_ansi | strip_preamble | strip_abspath; }
 # These are the scripts this harness covers.  Paths are REPO_ROOT-relative.
 SCOPE_SCRIPTS=(
   "scripts/images/build-security-server.sh"
-  "scripts/package.sh"
+  "scripts/build-native-packages.sh"
   "scripts/images/build-central-server.sh"
   "scripts/images/build-dev-infra.sh"
   "scripts/images/build-builder.sh"
@@ -96,7 +96,7 @@ SCOPE_SCRIPTS=(
   "scripts/charts/publish.sh"
   "scripts/release/installer-artifactory.sh"
   "scripts/release/installer-s3.sh"
-  "scripts/build-local.sh"
+  "scripts/build-images.sh"
   "scripts/lib/base-script.sh"
   "scripts/release/_installer-common.sh"
 )
@@ -217,8 +217,8 @@ if $REFRESH_MODE; then
   _refresh "build-security-server.sh.help" \
     bash "${REPO_ROOT}/scripts/images/build-security-server.sh" --help
 
-  _refresh "package.sh.help" \
-    bash "${REPO_ROOT}/scripts/package.sh" --help
+  _refresh "build-native-packages.sh.help" \
+    bash "${REPO_ROOT}/scripts/build-native-packages.sh" --help
 
   _refresh "build-central-server.sh.help" \
     bash "${REPO_ROOT}/scripts/images/build-central-server.sh" --help
@@ -229,8 +229,8 @@ if $REFRESH_MODE; then
   _refresh "publish.sh.help" \
     bash "${REPO_ROOT}/scripts/charts/publish.sh" --help
 
-  _refresh "build-local.sh.help" \
-    bash "${REPO_ROOT}/scripts/build-local.sh" --help
+  _refresh "build-images.sh.help" \
+    bash "${REPO_ROOT}/scripts/build-images.sh" --help
 
   _refresh "build-builder.sh.usage" \
     bash "${REPO_ROOT}/scripts/images/build-builder.sh"
@@ -260,9 +260,9 @@ if $RUN_BASELINES; then
     bash "${REPO_ROOT}/scripts/images/build-security-server.sh" --help
 
   check_baseline \
-    "package.sh --help" \
-    "package.sh.help" \
-    bash "${REPO_ROOT}/scripts/package.sh" --help
+    "build-native-packages.sh --help" \
+    "build-native-packages.sh.help" \
+    bash "${REPO_ROOT}/scripts/build-native-packages.sh" --help
 
   check_baseline \
     "build-central-server.sh --help" \
@@ -280,9 +280,9 @@ if $RUN_BASELINES; then
     bash "${REPO_ROOT}/scripts/charts/publish.sh" --help
 
   check_baseline \
-    "build-local.sh --help" \
-    "build-local.sh.help" \
-    bash "${REPO_ROOT}/scripts/build-local.sh" --help
+    "build-images.sh --help" \
+    "build-images.sh.help" \
+    bash "${REPO_ROOT}/scripts/build-images.sh" --help
 
   # build-builder.sh — no --help flag; usage printed on missing arg (exit 1).
   # Full output match after normalization (absolute path stripped to relative).
@@ -357,37 +357,37 @@ if $RUN_SMOKE; then
     skip "build-security-server.sh smoke (script exited before docker call — artifact prerequisite not met, expected)"
   fi
 
-  # Smoke: package.sh with --package-only — reaches docker ps call.
+  # Smoke: build-native-packages.sh with --package-only — reaches docker ps call.
   (
     rm -f "$FAKE_LOG"
     export XROAD_HOME="$REPO_ROOT"
-    bash "${REPO_ROOT}/scripts/package.sh" --package-only >/dev/null 2>&1 || true
+    bash "${REPO_ROOT}/scripts/build-native-packages.sh" --package-only >/dev/null 2>&1 || true
   )
 
   if grep -q "docker" "$FAKE_LOG" 2>/dev/null; then
-    pass "package.sh --package-only invoked fake docker (no real daemon)"
+    pass "build-native-packages.sh --package-only invoked fake docker (no real daemon)"
   else
-    skip "package.sh smoke (no docker call reached — git or other prerequisite absent)"
+    skip "build-native-packages.sh smoke (no docker call reached — git or other prerequisite absent)"
   fi
 
-  # Smoke: build-local.sh --no-build --no-registry skips Gradle; reaches docker via build-security-server.sh.
+  # Smoke: build-images.sh --no-build --no-registry skips Gradle; reaches docker via build-security-server.sh.
   (
     rm -f "$FAKE_LOG"
     export XROAD_HOME="$REPO_ROOT"
     export IMAGE_REGISTRY="localhost:5555"
-    bash "${REPO_ROOT}/scripts/build-local.sh" \
+    bash "${REPO_ROOT}/scripts/build-images.sh" \
       --no-build --no-registry >/dev/null 2>&1 || true
   )
 
   if grep -q "docker" "$FAKE_LOG" 2>/dev/null; then
-    pass "build-local.sh --no-build --no-registry invoked fake docker"
+    pass "build-images.sh --no-build --no-registry invoked fake docker"
   else
-    skip "build-local.sh smoke (no docker call reached — artifacts not built yet)"
+    skip "build-images.sh smoke (no docker call reached — artifacts not built yet)"
   fi
 
   rm -f "$FAKE_LOG"
 
-  # CI parse guard: package.sh -d -r rpm-el9 --package-only
+  # CI parse guard: build-native-packages.sh -d -r rpm-el9 --package-only
   # Asserts that the CI arg order ("-d" first) is fully consumed: BUILD_LOCALLY=false
   # (no compile-all.sh call), release=rpm-el9 selected (docker run targets rpm-el9
   # image), and no other release images are invoked.  This guards against a regression
@@ -397,7 +397,7 @@ if $RUN_SMOKE; then
     export XROAD_HOME="$REPO_ROOT"
     export IMAGE_REGISTRY="localhost:5555"
     export IMAGE_TAG="latest"
-    bash "${REPO_ROOT}/scripts/package.sh" -d -r rpm-el9 --package-only >/dev/null 2>&1 || true
+    bash "${REPO_ROOT}/scripts/build-native-packages.sh" -d -r rpm-el9 --package-only >/dev/null 2>&1 || true
   )
 
   _CI_LOG_CONTENT=""
@@ -410,9 +410,9 @@ if $RUN_SMOKE; then
   #    exit non-zero (gradlew not present), killing the script before docker packaging runs.
   #    Check: docker packaging WAS reached (fake docker log has an entry).
   if [[ -n "$_CI_LOG_CONTENT" ]]; then
-    pass "package.sh CI parse: -d consumed, packaging reached (docker called)"
+    pass "build-native-packages.sh CI parse: -d consumed, packaging reached (docker called)"
   else
-    fail "package.sh CI parse: -d broke the parse loop — docker packaging never reached"
+    fail "build-native-packages.sh CI parse: -d broke the parse loop — docker packaging never reached"
   fi
 
   # 2. Only rpm-el9 builder image was targeted, not other releases.
@@ -424,9 +424,9 @@ if $RUN_SMOKE; then
     fi
   done
   if [[ -z "$_CI_UNEXPECTED_RELEASE" ]]; then
-    pass "package.sh CI parse: only rpm-el9 release targeted (no other release images)"
+    pass "build-native-packages.sh CI parse: only rpm-el9 release targeted (no other release images)"
   else
-    fail "package.sh CI parse: unexpected release image '${_CI_UNEXPECTED_RELEASE}' targeted — parse produced wrong release set"
+    fail "build-native-packages.sh CI parse: unexpected release image '${_CI_UNEXPECTED_RELEASE}' targeted — parse produced wrong release set"
     printf '%s\n' "$_CI_LOG_CONTENT" | sed 's/^/          /' >&2
   fi
 

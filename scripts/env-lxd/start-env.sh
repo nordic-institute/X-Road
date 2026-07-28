@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-source "${BASH_SOURCE%/*}/../../scripts/lib/base-script.sh"
+cd "$(dirname "${BASH_SOURCE[0]}")"
+source "../../scripts/lib/base-script.sh"
 
 RECREATE=false
 SKIP_COMPILE=false
@@ -174,10 +175,11 @@ function listSnapshots() {
     snaps_json=$(lxc query "/1.0/instances/${container}/snapshots" 2>/dev/null || echo "[]")
 
     local found=false
-    local snap_names
+    local snap_names=()
     # Extract just the snapshot name from each URL path element
-    mapfile -t snap_names < <(echo "$snaps_json" | jq -r '.[]' 2>/dev/null \
-      | sed 's|.*/||')
+    while IFS= read -r _snap_line; do
+      snap_names+=("$_snap_line")
+    done < <(echo "$snaps_json" | jq -r '.[]' 2>/dev/null | sed 's|.*/||')
 
     for snap in "${snap_names[@]}"; do
       [[ "$snap" == "empty" || "$snap" == "custom" ]] || continue
@@ -314,7 +316,7 @@ function handleBuild() {
       build_args+="--skip-tests "
     fi
 
-    ./../../scripts/package.sh -r resolute -r rpm-el9 $build_args
+    ./../../scripts/build-native-packages.sh -r resolute -r rpm-el9 $build_args
   fi
 }
 

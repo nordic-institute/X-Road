@@ -12,18 +12,22 @@ Run paths are relative to `scripts/` unless noted.
 |---|---|---|
 | Compile everything | `./compile-all.sh` | `scripts/` |
 | Compile one module (faster) | `./compile-module.sh <module>` | `scripts/` |
-| **Compile + build/push all images** (recommended pre-test flow) | `./build-local.sh` | `scripts/` |
-| Build native DEB/RPM packages | `./package.sh -r resolute -r rpm-el9` | `scripts/` |
+| **Build all local tiers** (infra + Security Server + Central Server) | `./build-images.sh` | `scripts/` |
+| Build native DEB/RPM packages | `./build-native-packages.sh -r resolute -r rpm-el9` | `scripts/` |
 
-`build-local.sh` is the one-command local flow: it starts the local registry, compiles the
-full codebase, and builds and pushes all Security Server images to `localhost:5555`. Run it
-before `gradlew intTest` to ensure the containerized test tier sees fresh images.
+`build-images.sh` is the one-command local flow: a bare run starts the local registry, builds
+the dev-infra images, compiles the full codebase, and builds/pushes the Security Server and
+Central Server images to `localhost:5555`. Run it before `gradlew intTest` to ensure the
+containerized test tier sees fresh images. Trim tiers you don't need with `--skip-*`; for
+granular single-image selection call `images/build-security-server.sh <service...>` directly.
 
 ```
-./build-local.sh [service...] [options]
-  service...        one or more service names (default: all)
+./build-images.sh [options]      # bare = infra + security-server + central-server
+  --skip-infra      skip the dev-infra tier (openbao, testca, postgres-dev, nginx-cp)
+  --skip-ss         skip the Security Server tier (Gradle compile + SS images)
+  --skip-cs         skip the Central Server tier (DEB build + CS image)
   -s, --skip-tests  skip tests during the Gradle build
-  -b, --no-build    reuse existing artifacts; only rebuild images
+  -b, --no-build    reuse existing artifacts and packages; only rebuild images
   -r, --registry R  target registry (default: localhost:5555)
       --no-registry skip the local-registry guard
 ```
@@ -34,9 +38,9 @@ before `gradlew intTest` to ensure the containerized test tier sees fresh images
 
 | Script | Builds |
 |---|---|
-| `images/build-security-server.sh` | SS runtime images (`ss-*`); reads `lib/service-config.csv` |
+| `images/build-security-server.sh` | SS runtime images (`ss-*`); reads `lib/service-config.csv`. For granular single-image selection call this directly, e.g. `images/build-security-server.sh proxy signer` |
 | `images/build-central-server.sh` | Central Server dev image |
-| `images/build-dev-infra.sh` | Dev-infra images (openbao, testca, postgres) |
+| `images/build-dev-infra.sh` | Dev-infra images (openbao, testca, postgres-dev, nginx-cp) |
 | `images/build-builder.sh` | Package-builder toolchain images |
 
 ---
@@ -44,7 +48,7 @@ before `gradlew intTest` to ensure the containerized test tier sees fresh images
 ## Native packages — `packages/`
 
 `packages/build-deb.sh` and `packages/build-rpm.sh` run **inside** the builder containers.
-`package.sh` invokes them via `docker run`; do not run them directly.
+`build-native-packages.sh` invokes them via `docker run`; do not run them directly.
 
 ---
 

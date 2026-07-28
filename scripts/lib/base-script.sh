@@ -19,6 +19,7 @@ if [ -z "${XROAD_HOME:-}" ]; then
   XROAD_HOME=$(realpath "$(dirname "${BASH_SOURCE[0]}")/../..")
   echo "XROAD_HOME is not set. Setting it to $XROAD_HOME"
 fi
+export XROAD_HOME
 
 # Color codes for enhanced logging (ANSI escape sequences)
 if [ "$isTextColoringEnabled" = true ]; then
@@ -26,12 +27,14 @@ if [ "$isTextColoringEnabled" = true ]; then
   GREEN='\033[0;32m'
   YELLOW='\033[1;33m'
   BLUE='\033[0;34m'
+  CYAN='\033[0;36m'
   NC='\033[0m' # No Color
 else
   RED=''
   GREEN=''
   YELLOW=''
   BLUE=''
+  CYAN=''
   NC=''
 fi
 

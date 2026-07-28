@@ -3,7 +3,7 @@
 # - Pull from registry if available
 # - Build locally if pull fails
 # - Push to registry after building
-# Used by both scripts/package.sh and CI workflows
+# Used by both scripts/build-native-packages.sh and CI workflows
 
 set -e
 
