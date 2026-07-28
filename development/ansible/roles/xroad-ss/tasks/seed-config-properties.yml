@@ -1,0 +1,53 @@
+---
+# The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
+# and conf.d yaml are ignored — so per-host runtime config must be rows in the
+# serverconf configuration_properties table. Services read them through the DB
+# config source that /etc/xroad/services/global.conf derives from db.properties.
+# Runs post-install (the table is created by the package's liquibase run).
+# Deterministic upsert: delete + insert, so re-provisioning refreshes values.
+#
+# TEMPORARY (dataspaces dev): remove once packaging seeds these via debconf
+#   answerable questions / real STS-issued tokens.
+- name: seed dataspace runtime config into serverconf configuration_properties
+  become: true
+  become_user: postgres
+  command:
+    argv:
+      - psql
+      - -v
+      - ON_ERROR_STOP=1
+      - -d
+      - serverconf
+      - -c
+      - |
+        SET ROLE serverconf;
+        DELETE FROM configuration_properties WHERE property_key IN (
+          'xroad.proxy.dsp.participant-context-id',
+          'xroad.proxy.dsp.cache.enabled',
+          'xroad.proxy-ui-api.dataspace.identity-hub-url',
+          'xroad.proxy-ui-api.dataspace.participant-id',
+          'xroad.proxy-ui-api.dataspace.issuer-did',
+          'xroad.dataspace.control-plane-provisioning.rpc.host',
+          'xroad.dataspace.identity-hub-provisioning.rpc.host',
+          'xroad.dataspace.identity-hub-provisioning.rpc.port');
+        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.proxy.dsp.participant-context-id', '{{ inventory_hostname }}.lxd', NULL, now(), now()),
+        ('xroad.proxy.dsp.cache.enabled', 'false', NULL, now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://{{ inventory_hostname }}.lxd:7182', NULL, now(), now()),
+        ('xroad.proxy-ui-api.dataspace.participant-id', '{{ inventory_hostname }}.lxd', NULL, now(), now()),
+        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer', NULL, now(), now()),
+        -- the ds services are co-located on this host: the DSL host defaults are the
+        -- container service names, and identity-hub moves off the shared 5460 default
+        ('xroad.dataspace.control-plane-provisioning.rpc.host', '127.0.0.1', NULL, now(), now()),
+        ('xroad.dataspace.identity-hub-provisioning.rpc.host', '127.0.0.1', NULL, now(), now()),
+        ('xroad.dataspace.identity-hub-provisioning.rpc.port', '5461', NULL, now(), now());
+
+# Package postinst starts proxy and proxy-ui-api before the seed exists, and the
+# DSL caches its resolution at startup — restart so they pick up the seeded rows.
+- name: restart proxy and proxy-ui-api to resolve the seeded configuration
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - xroad-proxy
+    - xroad-proxy-ui-api

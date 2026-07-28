@@ -32,47 +32,10 @@
     mode: "0755"
 
 # ---------------------------------------------------------------------------
-# 3. Preseed DSP proxy config. xroad-proxy postinst starts the proxy; strict
-#    SmallRye validation aborts startup when dsp.participant-context-id is
-#    missing. Dropping the file here lets the first package-driven start succeed.
-#
-# TEMPORARY (dataspaces dev): remove once xroad-proxy debconf ships
-#   participant-context-id as an answerable question.
-# ---------------------------------------------------------------------------
-- name: preseed DSP control plane config (must precede xroad-proxy package install)
-  copy:
-    dest: /etc/xroad/conf.d/local-dsp.yaml
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      xroad:
-        proxy:
-          dsp:
-            participant-context-id: "{{ inventory_hostname }}.lxd"
-            cache:
-              enabled: false
-
-# ---------------------------------------------------------------------------
-# 3b. Preseed proxy-ui-api dataspace provisioning config.
-#     identity-hub-url MUST be this host's FQDN, not localhost: the
-#     provisioning service derives the holder DID, the credentialService endpoint
-#     (where the issuer on the CS pushes the issued credential) and the STS token
-#     URL from its host, and all three must be reachable cross-host. proxy-ui-api
-#     only imports local.yaml and local-tls.yaml, so this is injected into
-#     local.yaml. The reconciler drives provisioning automatically at SS init
-#     and on each globalconf-refresh tick; no manual API call is needed.
-#
-# The block itself lives in init-dev-configuration's per-host rendered
-# `ss-local.yaml.j2` (run earlier, on the whole fleet, before this role) — it
-# needs this host's own inventory_hostname (identity-hub-url, participant-id),
-# which a template can express fine, so there's no need to preseed/inject it
-# here. Nothing to do in this file for local.yaml.
-#
-# TEMPORARY (dataspaces dev): remove this note once packaging ships these as
-#   debconf answerable questions / real STS-issued tokens.
-# ---------------------------------------------------------------------------
-
+# 3. xroad.proxy.dsp.* and xroad.proxy-ui-api.dataspace.* runtime config moved
+#    to the configuration_properties DB override layer (the XRoadConfig DSL
+#    does not read conf.d yaml) — see seed-config-properties.yml, which runs
+#    after install once the serverconf database exists.
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
@@ -88,6 +51,12 @@
     group: xroad
     mode: "0640"
     content: |
+      # co-located with ds-control-plane, whose shared gRPC server owns the
+      # default port 5460 - without this both runtimes race for the same bind
+      xroad:
+        ds:
+          rpc:
+            port: 5461
       edc:
         web:
           https:

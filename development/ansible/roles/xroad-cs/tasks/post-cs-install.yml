@@ -17,6 +17,33 @@
     name: xroad-ds-issuer-service
     state: started
 
+# The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
+# and conf.d yaml are ignored — so the issuer DID host must be a row in the
+# centerui configuration_properties table (default is localhost; the SS side
+# references did:web:<cs-host>...). Deterministic upsert; restart xroad-center
+# because it resolved the DSL config before the row existed.
+- name: seed dataspace issuer host into centerui configuration_properties
+  become: true
+  become_user: postgres
+  command:
+    argv:
+      - psql
+      - -v
+      - ON_ERROR_STOP=1
+      - -d
+      - centerui_production
+      - -c
+      - |
+        SET ROLE centerui;
+        DELETE FROM configuration_properties WHERE property_key = 'xroad.dataspace.issuer.host';
+        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+        ('xroad.dataspace.issuer.host', '{{ groups['cs_servers'] | first }}', NULL, now(), now());
+
+- name: restart xroad-center to resolve the seeded issuer host
+  systemd:
+    name: xroad-center
+    state: restarted
+
 # TEMPORARY FIX — race in ManagementServiceSslBundleRegistrar
 # (core/src/common/common-management-service/.../ManagementServiceSslBundleRegistrar.java).
 # Both xroad-center-management-service and xroad-center-registration-service share

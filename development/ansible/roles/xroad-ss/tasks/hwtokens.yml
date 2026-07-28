@@ -53,21 +53,27 @@
       register: softhsm2_slot_id
       changed_when: false
 
-    - name: Append SoftHSM2 signer module under xroad in local.yaml
-      blockinfile:
-        path: /etc/xroad/conf.d/local.yaml
-        insertafter: '^xroad:$'
-        marker: "  # {mark} SoftHSM2 signer module"
-        block: |2
-            # hardware token configuration:
-            signer:
-              modules:
-                softhsm2:
-                  library: /usr/lib/softhsm/libsofthsm2.so
-                  os-locking-ok: true
-                  library-cant-create-os-threads: true
-                  slot-ids: {{ softhsm2_slot_id.stdout | trim }}
-                  token-id-format: 1
+    # The module config lives in the configuration_properties DB override layer
+    # (the DSL ignores conf.d yaml); slot-ids keeps softhsm's uninitialized free
+    # slot from surfacing as a second hardware token. Deterministic upsert.
+    - name: Seed SoftHSM2 signer module into serverconf configuration_properties
+      become: true
+      become_user: postgres
+      command:
+        argv:
+          - psql
+          - -v
+          - ON_ERROR_STOP=1
+          - -d
+          - serverconf
+          - -c
+          - |
+            SET ROLE serverconf;
+            DELETE FROM configuration_properties WHERE property_key = 'xroad.signer.modules';
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+            ('xroad.signer.modules',
+             '{"softhsm2":{"library":"/usr/lib/softhsm/libsofthsm2.so","os-locking-ok":true,"library-cant-create-os-threads":true,"slot-ids":[{{ softhsm2_slot_id.stdout | trim }}],"token-id-format":"1"}}',
+             NULL, now(), now());
 
     - name: Recursively chown tokens to xroad
       become: true
@@ -76,3 +82,8 @@
         state: directory
         owner: xroad
         recurse: true
+
+    - name: Restart signer to resolve the seeded module configuration
+      systemd:
+        name: xroad-signer
+        state: restarted
