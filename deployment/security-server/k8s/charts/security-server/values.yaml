@@ -454,7 +454,7 @@ services:
         name: control
       - port: 8185
         name: signaling
-      - port: 5460
+      - port: 5461
         name: asset-access
       - port: 4099
         name: health

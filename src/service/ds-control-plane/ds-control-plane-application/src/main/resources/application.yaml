@@ -51,6 +51,7 @@ xroad:
   ds:
     rpc:
       host: "0.0.0.0"
+      port: 5461
   db:
     serverconf:
       hibernate:
