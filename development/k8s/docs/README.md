@@ -9,7 +9,13 @@ Ansible Collection that spins up the X-Road Security Server on a local [KinD](ht
 - Python 3.11+
 - `ansible-core >= 2.20, < 2.21` (installed via `requirements.txt`)
 
-One-shot install (from `core/development/k8s/`):
+`start-env.sh` provisions these automatically on every run: it creates `.venv/`,
+installs `requirements.txt` (pip) and `requirements.yml` (Ansible collections),
+skipping each install when its requirements file is unchanged. Pass
+`--skip-bootstrap` to opt out (offline / CI).
+
+To provision manually — or when running `ansible-playbook` directly (from
+`core/development/k8s/`):
 
 ```bash
 python3 -m venv .venv

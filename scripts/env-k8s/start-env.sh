@@ -9,6 +9,7 @@ SKIP_IMAGES=false
 SKIP_FORWARD=false
 SKIP_INIT=false
 SKIP_PREFLIGHT=false
+SKIP_BOOTSTRAP=false
 CUSTOM_INVENTORY=""
 ANSIBLE_VERBOSITY="-vv"
 EXTRA_ANSIBLE_ARGS=()
@@ -27,6 +28,7 @@ Options:
   --skip-forward             Skip kubectl port-forwards
   --skip-init                Skip init-ss2.sh hurl bootstrap
   --skip-preflight           Skip tooling preflight check
+  --skip-bootstrap           Skip venv + pip/collection dependency provisioning
   --custom-inventory=PATH    Use a custom inventory path
   -v, -vv, -vvv, -vvvv       Ansible verbosity (default: -vv). Pass --quiet to disable.
   --quiet                    Run ansible-playbook without -v
@@ -45,6 +47,7 @@ parse_arguments() {
       --skip-forward) SKIP_FORWARD=true ;;
       --skip-init) SKIP_INIT=true ;;
       --skip-preflight) SKIP_PREFLIGHT=true ;;
+      --skip-bootstrap) SKIP_BOOTSTRAP=true ;;
       --custom-inventory=*) CUSTOM_INVENTORY="${1#*=}" ;;
       -v|-vv|-vvv|-vvvv) ANSIBLE_VERBOSITY="$1" ;;
       --quiet) ANSIBLE_VERBOSITY="" ;;
@@ -67,10 +70,16 @@ parse_arguments() {
   log_info "Execution plan:"
   log_kv "  Environment" "${ENV_NAME}" 2 5
   log_kv "  Recreate" "${RECREATE}" 2 5
+  log_kv "  Skip bootstrap" "${SKIP_BOOTSTRAP}" 2 5
   log_kv "  Skip images" "${SKIP_IMAGES}" 2 5
   log_kv "  Skip port-forward" "${SKIP_FORWARD}" 2 5
   log_kv "  Skip hurl init" "${SKIP_INIT}" 2 5
   log_kv "  Custom inventory" "${CUSTOM_INVENTORY:-<default>}" 2 5
+}
+
+handleBootstrap() {
+  [[ "${SKIP_BOOTSTRAP}" == true ]] && { log_info "Skipping dependency bootstrap"; return; }
+  ensure_k8s_deps
 }
 
 handlePreflight() {
@@ -138,6 +147,7 @@ main() {
   local start
   start=$(date +%s)
 
+  handleBootstrap
   handlePreflight
   handleRecreate
   handleBuildImages
