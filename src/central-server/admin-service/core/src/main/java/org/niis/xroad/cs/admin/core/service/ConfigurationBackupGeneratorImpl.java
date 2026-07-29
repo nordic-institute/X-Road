@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -72,13 +73,10 @@ public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGene
 
     /**
      * Generate a new backup file
-     * @return
-     * @throws InterruptedException if the thread the backup process is interrupted and the backup fails. <b>The
-     *                              interrupted thread has already been handled with so you can choose to ignore this exception if you
-     *                              so please.</b>
+     * @return the generated backup file
      */
     @Override
-    public BackupFile generateBackup() throws InterruptedException {
+    public BackupFile generateBackup() {
         String filename = BackupUtils.generateBackupFileName();
 
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
@@ -96,6 +94,9 @@ public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGene
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             throw new InternalServerErrorException(e, BACKUP_GENERATION_FAILED.build());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
         }
 
         Optional<BackupFile> backupFile = backupService.getBackup(filename);

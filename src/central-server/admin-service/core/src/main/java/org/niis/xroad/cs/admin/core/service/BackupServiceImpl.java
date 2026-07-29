@@ -107,11 +107,12 @@ public class BackupServiceImpl implements BackupService {
      */
     @Override
     public BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
-            throws UnhandledWarningsException, BadRequestException {
+            throws BadRequestException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
 
         if (!ignoreWarnings && backupRepository.fileExists(filename)) {
-            throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename));
+            throw new BadRequestException(
+                    new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename)));
         }
 
         return backupRepository.writeBackupFile(filename, fileBytes);

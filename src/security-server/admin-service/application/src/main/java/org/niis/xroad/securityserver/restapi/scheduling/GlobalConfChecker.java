@@ -34,7 +34,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.NodeProperties;
@@ -60,14 +59,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
 import static java.util.function.Predicate.not;
 import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
@@ -173,7 +170,7 @@ public class GlobalConfChecker {
             updateAuthCertStatuses(securityServerId);
             updateTimestampServices(serverConf);
         } catch (Exception e) {
-            throw translateException(e);
+            throw XrdRuntimeException.systemException(e);
         }
     }
 
@@ -268,7 +265,7 @@ public class GlobalConfChecker {
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private void updateOwner(ServerConfEntity serverConf) throws CertificateEncodingException, IOException, OperatorCreationException {
+    private void updateOwner(ServerConfEntity serverConf) {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         for (ClientEntity client : serverConf.getClients()) {
             // Look for another member that is not the owner
@@ -288,7 +285,7 @@ public class GlobalConfChecker {
                 // the alternative server from global conf?
                 if (globalConfProvider.getServerOwner(altSecurityServerId) != null
                         && cert != null
-                        && altSecurityServerId.equals(globalConfProvider.getServerId(cert))
+                        && altSecurityServerId.equals(globalConfProvider.getServerIdOrThrow(cert))
                 ) {
                     log.debug("Set \"{}\" as new owner", client.getIdentifier());
                     serverConf.setOwner(client);
@@ -363,21 +360,15 @@ public class GlobalConfChecker {
 
     private void updateCertStatuses(SecurityServerId securityServerId, KeyInfo keyInfo) {
         for (CertificateInfo certInfo : keyInfo.getCerts()) {
-            try {
-                updateCertStatus(securityServerId, certInfo, keyInfo.getUsage());
-            } catch (XrdRuntimeException se) {
-                throw se;
-            } catch (Exception e) {
-                throw translateException(e);
-            }
+            updateCertStatus(securityServerId, certInfo, keyInfo.getUsage());
         }
     }
 
-    private void updateCertStatus(SecurityServerId securityServerId, CertificateInfo certInfo, KeyUsageInfo keyUsageInfo)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
+    private void updateCertStatus(SecurityServerId securityServerId, CertificateInfo certInfo,
+                                  KeyUsageInfo keyUsageInfo) {
         X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
-        boolean registered = securityServerId.equals(globalConfProvider.getServerId(cert));
+        boolean registered = securityServerId.equals(globalConfProvider.getServerIdOrThrow(cert));
 
         if (registered && certInfo.getStatus() != null) {
             switch (certInfo.getStatus()) {
@@ -405,7 +396,7 @@ public class GlobalConfChecker {
     private void activateCert(CertificateInfo certInfo,
                               X509Certificate cert,
                               KeyUsageInfo keyUsageInfo,
-                              SecurityServerId securityServerId) throws IOException {
+                              SecurityServerId securityServerId) {
         if (adminServiceProperties.isAutomaticActivateAuthCertificate()) {
             log.debug("Activating certificate '{}'", CertUtils.identify(cert));
             String ownerMemberId = securityServerId.getOwner().asEncodedId();
@@ -413,7 +404,7 @@ public class GlobalConfChecker {
                 signerRpcClient.activateCert(certInfo.getId());
                 mailNotificationHelper.sendCertActivatedNotification(ownerMemberId, securityServerId, certInfo, keyUsageInfo);
             } catch (XrdRuntimeException e) {
-                String certHash = CryptoUtils.calculateCertHexHash(certInfo.getCertificateBytes());
+                String certHash = calculateCertHexHashOrThrow(certInfo.getCertificateBytes());
                 CertificateInfo updatedCertInfo = signerRpcClient.getCertForHash(certHash);
                 mailNotificationHelper.sendCertActivationFailureNotification(ownerMemberId,
                         updatedCertInfo.getCertificateDisplayName(),

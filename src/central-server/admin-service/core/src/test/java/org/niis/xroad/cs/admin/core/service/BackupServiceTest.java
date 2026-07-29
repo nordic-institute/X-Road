@@ -199,6 +199,9 @@ class BackupServiceTest {
 
         assertThatThrownBy(() -> backupService.uploadBackup(false, multipartFile.getOriginalFilename(),
                 multipartFile.getBytes()))
+                .isInstanceOf(BadRequestException.class)
+                .matches(exception -> "Warnings detected".equals(exception.getMessage()))
+                .cause()
                 .isInstanceOf(UnhandledWarningsException.class)
                 .matches(exception -> {
                     UnhandledWarningsException expected = (UnhandledWarningsException) exception;

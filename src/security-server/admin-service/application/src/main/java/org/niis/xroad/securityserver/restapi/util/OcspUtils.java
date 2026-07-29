@@ -35,6 +35,7 @@ import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.SingleResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.io.IOException;
@@ -50,8 +51,10 @@ public final class OcspUtils {
     /**
      * {@link OcspUtils#getOcspResponseStatus(byte[])}
      * @param base64EncodedOcspResponse base 64 encoded ocsp response. If empty, returns null
+     * @throws XrdRuntimeException if OCSP status extraction failed for some reason
+     * @return String representing the status
      */
-    public static String getOcspResponseStatus(String base64EncodedOcspResponse) throws OcspStatusExtractionException {
+    public static String getOcspResponseStatus(String base64EncodedOcspResponse) {
         if (StringUtils.isEmpty(base64EncodedOcspResponse)) {
             return null;
         }
@@ -63,10 +66,10 @@ public final class OcspUtils {
      * e.g. CertificateInfo.OCSP_RESPONSE_GOOD.
      * Logic follows what sysparams_controller.rb and token_renderer.rb had.
      * @param ocspResponse
-     * @throws OcspStatusExtractionException if OCSP status extraction failed for some reason
+     * @throws XrdRuntimeException if OCSP status extraction failed for some reason
      * @return String representing the status
      */
-    public static String getOcspResponseStatus(byte[] ocspResponse) throws OcspStatusExtractionException {
+    public static String getOcspResponseStatus(byte[] ocspResponse) {
         if (ocspResponse == null || ocspResponse.length == 0) {
             return CertificateInfo.OCSP_RESPONSE_UNKNOWN;
         }
@@ -85,25 +88,15 @@ public final class OcspUtils {
         return CertificateInfo.OCSP_RESPONSE_UNKNOWN;
     }
 
-    private static CertificateStatus getCertificateStatus(byte[] ocspBytes) throws OcspStatusExtractionException {
+    private static CertificateStatus getCertificateStatus(byte[] ocspBytes) {
         try {
             OCSPResp response = new OCSPResp(ocspBytes);
             BasicOCSPResp basicResponse = (BasicOCSPResp) response.getResponseObject();
             SingleResp resp = basicResponse.getResponses()[0];
             return resp.getCertStatus();
         } catch (IOException | OCSPException e) {
-            throw new OcspStatusExtractionException(e);
+            throw XrdRuntimeException.systemInternalError("extracting OCSP status failed", e);
         }
     }
-
-    /**
-     * Thrown when attempt to extract ocsp status failed
-     */
-    public static class OcspStatusExtractionException extends Exception {
-        public OcspStatusExtractionException(Throwable throwable) {
-            super(throwable);
-        }
-    }
-
 
 }

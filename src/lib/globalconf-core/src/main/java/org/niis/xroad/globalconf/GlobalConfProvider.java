@@ -186,6 +186,20 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier the instance identifier
      * @param memberCert         the member certificate
      * @return the issuer certificate for the member certificate
+     * @throws XrdRuntimeException if certificate encoding error or I/O error occurs
+     */
+    default X509Certificate getCaCertOrThrow(String instanceIdentifier, X509Certificate memberCert) {
+        try {
+            return getCaCert(instanceIdentifier, memberCert);
+        } catch (CertificateEncodingException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    /**
+     * @param instanceIdentifier the instance identifier
+     * @param memberCert         the member certificate
+     * @return the issuer certificate for the member certificate
      *
      */
     X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws CertificateEncodingException, IOException;
@@ -222,6 +236,21 @@ public interface GlobalConfProvider {
      * to verify the other party in establishing SSL connection.
      */
     X509Certificate[] getAuthTrustChain();
+
+    /**
+     * @param cert the authentication certificate
+     * @return the security server id for the given authentication certificate
+     * of null of the authentication certificate does not map to any security
+     * server.
+     * @throws XrdRuntimeException if certificate encoding error, I/O error or operation creation error occurs
+     */
+    default SecurityServerId.Conf getServerIdOrThrow(X509Certificate cert) {
+        try {
+            return getServerId(cert);
+        } catch (CertificateEncodingException | IOException | OperatorCreationException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
 
     /**
      * @param cert the authentication certificate

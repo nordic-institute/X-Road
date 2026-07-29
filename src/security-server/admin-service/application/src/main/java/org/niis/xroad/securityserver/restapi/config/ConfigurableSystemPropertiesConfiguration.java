@@ -31,6 +31,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -49,13 +50,17 @@ public class ConfigurableSystemPropertiesConfiguration {
     private final AdminServiceProperties adminServiceProperties;
 
     @Bean
-    public ConfigurablePropertiesDefinition configurableProperties() throws IOException {
+    public ConfigurablePropertiesDefinition configurableProperties() {
         String configurableParametersPath = adminServiceProperties.getConfigurablePropertiesPath();
         log.debug("Loading configurable system parameters from {}", configurableParametersPath);
         Resource resource = resourceLoader.getResource(configurableParametersPath);
 
         var mapper = new ObjectMapper(new YAMLFactory());
-        return mapper.readValue(resource.getInputStream(), ConfigurablePropertiesDefinition.class);
+        try {
+            return mapper.readValue(resource.getInputStream(), ConfigurablePropertiesDefinition.class);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     @Getter

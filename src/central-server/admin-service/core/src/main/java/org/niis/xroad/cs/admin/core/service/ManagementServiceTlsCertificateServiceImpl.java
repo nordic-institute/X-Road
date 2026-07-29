@@ -38,6 +38,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.vault.VaultClient;
@@ -120,7 +121,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             writeFileToArchive(tarOutputStream, pemStream.toByteArray(), CERT_PEM_FILENAME);
             writeFileToArchive(tarOutputStream, certificate.getEncoded(), CERT_CER_FILENAME);
 
-        } catch (IOException | CertificateEncodingException e) {
+        } catch (IOException | CertificateEncodingException | XrdRuntimeException e) {
             log.error("Writing certificate to file failed", e);
             throw new BadRequestException(e, CERTIFICATE_WRITING_FAILED.build());
         }
@@ -182,13 +183,16 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
         auditDataHelper.putCertificateHash(generatedCert);
     }
 
-    private void writeFileToArchive(TarArchiveOutputStream tarOutputStream, byte[] fileBytes, String fileName)
-            throws IOException {
-        TarArchiveEntry archiveEntry = new TarArchiveEntry(fileName);
-        archiveEntry.setSize(fileBytes.length);
-        tarOutputStream.putArchiveEntry(archiveEntry);
-        tarOutputStream.write(fileBytes);
-        tarOutputStream.closeArchiveEntry();
+    private void writeFileToArchive(TarArchiveOutputStream tarOutputStream, byte[] fileBytes, String fileName) {
+        try {
+            TarArchiveEntry archiveEntry = new TarArchiveEntry(fileName);
+            archiveEntry.setSize(fileBytes.length);
+            tarOutputStream.putArchiveEntry(archiveEntry);
+            tarOutputStream.write(fileBytes);
+            tarOutputStream.closeArchiveEntry();
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private void verifyCertificateImportability(Collection<X509Certificate> newCertChain) {
