@@ -107,9 +107,9 @@ services:
     imageName: ss-signer
     resources:
       requests:
-        memory: 192Mi
+        memory: 256Mi
       limits:
-        memory: 512Mi
+        memory: 896Mi
     ports:
       - port: 4099
         name: http
@@ -525,7 +525,11 @@ services:
   ds-identity-hub:
     imageName: ds-identity-hub
     replicas: 0
-    resources: {}
+    resources:
+      requests:
+        memory: 256Mi
+      limits:
+        memory: 896Mi
     ports:
       - port: 7181
         name: health
@@ -537,6 +541,8 @@ services:
         name: sts
       - port: 7185
         name: creds
+      - port: 5460
+        name: provisioning
       - port: 9999
         name: debug
     readinessProbe:
@@ -557,6 +563,8 @@ services:
       annotations: {}
     env:
       HOSTNAME: "ds-identity-hub"
+      XROAD_HOST: "ds-identity-hub"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
       EDC_IH_DID_PUBLIC_HOSTNAME: "ds-identity-hub"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub"
@@ -674,6 +682,10 @@ persistentVolumeClaims:
 
 jvmHeap:
   maxRAMPercentage: 60.0
+  # Cap glibc malloc arenas fleet-wide: these JVMs are small-heap/large-native
+  # (netty direct buffers, per-thread arenas) and default 8×cores arenas bloat RSS.
+  # Per-service env can override (e.g. set "" to disable for a throughput-sensitive svc).
+  mallocArenaMax: 2
 
 jvmMetrics:
   enabled: false
