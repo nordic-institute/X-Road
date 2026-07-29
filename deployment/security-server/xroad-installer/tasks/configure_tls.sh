@@ -47,8 +47,8 @@ configure_service_tls() {
 
   # Split IP and DNS entries
   local ip_list dns_list
-  ip_list=$(extract_ip_list "$altn")
-  dns_list=$(extract_dns_list "$altn")
+  ip_list=$(extract_ip_list "$altn") || true
+  dns_list=$(extract_dns_list "$altn") || true
 
   log_message "  Common Name: $cn"
   log_message "  DNS Alternative Names: $dns_list"
