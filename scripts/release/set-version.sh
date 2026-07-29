@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 export DEBFULLNAME=NIIS
 export DEBEMAIL=info@niis.org
 
