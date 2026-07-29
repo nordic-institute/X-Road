@@ -1,6 +1,6 @@
 #!/bin/bash
 
-XROAD_VERSION_LABEL="XROAD_8.0"
+source /usr/share/xroad/scripts/containerised/backup_common.sh
 
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
@@ -60,6 +60,18 @@ check_is_correct_tarball () {
   fi
 }
 
+check_tarball_label () {
+  echo "CHECKING THE LABEL OF THE TAR ARCHIVE"
+  if [[ $FORCE_RESTORE = true ]] ; then
+    echo "Skipping label check due to force restore"
+  else
+    if ! tar --test-label --file "${BACKUP_FILENAME}" --label "${TARBALL_LABEL}" ; then
+      die "The expected label (${TARBALL_LABEL}) and the actual label of the" \
+          "tarball ${BACKUP_FILENAME} do not match. Aborting restore!"
+    fi
+  fi
+}
+
 # copy/paste from _restore_xroad.sh
 acquire_lock () {
     if [ "${FLOCKER}" != "$0" ] ; then
@@ -114,11 +126,6 @@ decrypt_tarball_if_encrypted () {
       fi
     fi
   fi
-}
-
-# from _backup_restore_common.sh, modified
-make_tarball_label () {
-  TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
 }
 
 create_pre_restore_backup () {
@@ -325,6 +332,7 @@ decrypt_tarball_if_encrypted
 check_is_correct_tarball
 check_restore_options
 make_tarball_label
+check_tarball_label
 stop_services
 create_pre_restore_backup
 setup_tmp_restore_dir

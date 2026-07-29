@@ -6520,6 +6520,7 @@ components:
       required:
         - filename
         - created_at
+        - compatible
       properties:
         filename:
           type: string
@@ -6535,6 +6536,9 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        compatible:
+          type: boolean
+          description: whether this backup is compatible with this server's backup format
     BackupExt:
       allOf:
         - $ref: '#/components/schemas/Backup'

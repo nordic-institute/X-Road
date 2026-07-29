@@ -184,6 +184,18 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     /** path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default. */
     private String confBackupPath;
 
+    /**
+     * Path to the file containing the current backup format version, used to determine backup compatibility.
+     * '/usr/share/xroad/scripts/_backup_format_version' by default.
+     */
+    private String backupFormatVersionFilePath;
+
+    /**
+     * Path to the script that parses an uploaded backup's tar label and writes its ".metadata" file.
+     * '/usr/share/xroad/scripts/_create_backup_metadata.sh' by default.
+     */
+    private String createBackupMetadataPath;
+
     /** Default whitelist for key management API (allow only localhost access, ipv4 and ipv6) */
     private String keyManagementApiWhitelist = "127.0.0.0/8, ::1";
     /** Default whitelist for regular APIs (allow all) */

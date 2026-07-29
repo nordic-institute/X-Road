@@ -190,6 +190,7 @@
         "confirmation": "Are you sure you want to restore from {file}?",
         "title": "Are you sure?"
       },
+      "incompatibleTooltip": "This backup's format is not compatible with this server's backup format",
       "success": "Configuration restored from {file}",
       "restarting": {
         "message": "Configuration has been restored. The service is restarting. You will be redirected to the login page when the service is available."

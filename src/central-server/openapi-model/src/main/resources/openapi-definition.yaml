@@ -3335,8 +3335,12 @@ components:
           maxLength: 255
           minLength: 1
           type: string
+        compatible:
+          type: boolean
+          description: whether this backup is compatible with this server's backup format
       required:
         - filename
+        - compatible
       type: object
     BackupArchive:
       description: central server backup archive file # potential-common-api

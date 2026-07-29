@@ -26,4 +26,8 @@ package org.niis.xroad.cs.admin.core.config;
 
 public interface BackupConfig {
     String getConfBackupPath();
+
+    String getBackupFormatVersionFilePath();
+
+    String getCreateBackupMetadataPath();
 }

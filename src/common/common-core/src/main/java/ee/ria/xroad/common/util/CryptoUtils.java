@@ -313,6 +313,21 @@ public final class CryptoUtils {
      *
      * @param cert the certificate
      * @return calculated certificate hex hash String
+     * @throws XrdRuntimeException if a certificate encoding error or if an I/O error occures
+     */
+    public static String calculateCertHexHashOrThrow(X509Certificate cert) {
+        try {
+            return calculateCertHexHash(cert.getEncoded());
+        } catch (CertificateEncodingException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    /**
+     * Calculates digest of the certificate and encodes it as lowercase hex.
+     *
+     * @param cert the certificate
+     * @return calculated certificate hex hash String
      * @throws CertificateEncodingException if a certificate encoding error occurs
      * @throws IOException                  if an I/O error occurred
      */
@@ -333,6 +348,22 @@ public final class CryptoUtils {
     public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter)
             throws CertificateEncodingException, IOException {
         return String.join(delimiter, Splitter.fixedLength(2).split(calculateCertHexHash(cert).toUpperCase()));
+    }
+
+    /**
+     * Calculates a sha-256 digest of the given bytes and encodes it
+     * as lowercase hex.
+     *
+     * @param bytes the bytes
+     * @return calculated certificate hex hash String
+     * @throws XrdRuntimeException if an I/O error occurred
+     */
+    public static String calculateCertHexHashOrThrow(byte[] bytes) {
+        try {
+            return calculateCertHexHash(bytes);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     /**

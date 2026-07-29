@@ -36,6 +36,7 @@ import org.niis.xroad.confproxy.common.service.ConfProxyInstanceService;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import java.time.Instant;
 import java.util.Date;
 
 import static org.niis.xroad.confproxy.common.service.ConfProxyInstanceService.CONF_INI;
@@ -98,7 +99,7 @@ public class AddSigningKeyAction extends AbstractInstanceAction {
      */
     private void addSigningKey(final ConfProxyInstance conf, final String keyId, boolean markActive) {
         final byte[] certBytes = signerRpcClient.generateSelfSignedCert(keyId, null, SIGNING, "N/A",
-                new Date(0), new Date(Integer.MAX_VALUE));
+                new Date(0), Date.from(Instant.ofEpochSecond(Integer.MAX_VALUE)));
         var noActiveKey = conf.getActiveSigningKey() == null;
         confProxyInstanceService.addSigningKey(conf, keyId, certBytes);
 

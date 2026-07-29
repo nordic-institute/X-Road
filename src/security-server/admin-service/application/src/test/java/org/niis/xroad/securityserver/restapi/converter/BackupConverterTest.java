@@ -57,16 +57,16 @@ public class BackupConverterTest {
 
     @Test
     public void convertSingleBackup() {
-        BackupDto backup = backupConverter.convert(new BackupInfo(BACKUP_FILE_1, DEFAULT_CREATED_TIME));
+        BackupDto backup = backupConverter.convert(new BackupInfo(BACKUP_FILE_1, DEFAULT_CREATED_TIME, true));
 
         assertEquals(BACKUP_FILE_1, backup.getFilename());
     }
 
     @Test
     public void convertMultipleBackups() {
-        List<BackupInfo> files = new ArrayList<>(Arrays.asList(new BackupInfo(BACKUP_FILE_1, DEFAULT_CREATED_TIME),
-                new BackupInfo(BACKUP_FILE_2, DEFAULT_CREATED_TIME),
-                new BackupInfo(BACKUP_FILE_3, DEFAULT_CREATED_TIME)));
+        List<BackupInfo> files = new ArrayList<>(Arrays.asList(new BackupInfo(BACKUP_FILE_1, DEFAULT_CREATED_TIME, true),
+                new BackupInfo(BACKUP_FILE_2, DEFAULT_CREATED_TIME, true),
+                new BackupInfo(BACKUP_FILE_3, DEFAULT_CREATED_TIME, true)));
         Set<BackupDto> backups = backupConverter.convert(files);
 
         assertEquals(3, backups.size());

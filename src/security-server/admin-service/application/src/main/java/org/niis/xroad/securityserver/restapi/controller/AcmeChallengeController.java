@@ -25,9 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.controller;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,18 +39,36 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import static ee.ria.xroad.common.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_URL;
 
 @RestController
 public class AcmeChallengeController {
 
     @GetMapping(value = "/.well-known/acme-challenge/{token}")
-    public ResponseEntity<String> getChallenge(@PathVariable("token") String token) throws IOException {
+    public ResponseEntity<String> getChallenge(@PathVariable("token") String token) {
         if (!AcmeConfig.isValidChallengeToken(token)) {
             throw new BadRequestException(INVALID_URL.build());
         }
-        FileSystemResource fileSystemResource = new FileSystemResource(AcmeConfig.ACME_CHALLENGE_PATH.resolve(token));
-        return new ResponseEntity<>(fileSystemResource.getContentAsString(StandardCharsets.UTF_8), HttpStatus.OK);
+        Resource resource = new FileSystemResource(AcmeConfig.ACME_CHALLENGE_PATH.resolve(token));
+        return new ResponseEntity<>(getContent(resource), HttpStatus.OK);
+    }
+
+    private static String getContent(Resource resource) {
+        try {
+            return resource.getContentAsString(StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw toXrdRuntimeHttpException(e);
+        }
+    }
+
+    private static XrdRuntimeHttpException toXrdRuntimeHttpException(IOException e) {
+        return XrdRuntimeHttpException.builder(INTERNAL_ERROR)
+                .httpStatus(INTERNAL_SERVER_ERROR)
+                .details(e.getMessage())
+                .cause(e)
+                .build();
     }
 
 }

@@ -40,6 +40,7 @@ const backupSchema = {
   properties: {
     filename: { type: 'string', minLength: 1, maxLength: 255 },
     created_at: { type: 'string', format: 'date-time' },
+    compatible: { type: 'boolean' },
   },
 };
 
@@ -49,14 +50,17 @@ const backupsFixture: Backup[] = [
   {
     filename: 'configuration_backup_20230101.gpg',
     created_at: '2023-01-01T10:00:00.000Z',
+    compatible: true,
   },
   {
     filename: 'configuration_backup_20221215.gpg',
     created_at: '2022-12-15T10:00:00.000Z',
+    compatible: true,
   },
   {
     filename: 'configuration_backup_20220601.gpg',
     created_at: '2022-06-01T10:00:00.000Z',
+    compatible: true,
   },
 ];
 

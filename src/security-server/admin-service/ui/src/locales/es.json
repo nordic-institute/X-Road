@@ -1261,6 +1261,8 @@
               "script-path": "Ruta al script de copia de seguridad manual.",
               "restore-script-path": "Ruta al script de restauración de copia de seguridad.",
               "generate-gpg-keypair-path": "Ruta al script que genera un par de claves GPG para el cifrado de copias de seguridad.",
+              "create-backup-metadata-path": "Ruta al script que analiza la etiqueta tar de una copia de seguridad subida y escribe su archivo \".metadata\".",
+              "backup-format-version-file-path": "Ruta al archivo que contiene la versión actual del formato de copia de seguridad, utilizada para determinar la compatibilidad de la copia de seguridad.",
               "gpgkeys-home": "Directorio utilizado como GNUPGHOME para las operaciones GPG de copia de seguridad.",
               "encryption-enabled": "Cuando está habilitado, los archivos de copia de seguridad se cifran con GPG.",
               "encryption-keyids": "IDs de clave GPG separados por comas utilizados para cifrar los archivos de copia de seguridad."

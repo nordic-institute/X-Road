@@ -9,6 +9,9 @@ metadata:
 data:
   {{- $env := .config.env }}
   {{- $env = merge $env (dict "JAVA_MAX_RAM_PERCENTAGE" (printf "%v" .root.Values.jvmHeap.maxRAMPercentage)) }}
+  {{- if .root.Values.jvmHeap.mallocArenaMax }}
+  {{- $env = merge $env (dict "MALLOC_ARENA_MAX" (printf "%v" .root.Values.jvmHeap.mallocArenaMax)) }}
+  {{- end }}
   {{- if .root.Values.jvmMetrics.enabled }}
     {{- $javaToolOpts := printf "-javaagent:/opt/jmx_prometheus_javaagent.jar=%d:/opt/jmx-exporter-config.yaml" (int .root.Values.jvmMetrics.jmxExporter.port) }}
     {{- $env = merge $env (dict "JAVA_TOOL_OPTIONS" $javaToolOpts) }}

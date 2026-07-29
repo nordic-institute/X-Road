@@ -71,30 +71,26 @@ import static org.mockito.Mockito.mock;
 @Execution(ExecutionMode.SAME_THREAD)
 class ConfigurationParserTest {
 
-    private Clock previousClock;
-
     @BeforeEach
-    void pinClockBeforeFixtureExpiry() {
-        previousClock = TimeUtils.getClock();
-        TimeUtils.setClock(Clock.fixed(Instant.parse("2026-05-19T00:00:00Z"), ZoneOffset.UTC));
+    void setClock() {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC));
     }
 
     @AfterEach
-    void restoreClock() {
-        TimeUtils.setClock(previousClock);
+    void resetClock() {
+        TimeUtils.setClock(Clock.systemUTC());
     }
 
     /**
      * Test to ensure the parser succeeds on a simple configuration.
-     * @throws Exception in case of any unexpected errors
      */
     @Test
-    void parseConf() throws Exception {
+    void parseConf() {
         List<ConfigurationFile> files =
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "EE", "http://foo.bar.baz"));
+                                "EE"));
         assertFiles(files, "/private-params.xml", "/shared-params.xml",
                 "/foo.xml");
     }
@@ -108,7 +104,7 @@ class ConfigurationParserTest {
                 parse("src/test/resources/test-conf-malformed",
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "EE", "http://foo.bar.baz")))
+                                "EE")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_MISSING_SIGNED_DATA_EXPIRATION_DATE));
     }
 
@@ -121,7 +117,7 @@ class ConfigurationParserTest {
                 parse("src/test/resources/test-conf-missing-date",
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "EE", "http://foo.bar.baz")))
+                                "EE")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_MISSING));
     }
 
@@ -134,7 +130,35 @@ class ConfigurationParserTest {
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
                                 TestCertUtil.getProducer().certChain[0],
-                                "EE", "http://foo.bar.baz")))
+                                "EE")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT));
+    }
+
+    /**
+     * Test to ensure the parser will fail on an expired certificate.
+     */
+    @Test
+    void parseConfWrongExpiredVerificationCert() {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC));
+        assertThatThrownBy(() ->
+                parse("src/test/resources/test-conf-simple",
+                        getConfigurationSource(
+                                TestCertUtil.getConsumer().certChain[0],
+                                "EE")))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT));
+    }
+
+    @Test
+    void parseConfVerificationCertHashNotCached() {
+        parse("src/test/resources/test-conf-simple",
+                        getConfigurationSource(
+                                TestCertUtil.getConsumer().certChain[0],
+                                "EE"));
+        assertThatThrownBy(() ->
+                parse("src/test/resources/test-conf-simple",
+                        getConfigurationSource(
+                                TestCertUtil.getProducer().certChain[0],
+                                "FI")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_MISSING_VERIFICATION_CERT));
     }
 
@@ -147,7 +171,7 @@ class ConfigurationParserTest {
                 parse("src/test/resources/test-conf-missing-signature",
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "EE", "http://foo.bar.baz")))
+                                "EE")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_DECODE_FAILURE));
     }
 
@@ -161,7 +185,7 @@ class ConfigurationParserTest {
                 parse("src/test/resources/test-conf-simple",
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "FI", "http://foo.bar.baz")))
+                                "DEV")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER));
     }
 
@@ -174,44 +198,44 @@ class ConfigurationParserTest {
                 parse("src/test/resources/test-conf-invalid-signature",
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "EE", "http://foo.bar.baz")))
+                                "EE")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE));
     }
 
     @Test
     void parseConfRejectsNonNumericVersion() {
         assertThatThrownBy(() ->
-                parseFromBytes(buildSignedConf("not-a-number"),
+                parseConfigurationFromBytes(buildSignedConf("not-a-number"),
                         getConfigurationSource(
                                 TestCertUtil.getConsumer().certChain[0],
-                                "EE", "http://foo.bar.baz")))
+                                "EE")))
                 .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_HEADER_FIELD_WRONG_VALUE));
     }
 
     @Test
-    void parseConfAcceptsNumericVersion() throws Exception {
+    void parseConfAcceptsNumericVersion() {
         Configuration configuration = parseConfigurationFromBytes(buildSignedConf("3"),
                 getConfigurationSource(
                         TestCertUtil.getConsumer().certChain[0],
-                        "EE", "http://foo.bar.baz"));
+                        "EE"));
         assertThat(configuration.getVersion()).isEqualTo("3");
     }
 
     @Test
-    void parseConfNormalizesVersionWithSurroundingWhitespace() throws Exception {
+    void parseConfNormalizesVersionWithSurroundingWhitespace() {
         Configuration configuration = parseConfigurationFromBytes(buildSignedConf(" 3 "),
                 getConfigurationSource(
                         TestCertUtil.getConsumer().certChain[0],
-                        "EE", "http://foo.bar.baz"));
+                        "EE"));
         assertThat(configuration.getVersion()).isEqualTo("3");
     }
 
     @Test
-    void parseConfTreatsEmptyVersionAsAbsent() throws Exception {
+    void parseConfTreatsEmptyVersionAsAbsent() {
         Configuration configuration = parseConfigurationFromBytes(buildSignedConf(""),
                 getConfigurationSource(
                         TestCertUtil.getConsumer().certChain[0],
-                        "EE", "http://foo.bar.baz"));
+                        "EE"));
         assertThat(configuration.getVersion()).isNull();
     }
 
@@ -234,8 +258,6 @@ class ConfigurationParserTest {
 
     private static List<ConfigurationFile> parse(final String path,
                                                  ConfigurationSource source) {
-        ConfigurationParser.HASH_TO_CERT.clear();
-
         if (!source.getLocations().isEmpty()) {
             ConfigurationParser parser = new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                 @Override
@@ -251,16 +273,8 @@ class ConfigurationParserTest {
         return null;
     }
 
-    private static List<ConfigurationFile> parseFromBytes(byte[] content,
-                                                          ConfigurationSource source) {
-        Configuration configuration = parseConfigurationFromBytes(content, source);
-        return configuration != null ? configuration.getFiles() : null;
-    }
-
     private static Configuration parseConfigurationFromBytes(byte[] content,
                                                               ConfigurationSource source) {
-        ConfigurationParser.HASH_TO_CERT.clear();
-
         if (!source.getLocations().isEmpty()) {
             ConfigurationParser parser = new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                 @Override
@@ -275,10 +289,12 @@ class ConfigurationParserTest {
         return null;
     }
 
-    @SneakyThrows
     private static byte[] buildSignedConf(String version) {
-        PKCS12 signCert = TestCertUtil.getConsumer();
+        return buildSignedConf(version, TestCertUtil.getConsumer());
+    }
 
+    @SneakyThrows
+    private static byte[] buildSignedConf(String version, PKCS12 signCert) {
         String innerBoundary = "--innerboundary\nExpire-date: 2032-05-20T17:42:55Z\nVersion: " + version + "\n\n";
 
         Signature sig = Signature.getInstance(SignAlgorithm.SHA512_WITH_RSA.name());
@@ -307,7 +323,7 @@ class ConfigurationParserTest {
 
     private static ConfigurationSource getConfigurationSource(
             final X509Certificate verificationCert,
-            final String instanceIdentifier, final String downloadURL) {
+            final String instanceIdentifier) {
         return new ConfigurationSource() {
 
             @Override
@@ -319,7 +335,7 @@ class ConfigurationParserTest {
             public List<ConfigurationLocation> getLocations() {
                 try {
                     return List.of(new ConfigurationLocation(instanceIdentifier,
-                            downloadURL,
+                            "http://foo.bar.baz",
                             List.of(verificationCert.getEncoded())));
                 } catch (CertificateEncodingException e) {
                     throw new RuntimeException(e);

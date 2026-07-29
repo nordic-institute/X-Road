@@ -28,6 +28,8 @@ package org.niis.xroad.cs.test.api.managementrequests;
 
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
@@ -1020,6 +1022,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock(value = "management-services-config", mode = ResourceAccessMode.READ_WRITE)
     void enablingMaintenanceModeForMgmtServiceSSFails(CsBaselineSeeder seeder) {
         var session = Step.given("admin session opened", seeder::newSession);
         var memberId = Step.given("owner member seeded", () -> seeder.seedMember(session, "mr24", MEMBER_CLASS));
@@ -1144,6 +1147,7 @@ class ManagementRequestsApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock(value = "management-services-config", mode = ResourceAccessMode.READ_WRITE)
     void disablingSubsystemThatIsMgmtProviderFails(CsBaselineSeeder seeder) {
         var session = Step.given("admin session opened", seeder::newSession);
         var memberId = Step.given("owner member seeded", () -> seeder.seedMember(session, "mr27", MEMBER_CLASS));

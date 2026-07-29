@@ -28,6 +28,7 @@
 export type BackupItem = {
   filename: string;
   local_conf_present?: boolean;
+  compatible?: boolean;
 };
 
 export interface BackupHandler {

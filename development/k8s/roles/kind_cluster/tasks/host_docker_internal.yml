@@ -55,7 +55,10 @@
         namespace: kube-system
       data:
         Corefile: "{{ lookup('template', 'coredns-corefile.j2') }}"
-  when: "'host.docker.internal' not in (coredns_cm.resources[0].data.Corefile | default(''))"
+  when: >-
+    ('host.docker.internal' not in (coredns_cm.resources[0].data.Corefile | default('')))
+    or (ss2_advertised_host is defined and
+        ss2_advertised_host not in (coredns_cm.resources[0].data.Corefile | default('')))
   register: coredns_patched
 
 - name: Restart CoreDNS to pick up patched Corefile

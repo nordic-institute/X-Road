@@ -276,13 +276,13 @@ function handleAnsible() {
     extra_vars+=("-e" "package_mirror_token=$XROAD_MIRROR_TOKEN")
   fi
 
-  # Netdata host-level monitoring on the LXD host: ON by default.
-  # Set ENABLE_NETDATA=false (or 0/no) to skip the netdata role for a run.
+  local become_flags=()
   if [[ "${ENABLE_NETDATA:-true}" =~ ^(false|0|no|NO|FALSE)$ ]]; then
     extra_vars+=("-e" "enable_netdata=false")
     log_info "Netdata host monitoring disabled for this run"
   else
     log_info "Netdata host monitoring will be installed (port 3999)"
+    [ "$onMacOs" != "yes" ] && become_flags+=("--ask-become-pass")
   fi
 
   ANSIBLE_CONFIG="config/ansible.cfg" ansible-playbook -i "$INVENTORY_PATH" \
@@ -290,6 +290,7 @@ function handleAnsible() {
     --forks 5 \
     --skip-tags compile,build-packages \
     "${extra_vars[@]}" \
+    "${become_flags[@]}" \
     -vv
 }
 

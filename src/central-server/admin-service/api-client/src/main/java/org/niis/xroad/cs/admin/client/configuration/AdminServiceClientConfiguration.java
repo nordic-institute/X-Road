@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.cs.admin.client.AuthFeignClientInterceptor;
@@ -55,6 +56,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import tools.jackson.databind.ObjectMapper;
+
+import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -95,8 +98,7 @@ public class AdminServiceClientConfiguration {
     }
 
     @Bean("adminServiceHttpClient")
-    public CloseableHttpClient feignClient(final AdminServiceClientPropertyProvider propertyProvider, final VaultClient vaultClient)
-            throws GeneralSecurityException, IOException {
+    public CloseableHttpClient feignClient(final AdminServiceClientPropertyProvider propertyProvider, final VaultClient vaultClient) {
         var httpClientProperties = propertyProvider.getHttpClientProperties();
         return HttpClients.custom()
                 .setConnectionManager(buildConnectionManager(propertyProvider, vaultClient))
@@ -112,21 +114,9 @@ public class AdminServiceClientConfiguration {
     }
 
     private HttpClientConnectionManager buildConnectionManager(final AdminServiceClientPropertyProvider propertyProvider,
-                                                               final VaultClient vaultClient)
-            throws GeneralSecurityException, IOException {
+                                                               final VaultClient vaultClient) {
         var httpClientProperties = propertyProvider.getHttpClientProperties();
-
-        var certChain = vaultClient.getAdminServiceTlsCredentials().getCertChain();
-        KeyStore trustStore = KeyStore.getInstance("PKCS12");
-        trustStore.load(null, null);
-        for (int i = 0; i < certChain.length; i++) {
-            trustStore.setCertificateEntry(String.valueOf(i), certChain[i]);
-        }
-
-        final var sslcontext = SSLContexts.custom()
-                .setProtocol("TLSv1.3")
-                .loadTrustMaterial(trustStore, null)
-                .build();
+        var sslcontext = createSSLContext(vaultClient);
 
         final var tlsStrategy = new DefaultClientTlsStrategy(sslcontext, HostnameVerificationPolicy.CLIENT, new NoopHostnameVerifier());
 
@@ -139,5 +129,23 @@ public class AdminServiceClientConfiguration {
                 .setMaxConnTotal(propertyProvider.getHttpClientProperties().getMaxConnectionsTotal())
                 .setTlsSocketStrategy(tlsStrategy)
                 .build();
+    }
+
+    private static SSLContext createSSLContext(final VaultClient vaultClient) {
+        try {
+            var certChain = vaultClient.getAdminServiceTlsCredentials().getCertChain();
+            KeyStore trustStore = KeyStore.getInstance("PKCS12");
+            trustStore.load(null, null);
+            for (int i = 0; i < certChain.length; i++) {
+                trustStore.setCertificateEntry(String.valueOf(i), certChain[i]);
+            }
+
+            return SSLContexts.custom()
+                    .setProtocol("TLSv1.3")
+                    .loadTrustMaterial(trustStore, null)
+                    .build();
+        } catch (GeneralSecurityException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 }
