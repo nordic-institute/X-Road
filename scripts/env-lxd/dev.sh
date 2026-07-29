@@ -29,7 +29,7 @@ Examples:
 BUILD=false
 DEPLOY=false
 PACKAGE_DEPLOY=false
-INVENTORY_PATH="config/ansible_hosts.txt"
+INVENTORY_PATH="${SCRIPT_DIR}/config/ansible_hosts.txt"
 
 while getopts ":m:bdphi:" opt; do
   case $opt in
@@ -72,10 +72,10 @@ fi
 
 if [ "$DEPLOY" = true ] ; then
   echo "Deploying module $MODULE using inventory $INVENTORY_PATH (JAR replacement)"
-  source scripts/deploy-module.sh $(realpath $INVENTORY_PATH) $MODULE
+  source "${SCRIPT_DIR}/scripts/deploy-module.sh" "$(realpath "$INVENTORY_PATH")" $MODULE
 fi
 
 if [ "$PACKAGE_DEPLOY" = true ] ; then
   echo "Deploying module $MODULE using inventory $INVENTORY_PATH (package install)"
-  source scripts/deploy-package.sh $(realpath $INVENTORY_PATH) $MODULE
+  source "${SCRIPT_DIR}/scripts/deploy-package.sh" "$(realpath "$INVENTORY_PATH")" $MODULE
 fi
