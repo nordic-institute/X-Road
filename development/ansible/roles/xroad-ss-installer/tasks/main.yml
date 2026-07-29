@@ -49,9 +49,10 @@
   become: false
   ansible.builtin.shell: |
     set -euo pipefail
-    source ./_publish-installer-common.sh
-    REPO_ROOT=../.. prepare_staging
-    REPO_ROOT=../.. copy_helper_scripts
+    REPO_ROOT=../..
+    source "${REPO_ROOT}/scripts/release/_installer-common.sh"
+    prepare_staging
+    copy_helper_scripts
   args:
     chdir: "{{ xroad_installer_local_source }}/.."
     executable: /bin/bash

@@ -44,8 +44,13 @@
 - name: Build packages
   hosts: compile_servers
   strategy: free
-  roles:
-    - role: build-packages
+  tasks:
+    - name: Build packages using build-native-packages.sh
+      shell: |
+        cd {{ playbook_dir }}/../../scripts
+        ./build-native-packages.sh --package-only
+      args:
+        executable: /bin/bash
   tags:
     - build-packages
 
