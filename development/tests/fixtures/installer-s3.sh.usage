@@ -1,4 +1,0 @@
-Usage: scripts/release/installer-s3.sh <folder-name>
-
-Uploads the X-Road installer archive, get-xroad.sh, upgrade-xroad.sh and
-migration-cli.jar to s3://niis-xroad-development/<folder-name>/xroad-installer-<timestamp>/.

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# Fake docker binary — sources the real logic from fake-docker.sh.
-# Place the directory containing this file first on PATH in tests.
-SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec bash "${SELF_DIR}/fake-docker.sh" "$@"
