@@ -6,11 +6,35 @@
 # Runs post-install (the table is created by the package's liquibase run).
 # Deterministic upsert: delete + insert, so re-provisioning refreshes values.
 #
+# xroad.acme and xroad.mail-notification are single YAML-document keys parsed by
+# the consuming beans; they are dollar-quoted in the SQL and injected from the
+# vars below so the document indentation survives verbatim.
+#
 # TEMPORARY (dataspaces dev): remove once packaging seeds these via debconf
 #   answerable questions / real STS-issued tokens.
-- name: seed dataspace runtime config into serverconf configuration_properties
+- name: seed xroad runtime config into serverconf configuration_properties
   become: true
   become_user: postgres
+  vars:
+    acme_document: |-
+      eab-credentials:
+        certificate-authorities:
+          'Test CA':
+            mac-key-base64-encoded: true
+            members:
+              'DEV:COM:1234':
+                auth-kid: keyid_2
+                auth-mac-key: addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625
+                sign-kid: keyid_3
+                sign-mac-key: 96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde
+      account-keystore-password: testPassword1234
+    mail_notification_document: |-
+      host: {{ groups['cs_servers'] | first }}
+      port: 1025
+      username: testusername
+      password: testpassword
+      contacts:
+        'DEV:COM:1234': member1@example.org
   command:
     argv:
       - psql
@@ -29,7 +53,11 @@
           'xroad.proxy-ui-api.dataspace.issuer-did',
           'xroad.dataspace.control-plane-provisioning.rpc.host',
           'xroad.dataspace.identity-hub-provisioning.rpc.host',
-          'xroad.dataspace.identity-hub-provisioning.rpc.port');
+          'xroad.dataspace.identity-hub-provisioning.rpc.port',
+          'xroad.common-global-conf.source',
+          'xroad.proxy-ui-api.acme-challenge-port-enabled',
+          'xroad.acme',
+          'xroad.mail-notification');
         INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
         ('xroad.proxy.dsp.participant-context-id', '{{ inventory_hostname }}.lxd', NULL, now(), now()),
         ('xroad.proxy.dsp.cache.enabled', 'false', NULL, now(), now()),
@@ -40,7 +68,11 @@
         -- container service names, and identity-hub moves off the shared 5460 default
         ('xroad.dataspace.control-plane-provisioning.rpc.host', '127.0.0.1', NULL, now(), now()),
         ('xroad.dataspace.identity-hub-provisioning.rpc.host', '127.0.0.1', NULL, now(), now()),
-        ('xroad.dataspace.identity-hub-provisioning.rpc.port', '5461', NULL, now(), now());
+        ('xroad.dataspace.identity-hub-provisioning.rpc.port', '5461', NULL, now(), now()),
+        ('xroad.common-global-conf.source', 'REMOTE', NULL, now(), now()),
+        ('xroad.proxy-ui-api.acme-challenge-port-enabled', 'true', NULL, now(), now()),
+        ('xroad.acme', $acme${{ acme_document }}$acme$, NULL, now(), now()),
+        ('xroad.mail-notification', $mail${{ mail_notification_document }}$mail$, NULL, now(), now());
 
 # Package postinst starts proxy and proxy-ui-api before the seed exists, and the
 # DSL caches its resolution at startup — restart so they pick up the seeded rows.

@@ -35,9 +35,12 @@
       - -c
       - |
         SET ROLE centerui;
-        DELETE FROM configuration_properties WHERE property_key = 'xroad.dataspace.issuer.host';
+        DELETE FROM configuration_properties WHERE property_key IN (
+          'xroad.dataspace.issuer.host',
+          'xroad.admin-service.global-configuration-generation-rate-in-seconds');
         INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-        ('xroad.dataspace.issuer.host', '{{ groups['cs_servers'] | first }}', NULL, now(), now());
+        ('xroad.dataspace.issuer.host', '{{ groups['cs_servers'] | first }}', NULL, now(), now()),
+        ('xroad.admin-service.global-configuration-generation-rate-in-seconds', '10', NULL, now(), now());
 
 - name: restart xroad-center to resolve the seeded issuer host
   systemd:
