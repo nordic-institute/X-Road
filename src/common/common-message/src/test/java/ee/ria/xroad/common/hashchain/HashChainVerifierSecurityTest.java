@@ -48,6 +48,7 @@ import java.util.function.BiFunction;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -217,7 +218,7 @@ class HashChainVerifierSecurityTest {
         chain.getHashStep().add(step1);
 
         HashChainVerifier verifier = newVerifier(chain);
-        resolveHashStep(verifier, chain, "#STEP0");
+        assertThatCode(() -> resolveHashStep(verifier, chain, "#STEP0")).doesNotThrowAnyException();
 
         Throwable thrown = catchThrowable(() -> resolveHashStep(verifier, chain, "#STEP1"));
 
@@ -227,6 +228,58 @@ class HashChainVerifierSecurityTest {
         CodedException coded = (CodedException) cause;
         assertThat(coded.getFaultCode()).endsWith(X_MALFORMED_HASH_CHAIN);
         assertThat(coded.getMessage()).contains("value count");
+    }
+
+    /**
+     * Cumulative cap must survive recursion: PARENT and CHILD each pass their own entry check, but the parent's
+     * values resumed after the child returns push the total past MAX_VALUES — caught only by the per-iteration guard.
+     */
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void parentStepValuesAfterChildRecursionStillCountTowardsMaxValues() throws Exception {
+        byte[] dummyDigest = Base64.getDecoder().decode(DUMMY_DIGEST);
+
+        HashChainType chain = new HashChainType();
+        DigestMethodType defaultDigestMethod = new DigestMethodType();
+        defaultDigestMethod.setAlgorithm(SHA256_URI);
+        chain.setDefaultDigestMethod(defaultDigestMethod);
+
+        int childValueCount = HashChainVerifier.MAX_VALUES - 1;
+        HashStepType child = new HashStepType();
+        child.setId("CHILD");
+        for (int i = 0; i < childValueCount; i++) {
+            child.getHashValueOrStepRefOrDataRef().add(dummyHashValue(dummyDigest));
+        }
+
+        int parentTrailingValueCount = HashChainVerifier.MAX_VALUES - 1;
+        HashStepType parent = new HashStepType();
+        parent.setId("PARENT");
+        StepRefType stepRef = new StepRefType();
+        stepRef.setURI("#CHILD");
+        parent.getHashValueOrStepRefOrDataRef().add(stepRef);
+        for (int i = 0; i < parentTrailingValueCount; i++) {
+            parent.getHashValueOrStepRefOrDataRef().add(dummyHashValue(dummyDigest));
+        }
+
+        chain.getHashStep().add(parent);
+        chain.getHashStep().add(child);
+
+        HashChainVerifier verifier = newVerifier(chain);
+
+        Throwable thrown = catchThrowable(() -> resolveHashStep(verifier, chain, "#PARENT"));
+
+        assertThat(thrown).isInstanceOf(InvocationTargetException.class);
+        Throwable cause = ((InvocationTargetException) thrown).getTargetException();
+        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
+        XrdRuntimeException xre = (XrdRuntimeException) cause;
+        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(xre.getMessage()).contains("value count");
+    }
+
+    private static HashValueType dummyHashValue(byte[] digestValue) {
+        HashValueType value = new HashValueType();
+        value.setDigestValue(digestValue);
+        return value;
     }
 
     @Test
