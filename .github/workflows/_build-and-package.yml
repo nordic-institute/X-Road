@@ -242,7 +242,7 @@ jobs:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
-          ./package.sh -d -r rpm-el9 --package-only
+          ./build-native-packages.sh -d -r rpm-el9 --package-only
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
 
@@ -252,7 +252,7 @@ jobs:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
-          ./package.sh -d -r rpm-el10 --package-only
+          ./build-native-packages.sh -d -r rpm-el10 --package-only
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/10
 
@@ -262,7 +262,7 @@ jobs:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
-          ./package.sh -d -r noble --package-only
+          ./build-native-packages.sh -d -r noble --package-only
           echo "Packages built successfully, removing packages.."
           rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
 
@@ -271,7 +271,7 @@ jobs:
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: ./package.sh -d -r resolute --package-only
+        run: ./build-native-packages.sh -d -r resolute --package-only
 
       - name: Build and push Central Server dev image
         working-directory: ./scripts/images
