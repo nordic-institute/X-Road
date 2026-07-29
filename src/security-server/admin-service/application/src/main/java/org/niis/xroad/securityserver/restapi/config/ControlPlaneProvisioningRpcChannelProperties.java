@@ -36,6 +36,6 @@ public interface ControlPlaneProvisioningRpcChannelProperties extends RpcChannel
     String PREFIX = "xroad.dataspace.control-plane-provisioning.rpc";
 
     String DEFAULT_HOST = "ds-control-plane";
-    String DEFAULT_PORT = "5460";
+    String DEFAULT_PORT = "5461";
     String DEFAULT_DEADLINE_AFTER = "60000";
 }

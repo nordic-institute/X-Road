@@ -32,10 +32,40 @@
   when: inventory_hostname in groups['ss_servers']
   tags: dev-configuration
 
+# The SS conf.d entries below are per-host renders (templates), not part of the
+# files/ss/ tree copied above, so that copy no longer creates /etc/xroad/conf.d.
+# This play runs before the package creates it, so create it explicitly here.
+- name: ensure /etc/xroad/conf.d exists for per-host SS renders
+  file:
+    path: /etc/xroad/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: inventory_hostname in groups['ss_servers']
+  tags: dev-configuration
+
 - name: render per-host OTEL config
   template:
     src: "otel.conf.j2"
     dest: "/etc/xroad/conf.d/otel.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: inventory_hostname in groups['ss_servers']
+  tags: dev-configuration
+
+# Per-host (not static): proxy-ui-api's dataspace provisioning block needs this
+# SS's own inventory_hostname for identity-hub-url/participant-id, so it can't
+# live in the plain files/ss/ tree above like the rest of the dev config.
+#
+# owner/group root (not xroad): this play runs before xroad-base creates the
+# xroad user/group (that happens during the CS/SS install plays further down),
+# same reasoning as the plain copy tasks above.
+- name: render per-host SS local.yaml (dev config + dataspace provisioning)
+  template:
+    src: "ss-local.yaml.j2"
+    dest: "/etc/xroad/conf.d/local.yaml"
     owner: "root"
     group: "root"
     mode: "0644"

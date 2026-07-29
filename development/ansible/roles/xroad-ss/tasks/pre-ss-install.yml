@@ -63,26 +63,15 @@
 #     local.yaml. The reconciler drives provisioning automatically at SS init
 #     and on each globalconf-refresh tick; no manual API call is needed.
 #
-# TEMPORARY (dataspaces dev): remove once packaging ships these as debconf
-#   answerable questions / real STS-issued tokens.
+# The block itself lives in init-dev-configuration's per-host rendered
+# `ss-local.yaml.j2` (run earlier, on the whole fleet, before this role) — it
+# needs this host's own inventory_hostname (identity-hub-url, participant-id),
+# which a template can express fine, so there's no need to preseed/inject it
+# here. Nothing to do in this file for local.yaml.
+#
+# TEMPORARY (dataspaces dev): remove this note once packaging ships these as
+#   debconf answerable questions / real STS-issued tokens.
 # ---------------------------------------------------------------------------
-- name: ensure local.yaml exists with proxy-ui-api root for the dataspace block
-  copy:
-    dest: /etc/xroad/conf.d/local.yaml
-    force: false
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      xroad:
-        proxy-ui-api:
-
-- name: preseed proxy-ui-api dataspace provisioning config into local
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^  proxy-ui-api:'
-    marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
