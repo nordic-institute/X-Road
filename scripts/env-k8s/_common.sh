@@ -7,7 +7,7 @@ if [[ -z "${BASH_VERSION}" ]]; then
   exit 1
 fi
 
-# scripts/env-k8s/_common.sh -> scripts/ -> core/
+# scripts/env-k8s/_common.sh -> scripts/ -> repo root (CORE_ROOT)
 CORE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 K8S_ROOT="${CORE_ROOT}/development/k8s"
 

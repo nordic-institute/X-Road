@@ -25,7 +25,7 @@ usage() {
 Usage: $(basename "$0") -m <service> [-b] [-d] [-e <env>] [-n <namespace>] [-h]
 
 Rebuild and redeploy a single X-Road service in the k8s dev cluster.
-Mirrors core/scripts/env-lxd/dev.sh for the k8s workflow.
+Mirrors scripts/env-lxd/dev.sh for the k8s workflow.
 
 Options:
   -m <service>   Service name (required). One of:

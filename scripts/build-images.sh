@@ -29,13 +29,13 @@ have to know the sequence of underlying scripts:
 
   1. ensure a local Docker registry is running (${REGISTRY})
   2. build dev-infra images        (build-dev-infra.sh --push)
-  3. compile all modules           (core/src: ./gradlew build)
+  3. compile all modules           (src: ./gradlew build)
   4. build + push SS images        (build-security-server.sh --push)
   5. build native DEB packages     (build-native-packages.sh -r resolute)
   6. build + push the CS image     (build-central-server.sh)
 
 Trim tiers with --skip-infra / --skip-ss / --skip-cs. After it finishes, run
-the test tier you want, e.g. from core/src:
+the test tier you want, e.g. from src:
   ./gradlew :security-server:api-test:clean :security-server:api-test:intTest
   ./gradlew :security-server:e2e-test:clean :security-server:e2e-test:e2eTest
 
@@ -142,7 +142,7 @@ fi
 
 # --- Gradle compile (feeds the Security Server tier) ------------------------
 if [[ "$SKIP_SS" != "true" && "$NO_BUILD" != "true" ]]; then
-  log_info "--- Compiling modules (core/src) ---"
+  log_info "--- Compiling modules (src) ---"
   tier_start=$(date +%s)
   GRADLE_ARGS=(build :tool:otel-javaagent-dist:assemble)
   if [[ "$SKIP_TESTS" == "true" ]]; then
@@ -216,5 +216,5 @@ if [[ "$SKIP_CS" != "true" ]]; then
 fi
 log_success "=== Done in $(format_duration $((END_TIME - START_TIME))) ==="
 log_success "Images available in $REGISTRY"
-log_success "Next: run a test tier from core/src, e.g."
+log_success "Next: run a test tier from src, e.g."
 log_success "  ./gradlew :security-server:api-test:clean :security-server:api-test:intTest"

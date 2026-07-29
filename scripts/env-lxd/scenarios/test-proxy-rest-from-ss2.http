@@ -1,6 +1,6 @@
 ### Test that random service works (originating from ss2)
 ### Requires the k8s dev env running with port-forwards live
-### (core/scripts/env-k8s/start-env.sh). Select the `ss2` env.
+### (scripts/env-k8s/start-env.sh). Select the `ss2` env.
 POST http://{{host}}:{{proxy_port}}/r1/DEV/COM/1234/TestService/mock1
 Content-Type: application/json
 X-Road-Client: DEV/ORG/SS2-Member/ss2-subsystem

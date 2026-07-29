@@ -88,12 +88,12 @@ aws ecr get-login-password --region eu-west-1 | \
 )
 ```
 
-`core/scripts/images/build-security-server.sh` honours `IMAGE_REGISTRY`; images are tagged and pushed there.
+`scripts/images/build-security-server.sh` honours `IMAGE_REGISTRY`; images are tagged and pushed there.
 
 ## Deploy
 
 ```bash
-core/scripts/env-k8s/start-env.sh \
+scripts/env-k8s/start-env.sh \
   --env=eks \
   --skip-images \
   --skip-forward \
@@ -199,7 +199,7 @@ Hit the proxy-ui-api over the NLB hostname shown in `kubectl get svc`.
 ## Teardown
 
 ```bash
-core/scripts/env-k8s/delete-env.sh --env=eks --keep-cluster
+scripts/env-k8s/delete-env.sh --env=eks --keep-cluster
 ```
 
 `--keep-cluster` is default-recommended on EKS so the managed cluster, node groups, and addons stay put.

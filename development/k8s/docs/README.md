@@ -15,7 +15,7 @@ skipping each install when its requirements file is unchanged. Pass
 `--skip-bootstrap` to opt out (offline / CI).
 
 To provision manually — or when running `ansible-playbook` directly (from
-`core/development/k8s/`):
+`development/k8s/`):
 
 ```bash
 python3 -m venv .venv
@@ -32,24 +32,24 @@ Keep the venv activated when running ansible-playbook directly. `scripts/env-k8s
 Bring up the dev environment:
 
 ```bash
-core/scripts/env-k8s/start-env.sh --env=dev
+scripts/env-k8s/start-env.sh --env=dev
 ```
 
 Tear it down:
 
 ```bash
-core/scripts/env-k8s/delete-env.sh --env=dev
+scripts/env-k8s/delete-env.sh --env=dev
 ```
 
 Restart port-forwards after a `kubectl` hiccup:
 
 ```bash
-core/scripts/env-k8s/port-forward.sh --env=dev
+scripts/env-k8s/port-forward.sh --env=dev
 ```
 
 ### Scripts
 
-All live under `core/scripts/env-k8s/`:
+All live under `scripts/env-k8s/`:
 
 | Script | Purpose |
 |---|---|
@@ -61,7 +61,7 @@ All live under `core/scripts/env-k8s/`:
 | `init-ss2.sh` | Hurl bootstrap for SS2 (assumes external CS/CA/SS0 are already running) |
 | `lint.sh` | Run `ansible-lint` + `yamllint` |
 
-Image build lives at `core/scripts/images/build-security-server.sh` — called automatically by `start-env.sh` and `dev.sh`.
+Image build lives at `scripts/images/build-security-server.sh` — called automatically by `start-env.sh` and `dev.sh`.
 
 ### Common flags for `start-env.sh`
 
@@ -75,13 +75,13 @@ Image build lives at `core/scripts/images/build-security-server.sh` — called a
 
 ### Dev loop (single-service rebuild + redeploy)
 
-Mirrors `core/scripts/env-lxd/dev.sh` for the k8s world. Rebuilds one service image, loads it directly into every kind node (bypassing the containerd pull cache), then rolls the matching Deployment.
+Mirrors `scripts/env-lxd/dev.sh` for the k8s world. Rebuilds one service image, loads it directly into every kind node (bypassing the containerd pull cache), then rolls the matching Deployment.
 
 ```bash
-core/scripts/env-k8s/dev.sh -bdm proxy            # rebuild + redeploy proxy
-core/scripts/env-k8s/dev.sh -dm proxy-ui-api      # redeploy latest image only (no build)
-core/scripts/env-k8s/dev.sh -bm signer            # rebuild only, deploy later
-core/scripts/env-k8s/dev.sh -h                    # help + supported service names
+scripts/env-k8s/dev.sh -bdm proxy            # rebuild + redeploy proxy
+scripts/env-k8s/dev.sh -dm proxy-ui-api      # redeploy latest image only (no build)
+scripts/env-k8s/dev.sh -bm signer            # rebuild only, deploy later
+scripts/env-k8s/dev.sh -h                    # help + supported service names
 ```
 
 Works against the current kubectl context. For non-`dev` envs (EKS, test-on-Artifactory) the `kind load` step will fail and you should instead push to the target registry.
@@ -89,14 +89,14 @@ Works against the current kubectl context. For non-`dev` envs (EKS, test-on-Arti
 ### Linting
 
 ```bash
-core/scripts/env-k8s/lint.sh                      # ansible-lint + yamllint
+scripts/env-k8s/lint.sh                      # ansible-lint + yamllint
 ```
 
 ## Environments
 
 | Environment | Cluster | Charts | Registry |
 |---|---|---|---|
-| `dev` | KinD `xroad-dev-cluster` | Local `core/deployment/security-server/k8s/charts/...` | `localhost:5555` (via containerd mirror) |
+| `dev` | KinD `xroad-dev-cluster` | Local `deployment/security-server/k8s/charts/...` | `localhost:5555` (via containerd mirror) |
 | `test` | KinD `xroad-test-cluster` | Artifactory `oci://artifactory.niis.org/xroad8-snapshot-helm` | `artifactory.niis.org/xroad8-snapshot-image` |
 | `eks` | Pre-provisioned EKS | Artifactory release OCI repo | ECR |
 

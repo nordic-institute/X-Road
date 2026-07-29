@@ -19,7 +19,7 @@ GET_XROAD_SCRIPT="${PACKAGE_DIR}/get-xroad.sh"
 UPGRADE_XROAD_SCRIPT="${PACKAGE_DIR}/upgrade-xroad.sh"
 DOWNLOAD_MIGRATION_CLI_SCRIPT="${PACKAGE_DIR}/tasks/migration/download_migration_cli.sh"
 
-# Default caller cwd: core/scripts/release/. Caller may override.
+# Default caller cwd: scripts/release/. Caller may override.
 : "${REPO_ROOT:=../..}"
 
 prepare_staging() {
