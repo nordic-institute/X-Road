@@ -62,14 +62,21 @@ val copyComposeFiles by tasks.registering(Copy::class) {
   into("build/resources/intTest")
 }
 
+val e2eEnvMode = providers.gradleProperty("e2e.env-mode").getOrElse("compose")
+
 tasks.register<Test>("e2eTest") {
-  dependsOn(provider { tasks.named("generateIntTestEnv") })
-  dependsOn(provider { tasks.named("copyComposeFiles") })
+  // Only the harness-managed compose stack needs the generated env and copied compose files. Pre-provisioned
+  // targets (lxd, and any future deployment mode) attach to an environment that already exists.
+  if (e2eEnvMode == "compose") {
+    dependsOn(provider { tasks.named("generateIntTestEnv") })
+    dependsOn(provider { tasks.named("copyComposeFiles") })
+  }
   useJUnitPlatform()
 
-  description = "Runs the e2e test suite in scenario order on the single shared aux/ss0/ss1 stack. " +
-      "Pass --tests <pattern> to run a single class/method directly (IDE-friendly); " +
-      "the stack still boots via the LauncherSessionListener SPI."
+  description = "Runs the e2e test suite in scenario order. The target environment is selected by " +
+      "-Pe2e.env-mode (default 'compose': harness-boots the shared aux/ss0/ss1 stack via the " +
+      "LauncherSessionListener SPI; 'lxd': attaches to a pre-provisioned LXD environment). " +
+      "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 
   testClassesDirs = sourceSets["intTest"].output.classesDirs
@@ -100,49 +107,7 @@ tasks.register<Test>("e2eTest") {
     }
   }
 
-  jvmArgs("-XX:MaxMetaspaceSize=200m")
-
-  maxHeapSize = "256m"
-
-  testLogging {
-    showStackTraces = true
-    showExceptions = true
-    showCauses = true
-    showStandardStreams = true
-  }
-}
-
-tasks.register<Test>("e2eTestLxd") {
-  useJUnitPlatform()
-
-  description = "Runs the e2e test suite against a pre-provisioned LXD environment. " +
-      "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
-  group = "verification"
-
-  testClassesDirs = sourceSets["intTest"].output.classesDirs
-  classpath = sourceSets["intTest"].runtimeClasspath
-
-  // Same suite selection as e2eTest: only the E2eSuite by default so scenario classes don't run twice.
-  val suiteClass = "E2eSuite"
-  val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
-    request.args.any { it == "--tests" || it.startsWith("--tests=") }
-  }
-  include(if (singleTestFromCli) "**/*Test.class" else "**/$suiteClass.class")
-  doFirst {
-    val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-    val patterns = testFilter.commandLineIncludePatterns + testFilter.includePatterns
-    val targetsSuite = patterns.any { it.substringBefore('*').trimEnd('.').substringAfterLast('.') == suiteClass }
-    when {
-      targetsSuite -> {
-        setIncludes(setOf("**/$suiteClass.class"))
-        testFilter.setCommandLineIncludePatterns(emptyList())
-        testFilter.setIncludePatterns()
-      }
-      patterns.isNotEmpty() -> setIncludes(setOf("**/*Test.class"))
-    }
-  }
-
-  systemProperty("test-framework.env-mode", "lxd")
+  systemProperty("test-framework.env-mode", e2eEnvMode)
 
   jvmArgs("-XX:MaxMetaspaceSize=200m")
 

@@ -1,12 +1,19 @@
 # Security Server e2e test suite
 
-End-to-end tests for the Security Server. The suite runs against two targets,
-selected by `test-framework.env-mode`:
+End-to-end tests for the Security Server. A single `e2eTest` task runs the suite
+against any target; the target is chosen with the `-Pe2e.env-mode` Gradle
+property, which the task forwards as the `test-framework.env-mode` system
+property:
 
-| Mode | Value | What it talks to |
-|------|-------|------------------|
+| Mode | `-Pe2e.env-mode` | What it talks to |
+|------|------------------|------------------|
 | Compose (default) | `compose` | Docker Compose stack, brought up by the harness |
 | LXD | `lxd` | Pre-provisioned LXD containers, managed externally |
+
+To add a deployment target: add a `case` in `E2eStackSessionListener` (mapping
+the mode to its `*EnvSetup`) and run with `-Pe2e.env-mode=<new-mode>`. No Gradle
+change is needed unless the new mode also needs the harness to boot a local
+stack — only `compose` wires the `generateIntTestEnv`/`copyComposeFiles` deps.
 
 ## Running locally — Compose mode
 
@@ -50,12 +57,12 @@ responsibility of the provisioning tooling.
 
    ```bash
    cd core/src
-   ./gradlew :security-server:e2e-test:e2eTestLxd
+   ./gradlew :security-server:e2e-test:e2eTest -Pe2e.env-mode=lxd
    ```
 
-The `e2eTestLxd` task sets the `test-framework.env-mode=lxd` system property
-and supports the same `--tests` narrowing as `e2eTest`. Address defaults mirror
-the Ansible `vars.env` (`xrd-ss0.lxd`, `xrd-ss1.lxd`, etc.) and can be
+`-Pe2e.env-mode=lxd` sets the `test-framework.env-mode=lxd` system property and
+supports the same `--tests` narrowing as the default run. Address defaults
+mirror the Ansible `vars.env` (`xrd-ss0.lxd`, `xrd-ss1.lxd`, etc.) and can be
 overridden via environment variables — see `test-framework.lxd.*` properties.
 
 ## Compose-only operations
