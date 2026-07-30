@@ -51,12 +51,6 @@
     group: xroad
     mode: "0640"
     content: |
-      # co-located with ds-control-plane, whose shared gRPC server owns the
-      # default port 5460 - without this both runtimes race for the same bind
-      xroad:
-        ds:
-          rpc:
-            port: 5461
       edc:
         web:
           https:
