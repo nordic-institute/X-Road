@@ -28,6 +28,7 @@ package org.niis.xroad.e2e;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,10 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -63,6 +68,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS message log - archive, cleanup and encryption-key-scoped decryption")
 @Order(200)
+@Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("checkstyle:magicnumber")
 class SsMessagelogArchiveTest extends E2eTest {
@@ -70,12 +76,16 @@ class SsMessagelogArchiveTest extends E2eTest {
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
     private static final String DEFAULT_PASSPHRASE = "secret";
 
+    private static final Map<String, String> PRE_ARCHIVE_MESSAGELOG = new ConcurrentHashMap<>();
+
     @Test
     @Order(1)
     @DisplayName("SS0 Messagelogs are successfully archived and removed from database")
     void ss0MessagelogsAreArchivedAndRemoved(E2eEnvironment env, MessagelogArchiveOps archiveOps, MessagelogDbOps dbOps) {
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
+        and("ss0 messagelog contents are captured for diagnostics before archiving",
+                () -> captureMessagelogSnapshot(dbOps, "ss0"));
         and("message log 'archive DEV' is triggered on ss0", () -> archiveOps.triggerMessageLogCommand("ss0", "archive DEV"));
         and("global configuration is fetched from ss0's proxy for messagelog verification",
                 () -> fetchGlobalConfForMessagelogVerification(env, "ss0"));
@@ -93,6 +103,8 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Order(2)
     @DisplayName("SS1 messagelog is successfully archived and removed from database")
     void ss1MessagelogIsArchivedAndRemoved(MessagelogArchiveOps archiveOps, MessagelogDbOps dbOps) {
+        given("ss1 messagelog contents are captured for diagnostics before archiving",
+                () -> captureMessagelogSnapshot(dbOps, "ss1"));
         when("message log 'archive DEV' is triggered on ss1", () -> archiveOps.triggerMessageLogCommand("ss1", "archive DEV"));
         and("message log 'cleanup' is triggered on ss1", () -> archiveOps.triggerMessageLogCommand("ss1", "cleanup"));
         and("messagelog archives are downloaded from ss1", () ->
@@ -163,9 +175,9 @@ class SsMessagelogArchiveTest extends E2eTest {
     @SneakyThrows
     private void assertMessagelogArchivePresent(String localEnvDir, int expectedMessagelogCount) {
         var localCompressedArchivesPath = resourceDir() + localEnvDir + "/" + MESSAGELOG_ARCHIVES_FILE;
+        var archiveEntries = new ArrayList<String>();
 
         try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(localCompressedArchivesPath)))) {
-            var messagelogCount = 0;
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
                 if (entry.getName().equals("./")) {
@@ -183,12 +195,43 @@ class SsMessagelogArchiveTest extends E2eTest {
                                 Path.of(resourceDir(), localEnvDir, archiveEntry.getName()), zis.readAllBytes());
                         verifyMessagelog(tmpAsiceContainer);
                         Files.delete(tmpAsiceContainer);
-                        messagelogCount++;
+                        archiveEntries.add(entry.getName() + " -> " + archiveEntry.getName());
                     }
                 }
             }
-            assertThat(messagelogCount).isEqualTo(expectedMessagelogCount);
+            assertThat(archiveEntries.size())
+                    .withFailMessage(() -> describeArchiveCountMismatch(localEnvDir, expectedMessagelogCount, archiveEntries))
+                    .isEqualTo(expectedMessagelogCount);
         }
+    }
+
+    private void captureMessagelogSnapshot(MessagelogDbOps dbOps, String env) {
+        var countsBySender = dbOps.execMessagelogSql(env,
+                "SELECT memberclass, membercode, subsystemcode, response, count(*) FROM logrecord "
+                        + "GROUP BY memberclass, membercode, subsystemcode, response "
+                        + "ORDER BY memberclass, membercode, subsystemcode, response");
+        var records = dbOps.execMessagelogSql(env,
+                "SELECT id, time, discriminator, response, memberclass, membercode, subsystemcode, queryid, "
+                        + "xrequestid, keyid, archived FROM logrecord ORDER BY time, id");
+        var snapshot = String.format(
+                "counts (memberclass|membercode|subsystemcode|response|count):%n%s%n%n"
+                        + "records (id|time|discriminator|response|memberclass|membercode|subsystemcode|queryid|"
+                        + "xrequestid|keyid|archived):%n%s",
+                countsBySender, records);
+        PRE_ARCHIVE_MESSAGELOG.put(env, snapshot);
+        log.info("Pre-archive messagelog snapshot for {}:\n{}", env, snapshot);
+    }
+
+    private String describeArchiveCountMismatch(String localEnvDir, int expectedCount, List<String> archiveEntries) {
+        var envKey = localEnvDir.startsWith("ss0") ? "ss0" : "ss1";
+        return String.format(
+                "Expected %d messagelog record(s) in archive '%s' but found %d.%n"
+                        + "Archive .asice entries found (%d):%n  %s%n%n"
+                        + "Messagelog DB snapshot for '%s' captured before 'archive DEV' "
+                        + "(identifies the surplus/missing record):%n%s",
+                expectedCount, localEnvDir, archiveEntries.size(), archiveEntries.size(),
+                String.join(String.format("%n  "), archiveEntries),
+                envKey, PRE_ARCHIVE_MESSAGELOG.getOrDefault(envKey, "(snapshot not captured)"));
     }
 
     @SneakyThrows
