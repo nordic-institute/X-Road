@@ -130,7 +130,7 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         var commandArgs = new ArrayList<String>(List.of(
                 lxdProperties.lxcCommand(), "exec", container, "--",
                 "sudo", "-u", "xroad", ARCHIVER_CLI));
-        commandArgs.addAll(List.of(command.split(" ")));
+        commandArgs.addAll(List.of(command.trim().split("\\s+")));
 
         var process = new ProcessBuilder(commandArgs).start();
         var stdoutFuture = CompletableFuture.supplyAsync(() -> readAll(process.getInputStream()));
@@ -188,7 +188,12 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
                     "find", ARCHIVE_DIR, "-maxdepth", "1", "-type", "f", "-name", filePrefix + "*.gpg")
                     .start();
             var fileList = readAll(listProcess.getInputStream());
-            listProcess.waitFor();
+            var listError = readAll(listProcess.getErrorStream());
+            var listExit = listProcess.waitFor();
+            if (listExit != 0) {
+                throw new IllegalStateException("Listing %s*.gpg archives in %s failed (exit %d): %s"
+                        .formatted(filePrefix, container, listExit, listError));
+            }
             var remoteFiles = fileList.lines().filter(line -> !line.isBlank()).toList();
 
             for (var remoteFile : remoteFiles) {
