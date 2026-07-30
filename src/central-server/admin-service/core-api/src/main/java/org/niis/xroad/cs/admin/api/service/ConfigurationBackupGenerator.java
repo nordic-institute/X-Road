@@ -27,5 +27,5 @@ package org.niis.xroad.cs.admin.api.service;
 import org.niis.xroad.cs.admin.api.dto.BackupFile;
 
 public interface ConfigurationBackupGenerator {
-    BackupFile generateBackup() throws InterruptedException;
+    BackupFile generateBackup();
 }

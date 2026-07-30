@@ -36,6 +36,7 @@ public class BackupDtoConverter implements GenericUniDirectionalMapper<BackupFil
     @Override
     public BackupDto toTarget(BackupFile backupFile) {
         return new BackupDto()
-                .filename(backupFile.getFilename());
+                .filename(backupFile.getFilename())
+                .compatible(backupFile.isCompatible());
     }
 }

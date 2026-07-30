@@ -129,6 +129,7 @@
         "confirmation": "Tem certeza que deseja restaurar do backup {file}?",
         "title": "Tem certeza?"
       },
+      "incompatibleTooltip": "O formato deste backup não é compatível com o formato de backup deste servidor",
       "success": "Configuração restaurada do backup {file}"
     },
     "uploadBackup": {

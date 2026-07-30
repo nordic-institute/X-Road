@@ -276,7 +276,7 @@ public class DiagnosticConnectionService {
     }
 
     @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
-    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws NoSuchAlgorithmException, KeyManagementException {
+    private CloseableHttpClient createProxyHttpClientWithInternalKey() {
         TrustManager trustManager = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -297,11 +297,14 @@ public class DiagnosticConnectionService {
         return createHttpClient(new KeyManager[] {new ClientSslKeyManager(serverConfProvider)}, new TrustManager[] {trustManager});
     }
 
-    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
-            throws NoSuchAlgorithmException, KeyManagementException {
-
-        SSLContext sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        sslContext.init(keyManagers, trustManagers, new SecureRandom());
+    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers) {
+        SSLContext sslContext;
+        try {
+            sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+            sslContext.init(keyManagers, trustManagers, new SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
 
         SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
 
@@ -364,8 +367,7 @@ public class DiagnosticConnectionService {
     }
 
     private static SoapMessageImpl buildListMethodsSoapMessage(ClientId clientId, ClientId targetClientId,
-                                                               SecurityServerId securityServerId)
-            throws IllegalAccessException, SOAPException, JAXBException, IOException {
+                                                               SecurityServerId securityServerId) {
 
         SoapHeader header = new SoapHeader();
         header.setClient(clientId);
@@ -382,8 +384,11 @@ public class DiagnosticConnectionService {
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);
         builder.setRpcEncoded(false);
-
-        return builder.build();
+        try {
+            return builder.build();
+        } catch (IllegalAccessException | SOAPException | JAXBException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private static String getRestPath(ClientId clientId) {

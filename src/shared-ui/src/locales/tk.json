@@ -129,6 +129,7 @@
         "confirmation": "Siz dogurdanam {file} ätiýaçlyk nusgasyny dikeltmek isleýärsiňizmi?",
         "title": "Tassyklaýarsyňyzmy?"
       },
+      "incompatibleTooltip": "Bu ätiýaçlyk nusgasynyň formaty bu serweriň ätiýaçlyk nusga formaty bilen gabat gelmeýär",
       "success": "Konfigurasiýa {file}-dan dikeldildi"
     },
     "uploadBackup": {

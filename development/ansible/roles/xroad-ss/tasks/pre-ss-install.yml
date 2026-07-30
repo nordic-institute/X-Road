@@ -63,32 +63,15 @@
 #     local.yaml. The reconciler drives provisioning automatically at SS init
 #     and on each globalconf-refresh tick; no manual API call is needed.
 #
-#     xroad.dataspace.*-provisioning.rpc: the provisioning gRPC client defaults
-#     (ds-identity-hub:5460 / ds-control-plane:5460) are Docker service names;
-#     here both runtimes are co-located, so point at loopback (127.0.0.1, not
-#     localhost — the mTLS server cert carries an IP SAN) and give identity-hub
-#     its non-default port (see 4.).
+# The block itself lives in init-dev-configuration's per-host rendered
+# `ss-local.yaml.j2` (run earlier, on the whole fleet, before this role) — it
+# needs this host's own inventory_hostname (identity-hub-url, participant-id),
+# which a template can express fine, so there's no need to preseed/inject it
+# here. Nothing to do in this file for local.yaml.
 #
-# TEMPORARY (dataspaces dev): remove once packaging ships these as debconf
-#   answerable questions / real STS-issued tokens.
+# TEMPORARY (dataspaces dev): remove this note once packaging ships these as
+#   debconf answerable questions / real STS-issued tokens.
 # ---------------------------------------------------------------------------
-- name: ensure local.yaml exists with proxy-ui-api root for the dataspace block
-  copy:
-    dest: /etc/xroad/conf.d/local.yaml
-    force: false
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      xroad:
-        proxy-ui-api:
-
-- name: preseed proxy-ui-api dataspace provisioning config into local
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^  proxy-ui-api:'
-    marker: "    # {mark} DATASPACE PROVISIONING (lxd dev preseed)"
-    block: "    dataspace:\n      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182\n      participant-id: {{ inventory_hostname }}.lxd\n      issuer-did: did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer\n  dataspace:\n    identity-hub-provisioning:\n      rpc:\n        host: 127.0.0.1\n        port: 5461\n    control-plane-provisioning:\n      rpc:\n        host: 127.0.0.1"
 
 # ---------------------------------------------------------------------------
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
@@ -105,14 +88,6 @@
     group: xroad
     mode: "0640"
     content: |
-      # Both EDC runtimes default the shared gRPC server to 5460; co-located on
-      # one host, the control plane keeps 5460 (the proxy asset-access client
-      # defaults to 127.0.0.1:5460) and identity-hub moves off it (matching the
-      # proxy-ui-api client preseed in 3b).
-      xroad:
-        ds:
-          rpc:
-            port: 5461
       edc:
         web:
           https:

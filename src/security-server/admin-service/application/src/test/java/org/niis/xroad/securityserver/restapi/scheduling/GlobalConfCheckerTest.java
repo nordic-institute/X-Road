@@ -140,7 +140,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
-        when(globalConfProvider.getServerId(any())).thenReturn(SS_ID);
+        when(globalConfProvider.getServerIdOrThrow(any())).thenReturn(SS_ID);
 
         KeyInfo ownerSignKey = new TokenTestUtils.KeyInfoBuilder()
                 .id(KEY_OWNER_ID)
@@ -246,7 +246,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // Global conf starts to recognize the new member as the Security Server owner
         when(globalConfProvider.getServerOwner(SS_ID)).thenReturn(null);
         when(globalConfProvider.getServerOwner(NEW_SS_ID)).thenReturn(NEW_OWNER_MEMBER);
-        when(globalConfProvider.getServerId(any())).thenReturn(NEW_SS_ID);
+        when(globalConfProvider.getServerIdOrThrow(any())).thenReturn(NEW_SS_ID);
 
         // Update serverconf => owner is changed
         globalConfChecker.checkGlobalConf();

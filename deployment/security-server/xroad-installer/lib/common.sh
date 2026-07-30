@@ -221,6 +221,17 @@ require_root() {
   fi
 }
 
+# Normalise a boolean-ish value in place to "true"/"false"; exit on invalid input.
+# Usage: normalize_bool VAR_NAME  (mutates the named variable)
+normalize_bool() {
+  local -n ref="$1"
+  case "${ref,,}" in
+    true|yes|1|on)   ref="true" ;;
+    false|no|0|off)  ref="false" ;;
+    *) log_die "Invalid value for $1: '$ref' (expected true/false)" ;;
+  esac
+}
+
 # Helper function to write property if not already present
 set_prop() {
   local file="$1"

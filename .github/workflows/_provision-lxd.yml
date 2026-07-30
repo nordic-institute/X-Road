@@ -87,11 +87,11 @@ jobs:
             || sudo iptables -P FORWARD ACCEPT
 
       - name: Configure *.lxd host DNS
-        working-directory: ./development/native-lxd-stack
+        working-directory: ./scripts/env-lxd
         run: sg lxd -c "./scripts/setup-linux-net.sh apply"
 
       - name: Cache base images
-        working-directory: ./development/native-lxd-stack
+        working-directory: ./scripts/env-lxd
         run: |
           start=$(date +%s)
           sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo"
@@ -150,14 +150,14 @@ jobs:
           name: e2e-test-jar
 
       - name: Provision containers
-        working-directory: ./development/native-lxd-stack
+        working-directory: ./scripts/env-lxd
         run: |
           start=$(date +%s)
           sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false"
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Initialize X-Road (hurl)
-        working-directory: ./development/native-lxd-stack
+        working-directory: ./scripts/env-lxd
         run: |
           start=$(date +%s)
           sg lxd -c "lxc exec xrd-hurl -- bash -c 'cd /opt/hurl && ./run-hurl.sh'"

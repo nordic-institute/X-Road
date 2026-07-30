@@ -198,12 +198,12 @@ EOF
     fi
 }
 
-split_ip_dns() {
-  local input="$1"
-  local ip_list dns_list
-  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
-  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
-  echo "$ip_list" "$dns_list"
+extract_ip_list() {
+  echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
+}
+
+extract_dns_list() {
+  echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
 }
 
 prepare_certificates_settings() {
@@ -240,7 +240,9 @@ prepare_certificates_settings() {
     db_get xroad-common/admin-altsubject
     altn="$RET"
 
-    read ip_list dns_list < <(split_ip_dns "$altn")
+    local ip_list dns_list
+    ip_list=$(extract_ip_list "$altn")
+    dns_list=$(extract_dns_list "$altn")
 
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name" "$subj"
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names" "$dns_list"
@@ -276,7 +278,9 @@ prepare_certificates_settings() {
     db_get xroad-common/service-altsubject
     altn="$RET"
 
-    read ip_list dns_list < <(split_ip_dns "$altn")
+    local ip_list dns_list
+    ip_list=$(extract_ip_list "$altn")
+    dns_list=$(extract_dns_list "$altn")
 
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name" "$subj"
     /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names" "$dns_list"

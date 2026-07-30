@@ -7,7 +7,7 @@ on:
       - develop
     paths:
       - 'deployment/native-packages/docker/**/Dockerfile'
-      - 'deployment/native-packages/docker/prepare-builder-image.sh'
+      - 'scripts/images/build-builder.sh'
       - 'src/gradle.properties'
       - '.github/workflows/build-package-builder-images.yaml'
   # Allow manual trigger
@@ -52,14 +52,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push AMD64 builder images
-        working-directory: ./deployment/native-packages/docker
+        working-directory: ./scripts/images
         env:
           IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
           IMAGE_TAG: ${{ steps.version.outputs.tag }}-amd64
           BUILD_PLATFORMS: linux/amd64
         run: |
           export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
-          ./prepare-builder-image.sh all
+          ./build-builder.sh all
 
   build-arm64:
     name: Build ARM64 images
@@ -87,14 +87,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push ARM64 builder images
-        working-directory: ./deployment/native-packages/docker
+        working-directory: ./scripts/images
         env:
           IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ github.repository }}
           IMAGE_TAG: ${{ steps.version.outputs.tag }}-arm64
           BUILD_PLATFORMS: linux/arm64
         run: |
           export IMAGE_REGISTRY=$(echo "$IMAGE_REGISTRY" | tr '[:upper:]' '[:lower:]')
-          ./prepare-builder-image.sh all
+          ./build-builder.sh all
 
   create-manifests:
     name: Create multi-arch manifests
@@ -122,7 +122,7 @@ jobs:
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           REGISTRY="${{ env.REGISTRY }}/${REPO_LOWERCASE}"
           
-          IMAGES=(deb-noble deb-resolute rpm-el8 rpm-el9)
+          IMAGES=(deb-noble deb-resolute rpm-el9 rpm-el10)
           
           for image in "${IMAGES[@]}"; do
             echo "Creating manifest for package-builder-${image}:${TAG}"
@@ -174,8 +174,8 @@ jobs:
           Each image is available for both amd64 and arm64:
           - \`package-builder-deb-noble:${TAG}\`
           - \`package-builder-deb-resolute:${TAG}\`
-          - \`package-builder-rpm-el8:${TAG}\`
           - \`package-builder-rpm-el9:${TAG}\`
+          - \`package-builder-rpm-el10:${TAG}\`
           
           ### Architecture-Specific Tags (for debugging)
           - \`package-builder-deb-resolute:${TAG}-amd64\`

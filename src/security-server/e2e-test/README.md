@@ -33,7 +33,7 @@ responsibility of the provisioning tooling.
 1. Provision and bootstrap the environment:
 
    ```bash
-   cd core/development/native-lxd-stack
+   cd core/scripts/env-lxd
    ./start-env.sh
    ```
 

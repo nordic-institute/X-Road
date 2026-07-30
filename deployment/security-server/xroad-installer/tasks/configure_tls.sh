@@ -11,13 +11,14 @@ source "$SCRIPT_DIR/../lib/common.sh"
 CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
 YAML_HELPER="$SCRIPT_DIR/../lib/yaml_helper.sh"
 
-# Function to split IP and DNS entries from comma-separated list
-split_ip_dns() {
-  local input="$1"
-  local ip_list dns_list
-  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,)
-  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,)
-  echo "$ip_list" "$dns_list"
+# Extract the IP alternative names (IPv4 and IPv6) from a combined IP/DNS list.
+extract_ip_list() {
+  echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
+}
+
+# Extract the DNS alternative names from a combined IP/DNS list.
+extract_dns_list() {
+  echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
 }
 
 # Function to get YAML value
@@ -46,7 +47,8 @@ configure_service_tls() {
 
   # Split IP and DNS entries
   local ip_list dns_list
-  read ip_list dns_list < <(split_ip_dns "$altn")
+  ip_list=$(extract_ip_list "$altn") || true
+  dns_list=$(extract_dns_list "$altn") || true
 
   log_message "  Common Name: $cn"
   log_message "  DNS Alternative Names: $dns_list"

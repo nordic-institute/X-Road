@@ -1239,6 +1239,8 @@
               "script-path": "El bilen ätiýaçlyk skripteriň ýoly.",
               "restore-script-path": "Ätiýaçlyk dikeltme skripteriň ýoly.",
               "generate-gpg-keypair-path": "Ätiýaçlyk şifrleme üçin GPG açar jübüt döredýän skripteriň ýoly.",
+              "create-backup-metadata-path": "Ýüklenen ätiýaçlyk faýlynyň tar belligini derňeýän we onuň \".metadata\" faýlyny ýazýan skripteriň ýoly.",
+              "backup-format-version-file-path": "Ätiýaçlygyň utgaşyklygyny kesgitlemek üçin ulanylýan, ätiýaçlyk formatynyň häzirki wersiýasyny özünde saklaýan faýlyň ýoly.",
               "gpgkeys-home": "Ätiýaçlyk GPG amallary üçin GNUPGHOME hökmünde ulanylýan katalog.",
               "encryption-enabled": "Işe girizilende, ätiýaçlyk arhiwleri GPG bilen şifrlenmesi.",
               "encryption-keyids": "Ätiýaçlyk arhiwlerini şifrlemek üçin ulanylýan ütirli bölünen GPG açar ID-leri."

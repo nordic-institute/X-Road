@@ -44,10 +44,12 @@ const BACKUP_PATH = '/settings/backup';
 
 const existingBackup: Backup = {
   filename: 'configuration_backup_20240601.gpg',
+  compatible: true,
 };
 
 const uploadedBackup: Backup = {
   filename: 'my_new_backup.gpg',
+  compatible: true,
 };
 
 describe('1100 — CS Backup and Restore — download trigger + upload updates count (Browser Mode)', () => {

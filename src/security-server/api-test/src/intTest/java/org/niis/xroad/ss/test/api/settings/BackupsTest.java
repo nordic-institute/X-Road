@@ -33,7 +33,10 @@ import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.BackupsAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
@@ -56,6 +59,7 @@ class BackupsTest extends SsApiTest {
         final var filename = given("a new backup is created", () ->
                 backups.createBackup()
                         .statusCode(201)
+                        .body("compatible", equalTo(true))
                         .extract()
                         .jsonPath()
                         .getString("filename"));
@@ -170,6 +174,43 @@ class BackupsTest extends SsApiTest {
             if (backups.backupExists(filename)) {
                 backups.deleteBackup(filename);
             }
+        }
+    }
+
+    @Test
+    @ResourceLock("backups")
+    @DisplayName("Backup uploaded with incompatible format is marked incompatible in response and in list")
+    void uploadedIncompatibleBackupIsMarkedIncompatible(SsBaselineSeeder seeder) throws IOException {
+        var backups = new BackupsAdminClient(seeder.newSession());
+        var fileBytes = loadFile("/files/backups/ss-backup-incompatible.gpg");
+
+        given("ss-backup-incompatible.gpg is uploaded", () ->
+                backups.uploadBackup("ss-backup-incompatible.gpg", fileBytes, false)
+                        .statusCode(201)
+                        .body("compatible", equalTo(false)));
+
+        try {
+            then("the uploaded backup is shown as incompatible in GET /backups", () -> {
+                var compatible = backups.listBackupsRaw().stream()
+                        .filter(b -> "ss-backup-incompatible.gpg".equals(b.get("filename")))
+                        .map(b -> b.get("compatible"))
+                        .findFirst()
+                        .orElse(null);
+                assertThat(compatible).isEqualTo(false);
+            });
+        } finally {
+            if (backups.backupExists("ss-backup-incompatible.gpg")) {
+                backups.deleteBackup("ss-backup-incompatible.gpg");
+            }
+        }
+    }
+
+    private byte[] loadFile(String resourcePath) throws IOException {
+        try (var stream = getClass().getResourceAsStream(resourcePath)) {
+            if (stream == null) {
+                throw new IOException("Test resource not found: " + resourcePath);
+            }
+            return stream.readAllBytes();
         }
     }
 }

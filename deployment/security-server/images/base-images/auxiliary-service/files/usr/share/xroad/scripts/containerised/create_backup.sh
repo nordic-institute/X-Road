@@ -1,6 +1,6 @@
 #!/bin/bash
 
-XROAD_VERSION_LABEL="XROAD_8.0"
+source /usr/share/xroad/scripts/containerised/backup_common.sh
 
 SERVERCONF_DATABASE_DUMP_FILENAME="/var/lib/xroad/serverconf_dbdump.dat"
 SERVERCONF_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/containerised/backup_serverconf_db.sh"
@@ -49,12 +49,6 @@ create_openbao_db_backup () {
   fi
 }
 
-# XXX The tarball label is simply an underscore-separated list of the input
-# parameters.
-make_tarball_label () {
-  TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
-}
-
 create_backup_tarball () {
   if [ "$ENCRYPT_MODE" = "encrypt" ] || [ "$ENCRYPT_MODE" = "signonly" ] ; then
     local ENCRYPTION_ARGS=()
@@ -95,6 +89,10 @@ create_backup_tarball () {
         "Please check the error messages and fix them before trying again!"
   fi
   echo "Backup file saved to ${BACKUP_FILENAME}"
+}
+
+write_backup_metadata () {
+  write_backup_metadata_json "${BACKUP_FILENAME}.metadata" "${BACKUP_FORMAT_VERSION_LABEL}" "security"
 }
 
 check_backup_file_name () {
@@ -147,3 +145,4 @@ create_serverconf_db_backup
 create_openbao_db_backup
 make_tarball_label
 create_backup_tarball
+write_backup_metadata
