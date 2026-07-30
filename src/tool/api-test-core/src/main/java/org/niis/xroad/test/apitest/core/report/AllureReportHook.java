@@ -66,7 +66,7 @@ public final class AllureReportHook {
         var resultsDir = Path.of(coreProperties.allure().resultsDirectory());
 
         if (!Files.exists(resultsDir)) {
-            log.warn("Allure results directory does not exist: {}", resultsDir);
+            log.error("Allure results directory does not exist: {}", resultsDir);
             return;
         }
 
