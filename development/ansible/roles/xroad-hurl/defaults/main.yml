@@ -2,11 +2,11 @@
 hurl_version: "8.0.1"
 hurl_install_dir: "/opt/hurl"
 hurl_scenario_dir: "{{ playbook_dir }}/../hurl/scenarios"
-# Order matters: run-hurl.sh sorts by filename. `setup.hurl` must run before the
-# `test-proxy-*.hurl` scenarios, which exercise flows it provisions.
+# Deliberately the same set compose's hurl service runs (compose.aux.yaml) and nothing more:
+# the e2e 0200 messagelog scenarios assert exact archive counts that include this bootstrap's
+# proxied traffic, so every extra proxied call here shifts those counts. The test-proxy-*.hurl
+# smoke files remain in development/hurl/scenarios for manual runs (override hurl_files or run
+# them via run-hurl.sh on the hurl host).
 hurl_files:
   - setup.hurl
-  - test-proxy-rest.hurl
-  - test-proxy-soap.hurl
-  - test-proxy-dsp.hurl
 hurl_env_file: "files/vars.env"

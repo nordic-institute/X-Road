@@ -66,14 +66,24 @@ fun gitCommitDate(): String? {
 }
 
 tasks.processResources {
+  val xroadVersion = project.property("xroadVersion") as String
+  val xroadBuildType = project.property("xroadBuildType") as String
+  val gitCommitDate = gitCommitDate()
+  val gitCommitHash = gitCommitHash()
+
+  inputs.property("xroadVersion", xroadVersion)
+  inputs.property("xroadBuildType", xroadBuildType)
+  inputs.property("gitCommitDate", gitCommitDate ?: "")
+  inputs.property("gitCommitHash", gitCommitHash ?: "")
+
   filesMatching("**/xroad-version.properties") {
     filter(
       mapOf(
         "tokens" to mapOf(
-          "version" to project.property("xroadVersion"),
-          "buildType" to project.property("xroadBuildType"),
-          "gitCommitDate" to gitCommitDate(),
-          "gitCommitHash" to gitCommitHash()
+          "version" to xroadVersion,
+          "buildType" to xroadBuildType,
+          "gitCommitDate" to gitCommitDate,
+          "gitCommitHash" to gitCommitHash
         )
       ), ReplaceTokens::class.java
     )

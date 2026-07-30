@@ -59,6 +59,22 @@ public final class ApiTestConfigSource {
         return config.getConfigMapping(ApiTestCoreProperties.class);
     }
 
+    /**
+     * Builds a product-specific config mapping from the same {@code test-automation.yaml} and
+     * default sources the core properties use.
+     */
+    public <T> T buildConfigMapping(Class<T> configMappingClass) {
+        return new SmallRyeConfigBuilder()
+                .withSources(loadYaml())
+                .withMapping(configMappingClass)
+                .withConverter(Duration.class, CONVERTER_PRIORITY, new DurationConverter())
+                .withValidateUnknown(false)
+                .addDefaultInterceptors()
+                .addDefaultSources()
+                .build()
+                .getConfigMapping(configMappingClass);
+    }
+
     public static synchronized ApiTestConfigSource getInstance() {
         if (instance == null) {
             instance = new ApiTestConfigSource();

@@ -32,7 +32,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -124,8 +123,8 @@ class SsProxyMessageFlowTest extends E2eTest {
     @Test
     @Order(1)
     @DisplayName("Soap request is successful over proxy")
-    void soapRequestIsSuccessfulOverProxy(E2eEnvSetup env) {
-        given("the environment is initialized", () -> assertThat(env.isAuxHurlRunning()).isFalse());
+    void soapRequestIsSuccessfulOverProxy(E2eEnvironment env) {
+        given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         var firstResponse = given("a SOAP getRandom request is sent to ss1 proxy as TestClient", () ->
                 sendSoapRequest(env, SOAP_REQUEST_FROM_TEST_CLIENT));
@@ -143,7 +142,7 @@ class SsProxyMessageFlowTest extends E2eTest {
     @Test
     @Order(2)
     @DisplayName("REST request is successfully transferred over X-Road proxy")
-    void restRequestIsSuccessfullyTransferredOverProxy(E2eEnvSetup env) {
+    void restRequestIsSuccessfullyTransferredOverProxy(E2eEnvironment env) {
         var mapping = env.getContainerMapping("ss1", SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
 
         var response = given("a REST request is sent to ss1 proxy", () ->
@@ -161,7 +160,7 @@ class SsProxyMessageFlowTest extends E2eTest {
     @Test
     @Order(3)
     @DisplayName("REST request with valid API path permission is successfully transferred over X-Road proxy")
-    void restRequestWithValidApiPathPermissionIsSuccessfullyTransferredOverProxy(E2eEnvSetup env) {
+    void restRequestWithValidApiPathPermissionIsSuccessfullyTransferredOverProxy(E2eEnvironment env) {
         var mapping = env.getContainerMapping("ss1", SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
 
         var response = given("a REST request targeted at the /api/members API endpoint is sent to ss1 proxy", () ->
@@ -178,7 +177,7 @@ class SsProxyMessageFlowTest extends E2eTest {
     @Test
     @Order(4)
     @DisplayName("Admin login against the ss1 UI container succeeds")
-    void adminLoginAgainstSs1UiSucceeds(E2eEnvSetup env) {
+    void adminLoginAgainstSs1UiSucceeds(E2eEnvironment env) {
         var mapping = env.getContainerMapping("ss1", SsStackSetup.UI, SsStackSetup.Port.UI);
         var baseUrl = "https://%s:%s".formatted(mapping.host(), mapping.port());
 
@@ -194,7 +193,7 @@ class SsProxyMessageFlowTest extends E2eTest {
         });
     }
 
-    private ValidatableResponse sendSoapRequest(E2eEnvSetup env, String body) {
+    private ValidatableResponse sendSoapRequest(E2eEnvironment env, String body) {
         var mapping = env.getContainerMapping("ss1", SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         return RestAssuredFactory.given()
                 .config(RestAssured.config()

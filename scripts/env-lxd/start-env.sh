@@ -176,9 +176,10 @@ function listSnapshots() {
 
     local found=false
     local snap_names=()
-    # Extract just the snapshot name from each URL path element
-    while IFS= read -r _snap_line; do
-      snap_names+=("$_snap_line")
+    # Extract just the snapshot name from each URL path element.
+    # while-read instead of mapfile: macOS ships bash 3.2, which lacks it.
+    while IFS= read -r snap_name; do
+      snap_names+=("$snap_name")
     done < <(echo "$snaps_json" | jq -r '.[]' 2>/dev/null | sed 's|.*/||')
 
     for snap in "${snap_names[@]}"; do
@@ -324,6 +325,7 @@ function handleBuild() {
 function handleInitialize() {
   if [ "$SKIP_INITIALIZE" = false ]; then
     lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh"
+    "$(dirname "$0")/wait-xroad-ready.sh"
   fi
 }
 

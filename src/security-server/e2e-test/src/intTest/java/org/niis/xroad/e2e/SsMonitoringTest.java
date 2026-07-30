@@ -34,12 +34,12 @@ import io.restassured.response.ValidatableResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.opmonitor.core.OperationalDataRecord;
 import org.niis.xroad.opmonitor.core.OperationalDataRecords;
@@ -97,8 +97,8 @@ class SsMonitoringTest extends E2eTest {
     @Test
     @Order(1)
     @DisplayName("Call REST and OPENAPI3 methods")
-    void callRestAndOpenapi3Methods(E2eEnvSetup env) {
-        given("the environment is initialized", () -> assertThat(env.isAuxHurlRunning()).isFalse());
+    void callRestAndOpenapi3Methods(E2eEnvironment env) {
+        given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         var restResponse = when("a REST request is sent to ss1 proxy", () -> sendMockRestRequest(env, "ss1"));
         then("the response is 200 with the expected POST service message", () ->
@@ -117,7 +117,7 @@ class SsMonitoringTest extends E2eTest {
     @Test
     @Order(2)
     @DisplayName("Proxymonitor responds with correct response")
-    void proxymonitorRespondsWithCorrectResponse(E2eEnvSetup env) {
+    void proxymonitorRespondsWithCorrectResponse(E2eEnvironment env) {
         given("ss1 owner client internal connection type is set to HTTP", () ->
                 setOwnerClientConnectionType(env, "ss1", "HTTP"));
 
@@ -135,7 +135,7 @@ class SsMonitoringTest extends E2eTest {
     @Test
     @Order(3)
     @DisplayName("Proxymonitor responds with correct response for TotalPhysicalMemory request")
-    void proxymonitorRespondsWithTotalPhysicalMemory(E2eEnvSetup env) {
+    void proxymonitorRespondsWithTotalPhysicalMemory(E2eEnvironment env) {
         given("ss1 owner client internal connection type is set to HTTP", () ->
                 setOwnerClientConnectionType(env, "ss1", "HTTP"));
 
@@ -155,7 +155,7 @@ class SsMonitoringTest extends E2eTest {
     @Test
     @Order(4)
     @DisplayName("Messagelog contains metrics requests")
-    void messagelogContainsMetricsRequests(E2eEnvSetup env) {
+    void messagelogContainsMetricsRequests(E2eEnvironment env, MessagelogDbOps messagelogDbOps) {
         given("ss1 owner client internal connection type is set to HTTP", () ->
                 setOwnerClientConnectionType(env, "ss1", "HTTP"));
 
@@ -163,13 +163,13 @@ class SsMonitoringTest extends E2eTest {
                 sendProxymonitorRequest(env, "ss1", "MSGLOG-E2E-UNIQUE-9f3a", null));
 
         then("ss1 messagelog contains 4 encrypted entries for queryId MSGLOG-E2E-UNIQUE-9f3a", () ->
-                assertMessagelogEncryptedEntries(env, "ss1", 4, "MSGLOG-E2E-UNIQUE-9f3a"));
+                assertMessagelogEncryptedEntries(messagelogDbOps, "ss1", 4, "MSGLOG-E2E-UNIQUE-9f3a"));
     }
 
     @Test
     @Order(5)
     @DisplayName("Retrieving Operational Data of Security Server")
-    void retrievingOperationalDataOfSecurityServer(E2eEnvSetup env) {
+    void retrievingOperationalDataOfSecurityServer(E2eEnvironment env) {
         given("ss0 owner client internal connection type is set to HTTP", () ->
                 setOwnerClientConnectionType(env, "ss0", "HTTP"));
 
@@ -188,14 +188,14 @@ class SsMonitoringTest extends E2eTest {
 
         when("a getSecurityServerOperationalData request is sent to ss0", () -> sendGetSecurityServerOperationalData(env, "ss0"));
 
-        then("the operational data response contains records with serviceSecurityServerAddress xrd-ss0", () ->
-                assertOperationalDataRecordsAddress("xrd-ss0"));
+        then("the operational data response contains records served by security server ss0", () ->
+                assertOperationalDataRecordsAddress(env.securityServerAddress("ss0")));
     }
 
     @Test
     @Order(6)
     @DisplayName("Retrieving Health Data of Security Server")
-    void retrievingHealthDataOfSecurityServer(E2eEnvSetup env) {
+    void retrievingHealthDataOfSecurityServer(E2eEnvironment env) {
         given("ss0 owner client internal connection type is set to HTTP", () ->
                 setOwnerClientConnectionType(env, "ss0", "HTTP"));
 
@@ -209,7 +209,7 @@ class SsMonitoringTest extends E2eTest {
                 assertHealthDataResponse(600, 1));
     }
 
-    private ValidatableResponse sendMockRestRequest(E2eEnvSetup env, String envName) {
+    private ValidatableResponse sendMockRestRequest(E2eEnvironment env, String envName) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         return RestAssuredFactory.given()
                 .body("{\"data\": 1.0, \"service\": \"random\"}")
@@ -219,7 +219,7 @@ class SsMonitoringTest extends E2eTest {
                 .then();
     }
 
-    private ValidatableResponse sendApiMembersRequest(E2eEnvSetup env, String envName) {
+    private ValidatableResponse sendApiMembersRequest(E2eEnvironment env, String envName) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         return RestAssuredFactory.given()
                 .header("Content-Type", "application/json")
@@ -228,7 +228,7 @@ class SsMonitoringTest extends E2eTest {
                 .then();
     }
 
-    private void attemptUnsavedRestEndpoint(E2eEnvSetup env, String envName, String apiPath) {
+    private void attemptUnsavedRestEndpoint(E2eEnvironment env, String envName, String apiPath) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         try {
             RestAssuredFactory.given()
@@ -242,7 +242,7 @@ class SsMonitoringTest extends E2eTest {
         }
     }
 
-    private void setOwnerClientConnectionType(E2eEnvSetup env, String envName, String connectionType) {
+    private void setOwnerClientConnectionType(E2eEnvironment env, String envName, String connectionType) {
         var ownerClientId = switch (envName) {
             case "ss0" -> "DEV:COM:1234";
             case "ss1" -> "DEV:COM:4321";
@@ -271,7 +271,7 @@ class SsMonitoringTest extends E2eTest {
                 .isBetween(200, 299);
     }
 
-    private Response sendProxymonitorRequest(E2eEnvSetup env, String envName, String queryId, String metricName) {
+    private Response sendProxymonitorRequest(E2eEnvironment env, String envName, String queryId, String metricName) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         return RestAssuredFactory.given()
                 .header("Content-Type", "text/xml")
@@ -279,27 +279,35 @@ class SsMonitoringTest extends E2eTest {
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
     }
 
-    private void assertMessagelogEncryptedEntries(E2eEnvSetup env, String envName, int expectedCount, String queryId) {
+    private void assertMessagelogEncryptedEntries(MessagelogDbOps messagelogDbOps, String envName, int expectedCount, String queryId) {
         var sql = ("SELECT count(*), count(*) FILTER (WHERE keyid IS NOT NULL AND message IS NULL) "
                 + "FROM logrecord WHERE queryid = '%s'").formatted(queryId);
         var counts = new AtomicReference<>(new int[]{0, 0});
-        Awaitility.await()
-                .pollDelay(Duration.ofSeconds(1))
-                .pollInterval(Duration.ofSeconds(2))
-                .timeout(Duration.ofSeconds(60))
-                .ignoreExceptions()
-                .until(() -> {
-                    var parts = env.execMessagelogSql(envName, sql).split("\\|");
-                    counts.set(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
-                    return counts.get()[1] >= expectedCount;
-                });
+        try {
+            Awaitility.await()
+                    .pollDelay(Duration.ofSeconds(1))
+                    .pollInterval(Duration.ofSeconds(2))
+                    .timeout(Duration.ofSeconds(60))
+                    .ignoreExceptions()
+                    .until(() -> {
+                        var parts = messagelogDbOps.execMessagelogSql(envName, sql).split("\\|");
+                        counts.set(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+                        return counts.get()[1] >= expectedCount;
+                    });
+        } catch (ConditionTimeoutException e) {
+            var observed = counts.get();
+            throw new ConditionTimeoutException(
+                    ("Timed out waiting for %d encrypted messagelog entries for queryId %s on %s "
+                            + "(last observed: %d total rows, %d encrypted)")
+                            .formatted(expectedCount, queryId, envName, observed[0], observed[1]), e);
+        }
 
         var result = counts.get();
         assertThat(result[0]).as("logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);
         assertThat(result[1]).as("encrypted logrecord rows for queryId %s", queryId).isEqualTo(expectedCount);
     }
 
-    private void sendGetSecurityServerOperationalData(E2eEnvSetup env, String envName) {
+    private void sendGetSecurityServerOperationalData(E2eEnvironment env, String envName) {
         Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         lastOpMonitorResponse = RestAssuredFactory.given()
@@ -308,7 +316,7 @@ class SsMonitoringTest extends E2eTest {
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
     }
 
-    private void sendGetSecurityServerHealthData(E2eEnvSetup env, String envName) {
+    private void sendGetSecurityServerHealthData(E2eEnvironment env, String envName) {
         Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         lastOpMonitorResponse = RestAssuredFactory.given()

@@ -1,0 +1,60 @@
+---
+# Messagelog DB + archive encryption for dev stacks. xroad.message-log-encryption.db.encryption-enabled
+# and .archive.encryption-enabled default false (MessageLogEncryptionProperties in
+# lib/messagelog-core) — compose enables the equivalent via the msglog_encryption_config/
+# application.yaml mount. Both subkeys must live under the SAME top-level "message-log-encryption:"
+# block: YAML (and SnakeYAML, which SmallRye's file source uses) silently keeps only the LAST
+# occurrence of a duplicate top-level key, so a separate blockinfile block for "archive" would
+# silently discard this one (or vice versa) depending on insertion order.
+#
+# No DB key provisioning is needed: the DB master key is generated unconditionally at SS init
+# (EncryptionInitializationService.initializeMessageLogDatabaseEncryption()) and stored in
+# openbao, so it already exists on any provisioned stack. db.key-id is left at its "default".
+#
+# Archive encryption is xrd-ss1-ONLY, mirroring compose exactly: ComposeEnvSetup only adds the
+# Feature.MESSAGE_LOG_ENCRYPTION compose overlay (which mounts msglog_encryption_config/ — the
+# same db+archive block) to envSs1, never envSs0. The 0200-ss-messagelog feature's SS0 scenario
+# asserts plain (unencrypted) .zip archives; enabling archive encryption on ss0 too would break
+# it. DB encryption, by contrast, is deliberately applied to both hosts here — broader than
+# compose, which enables it only on ss1; harmless, since no scenario asserts unencrypted DB
+# rows on ss0.
+#
+# Archive encryption additionally needs the recipient PGP public keys imported into openbao
+# (see msglog-archive-encryption.yml) and the grouping keys/strategy below, mirroring compose's
+# msglog_encryption_config/application.yaml and the e2e test's gpg fixtures
+# (src/security-server/e2e-test/src/intTest/resources/gpg_keys/) 1:1. The archive signing secret
+# key is generated unconditionally at SS init (InitializationService.prepareEncryption ->
+# initializeMessageLogArchivalEncryption), so only the recipient public keys need importing.
+- name: preseed messagelog DB encryption config into local.yaml (xrd-ss0)
+  blockinfile:
+    path: /etc/xroad/conf.d/local.yaml
+    insertafter: '^xroad:'
+    marker: "  # {mark} MESSAGELOG DB + ARCHIVE ENCRYPTION (lxd dev preseed)"
+    block: "  message-log-encryption:\n    db:\n      encryption-enabled: true"
+  notify: restart xroad-proxy
+  when: inventory_hostname != 'xrd-ss1'
+
+- name: preseed messagelog DB and archive encryption config into local.yaml (xrd-ss1)
+  blockinfile:
+    path: /etc/xroad/conf.d/local.yaml
+    insertafter: '^xroad:'
+    marker: "  # {mark} MESSAGELOG DB + ARCHIVE ENCRYPTION (lxd dev preseed)"
+    block: "  message-log-encryption:\n    db:\n      encryption-enabled: true\n    archive:\n      encryption-enabled: true\n      default-key-id: 3BD9C292C63580F8\n      grouping-strategy: SUBSYSTEM\n      grouping-keys:\n        \"not/existing/member\": 8A4BB80EEE081BDE\n        \"DEV/COM/4321\": E93952B01C2D2EA5,8A4BB80EEE081BDE\n        \"another/fake/member\": 1234567890ABCDEF"
+  notify: restart xroad-proxy
+  when: inventory_hostname == 'xrd-ss1'
+
+# Single owner of the "proxy:" subtree in local.yaml — the file is one YAML document, so a
+# second blockinfile block declaring "proxy:" would collide (duplicate key, last-one-wins /
+# loader error). Everything proxy-scoped that dev stacks preseed goes here: the op-monitor
+# addon flag (conditional, paired with the daemon install in opmonitor.yml) and
+# timestamp-immediately, which compose sets on its proxies via
+# XROAD_PROXY_MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY=true (compose.e2e.yaml). Without
+# it the batch timestamper's ~60s cadence races the e2e archive trigger: un-timestamped
+# records are not archivable, so fresh test traffic silently survives archival and cleanup.
+- name: preseed proxy config into local.yaml
+  blockinfile:
+    path: /etc/xroad/conf.d/local.yaml
+    insertafter: '^xroad:'
+    marker: "  # {mark} PROXY (lxd dev preseed)"
+    block: "  proxy:\n    message-log:\n      timestamper:\n        timestamp-immediately: true\n{% if xroad_install_opmonitoring | default(false) | bool %}    addon:\n      op-monitor:\n        enabled: true{% endif %}"
+  notify: restart xroad-proxy

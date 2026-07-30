@@ -1,3 +1,6 @@
+# Inventory for provisioning the native-lxd-stack on a Linux CI runner with a
+# local LXD daemon (no Lima). Mirrors config/ansible_hosts.txt but the LXD host
+# is the runner itself and the lxc remote is the local socket.
 
 [cs_servers]
 xrd-cs ansible_connection=lxd
@@ -29,7 +32,7 @@ xrd-ss0 ansible_connection=lxd
 xrd-is ansible_connection=lxd
 
 [lxd_servers]
-lima-xroad-lxd ansible_ssh_args="-F {{ lookup('env','HOME') }}/.lima/xroad-lxd/ssh.config"
+localhost ansible_connection=local
 
 [compile_servers]
 localhost ansible_connection=local
@@ -40,8 +43,9 @@ xrd-hurl ansible_connection=lxd ubuntu_releasever=noble
 [repo_servers]
 xrd-repo ansible_connection=lxd
 
-[jaeger_servers]
-xrd-jaeger ansible_connection=lxd
+# Tracing container omitted on CI to keep the provisioning spike lean.
+#[jaeger_servers]
+#xrd-jaeger ansible_connection=lxd
 
 ### vars ###
 
@@ -50,4 +54,4 @@ variant=vanilla
 xroad_install_opmonitoring=true
 
 [all:vars]
-ansible_lxd_remote=xroad-lxd
+ansible_lxd_remote=local

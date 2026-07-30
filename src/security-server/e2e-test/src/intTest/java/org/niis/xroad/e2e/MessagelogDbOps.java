@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,45 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.apitest.core.config;
-
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+package org.niis.xroad.e2e;
 
 /**
- * Configuration properties for the api-test-core framework. Stripped of Cucumber, Feign, and Selenide
- * sections present in the legacy test-framework-core — this module carries none of those dependencies.
+ * Environment-neutral access to the messagelog database, available in both Compose and LXD modes.
  */
-@ConfigMapping(prefix = "test-framework")
-public interface ApiTestCoreProperties {
-
-    @WithDefault("build/")
-    @WithName("working-dir")
-    String workingDir();
-
-    @WithDefault("build/resources/intTest/")
-    @WithName("resource-dir")
-    String resourceDir();
+public interface MessagelogDbOps {
 
     /**
-     * Target environment the test suite runs against: {@code compose} (harness-managed Docker
-     * Compose stack, the default) or {@code lxd} (pre-provisioned LXD containers).
+     * Runs an SQL statement against the messagelog database of the given environment
+     * and returns psql's unaligned tuple-only output, trimmed.
      */
-    @WithDefault("compose")
-    @WithName("env-mode")
-    String envMode();
-
-    @WithName("allure")
-    Allure allure();
-
-    interface Allure {
-        @WithDefault("build/allure-results")
-        @WithName("results-directory")
-        String resultsDirectory();
-
-        @WithDefault("true")
-        @WithName("generate-report")
-        boolean generateReport();
-    }
+    String execMessagelogSql(String env, String sql);
 }

@@ -10,3 +10,9 @@
   service:
     name: xroad-confclient
     state: restarted
+
+- name: restart xroad-auxiliary-service
+  become: true
+  service:
+    name: xroad-auxiliary-service
+    state: restarted

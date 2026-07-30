@@ -28,6 +28,7 @@ package org.niis.xroad.e2e;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +36,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.niis.xroad.e2e.container.E2eEnvSetup;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.test.apitest.core.config.ApiTestConfigSource;
@@ -46,10 +46,11 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -67,49 +68,57 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS message log - archive, cleanup and encryption-key-scoped decryption")
 @Order(200)
+@Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SuppressWarnings("checkstyle:magicnumber")
 class SsMessagelogArchiveTest extends E2eTest {
 
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
+    private static final String DEFAULT_PASSPHRASE = "secret";
+
+    private static final Map<String, String> PRE_ARCHIVE_MESSAGELOG = new ConcurrentHashMap<>();
 
     @Test
     @Order(1)
     @DisplayName("SS0 Messagelogs are successfully archived and removed from database")
-    void ss0MessagelogsAreArchivedAndRemoved(E2eEnvSetup env) {
-        given("the environment is initialized", () -> assertThat(env.isAuxHurlRunning()).isFalse());
+    void ss0MessagelogsAreArchivedAndRemoved(E2eEnvironment env, MessagelogArchiveOps archiveOps, MessagelogDbOps dbOps) {
+        given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
-        and("message log 'archive DEV' is triggered on ss0", () -> triggerMessageLogCommand(env, "ss0", "archive DEV"));
+        and("ss0 messagelog contents are captured for diagnostics before archiving",
+                () -> captureMessagelogSnapshot(dbOps, "ss0"));
+        and("message log 'archive DEV' is triggered on ss0", () -> archiveOps.triggerMessageLogCommand("ss0", "archive DEV"));
         and("global configuration is fetched from ss0's proxy for messagelog verification",
                 () -> fetchGlobalConfForMessagelogVerification(env, "ss0"));
-        and("messagelog archives are downloaded from ss0 message-log-cli", () ->
-                downloadMessageLogArchives(env, "ss0", SsStackSetup.MESSAGE_LOG_CLI, "/var/lib/xroad", "ss0"));
+        and("messagelog archives are downloaded from ss0", () ->
+                archiveOps.downloadMessageLogArchives("ss0", resourceDir() + "ss0"));
 
         then("ss0 has 20 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss0", 20));
 
-        when("message log 'cleanup' is triggered on ss0", () -> triggerMessageLogCommand(env, "ss0", "cleanup"));
-        then("ss0 contains 0 messagelog entries", () -> assertMessagelogEntryCount(env, "ss0", 0));
+        when("message log 'cleanup' is triggered on ss0", () -> archiveOps.triggerMessageLogCommand("ss0", "cleanup"));
+        then("ss0 contains 0 messagelog entries", () -> assertMessagelogEntryCount(dbOps, "ss0", 0));
     }
 
     @Test
     @Order(2)
     @DisplayName("SS1 messagelog is successfully archived and removed from database")
-    void ss1MessagelogIsArchivedAndRemoved(E2eEnvSetup env) {
-        when("message log 'archive DEV' is triggered on ss1", () -> triggerMessageLogCommand(env, "ss1", "archive DEV"));
-        and("message log 'cleanup' is triggered on ss1", () -> triggerMessageLogCommand(env, "ss1", "cleanup"));
-        and("messagelog archives are downloaded from ss1 message-log-cli", () ->
-                downloadMessageLogArchives(env, "ss1", SsStackSetup.MESSAGE_LOG_CLI, "/var/lib/xroad", "ss1"));
+    void ss1MessagelogIsArchivedAndRemoved(MessagelogArchiveOps archiveOps, MessagelogDbOps dbOps) {
+        given("ss1 messagelog contents are captured for diagnostics before archiving",
+                () -> captureMessagelogSnapshot(dbOps, "ss1"));
+        when("message log 'archive DEV' is triggered on ss1", () -> archiveOps.triggerMessageLogCommand("ss1", "archive DEV"));
+        and("message log 'cleanup' is triggered on ss1", () -> archiveOps.triggerMessageLogCommand("ss1", "cleanup"));
+        and("messagelog archives are downloaded from ss1", () ->
+                archiveOps.downloadMessageLogArchives("ss1", resourceDir() + "ss1"));
 
-        then("ss1 contains 0 messagelog entries", () -> assertMessagelogEntryCount(env, "ss1", 0));
+        then("ss1 contains 0 messagelog entries", () -> assertMessagelogEntryCount(dbOps, "ss1", 0));
     }
 
     @Test
     @Order(3)
     @DisplayName("DEV/COM/4321 messagelogs can be decrypted with key 8A4BB80EEE081BDE")
-    void dev4321MessagelogsCanBeDecryptedWithKey1(E2eEnvSetup env) {
+    void dev4321MessagelogsCanBeDecryptedWithKey1(MessagelogArchiveOps archiveOps) {
         then("ss1 messagelog archives 'mlog-DEV_COM_4321' can be decrypted using key '8A4BB80EEE081BDE'", () ->
-                assertArchivesCanBeDecrypted(env, "ss1", "mlog-DEV_COM_4321", "8A4BB80EEE081BDE"));
+                assertArchivesCanBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_4321", "8A4BB80EEE081BDE"));
         and("ss1/8A4BB80EEE081BDE has 10 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss1/8A4BB80EEE081BDE", 10));
     }
@@ -117,9 +126,9 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Test
     @Order(4)
     @DisplayName("DEV/COM/4321 messagelogs can be decrypted with key E93952B01C2D2EA5")
-    void dev4321MessagelogsCanBeDecryptedWithKey2(E2eEnvSetup env) {
+    void dev4321MessagelogsCanBeDecryptedWithKey2(MessagelogArchiveOps archiveOps) {
         then("ss1 messagelog archives 'mlog-DEV_COM_4321' can be decrypted using key 'E93952B01C2D2EA5'", () ->
-                assertArchivesCanBeDecrypted(env, "ss1", "mlog-DEV_COM_4321", "E93952B01C2D2EA5"));
+                assertArchivesCanBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_4321", "E93952B01C2D2EA5"));
         and("ss1/E93952B01C2D2EA5 has 10 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss1/E93952B01C2D2EA5", 10));
     }
@@ -127,9 +136,9 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Test
     @Order(5)
     @DisplayName("DEV/COM/1234 messagelogs can be decrypted with key 3BD9C292C63580F8")
-    void dev1234MessagelogsCanBeDecryptedWithKey3(E2eEnvSetup env) {
+    void dev1234MessagelogsCanBeDecryptedWithKey3(MessagelogArchiveOps archiveOps) {
         when("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can be decrypted using key '3BD9C292C63580F8'", () ->
-                assertArchivesCanBeDecrypted(env, "ss1", "mlog-DEV_COM_1234_test-consumer", "3BD9C292C63580F8"));
+                assertArchivesCanBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_1234_test-consumer", "3BD9C292C63580F8"));
         and("ss1/3BD9C292C63580F8 has 2 messagelogs present in the archives and all are cryptographically valid", () ->
                 assertMessagelogArchivePresent("ss1/3BD9C292C63580F8", 2));
     }
@@ -137,29 +146,17 @@ class SsMessagelogArchiveTest extends E2eTest {
     @Test
     @Order(6)
     @DisplayName("messagelogs decryption with other keys fails")
-    void messagelogDecryptionWithOtherKeysFails(E2eEnvSetup env) {
+    void messagelogDecryptionWithOtherKeysFails(MessagelogArchiveOps archiveOps) {
         given("ss1 messagelog archives 'mlog-DEV_COM_4321' can not be decrypted using key '3BD9C292C63580F8'", () ->
-                assertArchivesCannotBeDecrypted(env, "ss1", "mlog-DEV_COM_4321", "3BD9C292C63580F8"));
+                assertArchivesCannotBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_4321", "3BD9C292C63580F8"));
         and("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can not be decrypted using key 'E93952B01C2D2EA5'", () ->
-                assertArchivesCannotBeDecrypted(env, "ss1", "mlog-DEV_COM_1234_test-consumer", "E93952B01C2D2EA5"));
+                assertArchivesCannotBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_1234_test-consumer", "E93952B01C2D2EA5"));
         and("ss1 messagelog archives 'mlog-DEV_COM_1234_test-consumer' can not be decrypted using key '8A4BB80EEE081BDE'", () ->
-                assertArchivesCannotBeDecrypted(env, "ss1", "mlog-DEV_COM_1234_test-consumer", "8A4BB80EEE081BDE"));
-    }
-
-    private void triggerMessageLogCommand(E2eEnvSetup env, String envName, String command) {
-        var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-                + " -Dquarkus.profile=containerized"
-                + " -jar /opt/app/quarkus-run.jar " + command
-                + " 2>&1 | tee /proc/1/fd/1";
-        var result = env.execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI, "sh", "-c", javaCmd);
-        if (result.getExitCode() != 0) {
-            throw new IllegalStateException("Message log %s failed on %s (exit code %d): %s"
-                    .formatted(command, envName, result.getExitCode(), result.getStderr()));
-        }
+                assertArchivesCannotBeDecrypted(archiveOps, "ss1", "mlog-DEV_COM_1234_test-consumer", "8A4BB80EEE081BDE"));
     }
 
     @SneakyThrows
-    private void fetchGlobalConfForMessagelogVerification(E2eEnvSetup env, String envName) {
+    private void fetchGlobalConfForMessagelogVerification(E2eEnvironment env, String envName) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
 
         try (var zis = new ZipInputStream(RestAssuredFactory.givenSilent()
@@ -176,22 +173,11 @@ class SsMessagelogArchiveTest extends E2eTest {
     }
 
     @SneakyThrows
-    private void downloadMessageLogArchives(E2eEnvSetup env, String envName, String service, String containerPath, String localEnvDir) {
-        var localDir = resourceDir() + localEnvDir;
-        Files.createDirectories(Paths.get(localDir));
-        var localCompressedArchivesPath = localDir + "/" + MESSAGELOG_ARCHIVES_FILE;
-
-        env.execInEnvContainer(envName, service, "tar", "czf", "/tmp/" + MESSAGELOG_ARCHIVES_FILE, "-C", containerPath, ".");
-        env.copyFileFromContainer(envName, service, "/tmp/" + MESSAGELOG_ARCHIVES_FILE, localCompressedArchivesPath);
-        env.execInEnvContainer(envName, service, "rm", "/tmp/" + MESSAGELOG_ARCHIVES_FILE);
-    }
-
-    @SneakyThrows
     private void assertMessagelogArchivePresent(String localEnvDir, int expectedMessagelogCount) {
         var localCompressedArchivesPath = resourceDir() + localEnvDir + "/" + MESSAGELOG_ARCHIVES_FILE;
+        var archiveEntries = new ArrayList<String>();
 
         try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(localCompressedArchivesPath)))) {
-            var messagelogCount = 0;
             TarArchiveEntry entry;
             while ((entry = tis.getNextTarEntry()) != null) {
                 if (entry.getName().equals("./")) {
@@ -209,12 +195,43 @@ class SsMessagelogArchiveTest extends E2eTest {
                                 Path.of(resourceDir(), localEnvDir, archiveEntry.getName()), zis.readAllBytes());
                         verifyMessagelog(tmpAsiceContainer);
                         Files.delete(tmpAsiceContainer);
-                        messagelogCount++;
+                        archiveEntries.add(entry.getName() + " -> " + archiveEntry.getName());
                     }
                 }
             }
-            assertThat(messagelogCount).isEqualTo(expectedMessagelogCount);
+            assertThat(archiveEntries.size())
+                    .withFailMessage(() -> describeArchiveCountMismatch(localEnvDir, expectedMessagelogCount, archiveEntries))
+                    .isEqualTo(expectedMessagelogCount);
         }
+    }
+
+    private void captureMessagelogSnapshot(MessagelogDbOps dbOps, String env) {
+        var countsBySender = dbOps.execMessagelogSql(env,
+                "SELECT memberclass, membercode, subsystemcode, response, count(*) FROM logrecord "
+                        + "GROUP BY memberclass, membercode, subsystemcode, response "
+                        + "ORDER BY memberclass, membercode, subsystemcode, response");
+        var records = dbOps.execMessagelogSql(env,
+                "SELECT id, time, discriminator, response, memberclass, membercode, subsystemcode, queryid, "
+                        + "xrequestid, keyid, archived FROM logrecord ORDER BY time, id");
+        var snapshot = String.format(
+                "counts (memberclass|membercode|subsystemcode|response|count):%n%s%n%n"
+                        + "records (id|time|discriminator|response|memberclass|membercode|subsystemcode|queryid|"
+                        + "xrequestid|keyid|archived):%n%s",
+                countsBySender, records);
+        PRE_ARCHIVE_MESSAGELOG.put(env, snapshot);
+        log.info("Pre-archive messagelog snapshot for {}:\n{}", env, snapshot);
+    }
+
+    private String describeArchiveCountMismatch(String localEnvDir, int expectedCount, List<String> archiveEntries) {
+        var envKey = localEnvDir.startsWith("ss0") ? "ss0" : "ss1";
+        return String.format(
+                "Expected %d messagelog record(s) in archive '%s' but found %d.%n"
+                        + "Archive .asice entries found (%d):%n  %s%n%n"
+                        + "Messagelog DB snapshot for '%s' captured before 'archive DEV' "
+                        + "(identifies the surplus/missing record):%n%s",
+                expectedCount, localEnvDir, archiveEntries.size(), archiveEntries.size(),
+                String.join(String.format("%n  "), archiveEntries),
+                envKey, PRE_ARCHIVE_MESSAGELOG.getOrDefault(envKey, "(snapshot not captured)"));
     }
 
     @SneakyThrows
@@ -226,46 +243,39 @@ class SsMessagelogArchiveTest extends E2eTest {
         ).verify();
     }
 
-    private void assertMessagelogEntryCount(E2eEnvSetup env, String envName, int expectedCount) {
-        var recordsCount = Integer.parseInt(env.execMessagelogSql(envName, "SELECT COUNT(id) FROM logrecord"));
+    private void assertMessagelogEntryCount(MessagelogDbOps dbOps, String envName, int expectedCount) {
+        var recordsCount = Integer.parseInt(dbOps.execMessagelogSql(envName, "SELECT COUNT(id) FROM logrecord"));
         assertThat(recordsCount).isEqualTo(expectedCount);
     }
 
-    private void assertArchivesCanBeDecrypted(E2eEnvSetup env, String envName, String filePrefix, String keyId) {
-        var keyfile = "/gpg-keys/%s.asc".formatted(keyId);
-        var outputDir = "/tmp/" + UUID.randomUUID();
+    private void assertArchivesCanBeDecrypted(MessagelogArchiveOps archiveOps, String envName, String filePrefix, String keyId) {
+        var outputDir = resourceDir() + envName + "/" + keyId;
+        var processedFilesCount = archiveOps.decryptArchives(envName, filePrefix, keyId, DEFAULT_PASSPHRASE, outputDir);
+        var decryptedFilesCount = countTarballEntries(outputDir + "/" + MESSAGELOG_ARCHIVES_FILE);
 
-        var execResult = env.execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI,
-                "/gpg-keys/scripts/decrypt-archives.sh", filePrefix, keyfile, "secret", outputDir);
-
-        var localEnvDir = envName + "/" + keyId;
-        downloadMessageLogArchives(env, envName, SsStackSetup.MESSAGE_LOG_CLI, outputDir, localEnvDir);
-
-        var processedFilesCount = filesProcessedCount(execResult.getStdout());
-        var decryptedFilesCount = env.execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI,
-                "/gpg-keys/scripts/count_files.sh", outputDir).getStdout().trim();
-
-        assertThat(Integer.parseInt(decryptedFilesCount)).isEqualTo(processedFilesCount);
+        assertThat(decryptedFilesCount).isEqualTo(processedFilesCount);
     }
 
-    private void assertArchivesCannotBeDecrypted(E2eEnvSetup env, String envName, String filePrefix, String keyId) {
-        var keyfile = "/gpg-keys/%s.asc".formatted(keyId);
-        var outputDir = "/tmp/" + UUID.randomUUID();
+    private void assertArchivesCannotBeDecrypted(MessagelogArchiveOps archiveOps, String envName, String filePrefix, String keyId) {
+        var outputDir = resourceDir() + envName + "/" + keyId;
+        archiveOps.decryptArchives(envName, filePrefix, keyId, DEFAULT_PASSPHRASE, outputDir);
+        var decryptedFilesCount = countTarballEntries(outputDir + "/" + MESSAGELOG_ARCHIVES_FILE);
 
-        env.execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI,
-                "/gpg-keys/scripts/decrypt-archives.sh", filePrefix, keyfile, "secret", outputDir);
-        var outputFilesCount = env.execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI,
-                "/gpg-keys/scripts/count_files.sh", outputDir).getStdout().trim();
-
-        assertThat(outputFilesCount).isEqualTo("0");
+        assertThat(decryptedFilesCount).isZero();
     }
 
-    private int filesProcessedCount(String output) {
-        var matcher = Pattern.compile("Processed (\\d+) files\\.").matcher(output);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(1));
+    @SneakyThrows
+    private int countTarballEntries(String tarballPath) {
+        try (var tis = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(tarballPath)))) {
+            var count = 0;
+            TarArchiveEntry entry;
+            while ((entry = tis.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    count++;
+                }
+            }
+            return count;
         }
-        throw new IllegalStateException("Could not parse processed file count from decrypt-archives.sh output: " + output);
     }
 
     private String resourceDir() {

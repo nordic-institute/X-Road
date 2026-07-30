@@ -183,7 +183,19 @@
     lxc config set xrd-repo raw.idmap "both $HOST_UID 0"
     lxc config device remove xrd-repo xroad-build 2>/dev/null || true
     lxc config device add xrd-repo xroad-build disk source="$SRC" path=/srv/xroad-build
-    lxc restart xrd-repo
+    # Restart right after container creation can lose the spawn race against
+    # teardown of the previous instance (monitor cgroup still busy) - stop, then
+    # start with retries.
+    lxc stop xrd-repo 2>/dev/null || true
+    started=no
+    for i in 1 2 3; do
+      if lxc start xrd-repo; then started=yes; break; fi
+      sleep 10
+    done
+    if [ "$started" = no ]; then
+      echo "xrd-repo failed to start after 3 attempts" >&2
+      exit 1
+    fi
     # Re-wait for network after restart.
     for i in $(seq 1 30); do
       ip=$(lxc list xrd-repo -c 4 --format csv | awk '{print $1}')

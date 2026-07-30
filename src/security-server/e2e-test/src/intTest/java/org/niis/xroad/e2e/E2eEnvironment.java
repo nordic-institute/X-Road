@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,45 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.apitest.core.config;
+package org.niis.xroad.e2e;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup.ContainerMapping;
 
 /**
- * Configuration properties for the api-test-core framework. Stripped of Cucumber, Feign, and Selenide
- * sections present in the legacy test-framework-core — this module carries none of those dependencies.
+ * Environment abstraction for the e2e test suite. Implemented by both the Compose facade
+ * ({@code E2eEnvSetup}) and the LXD adapter ({@code LxdEnvSetup}); tests declare this type (or one
+ * of the ops interfaces) as a method parameter and never touch environment-specific operations.
  */
-@ConfigMapping(prefix = "test-framework")
-public interface ApiTestCoreProperties {
-
-    @WithDefault("build/")
-    @WithName("working-dir")
-    String workingDir();
-
-    @WithDefault("build/resources/intTest/")
-    @WithName("resource-dir")
-    String resourceDir();
+public interface E2eEnvironment {
 
     /**
-     * Target environment the test suite runs against: {@code compose} (harness-managed Docker
-     * Compose stack, the default) or {@code lxd} (pre-provisioned LXD containers).
+     * Resolves a service's reachable host and port from (env, service, port).
      */
-    @WithDefault("compose")
-    @WithName("env-mode")
-    String envMode();
+    ContainerMapping getContainerMapping(String env, String service, int port);
 
-    @WithName("allure")
-    Allure allure();
+    /**
+     * Returns true when the environment is fully bootstrapped and ready for tests.
+     */
+    boolean isInitialized();
 
-    interface Allure {
-        @WithDefault("build/allure-results")
-        @WithName("results-directory")
-        String resultsDirectory();
-
-        @WithDefault("true")
-        @WithName("generate-report")
-        boolean generateReport();
-    }
+    /**
+     * Returns the security server address registered in the global configuration for the given environment.
+     */
+    String securityServerAddress(String env);
 }

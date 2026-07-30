@@ -27,13 +27,20 @@ package org.niis.xroad.e2e.container;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.E2eEnvironment;
+import org.niis.xroad.e2e.MessagelogArchiveOps;
+import org.niis.xroad.e2e.MessagelogDbOps;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Container;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static org.awaitility.Awaitility.await;
 
@@ -43,7 +50,10 @@ import static org.awaitility.Awaitility.await;
  * overridden to fail loudly — test code must use the env-qualified overloads.
  */
 @Slf4j
-public class E2eEnvSetup extends BaseComposeSetup {
+public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
+
+    private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
+    private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
 
     private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
@@ -94,10 +104,17 @@ public class E2eEnvSetup extends BaseComposeSetup {
         }
     }
 
-    public boolean isAuxHurlRunning() {
-        return aux.isHurlRunning();
+    @Override
+    public boolean isInitialized() {
+        return aux.isSetupFinished();
     }
 
+    @Override
+    public String securityServerAddress(String envName) {
+        return "xrd-" + envName;
+    }
+
+    @Override
     public ContainerMapping getContainerMapping(String envName, String service, int originalPort) {
         return mapEnvironment(envName).getContainerMapping(service, originalPort);
     }
@@ -114,6 +131,7 @@ public class E2eEnvSetup extends BaseComposeSetup {
         mapEnvironment(envName).copyFileFromContainer(container, containerPath, localPath);
     }
 
+    @Override
     @SneakyThrows
     public String execMessagelogSql(String envName, String sql) {
         var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
@@ -122,6 +140,57 @@ public class E2eEnvSetup extends BaseComposeSetup {
             throw new IllegalStateException("psql query on %s failed: %s".formatted(envName, result.getStderr()));
         }
         return result.getStdout().trim();
+    }
+
+    @Override
+    @SneakyThrows
+    public void triggerMessageLogCommand(String envName, String command) {
+        var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+                + " -Dquarkus.profile=containerized"
+                + " -jar /opt/app/quarkus-run.jar " + command
+                + " 2>&1 | tee /proc/1/fd/1";
+        var result = execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI, "sh", "-c", javaCmd);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("Message log %s failed on %s (exit code %d): %s"
+                    .formatted(command, envName, result.getExitCode(), result.getStderr()));
+        }
+    }
+
+    @Override
+    public void downloadMessageLogArchives(String envName, String localDir) {
+        downloadArchivesTarball(envName, "/var/lib/xroad", localDir);
+    }
+
+    @Override
+    @SneakyThrows
+    public int decryptArchives(String envName, String filePrefix, String keyId, String passphrase, String outputDir) {
+        var keyFile = "/gpg-keys/%s.asc".formatted(keyId);
+        var remoteOutputDir = "/tmp/decrypt-" + UUID.randomUUID();
+
+        var execResult = execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI,
+                "/gpg-keys/scripts/decrypt-archives.sh", filePrefix, keyFile, passphrase, remoteOutputDir);
+
+        downloadArchivesTarball(envName, remoteOutputDir, outputDir);
+
+        return processedFilesCount(execResult.getStdout());
+    }
+
+    @SneakyThrows
+    private void downloadArchivesTarball(String envName, String remoteDir, String localDir) {
+        Files.createDirectories(Paths.get(localDir));
+        var localCompressedArchivesPath = localDir + "/" + MESSAGELOG_ARCHIVES_FILE;
+        execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI,
+                "tar", "czf", "/tmp/" + MESSAGELOG_ARCHIVES_FILE, "-C", remoteDir, ".");
+        copyFileFromContainer(envName, SsStackSetup.MESSAGE_LOG_CLI, "/tmp/" + MESSAGELOG_ARCHIVES_FILE, localCompressedArchivesPath);
+        execInEnvContainer(envName, SsStackSetup.MESSAGE_LOG_CLI, "rm", "/tmp/" + MESSAGELOG_ARCHIVES_FILE);
+    }
+
+    private int processedFilesCount(String output) {
+        var matcher = PROCESSED_FILES_PATTERN.matcher(output);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        throw new IllegalStateException("Could not find processed files count in decrypt-archives.sh output: " + output);
     }
 
     private BaseComposeSetup mapEnvironment(String name) {

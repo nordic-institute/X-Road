@@ -1,5 +1,6 @@
 name: Build and Test
 on:
+  workflow_dispatch:
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
@@ -94,6 +95,21 @@ jobs:
       sha: ${{ github.sha }}
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+
+  # Provisions the LXD environment and runs the e2e suite in LXD mode on every
+  # PR and manual dispatch. Runs in parallel with build-and-package: it consumes
+  # no job outputs, only waits internally for that job's package artifacts via
+  # a marker artifact (see _provision-lxd.yml). A failed run marks the PR checks
+  # red (reusable-workflow callers cannot continue-on-error). To narrow back to
+  # manual dispatch only, change the `if` below to: github.event_name == 'workflow_dispatch'
+  provision-lxd:
+    name: lxd-e2e
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/_provision-lxd.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
 
   build-summary:
     name: Build Summary

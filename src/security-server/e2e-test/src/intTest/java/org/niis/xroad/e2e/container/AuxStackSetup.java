@@ -89,6 +89,14 @@ public class AuxStackSetup extends BaseComposeSetup {
         return env.getContainerByServiceName(HURL).map(ContainerState::isRunning).orElse(false);
     }
 
+    /**
+     * Returns true once the one-shot hurl setup container exists and has exited, i.e. the global
+     * configuration is seeded and ss0/ss1 are registered.
+     */
+    public boolean isSetupFinished() {
+        return env.getContainerByServiceName(HURL).map(container -> !container.isRunning()).orElse(false);
+    }
+
     private void verifyHurlSucceeded() {
         var exitCode = env.getContainerByServiceName(HURL)
                 .orElseThrow(() -> new IllegalStateException("hurl container not found"))

@@ -1,0 +1,60 @@
+---
+# Archive-encryption config itself (grouping keys/strategy, default key id) is preseeded together
+# with DB encryption in msglog-encryption.yml — both subkeys must share one top-level
+# "message-log-encryption:" block (see comment there for why). This file covers the remaining
+# pieces: parking the auxiliary-service archive/clean crons, making cleanup immediate, and
+# importing the recipient PGP public keys into openbao.
+
+# Compose parks these on the auxiliary-service container only (env vars on that service in
+# compose.ss-msglog.e2e.yaml); the e2e scenarios trigger archive/cleanup manually via the CLI for
+# deterministic timing. "off" is accepted by Quarkus SchedulerUtils.isOff for both properties.
+- name: preseed auxiliary-service message-log cron parking into local.yaml
+  blockinfile:
+    path: /etc/xroad/conf.d/local.yaml
+    insertafter: '^xroad:'
+    marker: "  # {mark} MESSAGELOG ARCHIVE/CLEAN CRON PARKING (lxd dev preseed)"
+    block: "  auxiliary-service:\n    message-log:\n      archive-cron: \"off\"\n      clean-cron: \"off\""
+  notify: restart xroad-auxiliary-service
+
+# xroad.message-log-archiver.clean-keep-records-for defaults to 30 (days) — compose overrides it
+# via XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR=0 on message-log-cli so a freshly archived
+# record is eligible for cleanup immediately. Read by the CLI process itself (not
+# auxiliary-service), so it only needs to land in local.yaml — no restart, the CLI re-reads config
+# on every invocation.
+- name: preseed messagelog archiver immediate-cleanup retention into local.yaml
+  blockinfile:
+    path: /etc/xroad/conf.d/local.yaml
+    insertafter: '^xroad:'
+    marker: "  # {mark} MESSAGELOG ARCHIVER CLEANUP RETENTION (lxd dev preseed)"
+    block: "  message-log-archiver:\n    clean-keep-records-for: 0"
+
+# xrd-ss1-ONLY, mirroring compose: ComposeEnvSetup.importPublicKeysToBao is only called for the
+# envSs1 environment (guarded by features.contains(Feature.MESSAGE_LOG_ENCRYPTION)) — ss0 never
+# gets the keys imported into its openbao. The xroad client token (read from
+# /etc/xroad/secret-store-client-token, exported by secret-store-local.conf into every xroad-*
+# process's environment) already carries write access to xrd-secret/message-log/archival/pgp/*
+# via the xroad-policy ACL (_openbao.sh configure_pki). KV v1 write: POST /v1/<mount>/<path> with
+# a "payload" field, mirroring `bao write xrd-secret/message-log/archival/pgp/public-keys
+# payload=@public-keys.asc`.
+- name: copy PGP public keys fixture to SS host
+  copy:
+    src: "{{ playbook_dir }}/../../src/security-server/e2e-test/src/intTest/resources/gpg_keys/public-keys.asc"
+    dest: /etc/xroad/msglog-archival-public-keys.asc
+    owner: xroad
+    group: xroad
+    mode: "0640"
+  when: inventory_hostname == 'xrd-ss1'
+
+- name: import PGP public keys into openbao at message-log/archival/pgp/public-keys
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    . /etc/xroad/services/secret-store-local.conf &&
+    jq -Rs '{payload: .}' /etc/xroad/msglog-archival-public-keys.asc |
+    curl -fsS -k -X POST
+    -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}"
+    -d @-
+    "${XROAD_SECRET_STORE_SCHEME}://${XROAD_SECRET_STORE_HOST}:${XROAD_SECRET_STORE_PORT}/v1/xrd-secret/message-log/archival/pgp/public-keys"
+  args:
+    executable: /bin/bash
+  changed_when: true
+  when: inventory_hostname == 'xrd-ss1'
