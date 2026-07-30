@@ -24,23 +24,20 @@
 # because it resolved the DSL config before the row existed.
 - name: seed dataspace issuer host into centerui configuration_properties
   become: true
-  become_user: postgres
   command:
     argv:
-      - psql
-      - -v
-      - ON_ERROR_STOP=1
-      - -d
-      - centerui_production
-      - -c
-      - |
-        SET ROLE centerui;
-        DELETE FROM configuration_properties WHERE property_key IN (
-          'xroad.dataspace.issuer.host',
-          'xroad.admin-service.global-configuration-generation-rate-in-seconds');
-        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-        ('xroad.dataspace.issuer.host', '{{ groups['cs_servers'] | first }}', NULL, now(), now()),
-        ('xroad.admin-service.global-configuration-generation-rate-in-seconds', '10', NULL, now(), now());
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop:
+    - key: xroad.dataspace.issuer.host
+      value: "{{ groups['cs_servers'] | first }}"
+    - key: xroad.admin-service.global-configuration-generation-rate-in-seconds
+      value: "10"
+  loop_control:
+    label: "{{ item.key }}"
 
 - name: restart xroad-center to resolve the seeded issuer host
   systemd:
