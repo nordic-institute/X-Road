@@ -90,7 +90,7 @@ jobs:
         working-directory: ./scripts/env-lxd
         run: sg lxd -c "./scripts/setup-linux-net.sh apply"
 
-      - name: Cache base images
+      - name: Pre-provision supporting containers
         working-directory: ./scripts/env-lxd
         run: |
           start=$(date +%s)
@@ -207,7 +207,7 @@ jobs:
             echo "| Phase | Duration |"
             echo "|-------|----------|"
             echo "| LXD init | ${INIT_SECS:-n/a}s |"
-            echo "| Cache base images | ${CACHE_SECS:-n/a}s |"
+            echo "| Pre-provision supporting containers | ${CACHE_SECS:-n/a}s |"
             echo "| Wait for build artifacts | ${WAIT_SECS:-n/a}s |"
             echo "| Provision containers | ${PROVISION_SECS:-n/a}s |"
             echo "| Federation init (hurl) | ${HURL_SECS:-n/a}s |"
