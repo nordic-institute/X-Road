@@ -55,6 +55,9 @@ import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 public class SignerConfig {
 
@@ -68,8 +71,21 @@ public class SignerConfig {
                 .register(GlobalConfConfigKeys.instance())
                 .register(OcspVerifierConfigKeys.instance())
                 .deploymentMode(deploymentMode())
+                .overrides(profileOverrides())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    /**
+     * Profile-scoped defaults the DSL cannot express: a signer serving a Security Server retrieves OCSP
+     * responses for its keys, while one serving a configuration proxy has no auth keys and leaves it off.
+     * DB overrides still win over these.
+     */
+    private static Map<String, String> profileOverrides() {
+        if (activeProfiles().contains("ss")) {
+            return Map.of(SignerConfigKeys.OCSP_RESPONSE_RETRIEVAL_ACTIVE.key(), "true");
+        }
+        return Map.of();
     }
 
     @ApplicationScoped
@@ -148,7 +164,10 @@ public class SignerConfig {
     }
 
     private static DeploymentMode deploymentMode() {
-        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
-        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+        return activeProfiles().contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    private static List<String> activeProfiles() {
+        return ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
     }
 }
