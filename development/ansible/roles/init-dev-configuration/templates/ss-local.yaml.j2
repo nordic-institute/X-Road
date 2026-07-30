@@ -9,21 +9,3 @@ quarkus:
         level: DEBUG
       "io.quarkus":
         level: INFO
-
-xroad:
-  proxy-ui-api:
-    dataspace:
-      identity-hub-url: https://{{ inventory_hostname }}.lxd:7182
-      participant-id: {{ inventory_hostname }}.lxd
-      issuer-did: did:web:xrd-cs%3A6183:issuer # issuer host hardcoded to lxd dev env host (cs_servers has exactly one host)
-  dataspace:
-    # IdentityHub and Control Plane run locally on this SS. Both provisioning gRPC
-    # channels default to the docker compose service names (ds-identity-hub /
-    # ds-control-plane), which don't resolve on LXD — point them at the local host,
-    # like every other internal RPC channel (signer/proxy/monitor use 127.0.0.1).
-    identity-hub-provisioning:
-      rpc:
-        host: 127.0.0.1
-    control-plane-provisioning:
-      rpc:
-        host: 127.0.0.1

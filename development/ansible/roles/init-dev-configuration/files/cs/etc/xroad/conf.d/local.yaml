@@ -1,5 +1,0 @@
----
-xroad:
-  dataspace:
-    issuer:
-      host: xrd-cs # hardcoded to lxd dev env host (cs_servers has exactly one host)

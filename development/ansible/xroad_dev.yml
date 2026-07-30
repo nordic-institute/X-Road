@@ -202,14 +202,11 @@
         systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'
       register: ss_ds_units
       changed_when: false
-    # xroad-proxy-ui-api is NOT in this restart list: its dataspace provisioning
-    # config now lands in local.yaml via init-dev-configuration, which runs in
-    # the earlier "Apply dev env configuration" play — before this SS install
-    # play (and the installer's first start of proxy-ui-api) ever runs. The DS
-    # units and xroad-proxy still need the restart: their TLS keystore and
-    # local-ds-*.yaml/local-dsp.yaml configs are only preseeded above, by the
-    # pre-ss-install.yml re-run, which happens after the installer already
-    # started them without that config.
+    # xroad-proxy-ui-api is NOT in this restart list because the seed task above
+    # already restarts it (along with xroad-proxy) once its rows are in the DB.
+    # The DS units still need a restart here: their TLS keystore and
+    # local-ds-*.yaml configs are only preseeded above, by the pre-ss-install.yml
+    # re-run, which happens after the installer already started them without it.
     - name: Restart DS units and proxy to apply preseeded TLS + runtime config
       ansible.builtin.systemd:
         name: "{{ item }}"
