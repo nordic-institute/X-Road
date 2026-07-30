@@ -159,8 +159,16 @@ Call shape (per-spec; wrap in a range):
         "requireNonEmpty" true
         "timeoutMsg" "serverconf seed row not present (property_key='edc.iam.trusted-issuer.issuer.id' scope='ds-control-plane')."
         "timeoutHint" "kubectl logs -l app=xroad-db-serverconf-ds-control-plane-config-seed") -}}
+{{- else if eq $spec.type "serverconfProperty" -}}
+  {{- include "xroad.dsp.wait.serverconfQuery" (dict
+        "root" $root
+        "name" ($spec.name | default "wait-config-seed")
+        "sql" (printf "SELECT 1 FROM configuration_properties WHERE property_key='%s' AND scope IS NULL LIMIT 1" $spec.key)
+        "requireNonEmpty" true
+        "timeoutMsg" (printf "config seed row not present (property_key='%s')." $spec.key)
+        "timeoutHint" "kubectl logs -l app=xroad-config-seed") -}}
 {{- else -}}
-  {{- fail (printf "xroad.dsp.wait.dispatch: unknown wait type %q — expected postgres | tcp | serverconfSeed" $spec.type) -}}
+  {{- fail (printf "xroad.dsp.wait.dispatch: unknown wait type %q — expected postgres | tcp | serverconfSeed | serverconfProperty" $spec.type) -}}
 {{- end -}}
 {{- end }}
 
