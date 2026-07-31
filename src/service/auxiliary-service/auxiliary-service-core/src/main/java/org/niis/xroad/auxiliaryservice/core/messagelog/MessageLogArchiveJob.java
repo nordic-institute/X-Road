@@ -39,8 +39,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogEnabledProperties;
+import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Startup
