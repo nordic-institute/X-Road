@@ -22,8 +22,10 @@ Bring up the X-Road k8s environment: preflight → (optionally) build images →
 ansible site.yml → port-forward → (optionally) hurl init-ss2.
 
 Options:
-  --env=dev|test|eks|e2e     Target environment (default: dev). 'e2e' brings up the minimal
-                             single-SS topology used by the E2E suite's k8s env-mode.
+  --env=dev|test|eks|e2e     Target environment (default: dev). 'e2e' brings up the full base
+                             topology used by the E2E suite's k8s env-mode: Central Server chart +
+                             two Security Server chart releases (ss0/ss1) + e2e-fixtures chart
+                             (test CA, mock IS, mailpit, hurl bootstrap), DSP left off.
   --recreate                 Tear down environment before bringing it up
   --skip-images              Skip the Security Server image build
   --skip-forward             Skip kubectl port-forwards
@@ -101,12 +103,24 @@ handleBuildImages() {
     log_info "Skipping image build"
     return
   fi
-  if [[ "${ENV_NAME}" != "dev" && "${ENV_NAME}" != "e2e" ]]; then
-    log_info "Skipping image build for env=${ENV_NAME} (uses artifactory images)"
-    return
-  fi
-  log_info "Building X-Road container images into local registry (localhost:5555)"
-  IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" --push
+  case "${ENV_NAME}" in
+    dev)
+      # dev's default topology is Security-Server-only (LXD-hosted CS/CA) — no Central Server or
+      # e2e-fixtures images needed.
+      log_info "Building X-Road container images into local registry (localhost:5555)"
+      IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" --push
+      ;;
+    e2e)
+      # e2e's topology is fully in-cluster (Central Server chart + e2e-fixtures chart), so it
+      # additionally needs the dev-infra tier (testca-dev, ...) and the Central Server image that
+      # build-security-server.sh alone doesn't produce.
+      log_info "Building all local image tiers (dev-infra + Security Server + Central Server) into local registry (localhost:5555)"
+      IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/build-images.sh"
+      ;;
+    *)
+      log_info "Skipping image build for env=${ENV_NAME} (uses artifactory images)"
+      ;;
+  esac
 }
 
 handleAnsible() {
@@ -133,7 +147,7 @@ handlePortForward() {
 
 handleInitialize() {
   if [[ "${ENV_NAME}" == "e2e" ]]; then
-    log_info "Skipping hurl init (env=e2e has no Central Server yet; layered on in a later slice)"
+    log_info "hurl bootstrap already ran in-cluster as part of the e2e-fixtures chart (see playbooks/site.yml); nothing to do here"
     return
   fi
   [[ "${SKIP_INIT}" == true ]] && { log_info "Skipping hurl init"; return; }

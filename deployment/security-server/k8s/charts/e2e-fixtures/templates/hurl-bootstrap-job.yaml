@@ -67,22 +67,34 @@ spec:
       containers:
         - name: hurl
           image: {{ .Values.hurl.image }}
+          {{- /*
+          hurl has no entrypoint override needed for the default (full-file)
+          case, but skipDspReadinessGates needs a `--to-entry` value computed
+          from the file's actual entry count at runtime — not a hardcoded
+          number — so a shell wrapper always runs the hurl binary explicitly
+          rather than relying on the image's own entrypoint args.
+          */}}
+          command: ["sh", "-c"]
           args:
-            - --insecure
-            - --variables-file
-            - /hurl-src/vars.env
-            {{- range $k, $v := .Values.hurl.vars }}
-            - --variable
-            - "{{ $k }}={{ $v }}"
-            {{- end }}
-            - --file-root
-            - /hurl-files
-            - /hurl-src/setup.hurl
-            - --very-verbose
-            - --retry
-            - "{{ .Values.hurl.retry }}"
-            - --retry-interval
-            - "{{ .Values.hurl.retryInterval }}"
+            - |
+              set -eu
+              {{- if .Values.hurl.skipDspReadinessGates }}
+              total_entries=$(grep -cE '^(GET|POST|PUT|PATCH|DELETE) ' /hurl-src/setup.hurl)
+              to_entry_args="--to-entry $((total_entries - 2))"
+              {{- else }}
+              to_entry_args=""
+              {{- end }}
+              exec hurl --insecure \
+                --variables-file /hurl-src/vars.env \
+                {{- range $k, $v := .Values.hurl.vars }}
+                --variable "{{ $k }}={{ $v }}" \
+                {{- end }}
+                --file-root /hurl-files \
+                ${to_entry_args} \
+                /hurl-src/setup.hurl \
+                --very-verbose \
+                --retry {{ .Values.hurl.retry }} \
+                --retry-interval {{ .Values.hurl.retryInterval }}
           resources:
             {{- toYaml .Values.hurl.resources | nindent 12 }}
           volumeMounts:

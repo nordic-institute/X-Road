@@ -1,0 +1,15 @@
+---
+# Namespace shared with the e2e_fixtures role — the hurl bootstrap Job and the fixtures' bare
+# service names (central-server, testca) resolve same-namespace, so the two must be co-located.
+central_server_namespace: cs
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+central_server_chart_repo: ""
+central_server_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/central-server"
+central_server_chart_version: ""
+
+xroad_image_registry: ""
+xroad_image_tag: ""
+
+central_server_wait_retries: 60
+central_server_wait_delay: 10

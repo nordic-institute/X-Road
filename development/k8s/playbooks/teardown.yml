@@ -5,30 +5,12 @@
   vars:
     keep_cluster: false
   tasks:
-    - name: Uninstall security-server helm release
-      kubernetes.core.helm:
-        name: security-server
-        release_namespace: "{{ security_server_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-        state: absent
-      ignore_errors: true
-
-    - name: Delete CNPG Cluster CRs
-      kubernetes.core.k8s:
-        kubeconfig: "{{ kubeconfig_path }}"
-        api_version: postgresql.cnpg.io/v1
-        kind: Cluster
-        namespace: "{{ security_server_namespace }}"
-        name: "{{ item }}"
-        state: absent
-        wait: true
-        wait_timeout: 120
-      loop:
-        - db-serverconf
-        - db-messagelog
-        - db-opmonitor
-        - db-openbao
-      ignore_errors: true
+    - name: Tear down each Security Server instance (release + namespace-scoped OpenBao/CNPG)
+      ansible.builtin.include_tasks: teardown_ss_instance.yml
+      loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
+      loop_control:
+        loop_var: ss_instance
+        label: "{{ ss_instance.namespace }}"
 
     - name: Uninstall external-service-bridge helm releases
       kubernetes.core.helm:
@@ -41,15 +23,37 @@
         label: "{{ item.name }}"
       ignore_errors: true
 
-    - name: Uninstall openbao helm releases
+    - name: Uninstall Central Server helm release + namespace (when enabled)
+      when: central_server_enabled | default(false) | bool
+      block:
+        - name: Uninstall central-server helm release
+          kubernetes.core.helm:
+            name: central-server
+            release_namespace: "{{ central_server_namespace }}"
+            kubeconfig: "{{ kubeconfig_path }}"
+            state: absent
+          ignore_errors: true
+
+    - name: Uninstall e2e-fixtures helm release (when enabled)
       kubernetes.core.helm:
-        name: "{{ item }}"
-        release_namespace: "{{ security_server_namespace }}"
+        name: e2e-fixtures
+        release_namespace: "{{ e2e_fixtures_namespace }}"
         kubeconfig: "{{ kubeconfig_path }}"
         state: absent
-      loop:
-        - openbao-initializer
-        - openbao
+      when: e2e_fixtures_enabled | default(false) | bool
+      ignore_errors: true
+
+    # central_server/e2e_fixtures share one namespace (see those roles' defaults) — delete once,
+    # after both releases in it are gone.
+    - name: Delete Central Server / e2e-fixtures namespace (when either enabled)
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: v1
+        kind: Namespace
+        name: "{{ central_server_namespace | default(e2e_fixtures_namespace) }}"
+        state: absent
+        wait: true
+      when: (central_server_enabled | default(false) | bool) or (e2e_fixtures_enabled | default(false) | bool)
       ignore_errors: true
 
     - name: Uninstall prometheus helm release
@@ -61,17 +65,14 @@
       when: deploy_prometheus | default(false) | bool
       ignore_errors: true
 
-    - name: Delete namespaces
+    - name: Delete monitoring namespace
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig_path }}"
         api_version: v1
         kind: Namespace
-        name: "{{ item }}"
+        name: "{{ monitoring_namespace | default('ss-monitoring') }}"
         state: absent
         wait: true
-      loop:
-        - "{{ security_server_namespace }}"
-        - "{{ monitoring_namespace | default('ss-monitoring') }}"
       ignore_errors: true
 
     - name: List existing kind clusters

@@ -30,16 +30,18 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 /**
- * Single-SS k8s topology configuration for the tracer-bullet slice. The harness reaches the
- * in-cluster Security Server through the {@code kubectl port-forward} listeners started by
- * {@code core/scripts/env-k8s}, so the host defaults to localhost with the forwarded proxy port.
- * Each value is overridable via the environment variable named in parentheses.
+ * Two-SS k8s topology configuration (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice 06:
+ * two-ss-message-flow). ss0 and ss1 are two Security Server chart releases in separate namespaces
+ * ({@code ss0}/{@code ss1}), reachable from the harness through the {@code kubectl port-forward}
+ * listeners started by {@code core/scripts/env-k8s} — hence the {@code localhost} host defaults.
+ * Both SS's forward to localhost, so each needs its own local port; ss1's default ports are ss0's
+ * + 1. Each value is overridable via the environment variable named in parentheses.
  */
 @ConfigMapping(prefix = "test-framework.k8s")
 public interface K8sEnvProperties {
 
     /** Security Server 0 namespace in the kind cluster (TEST_FRAMEWORK_K8S_SS0_NAMESPACE). */
-    @WithDefault("ss")
+    @WithDefault("ss0")
     @WithName("ss0-namespace")
     String ss0Namespace();
 
@@ -48,13 +50,43 @@ public interface K8sEnvProperties {
     @WithName("ss0-host")
     String ss0Host();
 
-    /** Forwarded proxy port on ss0Host (TEST_FRAMEWORK_K8S_PROXY_PORT). */
+    /** Forwarded proxy port on ss0Host (TEST_FRAMEWORK_K8S_SS0_PROXY_PORT). */
     @WithDefault("8080")
-    @WithName("proxy-port")
-    int proxyPort();
+    @WithName("ss0-proxy-port")
+    int ss0ProxyPort();
+
+    /** Forwarded admin UI port on ss0Host (TEST_FRAMEWORK_K8S_SS0_UI_PORT). */
+    @WithDefault("4000")
+    @WithName("ss0-ui-port")
+    int ss0UiPort();
 
     /** Member identifier for ss0 (TEST_FRAMEWORK_K8S_SS0_MEMBER_ID). */
     @WithDefault("DEV:COM:1234")
     @WithName("ss0-member-id")
     String ss0MemberId();
+
+    /** Security Server 1 namespace in the kind cluster (TEST_FRAMEWORK_K8S_SS1_NAMESPACE). */
+    @WithDefault("ss1")
+    @WithName("ss1-namespace")
+    String ss1Namespace();
+
+    /** Security Server 1 host, reached via kubectl port-forward (TEST_FRAMEWORK_K8S_SS1_HOST). */
+    @WithDefault("localhost")
+    @WithName("ss1-host")
+    String ss1Host();
+
+    /** Forwarded proxy port on ss1Host (TEST_FRAMEWORK_K8S_SS1_PROXY_PORT). */
+    @WithDefault("8081")
+    @WithName("ss1-proxy-port")
+    int ss1ProxyPort();
+
+    /** Forwarded admin UI port on ss1Host (TEST_FRAMEWORK_K8S_SS1_UI_PORT). */
+    @WithDefault("4001")
+    @WithName("ss1-ui-port")
+    int ss1UiPort();
+
+    /** Member identifier for ss1 (TEST_FRAMEWORK_K8S_SS1_MEMBER_ID). */
+    @WithDefault("DEV:COM:4321")
+    @WithName("ss1-member-id")
+    String ss1MemberId();
 }

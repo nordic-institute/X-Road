@@ -1,0 +1,28 @@
+---
+# Shared with the central_server role — the hurl bootstrap Job and the fixtures' bare service
+# names (central-server, testca) resolve same-namespace, so the two charts must be co-located.
+e2e_fixtures_namespace: cs
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+e2e_fixtures_chart_repo: ""
+e2e_fixtures_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/e2e-fixtures"
+e2e_fixtures_chart_version: ""
+e2e_fixtures_helm_wait_timeout: 10m
+
+xroad_image_registry: ""
+xroad_image_tag: ""
+
+# setup.hurl/vars.env are read from disk and injected as literal chart values (the ansible
+# equivalent of the chart README's `helm template --set-file` recipe) — hurl is repointed, not
+# forked; see deployment/security-server/k8s/charts/e2e-fixtures/README.md section 4.
+hurl_setup_file: "{{ playbook_dir }}/../../hurl/scenarios/setup.hurl"
+hurl_vars_file: "{{ playbook_dir }}/../../hurl/scenarios/vars.env"
+
+# setup.hurl's last two entries poll each SS's DSP HOST participant-context credential status —
+# meaningless while DSP is off. Tied to the existing proxy_dsp_enabled kill-switch (see the
+# security_server role) rather than a separate flag: whichever topology enables DSP already
+# flips that var, and the hurl bootstrap should then run the full scenario, gates included.
+hurl_skip_dsp_readiness_gates: "{{ not (proxy_dsp_enabled | default(true) | bool) }}"
+
+hurl_wait_retries: 60
+hurl_wait_delay: 10

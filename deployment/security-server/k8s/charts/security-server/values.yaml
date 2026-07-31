@@ -722,9 +722,20 @@ postgres:
 # the core-SS serverconf `configuration_properties` row that ds-control-plane
 # reads on startup. Default points at the in-cluster issuer; hybrid dev envs
 # override it with the dataspace-wide issuer (e.g. the LXD xrd-cs one).
+#
+# participantContextId, when non-empty, overrides the per-release DSP
+# participant-context identifier on both the proxy
+# (XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID) and ds-control-plane
+# (XROAD_DSP_PARTICIPANT_CONTEXT_ID) services — see
+# templates/_configmap.tpl's `xroad.configmap.env`. Left empty by default so
+# every existing consumer keeps rendering the two services' own hardcoded
+# "xrd-ss2" env entries below unchanged; set it (e.g. per Security Server
+# Helm release) to give distinct releases distinct identifiers instead of
+# conflating them on the same value.
 dsp:
   seed:
     trustedIssuerDid: "did:web:ds-issuer-service%3A10100:issuer"
+  participantContextId: ""
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).

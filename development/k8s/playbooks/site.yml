@@ -29,9 +29,26 @@
       ansible.builtin.include_role:
         name: cloudnative_pg
 
+    # security_server_instances is the multi-release topology hook: a list of
+    # {namespace, dsp_participant_context_id, openbao_tls_dir} dicts, one per Security Server
+    # release. When unset it defaults to the single existing
+    # security_server_namespace/openbao_tls_dir — identical single-iteration behavior to before
+    # this was a loop.
     - name: Deploy OpenBao (TLS + postgres + openbao + init)
       ansible.builtin.include_role:
         name: openbao
+      vars:
+        security_server_namespace: "{{ ss_instance.namespace }}"
+        openbao_tls_dir: "{{ ss_instance.openbao_tls_dir }}"
+      loop: >-
+        {{
+          security_server_instances
+          | default([{'namespace': security_server_namespace,
+                      'openbao_tls_dir': (playbook_dir ~ '/../.state/openbao-tls')}])
+        }}
+      loop_control:
+        loop_var: ss_instance
+        label: "{{ ss_instance.namespace }}"
 
     - name: Deploy external service bridges
       ansible.builtin.include_role:
@@ -47,6 +64,23 @@
     - name: Deploy Security Server
       ansible.builtin.include_role:
         name: security_server
+      vars:
+        security_server_namespace: "{{ ss_instance.namespace }}"
+        dsp_participant_context_id: "{{ ss_instance.dsp_participant_context_id | default('') }}"
+      loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
+      loop_control:
+        loop_var: ss_instance
+        label: "{{ ss_instance.namespace }}"
+
+    - name: Deploy Central Server (when enabled)
+      ansible.builtin.include_role:
+        name: central_server
+      when: central_server_enabled | default(false) | bool
+
+    - name: Deploy e2e-fixtures (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap) (when enabled)
+      ansible.builtin.include_role:
+        name: e2e_fixtures
+      when: e2e_fixtures_enabled | default(false) | bool
 
     - name: Register ss2 host-record in LXD dnsmasq (mac + lima only)
       ansible.builtin.command:

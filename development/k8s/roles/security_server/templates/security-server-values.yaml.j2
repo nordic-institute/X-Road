@@ -222,10 +222,16 @@ otel:
     deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
 
-{% if ds_tls %}
+{% set dsp_participant_context_id = dsp_participant_context_id | default('') %}
+{% if ds_tls or (dsp_participant_context_id | length > 0) %}
 dsp:
+{% if ds_tls %}
   seed:
     trustedIssuerDid: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
+{% endif %}
+{% if dsp_participant_context_id | length > 0 %}
+  participantContextId: "{{ dsp_participant_context_id }}"
+{% endif %}
 {% endif %}
 
 # Postgres image used by DSP wait-gate initContainers. The DB clusters

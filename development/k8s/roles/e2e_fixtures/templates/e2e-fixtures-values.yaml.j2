@@ -1,0 +1,19 @@
+---
+{% if (xroad_image_registry | length > 0) or (xroad_image_tag | length > 0) %}
+global:
+  image:
+{% if xroad_image_registry | length > 0 %}
+    registry: {{ xroad_image_registry }}
+{% endif %}
+{% if xroad_image_tag | length > 0 %}
+    tag: {{ xroad_image_tag }}
+{% endif %}
+{% endif %}
+
+hurl:
+  files:
+    setupHurl: |
+{{ lookup('file', hurl_setup_file) | indent(6, true) }}
+    varsEnv: |
+{{ lookup('file', hurl_vars_file) | indent(6, true) }}
+  skipDspReadinessGates: {{ hurl_skip_dsp_readiness_gates | bool | lower }}

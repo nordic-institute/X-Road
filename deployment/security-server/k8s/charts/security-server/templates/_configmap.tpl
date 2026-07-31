@@ -8,6 +8,20 @@ metadata:
     app: xroad-{{ .service }}
 data:
   {{- $env := .config.env }}
+  {{- /*
+  Per-release DSP participant-context-id override (see values.yaml's
+  dsp.participantContextId comment). dict-as-dst wins over $env-as-src in
+  `merge`, so this only takes effect when the value is actually set —
+  otherwise $env's own literal ("xrd-ss2" below) passes through unchanged.
+  */}}
+  {{- if .root.Values.dsp.participantContextId }}
+  {{- if eq .service "proxy" }}
+  {{- $env = merge (dict "XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID" .root.Values.dsp.participantContextId) $env }}
+  {{- end }}
+  {{- if eq .service "ds-control-plane" }}
+  {{- $env = merge (dict "XROAD_DSP_PARTICIPANT_CONTEXT_ID" .root.Values.dsp.participantContextId) $env }}
+  {{- end }}
+  {{- end }}
   {{- $env = merge $env (dict "JAVA_MAX_RAM_PERCENTAGE" (printf "%v" .root.Values.jvmHeap.maxRAMPercentage)) }}
   {{- if .root.Values.jvmHeap.mallocArenaMax }}
   {{- $env = merge $env (dict "MALLOC_ARENA_MAX" (printf "%v" .root.Values.jvmHeap.mallocArenaMax)) }}

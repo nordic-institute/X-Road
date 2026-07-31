@@ -1,16 +1,25 @@
 ---
-# Minimal single-SS topology for the E2E `k8s` env-mode tracer bullet: kind cluster + Security
-# Server chart + its serverconf/messagelog/opmonitor Postgres + OpenBao. No Central Server, no
-# second Security Server, no DSP, no e2e-fixtures/hurl bootstrap — those are layered in later
-# slices of .workbench/20260730-k8s-e2e-variant/PRD.md.
+# Full base topology for E2E `k8s` env-mode (PRD .workbench/20260730-k8s-e2e-variant/PRD.md,
+# slice 06: two-ss-message-flow): kind cluster + Central Server chart + two Security Server chart
+# releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao) +
+# e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap). DSP stays off
+# (proxy_dsp_enabled: false, ds-* replicas: 0) — full DSP parity is a later slice's job.
 
 cluster_provider: kind
 kind_cluster_name: xroad-e2e-cluster
 kind_worker_count: 1
 kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
 
-security_server_namespace: ss
+# Retained as the single-instance fallback the OpenBao/Security Server loops default to when
+# security_server_instances isn't set (dev/test/eks) — unused here since e2e always sets that
+# list, but kept defined to satisfy site.yml's pre_tasks assert.
+security_server_namespace: ss0
 monitoring_namespace: ss-monitoring
+
+central_server_namespace: cs
+e2e_fixtures_namespace: cs
+central_server_enabled: true
+e2e_fixtures_enabled: true
 
 xroad_image_registry: "localhost:5555"
 xroad_image_tag: "latest"
@@ -27,6 +36,14 @@ security_server_chart_repo: ""
 security_server_chart: "{{ charts_root }}/security-server"
 security_server_chart_version: ""
 
+central_server_chart_repo: ""
+central_server_chart: "{{ charts_root }}/central-server"
+central_server_chart_version: ""
+
+e2e_fixtures_chart_repo: ""
+e2e_fixtures_chart: "{{ charts_root }}/e2e-fixtures"
+e2e_fixtures_chart_version: ""
+
 postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
 
 openbao_chart_repo: "https://openbao.github.io/openbao-helm"
@@ -40,13 +57,31 @@ containerd_config_patches:
 
 external_service_host: host.docker.internal
 
-# No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, single-SS.
+# No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
 
-# DSP is out of scope for this tracer bullet: the security_server role skips provisioning the
-# ds-*-service databases and omits the ds-control-plane/ds-identity-hub/ds-issuer-service overrides
-# from the chart values, leaving them at the chart's own default (replicas: 0).
+# DSP stays off for this slice: the security_server role skips provisioning the ds-*-service
+# databases and omits the ds-control-plane/ds-identity-hub/ds-issuer-service replica overrides
+# from the chart values, leaving them at the chart's own default (replicas: 0). Full DSP parity
+# (enabling ds-*, DS-HTTPS did:web validation) is slice 09's job. This also drives
+# e2e_fixtures' hurl_skip_dsp_readiness_gates default (see that role's defaults/main.yml) — the
+# hurl bootstrap Job stops two entries short of setup.hurl's end instead of blocking on DSP
+# participant-context credentials no SS here will ever issue.
 proxy_dsp_enabled: false
+
+# Two Security Server chart releases in separate namespaces — the k8s form of compose's
+# ss0-/ss1-prefixed stacks. Each gets its own distinct DSP participant-context identifier
+# (security-server chart's dsp.participantContextId, templates/_configmap.tpl) so the two
+# releases are never conflated on the chart's own hardcoded "xrd-ss2" default, and its own
+# openbao_tls_dir so the two releases' self-signed openbao certs (each SAN-scoped to its own
+# namespace) don't clobber each other's on-disk staging files mid-run.
+security_server_instances:
+  - namespace: ss0
+    dsp_participant_context_id: xrd-ss0
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
+  - namespace: ss1
+    dsp_participant_context_id: xrd-ss1
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
 
 deploy_prometheus: false
 deploy_netdata: false
@@ -55,9 +90,17 @@ openbao_ha_replicas: 1
 openbao_global_tls_disable: true
 openbao_tls_mode: self_signed
 
+# ss1 forwards to the SAME local host (localhost) as ss0, so it needs its own local ports —
+# ss1's are ss0's + 1. K8sEnvProperties' ss0-/ss1- defaults (security-server/e2e-test) match
+# these exactly.
 port_forwards:
-  - {name: proxy-ui-api, namespace: "{{ security_server_namespace }}", resource: svc/proxy-ui-api, ports: "4000:4000"}
-  - {name: proxy-http, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5500:5500"}
-  - {name: proxy-ocsp, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5577:5577"}
-  - {name: proxy-8080, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8080:8080"}
-  - {name: proxy-8443, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8443:8443"}
+  - {name: proxy-ui-api, namespace: ss0, resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: ss0, resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: ss0, resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: ss0, resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: ss0, resource: svc/proxy, ports: "8443:8443"}
+  - {name: ss1-proxy-ui-api, namespace: ss1, resource: svc/proxy-ui-api, ports: "4001:4000"}
+  - {name: ss1-proxy-http, namespace: ss1, resource: svc/proxy, ports: "5501:5500"}
+  - {name: ss1-proxy-ocsp, namespace: ss1, resource: svc/proxy, ports: "5578:5577"}
+  - {name: ss1-proxy-8080, namespace: ss1, resource: svc/proxy, ports: "8081:8080"}
+  - {name: ss1-proxy-8443, namespace: ss1, resource: svc/proxy, ports: "8444:8443"}

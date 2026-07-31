@@ -50,7 +50,7 @@ services:
       - port: 6185
         name: issuer-issuance
       - port: 6187
-        name: issuer-statuslist
+        name: issuer-status
       - port: 9994
         name: signer-debug
     readinessProbe:

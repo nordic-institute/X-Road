@@ -26,6 +26,12 @@ proxy_dsp_enabled: true
 trusted_issuer_host: xrd-cs
 xrd_ca_external_host: xrd-ca.lxd
 
+# Per-release DSP participant-context-id override (chart's dsp.participantContextId — see
+# security-server chart values.yaml). Empty by default: the chart's own hardcoded "xrd-ss2" env
+# entries render unchanged. Set per Security Server release (e.g. one value per ss0/ss1 in a
+# multi-SS topology) to give each release a distinct identifier instead of conflating them.
+dsp_participant_context_id: ""
+
 serverconf_db:
   name: db-serverconf
   database: serverconf

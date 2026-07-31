@@ -26,6 +26,7 @@
 package org.niis.xroad.e2e;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.Container;
@@ -35,8 +36,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
- * Kubernetes-based implementation of the e2e environment (tracer-bullet slice: a single,
- * minimally-provisioned Security Server). Assumes the environment is already provisioned by
+ * Kubernetes-based implementation of the e2e environment: two Security Server chart releases
+ * (ss0/ss1) in separate namespaces (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice 06:
+ * two-ss-message-flow). Assumes the environment is already provisioned by
  * {@code core/scripts/env-k8s} and reachable via its {@code kubectl port-forward} listeners, so
  * bring-up and teardown are no-ops. Extends {@link BaseComposeSetup} only to satisfy the
  * api-test-core session-listener/extension lifecycle; the inherited compose accessors are
@@ -56,8 +58,10 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment {
 
     @Override
     public void start() {
-        log.info("Using pre-provisioned k8s environment (ss0={}:{}); bring-up is externally managed by "
-                + "core/scripts/env-k8s", k8sProperties.ss0Host(), k8sProperties.proxyPort());
+        log.info("Using pre-provisioned k8s environment (ss0={}:{}, ss1={}:{}); bring-up is externally managed by "
+                        + "core/scripts/env-k8s",
+                k8sProperties.ss0Host(), k8sProperties.ss0ProxyPort(),
+                k8sProperties.ss1Host(), k8sProperties.ss1ProxyPort());
     }
 
     @Override
@@ -67,12 +71,13 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment {
 
     @Override
     public ContainerMapping getContainerMapping(String env, String service, int port) {
-        return new ContainerMapping(resolveHost(env), port);
+        return new ContainerMapping(resolveHost(env), resolvePort(env, service, port));
     }
 
     @Override
     public boolean isInitialized() {
-        return probePort(k8sProperties.ss0Host(), k8sProperties.proxyPort());
+        return probePort(k8sProperties.ss0Host(), k8sProperties.ss0ProxyPort())
+                && probePort(k8sProperties.ss1Host(), k8sProperties.ss1ProxyPort());
     }
 
     @Override
@@ -83,6 +88,29 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment {
     private String resolveHost(String env) {
         return switch (env) {
             case "ss0" -> k8sProperties.ss0Host();
+            case "ss1" -> k8sProperties.ss1Host();
+            default -> throw new IllegalArgumentException("Unknown k8s environment: " + env);
+        };
+    }
+
+    /**
+     * Both SS's are reached via kubectl port-forward on {@code localhost}, so — unlike LXD's
+     * distinct hostnames — ss0/ss1 need distinct local ports per service; the {@code port}
+     * argument (the service's canonical in-cluster port, e.g. {@link SsStackSetup.Port#PROXY})
+     * is only used as a fallback for services this adapter has no dedicated forwarded port for.
+     */
+    private int resolvePort(String env, String service, int port) {
+        return switch (env) {
+            case "ss0" -> switch (service) {
+                case SsStackSetup.PROXY -> k8sProperties.ss0ProxyPort();
+                case SsStackSetup.UI -> k8sProperties.ss0UiPort();
+                default -> port;
+            };
+            case "ss1" -> switch (service) {
+                case SsStackSetup.PROXY -> k8sProperties.ss1ProxyPort();
+                case SsStackSetup.UI -> k8sProperties.ss1UiPort();
+                default -> port;
+            };
             default -> throw new IllegalArgumentException("Unknown k8s environment: " + env);
         };
     }

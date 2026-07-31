@@ -1,0 +1,11 @@
+---
+{% if (xroad_image_registry | length > 0) or (xroad_image_tag | length > 0) %}
+global:
+  image:
+{% if xroad_image_registry | length > 0 %}
+    registry: {{ xroad_image_registry }}
+{% endif %}
+{% if xroad_image_tag | length > 0 %}
+    tag: {{ xroad_image_tag }}
+{% endif %}
+{% endif %}

@@ -178,6 +178,7 @@ build_cmd=(
   --file "$OPENBAO_DOCKERFILE"
   --build-context "openbao-init-ctx=${SECRET_STORE_LOCAL}"
   --tag "$OPENBAO_IMAGE"
+  --tag "${OPENBAO_IMAGE%:*}:latest"
   "${MIRROR_BUILD_ARGS[@]}"
 )
 
@@ -225,6 +226,7 @@ build_cmd=(
   "${CACHE_FLAG[@]}"
   --file "$TESTCA_DOCKERFILE"
   --tag "$TESTCA_IMAGE"
+  --tag "${TESTCA_IMAGE%:*}:latest"
   "${MIRROR_BUILD_ARGS[@]}"
 )
 
@@ -269,6 +271,7 @@ build_cmd=(
   "${CACHE_FLAG[@]}"
   --file "$POSTGRES_DEV_DOCKERFILE"
   --tag "$POSTGRES_DEV_IMAGE"
+  --tag "${POSTGRES_DEV_IMAGE%:*}:latest"
   "${MIRROR_BUILD_ARGS[@]}"
 )
 
@@ -313,6 +316,7 @@ build_cmd=(
   "${CACHE_FLAG[@]}"
   --file "$NGINX_CP_DOCKERFILE"
   --tag "$NGINX_CP_IMAGE"
+  --tag "${NGINX_CP_IMAGE%:*}:latest"
   "${MIRROR_BUILD_ARGS[@]}"
 )
 

@@ -203,6 +203,7 @@ fi
 
 build_cmd+=(
   --tag "${IMAGE_NAME}:${VERSION}"
+  --tag "${IMAGE_NAME}:latest"
   --push
   "$CS_DEV_DIR"
 )
