@@ -58,7 +58,8 @@ spec:
               for entry in ca:ca tsa:tsa ocsp:ocsp; do
                 cert_name="${entry%%:*}"
                 out_name="${entry##*:}"
-                curl -sf "http://{{ .Values.hurl.vars.ca_host }}:8888/testca/certs/${cert_name}.cert.pem" \
+                curl -sf --retry 30 --retry-delay 5 --retry-connrefused --retry-all-errors \
+                  "http://{{ .Values.hurl.vars.ca_host }}:8888/testca/certs/${cert_name}.cert.pem" \
                   -o "/hurl-files/ca/${out_name}.pem"
               done
           volumeMounts:

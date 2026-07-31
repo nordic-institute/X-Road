@@ -65,3 +65,17 @@ services:
       annotations: {}
     env:
       XROAD_HOST: "central-server"
+    # The co-located Issuer Service reads its HTTPS keystore from
+    # /etc/xroad/ds-ssl/ds-https.p12 (local-ds-issuer-service.yaml in the CS
+    # dev image); without it the Issuer Service crash-loops and CS
+    # initialization fails with a gRPC timeout. Provisioned by the
+    # ds-https-keystore chart (deployed earlier, same namespace) — the k8s
+    # analogue of compose's `ds-https-keystore:/etc/xroad/ds-ssl` mount.
+    volumeMounts:
+      - name: ds-https-keystore
+        mountPath: /etc/xroad/ds-ssl
+        readOnly: true
+    volumes:
+      - name: ds-https-keystore
+        secret:
+          secretName: ds-https-keystore

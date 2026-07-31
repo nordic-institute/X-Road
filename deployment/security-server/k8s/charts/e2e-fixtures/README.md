@@ -3,10 +3,11 @@
 > **NOT production-ready / dev+E2E-only.** This chart reproduces the
 > non-Central-Server parts of the E2E suite's compose aux stack
 > (`core/src/security-server/e2e-test/src/intTest/resources/compose.aux.yaml`)
-> in-cluster: a test CA, mock information systems, a mail sink, a DS-HTTPS
-> keystore init Job, and a hurl bootstrap Job. Every rendered resource
-> carries the label `xroad.niis.org/production-ready: "false"`, matching the
-> `Chart.yaml` annotation.
+> in-cluster: a test CA, mock information systems, a mail sink, and a hurl
+> bootstrap Job. Every rendered resource carries the label
+> `xroad.niis.org/production-ready: "false"`, matching the `Chart.yaml`
+> annotation. (The DS-HTTPS keystore init moved to its own
+> `ds-https-keystore` chart — see section 3.)
 
 ## 1. Overview
 
@@ -16,9 +17,8 @@ unambiguously dev/E2E-only. Structure mirrors the central-server chart: a
 values-driven `services` map for the four simple test-double workloads
 (`testca`, `isopenapi`, `issoap`, `isrest`, `mailpit`), using the same
 `xroad.labels` / `xroad.service` / `xroad.deployment` / `xroad.serviceaccount`
-helper templates. The DS-HTTPS keystore init and hurl bootstrap are each a
-dedicated `batch/v1` Job, since neither fits the long-running `services` map
-shape.
+helper templates. The hurl bootstrap is a dedicated `batch/v1` Job, since it
+does not fit the long-running `services` map shape.
 
 ## 2. Fixture images
 
@@ -43,49 +43,17 @@ wired into this chart yet — deploying them as a ConfigMap is deferred to the
 topology-wiring slice, using the same "inject real files at render time"
 mechanism as the hurl scenario files (section 4), just not connected yet.
 
-## 3. DS-HTTPS keystore init Job
+## 3. DS-HTTPS keystore (moved out)
 
-`templates/ds-https-keystore-job.yaml` is the k8s analogue of compose's
-`ds-https-keystore-init` service: it generates a **self-signed** cert (not
-CA-anchored) with a SAN set covering the in-cluster CS/SS/DS service names,
-exports it as `ds-https.p12`, and imports it into a copy of the JRE's own
-`cacerts` — the same two-artifact recipe compose uses (`openssl` PKCS12
-export + `keytool -import` into a copied `cacerts`), just publishing the
-result as a `ds-https-keystore` Secret (keys `ds-https.p12`, `cacerts`) via
-the Kubernetes API instead of a shared docker volume. The container
-idempotency-checks for an existing Secret before regenerating, mirroring
-compose's `[ -f ds-https.p12 ] && [ -f cacerts ] && exit 0` guard.
-
-This is deliberately **not** the same recipe as the existing
-`development/k8s/roles/security_server/tasks/ds_https_keystore.yml` ansible
-role: that role CA-signs the cert via an *external* LXD test CA for the
-`k8-ss2` hybrid flavor (and publishes a PKCS12 **truststore**,
-`cacerts.p12`, built with `-jdktrust`, rather than a copied JRE `cacerts`).
-This chart's fully in-cluster E2E topology has no external CA to anchor to,
-so it mirrors compose's self-signed recipe instead, per this slice's
-grounding. **Flag for the topology-wiring slice:** the security-server
-chart's existing DSP env wiring
-(`development/k8s/roles/security_server/templates/security-server-values.yaml.j2`)
-expects the Secret's truststore key to be named `cacerts.p12` (PKCS12); this
-Job currently publishes `cacerts` (JRE-copy JKS), matching compose's file
-naming exactly as instructed. Reconciling the two — either renaming this
-Job's output key or adjusting the SS chart's mount/env — is left to whichever
-slice actually wires DSP for the two-SS in-cluster topology (PRD slice 06+),
-since getting the SAN set and recipe right here does not by itself require
-that mount to be live yet (proving did:web/DSP validation is slice 09).
-
-**SAN set** (`values.yaml`'s `dsHttpsKeystore.extraSanDnsNames`): defaults
-mirror compose's list (`cs`, `ds-issuer-service`, `ds-identity-hub`,
-`ds-control-plane`, `ss0-`/`ss1-`-prefixed DS hostnames, `xrd-ss0`/`xrd-ss1`,
-`localhost`), substituted with this tree's k8s service names
-(`central-server` for the CS chart's service, the security-server chart's
-bare `ds-*` service names, and `ds-*.ss0`/`ds-*.ss1` placeholders for
-cross-namespace addressing). **The `ss0`/`ss1` namespace segments are
-placeholders** — the PRD's two-SS-as-two-releases-in-separate-namespaces
-layout (slice 06) hasn't chosen concrete namespace names yet. Override via
-`--set dsHttpsKeystore.extraSanDnsNames={...}` once it has; getting this list
-wrong is flagged in the PRD as a known risk area (a stale/mismatched SAN was
-the root cause of an earlier hybrid k8s-SS-to-LXD-CS PKIX failure).
+The DS-HTTPS keystore init Job used to live here, but the Central Server
+Issuer Service and (when DSP is enabled) the Security Server ds_tls mode
+mount the resulting `ds-https-keystore` Secret **at boot** — so it must be
+provisioned before those charts, not alongside these fixtures. It now has its
+own `deployment/security-server/k8s/charts/ds-https-keystore` chart, deployed
+as an early ansible step (`ds_https_keystore` role, before `security_server`
+and `central_server`). See that chart's README for the self-signed recipe,
+the SAN set, and the truststore-key-naming reconciliation still owed to the
+DSP slice.
 
 ## 4. hurl bootstrap Job
 
@@ -132,7 +100,7 @@ here — this topology is fully in-cluster.
   layout, or the `core/scripts/env-k8s` bring-up pipeline.
 - The second Security Server, enabling DSP, or reconciling the DS-HTTPS
   Secret's truststore key naming with the security-server chart's existing
-  `ds_tls` mount (section 3).
+  `ds_tls` mount (now owned by the `ds-https-keystore` chart).
 - Asserting any hurl scenario green, or validating did:web/DSP against the
   generated keystore (slice 09).
 - WireMock stub mapping content for `isrest` (section 2).

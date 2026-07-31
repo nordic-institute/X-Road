@@ -128,12 +128,13 @@ services:
       annotations: {}
     env: {}
 
-  # Mail sink. Public image. Env mirrors compose's mailpit service exactly.
-  # compose bind-mounts ./testmail for the db + a self-signed SMTP TLS pair +
-  # auth file; mailpit generates the TLS pair itself on first start if the
-  # configured paths don't exist, so an emptyDir gives it the same
-  # fresh-start behavior in-cluster without needing those files provisioned
-  # ahead of time.
+  # Mail sink. Public image. compose bind-mounts an (empty, untracked)
+  # ./testmail dir; mailpit does NOT self-generate the STARTTLS pair, so
+  # compose's mailpit crashes on the missing cert too — it is tolerated there
+  # only because compose has no healthcheck gate and no scenario uses the
+  # sink. In-cluster it must actually become Ready for the fixtures
+  # `helm --wait` to pass, so it runs as a plain SMTP+HTTP sink (no STARTTLS,
+  # no auth). A mail-exercising scenario would provision cert/key/auth itself.
   mailpit:
     otelServiceName: xroad-e2e-mailpit
     image: "axllent/mailpit:latest"
@@ -158,51 +159,12 @@ services:
     env:
       MP_MAX_MESSAGES: "5000"
       MP_DATABASE: "/data/mailpit.db"
-      MP_SMTP_REQUIRE_STARTTLS: "1"
-      MP_SMTP_TLS_CERT: "/data/mailpit_cert.pem"
-      MP_SMTP_TLS_KEY: "/data/mailpit_key.pem"
-      MP_SMTP_AUTH_FILE: "/data/password_file"
     volumeMounts:
       - name: mailpit-data
         mountPath: /data
     volumes:
       - name: mailpit-data
         emptyDir: {}
-
-# --- DS-HTTPS keystore init Job ---
-# Self-signed SAN cert + PKCS12 keystore/truststore, the k8s analogue of
-# compose's ds-https-keystore-init service. Explicit XRDADR-42 stop-gap —
-# see README section 3.
-dsHttpsKeystore:
-  image: eclipse-temurin:21-jre-alpine
-  secretName: ds-https-keystore
-  commonName: xrd-ds
-  keystorePassword: changeit
-  resources:
-    requests:
-      memory: 64Mi
-    limits:
-      memory: 256Mi
-  serviceAccount:
-    name: ds-https-keystore-init-sa
-  # Extra DNS SANs for the self-signed cert, on top of `commonName`. Defaults
-  # mirror compose.aux.yaml's ds-https-keystore-init SAN list, substituted
-  # with the k8s in-cluster DNS names this chart and the security-server/
-  # central-server charts produce. ss0/ss1 are the actual namespace names
-  # the two Security Server chart releases are deployed into (PRD
-  # .workbench/20260730-k8s-e2e-variant/PRD.md, slice 06: two-ss-message-flow).
-  extraSanDnsNames:
-    - central-server
-    - ds-issuer-service
-    - ds-identity-hub
-    - ds-control-plane
-    - ds-identity-hub.ss0
-    - ds-identity-hub.ss1
-    - ds-control-plane.ss0
-    - ds-control-plane.ss1
-    - xrd-ss0
-    - xrd-ss1
-    - localhost
 
 # --- hurl bootstrap Job ---
 # Runs the existing development/hurl/scenarios/setup.hurl unmodified against

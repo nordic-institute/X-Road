@@ -1,0 +1,35 @@
+---
+- name: Install/upgrade ds-https-keystore chart
+  kubernetes.core.helm:
+    name: ds-https-keystore
+    chart_ref: "{{ (ds_https_keystore_chart_repo | length > 0) | ternary(ds_https_keystore_chart_repo + '/' + ds_https_keystore_chart, ds_https_keystore_chart) }}"
+    chart_version: "{{ ds_https_keystore_chart_version | default(omit, true) }}"
+    release_namespace: "{{ ds_https_keystore_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ ds_https_keystore_helm_wait_timeout }}"
+
+# The keystore-init Job (backoffLimit: 0, restartPolicy: Never) creates the Secret via the
+# k8s API and exits. Confirm the Secret landed before the Central/Security Server charts —
+# which mount it at boot — are deployed, so a keystore failure fails here with a clear message
+# rather than surfacing later as an Issuer Service crash-loop.
+- name: Wait for ds-https-keystore Secret to exist
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: v1
+    kind: Secret
+    name: "{{ ds_https_keystore_secret_name }}"
+    namespace: "{{ ds_https_keystore_namespace }}"
+  register: ds_https_keystore_secret
+  until: (ds_https_keystore_secret.resources | length) > 0
+  retries: "{{ ds_https_keystore_wait_retries }}"
+  delay: "{{ ds_https_keystore_wait_delay }}"
+
+- name: Fail fast if the keystore Secret was not created
+  ansible.builtin.fail:
+    msg: >-
+      ds-https-keystore Secret '{{ ds_https_keystore_secret_name }}' not found in
+      namespace '{{ ds_https_keystore_namespace }}' — check
+      `kubectl logs -n {{ ds_https_keystore_namespace }} job/ds-https-keystore-init`
+  when: (ds_https_keystore_secret.resources | length) == 0

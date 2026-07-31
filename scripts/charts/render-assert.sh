@@ -75,6 +75,9 @@ echo ""
 render_and_assert "e2e-fixtures" Deployment Job ConfigMap ServiceAccount || STATUS=1
 echo ""
 
+render_and_assert "ds-https-keystore" Job ServiceAccount Role RoleBinding || STATUS=1
+echo ""
+
 echo "========================================"
 if [[ "${STATUS}" -eq 0 ]]; then
     log_success "All render assertions passed"

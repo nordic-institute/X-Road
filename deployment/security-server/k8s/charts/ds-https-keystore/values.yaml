@@ -1,0 +1,32 @@
+# Dev-only DS-HTTPS keystore provisioner. NOT production-ready — an XRDADR-42
+# stop-gap (self-signed, file-based keystore) until ACME-from-OpenBao lands.
+
+dsHttpsKeystore:
+  image: eclipse-temurin:21-jre-alpine
+  secretName: ds-https-keystore
+  commonName: xrd-ds
+  keystorePassword: changeit
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  serviceAccount:
+    name: ds-https-keystore-init-sa
+  # Extra DNS SANs for the self-signed cert, on top of `commonName`. Defaults
+  # mirror compose.aux.yaml's ds-https-keystore-init SAN list, substituted
+  # with the k8s in-cluster DNS names the central-server / security-server
+  # charts produce. ss0/ss1 are the actual namespace names the two Security
+  # Server chart releases are deployed into.
+  extraSanDnsNames:
+    - central-server
+    - ds-issuer-service
+    - ds-identity-hub
+    - ds-control-plane
+    - ds-identity-hub.ss0
+    - ds-identity-hub.ss1
+    - ds-control-plane.ss0
+    - ds-control-plane.ss1
+    - xrd-ss0
+    - xrd-ss1
+    - localhost

@@ -71,7 +71,7 @@ for chart in "${CHARTS[@]}"; do
     fi
 done
 
-# Test 4: Package and push the dev-only charts (central-server, e2e-fixtures)
+# Test 4: Package and push the dev-only charts (central-server, e2e-fixtures, ds-https-keystore)
 #
 # These wrap dev-only images and are intentionally absent from publish.sh's
 # CHARTS array — they are not versioned release artifacts. This step still
@@ -82,7 +82,7 @@ log_info "Step 4: Packaging and pushing dev-only charts..."
 echo ""
 
 DEV_CHARTS_BASE_DIR="${ROOT_DIR}/deployment/security-server/k8s/charts"
-DEV_CHARTS=("central-server" "e2e-fixtures")
+DEV_CHARTS=("central-server" "e2e-fixtures" "ds-https-keystore")
 DEV_SMOKE_VERSION="0.0.0-smoke"
 DEV_OCI_URL="oci://${REGISTRY}/helm-dev"
 
