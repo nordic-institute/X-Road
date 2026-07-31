@@ -33,10 +33,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Getter
 @ApplicationScoped
-public class ProxyMessageLogProperties {
+public class MessageLogEnabledProperties {
     private final boolean enabled;
 
-    public ProxyMessageLogProperties(
+    public MessageLogEnabledProperties(
             @ConfigProperty(name = "xroad.proxy.message-log.enabled", defaultValue = "true") boolean enabled) {
         this.enabled = enabled;
     }

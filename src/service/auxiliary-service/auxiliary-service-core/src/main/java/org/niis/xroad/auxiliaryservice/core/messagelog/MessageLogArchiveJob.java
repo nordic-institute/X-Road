@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
-import org.niis.xroad.auxiliaryservice.core.config.ProxyMessageLogProperties;
+import org.niis.xroad.auxiliaryservice.core.config.MessageLogEnabledProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @Startup
@@ -51,7 +51,7 @@ public class MessageLogArchiveJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
-    private final ProxyMessageLogProperties messageLogProperties;
+    private final MessageLogEnabledProperties messageLogEnabledProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final GlobalConfProvider globalConfProvider;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
@@ -80,7 +80,7 @@ public class MessageLogArchiveJob {
     }
 
     private boolean isEnabled() {
-        return messageLogProperties.isEnabled()
+        return messageLogEnabledProperties.isEnabled()
                 && StringUtils.isNotBlank(properties.archiveCron())
                 && !SchedulerUtils.isOff(properties.archiveCron());
     }
