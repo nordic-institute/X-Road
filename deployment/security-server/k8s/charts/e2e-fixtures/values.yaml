@@ -1,0 +1,241 @@
+# NOT production-ready — dev/E2E-only fixtures. See README.md.
+#
+# Reproduces the non-CS parts of the compose aux stack
+# (security-server/e2e-test/src/intTest/resources/compose.aux.yaml) as
+# in-cluster k8s resources: test CA, mock information systems, a mail sink,
+# a DS-HTTPS keystore init Job, and a hurl bootstrap Job. The `services` map
+# and `xroad.*` helpers follow the central-server chart's structure for
+# consistency across the k8s/charts/ tree, even though most of these
+# workloads are third-party test doubles rather than X-Road components.
+
+global:
+  image:
+    registry: ghcr.io/nordic-institute/x-road
+    tag: latest
+    pullPolicy: IfNotPresent
+  extraPodAnnotations: {}
+
+imagePullSecrets: []
+
+# Mixed third-party images (testca-dev, wiremock, mailpit, example-adapter,
+# hurl) with varied user/filesystem assumptions — same reasoning as the
+# central-server chart: left empty rather than faking a hardening posture
+# none of these images were built to support.
+securityContext:
+  pod: {}
+  container: {}
+
+services:
+  # Test CA: ACME (8887) + cert issuance/serving (8888) + TSA (8899). Ports
+  # and the readiness path verified against compose.aux.yaml's `testca`
+  # service. Private dev-infra image, built by
+  # core/scripts/images/build-dev-infra.sh (same GHCR path/pull-secret
+  # mechanism as the central-server-dev image).
+  testca:
+    otelServiceName: xroad-e2e-testca
+    imageName: testca-dev
+    resources:
+      requests:
+        memory: 32Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 8887
+        name: acme
+      - port: 8888
+        name: ca-api
+      - port: 8899
+        name: tsa
+    readinessProbe:
+      path: "/testca/certs"
+      port: 8888
+      scheme: HTTP
+    serviceAccount:
+      annotations: {}
+    env: {}
+
+  # Mock OpenAPI/REST information system. Public image — full ref, bypasses
+  # global.image.registry/imagePullSecrets.
+  isopenapi:
+    otelServiceName: xroad-e2e-isopenapi
+    image: "ghcr.io/nordic-institute/xrddev-example-restapi:latest"
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 8080
+        name: http
+    readinessProbe:
+      path: "/v3/api-docs"
+      port: 8080
+      scheme: HTTP
+    serviceAccount:
+      annotations: {}
+    env: {}
+
+  # Mock SOAP information system (example-adapter WAR). Public image; the
+  # command override runs the WAR directly, matching compose's entrypoint.
+  issoap:
+    otelServiceName: xroad-e2e-issoap
+    image: "niis/example-adapter:latest"
+    command:
+      - java
+      - -Xms64m
+      - -Xmx256m
+      - -jar
+      - /example-adapter.war
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 8080
+        name: http
+    readinessProbe:
+      path: "/example-adapter/Endpoint?wsdl"
+      port: 8080
+      scheme: HTTP
+    serviceAccount:
+      annotations: {}
+    env: {}
+
+  # Mock plain-REST information system (WireMock). Public image.
+  #
+  # compose bind-mounts ./wiremock_mappings (security-server/e2e-test/src/
+  # intTest/resources/wiremock_mappings) as stub data. Deploying that mapping
+  # set as a ConfigMap is deferred to the slice that wires the full topology
+  # — same "inject real files at render time, don't fork them into the
+  # chart" mechanism as hurl.files below, just not wired yet.
+  isrest:
+    otelServiceName: xroad-e2e-isrest
+    image: "wiremock/wiremock:latest"
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    ports:
+      - port: 8080
+        name: http
+    readinessProbe:
+      path: "/__admin/health"
+      port: 8080
+      scheme: HTTP
+    serviceAccount:
+      annotations: {}
+    env: {}
+
+  # Mail sink. Public image. Env mirrors compose's mailpit service exactly.
+  # compose bind-mounts ./testmail for the db + a self-signed SMTP TLS pair +
+  # auth file; mailpit generates the TLS pair itself on first start if the
+  # configured paths don't exist, so an emptyDir gives it the same
+  # fresh-start behavior in-cluster without needing those files provisioned
+  # ahead of time.
+  mailpit:
+    otelServiceName: xroad-e2e-mailpit
+    image: "axllent/mailpit:latest"
+    resources:
+      requests:
+        memory: 32Mi
+      limits:
+        memory: 256Mi
+    ports:
+      - port: 8025
+        name: http
+      - port: 1025
+        name: smtp
+    readinessProbe:
+      # compose defines no healthcheck for mailpit; this one is chart-added,
+      # not mirrored, since the k8s Deployment template requires one.
+      path: "/"
+      port: 8025
+      scheme: HTTP
+    serviceAccount:
+      annotations: {}
+    env:
+      MP_MAX_MESSAGES: "5000"
+      MP_DATABASE: "/data/mailpit.db"
+      MP_SMTP_REQUIRE_STARTTLS: "1"
+      MP_SMTP_TLS_CERT: "/data/mailpit_cert.pem"
+      MP_SMTP_TLS_KEY: "/data/mailpit_key.pem"
+      MP_SMTP_AUTH_FILE: "/data/password_file"
+    volumeMounts:
+      - name: mailpit-data
+        mountPath: /data
+    volumes:
+      - name: mailpit-data
+        emptyDir: {}
+
+# --- DS-HTTPS keystore init Job ---
+# Self-signed SAN cert + PKCS12 keystore/truststore, the k8s analogue of
+# compose's ds-https-keystore-init service. Explicit XRDADR-42 stop-gap —
+# see README section 3.
+dsHttpsKeystore:
+  image: eclipse-temurin:21-jre-alpine
+  secretName: ds-https-keystore
+  commonName: xrd-ds
+  keystorePassword: changeit
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  serviceAccount:
+    name: ds-https-keystore-init-sa
+  # Extra DNS SANs for the self-signed cert, on top of `commonName`. Defaults
+  # mirror compose.aux.yaml's ds-https-keystore-init SAN list, substituted
+  # with the k8s in-cluster DNS names this chart and the security-server/
+  # central-server charts produce. The ss0/ss1 namespace segments are
+  # placeholders — the E2E topology's actual namespace layout is decided in
+  # a later slice (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice 06:
+  # two-ss-message-flow); override via --set/-f once it's chosen.
+  extraSanDnsNames:
+    - central-server
+    - ds-issuer-service
+    - ds-identity-hub
+    - ds-control-plane
+    - ds-identity-hub.ss0
+    - ds-identity-hub.ss1
+    - ds-control-plane.ss0
+    - ds-control-plane.ss1
+    - xrd-ss0
+    - xrd-ss1
+    - localhost
+
+# --- hurl bootstrap Job ---
+# Runs the existing development/hurl/scenarios/setup.hurl unmodified against
+# the in-cluster topology. See README section 4.
+hurl:
+  image: ghcr.io/orange-opensource/hurl:8.0.1
+  curlImage: curlimages/curl:8.11.1
+  resources:
+    requests:
+      memory: 24Mi
+    limits:
+      memory: 128Mi
+  retry: 30
+  retryInterval: 10000
+  # Real scenario file content, injected at render/install time — never
+  # copied into the chart. Populate with (paths relative to the chart dir;
+  # adjust for your cwd):
+  #   helm template . \
+  #     --set-file hurl.files.setupHurl=../../../../../src/security-server/e2e-test/build/resources/intTest/hurl/scenarios/setup.hurl \
+  #     --set-file hurl.files.varsEnv=../../../../../development/hurl/scenarios/vars.env
+  # or point straight at core/development/hurl/scenarios/{setup.hurl,vars.env}.
+  files:
+    setupHurl: ""
+    varsEnv: ""
+  # Overrides layered on top of vars.env, pointing setup.hurl at in-cluster
+  # Service DNS names instead of compose's mapped host ports. ss0/ss1
+  # placeholders as in dsHttpsKeystore.extraSanDnsNames above.
+  vars:
+    cs_host: central-server
+    ca_host: testca
+    ss0_host: proxy-ui-api.ss0
+    ss1_host: proxy-ui-api.ss1
+    ss0_proxy: proxy.ss0
+    ss1_proxy: proxy.ss1
+    is_host: central-server
