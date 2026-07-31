@@ -53,6 +53,16 @@ services:
         name: gconf-https
       - port: 4000
         name: https
+      # Management-request endpoints the Security Servers call cross-namespace:
+      # 4001 = registration-service (auth-cert registration,
+      # https://<cs>:4001/managementservice/), 4002 = management-service
+      # (client/subsystem registration + WSDL, https://<cs>:4002/
+      # managementservice/manage/). Like port 80, compose reaches these over
+      # the shared docker network; in k8s they must be exposed Service ports.
+      - port: 4001
+        name: reg-service
+      - port: 4002
+        name: mgmt-service
       - port: 5432
         name: postgres
       - port: 6183
