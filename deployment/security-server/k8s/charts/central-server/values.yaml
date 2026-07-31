@@ -40,7 +40,17 @@ services:
       limits:
         memory: 3Gi
     # Ports verified against development/docker/.../compose.aux.yaml's `cs` service.
+    # Port 80 is not in compose's published-ports list (compose reaches it over
+    # the shared docker network without publishing), but the packaged
+    # xroad-center nginx serves the global configuration distribution
+    # (/internalconf) on it — the Security Servers download and verify global
+    # conf from the anchor's http://<cs>/internalconf URL, so it must be an
+    # exposed Service port for cross-namespace reachability.
     ports:
+      - port: 80
+        name: globalconf-http
+      - port: 443
+        name: globalconf-https
       - port: 4000
         name: https
       - port: 5432
