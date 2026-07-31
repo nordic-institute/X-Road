@@ -196,7 +196,7 @@ jobs:
           path: |
             test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/test-automation-exec.log
-          if-no-files-found: ignore
+          if-no-files-found: warn
 
       - name: Timing summary
         if: always()

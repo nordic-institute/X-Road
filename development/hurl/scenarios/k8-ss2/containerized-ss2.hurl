@@ -290,6 +290,22 @@ HTTP 201
 [Captures]
 ss2_test_client_id: jsonpath "$.id"
 
+# DSP readiness gate: the client registration below travels to the Central Server
+# as a management request over DSP, so ss0 has to accept ss2's membership
+# credential or the catalog request comes back 401. The credential converges
+# asynchronously (auth cert REGISTERED -> GlobalConfChecker -> reconciler submits
+# -> issuer issues), so block until it is ISSUED. Same gate as setup.hurl uses
+# for ss0/ss1.
+GET https://{{ss2_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss2_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
+
 # Register subsystem
 PUT https://{{ss2_host}}:4000/api/v1/clients/{{ss2_test_client_id}}/register
 X-XSRF-TOKEN: {{ss2_xsrf_token}}

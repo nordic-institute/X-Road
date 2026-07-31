@@ -56,6 +56,8 @@ public abstract class AbstractConsoleApiTestRunner {
 
         var props = ApiTestConfigSource.getInstance().getCoreProperties();
 
+        System.setProperty("allure.results.directory", props.allure().resultsDirectory());
+
         ClasspathResourceExtractor.extract(props.resourceDir(), resourceFiles());
 
         ConsoleLauncher.main(
