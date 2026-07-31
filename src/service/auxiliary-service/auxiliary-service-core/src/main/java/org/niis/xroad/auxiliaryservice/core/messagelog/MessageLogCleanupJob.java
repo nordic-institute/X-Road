@@ -39,6 +39,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.auxiliaryservice.core.config.MessageLogEnabledProperties;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
 
 @Startup
@@ -49,13 +50,13 @@ public class MessageLogCleanupJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
+    private final MessageLogEnabledProperties messageLogEnabledProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(properties.cleanupCron())
-                && !SchedulerUtils.isOff(properties.cleanupCron())) {
+        if (isEnabled()) {
             log.info("Scheduling message log cleanup with cron expression: '{}'", properties.cleanupCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.cleanupCron())
@@ -68,7 +69,25 @@ public class MessageLogCleanupJob {
         }
     }
 
+    void executeOnShutdown() {
+        if (isEnabled()) {
+            execute();
+        } else {
+            log.info("Message log cleanup is disabled, skipping cleanup on shutdown.");
+        }
+    }
+
+    private boolean isEnabled() {
+        return messageLogEnabledProperties.isEnabled()
+                && StringUtils.isNotBlank(properties.cleanupCron())
+                && !SchedulerUtils.isOff(properties.cleanupCron());
+    }
+
     private void execute(ScheduledExecution execution) {
+        execute();
+    }
+
+    private void execute() {
         try {
             log.info("Executing message log cleanup");
             var result = blockingProcessRunner

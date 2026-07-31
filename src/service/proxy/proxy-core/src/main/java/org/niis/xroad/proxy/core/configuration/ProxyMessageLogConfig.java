@@ -28,7 +28,11 @@ package org.niis.xroad.proxy.core.configuration;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
@@ -41,31 +45,58 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 @Slf4j
 public class ProxyMessageLogConfig {
 
+    @Startup
     @ApplicationScoped
     public static class MessageLogInitializer {
 
-        @Startup
-        @ApplicationScoped
-        AbstractLogManager messageLogManager(ProxyMessageLogProperties messageLogProperties,
-                                             GlobalConfProvider globalConfProvider,
-                                             ServerConfProvider serverConfProvider,
-                                             MessageLogDatabaseCtx messageLogDatabaseCtx,
-                                             LogRecordManager logRecordManager) {
-            AbstractLogManager logManager;
-            if (messageLogProperties.enabled()) {
-                logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx,
-                        messageLogProperties);
-            } else {
-                logManager = new NullLogManager(globalConfProvider, serverConfProvider);
-            }
+        private final AbstractLogManager messageLogManager;
 
-            return MessageLog.init(logManager);
+        MessageLogInitializer(ProxyMessageLogProperties messageLogProperties,
+                              GlobalConfProvider globalConfProvider,
+                              ServerConfProvider serverConfProvider,
+                              Instance<MessageLogDatabaseCtx> messageLogDatabaseCtx,
+                              Instance<LogRecordManager> logRecordManager) {
+            messageLogManager = createMessageLogManager(
+                   messageLogProperties, globalConfProvider, serverConfProvider, messageLogDatabaseCtx, logRecordManager);
+        }
+
+        @Produces
+        @ApplicationScoped
+        public AbstractLogManager messageLogManager() {
+            return messageLogManager;
         }
 
         public void cleanup(@Disposes AbstractLogManager logManager) {
             if (logManager instanceof LogManager impl)
                 impl.destroy();
         }
-    }
 
+        private static AbstractLogManager createMessageLogManager(ProxyMessageLogProperties messageLogProperties,
+                                                                  GlobalConfProvider globalConfProvider,
+                                                                  ServerConfProvider serverConfProvider,
+                                                                  Instance<MessageLogDatabaseCtx> messageLogDatabaseCtx,
+                                                                  Instance<LogRecordManager> logRecordManager) {
+            final AbstractLogManager logManager;
+            if (messageLogProperties.enabled()) {
+                logManager = new LogManager(
+                        globalConfProvider,
+                        serverConfProvider,
+                        getRequiredBean(logRecordManager, "LogRecordManager"),
+                        getRequiredBean(messageLogDatabaseCtx, "MessageLogDatabaseCtx"),
+                        messageLogProperties);
+            } else {
+                logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+            }
+            return MessageLog.init(logManager);
+        }
+
+        private static <T> T getRequiredBean(Instance<T> instance, String beanName) {
+            if (instance.isUnsatisfied()) {
+                throw XrdRuntimeException.systemException(
+                        ErrorCode.NOT_FOUND, "%s is not available although message log is enabled", beanName);
+            }
+            return instance.get();
+        }
+
+    }
 }

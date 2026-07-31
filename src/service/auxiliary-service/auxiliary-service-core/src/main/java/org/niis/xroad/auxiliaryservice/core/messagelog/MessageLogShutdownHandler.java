@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
 
-import io.quarkus.arc.lookup.LookupIfProperty;
-import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Singleton;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
-import org.niis.xroad.messagelog.MessageLogDbProperties;
+package org.niis.xroad.auxiliaryservice.core.messagelog;
 
-/**
- * Message log database context.
- */
-public class MessageLogDatabaseConfig {
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-    @Produces
-    @Singleton
-    @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    MessageLogDatabaseCtx messageLogDbCtx(MessageLogDbProperties messageLogDbProperties) {
-        return create(messageLogDbProperties);
-    }
+@Slf4j
+@Startup
+@ApplicationScoped
+@RequiredArgsConstructor
+class MessageLogShutdownHandler {
+    private final MessageLogArchiveJob messageLogArchiveJob;
+    private final MessageLogCleanupJob messageLogCleanupJob;
 
-    public static MessageLogDatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
-        return new MessageLogDatabaseCtx(messageLogDbProperties.hibernate());
-    }
-
-    public void cleanup(@Disposes MessageLogDatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
+    void onShutdown(@Observes ShutdownEvent event) {
+        log.info("Executing message log archive and cleanup jobs during application shutdown");
+        messageLogArchiveJob.executeOnShutdown();
+        messageLogCleanupJob.executeOnShutdown();
     }
 }

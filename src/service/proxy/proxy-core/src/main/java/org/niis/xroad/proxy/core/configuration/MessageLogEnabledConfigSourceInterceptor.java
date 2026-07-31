@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,30 +26,31 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import io.quarkus.arc.lookup.LookupIfProperty;
-import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Singleton;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
-import org.niis.xroad.messagelog.MessageLogDbProperties;
+import io.smallrye.config.ConfigSourceInterceptor;
+import io.smallrye.config.ConfigSourceInterceptorContext;
+import io.smallrye.config.ConfigValue;
 
 /**
- * Message log database context.
+ * {@code @LookupIfProperty(stringValue = "true")} compares the raw configuration string as-is, while
+ * {@link ProxyMessageLogProperties#enabled()} converts it through the standard case-insensitive boolean
+ * converter. Without this normalization the two can disagree (e.g. {@code enabled: True}), causing the
+ * message-log beans to be excluded from the CDI bean archive even though the flag was meant to be enabled.
  */
-public class MessageLogDatabaseConfig {
+public class MessageLogEnabledConfigSourceInterceptor implements ConfigSourceInterceptor {
 
-    @Produces
-    @Singleton
-    @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    MessageLogDatabaseCtx messageLogDbCtx(MessageLogDbProperties messageLogDbProperties) {
-        return create(messageLogDbProperties);
-    }
+    private static final String PROPERTY_NAME = "xroad.proxy.message-log.enabled";
 
-    public static MessageLogDatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
-        return new MessageLogDatabaseCtx(messageLogDbProperties.hibernate());
-    }
+    @Override
+    public ConfigValue getValue(ConfigSourceInterceptorContext context, String name) {
+        ConfigValue configValue = context.proceed(name);
+        if (configValue == null || configValue.getValue() == null || !PROPERTY_NAME.equals(name)) {
+            return configValue;
+        }
 
-    public void cleanup(@Disposes MessageLogDatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
+        String normalized = Boolean.parseBoolean(configValue.getValue()) ? "true" : "false";
+        if (normalized.equals(configValue.getValue())) {
+            return configValue;
+        }
+        return configValue.withValue(normalized);
     }
 }

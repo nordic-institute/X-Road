@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
 
-import io.quarkus.arc.lookup.LookupIfProperty;
-import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Singleton;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
-import org.niis.xroad.messagelog.MessageLogDbProperties;
+package org.niis.xroad.auxiliaryservice.core.messagelog;
 
-/**
- * Message log database context.
- */
-public class MessageLogDatabaseConfig {
+import io.quarkus.runtime.ShutdownEvent;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-    @Produces
-    @Singleton
-    @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    MessageLogDatabaseCtx messageLogDbCtx(MessageLogDbProperties messageLogDbProperties) {
-        return create(messageLogDbProperties);
-    }
+import static org.mockito.Mockito.times;
 
-    public static MessageLogDatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
-        return new MessageLogDatabaseCtx(messageLogDbProperties.hibernate());
-    }
+@ExtendWith(MockitoExtension.class)
+class MessageLogShutdownHandlerTest {
+    @Mock
+    private MessageLogArchiveJob archiveJob;
 
-    public void cleanup(@Disposes MessageLogDatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
+    @Mock
+    private MessageLogCleanupJob cleanupJob;
+
+    @InjectMocks
+    private MessageLogShutdownHandler handler;
+
+    @Test
+    void executeOnShutdown() {
+        handler.onShutdown(new ShutdownEvent());
+
+        InOrder inOrder = Mockito.inOrder(archiveJob, cleanupJob);
+        inOrder.verify(archiveJob, times(1)).executeOnShutdown();
+        inOrder.verify(cleanupJob, times(1)).executeOnShutdown();
+        inOrder.verifyNoMoreInteractions();
     }
 }

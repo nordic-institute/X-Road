@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
 
-import io.quarkus.arc.lookup.LookupIfProperty;
-import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Singleton;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
-import org.niis.xroad.messagelog.MessageLogDbProperties;
+package org.niis.xroad.auxiliaryservice.core.config;
 
-/**
- * Message log database context.
- */
-public class MessageLogDatabaseConfig {
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.Getter;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-    @Produces
-    @Singleton
-    @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    MessageLogDatabaseCtx messageLogDbCtx(MessageLogDbProperties messageLogDbProperties) {
-        return create(messageLogDbProperties);
-    }
+@Getter
+@ApplicationScoped
+public class MessageLogEnabledProperties {
+    private final boolean enabled;
 
-    public static MessageLogDatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
-        return new MessageLogDatabaseCtx(messageLogDbProperties.hibernate());
-    }
-
-    public void cleanup(@Disposes MessageLogDatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
+    public MessageLogEnabledProperties(
+            @ConfigProperty(name = "xroad.proxy.message-log.enabled", defaultValue = "true") boolean enabled) {
+        this.enabled = enabled;
     }
 }
