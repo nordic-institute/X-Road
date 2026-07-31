@@ -116,6 +116,18 @@ class DiagnosticsConnectionTest extends SsApiTest {
                     .as("error code must contain " + EXPECTED_ERROR_CODE)
                     .contains(EXPECTED_ERROR_CODE);
         });
+
+        and("the error message is genericized, with no dataspace/EDC internals leaked to the consumer", () -> {
+            @SuppressWarnings("unchecked")
+            var error = (Map<String, Object>) status.get("error");
+            var message = (String) error.get("message");
+            assertThat(message)
+                    .as("error message must not leak DSP/EDC internals")
+                    .isNotNull()
+                    .doesNotContainIgnoringCase("dsp_")
+                    .doesNotContainIgnoringCase("edc")
+                    .doesNotContainIgnoringCase("dataspace");
+        });
     }
 
     @Test
@@ -148,6 +160,18 @@ class DiagnosticsConnectionTest extends SsApiTest {
             assertThat(code)
                     .as("error code must contain " + EXPECTED_ERROR_CODE)
                     .contains(EXPECTED_ERROR_CODE);
+        });
+
+        and("the error message is genericized, with no dataspace/EDC internals leaked to the consumer", () -> {
+            @SuppressWarnings("unchecked")
+            var error = (Map<String, Object>) status.get("error");
+            var message = (String) error.get("message");
+            assertThat(message)
+                    .as("error message must not leak DSP/EDC internals")
+                    .isNotNull()
+                    .doesNotContainIgnoringCase("dsp_")
+                    .doesNotContainIgnoringCase("edc")
+                    .doesNotContainIgnoringCase("dataspace");
         });
     }
 }

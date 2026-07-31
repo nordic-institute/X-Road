@@ -34,6 +34,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
@@ -72,8 +73,8 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *       error (fail fast; no silent fallback).</li>
  * </ul>
  *
- * <p>Exhaustion of all candidates is translated to a legacy error code at the execute boundary
- * via {@link DspLegacyErrorMapper#toLegacy(XrdRuntimeException)}.
+ * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
+ * {@link ClientFacingErrorPolicy#sanitizeForConsumer(XrdRuntimeException)}.
  */
 @Slf4j
 @ApplicationScoped
@@ -107,7 +108,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         try {
             return acquireAssetAccessForService(request, request.serviceId());
         } catch (XrdRuntimeException ex) {
-            throw DspLegacyErrorMapper.toLegacy(ex);
+            throw ClientFacingErrorPolicy.sanitizeForConsumer(ex);
         }
     }
 
