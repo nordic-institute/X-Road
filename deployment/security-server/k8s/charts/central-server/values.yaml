@@ -1,0 +1,67 @@
+# NOT production-ready. See README.md.
+#
+# This chart wraps the single all-in-one `central-server-dev` image (the same
+# image docker-compose uses for e2e/dev): one container running the packaged
+# xroad-centralserver install (admin/frontend, management-service,
+# registration-service, embedded PostgreSQL, co-located Issuer Service, signer)
+# under supervisord, not a decomposed set of per-component workloads.
+#
+# The `services` map follows the Security Server chart's shape (imageName,
+# ports, resources, env, probes) precisely so that decomposing the monolith
+# into per-component services later is a matter of adding more map entries —
+# not a rewrite of the templates.
+
+global:
+  image:
+    registry: ghcr.io/nordic-institute/x-road
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Extra annotations applied to every pod (spec.template.metadata.annotations).
+  extraPodAnnotations: {}
+
+imagePullSecrets: []
+
+# The dev image runs postgres + supervisord + nginx as root (see
+# development/docker/central-server/Dockerfile and files/cs-entrypoint.sh) —
+# it cannot honor the Security Server chart's rootless/read-only-rootfs
+# securityContext. Left empty (all defaults) rather than faked strict, so the
+# chart doesn't claim a hardening posture it can't deliver.
+securityContext:
+  pod: {}
+  container: {}
+
+services:
+  central-server:
+    otelServiceName: xroad-central-server
+    imageName: central-server-dev
+    resources:
+      requests:
+        memory: 512Mi
+      limits:
+        memory: 3Gi
+    # Ports verified against development/docker/.../compose.aux.yaml's `cs` service.
+    ports:
+      - port: 4000
+        name: https
+      - port: 5432
+        name: postgres
+      - port: 6183
+        name: issuer-did
+      - port: 6185
+        name: issuer-issuance
+      - port: 6187
+        name: issuer-statuslist
+      - port: 9994
+        name: signer-debug
+    readinessProbe:
+      # Same empty-path placeholder as the Security Server chart's
+      # proxy-ui-api entry: no lightweight unauthenticated health endpoint
+      # confirmed yet on the admin UI port. Replace with a real path once
+      # one's identified.
+      path: ""
+      port: 4000
+      scheme: HTTPS
+    serviceAccount:
+      annotations: {}
+    env:
+      XROAD_HOST: "central-server"
