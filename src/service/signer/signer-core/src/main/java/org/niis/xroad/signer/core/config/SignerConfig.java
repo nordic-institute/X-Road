@@ -49,6 +49,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.niis.xroad.signer.common.config.SignerKeyProperties;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;

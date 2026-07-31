@@ -31,11 +31,11 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
-import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.CERTIFICATE_INFO_SENSOR_INTERVAL;
-import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.DISK_SPACE_SENSOR_INTERVAL;
-import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.EXEC_LISTING_SENSOR_INTERVAL;
-import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.LIMIT_REMOTE_DATA_SET;
-import static org.niis.xroad.monitor.core.configuration.MonitorConfigKeys.SYSTEM_METRICS_SENSOR_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.MonitorConfigKeys.CERTIFICATE_INFO_SENSOR_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.MonitorConfigKeys.DISK_SPACE_SENSOR_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.MonitorConfigKeys.EXEC_LISTING_SENSOR_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.MonitorConfigKeys.LIMIT_REMOTE_DATA_SET;
+import static org.niis.xroad.common.properties.config.keys.MonitorConfigKeys.SYSTEM_METRICS_SENSOR_INTERVAL;
 
 /** Env-monitor configuration ({@code xroad.env-monitor.*}). */
 @RequiredArgsConstructor

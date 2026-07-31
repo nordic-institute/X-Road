@@ -28,6 +28,7 @@ dependencies {
 
   implementation(project(":lib:globalconf-spring"))
   implementation(project(":service:signer:signer-client-spring"))
+  implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:serverconf-spring"))
   implementation(project(":lib:rpc-spring"))
   implementation(project(":common:common-admin-api"))
@@ -35,6 +36,7 @@ dependencies {
   implementation(project(":common:common-management-request"))
   implementation(project(":common:common-api-throttling"))
   implementation(project(":common:common-pgp"))
+  implementation(project(":lib:messagelog-core"))
   implementation(project(":lib:properties-spring"))
   implementation(project(":lib:properties-core"))
   implementation(project(":security-server:openapi-model"))

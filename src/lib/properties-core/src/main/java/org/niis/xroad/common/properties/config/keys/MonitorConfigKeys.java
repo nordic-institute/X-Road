@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core.configuration;
+package org.niis.xroad.common.properties.config.keys;
 
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
@@ -33,9 +33,15 @@ import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
 
-/** DSL config keys for the {@code xroad.env-monitor} namespace. */
+/**
+ * DSL config keys for the {@code xroad.env-monitor} namespace.
+ *
+ * <p>Not part of {@code ConfigKeyProviders.allProviders()}: that list feeds the Quarkus defaults config
+ * source, which would then publish env-monitor defaults into apps that do not map the prefix. The monitor
+ * registers it directly; the Security Server admin-service lists it for the system-parameters catalogue.
+ */
 @SuppressWarnings("checkstyle:MagicNumber")
-final class MonitorConfigKeys implements ConfigKeyProvider {
+public final class MonitorConfigKeys implements ConfigKeyProvider {
 
     private static final Prefix ENV_MONITOR = Prefix.of(Category.MONITOR, "xroad.env-monitor");
     private static final Prefix RPC = ENV_MONITOR.subPrefix("rpc");
@@ -45,61 +51,69 @@ final class MonitorConfigKeys implements ConfigKeyProvider {
     // --- xroad.env-monitor ------------------------------------------------------
 
     /** {@code xroad.env-monitor.certificate-info-sensor-interval} */
-    static final ConfigKey<Duration> CERTIFICATE_INFO_SENSOR_INTERVAL = ENV_MONITOR
+    public static final ConfigKey<Duration> CERTIFICATE_INFO_SENSOR_INTERVAL = ENV_MONITOR
             .keyDuration("certificate-info-sensor-interval")
             .withDefaultValue(Duration.ofDays(1))
+            .exposedInUi()
             .build();
 
     /** {@code xroad.env-monitor.disk-space-sensor-interval} */
-    static final ConfigKey<Duration> DISK_SPACE_SENSOR_INTERVAL = ENV_MONITOR
+    public static final ConfigKey<Duration> DISK_SPACE_SENSOR_INTERVAL = ENV_MONITOR
             .keyDuration("disk-space-sensor-interval")
             .withDefaultValue(Duration.ofSeconds(60))
+            .exposedInUi()
             .build();
 
     /** {@code xroad.env-monitor.exec-listing-sensor-interval} */
-    static final ConfigKey<Duration> EXEC_LISTING_SENSOR_INTERVAL = ENV_MONITOR
+    public static final ConfigKey<Duration> EXEC_LISTING_SENSOR_INTERVAL = ENV_MONITOR
             .keyDuration("exec-listing-sensor-interval")
             .withDefaultValue(Duration.ofSeconds(60))
+            .exposedInUi()
             .build();
 
     /** {@code xroad.env-monitor.system-metrics-sensor-interval} */
-    static final ConfigKey<Duration> SYSTEM_METRICS_SENSOR_INTERVAL = ENV_MONITOR
+    public static final ConfigKey<Duration> SYSTEM_METRICS_SENSOR_INTERVAL = ENV_MONITOR
             .keyDuration("system-metrics-sensor-interval")
             .withDefaultValue(Duration.ofSeconds(5))
+            .exposedInUi()
             .build();
 
     /** {@code xroad.env-monitor.limit-remote-data-set} */
-    static final ConfigKey<Boolean> LIMIT_REMOTE_DATA_SET = ENV_MONITOR
+    public static final ConfigKey<Boolean> LIMIT_REMOTE_DATA_SET = ENV_MONITOR
             .bool("limit-remote-data-set")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
 
     // --- xroad.env-monitor.rpc --------------------------------------------------
 
     /** {@code xroad.env-monitor.rpc.enabled} */
-    static final ConfigKey<Boolean> RPC_ENABLED = RPC
+    public static final ConfigKey<Boolean> RPC_ENABLED = RPC
             .bool("enabled")
             .withDefaultValue(true)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.env-monitor.rpc.listen-address} */
-    static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
+    public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
             .string("listen-address")
             .withDefaultValue("127.0.0.1")
             .withContainerDefaultValue("0.0.0.0")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.env-monitor.rpc.port} */
-    static final ConfigKey<Integer> RPC_PORT = RPC
+    public static final ConfigKey<Integer> RPC_PORT = RPC
             .integer("port")
             .withDefaultValue(2552)
+            .exposedInUi()
             .build();
 
     private MonitorConfigKeys() {
     }
 
     /** @return the provider singleton. */
-    static MonitorConfigKeys instance() {
+    public static MonitorConfigKeys instance() {
         return INSTANCE;
     }
 

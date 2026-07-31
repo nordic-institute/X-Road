@@ -30,7 +30,7 @@ package org.niis.xroad.signer.core.tokenmanager.token;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
-import org.niis.xroad.signer.core.config.SignerConfigKeys;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

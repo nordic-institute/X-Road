@@ -33,11 +33,11 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import java.time.Duration;
 import java.util.Map;
 
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.AUTOLOGIN_ENABLED;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.AUTOLOGIN_RETRY_DELAY;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.AUTOLOGIN_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.AUTOLOGIN_RETRY_MAX_ATTEMPTS;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.AUTOLOGIN_RETRY_TIMEOUT;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.AUTOLOGIN_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.AUTOLOGIN_RETRY_DELAY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.AUTOLOGIN_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.AUTOLOGIN_RETRY_MAX_ATTEMPTS;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.AUTOLOGIN_RETRY_TIMEOUT;
 
 /**
  * Autologin scalar properties ({@code xroad.signer.autologin.*}).

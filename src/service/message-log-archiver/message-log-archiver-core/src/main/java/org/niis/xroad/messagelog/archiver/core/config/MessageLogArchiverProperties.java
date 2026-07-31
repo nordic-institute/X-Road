@@ -33,13 +33,13 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.util.Optional;
 
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.ARCHIVE_PATH;
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.ARCHIVE_TRANSFER_COMMAND;
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.CLEAN_KEEP_RECORDS_FOR;
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.CLEAN_TRANSACTION_BATCH_SIZE;
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.HASH_ALGO_ID;
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.MAX_FILESIZE;
-import static org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys.TRANSACTION_BATCH_SIZE;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.ARCHIVE_PATH;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.ARCHIVE_TRANSFER_COMMAND;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.CLEAN_KEEP_RECORDS_FOR;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.CLEAN_TRANSACTION_BATCH_SIZE;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.HASH_ALGO_ID;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.MAX_FILESIZE;
+import static org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys.TRANSACTION_BATCH_SIZE;
 
 /** Message-log archiver configuration ({@code xroad.message-log-archiver.*}). */
 @RequiredArgsConstructor

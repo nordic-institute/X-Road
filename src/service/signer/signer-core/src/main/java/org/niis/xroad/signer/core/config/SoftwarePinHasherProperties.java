@@ -28,10 +28,10 @@ package org.niis.xroad.signer.core.config;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.PIN_HASHER_HASH_LENGTH;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.PIN_HASHER_ITERATIONS;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.PIN_HASHER_MEMORY_KB;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.PIN_HASHER_PARALLELISM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_HASH_LENGTH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_ITERATIONS;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_MEMORY_KB;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_PARALLELISM;
 
 /**
  * Argon2 PIN-hashing parameters ({@code xroad.signer.pin-hasher.*}).

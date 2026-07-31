@@ -29,24 +29,25 @@ import ee.ria.xroad.common.ServicePrioritizationStrategy;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.signer.common.config.SignerModuleConfig;
 
 import java.util.Map;
 
 import static java.lang.Math.max;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.CSR_SIGNATURE_DIGEST_ALGORITHM;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.ENFORCE_TOKEN_PIN_POLICY;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.KEY_LENGTH;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.KEY_NAMED_CURVE;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.MODULES;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.MODULE_MANAGER_UPDATE_INTERVAL;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.OCSP_CACHE_PATH;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.OCSP_PRIORITIZATION_STRATEGY;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.OCSP_RESPONSE_RETRIEVAL_ACTIVE;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.OCSP_RETRY_DELAY;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.SELFSIGNED_CERT_DIGEST_ALGORITHM;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.SOFT_TOKEN_EC_SIGN_MECHANISM;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.SOFT_TOKEN_RSA_SIGN_MECHANISM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.CSR_SIGNATURE_DIGEST_ALGORITHM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.ENFORCE_TOKEN_PIN_POLICY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.KEY_LENGTH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.KEY_NAMED_CURVE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.MODULES;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.MODULE_MANAGER_UPDATE_INTERVAL;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_CACHE_PATH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_PRIORITIZATION_STRATEGY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_RESPONSE_RETRIEVAL_ACTIVE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_RETRY_DELAY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SELFSIGNED_CERT_DIGEST_ALGORITHM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SOFT_TOKEN_EC_SIGN_MECHANISM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SOFT_TOKEN_RSA_SIGN_MECHANISM;
 
 /** Signer core properties ({@code xroad.signer.*}). */
 @RequiredArgsConstructor

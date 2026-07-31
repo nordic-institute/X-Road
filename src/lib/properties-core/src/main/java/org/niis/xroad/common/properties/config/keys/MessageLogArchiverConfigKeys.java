@@ -24,14 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.messagelog.archiver.core.config;
+package org.niis.xroad.common.properties.config.keys;
 
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
-/** DSL config keys for the {@code xroad.message-log-archiver} namespace. */
+/**
+ * DSL config keys for the {@code xroad.message-log-archiver} namespace.
+ *
+ * <p>Not part of {@code ConfigKeyProviders.allProviders()}: that list feeds the Quarkus defaults config
+ * source, which would then publish archiver defaults into apps that do not map the prefix. The archiver
+ * registers it directly; the Security Server admin-service lists it for the system-parameters catalogue.
+ */
 @SuppressWarnings("checkstyle:MagicNumber")
 public final class MessageLogArchiverConfigKeys implements ConfigKeyProvider {
 
@@ -40,44 +46,51 @@ public final class MessageLogArchiverConfigKeys implements ConfigKeyProvider {
     private static final MessageLogArchiverConfigKeys INSTANCE = new MessageLogArchiverConfigKeys();
 
     /** {@code xroad.message-log-archiver.clean-transaction-batch-size} */
-    static final ConfigKey<Integer> CLEAN_TRANSACTION_BATCH_SIZE = ARCHIVER
+    public static final ConfigKey<Integer> CLEAN_TRANSACTION_BATCH_SIZE = ARCHIVER
             .integer("clean-transaction-batch-size")
             .withDefaultValue(10000)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-archiver.clean-keep-records-for} */
-    static final ConfigKey<Integer> CLEAN_KEEP_RECORDS_FOR = ARCHIVER
+    public static final ConfigKey<Integer> CLEAN_KEEP_RECORDS_FOR = ARCHIVER
             .integer("clean-keep-records-for")
             .withDefaultValue(30)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-archiver.max-filesize} */
-    static final ConfigKey<Integer> MAX_FILESIZE = ARCHIVER
+    public static final ConfigKey<Integer> MAX_FILESIZE = ARCHIVER
             .integer("max-filesize")
             .withDefaultValue(33554432)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-archiver.transaction-batch-size} */
-    static final ConfigKey<Integer> TRANSACTION_BATCH_SIZE = ARCHIVER
+    public static final ConfigKey<Integer> TRANSACTION_BATCH_SIZE = ARCHIVER
             .integer("transaction-batch-size")
             .withDefaultValue(10000)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-archiver.archive-path} */
-    static final ConfigKey<String> ARCHIVE_PATH = ARCHIVER
+    public static final ConfigKey<String> ARCHIVE_PATH = ARCHIVER
             .string("archive-path")
             .withDefaultValue("/var/lib/xroad")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-archiver.archive-transfer-command} — optional, no default. */
-    static final ConfigKey<String> ARCHIVE_TRANSFER_COMMAND = ARCHIVER
+    public static final ConfigKey<String> ARCHIVE_TRANSFER_COMMAND = ARCHIVER
             .string("archive-transfer-command")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-archiver.hash-algo-id} */
-    static final ConfigKey<String> HASH_ALGO_ID = ARCHIVER
+    public static final ConfigKey<String> HASH_ALGO_ID = ARCHIVER
             .string("hash-algo-id")
             .withDefaultValue("SHA-512")
+            .exposedInUi()
             .build();
 
     private MessageLogArchiverConfigKeys() {

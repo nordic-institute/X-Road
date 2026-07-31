@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.signer.core.config.SignerModuleConfig;
+import org.niis.xroad.signer.common.config.SignerModuleConfig;
 import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.util.Collection;

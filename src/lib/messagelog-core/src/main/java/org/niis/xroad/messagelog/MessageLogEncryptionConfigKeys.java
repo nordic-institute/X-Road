@@ -61,17 +61,20 @@ public final class MessageLogEncryptionConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> ARCHIVE_ENCRYPTION_ENABLED = ARCHIVE
             .bool("encryption-enabled")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-encryption.archive.default-key-id}. */
     public static final ConfigKey<String> ARCHIVE_DEFAULT_KEY_ID = ARCHIVE
             .string("default-key-id")
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-encryption.archive.grouping-strategy}. */
     public static final ConfigKey<GroupingStrategy> ARCHIVE_GROUPING_STRATEGY = ARCHIVE
             .keyEnum("grouping-strategy", GroupingStrategy.class)
             .defaultValue(GroupingStrategy.NONE)
+            .exposedInUi()
             .build();
 
     /**
@@ -88,12 +91,14 @@ public final class MessageLogEncryptionConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> DB_ENCRYPTION_ENABLED = DB
             .bool("encryption-enabled")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
 
     /** {@code xroad.message-log-encryption.db.key-id}. */
     public static final ConfigKey<String> DB_KEY_ID = DB
             .string("key-id")
             .withDefaultValue("default")
+            .exposedInUi()
             .build();
 
     private MessageLogEncryptionConfigKeys() {

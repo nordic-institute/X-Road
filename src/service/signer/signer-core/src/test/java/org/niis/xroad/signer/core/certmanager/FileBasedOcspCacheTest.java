@@ -37,7 +37,7 @@ import org.mockito.Mockito;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
-import org.niis.xroad.signer.core.config.SignerConfigKeys;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 

@@ -46,11 +46,11 @@ import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.archive.EncryptionConfig;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
-import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 import org.niix.xroad.common.pgp.test.StreamingPgpDecryptor;
 

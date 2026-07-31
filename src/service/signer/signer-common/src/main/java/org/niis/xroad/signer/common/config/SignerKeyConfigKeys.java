@@ -41,11 +41,13 @@ public final class SignerKeyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> KEY_LENGTH = SIGNER
             .integer("key-length")
             .withDefaultValue(2048)
+            .exposedInUi()
             .build();
 
     public static final ConfigKey<String> KEY_NAMED_CURVE = SIGNER
             .string("key-named-curve")
             .withDefaultValue("secp256r1")
+            .exposedInUi()
             .build();
 
     private SignerKeyConfigKeys() {

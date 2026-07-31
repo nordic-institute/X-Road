@@ -29,9 +29,9 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.RPC_ENABLED;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.RPC_LISTEN_ADDRESS;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.RPC_PORT;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.RPC_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.RPC_LISTEN_ADDRESS;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.RPC_PORT;
 
 /** Signer RPC server properties ({@code xroad.signer.rpc.*}). */
 @RequiredArgsConstructor

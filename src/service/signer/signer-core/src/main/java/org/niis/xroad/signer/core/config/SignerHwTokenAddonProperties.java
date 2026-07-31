@@ -30,12 +30,12 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.HWTOKEN_ENABLED;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.HWTOKEN_POOL_ENABLED;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.HWTOKEN_POOL_MAX_IDLE;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.HWTOKEN_POOL_MAX_TOTAL;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.HWTOKEN_POOL_MIN_IDLE;
-import static org.niis.xroad.signer.core.config.SignerConfigKeys.HWTOKEN_SESSION_ACQUIRE_TIMEOUT;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_MAX_IDLE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_MAX_TOTAL;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_MIN_IDLE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_SESSION_ACQUIRE_TIMEOUT;
 
 /** Hardware-token addon properties ({@code xroad.signer.addon.hwtoken.*}). */
 @RequiredArgsConstructor

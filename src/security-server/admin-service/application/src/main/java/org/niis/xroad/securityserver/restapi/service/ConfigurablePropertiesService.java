@@ -40,14 +40,19 @@ import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
+import org.niis.xroad.common.properties.config.keys.MonitorConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
+import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,8 +80,9 @@ public class ConfigurablePropertiesService {
 
     /**
      * Providers whose exposed keys make up the Security Server's aggregated system-parameters catalogue.
-     * Kept in sync with the residual {@code configurable-properties.yaml}: any provider whose keys should
-     * surface in the system-parameters UI belongs here instead of the yaml.
+     * Any provider whose keys should surface in the system-parameters UI belongs here instead of the
+     * residual {@code configurable-properties.yaml}. The last five live outside properties-core, in the
+     * lightest module that can hold them, and reach this list through a compile dependency.
      */
     private static final List<ConfigKeyProvider> SS_PROVIDERS = List.of(
             CommonConfigKeys.instance(),
@@ -89,7 +95,12 @@ public class ConfigurablePropertiesService {
             OcspVerifierConfigKeys.instance(),
             GlobalConfConfigKeys.instance(),
             ServerConfConfigKeys.instance(),
-            HealthCheckConfigKeys.instance());
+            HealthCheckConfigKeys.instance(),
+            SignerConfigKeys.instance(),
+            SignerKeyConfigKeys.instance(),
+            MonitorConfigKeys.instance(),
+            MessageLogArchiverConfigKeys.instance(),
+            MessageLogEncryptionConfigKeys.instance());
 
     private final ConfigurablePropertiesDefinition configurableProperties;
     private final ConfigurationPropertyRepository repository;
@@ -205,10 +216,13 @@ public class ConfigurablePropertiesService {
     private static String categoryToScope(Category category) {
         return switch (category) {
             case PROXY -> "proxy";
+            case SIGNER -> "signer";
             case PROXY_UI_API -> "proxy-ui-api";
             case OP_MONITOR_DAEMON -> "op-monitor-daemon";
+            case MONITOR -> "monitor";
             case CONFIGURATION_CLIENT -> "configuration-client";
             case AUXILIARY_SERVICE -> "auxiliary-service";
+            case MESSAGE_LOG_ARCHIVER -> "message-log-archiver";
             case COMMON -> null;
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);

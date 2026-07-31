@@ -43,6 +43,7 @@ import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.LogRecord;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
@@ -52,7 +53,6 @@ import org.niis.xroad.messagelog.archive.DisabledEncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.EncryptionConfigProvider;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 import org.niis.xroad.messagelog.archive.VaultServerEncryptionConfigProvider;
-import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.archiver.core.config.MessageLogArchiverProperties;
 
 import java.io.IOException;
