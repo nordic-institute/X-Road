@@ -22,7 +22,8 @@ Bring up the X-Road k8s environment: preflight → (optionally) build images →
 ansible site.yml → port-forward → (optionally) hurl init-ss2.
 
 Options:
-  --env=dev|test|eks         Target environment (default: dev)
+  --env=dev|test|eks|e2e     Target environment (default: dev). 'e2e' brings up the minimal
+                             single-SS topology used by the E2E suite's k8s env-mode.
   --recreate                 Tear down environment before bringing it up
   --skip-images              Skip the Security Server image build
   --skip-forward             Skip kubectl port-forwards
@@ -100,7 +101,7 @@ handleBuildImages() {
     log_info "Skipping image build"
     return
   fi
-  if [[ "${ENV_NAME}" != "dev" ]]; then
+  if [[ "${ENV_NAME}" != "dev" && "${ENV_NAME}" != "e2e" ]]; then
     log_info "Skipping image build for env=${ENV_NAME} (uses artifactory images)"
     return
   fi
@@ -131,6 +132,10 @@ handlePortForward() {
 }
 
 handleInitialize() {
+  if [[ "${ENV_NAME}" == "e2e" ]]; then
+    log_info "Skipping hurl init (env=e2e has no Central Server yet; layered on in a later slice)"
+    return
+  fi
   [[ "${SKIP_INIT}" == true ]] && { log_info "Skipping hurl init"; return; }
   local init_script="${CORE_ROOT}/scripts/env-k8s/init-ss2.sh"
   if [[ ! -x "${init_script}" ]]; then

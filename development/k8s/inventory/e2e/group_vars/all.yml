@@ -1,0 +1,63 @@
+---
+# Minimal single-SS topology for the E2E `k8s` env-mode tracer bullet: kind cluster + Security
+# Server chart + its serverconf/messagelog/opmonitor Postgres + OpenBao. No Central Server, no
+# second Security Server, no DSP, no e2e-fixtures/hurl bootstrap — those are layered in later
+# slices of .workbench/20260730-k8s-e2e-variant/PRD.md.
+
+cluster_provider: kind
+kind_cluster_name: xroad-e2e-cluster
+kind_worker_count: 1
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+security_server_namespace: ss
+monitoring_namespace: ss-monitoring
+
+xroad_image_registry: "localhost:5555"
+xroad_image_tag: "latest"
+serverconf_init_image: "localhost:5555/ss-db-init:latest"
+jvm_metrics_enabled: false
+
+charts_root: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts"
+
+openbao_init_chart_repo: ""
+openbao_init_chart: "{{ charts_root }}/openbao-init"
+openbao_init_chart_version: ""
+
+security_server_chart_repo: ""
+security_server_chart: "{{ charts_root }}/security-server"
+security_server_chart_version: ""
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+containerd_config_patches:
+  - |
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]
+      endpoint = ["http://host.docker.internal:5555"]
+
+external_service_host: host.docker.internal
+
+# No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, single-SS.
+external_service_bridges: []
+
+# DSP is out of scope for this tracer bullet: the security_server role skips provisioning the
+# ds-*-service databases and omits the ds-control-plane/ds-identity-hub/ds-issuer-service overrides
+# from the chart values, leaving them at the chart's own default (replicas: 0).
+proxy_dsp_enabled: false
+
+deploy_prometheus: false
+deploy_netdata: false
+
+openbao_ha_replicas: 1
+openbao_global_tls_disable: true
+openbao_tls_mode: self_signed
+
+port_forwards:
+  - {name: proxy-ui-api, namespace: "{{ security_server_namespace }}", resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8443:8443"}

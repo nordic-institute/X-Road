@@ -5,13 +5,12 @@
     tasks_from: provision_db.yml
   vars:
     db: "{{ item }}"
-  loop:
-    - "{{ serverconf_db }}"
-    - "{{ messagelog_db }}"
-    - "{{ opmonitor_db }}"
-    - "{{ ds_control_plane_db }}"
-    - "{{ ds_identity_hub_db }}"
-    - "{{ ds_issuer_service_db }}"
+  loop: >-
+    {{
+      [serverconf_db, messagelog_db, opmonitor_db]
+      + ((proxy_dsp_enabled | default(true) | bool)
+         | ternary([ds_control_plane_db, ds_identity_hub_db, ds_issuer_service_db], []))
+    }}
   loop_control:
     label: "{{ item.name }}"
 

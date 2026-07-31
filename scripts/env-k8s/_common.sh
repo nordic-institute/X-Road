@@ -46,9 +46,9 @@ require_bin() {
 validate_env_arg() {
   local env_name="$1"
   case "${env_name}" in
-    dev|test|eks) return 0 ;;
+    dev|test|eks|e2e) return 0 ;;
     *)
-      log_error "Unknown environment: ${env_name} (expected dev|test|eks)"
+      log_error "Unknown environment: ${env_name} (expected dev|test|eks|e2e)"
       return 1
       ;;
   esac

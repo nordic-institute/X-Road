@@ -115,6 +115,7 @@ services:
         subPath: openbao.crt
         name: op-monitor-openbao-tls-certificate
 
+{% if proxy_dsp_enabled %}
   # DSP services — bump replicas from chart default of 0. DB clusters are
   # provisioned by the cloudnative_pg role (see ds_*_db vars).
   # ds-* services talk to OpenBao over HTTPS via the Quarkus vault client,
@@ -181,6 +182,7 @@ services:
         name: {{ svc }}-ds-https
 {% endif %}
 {% endfor %}
+{% endif %}
   auxiliary-service:
     env:
 {% if serverconf_init_image | length > 0 %}

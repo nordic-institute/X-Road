@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,46 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.apitest.core.config;
+package org.niis.xroad.e2e;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 /**
- * Configuration properties for the api-test-core framework. Stripped of Cucumber, Feign, and Selenide
- * sections present in the legacy test-framework-core — this module carries none of those dependencies.
+ * Single-SS k8s topology configuration for the tracer-bullet slice. The harness reaches the
+ * in-cluster Security Server through the {@code kubectl port-forward} listeners started by
+ * {@code core/scripts/env-k8s}, so the host defaults to localhost with the forwarded proxy port.
+ * Each value is overridable via the environment variable named in parentheses.
  */
-@ConfigMapping(prefix = "test-framework")
-public interface ApiTestCoreProperties {
+@ConfigMapping(prefix = "test-framework.k8s")
+public interface K8sEnvProperties {
 
-    @WithDefault("build/")
-    @WithName("working-dir")
-    String workingDir();
+    /** Security Server 0 namespace in the kind cluster (TEST_FRAMEWORK_K8S_SS0_NAMESPACE). */
+    @WithDefault("ss")
+    @WithName("ss0-namespace")
+    String ss0Namespace();
 
-    @WithDefault("build/resources/intTest/")
-    @WithName("resource-dir")
-    String resourceDir();
+    /** Security Server 0 host, reached via kubectl port-forward (TEST_FRAMEWORK_K8S_SS0_HOST). */
+    @WithDefault("localhost")
+    @WithName("ss0-host")
+    String ss0Host();
 
-    /**
-     * Target environment the test suite runs against: {@code compose} (harness-managed Docker
-     * Compose stack, the default), {@code lxd} (pre-provisioned LXD containers), or {@code k8s}
-     * (pre-provisioned kind cluster).
-     */
-    @WithDefault("compose")
-    @WithName("env-mode")
-    String envMode();
+    /** Forwarded proxy port on ss0Host (TEST_FRAMEWORK_K8S_PROXY_PORT). */
+    @WithDefault("8080")
+    @WithName("proxy-port")
+    int proxyPort();
 
-    @WithName("allure")
-    Allure allure();
-
-    interface Allure {
-        @WithDefault("build/allure-results")
-        @WithName("results-directory")
-        String resultsDirectory();
-
-        @WithDefault("true")
-        @WithName("generate-report")
-        boolean generateReport();
-    }
+    /** Member identifier for ss0 (TEST_FRAMEWORK_K8S_SS0_MEMBER_ID). */
+    @WithDefault("DEV:COM:1234")
+    @WithName("ss0-member-id")
+    String ss0MemberId();
 }
