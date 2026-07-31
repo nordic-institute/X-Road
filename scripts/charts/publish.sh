@@ -65,6 +65,12 @@ while [[ $# -gt 0 ]]; do
             PUSH="true"
             shift
             ;;
+        all)
+            # Only supported positional argument today — the script always
+            # processes the full CHARTS array below; "all" just names that
+            # behavior explicitly instead of being rejected as unknown.
+            shift
+            ;;
         -*)
             log_error "Unknown option: $1"
             show_help
@@ -240,8 +246,15 @@ for chart_rel_path in "${CHARTS[@]}"; do
         if [[ ! "$REGISTRY_URL" =~ ^oci:// ]]; then
             REGISTRY_URL="oci://${REGISTRY_URL}"
         fi
-        
-        if ! helm push "$PACKAGE_FILE" "$REGISTRY_URL" 2>&1; then
+
+        # localhost registries here are the plain-HTTP local test registry
+        # (see test-local.sh); helm push otherwise assumes HTTPS.
+        PUSH_FLAGS=()
+        if [[ "$REGISTRY" == "localhost:"* ]]; then
+            PUSH_FLAGS+=("--plain-http")
+        fi
+
+        if ! helm push "$PACKAGE_FILE" "$REGISTRY_URL" "${PUSH_FLAGS[@]}" 2>&1; then
             log_error "  Failed to push to $REGISTRY_URL"
             mv "$CHART_PATH/Chart.yaml.bak" "$CHART_PATH/Chart.yaml" 2>/dev/null || true
             FAILED_CHARTS=$((FAILED_CHARTS + 1))

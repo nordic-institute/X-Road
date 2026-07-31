@@ -1,0 +1,74 @@
+name: Chart lint/template/smoke
+
+# Fast, cheap gate for the dev-only k8s charts (central-server, e2e-fixtures):
+# helm lint (informational), helm template render assertions (the real
+# gate), and the existing local-OCI-registry smoke path. Runs independently
+# of build-and-package, so chart breakage surfaces without waiting on the
+# full build or the E2E lanes.
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+
+jobs:
+  chart-lint-smoke:
+    name: chart-lint-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ inputs.ref }}
+
+      # Pinned to the current stable Helm 3.x line, not 4.x — the k8s dev/E2E
+      # ansible tooling's kubernetes.core collection is not yet Helm-4-ready
+      # (see development/k8s/galaxy.yml).
+      - name: Setup Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: 'v3.21.3'
+
+      # `helm lint` cannot parse templates/services/all.yaml ("invalid Yaml
+      # document separator: apiVersion: v1") on both new charts *and* on the
+      # pre-existing, unmodified security-server chart they mirror — verified
+      # across every Helm release from 3.12 through 4.2.3 (current latest).
+      # It is a version-independent lint limitation with this multi-document,
+      # per-service range template, not a regression. Kept non-blocking for
+      # visibility; `helm template` below is the real correctness gate.
+      - name: Helm lint (informational — see comment above)
+        continue-on-error: true
+        run: |
+          helm lint deployment/security-server/k8s/charts/central-server
+          helm lint deployment/security-server/k8s/charts/e2e-fixtures
+
+      - name: Helm template render assertions
+        run: ./scripts/charts/render-assert.sh
+
+      - name: Start local Helm OCI registry
+        run: docker run -d -p 5555:5000 --name local-registry registry:2
+
+      - name: Wait for local registry
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5555/v2/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::local Helm OCI registry did not become ready" >&2
+          exit 1
+
+      - name: Chart smoke test (package + push + verify)
+        run: ./scripts/charts/test-local.sh
+
+      - name: Stop local Helm OCI registry
+        if: always()
+        run: docker rm -f local-registry

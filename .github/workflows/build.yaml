@@ -111,6 +111,17 @@ jobs:
       ref: ${{ github.ref }}
       sha: ${{ github.sha }}
 
+  # Cheap chart-regression gate: helm lint/template/smoke on the k8s charts.
+  # Runs in parallel with build-and-package (no dependency on its outputs),
+  # so chart breakage fails fast without waiting on the full build or E2E lanes.
+  chart-lint-smoke:
+    name: chart-lint-smoke
+    uses: ./.github/workflows/_test-charts.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+
   build-summary:
     name: Build Summary
     needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services]
