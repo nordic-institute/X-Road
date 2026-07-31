@@ -205,12 +205,28 @@ hurl:
   # shared `svc.cluster.local` search domain (same convention as ss0_host).
   vars:
     cs_host: central-server.cs
-    ca_host: testca
+    # ca_host is namespace-qualified for the same cross-namespace reason as
+    # cs_host: the ACME/OCSP/TSA responder URLs (http://<ca>:8887/8888/8899)
+    # are registered in global conf and read by the ss0/ss1 signers. A bare
+    # `testca` resolves only within the cs namespace, so the signers could not
+    # fetch OCSP responses (certs then unusable → signer.unknown_member on
+    # auth-cert registration). tsa_url is captured from the CS's registered TSA
+    # URL, so it inherits this qualification.
+    ca_host: testca.cs
     ss0_host: proxy-ui-api.ss0
     ss1_host: proxy-ui-api.ss1
     ss0_proxy: proxy.ss0
     ss1_proxy: proxy.ss1
     is_host: central-server
+    # Service backends the provider SS (ss0) routes to during the message-flow
+    # scenarios. vars.env defaults them to bare `issoap`/`isrest`/`isopenapi`
+    # (fine on compose's single docker network); in k8s they live in the cs
+    # namespace while ss0 runs in the ss0 namespace, so they are qualified here.
+    # Full URLs (not just hosts) because hurl variables are whole values.
+    example_service_wsdl: "http://issoap.cs:8080/example-adapter/Endpoint?wsdl"
+    example_service_address: "http://issoap.cs:8080/example-adapter/Endpoint"
+    is_rest_url: "http://isrest.cs:8080/integration/mock_1"
+    is_openapi_url: "http://isopenapi.cs:8080/v3/api-docs"
   # setup.hurl's last two entries (see the "DSP readiness gates (LAST)"
   # comment in the file) poll each SS's HOST participant-context credential
   # status — meaningless when DSP is off (ds-control-plane at replicas: 0,
