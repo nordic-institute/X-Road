@@ -48,9 +48,9 @@ services:
     # exposed Service port for cross-namespace reachability.
     ports:
       - port: 80
-        name: globalconf-http
+        name: gconf-http
       - port: 443
-        name: globalconf-https
+        name: gconf-https
       - port: 4000
         name: https
       - port: 5432
