@@ -15,6 +15,7 @@ argument_specs:
       jvm_metrics_enabled: {type: bool, default: false}
       openbao_tls_secret_name: {type: str, default: openbao-server-tls}
       configuration_client_update_interval: {type: str, default: "10"}
+      op_monitor_records_available_offset_seconds: {type: str, default: ""}
       proxy_dsp_enabled: {type: bool, default: true}
       dsp_participant_context_id: {type: str, default: ""}
       signer_hsm_enabled: {type: bool, default: false}

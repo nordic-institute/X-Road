@@ -182,6 +182,7 @@ services:
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_HOST: "op-monitor"
       XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_SCHEME: https
       XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
@@ -270,6 +271,8 @@ services:
     ports:
       - port: 4099
         name: http
+      - port: 2552
+        name: grpc
     debugPort: 9999
     readinessProbe:
       path: "/q/health/ready"

@@ -88,6 +88,12 @@ security_server_instances:
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
     signer_hsm_enabled: true
 
+# SsMonitoringTest queries getSecurityServerOperationalData a couple of seconds after logging
+# the request; op-monitor's default records-available-timestamp-offset-seconds (60s) would hide
+# that record from the query window. Shorten it to match the compose e2e/api-test op-monitor
+# override (compose.ss-opmonitor.e2e.yaml).
+op_monitor_records_available_offset_seconds: "1"
+
 deploy_prometheus: false
 deploy_netdata: false
 

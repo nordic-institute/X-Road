@@ -21,6 +21,12 @@ openbao_tls_secret_name: openbao-server-tls
 
 configuration_client_update_interval: "10"
 
+# op-monitor's records-available-timestamp-offset-seconds (chart/image default: 60s) delays how
+# soon a freshly-logged request is visible to getSecurityServerOperationalData — fine for
+# production, too slow for a test that queries within seconds of the request. Empty by default
+# (chart/image default of 60s stands, e.g. for dev/eks); set per-inventory (e.g. e2e) to shorten it.
+op_monitor_records_available_offset_seconds: ""
+
 proxy_dsp_enabled: true
 
 # Per-release signer-HSM stop-gap toggle (chart's signer.hsm.enabled — see

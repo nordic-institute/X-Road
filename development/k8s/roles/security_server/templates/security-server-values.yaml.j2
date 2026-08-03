@@ -31,6 +31,11 @@ init:
   'XROAD_PROXY_DSP_ENABLED': proxy_dsp_enabled | string | lower,
   'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt',
 } %}
+{% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
+{% set _ = proxy_env.update({
+  'XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS': op_monitor_records_available_offset_seconds,
+}) %}
+{% endif %}
 {% if ds_tls %}
 {% set _ = proxy_env.update({
   'XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID': ss2_advertised_host,
@@ -103,6 +108,9 @@ services:
     enabled: true
     env:
       QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+{% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
+      XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS: "{{ op_monitor_records_available_offset_seconds }}"
+{% endif %}
     extraVolumes:
       - name: op-monitor-openbao-tls-certificate
         secret:
