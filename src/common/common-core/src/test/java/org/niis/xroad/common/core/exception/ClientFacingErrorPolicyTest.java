@@ -24,16 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.common.core.exception;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.core.exception.ErrorOrigin;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +44,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOU
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
@@ -54,9 +53,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.NETWORK_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.SERVICE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
-class DspLegacyErrorMapperTest {
+class ClientFacingErrorPolicyTest {
 
-    static Stream<Arguments> dspToLegacyMappings() {
+    static Stream<Arguments> dspToClientFacingMappings() {
         return Stream.of(
                 Arguments.of(DSP_CATALOG_FETCH_FAILED, IO_ERROR),
                 Arguments.of(DSP_CATALOG_PARSE_FAILED, IO_ERROR),
@@ -68,26 +67,42 @@ class DspLegacyErrorMapperTest {
                 Arguments.of(DSP_DATAADDRESS_INVALID, SERVICE_FAILED),
                 Arguments.of(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
                 Arguments.of(DSP_TRANSFER_FAILED, SERVICE_FAILED),
-                Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR)
+                Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR),
+                Arguments.of(DSP_PROVISIONING_FAILED, INTERNAL_ERROR)
         );
     }
 
     @ParameterizedTest
-    @MethodSource("dspToLegacyMappings")
-    void dspCodeMapsToExpectedLegacyCode(ErrorCode dspCode, ErrorCode expectedLegacy) {
-        var ex = dspExceptionWithDoublePrefix(dspCode);
+    @MethodSource("dspToClientFacingMappings")
+    void dspCodeMapsToExpectedClientFacingCode(ErrorCode dspCode, ErrorCode expectedClientFacingCode) {
+        var ex = dspExceptionWithDoublePrefix(dspCode, "sensitive internal detail");
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
-        assertThat(result.isCausedBy(expectedLegacy)).isTrue();
+        assertThat(result.isCausedBy(expectedClientFacingCode)).isTrue();
     }
 
     @ParameterizedTest
-    @MethodSource("dspToLegacyMappings")
-    void dspCodeOriginalCodePrependedToMetadata(ErrorCode dspCode, ErrorCode ignoredLegacy) {
-        var ex = dspExceptionWithDoublePrefix(dspCode, "existing-meta");
+    @MethodSource("dspToClientFacingMappings")
+    void dspCodeDetailsReplacedWithGenericMessageNoLeak(ErrorCode dspCode, ErrorCode ignoredClientFacingCode) {
+        var ex = dspExceptionWithDoublePrefix(dspCode, "host=xrd-ss1.lxd candidates=3 dataset=urn:asset:1234");
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
+
+        assertThat(result.getDetails())
+                .isNotBlank()
+                .doesNotContain("xrd-ss1.lxd")
+                .doesNotContain("candidates=3")
+                .doesNotContainIgnoringCase("dsp_")
+                .doesNotContainIgnoringCase("edc");
+    }
+
+    @ParameterizedTest
+    @MethodSource("dspToClientFacingMappings")
+    void dspCodeOriginalCodePrependedToMetadata(ErrorCode dspCode, ErrorCode ignoredClientFacingCode) {
+        var ex = dspExceptionWithDoublePrefix(dspCode, null, "existing-meta");
+
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
         assertThat(result.getErrorCodeMetadata().getFirst())
                 .isEqualTo("originalCode=" + dspCode.code());
@@ -95,64 +110,67 @@ class DspLegacyErrorMapperTest {
     }
 
     @ParameterizedTest
-    @MethodSource("dspToLegacyMappings")
-    void dspCodeOriginalMetadataOrderPreserved(ErrorCode dspCode, ErrorCode ignoredLegacy) {
-        var ex = dspExceptionWithDoublePrefix(dspCode, "meta-a", "meta-b");
+    @MethodSource("dspToClientFacingMappings")
+    void dspCodeIdentifierAndCauseSurviveSanitizing(ErrorCode dspCode, ErrorCode ignoredClientFacingCode) {
+        var cause = new RuntimeException("root cause");
+        var ex = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy." + ErrorOrigin.DATASPACE.toPrefix() + dspCode.code()))
+                .identifier("fixed-uuid")
+                .cause(cause)
+                .details("some detail")
+                .build();
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
-
-        assertThat(result.getErrorCodeMetadata())
-                .containsExactly("originalCode=" + dspCode.code(), "meta-a", "meta-b");
-    }
-
-    @ParameterizedTest
-    @MethodSource("dspToLegacyMappings")
-    void dspCodeIdentifierAndDetailsSurviveMapping(ErrorCode dspCode, ErrorCode ignoredLegacy) {
-        var doublePrefix = buildDoublePrefixException(dspCode, "some detail", "fixed-uuid");
-
-        var result = DspLegacyErrorMapper.toLegacy(doublePrefix);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
         assertThat(result.getIdentifier()).isEqualTo("fixed-uuid");
-        assertThat(result.getDetails()).isEqualTo("some detail");
+        assertThat(result.getCause()).isSameAs(cause);
+    }
+
+    @Test
+    void resultHasNoOriginSetSoDownstreamPrefixSeamStillApplies() {
+        var ex = dspExceptionWithDoublePrefix(DSP_CATALOG_FETCH_FAILED, "detail");
+
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
+
+        assertThat(result.originatesFrom(ErrorOrigin.CLIENT)).isFalse();
+        assertThat(result.getErrorCode()).isEqualTo(IO_ERROR.code());
     }
 
     @Test
     void nonDspExceptionPassesThroughUnchanged() {
         var ex = XrdRuntimeException.systemException(NETWORK_ERROR, "plain network error");
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
         assertThat(result).isSameAs(ex);
-    }
-
-    @Test
-    void unknownDspCodePassesThroughUnchanged() {
-        var ex = XrdRuntimeException.systemException(ErrorCode.withCode("dataspace.dsp_unknown_future_code"))
-                .build();
-
-        var result = DspLegacyErrorMapper.toLegacy(ex);
-
-        assertThat(result).isSameAs(ex);
+        assertThat(result.getDetails()).isEqualTo("plain network error");
     }
 
     @Test
     void errorCodeWithNoDataspaceSegmentPassesThroughUnchanged() {
         var ex = XrdRuntimeException.systemException(NETWORK_ERROR, "no dataspace segment at all");
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
         assertThat(result).isSameAs(ex);
     }
 
     @Test
-    void emptyOriginalMetadataResultsInOnlyOriginalCodeEntry() {
-        var ex = dspExceptionWithDoublePrefix(DSP_CATALOG_FETCH_FAILED);
+    void unknownFutureDspCodeIsCollapsedToFallbackNotPassedThrough() {
+        var ex = XrdRuntimeException.systemException(ErrorCode.withCode("dataspace.dsp_unknown_future_code"))
+                .details("host=xrd-ss9.lxd unreachable via edc catalog API")
+                .build();
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
-        assertThat(result.getErrorCodeMetadata()).hasSize(1);
-        assertThat(result.getErrorCodeMetadata().getFirst())
-                .isEqualTo("originalCode=" + DSP_CATALOG_FETCH_FAILED.code());
+        assertThat(result).isNotSameAs(ex);
+        assertThat(result.getErrorCode()).isEqualTo(IO_ERROR.code());
+        assertThat(result.getDetails())
+                .isNotBlank()
+                .doesNotContain("xrd-ss9.lxd")
+                .doesNotContainIgnoringCase("dsp_")
+                .doesNotContainIgnoringCase("edc");
+        assertThat(result.getErrorCodeMetadata()).containsExactly("originalCode=dsp_unknown_future_code");
     }
 
     @Test
@@ -161,24 +179,28 @@ class DspLegacyErrorMapperTest {
                         ErrorCode.withCode("proxy.dataspace." + DSP_CATALOG_FETCH_FAILED.code()))
                 .build();
 
-        var result = DspLegacyErrorMapper.toLegacy(ex);
+        var result = ClientFacingErrorPolicy.sanitizeForConsumer(ex);
 
         assertThat(result.isCausedBy(IO_ERROR)).isTrue();
     }
 
-    private static XrdRuntimeException dspExceptionWithDoublePrefix(ErrorCode dspCode, String... metadata) {
-        return buildDoublePrefixException(dspCode, null, null, metadata);
+    @Test
+    void everyDspErrorCodeHasAClientFacingRule() {
+        var dspCodes = Arrays.stream(ErrorCode.values())
+                .filter(code -> code.name().startsWith("DSP_"))
+                .toList();
+
+        assertThat(dspCodes).isNotEmpty();
+        dspCodes.forEach(dspCode -> assertThat(ClientFacingErrorPolicy.resolve(dspCode))
+                .as("no ClientFacingRule registered for %s — every DSP_* code must be classified", dspCode)
+                .isPresent());
     }
 
-    private static XrdRuntimeException buildDoublePrefixException(ErrorCode dspCode, String details, String identifier,
-                                                                   String... metadata) {
+    private static XrdRuntimeException dspExceptionWithDoublePrefix(ErrorCode dspCode, String details, String... metadata) {
         var builder = XrdRuntimeException.systemException(
                 ErrorCode.withCode("proxy." + ErrorOrigin.DATASPACE.toPrefix() + dspCode.code()));
         if (details != null) {
             builder.details(details);
-        }
-        if (identifier != null) {
-            builder.identifier(identifier);
         }
         if (metadata.length > 0) {
             builder.metadataItems((Object[]) metadata);

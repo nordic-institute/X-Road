@@ -50,9 +50,13 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.xmlunit.assertj3.XmlAssert;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -371,7 +375,13 @@ public class ConfigurationAnchorServiceImplTest {
         }
 
         private String asString(final Instant instant) {
-            return instant.truncatedTo(ChronoUnit.MILLIS).toString();
+            try {
+                return DatatypeFactory.newInstance()
+                        .newXMLGregorianCalendar(GregorianCalendar.from(instant.atZone(ZoneOffset.UTC)))
+                        .toXMLFormat();
+            } catch (DatatypeConfigurationException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 
