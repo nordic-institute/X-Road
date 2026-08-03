@@ -23,6 +23,12 @@ configuration_client_update_interval: "10"
 
 proxy_dsp_enabled: true
 
+# Per-release signer-HSM stop-gap toggle (chart's signer.hsm.enabled — see
+# security-server chart values.yaml). Off by default: the chart's plain
+# signer image renders unchanged. Set true for a single Security Server
+# release (e.g. e2e's ss1) that needs a pkcs11 HARDWARE token.
+signer_hsm_enabled: false
+
 trusted_issuer_host: xrd-cs
 xrd_ca_external_host: xrd-ca.lxd
 

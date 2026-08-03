@@ -399,6 +399,16 @@ HTTP 201
 ss0_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 
 
+# Wait for the Central Server to publish a non-empty global configuration
+GET http://{{cs_host}}/internalconf
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+body contains "Content-identifier: SHARED-PARAMETERS"
+
 # Register auth certificate
 PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss0_xsrf_token}}

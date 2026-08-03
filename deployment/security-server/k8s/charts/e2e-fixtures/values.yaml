@@ -105,10 +105,19 @@ services:
   # Mock plain-REST information system (WireMock). Public image.
   #
   # compose bind-mounts ./wiremock_mappings (security-server/e2e-test/src/
-  # intTest/resources/wiremock_mappings) as stub data. Deploying that mapping
-  # set as a ConfigMap is deferred to the slice that wires the full topology
-  # — same "inject real files at render time, don't fork them into the
-  # chart" mechanism as hurl.files below, just not wired yet.
+  # intTest/resources/wiremock_mappings) at /home/wiremock/mappings, where
+  # WireMock auto-loads every *.json stub mapping at startup. Real file
+  # content, injected at render/install time — never forked into the chart,
+  # same mechanism as hurl.files below. Populate via (paths relative to the
+  # chart dir; adjust for your cwd):
+  #   helm template . \
+  #     --set-file services.isrest.mappings.is_rest_1=../../../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_1.json \
+  #     --set-file services.isrest.mappings.is_rest_2=../../../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_2.json \
+  #     --set-file services.isrest.mappings.is_rest_3=../../../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_3.json
+  # or point straight at core/src/security-server/e2e-test/src/intTest/
+  # resources/wiremock_mappings/*.json. Left unset, WireMock starts with no
+  # stub mappings and serves 404s for every request (see
+  # isrest-mappings-configmap.yaml).
   isrest:
     otelServiceName: xroad-e2e-isrest
     image: "wiremock/wiremock:latest"
@@ -127,6 +136,22 @@ services:
     serviceAccount:
       annotations: {}
     env: {}
+    volumeMounts:
+      - name: isrest-mappings
+        mountPath: /home/wiremock/mappings
+        readOnly: true
+    volumes:
+      - name: isrest-mappings
+        configMap:
+          name: isrest-mappings
+    # Keys are stub filenames without the .json suffix (see
+    # isrest-mappings-configmap.yaml, which re-appends it for the ConfigMap
+    # data key / mounted filename); values are real file content, never
+    # forked into the chart.
+    mappings:
+      is_rest_1: ""
+      is_rest_2: ""
+      is_rest_3: ""
 
   # Mail sink. Public image. compose bind-mounts an (empty, untracked)
   # ./testmail dir; mailpit does NOT self-generate the STARTTLS pair, so

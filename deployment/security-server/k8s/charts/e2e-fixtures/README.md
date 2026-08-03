@@ -38,10 +38,13 @@ has no compose healthcheck to mirror — its readiness probe (`/` on 8025) is
 chart-added, not mirrored.
 
 `isrest`'s WireMock stub mappings (compose bind-mounts
-`security-server/e2e-test/src/intTest/resources/wiremock_mappings`) are not
-wired into this chart yet — deploying them as a ConfigMap is deferred to the
-topology-wiring slice, using the same "inject real files at render time"
-mechanism as the hurl scenario files (section 4), just not connected yet.
+`security-server/e2e-test/src/intTest/resources/wiremock_mappings` at
+`/home/wiremock/mappings`, where WireMock auto-loads every `*.json` stub at
+startup) are deployed as a ConfigMap
+(`templates/isrest-mappings-configmap.yaml`), using the same "inject real
+files at render time, don't fork them into the chart" mechanism as the hurl
+scenario files (section 4) — see `values.yaml`'s `services.isrest.mappings`
+comment for the `--set-file` recipe.
 
 ## 3. DS-HTTPS keystore (moved out)
 
@@ -103,7 +106,6 @@ here — this topology is fully in-cluster.
   `ds_tls` mount (now owned by the `ds-https-keystore` chart).
 - Asserting any hurl scenario green, or validating did:web/DSP against the
   generated keystore (slice 09).
-- WireMock stub mapping content for `isrest` (section 2).
 - Replacing the DS-HTTPS stop-gap with ACME-from-OpenBao (XRDADR-42).
 
 ## 6. Rendering
@@ -116,9 +118,12 @@ a known local tooling issue, not specific to this chart. Use `helm template`:
 # Default render (no --set-file): hurl ConfigMap renders with empty data.
 helm template test-fixtures . --set imagePullSecrets[0]=ghcr-pull-secret
 
-# Full render, with the real hurl scenario files injected:
+# Full render, with the real hurl scenario files and isrest stub mappings injected:
 helm template test-fixtures . \
   --set imagePullSecrets[0]=ghcr-pull-secret \
   --set-file hurl.files.setupHurl=$XROAD_HOME/core/development/hurl/scenarios/setup.hurl \
-  --set-file hurl.files.varsEnv=$XROAD_HOME/core/development/hurl/scenarios/vars.env
+  --set-file hurl.files.varsEnv=$XROAD_HOME/core/development/hurl/scenarios/vars.env \
+  --set-file services.isrest.mappings.is_rest_1=$XROAD_HOME/core/src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_1.json \
+  --set-file services.isrest.mappings.is_rest_2=$XROAD_HOME/core/src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_2.json \
+  --set-file services.isrest.mappings.is_rest_3=$XROAD_HOME/core/src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_3.json
 ```

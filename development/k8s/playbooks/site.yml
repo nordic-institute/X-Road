@@ -72,6 +72,7 @@
       vars:
         security_server_namespace: "{{ ss_instance.namespace }}"
         dsp_participant_context_id: "{{ ss_instance.dsp_participant_context_id | default('') }}"
+        signer_hsm_enabled: "{{ ss_instance.signer_hsm_enabled | default(false) }}"
       loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
       loop_control:
         loop_var: ss_instance

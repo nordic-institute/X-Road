@@ -1,0 +1,24 @@
+{{/*
+WireMock stub mappings for the isrest fixture, using the same render-time file-injection
+mechanism as hurl.files (see hurl-bootstrap-job.yaml). Real file content, injected at
+render/install time — never copied into the chart. Populate via `--set-file
+services.isrest.mappings.is_rest_1=<path>` (repeat per stub, key = filename without the .json
+suffix), pointing at the real security-server/e2e-test/src/intTest/resources/wiremock_mappings/
+files (see values.yaml's isrest comment and README section 4). Left unset, this ConfigMap renders
+with empty data and WireMock starts with no stub mappings — the exact "404 on every request"
+state this fixture exists to avoid, so an unset value here is a silent no-op rather than a
+render failure.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: isrest-mappings
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+data:
+  {{- range $name, $content := .Values.services.isrest.mappings }}
+  {{- if $content }}
+  {{ $name }}.json: |
+{{ $content | indent 4 }}
+  {{- end }}
+  {{- end }}

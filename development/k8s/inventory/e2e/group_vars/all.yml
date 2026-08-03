@@ -75,6 +75,10 @@ proxy_dsp_enabled: false
 # releases are never conflated on the chart's own hardcoded "xrd-ss2" default, and its own
 # openbao_tls_dir so the two releases' self-signed openbao certs (each SAN-scoped to its own
 # namespace) don't clobber each other's on-disk staging files mid-run.
+# ss1 also enables the signer.hsm stop-gap toggle (security_server role's
+# signer_hsm_enabled var) — setup.hurl's bootstrap needs ss1 to expose a
+# pkcs11 HARDWARE token; ss0 hardcodes token id 0 and doesn't need one, so
+# it's left at the role's default (false).
 security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0
@@ -82,6 +86,7 @@ security_server_instances:
   - namespace: ss1
     dsp_participant_context_id: xrd-ss1
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
+    signer_hsm_enabled: true
 
 deploy_prometheus: false
 deploy_netdata: false

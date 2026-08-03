@@ -737,6 +737,21 @@ dsp:
     trustedIssuerDid: "did:web:ds-issuer-service%3A10100:issuer"
   participantContextId: ""
 
+# Signer PKCS#11 HSM stop-gap toggle (per-release, default off). When
+# enabled, the signer service's image is swapped for the dev-only
+# signer-with-hsm image (built from
+# development/docker/security-server/signer-with-hsm) so the release's
+# signer reports a pkcs11 HARDWARE token (SoftHSM2-backed) instead of the
+# plain signer's softToken-0 SOFTWARE token — e.g. required by e2e's ss1
+# bootstrap. TEMPORARY: reusing that compose/e2e-test dev image here is a
+# stop-gap until SoftHSM provisioning is built natively into this chart.
+# Off by default — ss0 and every existing non-E2E consumer render
+# unchanged.
+signer:
+  hsm:
+    enabled: false
+    imageName: ss-signer-with-hsm
+
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).
 # maxAttempts × periodSeconds = total wait cap (default 120 × 2s = 240s).

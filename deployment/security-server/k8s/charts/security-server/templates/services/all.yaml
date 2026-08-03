@@ -25,6 +25,16 @@ Each spec becomes one initContainer YAML string appended to
   {{- end }}
   {{- $cfg = merge (dict "initContainers" $waits) $config }}
 {{- end }}
+{{- if and (eq $service "signer") $.Values.signer.hsm.enabled }}
+{{- /* TEMPORARY stop-gap — see values.yaml's `signer.hsm` comment. Swaps in
+the dev-only signer-with-hsm image and gives it a writable SoftHSM token
+dir (its entrypoint re-inits the token on every fresh/empty mount). */}}
+{{- $cfg = merge (dict
+      "imageName" $.Values.signer.hsm.imageName
+      "volumes" (list (dict "name" "signer-hsm-tokens" "emptyDir" (dict)))
+      "volumeMounts" (list (dict "mountPath" "/var/lib/softhsm/tokens" "name" "signer-hsm-tokens"))
+    ) $cfg }}
+{{- end }}
 ---
 {{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $cfg) }}
 ---

@@ -222,6 +222,12 @@ otel:
     deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
 
+{% if signer_hsm_enabled | default(false) | bool %}
+signer:
+  hsm:
+    enabled: true
+{% endif %}
+
 {% set dsp_participant_context_id = dsp_participant_context_id | default('') %}
 {% if ds_tls or (dsp_participant_context_id | length > 0) %}
 dsp:

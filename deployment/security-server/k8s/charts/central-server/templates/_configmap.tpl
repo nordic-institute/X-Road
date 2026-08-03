@@ -17,5 +17,18 @@ metadata:
     {{- include "xroad.labels" .root | nindent 4 }}
     app: xroad-{{ .service }}
 data:
-  {{- toYaml .config.env | nindent 2 }}
+  {{- $env := .config.env }}
+  {{- /*
+  The shared management-service TLS cert (Vault xrd-secret/tls/management-service)
+  is issued with common-name XROAD_HOST, i.e. the bare in-namespace service name.
+  Callers in other namespaces reach this Service by its namespace-qualified DNS
+  name, which the bare-CN SAN list doesn't cover, so Jetty's SNI check rejects the
+  handshake. These extra SANs cover the qualified names.
+  */}}
+  {{- if eq .service "central-server" }}
+  {{- $svcFqdn := printf "%s.%s" .service .root.Release.Namespace }}
+  {{- $altNames := printf "%s,%s.svc.cluster.local" $svcFqdn $svcFqdn }}
+  {{- $env = merge (dict "XROAD_MANAGEMENT_SERVICE_TLS_CERTIFICATE_PROVISIONING_ALT_NAMES" $altNames) $env }}
+  {{- end }}
+  {{- toYaml $env | nindent 2 }}
 {{- end }}

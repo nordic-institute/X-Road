@@ -7,6 +7,7 @@ CORE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_DIR="${CORE_DIR}/src"
 BUILD_DEV_INFRA="${SCRIPT_DIR}/images/build-dev-infra.sh"
 BUILD_SECURITY_SERVER="${SCRIPT_DIR}/images/build-security-server.sh"
+BUILD_SIGNER_WITH_HSM="${SCRIPT_DIR}/images/build-signer-with-hsm.sh"
 BUILD_CENTRAL_SERVER="${SCRIPT_DIR}/images/build-central-server.sh"
 PACKAGE_SCRIPT="${SCRIPT_DIR}/build-native-packages.sh"
 
@@ -16,6 +17,7 @@ REGISTRY="${IMAGE_REGISTRY:-localhost:5555}"
 SKIP_INFRA="false"
 SKIP_SS="false"
 SKIP_CS="false"
+SKIP_SIGNER_HSM="false"
 SKIP_TESTS="false"
 NO_BUILD="false"
 NO_REGISTRY="false"
@@ -31,11 +33,12 @@ have to know the sequence of underlying scripts:
   2. build dev-infra images        (build-dev-infra.sh --push)
   3. compile all modules           (src: ./gradlew build)
   4. build + push SS images        (build-security-server.sh --push)
-  5. build native DEB packages     (build-native-packages.sh -r resolute)
-  6. build + push the CS image     (build-central-server.sh)
+  5. build + push the signer-with-hsm stop-gap image (build-signer-with-hsm.sh --push)
+  6. build native DEB packages     (build-native-packages.sh -r resolute)
+  7. build + push the CS image     (build-central-server.sh)
 
-Trim tiers with --skip-infra / --skip-ss / --skip-cs. After it finishes, run
-the test tier you want, e.g. from src:
+Trim tiers with --skip-infra / --skip-ss / --skip-cs / --skip-signer-hsm.
+After it finishes, run the test tier you want, e.g. from src:
   ./gradlew :security-server:api-test:clean :security-server:api-test:intTest
   ./gradlew :security-server:e2e-test:clean :security-server:e2e-test:e2eTest
 
@@ -46,6 +49,8 @@ OPTIONS:
     --skip-infra       Skip the dev-infra tier (openbao, testca, postgres-dev, nginx-cp).
     --skip-ss          Skip the Security Server tier (Gradle compile + SS images).
     --skip-cs          Skip the Central Server tier (DEB build + CS image).
+    --skip-signer-hsm  Skip the signer-with-hsm stop-gap image (needs ss-signer from the
+                       Security Server tier; auto-skipped when --skip-ss is passed).
     -s, --skip-tests   Skip unit/integration tests during the Gradle build.
     -b, --no-build     Skip the Gradle compile and the DEB build; rebuild images
                        only from existing artifacts/packages.
@@ -75,6 +80,7 @@ while [[ $# -gt 0 ]]; do
   --skip-infra) SKIP_INFRA="true"; shift ;;
   --skip-ss) SKIP_SS="true"; shift ;;
   --skip-cs) SKIP_CS="true"; shift ;;
+  --skip-signer-hsm) SKIP_SIGNER_HSM="true"; shift ;;
   -s | --skip-tests) SKIP_TESTS="true"; shift ;;
   -b | --no-build) NO_BUILD="true"; shift ;;
   --no-registry) NO_REGISTRY="true"; shift ;;
@@ -117,6 +123,7 @@ START_TIME=$(date +%s)
 INFRA_TIME=0
 GRADLE_TIME=0
 SS_TIME=0
+SIGNER_HSM_TIME=0
 DEB_TIME=0
 CS_TIME=0
 GRADLE_BUILT="false"
@@ -167,6 +174,22 @@ else
   log_info "--- Skipping Security Server tier (--skip-ss) ---"
 fi
 
+# --- Signer-with-HSM stop-gap image ------------------------------------------
+# Layers SoftHSM2 onto the ss-signer image the tier above just pushed — needed
+# whenever a Security Server release enables the chart's signer.hsm.enabled
+# toggle (e.g. the k8s E2E topology's ss1). Requires ss-signer to already be
+# in the registry, so it only runs when the SS tier ran too.
+if [[ "$SKIP_SIGNER_HSM" != "true" && "$SKIP_SS" != "true" ]]; then
+  log_info "--- Building signer-with-hsm image (build-signer-with-hsm.sh --push) ---"
+  tier_start=$(date +%s)
+  IMAGE_REGISTRY="$REGISTRY" "${BUILD_SIGNER_WITH_HSM}" --push
+  SIGNER_HSM_TIME=$(( $(date +%s) - tier_start ))
+elif [[ "$SKIP_SIGNER_HSM" != "true" ]]; then
+  log_info "--- Skipping signer-with-hsm image (--skip-ss also skips its ss-signer base) ---"
+else
+  log_info "--- Skipping signer-with-hsm image (--skip-signer-hsm) ---"
+fi
+
 # --- Central Server tier: DEB packages, then the CS image -------------------
 if [[ "$SKIP_CS" != "true" ]]; then
   if [[ "$NO_BUILD" != "true" ]]; then
@@ -205,6 +228,11 @@ if [[ "$SKIP_SS" != "true" ]]; then
     log_info "gradle compile:   skipped"
   fi
   log_info "security-server:  $(format_duration "$SS_TIME")"
+  if [[ "$SKIP_SIGNER_HSM" != "true" ]]; then
+    log_info "signer-with-hsm:  $(format_duration "$SIGNER_HSM_TIME")"
+  else
+    log_info "signer-with-hsm:  skipped (--skip-signer-hsm)"
+  fi
 fi
 if [[ "$SKIP_CS" != "true" ]]; then
   if [[ "$NO_BUILD" != "true" ]]; then

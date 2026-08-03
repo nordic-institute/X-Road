@@ -17,3 +17,11 @@ hurl:
     varsEnv: |
 {{ lookup('file', hurl_vars_file) | indent(6, true) }}
   skipDspReadinessGates: {{ hurl_skip_dsp_readiness_gates | bool | lower }}
+
+services:
+  isrest:
+    mappings:
+{% for f in isrest_mapping_files %}
+      {{ f | regex_replace('\.json$', '') }}: |
+{{ lookup('file', isrest_mappings_dir + '/' + f) | indent(8, true) }}
+{% endfor %}

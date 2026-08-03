@@ -17,6 +17,7 @@ argument_specs:
       configuration_client_update_interval: {type: str, default: "10"}
       proxy_dsp_enabled: {type: bool, default: true}
       dsp_participant_context_id: {type: str, default: ""}
+      signer_hsm_enabled: {type: bool, default: false}
       ss2_advertised_host: {type: str, required: false}
       trusted_issuer_host: {type: str, default: xrd-cs}
       xrd_ca_external_host: {type: str, default: xrd-ca.lxd}
