@@ -971,7 +971,6 @@
             "proxy-tls-cipher-suites": "Admin API proksi birikme tarapyndan kabul edilýän TLS şifrlemesi toplumlar.",
             "key-management-api-whitelist": "Esasy tassyklama ulanyp açar dolandyryş nokatlaryna jaň etmäge rugsat berilen CIDR belgilemesindäki sada IP salgylaryny ýa-da salgylaryň aralygyny öz içine alýan ütirli-bölünen sanaw.",
             "regular-api-whitelist": "API açar tassyklamasy ulanyp adaty nokatlara jaň etmäge rugsat berilen CIDR belgilemesindäki sada IP salgylaryny ýa-da salgylaryň aralygyny öz içine alýan ütirli-bölünen sanaw.",
-            "configurable-properties-path": "Sazlanylýan häsiýetler YAML faýlyna klasspath ýa-da faýl ýoly.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Admin API TLS şahadatnamasy üpjün edilende ulanylýan Vault PKI rol ady.",

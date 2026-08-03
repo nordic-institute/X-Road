@@ -318,10 +318,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return config.value(AdminServiceConfigKeys.REGULAR_API_WHITELIST);
     }
 
-    public String getConfigurablePropertiesPath() {
-        return config.value(AdminServiceConfigKeys.CONFIGURABLE_PROPERTIES_PATH);
-    }
-
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
         EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);

@@ -47,7 +47,6 @@ import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -62,7 +61,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
 
@@ -79,10 +77,9 @@ public class ConfigurablePropertiesService {
     private static final Consumer<String> NOOP_VALUE_CONSUMER = _ -> { };
 
     /**
-     * Providers whose exposed keys make up the Security Server's aggregated system-parameters catalogue.
-     * Any provider whose keys should surface in the system-parameters UI belongs here instead of the
-     * residual {@code configurable-properties.yaml}. The last five live outside properties-core, in the
-     * lightest module that can hold them, and reach this list through a compile dependency.
+     * Providers whose exposed keys make up the Security Server's system-parameters catalogue — the only
+     * source of the property list. The last five live outside properties-core, in the lightest module that
+     * can hold them, and reach this list through a compile dependency.
      */
     private static final List<ConfigKeyProvider> SS_PROVIDERS = List.of(
             CommonConfigKeys.instance(),
@@ -102,16 +99,12 @@ public class ConfigurablePropertiesService {
             MessageLogArchiverConfigKeys.instance(),
             MessageLogEncryptionConfigKeys.instance());
 
-    private final ConfigurablePropertiesDefinition configurableProperties;
     private final ConfigurationPropertyRepository repository;
 
     /**
-     * Returns all configurable system parameter defined in the configuration.
-     * <p>
-     * Combines the static system parameter definitions with the currently stored
-     * configuration values from the database. If a value is stored in the repository,
-     * it is used as the current value; otherwise the default value and service scope
-     * are returned.
+     * Returns every configurable system parameter the registry declares as exposed, combined with the
+     * currently stored configuration values. If a value is stored in the repository it is used as the
+     * current value; otherwise the declared default and target scope are returned.
      *
      * @return set of system properties with their metadata and current values
      */
@@ -194,18 +187,11 @@ public class ConfigurablePropertiesService {
                 .anyMatch(p -> p.propertyName().equals(propertyKey) && Objects.equals(p.scope(), scope));
     }
 
-    /**
-     * Merges the DSL-derived catalogue ({@link #SS_PROVIDERS}) with the residual
-     * {@code configurable-properties.yaml} definitions into a single flat list.
-     */
+    /** @return the exposed keys of {@link #SS_PROVIDERS}, flattened to name/default/target scope */
     private List<PropertyDefinition> getAllPropertyDefinitions() {
-        return Stream.concat(
-                        ConfigCatalogue.exposed(SS_PROVIDERS).stream()
-                                .map(entry -> new PropertyDefinition(
-                                        entry.key(), entry.defaultValue(), categoryToScope(entry.category()))),
-                        configurableProperties.getConfigurableProperties().stream()
-                                .map(property -> new PropertyDefinition(
-                                        property.getPropertyName(), property.getDefaultValue(), property.getScope())))
+        return ConfigCatalogue.exposed(SS_PROVIDERS).stream()
+                .map(entry -> new PropertyDefinition(
+                        entry.key(), entry.defaultValue(), categoryToScope(entry.category())))
                 .toList();
     }
 

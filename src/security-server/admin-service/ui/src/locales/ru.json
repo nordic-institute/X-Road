@@ -971,7 +971,6 @@
             "proxy-tls-cipher-suites": "Наборы шифров TLS, принимаемые прокси-соединением Admin API.",
             "key-management-api-whitelist": "Разделённый запятыми список IP-адресов или диапазонов адресов в нотации CIDR, которым разрешено обращаться к конечным точкам управления ключами с использованием базовой аутентификации.",
             "regular-api-whitelist": "Разделённый запятыми список IP-адресов или диапазонов адресов в нотации CIDR, которым разрешено обращаться к обычным конечным точкам с использованием аутентификации по API-ключу.",
-            "configurable-properties-path": "Путь к classpath или файловый путь к YAML-файлу configurable-properties.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Имя роли Vault PKI, используемой при выпуске TLS-сертификата Admin API.",

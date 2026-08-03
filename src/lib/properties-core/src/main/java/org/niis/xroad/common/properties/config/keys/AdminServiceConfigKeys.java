@@ -373,12 +373,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue("0.0.0.0/0, ::/0")
             .exposedInUi()
             .build();
-    /** {@code xroad.proxy-ui-api.configurable-properties-path}. */
-    public static final ConfigKey<String> CONFIGURABLE_PROPERTIES_PATH = ADMIN
-            .string("configurable-properties-path")
-            .withDefaultValue("classpath:configurable-properties.yaml")
-            .exposedInUi()
-            .build();
 
     // --- tls.certificate-provisioning ---
     /** {@code xroad.proxy-ui-api.tls.certificate-provisioning.issuance-role-name}. */

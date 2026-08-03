@@ -1127,7 +1127,6 @@
             "proxy-tls-cipher-suites": "TLS cipher suites accepted by the Admin API proxy connection.",
             "key-management-api-whitelist": "Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management endpoints using basic authentication",
             "regular-api-whitelist": "Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular endpoints using api key authentication",
-            "configurable-properties-path": "Classpath or file path to the configurable-properties YAML file.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Vault PKI role name used when provisioning the Admin API TLS certificate.",

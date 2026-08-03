@@ -1050,7 +1050,6 @@
             "proxy-tls-cipher-suites": "Conjuntos de cifras TLS aceitos na conexão proxy da API de administração.",
             "key-management-api-whitelist": "Lista separada por vírgulas de endereços IP simples ou intervalos de endereços em notação CIDR com permissão para chamar endpoints de gerenciamento de chaves usando autenticação básica.",
             "regular-api-whitelist": "Lista separada por vírgulas de endereços IP simples ou intervalos de endereços em notação CIDR com permissão para chamar endpoints regulares usando autenticação por chave de API.",
-            "configurable-properties-path": "Caminho de classpath ou sistema de arquivos para o arquivo YAML de propriedades configuráveis.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Nome da role PKI do Vault utilizado ao provisionar o certificado TLS da API de administração.",

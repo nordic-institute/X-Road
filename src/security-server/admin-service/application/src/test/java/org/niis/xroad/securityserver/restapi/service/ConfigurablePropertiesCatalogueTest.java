@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 
@@ -55,8 +54,8 @@ import static org.mockito.Mockito.when;
 class ConfigurablePropertiesCatalogueTest {
 
     /**
-     * key | scope | default — the keys that were reachable only through the residual
-     * {@code configurable-properties.yaml} before the registries moved into shared modules.
+     * key | scope | default — the keys that were reachable only through {@code configurable-properties.yaml}
+     * before the registries moved into shared modules.
      * Duration defaults render in ISO-8601 form ({@code PT1M}), not the yaml's {@code 60s}.
      */
     private static final String CROSS_MODULE_KEYS = """
@@ -119,16 +118,13 @@ class ConfigurablePropertiesCatalogueTest {
             "configuration-client", "auxiliary-service", "message-log-archiver");
 
     @Mock
-    private ConfigurablePropertiesDefinition configurableProperties;
-    @Mock
     private ConfigurationPropertyRepository repository;
 
     private ConfigurablePropertiesService service;
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(configurableProperties, repository);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of());
+        service = new ConfigurablePropertiesService(repository);
         when(repository.findAll()).thenReturn(List.of());
     }
 

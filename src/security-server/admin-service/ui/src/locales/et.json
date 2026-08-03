@@ -1050,7 +1050,6 @@
             "proxy-tls-cipher-suites": "TLS šifreeringupaketid, mida aktsepteeritakse Admin API puhverserveri ühendusel.",
             "key-management-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda võtmehalduse lõpp-punkte põhiautentimisega.",
             "regular-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda tavalisi lõpp-punkte API võtme autentimisega.",
-            "configurable-properties-path": "Klassirada või failitee konfigureeritavate omaduste YAML-failini.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse Admin API TLS sertifikaadi ettevalmistamisel.",
