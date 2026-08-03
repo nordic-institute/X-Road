@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+    <Header xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+        <xrd:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>testQuery</id:serviceCode>
+        </xrd:service>
+        <xrd:id>1234567890</xrd:id>
+        <xrd:userId>user-id-1</xrd:userId>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+        <xrd:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">aGFzaA==</xrd:requestHash>
+    </Header>
+    <Body>
+        <ns1:getStateResponse xmlns:ns1="http://producer.x-road.eu">
+            <ns1:response>legacy-without-header</ns1:response>
+        </ns1:getStateResponse>
+    </Body>
+</Envelope>

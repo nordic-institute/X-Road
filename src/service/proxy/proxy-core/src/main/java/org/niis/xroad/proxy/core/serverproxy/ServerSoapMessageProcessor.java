@@ -301,7 +301,7 @@ public class ServerSoapMessageProcessor {
                 commonProperties.tempFilesPath(), encoder);
         try {
             var soapMessageDecoder = new SoapMessageDecoder(responseContentType, responseDecoder,
-                    new ResponseStaxSoapParserImpl(requestMessage));
+                    new ResponseStaxSoapParserImpl(requestMessage, proxyProperties.server().autoInjectMissingHeaders()));
             soapMessageDecoder.parse(handlerResult.responseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);

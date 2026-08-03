@@ -231,6 +231,10 @@ public interface ProxyProperties {
 
         @WithName("min-supported-client-version")
         Optional<String> minSupportedClientVersion();
+
+        @WithName("auto-inject-missing-headers")
+        @WithDefault("false")
+        boolean autoInjectMissingHeaders();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.ocsp-responder")
