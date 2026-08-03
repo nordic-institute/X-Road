@@ -279,11 +279,13 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> ACME_CERTIFICATE_WAIT_ATTEMPTS = ADMIN
             .integer("acme-certificate-wait-attempts")
             .withDefaultValue(5)
+            .exposedInUi()
             .build();
     /** {@code xroad.proxy-ui-api.acme-certificate-wait-interval}. */
     public static final ConfigKey<Integer> ACME_CERTIFICATE_WAIT_INTERVAL = ADMIN
             .integer("acme-certificate-wait-interval")
             .withDefaultValue(5)
+            .exposedInUi()
             .build();
     /** {@code xroad.proxy-ui-api.acme-certificate-account-key-pair-expiration}. */
     public static final ConfigKey<Integer> ACME_CERTIFICATE_ACCOUNT_KEY_PAIR_EXPIRATION = ADMIN

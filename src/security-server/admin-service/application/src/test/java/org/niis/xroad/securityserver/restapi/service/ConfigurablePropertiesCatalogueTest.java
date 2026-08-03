@@ -158,6 +158,20 @@ class ConfigurablePropertiesCatalogueTest {
     }
 
     @Test
+    void catalogueOffersAcmeWaitKeysUnderTheNamesTheCodeReads() {
+        var keys = service.getConfigurationProperties().stream()
+                .map(SecurityServerConfigurablePropertyDto::getPropertyName)
+                .collect(Collectors.toSet());
+
+        assertThat(keys).contains(
+                "xroad.proxy-ui-api.acme-certificate-wait-attempts",
+                "xroad.proxy-ui-api.acme-certificate-wait-interval");
+        assertThat(keys).doesNotContain(
+                "xroad.proxy-ui-api.acme-certification-wait-attempts",
+                "xroad.proxy-ui-api.acme-certification-wait-interval");
+    }
+
+    @Test
     void catalogueOmitsDocumentValuedKeys() {
         var keys = service.getConfigurationProperties().stream()
                 .map(SecurityServerConfigurablePropertyDto::getPropertyName)

@@ -1,7 +1,1 @@
-configurableProperties:
-  - propertyName: "xroad.proxy-ui-api.acme-certification-wait-attempts"
-    defaultValue: "5"
-    scope: "proxy-ui-api"
-  - propertyName: "xroad.proxy-ui-api.acme-certification-wait-interval"
-    defaultValue: "5"
-    scope: "proxy-ui-api"
+configurableProperties: []
