@@ -57,7 +57,6 @@ import javax.security.auth.x500.X500Principal;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -66,7 +65,6 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HexFormat;
 import java.util.List;
 
 import static java.lang.ClassLoader.getSystemResourceAsStream;
@@ -117,6 +115,8 @@ public class CsBaselineSeeder {
     private static final String REGISTRATION_OFFICER_ENCODED_KEY = "ed99ce2b1660cb681598b9d33bb84089f3023d6f511729a281066bed5a764ca0";
     private static final long REGISTRATION_OFFICER_KEY_ID = 9000001L;
     private static final String SECURITY_OFFICER_ENCODED_KEY = "e26a8562ff905ba186970fb889b429eab2ceb8195b81e58767dd170ca910583d";
+    private static final String SYSTEM_ADMINISTRATOR_ONLY_ENCODED_KEY = "114dcc210324531621c34c0e78b52b11a13d0f029596aa2807f8d268ef1e59cd";
+    private static final String MANAGEMENT_SERVICE_ONLY_ENCODED_KEY = "5917336923b9e8f039580b2244faa5ca370137e848e9302c67aa2b3a679b5fb2";
 
     /** DB id of the seeded security officer API key; history rows record the acting user as {@code api-key-<id>}. */
     public static final long SECURITY_OFFICER_KEY_ID = 9000003L;
@@ -251,11 +251,11 @@ public class CsBaselineSeeder {
     public synchronized void ensureBaseline() {
         log.info("Checking Central Server baseline state");
 
-        seedBootstrapApiKey();
-        seedRegistrationOfficerApiKey();
-        seedSecurityOfficerApiKey();
-        seedSystemAdministratorOnlyApiKey();
-        seedManagementServiceOnlyApiKey();
+        seedApiKey(BOOTSTRAP_KEY_ID, BOOTSTRAP_ENCODED_KEY, BOOTSTRAP_ROLES.toArray(new String[0]));
+        seedApiKey(REGISTRATION_OFFICER_KEY_ID, REGISTRATION_OFFICER_ENCODED_KEY, "XROAD_REGISTRATION_OFFICER");
+        seedApiKey(SECURITY_OFFICER_KEY_ID, SECURITY_OFFICER_ENCODED_KEY, "XROAD_SECURITY_OFFICER");
+        seedApiKey(SYSTEM_ADMINISTRATOR_ONLY_KEY_ID, SYSTEM_ADMINISTRATOR_ONLY_ENCODED_KEY, "XROAD_SYSTEM_ADMINISTRATOR");
+        seedApiKey(MANAGEMENT_SERVICE_ONLY_KEY_ID, MANAGEMENT_SERVICE_ONLY_ENCODED_KEY, "XROAD_MANAGEMENT_SERVICE");
 
         var session = new AdminApiSession(adminBaseUrl);
         ensureInitialized(session);
@@ -648,157 +648,49 @@ public class CsBaselineSeeder {
         }
     }
 
-    private void seedBootstrapApiKey() {
+    /**
+     * Seeds an API key with the given DB id and roles, if a key with the same encoded value
+     * doesn't already exist. Idempotent per key and per role.
+     *
+     * @param id         DB id to assign to the key row on first insert
+     * @param encodedKey the (already hashed) key value stored in {@code centerui.apikey.encodedkey}
+     * @param roles      roles to grant the key, e.g. {@code XROAD_SECURITY_OFFICER}
+     */
+    private void seedApiKey(long id, String encodedKey, String... roles) {
         var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
         var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
                 .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
         var username = readContainerProperty("spring.datasource.username");
         var password = readContainerProperty("spring.datasource.password");
 
-        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
-                var stmt = conn.createStatement()) {
-            stmt.execute("""
+        try (var conn = DriverManager.getConnection(jdbcUrl, username, password)) {
+            try (var stmt = conn.prepareStatement("""
                     INSERT INTO centerui.apikey (id, encodedkey)
-                    SELECT %d, '%s'
-                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = '%s')
-                    """.formatted(BOOTSTRAP_KEY_ID, BOOTSTRAP_ENCODED_KEY, BOOTSTRAP_ENCODED_KEY));
-            for (String role : BOOTSTRAP_ROLES) {
-                stmt.execute("""
+                    SELECT ?, ?
+                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = ?)
+                    """)) {
+                stmt.setLong(1, id);
+                stmt.setString(2, encodedKey);
+                stmt.setString(3, encodedKey);
+                stmt.execute();
+            }
+            for (String role : roles) {
+                try (var stmt = conn.prepareStatement("""
                         INSERT INTO centerui.apikey_roles (id, apikey_id, role)
-                        SELECT nextval('centerui.apikey_roles_id_seq'), a.id, '%s'
+                        SELECT nextval('centerui.apikey_roles_id_seq'), a.id, ?
                         FROM centerui.apikey a
-                        WHERE a.encodedkey = '%s'
+                        WHERE a.encodedkey = ?
                           AND NOT EXISTS (
-                              SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id AND r.role = '%s')
-                        """.formatted(role, BOOTSTRAP_ENCODED_KEY, role));
+                              SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id AND r.role = ?)
+                        """)) {
+                    stmt.setString(1, role);
+                    stmt.setString(2, encodedKey);
+                    stmt.setString(3, role);
+                    stmt.execute();
+                }
             }
         } catch (SQLException e) {
-            throw new IllegalStateException("Failed to seed bootstrap API key into CS DB", e);
-        }
-    }
-
-    private void seedRegistrationOfficerApiKey() {
-        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
-        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
-                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
-        var username = readContainerProperty("spring.datasource.username");
-        var password = readContainerProperty("spring.datasource.password");
-
-        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
-                var stmt = conn.createStatement()) {
-            stmt.execute("""
-                    INSERT INTO centerui.apikey (id, encodedkey)
-                    SELECT %d, '%s'
-                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = '%s')
-                    """.formatted(REGISTRATION_OFFICER_KEY_ID, REGISTRATION_OFFICER_ENCODED_KEY,
-                    REGISTRATION_OFFICER_ENCODED_KEY));
-            stmt.execute("""
-                    INSERT INTO centerui.apikey_roles (id, apikey_id, role)
-                    SELECT nextval('centerui.apikey_roles_id_seq'), a.id, 'XROAD_REGISTRATION_OFFICER'
-                    FROM centerui.apikey a
-                    WHERE a.encodedkey = '%s'
-                      AND NOT EXISTS (
-                          SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id
-                          AND r.role = 'XROAD_REGISTRATION_OFFICER')
-                    """.formatted(REGISTRATION_OFFICER_ENCODED_KEY));
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to seed registration officer API key into CS DB", e);
-        }
-    }
-
-    private void seedSecurityOfficerApiKey() {
-        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
-        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
-                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
-        var username = readContainerProperty("spring.datasource.username");
-        var password = readContainerProperty("spring.datasource.password");
-
-        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
-                var stmt = conn.createStatement()) {
-            stmt.execute("""
-                    INSERT INTO centerui.apikey (id, encodedkey)
-                    SELECT %d, '%s'
-                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = '%s')
-                    """.formatted(SECURITY_OFFICER_KEY_ID, SECURITY_OFFICER_ENCODED_KEY, SECURITY_OFFICER_ENCODED_KEY));
-            stmt.execute("""
-                    INSERT INTO centerui.apikey_roles (id, apikey_id, role)
-                    SELECT nextval('centerui.apikey_roles_id_seq'), a.id, 'XROAD_SECURITY_OFFICER'
-                    FROM centerui.apikey a
-                    WHERE a.encodedkey = '%s'
-                      AND NOT EXISTS (
-                          SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id
-                          AND r.role = 'XROAD_SECURITY_OFFICER')
-                    """.formatted(SECURITY_OFFICER_ENCODED_KEY));
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to seed security officer API key into CS DB", e);
-        }
-    }
-
-    private void seedSystemAdministratorOnlyApiKey() {
-        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
-        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
-                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
-        var username = readContainerProperty("spring.datasource.username");
-        var password = readContainerProperty("spring.datasource.password");
-        var encodedKey = sha256Hex(AdminApiSession.SYSTEM_ADMINISTRATOR_ONLY_TOKEN);
-
-        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
-                var stmt = conn.createStatement()) {
-            stmt.execute("""
-                    INSERT INTO centerui.apikey (id, encodedkey)
-                    SELECT %d, '%s'
-                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = '%s')
-                    """.formatted(SYSTEM_ADMINISTRATOR_ONLY_KEY_ID, encodedKey, encodedKey));
-            stmt.execute("""
-                    INSERT INTO centerui.apikey_roles (id, apikey_id, role)
-                    SELECT nextval('centerui.apikey_roles_id_seq'), a.id, 'XROAD_SYSTEM_ADMINISTRATOR'
-                    FROM centerui.apikey a
-                    WHERE a.encodedkey = '%s'
-                      AND NOT EXISTS (
-                          SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id
-                          AND r.role = 'XROAD_SYSTEM_ADMINISTRATOR')
-                    """.formatted(encodedKey));
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to seed system administrator only API key into CS DB", e);
-        }
-    }
-
-    private void seedManagementServiceOnlyApiKey() {
-        var dbMapping = stack.getContainerMapping(CsApiTestContainerSetup.CS, Port.DB);
-        var jdbcUrl = "jdbc:postgresql://%s:%d/%s?currentSchema=centerui,public"
-                .formatted(dbMapping.host(), dbMapping.port(), DB_NAME);
-        var username = readContainerProperty("spring.datasource.username");
-        var password = readContainerProperty("spring.datasource.password");
-        var encodedKey = sha256Hex(AdminApiSession.MANAGEMENT_SERVICE_ONLY_TOKEN);
-
-        try (var conn = DriverManager.getConnection(jdbcUrl, username, password);
-                var stmt = conn.createStatement()) {
-            stmt.execute("""
-                    INSERT INTO centerui.apikey (id, encodedkey)
-                    SELECT %d, '%s'
-                    WHERE NOT EXISTS (SELECT 1 FROM centerui.apikey WHERE encodedkey = '%s')
-                    """.formatted(MANAGEMENT_SERVICE_ONLY_KEY_ID, encodedKey, encodedKey));
-            stmt.execute("""
-                    INSERT INTO centerui.apikey_roles (id, apikey_id, role)
-                    SELECT nextval('centerui.apikey_roles_id_seq'), a.id, 'XROAD_MANAGEMENT_SERVICE'
-                    FROM centerui.apikey a
-                    WHERE a.encodedkey = '%s'
-                      AND NOT EXISTS (
-                          SELECT 1 FROM centerui.apikey_roles r WHERE r.apikey_id = a.id
-                          AND r.role = 'XROAD_MANAGEMENT_SERVICE')
-                    """.formatted(encodedKey));
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to seed management service only API key into CS DB", e);
-        }
-    }
-
-    static String sha256Hex(String input) {
-        try {
-            var digest = MessageDigest.getInstance("SHA-256");
-            var bytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(bytes);
-        } catch (Exception e) {
-            throw new IllegalStateException("SHA-256 computation failed", e);
+            throw new IllegalStateException("Failed to seed API key (id=" + id + ") into CS DB", e);
         }
     }
 
