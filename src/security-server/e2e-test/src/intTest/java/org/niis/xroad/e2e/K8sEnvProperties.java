@@ -89,4 +89,9 @@ public interface K8sEnvProperties {
     @WithDefault("DEV:COM:4321")
     @WithName("ss1-member-id")
     String ss1MemberId();
+
+    /** Local {@code kubectl} executable used to shell out to the kind cluster (TEST_FRAMEWORK_K8S_KUBECTL_COMMAND). */
+    @WithDefault("kubectl")
+    @WithName("kubectl-command")
+    String kubectlCommand();
 }

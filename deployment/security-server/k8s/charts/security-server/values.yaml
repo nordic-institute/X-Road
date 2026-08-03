@@ -364,6 +364,9 @@ services:
         - apiGroups: ["batch"]
           resources: ["jobs"]
           verbs: ["create", "get", "list", "watch"]
+        - apiGroups: [ "" ]
+          resources: [ "pods/log" ]
+          verbs: [ "get" ]
         - apiGroups: [ "apps" ]
           resources: [ "deployments","deployments/scale" ]
           verbs: [ "get", "list", "update", "watch", "patch" ]
@@ -426,6 +429,8 @@ services:
       - mountPath: /etc/xroad/job-templates
         name: job-templates
         readOnly: true
+      - mountPath: /var/lib/xroad/messagelog-archives
+        name: message-log-archives-volume
     volumes:
       - name: backups-volume
         persistentVolumeClaim:
@@ -436,6 +441,9 @@ services:
       - name: job-templates
         configMap:
           name: message-log-archiver-job-template
+      - name: message-log-archives-volume
+        persistentVolumeClaim:
+          claimName: message-log-archives-pvc
 
   ds-control-plane:
     imageName: ds-control-plane
