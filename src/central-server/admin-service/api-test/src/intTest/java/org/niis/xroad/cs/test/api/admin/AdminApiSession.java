@@ -43,6 +43,7 @@ public class AdminApiSession {
     public static final String REGISTRATION_OFFICER_TOKEN = "4a5842e5-4ede-49f1-ab32-1b6be33d81c3";
     public static final String SECURITY_OFFICER_TOKEN = "3964334d-1f65-4629-a4a4-73c62ade0c9c";
     public static final String SYSTEM_ADMINISTRATOR_ONLY_TOKEN = "7d56e1ca-7413-4ed4-8030-5f330bdb0002";
+    public static final String MANAGEMENT_SERVICE_ONLY_TOKEN = "7d56e1ca-7413-4ed4-8030-5f330bdb0003";
     private static final String API_KEY_HEADER = "Authorization";
     private static final String API_KEY_PREFIX = "X-ROAD-APIKEY TOKEN=";
 

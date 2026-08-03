@@ -80,6 +80,23 @@ class SystemApiTest extends CsApiTest {
     }
 
     @Test
+    void managementServiceRoleCannotViewVersionOrStatus(CsBaselineSeeder seeder) {
+        var system = new SystemAdminClient(seeder.newManagementServiceOnlySession());
+
+        then("system status is forbidden", () ->
+                system.getSystemStatus()
+                        .statusCode(403));
+
+        then("cluster status is forbidden", () ->
+                system.getHighAvailabilityClusterStatus()
+                        .statusCode(403));
+
+        then("version endpoint is forbidden", () ->
+                system.getSystemVersion()
+                        .statusCode(403));
+    }
+
+    @Test
     void systemVersionEndpointReturnsVersion(CsBaselineSeeder seeder) {
         var system = new SystemAdminClient(seeder.newSession());
 
