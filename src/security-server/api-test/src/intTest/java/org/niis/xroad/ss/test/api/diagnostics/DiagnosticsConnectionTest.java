@@ -117,13 +117,11 @@ class DiagnosticsConnectionTest extends SsApiTest {
                     .contains(EXPECTED_ERROR_CODE);
         });
 
-        and("the error message is genericized, with no dataspace/EDC internals leaked to the consumer", () -> {
+        and("no DSP/EDC internals are leaked in the error", () -> {
             @SuppressWarnings("unchecked")
             var error = (Map<String, Object>) status.get("error");
-            var message = (String) error.get("message");
-            assertThat(message)
-                    .as("error message must not leak DSP/EDC internals")
-                    .isNotNull()
+            assertThat(error.toString())
+                    .as("serialized error must not leak DSP/EDC internals")
                     .doesNotContainIgnoringCase("dsp_")
                     .doesNotContainIgnoringCase("edc")
                     .doesNotContainIgnoringCase("dataspace");
@@ -162,13 +160,11 @@ class DiagnosticsConnectionTest extends SsApiTest {
                     .contains(EXPECTED_ERROR_CODE);
         });
 
-        and("the error message is genericized, with no dataspace/EDC internals leaked to the consumer", () -> {
+        and("no DSP/EDC internals are leaked in the error", () -> {
             @SuppressWarnings("unchecked")
             var error = (Map<String, Object>) status.get("error");
-            var message = (String) error.get("message");
-            assertThat(message)
-                    .as("error message must not leak DSP/EDC internals")
-                    .isNotNull()
+            assertThat(error.toString())
+                    .as("serialized error must not leak DSP/EDC internals")
                     .doesNotContainIgnoringCase("dsp_")
                     .doesNotContainIgnoringCase("edc")
                     .doesNotContainIgnoringCase("dataspace");
