@@ -24,12 +24,6 @@ fi
 
 chown -R xroad /var/lib/softhsm/tokens
 
-# This should be consolidated with the entrypoint in the base image
-# additionally loading signer hsm configs from /etc/xroad/signer-devices.yaml
-exec java \
-    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9999,server=y,suspend=n \
-    -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-    -Dquarkus.profile=containerized \
-    -Dquarkus.config.locations=/etc/xroad/signer-devices.yaml \
-    -Djava.library.path=/usr/share/xroad/lib \
-    -jar /opt/app/quarkus-run.jar
+export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Dquarkus.config.locations=/etc/xroad/signer-devices.yaml"
+
+exec /bin/sh /opt/app/entrypoint.sh
