@@ -9,6 +9,9 @@ abort() { echo "FATAL: $*" >&2; exit 1; }
 
 JOB_TEMPLATE="/etc/xroad/job-templates/job-template.yaml"
 
+JOB_WAIT_TIMEOUT_SECONDS="${XROAD_MESSAGE_LOG_JOB_WAIT_TIMEOUT_SECONDS:-1800}"
+JOB_POLL_INTERVAL_SECONDS="${XROAD_MESSAGE_LOG_JOB_POLL_INTERVAL_SECONDS:-5}"
+
 command="${1:-}"
 
 if [[ "$command" != "archive" && "$command" != "cleanup" ]]; then
@@ -58,17 +61,31 @@ fi
 
 echo "Job '${jobname}' created successfully. Waiting for completion..."
 
-# Wait for the job to complete (success or failure). --timeout=0 means wait indefinitely.
-if kubectl wait --for=condition=complete --timeout=0 "job/${jobname}" 2>/dev/null; then
-  echo "Job '${jobname}' completed successfully."
-  exit 0
-fi
+# Poll for either terminal condition rather than `kubectl wait --for`: a single wait can only block
+# on one condition, so waiting on Complete would sit out the whole timeout whenever the Job fails.
+job_condition() {
+  kubectl get "job/${jobname}" \
+    -o "jsonpath={.status.conditions[?(@.type=='$1')].status}" 2>/dev/null
+}
 
-# If we get here, the job did not complete successfully. Check if it failed.
-if kubectl wait --for=condition=failed --timeout=0 "job/${jobname}" 2>/dev/null; then
-  echo "Job '${jobname}' failed." >&2
-  kubectl logs "job/${jobname}" --tail=50 2>/dev/null >&2
-  exit 1
-fi
+deadline=$((SECONDS + JOB_WAIT_TIMEOUT_SECONDS))
 
-abort "Job '${jobname}' ended in an unexpected state."
+while true; do
+  if [[ "$(job_condition Complete)" == "True" ]]; then
+    echo "Job '${jobname}' completed successfully."
+    exit 0
+  fi
+
+  if [[ "$(job_condition Failed)" == "True" ]]; then
+    echo "Job '${jobname}' failed." >&2
+    kubectl logs "job/${jobname}" --tail=50 2>/dev/null >&2
+    exit 1
+  fi
+
+  if ((SECONDS >= deadline)); then
+    kubectl logs "job/${jobname}" --tail=50 2>/dev/null >&2
+    abort "Job '${jobname}' did not reach a terminal state within ${JOB_WAIT_TIMEOUT_SECONDS}s."
+  fi
+
+  sleep "$JOB_POLL_INTERVAL_SECONDS"
+done
