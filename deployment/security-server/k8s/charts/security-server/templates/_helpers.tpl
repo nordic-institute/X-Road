@@ -74,6 +74,10 @@ metadata:
     app: xroad-{{ .service }}
 spec:
   replicas: {{ $replicas | int }}
+  {{- if .config.strategy }}
+  strategy:
+    {{- toYaml .config.strategy | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: xroad-{{ .service }}

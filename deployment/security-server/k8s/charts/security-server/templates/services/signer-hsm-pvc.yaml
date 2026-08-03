@@ -1,0 +1,18 @@
+{{- /*
+Guarded counterpart to templates/pvc.yaml's unconditional
+persistentVolumeClaims map: this claim exists only for a release with
+signer.hsm.enabled, so ss0 and every non-E2E consumer render no PVC here.
+Mounted by the signer Deployment in templates/services/all.yaml.
+*/}}
+{{- if .Values.signer.hsm.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-signer-hsm-tokens-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.signer.hsm.tokenStorage.storage }}
+{{- end }}

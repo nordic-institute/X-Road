@@ -747,10 +747,20 @@ dsp:
 # stop-gap until SoftHSM provisioning is built natively into this chart.
 # Off by default — ss0 and every existing non-E2E consumer render
 # unchanged.
+#
+# The SoftHSM token directory is backed by a PersistentVolumeClaim scoped
+# to this release, so the signer's sign key and certificate survive a pod
+# restart or redeploy instead of the entrypoint re-initializing an empty
+# token. Tearing the release down (`helm uninstall`, `--recreate`) still
+# deletes the claim, so a fresh bring-up gets a fresh token as before.
 signer:
   hsm:
     enabled: false
     imageName: ss-signer-with-hsm
+    # Sized like gpg-keys-pvc, not the 1Gi archive claims — the token
+    # directory holds a handful of keys and certs.
+    tokenStorage:
+      storage: 128Mi
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).
