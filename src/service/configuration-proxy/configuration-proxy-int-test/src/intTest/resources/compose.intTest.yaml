@@ -33,7 +33,6 @@ services:
     environment:
       - QUARKUS_LOG_LEVEL=INFO
       - QUARKUS_LOG_CATEGORY__ORG_NIIS_XROAD_CONFPROXY__LEVEL=DEBUG
-      - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-confproxy:5432/confproxy
       - DB_CONFIG_SOURCE_USERNAME=confproxy
       - DB_CONFIG_SOURCE_PASSWORD=secret

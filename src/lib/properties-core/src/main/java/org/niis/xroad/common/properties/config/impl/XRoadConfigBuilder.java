@@ -107,7 +107,7 @@ public final class XRoadConfigBuilder {
      */
     public XRoadConfigBuilder dbOverrides(String appName) {
         var dbSourceConfig = DbSourceConfig.loadValues(appName);
-        if (dbSourceConfig.isEnabled() && dbSourceConfig.getUrl() != null) {
+        if (dbSourceConfig.getUrl() != null) {
             var dbProps = new CachedDbConfigSource(dbSourceConfig).getProperties();
             var merged = new java.util.LinkedHashMap<>(overrides);
             merged.putAll(dbProps);

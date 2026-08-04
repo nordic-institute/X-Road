@@ -74,7 +74,7 @@ public final class FrameworkPublishedConfig {
         }
 
         var dbSourceConfig = DbSourceConfig.loadValues(appName);
-        if (!dbSourceConfig.isEnabled() || dbSourceConfig.getUrl() == null) {
+        if (dbSourceConfig.getUrl() == null) {
             return Map.of();
         }
 

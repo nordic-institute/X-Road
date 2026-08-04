@@ -43,8 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code xroad.*} values sitting in the Spring {@code Environment} (yaml / env / system properties),
  * so a bean-registration decision cannot disagree with the running application.
  *
- * <p>No DB is configured here ({@code DB_CONFIG_SOURCE_ENABLED} unset), so resolution falls through to
- * the declared defaults.
+ * <p>No config database is configured here ({@code DB_CONFIG_SOURCE_URL} unset), so resolution falls
+ * through to the declared defaults.
  */
 class SpringConditionConfigTest {
 

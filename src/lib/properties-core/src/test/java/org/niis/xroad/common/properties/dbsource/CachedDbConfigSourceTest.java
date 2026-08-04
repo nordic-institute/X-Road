@@ -114,7 +114,6 @@ public class CachedDbConfigSourceTest {
 
         when(config.getAppName()).thenReturn(appName);
         when(config.getTableName()).thenReturn("config");
-        when(config.isEnabled()).thenReturn(true);
 
         return config;
     }
