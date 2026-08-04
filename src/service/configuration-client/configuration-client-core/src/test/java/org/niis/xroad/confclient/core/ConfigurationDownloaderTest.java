@@ -56,6 +56,7 @@ import java.util.Map;
 import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION;
 import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION;
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
@@ -157,8 +158,8 @@ class ConfigurationDownloaderTest {
     @Test
     void twoPartsResolvingToSameTargetAreRejected() {
         ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
-        ConfigurationFile partA = genericPart("/dir-a/custom.xml");
-        ConfigurationFile partB = genericPart("/dir-b/custom.xml");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
 
         List<ConfigurationDownloader.DownloadedContent> contents = List.of(
                 new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
@@ -169,12 +170,13 @@ class ConfigurationDownloaderTest {
                 .is(codedException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET.code()));
     }
 
-    private static ConfigurationFile genericPart(String contentLocation) {
+    private static ConfigurationFile genericPartWithInstance(String contentLocation, String instance) {
         Map<String, String> headers = new HashMap<>();
         headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
         headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
         headers.put(HEADER_CONTENT_LOCATION, contentLocation);
         headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        headers.put(HEADER_CONTENT_IDENTIFIER, "GENERIC; instance='%s'".formatted(instance));
         return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 

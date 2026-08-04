@@ -63,12 +63,25 @@ public class FileNameProviderImpl implements FileNameProvider {
             default -> resolveContentFileName(file);
         };
 
-        return resolveWithinGlobalConf(escapeInstanceIdentifier(file.getInstanceIdentifier()), fileName);
+        String escapedInstance = escapeInstanceIdentifier(file.getInstanceIdentifier());
+        if (StringUtils.isBlank(escapedInstance)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
+                    .details("Configuration part %s has a blank instance identifier".formatted(file))
+                    .metadataItems(file.getContentLocation())
+                    .build();
+        }
+        return resolveWithinGlobalConf(escapedInstance, fileName);
     }
 
     @Override
     public Path getConfigurationDirectory(String instanceIdentifier) {
-        return resolveWithinGlobalConf(escapeInstanceIdentifier(instanceIdentifier));
+        String escapedInstance = escapeInstanceIdentifier(instanceIdentifier);
+        if (StringUtils.isBlank(escapedInstance)) {
+            throw XrdRuntimeException.systemException(ErrorCode.GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER)
+                    .details("Cannot resolve configuration directory for a blank instance identifier")
+                    .build();
+        }
+        return resolveWithinGlobalConf(escapedInstance);
     }
 
     private String resolveContentFileName(ConfigurationFile file) {
