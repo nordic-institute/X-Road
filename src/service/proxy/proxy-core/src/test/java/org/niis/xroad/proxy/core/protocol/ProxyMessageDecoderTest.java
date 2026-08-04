@@ -363,8 +363,8 @@ public class ProxyMessageDecoderTest {
         ProxyMessageDecoder decoder = createDecoder(contentType);
         long oversizedLength = MAX_SIGNATURE_PART_BYTES + 1;
         InputStream message = buildOversizedSignatureMessage(boundary, "x".repeat(100), "y".repeat(100), oversizedLength);
-        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class, () -> decoder.parse(message));
-        assertEquals(IO_ERROR.code(), ex.getErrorCode());
+        CodedException ex = assertThrows(CodedException.class, () -> decoder.parse(message));
+        assertEquals(IO_ERROR.code(), ex.getFaultCode());
     }
 
     private static final String SOAP_MESSAGE = """
