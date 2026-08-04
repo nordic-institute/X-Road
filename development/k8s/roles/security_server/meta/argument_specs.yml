@@ -16,6 +16,12 @@ argument_specs:
       openbao_tls_secret_name: {type: str, default: openbao-server-tls}
       configuration_client_update_interval: {type: str, default: "10"}
       op_monitor_records_available_offset_seconds: {type: str, default: ""}
+      proxy_timestamp_immediately: {type: bool, default: false}
+      common_global_conf_refresh_rate: {type: str, default: ""}
+      proxy_batch_signing_enabled: {type: bool, default: false}
+      messagelog_archiver_clean_keep_records_for: {type: str, default: ""}
+      messagelog_archive_cron: {type: str, default: ""}
+      messagelog_clean_cron: {type: str, default: ""}
       proxy_dsp_enabled: {type: bool, default: true}
       dsp_participant_context_id: {type: str, default: ""}
       signer_hsm_enabled: {type: bool, default: false}

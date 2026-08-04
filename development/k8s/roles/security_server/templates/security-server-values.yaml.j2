@@ -36,6 +36,21 @@ init:
   'XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS': op_monitor_records_available_offset_seconds,
 }) %}
 {% endif %}
+{% if proxy_timestamp_immediately | default(false) | bool %}
+{% set _ = proxy_env.update({
+  'XROAD_PROXY_MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY': 'true',
+}) %}
+{% endif %}
+{% if (common_global_conf_refresh_rate | default('')) | length > 0 %}
+{% set _ = proxy_env.update({
+  'XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE': common_global_conf_refresh_rate,
+}) %}
+{% endif %}
+{% if proxy_batch_signing_enabled | default(false) | bool %}
+{% set _ = proxy_env.update({
+  'XROAD_PROXY_BATCH_SIGNING_ENABLED': 'true',
+}) %}
+{% endif %}
 {% if ds_tls %}
 {% set _ = proxy_env.update({
   'XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID': ss2_advertised_host,
@@ -197,6 +212,12 @@ services:
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
 {% endif %}
       QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+{% if (messagelog_archive_cron | default('')) | length > 0 %}
+      XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_ARCHIVE_CRON: "{{ messagelog_archive_cron }}"
+{% endif %}
+{% if (messagelog_clean_cron | default('')) | length > 0 %}
+      XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_CLEAN_CRON: "{{ messagelog_clean_cron }}"
+{% endif %}
     extraVolumes:
       - name: auxiliary-service-openbao-tls-certificate
         secret:
@@ -212,6 +233,9 @@ services:
 messageLogArchiver:
   env:
     QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+{% if (messagelog_archiver_clean_keep_records_for | default('')) | length > 0 %}
+    XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR: "{{ messagelog_archiver_clean_keep_records_for }}"
+{% endif %}
 
 {% if jvm_metrics_enabled %}
 jvmMetrics:

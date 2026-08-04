@@ -94,6 +94,39 @@ security_server_instances:
 # override (compose.ss-opmonitor.e2e.yaml).
 op_monitor_records_available_offset_seconds: "1"
 
+# Compose parity (compose.e2e.yaml, compose.ss-msglog.e2e.yaml — see issue 17's audit):
+# the proxy batches timestamping on a ~60s cadence by default, and LogArchiver only picks up
+# records that already have a timestamp record — so triggering an archive right after the
+# traffic test can silently miss the last wave. Force every record to get a timestamp
+# immediately instead.
+proxy_timestamp_immediately: true
+
+# Shorten the proxy's own global-conf reload cadence (default 60s) so a Security Server picks up
+# a just-registered member/service within the suite's retry budget, matching compose.e2e.yaml's
+# XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE=10S. Distinct from the security_server role's
+# configuration_client_update_interval, which governs how often configuration-client itself
+# re-fetches from the Central Server.
+common_global_conf_refresh_rate: "10s"
+
+# Compose parity (compose.ss-batch-signature-enabled.e2e.yaml) — message flow scenarios don't
+# care which signing mode produced the signature, but this keeps the k8s lane exercising the
+# same proxy code path compose does.
+proxy_batch_signing_enabled: true
+
+# LogCleaner only deletes records older than clean-keep-records-for days (default 30), so without
+# this a freshly-archived record is never cleanup-eligible and SsMessagelogArchiveTest's "0
+# records left in DB" assertions can never pass. Matches compose.ss-msglog.e2e.yaml.
+messagelog_archiver_clean_keep_records_for: "0"
+
+# SsMessagelogArchiveTest triggers archival and cleanup itself and asserts on exact record counts,
+# so auxiliary-service's own 6h/12h schedules must not fire alongside it. Matches
+# compose.ss-msglog.e2e.yaml, which disables both for the same reason. Note these schedules are
+# live in a containerised deployment: the %containerized profile points command-path at
+# /usr/share/xroad/scripts/containerised/message_log_archiver.sh, not at the native package's
+# /usr/share/xroad/bin/xroad-message-log-archiver (absent from the image).
+messagelog_archive_cron: "off"
+messagelog_clean_cron: "disabled"
+
 deploy_prometheus: false
 deploy_netdata: false
 

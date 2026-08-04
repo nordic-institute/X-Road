@@ -27,6 +27,39 @@ configuration_client_update_interval: "10"
 # (chart/image default of 60s stands, e.g. for dev/eks); set per-inventory (e.g. e2e) to shorten it.
 op_monitor_records_available_offset_seconds: ""
 
+# The proxy batches timestamping on its own ~60s cadence by default
+# (xroad.proxy.message-log.timestamper.timestamp-immediately). LogArchiver only picks up records
+# that already have a timestamp record, so an archive triggered right after a traffic burst can
+# silently miss the last wave. Off by default (chart/image default stands); e2e needs archiving
+# to see every record it just logged, so it turns this on.
+proxy_timestamp_immediately: false
+
+# Cadence at which the proxy (and every other service holding a GlobalConfProvider) reloads the
+# global configuration it already has on disk (xroad.common-global-conf.refresh-rate, chart/image
+# default 60s). Empty by default; e2e shortens it so a Security Server notices newly-registered
+# members/services without waiting out the full default interval.
+common_global_conf_refresh_rate: ""
+
+# xroad.proxy.batch-signing-enabled, off by default. e2e turns it on for parity with the compose
+# lane's e2e fixture; message flow scenarios are indifferent to which signing mode produced the
+# signature.
+proxy_batch_signing_enabled: false
+
+# xroad.message-log.archiver.clean-keep-records-for (days), @WithDefault("30") — LogCleaner only
+# deletes records older than this. Empty by default (chart/image default of 30 days stands); e2e
+# sets it to "0" so a record is cleanup-eligible immediately after archiving, which is what
+# SsMessagelogArchiveTest's "0 records left in DB" assertions require.
+messagelog_archiver_clean_keep_records_for: ""
+
+# auxiliary-service schedules messagelog archival every 6h and cleanup every 12h
+# (xroad.auxiliary-service.message-log.archive-cron / clean-cron), invoking the containerised
+# profile's message_log_archiver.sh — the same script a test triggers on demand. A scheduled run
+# firing mid-test would archive or clean records the test is asserting on. Empty by default
+# (chart/image schedule stands); set per-inventory to a value Quarkus reads as off ("off",
+# "disabled") where a test owns the triggering.
+messagelog_archive_cron: ""
+messagelog_clean_cron: ""
+
 proxy_dsp_enabled: true
 
 # Per-release signer-HSM stop-gap toggle (chart's signer.hsm.enabled — see
