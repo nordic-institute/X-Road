@@ -300,7 +300,7 @@ public final class HashChainVerifier {
             for (int i = 0; i < digests.length; ++i) {
                 totalValuesResolved++;
                 if (totalValuesResolved > MAX_VALUES) {
-                    throw XrdRuntimeException.systemException(MALFORMED_HASH_CHAIN,
+                    throw new CodedException(X_MALFORMED_HASH_CHAIN,
                             "Hash chain exceeds maximum value count of %d".formatted(MAX_VALUES));
                 }
                 digests[i] = resolveValue(values.get(i), hashStep.getRight());

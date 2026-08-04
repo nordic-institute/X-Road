@@ -270,10 +270,10 @@ class HashChainVerifierSecurityTest {
 
         assertThat(thrown).isInstanceOf(InvocationTargetException.class);
         Throwable cause = ((InvocationTargetException) thrown).getTargetException();
-        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
-        XrdRuntimeException xre = (XrdRuntimeException) cause;
-        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
-        assertThat(xre.getMessage()).contains("value count");
+        assertThat(cause).isInstanceOf(CodedException.class);
+        CodedException coded = (CodedException) cause;
+        assertThat(coded.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(coded.getMessage()).contains("value count");
     }
 
     private static HashValueType dummyHashValue(byte[] digestValue) {
