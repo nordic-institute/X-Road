@@ -6,7 +6,7 @@ so every non-default value the chart used to set through env must be a row
 here. Services that resolve these rows at startup declare a
 `{type: serverconfProperty}` wait so their pods block until the seed lands.
 
-Hook strategy mirrors db-serverconf-ds-control-plane-config-seed-job.yaml:
+Hook strategy (post-install/post-upgrade, weighted, delete-on-success):
 post-install/post-upgrade (db-serverconf must be Ready first), re-created on
 upgrade (Job.spec.template is immutable), successful Jobs cleaned up.
 

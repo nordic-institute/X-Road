@@ -139,7 +139,6 @@ pushing the wait-chain data into values and dispatching on `.spec.type`.
 Supported wait types:
   - postgres         fields: host (required), name (required), user (optional)
   - tcp              fields: host (required), port (required), name (required)
-  - serverconfSeed   fields: (none) — emits the canonical seed-row wait
 
 Call shape (per-spec; wrap in a range):
   {{- include "xroad.dsp.wait.dispatch" (dict "root" $ "spec" $wait) }}
@@ -151,14 +150,6 @@ Call shape (per-spec; wrap in a range):
   {{- include "xroad.dsp.wait.postgres" (dict "root" $root "host" $spec.host "name" $spec.name "user" ($spec.user | default "")) -}}
 {{- else if eq $spec.type "tcp" -}}
   {{- include "xroad.dsp.wait.tcp" (dict "root" $root "host" $spec.host "port" $spec.port "name" $spec.name) -}}
-{{- else if eq $spec.type "serverconfSeed" -}}
-  {{- include "xroad.dsp.wait.serverconfQuery" (dict
-        "root" $root
-        "name" "wait-serverconf-seed"
-        "sql" "SELECT 1 FROM configuration_properties WHERE property_key='edc.iam.trusted-issuer.issuer.id' AND scope='ds-control-plane' LIMIT 1"
-        "requireNonEmpty" true
-        "timeoutMsg" "serverconf seed row not present (property_key='edc.iam.trusted-issuer.issuer.id' scope='ds-control-plane')."
-        "timeoutHint" "kubectl logs -l app=xroad-db-serverconf-ds-control-plane-config-seed") -}}
 {{- else if eq $spec.type "serverconfProperty" -}}
   {{- include "xroad.dsp.wait.serverconfQuery" (dict
         "root" $root
@@ -168,14 +159,14 @@ Call shape (per-spec; wrap in a range):
         "timeoutMsg" (printf "config seed row not present (property_key='%s')." $spec.key)
         "timeoutHint" "kubectl logs -l app=xroad-config-seed") -}}
 {{- else -}}
-  {{- fail (printf "xroad.dsp.wait.dispatch: unknown wait type %q — expected postgres | tcp | serverconfSeed | serverconfProperty" $spec.type) -}}
+  {{- fail (printf "xroad.dsp.wait.dispatch: unknown wait type %q — expected postgres | tcp | serverconfProperty" $spec.type) -}}
 {{- end -}}
 {{- end }}
 
 {{/*
 initContainer emitter: poll `db-serverconf` with a parameterized SELECT and
 exit 0 when the success predicate is met. Replaces the former
-`wait.postgresSchemaServerconf` and `wait.serverconfSeed` helpers — both
+`wait.postgresSchemaServerconf` and `wait.serverconfQuery` helpers — both
 collapsed to one definition keyed by the success predicate.
 
 psql exit-code handling is identical across callers: rc=0 means the query

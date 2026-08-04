@@ -25,40 +25,47 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.dbsource.quarkus;
+package org.niis.xroad.common.properties.config.quarkus;
 
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.spi.ConfigSource;
-import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
-import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
+import org.niis.xroad.common.properties.config.ConfigKey;
 
 import java.util.Map;
 import java.util.Set;
 
-@Slf4j
-public class DbConfigSource implements ConfigSource {
-    private static final String NAME = "db-source";
-    private static final int ORDINAL = 299; // lower than system properties (400), env variables from system (300)
+/**
+ * Publishes the stored overrides of the keys marked {@link ConfigKey#publishedToFramework()} into the
+ * SmallRye config tree, so a framework setting that interpolates one — e.g.
+ * {@code quarkus.http.port: ${xroad.proxy.health-check-port}} — sees the value an operator stored.
+ * Nothing else from {@code configuration_properties} reaches the framework: every other key is read
+ * through {@code XRoadConfig}.
+ *
+ * <p>Ordinal 299 keeps the precedence the retired {@code db-source} had: below system properties (400)
+ * and env vars (300), above {@code conf.d} yaml (255), the packaged {@code application.yaml} and the
+ * DSL defaults source (100).
+ */
+public final class XRoadFrameworkConfigSource implements ConfigSource {
 
-    private final CachedDbConfigSource dbConfigSource;
+    private static final String NAME = "xroad-framework-source";
+    private static final int ORDINAL = 299;
 
-    public DbConfigSource(DbSourceConfig config) {
-        this.dbConfigSource = new CachedDbConfigSource(config);
+    private final Map<String, String> values;
+
+    /**
+     * @param values flagged key to stored value
+     */
+    public XRoadFrameworkConfigSource(Map<String, String> values) {
+        this.values = Map.copyOf(values);
     }
 
     @Override
     public Set<String> getPropertyNames() {
-        return dbConfigSource.getPropertyNames();
+        return values.keySet();
     }
 
     @Override
     public String getValue(String propertyName) {
-        return dbConfigSource.getValue(propertyName);
-    }
-
-    @Override
-    public Map<String, String> getProperties() {
-        return dbConfigSource.getProperties();
+        return values.get(propertyName);
     }
 
     @Override
@@ -70,5 +77,4 @@ public class DbConfigSource implements ConfigSource {
     public int getOrdinal() {
         return ORDINAL;
     }
-
 }

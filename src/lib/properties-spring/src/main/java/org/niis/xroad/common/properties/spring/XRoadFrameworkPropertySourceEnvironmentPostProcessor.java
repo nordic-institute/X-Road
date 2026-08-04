@@ -25,10 +25,11 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.dbsource.spring;
+package org.niis.xroad.common.properties.spring;
 
-import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
-import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.FrameworkPublishedConfig;
+import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
@@ -36,31 +37,38 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.springframework.core.env.StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
 
-public class DbPropertySourceEnvironmentPostProcessor implements EnvironmentPostProcessor {
+/**
+ * Publishes the stored overrides of the keys marked {@link ConfigKey#publishedToFramework()} into the
+ * Spring {@code Environment}, so a framework setting that interpolates one — e.g.
+ * {@code spring.servlet.multipart.max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}}
+ * — sees the value an operator stored.
+ *
+ * <p>Replaces the whole-table {@code db-source} property source: only flagged keys are published, and
+ * every other {@code xroad.*} value is read through {@code XRoadConfig}. The property source is added
+ * right after the system environment, keeping the precedence the retired one had.
+ */
+public class XRoadFrameworkPropertySourceEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    private static final String SOURCE_NAME = "xroad-framework-source";
 
     private final DeferredLog log = new DeferredLog();
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        application.addInitializers(ctx -> log.replayTo(DbPropertySourceEnvironmentPostProcessor.class));
+        application.addInitializers(
+                ctx -> log.replayTo(XRoadFrameworkPropertySourceEnvironmentPostProcessor.class));
 
-        String appName = environment.getProperty("spring.application.name");
-        DbSourceConfig config = DbSourceConfig.loadValues(appName);
-        if (config.isEnabled() && config.getUrl() != null) {
-            log.info("Using DB properties source.");
-
-            CachedDbConfigSource dbSource = new CachedDbConfigSource(config);
-            Map<String, String> dbProperties = dbSource.getProperties();
-
-            environment.getPropertySources().addAfter(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                    new MapPropertySource("db-source", new HashMap<>(dbProperties)));
-        } else {
-            log.info("DB properties source is disabled.");
+        var appName = environment.getProperty("spring.application.name");
+        var storedOverrides = FrameworkPublishedConfig.storedOverrides(appName, ConfigKeyProviders.allProviders());
+        if (storedOverrides.isEmpty()) {
+            return;
         }
-    }
 
+        log.info("Publishing stored override(s) of framework-visible keys: " + storedOverrides.keySet());
+        environment.getPropertySources().addAfter(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                new MapPropertySource(SOURCE_NAME, new HashMap<>(storedOverrides)));
+    }
 }

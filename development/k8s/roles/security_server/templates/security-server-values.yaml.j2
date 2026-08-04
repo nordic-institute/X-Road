@@ -172,6 +172,8 @@ services:
       JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }}"
 {% if svc == 'ds-control-plane' %}
       XROAD_DSP_PARTICIPANT_CONTEXT_ID: "{{ ss2_advertised_host }}"
+      # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged application.yaml.
+      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
       EDC_DSP_CALLBACK_ADDRESS: "https://{{ ss2_advertised_host }}:8183/api/dsp/%s"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
@@ -245,9 +247,6 @@ otel:
 {% endif %}
 
 {% if ds_tls %}
-dsp:
-  seed:
-    trustedIssuerDid: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
 {% endif %}
 
 # Postgres image used by DSP wait-gate initContainers. The DB clusters

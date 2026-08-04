@@ -106,6 +106,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .bool("health-check-enabled")
             .withDefaultValue(false)
             .exposedInUi()
+            .publishedToFramework()
             .build();
 
     /** {@code xroad.proxy.health-check-port}. */
@@ -113,6 +114,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .integer("health-check-port")
             .withDefaultValue(5588)
             .exposedInUi()
+            .publishedToFramework()
             .build();
 
     /** {@code xroad.proxy.health-check-interface}. */
@@ -120,6 +122,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .string("health-check-interface")
             .withDefaultValue(ANY_ADDRESS)
             .exposedInUi()
+            .publishedToFramework()
             .build();
 
     /** {@code xroad.proxy.hsm-health-check-enabled}. */

@@ -117,6 +117,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> REQUEST_SIZE_LIMIT_BINARY_UPLOAD = ADMIN
             .string("request-size-limit-binary-upload")
             .withDefaultValue("10MB")
+            .publishedToFramework()
             .build();
 
     // --- allowed files (Set<String>, modelled as string arrays) ---
@@ -176,6 +177,14 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> CONF_BACKUP_PATH = ADMIN
             .string("conf-backup-path")
             .withDefaultValue("/var/lib/xroad/backup/")
+            .build();
+    /**
+     * {@code xroad.admin-service.app-log-path} — directory holding the global-conf generation status
+     * file. Not exposed in the UI: a filesystem path fixed by packaging.
+     */
+    public static final ConfigKey<String> APP_LOG_PATH = ADMIN
+            .string("app-log-path")
+            .withDefaultValue("/var/log/xroad/")
             .build();
     /** {@code xroad.admin-service.backup-format-version-file-path}. */
     public static final ConfigKey<String> BACKUP_FORMAT_VERSION_FILE_PATH = ADMIN

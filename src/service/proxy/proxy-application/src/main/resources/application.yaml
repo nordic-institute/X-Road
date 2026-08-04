@@ -18,9 +18,6 @@ xroad:
     messagelog:
       hibernate:
         hikari.dataSource.ApplicationName: ${quarkus.application.name}
-  health-check:
-    memory:
-      threshold-percent: ${xroad.proxy.memory-usage-threshold:}
   proxy:
     tls:
       certificate-provisioning:

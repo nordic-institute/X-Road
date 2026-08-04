@@ -170,6 +170,7 @@ public abstract sealed class Prefix {
 
         private final Category category;
         private final boolean exposedInUi;
+        private final boolean publishedToFramework;
         private final String key;
         private final Class<T> type;
         private final String defaultValue;
@@ -179,6 +180,7 @@ public abstract sealed class Prefix {
 
         private DefaultConfigKey(Category category,
                                  boolean exposedInUi,
+                                 boolean publishedToFramework,
                                  String key, Class<T> type,
                                  String defaultValue,
                                  String containerDefaultValue,
@@ -197,6 +199,7 @@ public abstract sealed class Prefix {
 
             this.category = category;
             this.exposedInUi = exposedInUi;
+            this.publishedToFramework = publishedToFramework;
             this.key = key;
             this.type = type;
             this.defaultValue = defaultValue;
@@ -224,6 +227,11 @@ public abstract sealed class Prefix {
         @Override
         public boolean exposedInUi() {
             return exposedInUi;
+        }
+
+        @Override
+        public boolean publishedToFramework() {
+            return publishedToFramework;
         }
 
         @Override
@@ -294,6 +302,7 @@ public abstract sealed class Prefix {
         protected String defaultValue;
         protected String containerDefaultValue;
         protected boolean exposedInUi;
+        protected boolean publishedToFramework;
 
 
         @SuppressWarnings("unchecked")
@@ -306,6 +315,17 @@ public abstract sealed class Prefix {
         @SuppressWarnings("unchecked")
         public KB exposedInUi() {
             this.exposedInUi = true;
+            return (KB) this;
+        }
+
+        /**
+         * Publishes the resolved value into the framework's own config (Spring {@code Environment} /
+         * SmallRye) as well. Only for keys a packaged {@code application.yaml} interpolates into a
+         * framework setting — see {@link ConfigKey#publishedToFramework()}.
+         */
+        @SuppressWarnings("unchecked")
+        public KB publishedToFramework() {
+            this.publishedToFramework = true;
             return (KB) this;
         }
 
@@ -325,8 +345,8 @@ public abstract sealed class Prefix {
         public ConfigKey<T> build() {
             var key = prefix.rootPath() + "." + shortKey;
 
-            var configKey = new DefaultConfigKey<>(prefix.category(), exposedInUi, key, type, defaultValue,
-                    containerDefaultValue, converter, validator);
+            var configKey = new DefaultConfigKey<>(prefix.category(), exposedInUi, publishedToFramework, key, type,
+                    defaultValue, containerDefaultValue, converter, validator);
 
             if (defaultValue != null) {
                 var result = validator.validate(converter.apply(defaultValue));

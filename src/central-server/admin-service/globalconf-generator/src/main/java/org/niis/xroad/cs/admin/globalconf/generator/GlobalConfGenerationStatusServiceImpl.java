@@ -28,9 +28,10 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -53,8 +54,11 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
     private final ObjectMapper objectMapper;
     private final String logPath;
 
-    public GlobalConfGenerationStatusServiceImpl(ObjectMapper objectMapper,
-                                                 @Value("${xroad.appLog.path:/var/log/xroad/}") String logPath)  {
+    public GlobalConfGenerationStatusServiceImpl(ObjectMapper objectMapper, XRoadConfig config) {
+        this(objectMapper, config.value(CsAdminServiceConfigKeys.APP_LOG_PATH));
+    }
+
+    GlobalConfGenerationStatusServiceImpl(ObjectMapper objectMapper, String logPath) {
         this.objectMapper = objectMapper;
         this.logPath = logPath;
     }

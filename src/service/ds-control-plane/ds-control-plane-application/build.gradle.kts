@@ -27,6 +27,10 @@ dependencies {
 
   implementation(libs.bundles.quarkus.containerized)
 
+  testImplementation(libs.smallrye.config.yaml)
+  testImplementation(libs.junit.jupiter.params)
+  testImplementation(libs.assertj.core)
+
   runtimeOnly(libs.edc.core.controlplane) {
     // EDC 0.17 ships two mutually-exclusive state-machine drivers: classic Manager
     // (control-plane-{contract,transfer}-manager) and task-based (control-plane-

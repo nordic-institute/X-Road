@@ -483,6 +483,11 @@ services:
       HOSTNAME: "ds-control-plane"
       XROAD_HOST: "ds-control-plane"
       XROAD_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
+      # Feeds edc.iam.trusted-issuer.issuer.id, which the packaged application.yaml interpolates from
+      # this X-Road key. The EDC key cannot be set by an env var directly: EDC reads it through
+      # QuarkusConfigBridge, which snapshots config.getPropertyNames(), and SmallRye enumerates an env
+      # var with dots in place of every underscore — so a hyphenated key never matches.
+      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:ds-issuer-service%3A10100:issuer"
       XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
@@ -509,7 +514,7 @@ services:
         key: "password"
     # DSP-scoped initContainer wait chain. Each entry is dispatched by
     # `xroad.dsp.waits.render` to a typed helper (postgres | tcp |
-    # serverconfSeed). Keep ordering meaningful — waits run sequentially.
+    # serverconfProperty). Keep ordering meaningful — waits run sequentially.
     waits:
       - type: postgres
         host: db-ds-control-plane
@@ -522,7 +527,6 @@ services:
         host: ds-identity-hub
         port: 7185
         name: wait-identity-hub
-      - type: serverconfSeed
 
   ds-identity-hub:
     imageName: ds-identity-hub
@@ -731,14 +735,6 @@ otel:
 # `xroad.dsp.enabled` short-circuits all DSP-scoped resources.
 postgres:
   image: ""
-
-# DSP seed knobs. trustedIssuerDid is the issuer participant DID written into
-# the core-SS serverconf `configuration_properties` row that ds-control-plane
-# reads on startup. Default points at the in-cluster issuer; hybrid dev envs
-# override it with the dataspace-wide issuer (e.g. the LXD xrd-cs one).
-dsp:
-  seed:
-    trustedIssuerDid: "did:web:ds-issuer-service%3A10100:issuer"
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).

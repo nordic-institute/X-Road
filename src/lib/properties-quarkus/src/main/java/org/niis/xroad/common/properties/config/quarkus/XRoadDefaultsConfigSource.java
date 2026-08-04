@@ -41,13 +41,14 @@ import java.util.Set;
  * tree, so {@code ${xroad.*}} placeholders and {@code @ConfigProperty} resolve without
  * duplicating defaults in YAML.
  *
- * <p>Low ordinal on purpose: defaults are a fallback only — {@code application.yaml},
- * profiles, env vars and the DB config source ({@code db-source}, ordinal 299) all win.
+ * <p>Low ordinal on purpose: defaults are a fallback only — {@code application.yaml}, profiles, env vars
+ * and the stored overrides of framework-visible keys ({@link XRoadFrameworkConfigSource}, ordinal 299)
+ * all win.
  */
 public final class XRoadDefaultsConfigSource implements ConfigSource {
 
     private static final String NAME = "xroad-defaults-source";
-    // below application.yaml (~250), env (300) and db-source (299): DSL defaults only fill gaps
+    // below application.yaml (~250), env (300) and xroad-framework-source (299): defaults only fill gaps
     private static final int ORDINAL = 100;
 
     private final Map<String, String> values;

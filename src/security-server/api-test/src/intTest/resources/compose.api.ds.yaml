@@ -28,22 +28,6 @@ services:
         limits:
           memory: 256M
 
-  db-serverconf-ds-control-plane-config-seed:
-    image: ${POSTGRES_DEV_IMG:-postgres-dev}
-    pull_policy: always
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
-        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
-           VALUES ('edc.iam.trusted-issuer.issuer.id', 'did:web:ds-issuer-service%3A6183:issuer', 'ds-control-plane', now(), now())
-           ON CONFLICT DO NOTHING;"
-    networks:
-      - xrd-ss-network
-    depends_on:
-      db-serverconf-init:
-        condition: service_completed_successfully
 
   db-ds-control-plane:
     image: ${POSTGRES_DEV_IMG:-postgres-dev}
@@ -76,6 +60,9 @@ services:
       - HOSTNAME=ds-control-plane
       - XROAD_HOST=ds-control-plane
       - XROAD_DSP_PARTICIPANT_CONTEXT_ID=ss0
+      # Interpolated into edc.iam.trusted-issuer.issuer.id by the packaged application.yaml: the EDC
+      # key is hyphenated, so an env var can only reach it through an X-Road key the yaml declares.
+      - XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID=did:web:ds-issuer-service%3A6183:issuer
       - XROAD_PROXY_DATAPLANE_URL=http://proxy:5590/full/api/v1/dataflows
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
@@ -119,8 +106,6 @@ services:
     depends_on:
       db-ds-control-plane:
         condition: service_healthy
-      db-serverconf-ds-control-plane-config-seed:
-        condition: service_completed_successfully
       configuration-client:
         condition: service_healthy
       ds-identity-hub:

@@ -87,15 +87,18 @@ public class AcmeBeanConfig {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
             var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
-            boolean isActive = config.value(AdminServiceConfigKeys.ACME_RENEWAL_ACTIVE);
-            if (!isActive) {
+            return schedulingEnabled(config.value(AdminServiceConfigKeys.ACME_RENEWAL_ACTIVE));
+        }
+
+        static boolean schedulingEnabled(boolean renewalActive) {
+            if (!renewalActive) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
             }
             if (NodeProperties.isSecondaryNode()) {
                 log.info("This is a secondary cluster node, ACME certificate renewal job auto-scheduling disabled");
                 return false;
             }
-            return isActive;
+            return renewalActive;
         }
     }
 

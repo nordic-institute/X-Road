@@ -32,14 +32,14 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.springframework.core.env.Environment;
 
-import java.util.HashMap;
-
 /**
  * Builds a standalone {@link XRoadConfig} for Spring {@code Condition} evaluation, which happens before any
- * bean (including the application's {@code XRoadConfig}) exists. Resolves through the same layers as the
- * application bean — DB overrides + Spring {@code Environment} overrides + packaged DSL defaults — so a
- * bean-registration decision honours DB-sourced config. The underlying DB connection pool is opened and
- * closed within the single read (see {@code CachedDbConfigSource}), so the throwaway config leaks nothing.
+ * bean (including the application's {@code XRoadConfig}) exists. Resolves through exactly the layers the
+ * application bean uses — DB overrides, then container or native defaults — so a bean-registration decision
+ * can never disagree with the value the running application reads. The {@code Environment} is consulted only
+ * for framework metadata (application name and the active profile), never for {@code xroad.*} values. The
+ * underlying DB connection pool is opened and closed within the single read (see
+ * {@code CachedDbConfigSource}), so the throwaway config leaks nothing.
  */
 public final class SpringConditionConfig {
 
@@ -56,16 +56,9 @@ public final class SpringConditionConfig {
         var deploymentMode = environment.matchesProfiles("containerized")
                 ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
         var builder = XRoadConfigBuilder.create();
-        var overrides = new HashMap<String, String>();
         for (var provider : providers) {
             builder.register(provider);
-            for (var key : provider.keys()) {
-                var value = environment.getProperty(key.key());
-                if (value != null) {
-                    overrides.put(key.key(), value);
-                }
-            }
         }
-        return builder.overrides(overrides).deploymentMode(deploymentMode).dbOverrides(appName).build();
+        return builder.deploymentMode(deploymentMode).dbOverrides(appName).build();
     }
 }

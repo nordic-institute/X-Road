@@ -86,9 +86,6 @@
           callback:
             address: "https://{{ inventory_hostname }}.lxd:8183/api/dsp/%s"
         iam:
-          trusted-issuer:
-            issuer:
-              id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
           credential:
             revocation:
               cache:
@@ -108,6 +105,14 @@
       xroad:
         dsp:
           participant-context-id: "{{ inventory_hostname }}.lxd"
+        # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged application.yaml.
+        # The EDC key is hyphenated, so it can only be reached through an X-Road key the yaml declares
+        # (see EdcConfigKeys.TRUSTED_ISSUER_ID); the interpolation has no fallback, so this must be set.
+        edc:
+          iam:
+            trusted-issuer:
+              issuer:
+                id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
 
 # ---------------------------------------------------------------------------
 # 6. TLS keystore for DS services. Must be on disk before ds-* units start.

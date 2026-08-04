@@ -39,6 +39,19 @@ public sealed interface ConfigKey<T> permits Prefix.DefaultConfigKey {
         return false;
     }
 
+    /**
+     * Whether the resolved value must also be published into the framework's own configuration
+     * (Spring {@code Environment} / SmallRye), which happens for keys a packaged
+     * {@code application.yaml} interpolates into a framework setting — e.g.
+     * {@code quarkus.http.port: ${xroad.proxy.health-check-port}}. Everything else stays out of the
+     * framework context and is read through {@link XRoadConfig} only.
+     *
+     * @return whether the framework config sees this key; defaults to false
+     */
+    default boolean publishedToFramework() {
+        return false;
+    }
+
     String key();
 
     String defaultValue();

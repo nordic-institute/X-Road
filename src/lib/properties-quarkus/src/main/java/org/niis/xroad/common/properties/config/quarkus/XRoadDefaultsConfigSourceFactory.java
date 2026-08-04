@@ -29,8 +29,10 @@ package org.niis.xroad.common.properties.config.quarkus;
 
 import io.smallrye.config.ConfigSourceContext;
 import io.smallrye.config.ConfigSourceFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.FrameworkPublishedConfig;
 import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
 
 import java.util.Arrays;
@@ -40,8 +42,9 @@ import java.util.stream.Collectors;
 
 /**
  * Registers {@link XRoadDefaultsConfigSource} with the packaged catalogue
- * ({@link ConfigKeyProviders#allProviders()}). Wired via
- * {@code META-INF/services/io.smallrye.config.ConfigSourceFactory}.
+ * ({@link ConfigKeyProviders#allProviders()}), plus {@link XRoadFrameworkConfigSource} for the stored
+ * overrides of keys marked {@link org.niis.xroad.common.properties.config.ConfigKey#publishedToFramework()}.
+ * Wired via {@code META-INF/services/io.smallrye.config.ConfigSourceFactory}.
  *
  * <p>An app may narrow what is published by setting {@code xroad.config.defaults-scopes} to a
  * comma-separated list of scope root paths (e.g. {@code xroad.common}); only those providers'
@@ -49,6 +52,7 @@ import java.util.stream.Collectors;
  * keeps the source from leaking defaults into an app that maps a prefix only partially with a
  * {@code @ConfigMapping} — SmallRye would otherwise reject the extra keys as unknown.
  */
+@Slf4j
 public final class XRoadDefaultsConfigSourceFactory implements ConfigSourceFactory {
 
     static final String DEFAULTS_SCOPES_PROPERTY = "xroad.config.defaults-scopes";
@@ -57,7 +61,16 @@ public final class XRoadDefaultsConfigSourceFactory implements ConfigSourceFacto
     public Iterable<ConfigSource> getConfigSources(ConfigSourceContext context) {
         var configured = context.getValue(DEFAULTS_SCOPES_PROPERTY);
         var scopes = configured == null ? null : configured.getValue();
-        return List.of(new XRoadDefaultsConfigSource(selectProviders(ConfigKeyProviders.allProviders(), scopes)));
+        var providers = selectProviders(ConfigKeyProviders.allProviders(), scopes);
+        var appName = context.getValue("quarkus.application.name");
+        var storedOverrides = FrameworkPublishedConfig.storedOverrides(
+                appName == null ? null : appName.getValue(), providers);
+        if (storedOverrides.isEmpty()) {
+            return List.of(new XRoadDefaultsConfigSource(providers));
+        }
+        log.info("Publishing {} stored override(s) of framework-visible keys: {}",
+                storedOverrides.size(), storedOverrides.keySet());
+        return List.of(new XRoadDefaultsConfigSource(providers), new XRoadFrameworkConfigSource(storedOverrides));
     }
 
     static List<ConfigKeyProvider> selectProviders(List<ConfigKeyProvider> providers, String scopesCsv) {
