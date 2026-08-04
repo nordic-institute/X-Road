@@ -9,3 +9,26 @@ data:
     {{- .Files.Get "scripts/_k8s.sh" | nindent 4 }}
   init.sh: |
     {{- .Files.Get "scripts/init.sh" | nindent 4 }}
+  seed_kv.sh: |
+    {{- .Files.Get "scripts/seed_kv.sh" | nindent 4 }}
+{{- if .Values.kvSeed }}
+---
+# One file per kvSeed entry plus a manifest mapping each to its target
+# xrd-secret path — seed_kv.sh reads the manifest and writes each file's
+# content as that path's "payload" field.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.serviceAccount.name }}-kvseed
+data:
+  manifest.json: |
+    {{- $entries := list }}
+    {{- range $i, $seed := .Values.kvSeed }}
+    {{- $entries = append $entries (dict "path" $seed.path "file" (printf "seed-%d.txt" $i)) }}
+    {{- end }}
+    {{- toJson $entries | nindent 4 }}
+{{- range $i, $seed := .Values.kvSeed }}
+  seed-{{ $i }}.txt: |
+    {{- $seed.value | nindent 4 }}
+{{- end }}
+{{- end }}

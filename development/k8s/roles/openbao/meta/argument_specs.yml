@@ -27,3 +27,4 @@ argument_specs:
       openbao_tls_dir: {type: path, required: false}
       openbao_tls_validity_days: {type: int, default: 1825}
       openbao_helm_wait_timeout: {type: str, default: 10m}
+      messagelog_encryption_pgp_public_keyring_file: {type: str, default: ""}

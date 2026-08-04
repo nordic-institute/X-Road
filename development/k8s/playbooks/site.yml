@@ -40,6 +40,7 @@
       vars:
         security_server_namespace: "{{ ss_instance.namespace }}"
         openbao_tls_dir: "{{ ss_instance.openbao_tls_dir }}"
+        messagelog_encryption_pgp_public_keyring_file: "{{ ss_instance.messagelog_encryption_pgp_public_keyring_file | default('') }}"
       loop: >-
         {{
           security_server_instances
@@ -73,6 +74,7 @@
         security_server_namespace: "{{ ss_instance.namespace }}"
         dsp_participant_context_id: "{{ ss_instance.dsp_participant_context_id | default('') }}"
         signer_hsm_enabled: "{{ ss_instance.signer_hsm_enabled | default(false) }}"
+        messagelog_encryption_config: "{{ ss_instance.messagelog_encryption_config | default('') }}"
       loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
       loop_control:
         loop_var: ss_instance

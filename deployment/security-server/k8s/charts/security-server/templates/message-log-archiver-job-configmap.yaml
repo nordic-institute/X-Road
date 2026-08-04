@@ -1,5 +1,7 @@
 {{- $image := .Values.global.image }}
 {{- $archiver := .Values.messageLogArchiver }}
+{{- $allVolumeMounts := concat ($archiver.volumeMounts | default list) ($archiver.extraVolumeMounts | default list) }}
+{{- $allVolumes := concat ($archiver.volumes | default list) ($archiver.extraVolumes | default list) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -45,13 +47,13 @@ data:
                       name: {{ .secretName }}
                       key: {{ .key }}
               {{- end }}
-              {{- if $archiver.volumeMounts }}
+              {{- if $allVolumeMounts }}
               volumeMounts:
-              {{- toYaml $archiver.volumeMounts | nindent 14 }}
+              {{- toYaml $allVolumeMounts | nindent 14 }}
               {{- end }}
-          {{- if $archiver.volumes }}
+          {{- if $allVolumes }}
           volumes:
-          {{- range $archiver.volumes }}
+          {{- range $allVolumes }}
           {{- if .persistentVolumeClaim }}
             - name: {{ .name }}
               persistentVolumeClaim:

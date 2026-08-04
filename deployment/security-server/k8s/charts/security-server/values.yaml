@@ -679,6 +679,21 @@ messageLogArchiver:
     - name: archive-volume
       persistentVolumeClaim:
         claimName: message-log-archives-pvc
+  # Additive counterparts to volumes/volumeMounts above (see
+  # templates/message-log-archiver-job-configmap.yaml) — appended rather than
+  # replacing them, since a Helm values override replaces a list wholesale and
+  # archive-volume must survive any e2e/dev overlay that also needs a mount here.
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# Messagelog DB + archive encryption, projected as a single Quarkus config
+# file (application.yaml) into the proxy and message-log-archiver containers
+# via their extraVolumes/extraVolumeMounts. See
+# MessageLogEncryptionProperties (lib/messagelog-core) for the config
+# contract this feeds. Off by default — no ConfigMap, no mounts.
+messageLogEncryption:
+  enabled: false
+  applicationYaml: ""
 
 persistentVolumeClaims:
   backups-pvc:

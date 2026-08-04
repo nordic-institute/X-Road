@@ -79,6 +79,22 @@ proxy_dsp_enabled: false
 # signer_hsm_enabled var) — setup.hurl's bootstrap needs ss1 to expose a
 # pkcs11 HARDWARE token; ss0 hardcodes token id 0 and doesn't need one, so
 # it's left at the role's default (false).
+#
+# ss1 additionally enables messagelog DB + archive encryption with per-member
+# key grouping (issue 16), mirroring compose's
+# msglog_encryption_config/application.yaml mount and the LXD role's
+# msglog-encryption.yml/msglog-archive-encryption.yml exactly — the deliberately
+# bogus member identifiers and non-existent key id are reproduced verbatim, not
+# cleaned up, since SsMessagelogArchiveTest's negative scenario depends on the
+# archiver tolerating them. No archive-cron/clean-cron key here: issue 17
+# already parks both crons off (messagelog_archive_cron/messagelog_clean_cron
+# above) and re-adding one would re-arm a scheduled run that races the test.
+# ss0 gets neither var and keeps producing plaintext, ungrouped archives.
+# messagelog_encryption_pgp_public_keyring_file points the openbao role's
+# kvSeed at the e2e suite's own gpg_keys fixture (read from disk at render
+# time, not copied into this repo) — only the recipient *public* keyring is
+# seeded; the archive signing key and the messagelog DB master key are both
+# generated unconditionally at Security Server init and need no provisioning.
 security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0
@@ -87,6 +103,20 @@ security_server_instances:
     dsp_participant_context_id: xrd-ss1
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
     signer_hsm_enabled: true
+    messagelog_encryption_config: |
+      xroad:
+        message-log-encryption:
+          db:
+            encryption-enabled: true
+          archive:
+            encryption-enabled: true
+            default-key-id: 3BD9C292C63580F8
+            grouping-strategy: SUBSYSTEM
+            grouping-keys:
+              "not/existing/member": 8A4BB80EEE081BDE
+              "DEV/COM/4321": E93952B01C2D2EA5,8A4BB80EEE081BDE
+              "another/fake/member": 1234567890ABCDEF
+    messagelog_encryption_pgp_public_keyring_file: "{{ playbook_dir }}/../../../src/security-server/e2e-test/src/intTest/resources/gpg_keys/public-keys.asc"
 
 # SsMonitoringTest queries getSecurityServerOperationalData a couple of seconds after logging
 # the request; op-monitor's default records-available-timestamp-offset-seconds (60s) would hide

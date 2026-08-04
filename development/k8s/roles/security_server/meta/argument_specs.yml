@@ -22,6 +22,7 @@ argument_specs:
       messagelog_archiver_clean_keep_records_for: {type: str, default: ""}
       messagelog_archive_cron: {type: str, default: ""}
       messagelog_clean_cron: {type: str, default: ""}
+      messagelog_encryption_config: {type: str, default: ""}
       proxy_dsp_enabled: {type: bool, default: true}
       dsp_participant_context_id: {type: str, default: ""}
       signer_hsm_enabled: {type: bool, default: false}

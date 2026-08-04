@@ -60,6 +60,19 @@ messagelog_archiver_clean_keep_records_for: ""
 messagelog_archive_cron: ""
 messagelog_clean_cron: ""
 
+# Messagelog DB + archive encryption, mirroring compose's
+# msglog_encryption_config/application.yaml mount (issue 16) and the LXD
+# role's msglog-encryption.yml — the raw "xroad: message-log-encryption: ..."
+# YAML document projected into the proxy and message-log-archiver containers
+# (security-server chart's messageLogEncryption.applicationYaml). Empty by
+# default: the chart renders no ConfigMap and no extra mount, matching
+# chart/image behavior unchanged. Set per-release (e.g. e2e's ss1) to the
+# fixture's exact block. Deliberately excludes any auxiliary-service
+# archive-cron/clean-cron key — those stay parked off by
+# messagelog_archive_cron/messagelog_clean_cron above; re-adding one here
+# would re-arm a scheduled run that races the test.
+messagelog_encryption_config: ""
+
 proxy_dsp_enabled: true
 
 # Per-release signer-HSM stop-gap toggle (chart's signer.hsm.enabled — see
