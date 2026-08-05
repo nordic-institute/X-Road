@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 /**
  * Keys for the {@code xroad.health-check} scope, shared across all apps that embed
  * the health-check-core lib. Put in {@code ConfigKeyProviders.allProviders()} so the
@@ -60,7 +62,12 @@ public final class HealthCheckConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return HEALTH_CHECK;
+    public String rootPath() {
+        return HEALTH_CHECK.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return HEALTH_CHECK.keys();
     }
 }

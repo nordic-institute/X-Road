@@ -33,6 +33,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
@@ -192,7 +193,12 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return OP_MONITOR;
+    public String rootPath() {
+        return OP_MONITOR.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return OP_MONITOR.keys();
     }
 }

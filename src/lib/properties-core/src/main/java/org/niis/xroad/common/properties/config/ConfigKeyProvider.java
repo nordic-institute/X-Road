@@ -27,19 +27,35 @@
 
 package org.niis.xroad.common.properties.config;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Groups the keys for one scope. Processes register the providers they consume; the
+ * One module's declared config keys. Processes register the providers they consume; the
  * admin-service registers all of them for the complete catalogue.
  */
 public interface ConfigKeyProvider {
 
-    /** @return single scope this provider's keys belong to */
-    Prefix scope();
+    /** @return root path of the keys this provider declares, e.g. {@code xroad.signer} */
+    String rootPath();
 
-    /** @return keys this provider declares (defaults to scope().keys()) */
-    default List<ConfigKey<?>> keys() {
-        return scope().keys();
+    /** @return keys this provider declares, in declaration order */
+    Set<ConfigKey<?>> keys();
+
+    /**
+     * @param prefix root prefix whose declared keys the provider serves
+     * @return provider over every key declared under {@code prefix}
+     */
+    static ConfigKeyProvider forPrefix(Prefix prefix) {
+        return new ConfigKeyProvider() {
+            @Override
+            public String rootPath() {
+                return prefix.rootPath();
+            }
+
+            @Override
+            public Set<ConfigKey<?>> keys() {
+                return prefix.keys();
+            }
+        };
     }
 }

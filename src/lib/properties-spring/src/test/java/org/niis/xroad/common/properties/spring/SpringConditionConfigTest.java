@@ -52,7 +52,7 @@ class SpringConditionConfigTest {
     void resolvesDeclaredNativeDefault() {
         var prefix = Prefix.of(Category.PROXY_UI_API, "xroad.condition-test-native");
         var key = prefix.integer("interval").withDefaultValue(60).build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         var config = SpringConditionConfig.resolve(new MockEnvironment(), provider);
 
@@ -66,7 +66,7 @@ class SpringConditionConfigTest {
                 .withDefaultValue("127.0.0.1")
                 .withContainerDefaultValue("0.0.0.0")
                 .build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
         var environment = new MockEnvironment();
         environment.setActiveProfiles("containerized");
 
@@ -79,7 +79,7 @@ class SpringConditionConfigTest {
     void publishesNothingToTheFrameworkWithoutAConfiguredDatabase() {
         var prefix = Prefix.of(Category.PROXY_UI_API, "xroad.condition-test-framework");
         prefix.integer("request-size-limit").withDefaultValue(10).publishedToFramework().build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         assertThat(FrameworkPublishedConfig.storedOverrides("proxy-ui-api", List.of(provider)))
                 .as("declared defaults must never be published — the framework already has them")
@@ -90,7 +90,7 @@ class SpringConditionConfigTest {
     void ignoresXroadValuesPresentInTheSpringEnvironment() {
         var prefix = Prefix.of(Category.PROXY_UI_API, "xroad.condition-test-ignored");
         var key = prefix.bool("rate-limit-enabled").withDefaultValue(false).build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
         var environment = new MockEnvironment()
                 .withProperty("xroad.condition-test-ignored.rate-limit-enabled", "true");
 

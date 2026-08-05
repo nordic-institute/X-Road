@@ -44,7 +44,7 @@ class XRoadConfigBuilderTest {
             .withDefaultValue("native").withContainerDefaultValue("container").build();
     private final ConfigKey<String> nativeOnly = scope.string("native-only")
             .withDefaultValue("native-only").build();
-    private final ConfigKeyProvider provider = () -> scope;
+    private final ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(scope);
 
     @Test
     void nativeModeResolvesRegularDefault() {
@@ -116,7 +116,7 @@ class XRoadConfigBuilderTest {
         assertThat(signerChannel.keys()).isEmpty();
 
         // so a provider exposing the root scope registers the nested key and the builder resolves it
-        ConfigKeyProvider nestedProvider = () -> root;
+        ConfigKeyProvider nestedProvider = ConfigKeyProvider.forPrefix(root);
         var config = XRoadConfigBuilder.create().register(nestedProvider).build();
         assertThat(config.get(hostKey).value()).isEqualTo("127.0.0.1");
 

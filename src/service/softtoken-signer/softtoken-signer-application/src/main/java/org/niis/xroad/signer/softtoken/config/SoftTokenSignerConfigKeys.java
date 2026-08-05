@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 /** DSL config keys for the {@code xroad.softtoken-signer} namespace. */
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -97,7 +98,12 @@ final class SoftTokenSignerConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return SOFTTOKEN_SIGNER;
+    public String rootPath() {
+        return SOFTTOKEN_SIGNER.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return SOFTTOKEN_SIGNER.keys();
     }
 }

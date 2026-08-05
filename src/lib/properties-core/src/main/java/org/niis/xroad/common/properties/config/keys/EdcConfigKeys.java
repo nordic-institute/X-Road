@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 /**
  * X-Road owned inputs to EDC settings ({@code xroad.edc.*}).
  *
@@ -69,7 +71,12 @@ public final class EdcConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return EDC;
+    public String rootPath() {
+        return EDC.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return EDC.keys();
     }
 }

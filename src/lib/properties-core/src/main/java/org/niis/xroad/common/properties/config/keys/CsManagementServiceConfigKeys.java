@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
@@ -154,7 +155,12 @@ public final class CsManagementServiceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return MANAGEMENT;
+    public String rootPath() {
+        return MANAGEMENT.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return MANAGEMENT.keys();
     }
 }

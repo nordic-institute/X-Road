@@ -33,6 +33,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 /** Auxiliary-service keys ({@code xroad.auxiliary-service.backup.*} and {@code .message-log.*}). */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
@@ -246,7 +247,12 @@ public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return AUXILIARY_SERVICE;
+    public String rootPath() {
+        return AUXILIARY_SERVICE.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return AUXILIARY_SERVICE.keys();
     }
 }

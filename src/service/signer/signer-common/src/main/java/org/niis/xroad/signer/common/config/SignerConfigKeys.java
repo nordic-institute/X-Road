@@ -38,6 +38,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * DSL config keys for the {@code xroad.signer} namespace.
@@ -300,8 +301,13 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return SIGNER;
+    public String rootPath() {
+        return SIGNER.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return SIGNER.keys();
     }
 
     private static Map<String, SignerModuleConfig> parseModules(String raw) {

@@ -110,8 +110,13 @@ public final class MessageLogEncryptionConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return MESSAGE_LOG_ENCRYPTION;
+    public String rootPath() {
+        return MESSAGE_LOG_ENCRYPTION.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return MESSAGE_LOG_ENCRYPTION.keys();
     }
 
     private static Map<String, Set<String>> parseGroupingKeys(String raw) {

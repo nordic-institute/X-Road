@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
 /** Configuration-client keys ({@code xroad.configuration-client.*}). */
@@ -141,7 +143,12 @@ public final class ConfClientConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return CONFIGURATION_CLIENT;
+    public String rootPath() {
+        return CONFIGURATION_CLIENT.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return CONFIGURATION_CLIENT.keys();
     }
 }

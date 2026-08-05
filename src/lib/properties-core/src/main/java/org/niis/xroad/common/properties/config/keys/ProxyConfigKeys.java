@@ -33,7 +33,9 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
@@ -890,12 +892,13 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return PROXY;
+    public String rootPath() {
+        return PROXY.rootPath();
     }
 
     @Override
-    public List<ConfigKey<?>> keys() {
-        return Stream.concat(PROXY.keys().stream(), ANTI_DOS.keys().stream()).toList();
+    public Set<ConfigKey<?>> keys() {
+        return Stream.concat(PROXY.keys().stream(), ANTI_DOS.keys().stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

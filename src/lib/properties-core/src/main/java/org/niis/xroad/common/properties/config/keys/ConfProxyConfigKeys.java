@@ -37,6 +37,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
@@ -164,8 +165,13 @@ public final class ConfProxyConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return ROOT;
+    public String rootPath() {
+        return ROOT.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return ROOT.keys();
     }
 
     private static Map<String, ConfProxyInstanceConfig> parseInstances(String raw) {

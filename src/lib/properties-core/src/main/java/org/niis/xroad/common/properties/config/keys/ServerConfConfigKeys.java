@@ -31,6 +31,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 /**
  * Shared server configuration cache keys ({@code xroad.common-server-conf.*}), consumed by both Quarkus and
  * Spring products.
@@ -82,7 +84,12 @@ public final class ServerConfConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return SERVER_CONF;
+    public String rootPath() {
+        return SERVER_CONF.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return SERVER_CONF.keys();
     }
 }

@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 /**
  * Central Server registration-service keys ({@code xroad.registration-service.*}, incl.
@@ -139,7 +140,12 @@ public final class CsRegistrationServiceConfigKeys implements ConfigKeyProvider 
     }
 
     @Override
-    public Prefix scope() {
-        return REGISTRATION;
+    public String rootPath() {
+        return REGISTRATION.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return REGISTRATION.keys();
     }
 }

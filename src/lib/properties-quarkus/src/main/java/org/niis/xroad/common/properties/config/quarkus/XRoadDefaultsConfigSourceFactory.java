@@ -82,7 +82,7 @@ public final class XRoadDefaultsConfigSourceFactory implements ConfigSourceFacto
                 .filter(scope -> !scope.isEmpty())
                 .collect(Collectors.toSet());
         return providers.stream()
-                .filter(provider -> allowed.contains(provider.scope().rootPath()))
+                .filter(provider -> allowed.contains(provider.rootPath()))
                 .toList();
     }
 }

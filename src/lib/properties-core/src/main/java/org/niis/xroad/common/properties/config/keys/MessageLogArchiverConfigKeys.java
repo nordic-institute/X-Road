@@ -31,6 +31,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 /**
  * DSL config keys for the {@code xroad.message-log-archiver} namespace.
  *
@@ -102,7 +104,12 @@ public final class MessageLogArchiverConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return ARCHIVER;
+    public String rootPath() {
+        return ARCHIVER.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return ARCHIVER.keys();
     }
 }

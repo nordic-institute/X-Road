@@ -33,7 +33,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
 
@@ -338,12 +338,12 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return ROOT;
+    public String rootPath() {
+        return ROOT.rootPath();
     }
 
     @Override
-    public List<ConfigKey<?>> keys() {
+    public Set<ConfigKey<?>> keys() {
         return ROOT.keys();
     }
 }

@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
 /** Common keys, registered by every process. */
@@ -63,7 +65,12 @@ public final class CommonConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return COMMON;
+    public String rootPath() {
+        return COMMON.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return COMMON.keys();
     }
 }

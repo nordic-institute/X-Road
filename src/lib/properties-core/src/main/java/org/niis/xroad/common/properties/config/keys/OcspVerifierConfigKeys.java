@@ -31,6 +31,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 /**
  * Shared OCSP verifier keys ({@code xroad.common-ocsp-verifier.*}), consumed by both Quarkus and Spring products.
  */
@@ -57,7 +59,12 @@ public final class OcspVerifierConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return OCSP_VERIFIER;
+    public String rootPath() {
+        return OCSP_VERIFIER.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return OCSP_VERIFIER.keys();
     }
 }

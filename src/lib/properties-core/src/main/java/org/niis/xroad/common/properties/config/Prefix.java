@@ -30,10 +30,10 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.properties.util.DurationConverter;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -54,8 +54,8 @@ public abstract sealed class Prefix {
     /** @return UI grouping this prefix (and its keys) belong to; {@link Category#COMMON} when unscoped */
     public abstract Category category();
 
-    /** @return keys declared under the root of this prefix tree */
-    public abstract List<ConfigKey<?>> keys();
+    /** @return keys declared under the root of this prefix tree, in declaration order */
+    public abstract Set<ConfigKey<?>> keys();
 
     /** @return dotted key prefix, e.g. {@code xroad.signer} */
     public String rootPath() {
@@ -128,7 +128,7 @@ public abstract sealed class Prefix {
 
     private static final class RootPrefix extends Prefix {
         private final Category category;
-        private final List<ConfigKey<?>> keys = new ArrayList<>();
+        private final Set<ConfigKey<?>> keys = new LinkedHashSet<>();
 
         private RootPrefix(String rootPath, Category category) {
             super(rootPath);
@@ -141,7 +141,7 @@ public abstract sealed class Prefix {
         }
 
         @Override
-        public List<ConfigKey<?>> keys() {
+        public Set<ConfigKey<?>> keys() {
             return keys;
         }
     }
@@ -161,8 +161,8 @@ public abstract sealed class Prefix {
         }
 
         @Override
-        public List<ConfigKey<?>> keys() {
-            return List.of();
+        public Set<ConfigKey<?>> keys() {
+            return Set.of();
         }
     }
 
@@ -361,7 +361,9 @@ public abstract sealed class Prefix {
             while (root instanceof ChildPrefix child) {
                 root = child.parent;
             }
-            root.keys().add(configKey);
+            if (!root.keys().add(configKey)) {
+                throw new IllegalStateException("Duplicate config key declaration: " + key);
+            }
 
             return configKey;
         }

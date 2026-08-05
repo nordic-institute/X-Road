@@ -30,7 +30,7 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
-import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public final class SignerKeyConfigKeys implements ConfigKeyProvider {
@@ -58,12 +58,12 @@ public final class SignerKeyConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return SIGNER;
+    public String rootPath() {
+        return SIGNER.rootPath();
     }
 
     @Override
-    public List<ConfigKey<?>> keys() {
-        return List.of(KEY_LENGTH, KEY_NAMED_CURVE);
+    public Set<ConfigKey<?>> keys() {
+        return Set.of(KEY_LENGTH, KEY_NAMED_CURVE);
     }
 }

@@ -41,7 +41,7 @@ class ConfigCatalogueTest {
     void projectsDeclaredKeysWithCategoryTypeDefaultAndSummary() {
         var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
         prefix.integer("key-length").withValidator(oneOf(2048, 3072)).withDefaultValue(2048).build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         var entries = ConfigCatalogue.from(List.of(provider));
 
@@ -58,7 +58,7 @@ class ConfigCatalogueTest {
     void entryForUnvalidatedKeyHasNoSummary() {
         var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
         prefix.bool("enforce-token-pin-policy").withDefaultValue(false).build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
 
@@ -69,7 +69,7 @@ class ConfigCatalogueTest {
     void singleArgPrefixEnumeratesAsCommonCategory() {
         var prefix = Prefix.of("xroad");
         prefix.string("instance-country").build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
 
@@ -84,7 +84,7 @@ class ConfigCatalogueTest {
         var proxy = Prefix.of(Category.PROXY, "xroad.proxy");
         proxy.bool("verify-client-cert").withDefaultValue(true).build();
 
-        var entries = ConfigCatalogue.from(List.of(() -> signer, () -> proxy));
+        var entries = ConfigCatalogue.from(List.of(ConfigKeyProvider.forPrefix(signer), ConfigKeyProvider.forPrefix(proxy)));
 
         assertThat(entries).extracting(ConfigCatalogue.Entry::key)
                 .containsExactlyInAnyOrder("xroad.signer.key-length", "xroad.proxy.verify-client-cert");
@@ -103,7 +103,7 @@ class ConfigCatalogueTest {
         var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
         prefix.integer("key-length").withDefaultValue(2048).exposedInUi().build();
         prefix.string("internal-detail").build();
-        ConfigKeyProvider provider = () -> prefix;
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         assertThat(ConfigCatalogue.from(List.of(provider))).hasSize(2);
         assertThat(ConfigCatalogue.exposed(List.of(provider)))

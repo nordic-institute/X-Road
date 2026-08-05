@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 /**
  * Shared global configuration keys ({@code xroad.common-global-conf.*}), consumed by both Quarkus and Spring
@@ -74,7 +75,12 @@ public final class GlobalConfConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return GLOBAL_CONF;
+    public String rootPath() {
+        return GLOBAL_CONF.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return GLOBAL_CONF.keys();
     }
 }

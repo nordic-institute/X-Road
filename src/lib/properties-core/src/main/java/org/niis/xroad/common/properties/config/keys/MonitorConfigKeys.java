@@ -32,6 +32,7 @@ import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
 import java.time.Duration;
+import java.util.Set;
 
 /**
  * DSL config keys for the {@code xroad.env-monitor} namespace.
@@ -118,7 +119,12 @@ public final class MonitorConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return ENV_MONITOR;
+    public String rootPath() {
+        return ENV_MONITOR.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return ENV_MONITOR.keys();
     }
 }

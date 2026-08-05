@@ -32,6 +32,8 @@ import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.Prefix;
 
+import java.util.Set;
+
 /** Dataspace keys ({@code xroad.dataspace.*}). */
 @SuppressWarnings("checkstyle:MagicNumber") // a keys registry: default literals are the point
 public final class DataspaceConfigKeys implements ConfigKeyProvider {
@@ -133,7 +135,12 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
     }
 
     @Override
-    public Prefix scope() {
-        return DATASPACE;
+    public String rootPath() {
+        return DATASPACE.rootPath();
+    }
+
+    @Override
+    public Set<ConfigKey<?>> keys() {
+        return DATASPACE.keys();
     }
 }
