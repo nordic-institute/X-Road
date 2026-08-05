@@ -39,7 +39,7 @@ seed_configuration_properties() {
   wait_db
   su -c "psql -q centerui_production" postgres <<EOF
 SET ROLE centerui;
-INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
 VALUES $rows
 ON CONFLICT DO NOTHING;
 EOF
@@ -98,9 +98,9 @@ BEGIN
 END
 \$\$
 ;
-INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-('xroad.registration-service.api-token', '$TOKEN', NULL, now(), now()),
-('xroad.management-service.api-token', '$TOKEN', NULL, now(), now())
+INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+('xroad.registration-service.api-token', '$TOKEN', now(), now()),
+('xroad.management-service.api-token', '$TOKEN', now(), now())
 ON CONFLICT DO NOTHING;
 EOF
 fi

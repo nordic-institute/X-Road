@@ -117,7 +117,6 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesFoundInDatabase() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(PROPERTY_NAME);
-        entity.setScope(SCOPE);
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(repository.findAll()).thenReturn(List.of(entity));
 
@@ -130,9 +129,9 @@ class ConfigurablePropertiesServiceTest {
     }
 
     @Test
-    void getConfigurationPropertiesFoundInDatabaseScopeIsDifferent() {
+    void getConfigurationPropertiesIgnoresStoredRowsForOtherKeys() {
         var entity = new ConfigurationPropertyEntity();
-        entity.setPropertyKey(PROPERTY_NAME);
+        entity.setPropertyKey("xroad.proxy-ui-api.acme-renewal-interval");
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(repository.findAll()).thenReturn(List.of(entity));
 
@@ -156,7 +155,7 @@ class ConfigurablePropertiesServiceTest {
     void updateConfigurablePropertyFoundInDatabase() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyValue(PROPERTY_VALUE);
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE);
 
@@ -171,7 +170,7 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabase() {
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE);
 
@@ -183,12 +182,11 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
         assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
-        assertEquals(SCOPE, capturedEntity.getScope());
     }
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabaseScopeIsNull() {
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(SCOPELESS_PROPERTY_NAME, null))
+        when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME))
                 .thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE, null);
@@ -201,7 +199,6 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(SCOPELESS_PROPERTY_NAME, capturedEntity.getPropertyKey());
         assertEquals(SCOPELESS_PROPERTY_VALUE, capturedEntity.getPropertyValue());
-        assertNull(capturedEntity.getScope());
     }
 
     @Test
@@ -227,9 +224,8 @@ class ConfigurablePropertiesServiceTest {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(PROPERTY_NAME);
         entity.setPropertyValue(PROPERTY_VALUE);
-        entity.setScope(SCOPE);
         Consumer<String> existingValueConsumer = mock(Consumer.class);
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, existingValueConsumer);
 
@@ -247,7 +243,7 @@ class ConfigurablePropertiesServiceTest {
     @Test
     void updateConfigurablePropertyNotFoundInDatabaseWithAuditListener() {
         Consumer<String> existingValueConsumer = mock(Consumer.class);
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, existingValueConsumer);
 
@@ -259,7 +255,6 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
         assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
-        assertEquals(SCOPE, capturedEntity.getScope());
 
         verifyNoInteractions(existingValueConsumer);
     }

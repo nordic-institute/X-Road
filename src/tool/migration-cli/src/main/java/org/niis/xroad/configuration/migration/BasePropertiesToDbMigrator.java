@@ -41,10 +41,6 @@ public abstract class BasePropertiesToDbMigrator {
     abstract Map<String, String> loadProperties(String filePath);
 
     public void migrate(String filePath, String dbPropertiesPath) {
-        migrate(filePath, dbPropertiesPath, null);
-    }
-
-    public void migrate(String filePath, String dbPropertiesPath, String scope) {
         Map<String, String> properties = new TreeMap<>(loadProperties(filePath));
 
         if (log.isDebugEnabled()) {
@@ -53,7 +49,7 @@ public abstract class BasePropertiesToDbMigrator {
         }
 
         if (confirmProceed(properties)) {
-            saveToDb(properties, dbPropertiesPath, scope);
+            saveToDb(properties, dbPropertiesPath);
             log.info("Total values migrated to DB: {}", properties.size());
         } else {
             log.info("Skipping migration.");
@@ -79,11 +75,11 @@ public abstract class BasePropertiesToDbMigrator {
         return System.getenv(name);
     }
 
-    void saveToDb(Map<String, String> properties, String dbPropertiesPath, String scope) {
+    void saveToDb(Map<String, String> properties, String dbPropertiesPath) {
         try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
             properties.forEach((key, value) -> {
-                log.debug("Saving property {}={}, with scope [{}]", key, value, scope == null ? "" : scope);
-                dbRepo.saveProperty(String.valueOf(key), String.valueOf(value), scope);
+                log.debug("Saving property {}={}", key, value);
+                dbRepo.saveProperty(String.valueOf(key), String.valueOf(value));
             });
         }
     }

@@ -7,8 +7,8 @@ services:
       - |
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
-        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-        ('xroad.proxy.batch-signing-enabled', 'true', 'proxy', now(), now())
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.proxy.batch-signing-enabled', 'true', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:

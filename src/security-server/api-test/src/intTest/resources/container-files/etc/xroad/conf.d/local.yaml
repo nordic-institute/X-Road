@@ -6,13 +6,13 @@ quarkus:
         level: DEBUG
 xroad:
   # xroad.common-rpc.certificate-provisioning.* overrides moved to the DB-override layer
-  # (configuration_properties, scope=NULL/global), seeded by db-serverconf-common-rpc-config-seed in
+  # (configuration_properties), seeded by db-serverconf-common-rpc-config-seed in
   # compose.systemtest.yaml. CommonRpcConfigKeys resolves them via XRoadConfig (DB overrides + DSL defaults).
   # xroad.configuration-client.* overrides moved to the DB-override layer (configuration_properties,
   # scope='configuration-client'), seeded by db-serverconf-confclient-config-seed in compose.systemtest.yaml.
   # ConfigurationClientProperties now resolves via XRoadConfig (DB overrides + DSL defaults), not local.yaml.
   # xroad.signer.* overrides (enforce-token-pin-policy, addon.hwtoken.enabled, ocsp-prioritization-strategy)
-  # moved to the DB-override layer (configuration_properties, scope='signer'), seeded by the
+  # moved to the DB-override layer (configuration_properties), seeded by the
   # db-serverconf-signer-config-seed service in compose.systemtest.yaml. SignerProperties now resolves
   # via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.
   # xroad.proxy.* overrides moved to the DB-override layer (configuration_properties, scope='proxy'),
@@ -27,14 +27,14 @@ xroad:
   # db-serverconf-message-log-encryption-config-seed service in compose.systemtest.yaml. The DSL resolves
   # them via XRoadConfig (DB overrides + DSL defaults), so local.yaml no longer affects them.
   # xroad.op-monitor.* overrides (incl. scheme=https for vault-powered mTLS) are seeded into the
-  # DB-override layer (configuration_properties, scope='op-monitor-daemon') by the
+  # DB-override layer (configuration_properties) by the
   # db-serverconf-opmonitor-config-seed service; the daemon resolves them via XRoadConfig, not local.yaml.
   # xroad.auxiliary-service.backup.* overrides moved to the DB-override layer (configuration_properties,
   # scope='auxiliary-service'), seeded by the db-serverconf-auxiliary-service-config-seed service in
   # compose.systemtest.yaml. BackupProperties now resolves via XRoadConfig (DB overrides + DSL defaults),
   # so local.yaml no longer affects them.
   # xroad.acme and xroad.mail-notification (full YAML documents) moved to the DB-override layer
-  # (configuration_properties, scope='proxy-ui-api'), seeded as single-line JSON by the
+  # (configuration_properties), seeded as single-line JSON by the
   # db-serverconf-proxy-ui-api-config-seed service in compose.systemtest.yaml. AcmeCommonConfig and
   # MailConfig now resolve them via XRoadConfig (DB overrides + DSL defaults), not local.yaml.
 

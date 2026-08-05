@@ -50,7 +50,7 @@ class BasePropertiesToDbMigratorTest {
             migrator.migrate("input", "db.props");
 
             assertEquals(1, mocked.constructed().size());
-            Mockito.verify(mocked.constructed().getFirst()).saveProperty("AUTO", "x", null);
+            Mockito.verify(mocked.constructed().getFirst()).saveProperty("AUTO", "x");
         }
     }
 

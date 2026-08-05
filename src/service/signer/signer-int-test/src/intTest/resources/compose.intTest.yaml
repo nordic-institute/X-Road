@@ -108,19 +108,19 @@ services:
       - |
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.common-rpc.use-tls', 'false', 'signer', now(), now()),
-             ('xroad.common-global-conf.source', 'FILESYSTEM', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.enabled', 'true', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.session-pool-enabled', 'true', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.session-pool-max-total', '3', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.session-pool-max-idle', '2', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.session-pool-min-idle', '1', 'signer', now(), now()),
-             ('xroad.signer.addon.hwtoken.session-acquire-timeout', 'PT5S', 'signer', now(), now()),
-             ('xroad.signer.autologin.enabled', 'true', 'signer', now(), now()),
-             ('xroad.signer.autologin.retry.retry-max-attempts', '0', 'signer', now(), now()),
-             ('xroad.signer.ocsp-response-retrieval-active', 'true', 'signer', now(), now()),
-             ('xroad.signer.modules', '{\"softhsm2\":{\"library\":\"/usr/lib/softhsm/libsofthsm2.so\",\"os-locking-ok\":true,\"library-cant-create-os-threads\":true}}', 'signer', now(), now())
+          "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+             ('xroad.common-rpc.use-tls', 'false', now(), now()),
+             ('xroad.common-global-conf.source', 'FILESYSTEM', now(), now()),
+             ('xroad.signer.addon.hwtoken.enabled', 'true', now(), now()),
+             ('xroad.signer.addon.hwtoken.session-pool-enabled', 'true', now(), now()),
+             ('xroad.signer.addon.hwtoken.session-pool-max-total', '3', now(), now()),
+             ('xroad.signer.addon.hwtoken.session-pool-max-idle', '2', now(), now()),
+             ('xroad.signer.addon.hwtoken.session-pool-min-idle', '1', now(), now()),
+             ('xroad.signer.addon.hwtoken.session-acquire-timeout', 'PT5S', now(), now()),
+             ('xroad.signer.autologin.enabled', 'true', now(), now()),
+             ('xroad.signer.autologin.retry.retry-max-attempts', '0', now(), now()),
+             ('xroad.signer.ocsp-response-retrieval-active', 'true', now(), now()),
+             ('xroad.signer.modules', '{\"softhsm2\":{\"library\":\"/usr/lib/softhsm/libsofthsm2.so\",\"os-locking-ok\":true,\"library-cant-create-os-threads\":true}}', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - default

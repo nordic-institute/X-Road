@@ -18,10 +18,9 @@ slot_id=$(softhsm2-util --show-slots | awk '
 until pg_isready -q -h db-serverconf -U serverconf; do sleep 1; done
 PGPASSWORD=secret psql -q -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<EOF
 DELETE FROM configuration_properties WHERE property_key = 'xroad.signer.modules';
-INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
+INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
 ('xroad.signer.modules',
- '{"softhsm2":{"library":"/usr/lib/softhsm/libsofthsm2.so","slot-ids":[$slot_id],"os-locking-ok":true,"library-cant-create-os-threads":true}}',
- 'signer', now(), now());
+ '{"softhsm2":{"library":"/usr/lib/softhsm/libsofthsm2.so","slot-ids":[$slot_id],"os-locking-ok":true,"library-cant-create-os-threads":true}}', now(), now());
 EOF
 
 # This should be consolidated with the entrypoint in the base image

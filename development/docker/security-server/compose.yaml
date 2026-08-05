@@ -155,9 +155,9 @@ services:
       - |
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
-        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-        ('xroad.proxy.dsp.participant-context-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', 'proxy', now(), now()),
-        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', 'proxy-ui-api', now(), now())
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.proxy.dsp.participant-context-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', now(), now()),
+        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:

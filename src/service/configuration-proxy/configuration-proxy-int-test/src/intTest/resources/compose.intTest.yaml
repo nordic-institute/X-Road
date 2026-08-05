@@ -18,10 +18,10 @@ services:
       - |
         until pg_isready -h db-confproxy -U confproxy; do sleep 1; done
         PGPASSWORD=secret psql -h db-confproxy -U confproxy -d confproxy -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-           ('xroad.configuration-proxy.address', 'configuration-proxy-webserver', NULL, now(), now()),
-           ('xroad.configuration-proxy.update-interval', '2s', NULL, now(), now()),
-           ('xroad.configuration-proxy.auto-init-soft-token', '4321', NULL, now(), now())
+          "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+           ('xroad.configuration-proxy.address', 'configuration-proxy-webserver', now(), now()),
+           ('xroad.configuration-proxy.update-interval', '2s', now(), now()),
+           ('xroad.configuration-proxy.auto-init-soft-token', '4321', now(), now())
            ON CONFLICT DO NOTHING;"
     networks:
       - xroad-network

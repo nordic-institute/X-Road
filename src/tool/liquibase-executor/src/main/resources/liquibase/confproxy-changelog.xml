@@ -17,6 +17,7 @@
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
     <include file="confproxy/002-create_apikeys_table.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
+    <include file="configuration-properties/002-drop-scope.xml" relativeToChangelogFile="true"/>
 
 
 

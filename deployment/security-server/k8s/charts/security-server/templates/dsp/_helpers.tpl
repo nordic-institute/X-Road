@@ -154,7 +154,7 @@ Call shape (per-spec; wrap in a range):
   {{- include "xroad.dsp.wait.serverconfQuery" (dict
         "root" $root
         "name" ($spec.name | default "wait-config-seed")
-        "sql" (printf "SELECT 1 FROM configuration_properties WHERE property_key='%s' AND scope IS NULL LIMIT 1" $spec.key)
+        "sql" (printf "SELECT 1 FROM configuration_properties WHERE property_key='%s' LIMIT 1" $spec.key)
         "requireNonEmpty" true
         "timeoutMsg" (printf "config seed row not present (property_key='%s')." $spec.key)
         "timeoutHint" "kubectl logs -l app=xroad-config-seed") -}}

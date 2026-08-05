@@ -7,16 +7,16 @@ services:
       - |
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
-        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-        ('xroad.proxy.message-log.timestamper.timestamp-immediately', 'true', 'proxy', now(), now()),
-        ('xroad.proxy.dsp.serverproxy-endpoint', 'https://${DSP_PARTICIPANT_ID:-xrd-ss}:5500', 'proxy', now(), now()),
-        ('xroad.common-global-conf.refresh-rate', '10S', NULL, now(), now()),
-        ('xroad.configuration-client.update-interval', '10', 'configuration-client', now(), now()),
-        ('xroad.proxy-ui-api.dataspace.enabled', 'true', 'proxy-ui-api', now(), now()),
-        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://${ENV_PREFIX:-}ds-identity-hub:7182', 'proxy-ui-api', now(), now()),
-        ('xroad.proxy-ui-api.dataspace.participant-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', 'proxy-ui-api', now(), now()),
-        ('xroad.proxy-ui-api.dataspace.management-context-enabled', '${DSP_MGMT_CONTEXT:-false}', 'proxy-ui-api', now(), now()),
-        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:cs%3A6183:issuer', 'proxy-ui-api', now(), now())
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.proxy.message-log.timestamper.timestamp-immediately', 'true', now(), now()),
+        ('xroad.proxy.dsp.serverproxy-endpoint', 'https://${DSP_PARTICIPANT_ID:-xrd-ss}:5500', now(), now()),
+        ('xroad.common-global-conf.refresh-rate', '10S', now(), now()),
+        ('xroad.configuration-client.update-interval', '10', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.enabled', 'true', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://${ENV_PREFIX:-}ds-identity-hub:7182', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.participant-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.management-context-enabled', '${DSP_MGMT_CONTEXT:-false}', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:cs%3A6183:issuer', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:

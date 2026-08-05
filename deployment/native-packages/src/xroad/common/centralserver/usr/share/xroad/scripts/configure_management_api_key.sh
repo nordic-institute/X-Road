@@ -24,8 +24,8 @@ token_hash_in_db() {
 }
 
 store_token() {
-  run_psql "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
-    VALUES ('xroad.${1}.api-token', '$2', NULL, now(), now()) ON CONFLICT DO NOTHING;"
+  run_psql "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
+    VALUES ('xroad.${1}.api-token', '$2', now(), now()) ON CONFLICT DO NOTHING;"
 }
 
 api_token_configured() {

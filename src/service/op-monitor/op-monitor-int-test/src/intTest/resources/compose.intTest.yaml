@@ -62,10 +62,10 @@ services:
       - |
         until pg_isready -h db-serverconf -U serverconf; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.common-rpc.use-tls', 'false', 'op-monitor', now(), now()),
-             ('xroad.common-global-conf.source', 'FILESYSTEM', 'op-monitor', now(), now()),
-             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', 'op-monitor', now(), now())
+          "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+             ('xroad.common-rpc.use-tls', 'false', now(), now()),
+             ('xroad.common-global-conf.source', 'FILESYSTEM', now(), now()),
+             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now())
            ON CONFLICT DO NOTHING;"
     depends_on:
       db-serverconf-init:

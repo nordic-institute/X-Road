@@ -126,12 +126,12 @@
         </comment>
         <sql>
             INSERT INTO configuration_properties
-                (property_key, property_value, scope, created_at, updated_at)
-            VALUES ('xroad.management-service.api-token', 'de628164-9485-409c-b654-7dda28bb3872', NULL, now(), now()),
-                   ('xroad.management-service.api-base-url', 'http://mock-server:1080', NULL, now(), now()),
-                   ('xroad.management-service.rate-limit-requests-per-second', '100', NULL, now(), now()),
-                   ('xroad.management-service.rate-limit-requests-per-minute', '1000', NULL, now(), now()),
-                   ('xroad.common-rpc.use-tls', 'false', NULL, now(), now());
+                (property_key, property_value, created_at, updated_at)
+            VALUES ('xroad.management-service.api-token', 'de628164-9485-409c-b654-7dda28bb3872', now(), now()),
+                   ('xroad.management-service.api-base-url', 'http://mock-server:1080', now(), now()),
+                   ('xroad.management-service.rate-limit-requests-per-second', '100', now(), now()),
+                   ('xroad.management-service.rate-limit-requests-per-minute', '1000', now(), now()),
+                   ('xroad.common-rpc.use-tls', 'false', now(), now());
         </sql>
     </changeSet>
 </databaseChangeLog>

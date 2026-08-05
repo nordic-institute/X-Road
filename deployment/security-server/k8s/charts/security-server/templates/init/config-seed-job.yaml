@@ -10,8 +10,8 @@ Hook strategy (post-install/post-upgrade, weighted, delete-on-success):
 post-install/post-upgrade (db-serverconf must be Ready first), re-created on
 upgrade (Job.spec.template is immutable), successful Jobs cleaned up.
 
-Rows are upserted with a NULL scope: INSERT ... ON CONFLICT DO NOTHING against
-the partial unique index on (property_key) WHERE scope IS NULL, followed by an
+Rows are upserted by property_key: INSERT ... ON CONFLICT DO NOTHING against
+the unique index on (property_key), followed by an
 UPDATE so upgrades refresh values.
 */}}
 {{- if .Values.configSeed.properties }}
@@ -69,8 +69,8 @@ spec:
             - |
               psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c 'SET search_path TO {{ .Values.init.serverconf.schema | default "public" }}, public;
               {{- range .Values.configSeed.properties }}
-              INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES ($seed${{ .key }}$seed$, $seed${{ .value }}$seed$, NULL, now(), now()) ON CONFLICT DO NOTHING;
-              UPDATE configuration_properties SET property_value = $seed${{ .value }}$seed$, updated_at = now() WHERE property_key = $seed${{ .key }}$seed$ AND scope IS NULL;
+              INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES ($seed${{ .key }}$seed$, $seed${{ .value }}$seed$, now(), now()) ON CONFLICT DO NOTHING;
+              UPDATE configuration_properties SET property_value = $seed${{ .value }}$seed$, updated_at = now() WHERE property_key = $seed${{ .key }}$seed$;
               {{- end }}'
           resources:
             {{- toYaml .Values.waitGate.resources | nindent 12 }}

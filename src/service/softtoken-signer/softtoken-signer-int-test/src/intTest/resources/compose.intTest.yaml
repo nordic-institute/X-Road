@@ -64,13 +64,13 @@ services:
       - |
         until pg_isready -h db-serverconf -U serverconf; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
-          "INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-             ('xroad.common-rpc.use-tls', 'false', 'signer', now(), now()),
-             ('xroad.common-global-conf.source', 'FILESYSTEM', 'signer', now(), now()),
-             ('xroad.common-rpc.channel.signer.deadline-after', '2000', 'signer', now(), now()),
-             ('xroad.softtoken-signer.keys.sync-rate', 'PT2S', 'signer', now(), now()),
-             ('xroad.softtoken-signer.health-check.key-sync.max-sync-age', 'PT10S', 'signer', now(), now()),
-             ('xroad.softtoken-signer.health-check.key-sync.max-consecutive-failures', '3', 'signer', now(), now())
+          "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+             ('xroad.common-rpc.use-tls', 'false', now(), now()),
+             ('xroad.common-global-conf.source', 'FILESYSTEM', now(), now()),
+             ('xroad.common-rpc.channel.signer.deadline-after', '2000', now(), now()),
+             ('xroad.softtoken-signer.keys.sync-rate', 'PT2S', now(), now()),
+             ('xroad.softtoken-signer.health-check.key-sync.max-sync-age', 'PT10S', now(), now()),
+             ('xroad.softtoken-signer.health-check.key-sync.max-consecutive-failures', '3', now(), now())
            ON CONFLICT DO NOTHING;"
     depends_on:
       db-serverconf-init:

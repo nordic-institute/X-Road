@@ -125,7 +125,8 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey   unique key of the system property
      * @param propertyValue new value for the system property
-     * @param scope         scope of the property (service name or null)
+     * @param scope         target scope the caller believes the property has; validated against the
+     *                      registry when given, not persisted — rows are keyed by {@code property_key} alone
      */
     public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
         updateConfigurableProperty(propertyKey, propertyValue, scope, NOOP_VALUE_CONSUMER);
@@ -135,8 +136,8 @@ public class ConfigurablePropertiesService {
      * Updates the value of an existing system parameter or creates a new one
      * if the property does not yet exist in the repository.
      * <p>
-     * If a configuration property with the given key and scope is found, its value is updated.
-     * Otherwise, a new {@link ConfigurationPropertyEntity} is created and persisted.
+     * If a configuration property with the given key is found, its value is updated. Otherwise, a new
+     * {@link ConfigurationPropertyEntity} is created and persisted.
      * </p>
      * <p>
      * This variant allows the caller to provide a consumer for the existing value before the update.
@@ -144,7 +145,8 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey           unique key of the system property
      * @param propertyValue         new value for the system property
-     * @param scope                 scope of the property (service name or null)
+     * @param scope                 target scope the caller believes the property has; validated against the
+     *                              registry when given, not persisted
      * @param existingValueConsumer callback that consumes the existing persisted property value
      *                              before the update, not invoked if the property does not exist
      *                              or has a {@code null} value
@@ -158,10 +160,10 @@ public class ConfigurablePropertiesService {
                     NOT_FOUND.build());
         }
 
-        var existing = repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope);
+        var existing = repository.findConfigurationPropertyByPropertyKey(propertyKey);
         existing.map(ConfigurationPropertyEntity::getPropertyValue).ifPresent(existingValueConsumer);
 
-        var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey, scope));
+        var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey));
         entity.setPropertyValue(propertyValue);
         repository.saveOrUpdate(entity);
     }
@@ -173,18 +175,22 @@ public class ConfigurablePropertiesService {
         systemPropertyDto.setDefaultValue(parameter.defaultValue());
         systemPropertyDto.setScope(parameter.scope());
         storedValues.stream()
-                .filter(v ->
-                        v.getPropertyKey().equals(parameter.propertyName())
-                                && Objects.equals(v.getScope(), parameter.scope()))
+                .filter(v -> v.getPropertyKey().equals(parameter.propertyName()))
                 .map(ConfigurationPropertyEntity::getPropertyValue)
                 .findAny()
                 .ifPresent(systemPropertyDto::setCurrentValue);
         return systemPropertyDto;
     }
 
+    /**
+     * A property is configurable when the registry declares it exposed. A {@code scope} supplied by the
+     * caller is still checked against the registry's own target scope — the REST contract carries it, and a
+     * mismatch means the caller is aiming at something else — but it no longer takes part in storage.
+     */
     private boolean isPropertyConfigurable(String propertyKey, String scope) {
         return getAllPropertyDefinitions().stream()
-                .anyMatch(p -> p.propertyName().equals(propertyKey) && Objects.equals(p.scope(), scope));
+                .anyMatch(p -> p.propertyName().equals(propertyKey)
+                        && (scope == null || Objects.equals(p.scope(), scope)));
     }
 
     /** @return the exposed keys of {@link #SS_PROVIDERS}, flattened to name/default/target scope */
@@ -196,8 +202,9 @@ public class ConfigurablePropertiesService {
     }
 
     /**
-     * Maps a DSL {@link Category} to the legacy scope string the {@code configuration_properties} table and the
-     * UI expect. Transitional: removed once the {@code scope} column is dropped (see issue 06).
+     * Maps a DSL {@link Category} to the scope string the REST contract and the UI grouping use. No longer
+     * persisted — {@code configuration_properties} is keyed by {@code property_key} alone — but still part
+     * of the API, where it tells a client which process a property belongs to.
      */
     private static String categoryToScope(Category category) {
         return switch (category) {
@@ -215,10 +222,9 @@ public class ConfigurablePropertiesService {
         };
     }
 
-    private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey, String scope) {
+    private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey) {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(propertyKey);
-        entity.setScope(scope);
         return entity;
     }
 

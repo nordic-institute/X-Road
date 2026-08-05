@@ -7,12 +7,12 @@ services:
       - |
         until pg_isready -h db-serverconf -U postgres; do sleep 1; done
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
-        INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at) VALUES
-        ('xroad.proxy.addon.op-monitor.enabled', 'true', 'proxy', now(), now()),
-        ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', 'proxy', now(), now()),
-        ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', NULL, now(), now()),
-        ('xroad.op-monitor.scheme', 'https', 'op-monitor', now(), now()),
-        ('xroad.op-monitor.tls.client-certificate-refresh-interval', '60S', 'op-monitor', now(), now())
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.proxy.addon.op-monitor.enabled', 'true', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', now(), now()),
+        ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', now(), now()),
+        ('xroad.op-monitor.scheme', 'https', now(), now()),
+        ('xroad.op-monitor.tls.client-certificate-refresh-interval', '60S', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:
