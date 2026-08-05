@@ -466,7 +466,7 @@
     "global_conf_header_field_wrong_value": "Globaalse konfiguratsiooni päiseväljal {0} on vale väärtus (väärtus: {1}, nõutud: {2})",
     "global_conf_missing_signed_data": "Globaalsel konfiguratsioonil puudub allkiri",
     "global_conf_missing_signed_data_expiration_date": "Globaalse konfiguratsiooni allkirjal puudub aegumise kuupäev",
-    "global_conf_missing_verification_cert": "Ei õnnestua leida sertifikaati (sertifikaadi räsi {0}) millega globaalse konfiguratsiooni allkirja valideerida",
+    "global_conf_missing_verification_cert": "Ei õnnestu leida sertifikaati (sertifikaadi räsi {0}) millega globaalse konfiguratsiooni allkirja valideerida",
     "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
     "global_conf_parsing_downloaded_conf_directory_failure": "Ebaõnnestus globaalse konfiguratsiooni lugemine kaustast {0}",
     "global_conf_part_download_failure": "Globaalse konfiguratsiooni osa alla laadimine ebaõnnestus",
@@ -578,7 +578,7 @@
         "network_error": "Võrguühenduse viga: operatiivandmete jälgimine pole saadaval"
       }
     },
-    "unknown_host": "Ühenduse viga, tundamtu host",
+    "unknown_host": "Ühenduse viga, tundmatu host",
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
     "url_already_exists": "URL on juba olemas",
     "warnings_detected": "Tuvastati hoiatused",
