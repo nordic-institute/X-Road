@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
@@ -55,7 +54,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import static ee.ria.xroad.common.TestCertUtil.*;
+import static ee.ria.xroad.common.TestCertUtil.PKCS12;
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
 import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
