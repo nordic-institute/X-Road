@@ -46,14 +46,15 @@ Feature: Management requests API
       |    |         |         | CS:E2E:member-1:SS-X | AUTH_CERT_DELETION_REQUEST     |         |       | 5         | 1     | 1            | 1      |               |
 
   @Modifying
-  Scenario: Auto approve Authentication certificate
+  Scenario: Paired registration of Authentication certificate requires approval
     Given Authentication header is set to REGISTRATION_OFFICER
     And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'CENTER'
     And management request is with status 'WAITING'
     When Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
-    Then management request is with status 'APPROVED'
+    Then management request is with status 'SUBMITTED FOR APPROVAL'
+    And management request is approved
     And user can get security server 'CS:E2E:member-1:SS-X' authentication certificates
 
 
@@ -136,7 +137,7 @@ Feature: Management requests API
       |    |         |         | CS:E2E:member-1:SS-X | CLIENT_DELETION_REQUEST     |         |       | 5         | 1     | 1            | 1      |               |
 
   @Modifying
-  Scenario: Auto approve registration of member as security server client
+  Scenario: Paired registration of member as security server client requires approval
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
@@ -147,7 +148,8 @@ Feature: Management requests API
     When Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
-    Then management request is with status 'APPROVED'
+    Then management request is with status 'SUBMITTED FOR APPROVAL'
+    And management request is approved
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
 
   @Modifying
@@ -235,7 +237,7 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
   @Modifying
-  Scenario: Auto approve registration of subsystem as security server client
+  Scenario: Paired registration of subsystem as security server client requires approval
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
@@ -248,7 +250,8 @@ Feature: Management requests API
     When Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
-    Then management request is with status 'APPROVED'
+    Then management request is with status 'SUBMITTED FOR APPROVAL'
+    And management request is approved
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
