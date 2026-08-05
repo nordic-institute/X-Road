@@ -26,9 +26,7 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
-
 import ee.ria.xroad.common.message.SoapParserImpl;
-
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
