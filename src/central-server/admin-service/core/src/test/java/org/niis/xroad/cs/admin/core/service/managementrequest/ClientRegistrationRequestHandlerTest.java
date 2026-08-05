@@ -90,7 +90,7 @@ class ClientRegistrationRequestHandlerTest {
         lenient().when(servers.count(securityServerId)).thenReturn(1L);
         lenient().when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
-        final ClientRegistrationRequest request = new ClientRegistrationRequest(SECURITY_SERVER, securityServerId, clientId, null);
+        final ClientRegistrationRequest request = new ClientRegistrationRequest(SECURITY_SERVER, securityServerId, clientId);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
         try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
@@ -105,7 +105,7 @@ class ClientRegistrationRequestHandlerTest {
         when(servers.count(securityServerId)).thenReturn(1L);
         when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
-        final ClientRegistrationRequest request = new ClientRegistrationRequest(SECURITY_SERVER, securityServerId, clientId, null);
+        final ClientRegistrationRequest request = new ClientRegistrationRequest(SECURITY_SERVER, securityServerId, clientId);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
         try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
@@ -117,7 +117,7 @@ class ClientRegistrationRequestHandlerTest {
 
     @Test
     void canAutoApproveFalseWhenOriginIsCenter() {
-        final ClientRegistrationRequest request = new ClientRegistrationRequest(CENTER, securityServerId, clientId, null);
+        final ClientRegistrationRequest request = new ClientRegistrationRequest(CENTER, securityServerId, clientId);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
         try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {

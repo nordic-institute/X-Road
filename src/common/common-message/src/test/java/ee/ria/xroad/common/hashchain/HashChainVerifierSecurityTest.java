@@ -272,7 +272,7 @@ class HashChainVerifierSecurityTest {
         Throwable cause = ((InvocationTargetException) thrown).getTargetException();
         assertThat(cause).isInstanceOf(CodedException.class);
         CodedException coded = (CodedException) cause;
-        assertThat(coded.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(coded.getFaultCode()).endsWith(X_MALFORMED_HASH_CHAIN);
         assertThat(coded.getMessage()).contains("value count");
     }
 
