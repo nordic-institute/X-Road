@@ -300,6 +300,8 @@ public class LegacyConfigMigrationCLI {
     }
 
     private static final String MESSAGELOG_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD";
+    private static final String NO_SCOPE_ARGUMENT =
+            " (rows are keyed by property_key alone; a scope argument is no longer accepted)";
 
     private static void migrateMessageLogKeys(String[] args) throws IOException {
         if (args.length != 2) {
@@ -444,8 +446,7 @@ public class LegacyConfigMigrationCLI {
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void migrateFileToDb(String[] args) {
         if (args.length != 3) {
-            log.error("File-to-DB migration requires 3 arguments (rows are keyed by property_key alone; "
-                    + "a scope argument is no longer accepted)");
+            log.error("File-to-DB migration requires 3 arguments" + NO_SCOPE_ARGUMENT);
             log.error("Usage: migration-cli file-to-db <input-file> <db.properties path> <property key>");
             log.error("  <input-file>         Path to file whose contents will be stored as a property value");
             log.error("  <db.properties path> Path to database properties file");
@@ -477,8 +478,7 @@ public class LegacyConfigMigrationCLI {
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void setProperty(String[] args) {
         if (args.length != 3) {
-            log.error("set-property requires 3 arguments (rows are keyed by property_key alone; "
-                    + "a scope argument is no longer accepted)");
+            log.error("set-property requires 3 arguments" + NO_SCOPE_ARGUMENT);
             log.error("Usage: migration-cli set-property <db.properties path> <property key> <property value>");
             log.error("  <db.properties path> Path to database properties file");
             log.error("  <property key>       Property key to set");
@@ -527,8 +527,7 @@ public class LegacyConfigMigrationCLI {
 
     private static void migratePropertiesToDb(String[] args) {
         if (args.length != 2) {
-            log.error("Properties to DB migration requires 2 arguments (rows are keyed by property_key alone; "
-                    + "a scope argument is no longer accepted)");
+            log.error("Properties to DB migration requires 2 arguments" + NO_SCOPE_ARGUMENT);
             log.error("Usage: migration-cli properties-to-db <input.properties> <db.properties path>");
             log.error("  <input.properties>   Path to properties input file");
             log.error("  <db.properties path> Path to database properties file");
