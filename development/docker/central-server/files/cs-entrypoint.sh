@@ -29,7 +29,7 @@ seed_configuration_properties() {
   local rows=""
   for key in "${!props[@]}"; do
     val="${props[$key]//\'/\'\'}"
-    rows+="('${key//\'/\'\'}','$val',NULL,now(),now()),"
+    rows+="('${key//\'/\'\'}','$val',now(),now()),"
   done
   [ -z "$rows" ] && return 0
   rows="${rows%,}"
