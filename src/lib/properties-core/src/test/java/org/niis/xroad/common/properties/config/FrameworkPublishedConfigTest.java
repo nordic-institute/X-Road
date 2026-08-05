@@ -37,7 +37,8 @@ class FrameworkPublishedConfigTest {
 
     /**
      * Every key the framework itself resolves — a packaged {@code application.yaml} interpolating it into
-     * a framework setting, or a {@code @Scheduled} expression — and nothing else. Flagging a key copies its
+     * a framework setting, a {@code @Scheduled} expression, or a {@code @LookupIfProperty} /
+     * {@code @ConfigProperty} read — and nothing else. Flagging a key copies its
      * stored value into the Spring {@code Environment} / SmallRye config, so the list is deliberately hard
      * to grow by accident.
      */
@@ -48,6 +49,9 @@ class FrameworkPublishedConfigTest {
             "xroad.proxy-ui-api.request-size-limit-binary-upload",
             "xroad.admin-service.request-size-limit-binary-upload",
             "xroad.edc.iam.trusted-issuer.issuer.id",
+            // Quarkus @LookupIfProperty bean gates (proxy messagelog beans + readiness check) and the
+            // auxiliary-service @ConfigProperty reader resolve this from framework config
+            "xroad.proxy.message-log.enabled",
             // Spring @Scheduled(fixedRateString) / Quarkus @Scheduled(every) — the scheduler resolves
             // these itself, so a stored override has to reach the framework config
             "xroad.admin-service.global-configuration-generation-rate-in-seconds",

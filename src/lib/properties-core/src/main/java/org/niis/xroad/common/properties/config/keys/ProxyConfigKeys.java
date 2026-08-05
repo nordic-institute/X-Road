@@ -688,6 +688,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .bool(ENABLED)
             .withDefaultValue(true)
             .exposedInUi()
+            .publishedToFramework()
             .build();
 
     /** {@code xroad.proxy.message-log.message-body-logging}. */
