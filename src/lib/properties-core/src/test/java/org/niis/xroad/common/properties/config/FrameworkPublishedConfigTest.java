@@ -36,9 +36,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FrameworkPublishedConfigTest {
 
     /**
-     * Every key a packaged {@code application.yaml} interpolates into a framework setting, and nothing
-     * else. Flagging a key means its stored value is copied into the Spring {@code Environment} /
-     * SmallRye config, so the list is deliberately hard to grow by accident.
+     * Every key the framework itself resolves — a packaged {@code application.yaml} interpolating it into
+     * a framework setting, or a {@code @Scheduled} expression — and nothing else. Flagging a key copies its
+     * stored value into the Spring {@code Environment} / SmallRye config, so the list is deliberately hard
+     * to grow by accident.
      */
     private static final List<String> FRAMEWORK_VISIBLE_KEYS = List.of(
             "xroad.proxy.health-check-interface",
@@ -46,7 +47,11 @@ class FrameworkPublishedConfigTest {
             "xroad.proxy.health-check-port",
             "xroad.proxy-ui-api.request-size-limit-binary-upload",
             "xroad.admin-service.request-size-limit-binary-upload",
-            "xroad.edc.iam.trusted-issuer.issuer.id");
+            "xroad.edc.iam.trusted-issuer.issuer.id",
+            // Spring @Scheduled(fixedRateString) / Quarkus @Scheduled(every) — the scheduler resolves
+            // these itself, so a stored override has to reach the framework config
+            "xroad.admin-service.global-configuration-generation-rate-in-seconds",
+            "xroad.configuration-proxy.update-interval");
 
     @Test
     void onlyTheDeclaredFrameworkSettingsAreFlagged() {

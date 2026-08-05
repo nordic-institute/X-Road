@@ -57,6 +57,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> GLOBAL_CONFIGURATION_GENERATION_RATE_IN_SECONDS = ADMIN
             .integer("global-configuration-generation-rate-in-seconds")
             .withDefaultValue(60)
+            .publishedToFramework()
             .build();
 
     // --- rate limiting ---

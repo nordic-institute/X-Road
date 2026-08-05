@@ -94,6 +94,7 @@ public final class ConfProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> UPDATE_INTERVAL = ROOT
             .string("update-interval")
             .withDefaultValue("60s")
+            .publishedToFramework()
             .build();
 
     /** {@code xroad.configuration-proxy.global-conf-download-path}. */

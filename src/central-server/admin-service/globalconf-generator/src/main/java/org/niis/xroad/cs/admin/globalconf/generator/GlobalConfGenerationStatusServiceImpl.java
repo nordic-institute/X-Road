@@ -55,12 +55,8 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
     private final String logPath;
 
     public GlobalConfGenerationStatusServiceImpl(ObjectMapper objectMapper, XRoadConfig config) {
-        this(objectMapper, config.value(CsAdminServiceConfigKeys.APP_LOG_PATH));
-    }
-
-    GlobalConfGenerationStatusServiceImpl(ObjectMapper objectMapper, String logPath) {
         this.objectMapper = objectMapper;
-        this.logPath = logPath;
+        this.logPath = config.value(CsAdminServiceConfigKeys.APP_LOG_PATH);
     }
 
     @EventListener
