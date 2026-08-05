@@ -103,9 +103,15 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
                 && probePort(k8sProperties.ss1Host(), k8sProperties.ss1ProxyPort());
     }
 
+    /**
+     * The address the Security Server identifies itself by in global configuration and monitoring
+     * data, which in this topology is its namespace-qualified in-cluster proxy Service. This is
+     * deliberately not {@link #resolveHost(String)} — that returns the port-forward host the test
+     * client dials, which coincides with the registered address in compose and LXD but not here.
+     */
     @Override
     public String securityServerAddress(String env) {
-        return resolveHost(env);
+        return "proxy." + resolveNamespace(env);
     }
 
     @Override
