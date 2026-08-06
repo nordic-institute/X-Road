@@ -1,0 +1,13 @@
+---
+# Name of the dockerconfigjson Secret the charts reference via `imagePullSecrets`.
+# Empty disables the whole role, which is the local default: a kind cluster pulling
+# from localhost:5555 needs no credentials.
+xroad_image_pull_secret: ""
+
+xroad_image_pull_registry: ""
+xroad_image_pull_username: ""
+xroad_image_pull_password: ""
+
+# Namespaces the Secret is created in. Secrets are namespace-scoped and the charts
+# reference this one by bare name from each release's own namespace.
+xroad_image_pull_secret_namespaces: []

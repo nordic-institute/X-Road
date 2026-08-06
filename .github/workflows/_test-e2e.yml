@@ -20,8 +20,18 @@ on:
         required: true
         type: string
       variant:
-        description: 'E2E substrate: compose | lxd'
+        description: 'E2E substrate: compose | lxd | k8s'
         required: true
+        type: string
+      image_registry:
+        description: 'Registry holding the dev images (k8s lane only)'
+        required: false
+        default: ''
+        type: string
+      service_image_tag:
+        description: 'Tag of the dev images to deploy (k8s lane only)'
+        required: false
+        default: ''
         type: string
       runs_on:
         description: 'Runner label for this lane'
@@ -165,6 +175,65 @@ jobs:
           sg lxd -c "./wait-xroad-ready.sh"
           echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      # ---------------------------------------------------------------- k8s setup
+
+      # Helm is pinned to the same version the chart-lint job uses; helm 4 cannot parse
+      # templates/services/all.yaml (see _test-charts.yml).
+      - name: Setup Helm
+        if: inputs.variant == 'k8s'
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.21.3
+
+      # Ansible deliberately is not installed here: start-env.sh's bootstrap builds a venv
+      # from development/k8s/requirements.txt (ansible-core, kubernetes, the pinned
+      # kubernetes.core collection) and activates it, so an apt-installed ansible would only
+      # shadow the versions the roles are pinned against. Only kind is missing on the runner.
+      - name: Install kind
+        if: inputs.variant == 'k8s'
+        run: |
+          set -euo pipefail
+          sudo curl -fsSL -o /usr/local/bin/kind \
+            https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64
+          sudo chmod +x /usr/local/bin/kind
+          sudo apt-get update
+          sudo apt-get install -y python3-venv
+          kind --version
+          kubectl version --client
+          helm version --short
+
+      - name: Login to GHCR (k8s)
+        if: inputs.variant == 'k8s'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Provisioning is the same path a developer runs locally -- same charts, same roles,
+      # same playbook -- differing only in where the images come from. --skip-images is
+      # correct here because build-and-package already built and pushed them; the registry
+      # coordinates and the pull credentials are passed through as extra-vars rather than
+      # forked into a CI-only inventory, so the two environments cannot drift.
+      - name: Provision the k8s E2E topology
+        if: inputs.variant == 'k8s'
+        env:
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          start=$(date +%s)
+          ./scripts/env-k8s/start-env.sh --env=e2e --recreate --skip-images \
+            -e "xroad_image_registry=${{ inputs.image_registry }}" \
+            -e "xroad_image_tag=${{ inputs.service_image_tag }}" \
+            -e "serverconf_init_image=${{ inputs.image_registry }}/ss-db-init:${{ inputs.service_image_tag }}" \
+            -e "xroad_image_pull_secret=ghcr-pull-secret" \
+            -e "xroad_image_pull_registry=ghcr.io" \
+            -e "xroad_image_pull_username=${GHCR_USERNAME}" \
+            -e "xroad_image_pull_password=${GHCR_PASSWORD}" \
+            -e "xroad_image_pull_secret_namespaces=['cs','ss0','ss1']"
+          echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
       # ------------------------------------------------------------ compose setup
 
       - name: Login to GHCR
@@ -212,6 +281,13 @@ jobs:
           sg lxd -c 'java -Dtest-framework.env-mode=lxd -jar e2e-test-1.0.jar'
           echo "E2E_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      - name: Run e2e tests (k8s)
+        if: inputs.variant == 'k8s'
+        run: |
+          start=$(date +%s)
+          java -Dtest-framework.env-mode=k8s -jar e2e-test-1.0.jar
+          echo "E2E_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
       - name: Log storage
         if: always() && inputs.variant == 'compose'
         uses: ./.github/actions/log-storage
@@ -246,6 +322,55 @@ jobs:
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
           if-no-files-found: warn
+
+      # ------------------------------------------------------- k8s diagnostics
+
+      # A red k8s lane has to be root-causable from the run alone -- there is no cluster to
+      # attach to afterwards. Cluster-wide state first, then every container's log including
+      # previous incarnations of restarted ones, which is where a crash-loop's real error is.
+      - name: Collect cluster state and pod logs
+        if: always() && inputs.variant == 'k8s'
+        run: |
+          set +e
+          out=k8s-logs
+          mkdir -p "$out"
+          kubectl get pods -A -o wide            > "$out/pods.txt" 2>&1
+          kubectl get events -A --sort-by=.metadata.creationTimestamp > "$out/events.txt" 2>&1
+          kubectl get svc,ep,pvc,jobs -A         > "$out/resources.txt" 2>&1
+          kubectl describe pods -A               > "$out/describe-pods.txt" 2>&1
+          helm list -A                           > "$out/helm-releases.txt" 2>&1
+          kubectl get pods -A --no-headers -o custom-columns=NS:.metadata.namespace,N:.metadata.name \
+          | while read -r ns name; do
+              kubectl logs -n "$ns" "$name" --all-containers --tail=-1 > "$out/$ns.$name.log" 2>&1
+              kubectl logs -n "$ns" "$name" --all-containers --previous --tail=-1 \
+                > "$out/$ns.$name.previous.log" 2>/dev/null
+              [ -s "$out/$ns.$name.previous.log" ] || rm -f "$out/$ns.$name.previous.log"
+            done
+          exit 0
+
+      - name: Upload k8s logs
+        if: always() && inputs.variant == 'k8s'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: e2e-k8s-cluster-logs-${{ github.run_number }}
+          path: k8s-logs/
+          if-no-files-found: ignore
+
+      - name: k8s timing summary
+        if: always() && inputs.variant == 'k8s'
+        run: |
+          {
+            echo "# k8s e2e timing"
+            echo ""
+            echo "| Phase | Duration |"
+            echo "|-------|----------|"
+            echo "| Provision (kind + charts + hurl) | ${PROVISION_SECS:-n/a}s |"
+            echo "| e2e suite (k8s mode) | ${E2E_SECS:-n/a}s |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tear down kind cluster
+        if: always() && inputs.variant == 'k8s'
+        run: ./scripts/env-k8s/delete-env.sh --env=e2e || true
 
       # ------------------------------------------------------- lxd diagnostics
 

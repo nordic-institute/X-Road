@@ -25,6 +25,12 @@
         kind_state_dir: "{{ playbook_dir }}/../.state"
       when: cluster_provider == 'kind'
 
+    # Before any chart, so the credentials are in place when the first pod is scheduled.
+    - name: Provision registry pull Secret (when the images are in a private registry)
+      ansible.builtin.include_role:
+        name: image_pull_secret
+      when: xroad_image_pull_secret | default('') | length > 0
+
     - name: Install CloudNativePG operator
       ansible.builtin.include_role:
         name: cloudnative_pg

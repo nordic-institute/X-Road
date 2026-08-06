@@ -90,6 +90,9 @@ jobs:
           - variant: lxd
             runs_on: xrd-runner-8c
             timeout_minutes: 120
+          - variant: k8s
+            runs_on: ubuntu-24.04
+            timeout_minutes: 90
     uses: ./.github/workflows/_test-e2e.yml
     secrets: inherit
     with:
@@ -98,6 +101,8 @@ jobs:
       variant: ${{ matrix.variant }}
       runs_on: ${{ matrix.runs_on }}
       timeout_minutes: ${{ matrix.timeout_minutes }}
+      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
+      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-services:
     name: service-int-tests

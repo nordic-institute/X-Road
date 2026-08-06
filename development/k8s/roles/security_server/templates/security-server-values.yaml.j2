@@ -362,3 +362,8 @@ dsp:
 # themselves are provisioned by the cloudnative_pg role, not the chart.
 postgres:
   image: "{{ postgres_image }}"
+
+{% if (xroad_image_pull_secret | default('')) | length > 0 %}
+imagePullSecrets:
+  - {{ xroad_image_pull_secret }}
+{% endif %}

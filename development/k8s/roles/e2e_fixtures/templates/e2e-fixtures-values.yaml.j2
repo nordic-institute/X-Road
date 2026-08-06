@@ -25,3 +25,8 @@ services:
       {{ f | regex_replace('\.json$', '') }}: |
 {{ lookup('file', isrest_mappings_dir + '/' + f) | indent(8, true) }}
 {% endfor %}
+
+{% if (xroad_image_pull_secret | default('')) | length > 0 %}
+imagePullSecrets:
+  - {{ xroad_image_pull_secret }}
+{% endif %}

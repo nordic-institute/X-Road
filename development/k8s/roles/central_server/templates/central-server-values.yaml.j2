@@ -9,3 +9,8 @@ global:
     tag: {{ xroad_image_tag }}
 {% endif %}
 {% endif %}
+
+{% if (xroad_image_pull_secret | default('')) | length > 0 %}
+imagePullSecrets:
+  - {{ xroad_image_pull_secret }}
+{% endif %}

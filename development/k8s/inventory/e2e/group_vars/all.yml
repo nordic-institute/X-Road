@@ -2,8 +2,8 @@
 # Full base topology for E2E `k8s` env-mode (PRD .workbench/20260730-k8s-e2e-variant/PRD.md,
 # slice 06: two-ss-message-flow): kind cluster + Central Server chart + two Security Server chart
 # releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao) +
-# e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap). DSP stays off
-# (proxy_dsp_enabled: false, ds-* replicas: 0) — full DSP parity is a later slice's job.
+# e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap). DSP is on
+# (slice 09) — see the proxy_dsp_enabled block below for what that does and why.
 
 cluster_provider: kind
 kind_cluster_name: xroad-e2e-cluster
