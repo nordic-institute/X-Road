@@ -101,7 +101,7 @@ END
 INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
 ('xroad.registration-service.api-token', '$TOKEN', now(), now()),
 ('xroad.management-service.api-token', '$TOKEN', now(), now())
-ON CONFLICT DO NOTHING;
+ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
 EOF
 fi
 pg_ctlcluster 18 main stop

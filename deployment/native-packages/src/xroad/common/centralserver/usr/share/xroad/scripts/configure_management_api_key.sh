@@ -25,7 +25,8 @@ token_hash_in_db() {
 
 store_token() {
   run_psql "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
-    VALUES ('xroad.${1}.api-token', '$2', now(), now()) ON CONFLICT DO NOTHING;"
+    VALUES ('xroad.${1}.api-token', '$2', now(), now())
+    ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();"
 }
 
 api_token_configured() {
