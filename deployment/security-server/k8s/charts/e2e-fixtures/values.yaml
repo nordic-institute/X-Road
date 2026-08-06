@@ -218,8 +218,7 @@ hurl:
   # Service DNS names instead of compose's mapped host ports. ss0/ss1 here
   # are the actual namespace names the two Security Server chart releases
   # are deployed into (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice
-  # 06: two-ss-message-flow). ca_host/is_host resolve bare because hurl runs
-  # in the same namespace as those services.
+  # 06: two-ss-message-flow).
   #
   # cs_host is namespace-qualified (`central-server.cs`, not bare) because it
   # is also stored as the Central Server's address at init (setup.hurl's
@@ -242,7 +241,14 @@ hurl:
     ss1_host: proxy-ui-api.ss1
     ss0_proxy: proxy.ss0
     ss1_proxy: proxy.ss1
-    is_host: central-server
+    # Issuer Service host. Namespace-qualified even though hurl runs in the cs
+    # namespace, because this is not only a name to dial: the gate at
+    # setup.hurl:832 asserts the served document's id equals
+    # did:web:{{is_host}}%3A6183:issuer, and that DID is stored once, from the
+    # Central Server's XROAD_DATASPACE_ISSUER_HOST. The Security Servers'
+    # identity hubs resolve it from ss0/ss1, so it is the qualified form; the
+    # bare name is a different DID and the endpoint answers 204 for it.
+    is_host: central-server.cs
     # Service backends the provider SS (ss0) routes to during the message-flow
     # scenarios. vars.env defaults them to bare `issoap`/`isrest`/`isopenapi`
     # (fine on compose's single docker network); in k8s they live in the cs

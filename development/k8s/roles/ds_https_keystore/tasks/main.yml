@@ -33,3 +33,25 @@
       namespace '{{ ds_https_keystore_namespace }}' — check
       `kubectl logs -n {{ ds_https_keystore_namespace }} job/ds-https-keystore-init`
   when: (ds_https_keystore_secret.resources | length) == 0
+
+# Secrets are namespace-scoped, but the Security Server releases mount this one by bare name
+# from their own namespaces. Copy rather than install the chart per namespace: a second install
+# would generate a second, unrelated self-signed key pair, and each namespace's truststore would
+# then trust only its own cert — the first cross-namespace DSP handshake would fail PKIX.
+# One cert, one truststore, every namespace.
+- name: Replicate the keystore Secret into the Security Server namespaces
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ ds_https_keystore_secret_name }}"
+        namespace: "{{ ds_keystore_target_ns }}"
+      type: "{{ ds_https_keystore_secret.resources[0].type }}"
+      data: "{{ ds_https_keystore_secret.resources[0].data }}"
+  loop: "{{ ds_https_keystore_extra_namespaces }}"
+  loop_control:
+    loop_var: ds_keystore_target_ns
+  when: ds_keystore_target_ns != ds_https_keystore_namespace

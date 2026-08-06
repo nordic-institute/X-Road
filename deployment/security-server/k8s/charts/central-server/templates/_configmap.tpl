@@ -29,6 +29,20 @@ data:
   {{- $svcFqdn := printf "%s.%s" .service .root.Release.Namespace }}
   {{- $altNames := printf "%s,%s.svc.cluster.local" $svcFqdn $svcFqdn }}
   {{- $env = merge (dict "XROAD_MANAGEMENT_SERVICE_TLS_CERTIFICATE_PROVISIONING_ALT_NAMES" $altNames) $env }}
+  {{- /*
+  Names the co-located Issuer Service advertises to callers in other namespaces.
+  These are separate from XROAD_HOST on purpose: XROAD_HOST is the CS's own
+  identity (the management-service cert's common name, and the base for the
+  alt-names above), while these three end up in artifacts other namespaces have
+  to resolve — the issuer DID and issuance endpoint the Security Servers'
+  identity hubs fetch, and the status-list URL baked into issued credentials.
+  Defaults only: a values-supplied value wins.
+  */}}
+  {{- $issuerEnv := dict
+      "XROAD_DATASPACE_ISSUER_HOST" $svcFqdn
+      "EDC_HOSTNAME" $svcFqdn
+      "EDC_STATUSLIST_CALLBACK_ADDRESS" (printf "https://%s:6187/statuslist" $svcFqdn) }}
+  {{- $env = merge $env $issuerEnv }}
   {{- end }}
   {{- toYaml $env | nindent 2 }}
 {{- end }}

@@ -60,14 +60,36 @@ external_service_host: host.docker.internal
 # No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
 
-# DSP stays off for this slice: the security_server role skips provisioning the ds-*-service
-# databases and omits the ds-control-plane/ds-identity-hub/ds-issuer-service replica overrides
-# from the chart values, leaving them at the chart's own default (replicas: 0). Full DSP parity
-# (enabling ds-*, DS-HTTPS did:web validation) is slice 09's job. This also drives
-# e2e_fixtures' hurl_skip_dsp_readiness_gates default (see that role's defaults/main.yml) — the
-# hurl bootstrap Job stops two entries short of setup.hurl's end instead of blocking on DSP
-# participant-context credentials no SS here will ever issue.
-proxy_dsp_enabled: false
+# DSP on (issue 09). This is not an extra scenario: dsp-enabled is a global gate on the client
+# proxy's send path (ClientSoapMessageProcessor / ClientRestMessageProcessor ask
+# consumerSideDspProcessor for asset access on every request, or get null), so with it off the
+# k8s lane was running the same suite over a different transport than compose. Turning it on
+# also provisions the three ds-*-service databases, raises the ds-* replicas from the chart
+# default of 0, and re-arms e2e_fixtures' hurl DSP readiness gates (that role derives
+# hurl_skip_dsp_readiness_gates from this flag), so the bootstrap runs setup.hurl to its end.
+proxy_dsp_enabled: true
+
+# DS-HTTPS on the EDC ports. No single advertised host here — unlike the hybrid dev flavor's
+# ss2_advertised_host, each ds-* service is reached on its own namespace-qualified Service name,
+# which is what the ds-https cert's SAN list already covers.
+ds_tls_enabled: true
+
+# The ds-https-keystore chart self-signs and publishes its truststore as a JRE-copy JKS named
+# `cacerts`; the role's default names the xrd-ca-signed PKCS12 `cacerts.p12` that the hybrid dev
+# flavor produces instead. Mounting the wrong key yields no truststore at all and every DS-HTTPS
+# handshake fails PKIX.
+ds_truststore_key: cacerts
+
+# Mirrors compose, whose SsStackSetup sets DSP_MGMT_CONTEXT=true on both stacks. With DSP on,
+# management requests are routed through the management participant context
+# (ClientSoapMessageProcessor's isManagementRequest branch), so a context that is never
+# provisioned would break the bootstrap's own management requests.
+ds_mgmt_context_enabled: true
+
+# The Issuer Service is co-located in the Central Server dev image (port 6183), reached
+# cross-namespace. Drives both the proxy-ui-api dataspace issuer DID and the ds-control-plane
+# trusted-issuer seed row. The role default (xrd-cs) is the LXD-hybrid Central Server.
+trusted_issuer_host: central-server.cs
 
 # Two Security Server chart releases in separate namespaces — the k8s form of compose's
 # ss0-/ss1-prefixed stacks. Each gets its own distinct DSP participant-context identifier
