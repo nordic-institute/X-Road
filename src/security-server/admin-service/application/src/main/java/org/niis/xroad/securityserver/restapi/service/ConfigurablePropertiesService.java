@@ -29,9 +29,11 @@ package org.niis.xroad.securityserver.restapi.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigCatalogue;
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
@@ -57,12 +59,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_PROPERTY_VALUE;
 
 /**
  * Service that handles configurable system parameters
@@ -125,11 +128,9 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey   unique key of the system property
      * @param propertyValue new value for the system property
-     * @param scope         target scope the caller believes the property has; validated against the
-     *                      registry when given, not persisted — rows are keyed by {@code property_key} alone
      */
-    public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
-        updateConfigurableProperty(propertyKey, propertyValue, scope, NOOP_VALUE_CONSUMER);
+    public void updateConfigurableProperty(String propertyKey, String propertyValue) {
+        updateConfigurableProperty(propertyKey, propertyValue, NOOP_VALUE_CONSUMER);
     }
 
     /**
@@ -145,20 +146,16 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey           unique key of the system property
      * @param propertyValue         new value for the system property
-     * @param scope                 target scope the caller believes the property has; validated against the
-     *                              registry when given, not persisted
      * @param existingValueConsumer callback that consumes the existing persisted property value
      *                              before the update, not invoked if the property does not exist
      *                              or has a {@code null} value
      */
-    public void updateConfigurableProperty(
-            String propertyKey, String propertyValue, String scope, Consumer<String> existingValueConsumer) {
-
-        if (!isPropertyConfigurable(propertyKey, scope)) {
-            throw new NotFoundException(
-                    "Configurable property '%s' with scope '%s' is not defined".formatted(propertyKey, scope),
-                    NOT_FOUND.build());
-        }
+    public void updateConfigurableProperty(String propertyKey, String propertyValue, Consumer<String> existingValueConsumer) {
+        var key = findExposedKey(propertyKey)
+                .orElseThrow(() -> new NotFoundException(
+                        "Configurable property '%s' is not defined".formatted(propertyKey),
+                        NOT_FOUND.build()));
+        validateValue(key, propertyValue);
 
         var existing = repository.findConfigurationPropertyByPropertyKey(propertyKey);
         existing.map(ConfigurationPropertyEntity::getPropertyValue).ifPresent(existingValueConsumer);
@@ -187,10 +184,28 @@ public class ConfigurablePropertiesService {
      * caller is still checked against the registry's own target scope — the REST contract carries it, and a
      * mismatch means the caller is aiming at something else — but it no longer takes part in storage.
      */
-    private boolean isPropertyConfigurable(String propertyKey, String scope) {
-        return getAllPropertyDefinitions().stream()
-                .anyMatch(p -> p.propertyName().equals(propertyKey)
-                        && (scope == null || Objects.equals(p.scope(), scope)));
+    private Optional<ConfigKey<?>> findExposedKey(String propertyKey) {
+        return SS_PROVIDERS.stream()
+                .flatMap(provider -> provider.keys().stream())
+                .filter(key -> key.exposedInUi() && key.key().equals(propertyKey))
+                .findFirst();
+    }
+
+    /**
+     * The owning service converts and validates every stored override eagerly at startup and refuses to
+     * start on failure, so a value must never reach the database without passing the key's own converter
+     * and validator here.
+     */
+    private static <T> void validateValue(ConfigKey<T> key, String rawValue) {
+        try {
+            var result = key.validate(key.convert(rawValue));
+            if (!result.valid()) {
+                throw new IllegalArgumentException(result.message());
+            }
+        } catch (RuntimeException e) {
+            throw new BadRequestException("Invalid value for property '%s': %s".formatted(key.key(), e.getMessage()),
+                    e, INVALID_PROPERTY_VALUE.build());
+        }
     }
 
     /** @return the exposed keys of {@link #SS_PROVIDERS}, flattened to name/default/target scope */

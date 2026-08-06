@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
@@ -157,7 +158,7 @@ class ConfigurablePropertiesServiceTest {
         entity.setPropertyValue(PROPERTY_VALUE);
         when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -172,7 +173,7 @@ class ConfigurablePropertiesServiceTest {
     void updateConfigurablePropertyNotFoundInDatabase() {
         when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -185,11 +186,11 @@ class ConfigurablePropertiesServiceTest {
     }
 
     @Test
-    void updateConfigurablePropertyNotFoundInDatabaseScopeIsNull() {
+    void updateConfigurablePropertyNotFoundInDatabaseForScopelessKey() {
         when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME))
                 .thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE, null);
+        service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -202,21 +203,31 @@ class ConfigurablePropertiesServiceTest {
     }
 
     @Test
-    void updateConfigurablePropertyThrowsWhenScopeDoesNotMatchTheCatalogue() {
-        assertThrows(NotFoundException.class,
-                () -> service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, "other-scope"));
-    }
-
-    @Test
     void updateConfigurablePropertyThrowsWhenKeyIsNotInTheCatalogue() {
         assertThrows(NotFoundException.class,
-                () -> service.updateConfigurableProperty("unknown.property.key", PROPERTY_VALUE, SCOPE));
+                () -> service.updateConfigurableProperty("unknown.property.key", PROPERTY_VALUE));
     }
 
     @Test
     void updateConfigurablePropertyThrowsWhenKeyIsDeclaredButNotExposed() {
         assertThrows(NotFoundException.class,
-                () -> service.updateConfigurableProperty("xroad.signer.modules", PROPERTY_VALUE, "signer"));
+                () -> service.updateConfigurableProperty("xroad.signer.modules", PROPERTY_VALUE));
+    }
+
+    @Test
+    void updateConfigurablePropertyRejectsValueTheKeyConverterCannotParse() {
+        assertThrows(BadRequestException.class,
+                () -> service.updateConfigurableProperty(PROPERTY_NAME, "not-a-number"));
+
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void updateConfigurablePropertyRejectsValueTheKeyValidatorRefuses() {
+        assertThrows(BadRequestException.class,
+                () -> service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, ""));
+
+        verifyNoInteractions(repository);
     }
 
     @Test
@@ -227,7 +238,7 @@ class ConfigurablePropertiesServiceTest {
         Consumer<String> existingValueConsumer = mock(Consumer.class);
         when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, existingValueConsumer);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, existingValueConsumer);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -245,7 +256,7 @@ class ConfigurablePropertiesServiceTest {
         Consumer<String> existingValueConsumer = mock(Consumer.class);
         when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, existingValueConsumer);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, existingValueConsumer);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
