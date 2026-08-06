@@ -74,16 +74,30 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
+  # All E2E lanes share one workflow definition, invoked once per substrate, so the
+  # Actions UI shows a single "e2e" group with one leg each. The lxd leg is limited to
+  # pull_request and workflow_dispatch by a guard inside the reusable workflow.
   test-e2e:
-    name: e2e-tests
+    name: e2e
     needs: build-and-package
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: compose
+            runs_on: ubuntu-24.04
+            timeout_minutes: 40
+          - variant: lxd
+            runs_on: xrd-runner-8c
+            timeout_minutes: 120
     uses: ./.github/workflows/_test-e2e.yml
     secrets: inherit
     with:
       ref: ${{ github.ref }}
       sha: ${{ github.sha }}
-      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
-      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+      variant: ${{ matrix.variant }}
+      runs_on: ${{ matrix.runs_on }}
+      timeout_minutes: ${{ matrix.timeout_minutes }}
 
   test-services:
     name: service-int-tests
@@ -95,21 +109,6 @@ jobs:
       sha: ${{ github.sha }}
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
-
-  # Provisions the LXD environment and runs the e2e suite in LXD mode on every
-  # PR and manual dispatch. Runs in parallel with build-and-package: it consumes
-  # no job outputs, only waits internally for that job's package artifacts via
-  # a marker artifact (see _provision-lxd.yml). A failed run marks the PR checks
-  # red (reusable-workflow callers cannot continue-on-error). To narrow back to
-  # manual dispatch only, change the `if` below to: github.event_name == 'workflow_dispatch'
-  provision-lxd:
-    name: lxd-e2e
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
-    uses: ./.github/workflows/_provision-lxd.yml
-    secrets: inherit
-    with:
-      ref: ${{ github.ref }}
-      sha: ${{ github.sha }}
 
   # Cheap chart-regression gate: helm lint/template/smoke on the k8s charts.
   # Runs in parallel with build-and-package (no dependency on its outputs),
@@ -138,7 +137,7 @@ jobs:
           | Build and Package | ${{ needs.build-and-package.result == 'success' && '✅ Success' || needs.build-and-package.result == 'failure' && '❌ Failed' || needs.build-and-package.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Central Server Tests | ${{ needs.test-central-server.result == 'success' && '✅ Success' || needs.test-central-server.result == 'failure' && '❌ Failed' || needs.test-central-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
-          | E2E Tests | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | E2E Tests (all lanes) | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Service Integration Tests | ${{ needs.test-services.result == 'success' && '✅ Success' || needs.test-services.result == 'failure' && '❌ Failed' || needs.test-services.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
 
           ## Overall Result

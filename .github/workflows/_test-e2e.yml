@@ -1,5 +1,13 @@
 name: E2E Tests
 
+# One definition for every E2E lane. The caller invokes this once with a matrix over
+# `variant`, so the Actions UI shows a single "e2e" group with one leg per substrate.
+#
+# The suite itself is identical in all lanes -- the same fat jar, the same scenario
+# classes -- and `test-framework.env-mode` selects the substrate. What differs is the
+# setup each substrate needs before the jar can attach, which is expressed as
+# variant-guarded steps. Everything from "Setup Java" onward is shared.
+
 on:
   workflow_call:
     inputs:
@@ -11,22 +19,36 @@ on:
         description: 'Git SHA for the build'
         required: true
         type: string
-      image_registry:
-        description: 'Image registry URL'
+      variant:
+        description: 'E2E substrate: compose | lxd'
         required: true
         type: string
-      service_image_tag:
-        description: 'Service image tag to use'
+      runs_on:
+        description: 'Runner label for this lane'
         required: true
         type: string
+      timeout_minutes:
+        description: 'Job timeout for this lane'
+        required: true
+        type: number
 
 jobs:
-  test-e2e:
-    name: e2e-test
-    runs-on: ubuntu-24.04
-    timeout-minutes: 40
+  e2e:
+    name: ${{ inputs.variant }}
+    # The lxd lane stays on pull_request and manual dispatch only; compose also gates
+    # pushes to develop. Guarding here rather than in the caller keeps the three lanes
+    # in one matrix -- an excluded lane shows as a skipped leg instead of vanishing.
+    if: >
+      inputs.variant != 'lxd'
+      || github.event_name == 'workflow_dispatch'
+      || github.event_name == 'pull_request'
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    env:
+      ANSIBLE_CONFIG: config/ansible.cfg
     steps:
       - name: Start Measurement
+        if: inputs.variant == 'compose'
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: start-measurement
@@ -36,7 +58,130 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: Download e2e-test
+      # ---------------------------------------------------------------- lxd setup
+
+      - name: Install Ansible and LXD tooling
+        if: inputs.variant == 'lxd'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible jq
+          ansible-galaxy collection install community.general ansible.posix
+          # LXD ships preinstalled via snap on ubuntu-24.04 runners; ensure it is ready.
+          sudo snap install lxd 2>/dev/null || true
+          sudo lxd waitready --timeout 60
+
+      # lxdbr0 must sit on 10.10.10.1/24 — that is the dnsmasq address the
+      # native-lxd-stack networking scripts and *.lxd resolution assume.
+      - name: Initialize LXD
+        if: inputs.variant == 'lxd'
+        run: |
+          start=$(date +%s)
+          cat <<'EOF' | sudo lxd init --preseed
+          config: {}
+          networks:
+          - name: lxdbr0
+            type: bridge
+            config:
+              ipv4.address: 10.10.10.1/24
+              ipv4.nat: "true"
+              ipv6.address: none
+          storage_pools:
+          - name: default
+            driver: dir
+          profiles:
+          - name: default
+            devices:
+              eth0:
+                name: eth0
+                network: lxdbr0
+                type: nic
+              root:
+                path: /
+                pool: default
+                type: disk
+          EOF
+          sudo usermod -aG lxd "$USER"
+          echo "INIT_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      # Docker on the hosted runner sets the iptables FORWARD policy to DROP,
+      # which kills all egress from lxdbr0 containers (DHCP/DNS still work —
+      # they are host INPUT, not forwarded). Let bridge traffic through.
+      - name: Allow LXD egress past Docker's FORWARD DROP policy
+        if: inputs.variant == 'lxd'
+        run: |
+          sudo iptables -S FORWARD | head -3
+          sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT \
+            && sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT \
+            || sudo iptables -P FORWARD ACCEPT
+
+      - name: Configure *.lxd host DNS
+        if: inputs.variant == 'lxd'
+        working-directory: ./scripts/env-lxd
+        run: sg lxd -c "./scripts/setup-linux-net.sh apply"
+
+      - name: Pre-provision supporting containers
+        if: inputs.variant == 'lxd'
+        working-directory: ./scripts/env-lxd
+        run: |
+          start=$(date +%s)
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo"
+          echo "CACHE_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Download resolute (Ubuntu 26.04) packages
+        if: inputs.variant == 'lxd'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-ubuntu26.04
+          path: deployment/native-packages/build/ubuntu26.04
+
+      - name: Download noble (Ubuntu 24.04) packages
+        if: inputs.variant == 'lxd'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-ubuntu24.04
+          path: deployment/native-packages/build/ubuntu24.04
+
+      - name: Download RHEL 9 packages
+        if: inputs.variant == 'lxd'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: lxd-packages-rhel9
+          path: deployment/native-packages/build/rhel/9
+
+      - name: Provision containers
+        if: inputs.variant == 'lxd'
+        working-directory: ./scripts/env-lxd
+        run: |
+          start=$(date +%s)
+          sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_dev.yml --forks 5 --skip-tags compile,build-packages -e onMacOs=no -e enable_netdata=false"
+          echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Initialize X-Road (hurl)
+        if: inputs.variant == 'lxd'
+        working-directory: ./scripts/env-lxd
+        run: |
+          start=$(date +%s)
+          sg lxd -c "lxc exec xrd-hurl -- bash -c 'cd /opt/hurl && ./run-hurl.sh'"
+          sg lxd -c "./wait-xroad-ready.sh"
+          echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------ compose setup
+
+      - name: Login to GHCR
+        if: inputs.variant == 'compose'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create compose network
+        if: inputs.variant == 'compose'
+        run: docker network create xroad-network
+
+      # ------------------------------------------------------------------- shared
+
+      - name: Download e2e-test JAR
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: e2e-test-jar
@@ -47,32 +192,35 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
 
-      - name: Login to GHCR
-        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Setup measurement
+        if: inputs.variant == 'compose'
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
           label: 'e2e-test setup'
 
-      - name: Run e2e-test
+      - name: Run e2e tests (compose)
+        if: inputs.variant == 'compose'
+        run: java -jar e2e-test-1.0.jar
+
+      # sg lxd: the suite's LXD-mode transports (messagelog SQL, archiver trigger,
+      # archive download) shell out to lxc, which needs the lxd group's socket access.
+      - name: Run e2e tests (lxd)
+        if: inputs.variant == 'lxd'
         run: |
-          docker network create xroad-network
-          java -jar e2e-test-1.0.jar
+          start=$(date +%s)
+          sg lxd -c 'java -Dtest-framework.env-mode=lxd -jar e2e-test-1.0.jar'
+          echo "E2E_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Log storage
-        if: always()
+        if: always() && inputs.variant == 'compose'
         uses: ./.github/actions/log-storage
         with:
           label: 'e2e-test storage'
           show-docker-images: 'true'
 
       - name: Test measurement
+        if: inputs.variant == 'compose'
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
@@ -84,7 +232,7 @@ jobs:
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: success() || failure()
         with:
-          name: e2e-test
+          name: e2e-test-${{ inputs.variant }}
           path: test-framework-working-dir/test-results/TEST-*.xml
           reporter: java-junit
 
@@ -92,13 +240,54 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: e2e-test-report-${{ github.run_number }}
+          name: e2e-test-${{ inputs.variant }}-report-${{ github.run_number }}
           path: |
             test-framework-working-dir/allure-report/index.html
             test-framework-working-dir/container-logs/
             test-framework-working-dir/test-automation-exec.log
+          if-no-files-found: warn
+
+      # ------------------------------------------------------- lxd diagnostics
+
+      - name: Timing summary
+        if: always() && inputs.variant == 'lxd'
+        run: |
+          {
+            echo "# LXD e2e timing"
+            echo ""
+            echo "| Phase | Duration |"
+            echo "|-------|----------|"
+            echo "| LXD init | ${INIT_SECS:-n/a}s |"
+            echo "| Pre-provision supporting containers | ${CACHE_SECS:-n/a}s |"
+            echo "| Provision containers | ${PROVISION_SECS:-n/a}s |"
+            echo "| Federation init (hurl) | ${HURL_SECS:-n/a}s |"
+            echo "| e2e suite (LXD mode) | ${E2E_SECS:-n/a}s |"
+            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} + ${E2E_SECS:-0} ))
+            echo "| **Total** | **${total}s** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Container state
+        if: always() && inputs.variant == 'lxd'
+        run: sg lxd -c "lxc list" || true
+
+      - name: Collect container logs
+        if: always() && inputs.variant == 'lxd'
+        run: |
+          mkdir -p lxd-logs
+          for c in $(sg lxd -c "lxc list -c n --format csv" 2>/dev/null); do
+            sg lxd -c "lxc exec $c -- journalctl --no-pager" > "lxd-logs/$c.log" 2>&1 || true
+          done
+
+      - name: Upload container logs
+        if: always() && inputs.variant == 'lxd'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-provision-logs-${{ github.run_number }}
+          path: lxd-logs/
+          if-no-files-found: ignore
 
       - name: Show Energy Results
+        if: inputs.variant == 'compose'
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: display-results

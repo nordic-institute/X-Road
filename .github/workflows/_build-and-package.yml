@@ -199,16 +199,6 @@ jobs:
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
-      - name: Create lxd-artifacts-ready marker
-        run: echo "ready" > lxd-artifacts-ready.txt
-
-      - name: Upload lxd-artifacts-ready marker
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: lxd-artifacts-ready
-          path: lxd-artifacts-ready.txt
-          compression-level: '0'
-
       - name: Sonar analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
