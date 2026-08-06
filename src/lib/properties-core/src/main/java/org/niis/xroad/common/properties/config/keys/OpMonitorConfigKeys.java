@@ -166,7 +166,7 @@ public final class OpMonitorConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue("")
+            .withDefaultValue("127.0.0.1")
             .exposedInUi()
             .build();
 

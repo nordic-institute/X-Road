@@ -562,7 +562,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue("")
+            .withDefaultValue("127.0.0.1")
             .exposedInUi()
             .build();
 

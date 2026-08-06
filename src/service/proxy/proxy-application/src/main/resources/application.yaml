@@ -18,12 +18,6 @@ xroad:
     messagelog:
       hibernate:
         hikari.dataSource.ApplicationName: ${quarkus.application.name}
-  proxy:
-    tls:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
 
 "%containerized":
   xroad:
