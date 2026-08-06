@@ -40,7 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.Map;
 
 /**
  * Wires the {@link XRoadConfig} resolver for the central-server admin-service (DB overrides via the
@@ -50,14 +49,10 @@ import java.util.Map;
 @Configuration(proxyBeanMethods = false)
 public class XRoadConfigBeanConfiguration {
 
-    /**
-     * Admin-service's deliberate deviations from the shared DSL defaults. Everything else resolves from the
-     * packaged defaults (equal to the values in application.yml) or container defaults.
-     */
+    /** Admin-service has no deliberate deviations from the shared DSL defaults. */
     @Bean
-    XRoadConfigOverrides xRoadConfigOverrides(@Value("${XROAD_HOST:localhost}") String rpcCertCommonName) {
-        return new XRoadConfigOverrides(Map.of(
-                "xroad.admin-service.tls.certificate-provisioning.common-name", rpcCertCommonName));
+    XRoadConfigOverrides xRoadConfigOverrides() {
+        return XRoadConfigOverrides.none();
     }
 
     @Bean

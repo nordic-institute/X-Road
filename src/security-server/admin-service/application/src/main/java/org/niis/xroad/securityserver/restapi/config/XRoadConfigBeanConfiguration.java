@@ -52,14 +52,13 @@ import java.util.Map;
 public class XRoadConfigBeanConfiguration {
 
     /**
-     * Admin-service's deliberate deviations from the shared DSL defaults. Everything else resolves from the
-     * packaged defaults (equal to the values previously duplicated in {@code application.yml}) or DB overrides.
+     * Admin-service's deliberate deviation from the shared DSL defaults: the global-conf refresh job stays
+     * off here. A stored override of the key still wins — it re-enables the job, which is redundant work
+     * but harmless. Everything else resolves from the packaged defaults or DB overrides.
      */
     @Bean
-    XRoadConfigOverrides xRoadConfigOverrides(@Value("${XROAD_HOST:localhost}") String rpcCertCommonName) {
-        return new XRoadConfigOverrides(Map.of(
-                "xroad.common-global-conf.refresh-rate", "-1",
-                "xroad.proxy-ui-api.tls.certificate-provisioning.common-name", rpcCertCommonName));
+    XRoadConfigOverrides xRoadConfigOverrides() {
+        return new XRoadConfigOverrides(Map.of("xroad.common-global-conf.refresh-rate", "-1"));
     }
 
     @Bean
