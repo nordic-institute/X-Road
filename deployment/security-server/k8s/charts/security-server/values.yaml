@@ -48,6 +48,11 @@ configSeed:
       value: xrd-ss2
     - key: xroad.op-monitor.scheme
       value: https
+    # A signer serving a Security Server retrieves OCSP responses periodically.
+    # The native packages activate this through the ss quarkus profile, but the
+    # containerized profile cannot know which product the signer serves.
+    - key: xroad.signer.ocsp-response-retrieval-active
+      value: "true"
 
 imagePullSecrets: []
 
@@ -118,6 +123,9 @@ services:
         key: "password"
 
   signer:
+    waits:
+      - type: serverconfProperty
+        key: xroad.signer.ocsp-response-retrieval-active
     otelServiceName: xroad-signer
     imageName: ss-signer
     resources:

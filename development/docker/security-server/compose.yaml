@@ -157,7 +157,8 @@ services:
         PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
         INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
         ('xroad.proxy.dsp.participant-context-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', now(), now()),
-        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', now(), now())
+        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', now(), now()),
+        ('xroad.signer.ocsp-response-retrieval-active', 'true', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:
