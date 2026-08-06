@@ -106,6 +106,27 @@ public interface Validator<T> {
     }
 
     /**
+     * @param allowed permitted values, compared case-insensitively
+     * @return validator accepting only {@code allowed}, ignoring case
+     */
+    static Validator<String> oneOfIgnoreCase(String... allowed) {
+        var permitted = Set.of(allowed);
+        return new Validator<>() {
+            @Override
+            public Result validate(String value) {
+                return value != null && permitted.stream().anyMatch(value::equalsIgnoreCase)
+                        ? Result.ok()
+                        : Result.error("must be one of " + permitted);
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("one of " + permitted);
+            }
+        };
+    }
+
+    /**
      * @param min inclusive lower bound
      * @param max inclusive upper bound
      * @return validator accepting integers within {@code [min, max]}

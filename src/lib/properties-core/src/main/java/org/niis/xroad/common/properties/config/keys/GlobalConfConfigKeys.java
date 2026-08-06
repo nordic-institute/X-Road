@@ -34,6 +34,8 @@ import org.niis.xroad.common.properties.config.Prefix;
 import java.time.Duration;
 import java.util.Set;
 
+import static org.niis.xroad.common.properties.config.Validator.oneOfIgnoreCase;
+
 /**
  * Shared global configuration keys ({@code xroad.common-global-conf.*}), consumed by both Quarkus and Spring
  * products. The {@code source} enum is modelled as a String key (parsed by the consuming properties class) to
@@ -51,6 +53,7 @@ public final class GlobalConfConfigKeys implements ConfigKeyProvider {
             .string("source")
             .withDefaultValue("FILESYSTEM")
             .withContainerDefaultValue("REMOTE")
+            .withValidator(oneOfIgnoreCase("FILESYSTEM", "REMOTE"))
             .exposedInUi()
             .build();
     /** {@code xroad.common-global-conf.refresh-rate}. */

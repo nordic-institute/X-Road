@@ -31,6 +31,7 @@ import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
 
 import java.time.Duration;
+import java.util.Locale;
 
 /** {@link XRoadConfig}-backed implementation of {@link GlobalConfProperties}. */
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class XRoadGlobalConfProperties implements GlobalConfProperties {
 
     @Override
     public GlobalConfSource source() {
-        return GlobalConfSource.valueOf(config.value(GlobalConfConfigKeys.SOURCE));
+        return GlobalConfSource.valueOf(config.value(GlobalConfConfigKeys.SOURCE).toUpperCase(Locale.ROOT));
     }
 
     @Override

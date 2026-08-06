@@ -81,6 +81,23 @@ class ValidatorTest {
     }
 
     @Test
+    void oneOfIgnoreCaseAcceptsAnyCasingOfAPermittedValue() {
+        var validator = Validator.oneOfIgnoreCase("FILESYSTEM", "REMOTE");
+
+        assertThat(validator.validate("REMOTE").valid()).isTrue();
+        assertThat(validator.validate("remote").valid()).isTrue();
+        assertThat(validator.validate("FileSystem").valid()).isTrue();
+    }
+
+    @Test
+    void oneOfIgnoreCaseRejectsUnknownValueAndNull() {
+        var validator = Validator.oneOfIgnoreCase("FILESYSTEM", "REMOTE");
+
+        assertThat(validator.validate("remot").valid()).isFalse();
+        assertThat(validator.validate(null).valid()).isFalse();
+    }
+
+    @Test
     void builtInValidatorsDescribeTheirConstraint() {
         assertThat(Validator.oneOf(2048, 3072).describe().orElseThrow()).startsWith("one of").contains("2048", "3072");
         assertThat(Validator.range(1, 10).describe()).contains("within [1, 10]");
