@@ -988,7 +988,6 @@
             "health-check-port": "Saglyk barlag gullugynyň soraglary diňleýän TCP porty. Porty 0 etmek saglyk barlag gullugy doly öçürýär.",
             "health-check-interface": "Saglyk barlag gullugynyň soraglary diňleýän tor araýüzi. Deslapky ähli elýeterli araýüzlerdir.",
             "hsm-health-check-enabled": "Işe girizilende, saglyk barlag nokatynda HSM elýeterliligini hem barlaýar.",
-            "memory-usage-threshold": "Saglyk barlagy şowsuzlyga başlamazdan öň rugsat berilen proksi hakyda ulanylyşynyň iň uly göterimi (0-100). Öçürmek üçin boş goýuň.",
             "message-sign-digest-name": "X-Road habarlaryna gol çekmek üçin ulanylýan şifrlemesi algoritmi.",
             "verify-client-cert": "Işe girizilende, serwer proksi müşderi proksisiniň TLS şahadatnamasyny barlaýar.",
             "log-client-cert": "Müşderi şahadatnamasy subýekt maglumatlarynyň ýazyljakdygy.",
@@ -1310,6 +1309,11 @@
             "db": {
               "encryption-enabled": "Işe girizilende, habar eserasy bazasynda şifrlenip saklanylýar.",
               "key-id": "Maglumat bazasy derejesindäki habar ýazgy şifrlemesi üçin ulanylýan şifrlemesi açarynyň identifikatory."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Saglyk barlagy şowsuzlyga başlamazdan öň rugsat berilen hakyda ulanylyşynyň iň uly göterimi (0-100). Baha berilmese barlag hiç haçan şowsuz bolmaýar; konteýnerlerde deslapky baha 95."
             }
           },
           "common": {

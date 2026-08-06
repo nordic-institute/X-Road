@@ -1010,7 +1010,6 @@
             "health-check-port": "El puerto TCP donde el servicio de verificación de estado escucha solicitudes. Establecer el puerto en 0 deshabilita completamente el servicio de verificación de estado.",
             "health-check-interface": "La interfaz de red donde el servicio de verificación de estado escucha solicitudes. El valor predeterminado es todas las interfaces disponibles.",
             "hsm-health-check-enabled": "Cuando está habilitado, el endpoint de verificación de estado también verifica la disponibilidad del HSM.",
-            "memory-usage-threshold": "Porcentaje máximo permitido (0-100) de uso de memoria del proxy antes de que la verificación de estado comience a fallar. Dejar vacío para deshabilitar.",
             "message-sign-digest-name": "Algoritmo de resumen utilizado para firmar mensajes X-Road.",
             "verify-client-cert": "Cuando está habilitado, el proxy del servidor verifica el certificado TLS del proxy del cliente.",
             "log-client-cert": "Si se debe registrar la información del sujeto del certificado del cliente.",
@@ -1332,6 +1331,11 @@
             "db": {
               "encryption-enabled": "Cuando está habilitado, los cuerpos de los mensajes se almacenan en la base de datos en forma cifrada.",
               "key-id": "Identificador de la clave de cifrado utilizada para el cifrado del registro de mensajes a nivel de base de datos."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Porcentaje máximo permitido (0-100) de uso de memoria antes de que la verificación de estado comience a fallar. Sin valor establecido la verificación nunca falla; en contenedores el valor por defecto es 95."
             }
           },
           "common": {

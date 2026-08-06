@@ -1144,7 +1144,6 @@
             "health-check-port": "The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.",
             "health-check-interface": "The network interface where the health check service listens to requests. Default is all available interfaces.",
             "hsm-health-check-enabled": "When enabled, the health-check endpoint also verifies HSM availability.",
-            "memory-usage-threshold": "Maximum allowed percentage (0-100) of proxy memory usage before the health check starts failing. Leave empty to disable.",
             "message-sign-digest-name": "Digest algorithm used to sign X-Road messages.",
             "verify-client-cert": "When enabled, the server proxy verifies the client proxy's TLS certificate.",
             "log-client-cert": "Whether to log client certificate subject information.",
@@ -1466,6 +1465,11 @@
             "db": {
               "encryption-enabled": "When enabled, message bodies are stored in the database in encrypted form.",
               "key-id": "Identifier of the encryption key used for database-level message log encryption."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Maximum allowed percentage (0-100) of heap memory usage before the liveness health check reports DOWN. Unset means the check never fails; containers default to 95."
             }
           },
           "common": {

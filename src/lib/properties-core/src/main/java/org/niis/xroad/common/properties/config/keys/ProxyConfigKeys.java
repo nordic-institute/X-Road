@@ -135,12 +135,6 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
-    /** {@code xroad.proxy.memory-usage-threshold} — no default (optional). */
-    public static final ConfigKey<Integer> MEMORY_USAGE_THRESHOLD = PROXY
-            .integer("memory-usage-threshold")
-            .exposedInUi()
-            .build();
-
     /** {@code xroad.proxy.message-sign-digest-name}. */
     public static final ConfigKey<String> MESSAGE_SIGN_DIGEST_NAME = PROXY
             .string("message-sign-digest-name")

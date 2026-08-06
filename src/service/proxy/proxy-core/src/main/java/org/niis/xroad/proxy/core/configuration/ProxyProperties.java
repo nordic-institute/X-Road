@@ -68,7 +68,6 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALT
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_PORT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HSM_HEALTH_CHECK_ENABLED;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.LOG_CLIENT_CERT;
-import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MEMORY_USAGE_THRESHOLD;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_SIGN_DIGEST_NAME;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.OCSP_RESPONDER_CLIENT_READ_TIMEOUT;
@@ -140,10 +139,6 @@ public class ProxyProperties {
 
     public boolean hsmHealthCheckEnabled() {
         return xRoadConfig.value(HSM_HEALTH_CHECK_ENABLED);
-    }
-
-    public Optional<Integer> memoryUsageThreshold() {
-        return xRoadConfig.valueOpt(MEMORY_USAGE_THRESHOLD);
     }
 
     public String messageSignDigestName() {

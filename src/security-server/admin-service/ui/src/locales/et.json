@@ -1067,7 +1067,6 @@
             "health-check-port": "TCP port, kus tervisekontrolli teenus kuulab päringuid. Pordi seadistamine väärtusele 0 keelab tervisekontrolli teenuse täielikult.",
             "health-check-interface": "Võrguliides, kus tervisekontrolli teenus kuulab päringuid. Vaikimisi kõik saadaolevad liidesed.",
             "hsm-health-check-enabled": "Kui lubatud, kontrollib tervisekontrolli lõpp-punkt ka HSM kättesaadavust.",
-            "memory-usage-threshold": "Maksimaalne lubatud protsent (0-100) puhverserveri mälukasutusest enne tervisekontrolli ebaõnnestumist. Keelamiseks jäta tühjaks.",
             "message-sign-digest-name": "Räsialgoritm, mida kasutatakse X-Road sõnumite allkirjastamiseks.",
             "verify-client-cert": "Kui lubatud, kontrollib serveri puhverserver kliendi puhverserveri TLS sertifikaati.",
             "log-client-cert": "Kas logida kliendi sertifikaadi teema teavet.",
@@ -1389,6 +1388,11 @@
             "db": {
               "encryption-enabled": "Kui lubatud, salvestatakse sõnumite kehad andmebaasi krüptitud kujul.",
               "key-id": "Andmebaasitasemel sõnumilogi krüptimiseks kasutatava krüptimisvõtme identifikaator."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Maksimaalne lubatud protsent (0-100) mälukasutusest enne tervisekontrolli ebaõnnestumist. Kui väärtus puudub, ei ebaõnnestu kontroll kunagi; konteinerites on vaikeväärtus 95."
             }
           },
           "common": {

@@ -1067,7 +1067,6 @@
             "health-check-port": "A porta TCP onde o serviço de verificação de integridade escuta as requisições. Definir a porta como 0 desativa completamente o serviço de verificação de integridade.",
             "health-check-interface": "A interface de rede onde o serviço de verificação de integridade escuta as requisições. O padrão são todas as interfaces disponíveis.",
             "hsm-health-check-enabled": "Quando habilitado, o endpoint de verificação de integridade também verifica a disponibilidade do HSM.",
-            "memory-usage-threshold": "Percentual máximo permitido (0-100) de uso de memória do proxy antes de o serviço de verificação de integridade começar a falhar. Deixe vazio para desabilitar.",
             "message-sign-digest-name": "Algoritmo de resumo utilizado para assinar mensagens X-Road.",
             "verify-client-cert": "Quando habilitado, o proxy do servidor verifica o certificado TLS do proxy do cliente.",
             "log-client-cert": "Se deve registrar informações do sujeito do certificado do cliente.",
@@ -1389,6 +1388,11 @@
             "db": {
               "encryption-enabled": "Quando habilitado, os corpos das mensagens são armazenados no banco de dados em forma criptografada.",
               "key-id": "Identificador da chave de criptografia utilizada para a criptografia do log de mensagens em nível de banco de dados."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Percentual máximo permitido (0-100) de uso de memória antes de o serviço de verificação de integridade começar a falhar. Sem valor definido a verificação nunca falha; em contêineres o padrão é 95."
             }
           },
           "common": {

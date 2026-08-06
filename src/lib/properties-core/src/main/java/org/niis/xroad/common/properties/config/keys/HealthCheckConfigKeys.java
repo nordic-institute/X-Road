@@ -47,10 +47,14 @@ public final class HealthCheckConfigKeys implements ConfigKeyProvider {
 
     private static final HealthCheckConfigKeys INSTANCE = new HealthCheckConfigKeys();
 
-    /** {@code xroad.health-check.memory.threshold-percent} — optional, default 95. */
+    /**
+     * {@code xroad.health-check.memory.threshold-percent} — optional: when unset the heap liveness
+     * check never reports DOWN. Containers default to 95, matching the pre-DSL packaged profile.
+     */
     public static final ConfigKey<Integer> MEMORY_THRESHOLD_PERCENT = MEMORY
             .integer("threshold-percent")
-            .withDefaultValue(95)
+            .withContainerDefaultValue("95")
+            .exposedInUi()
             .build();
 
     private HealthCheckConfigKeys() {
