@@ -53,9 +53,15 @@ configSeed:
       value: "{{ proxy_dsp_enabled | string | lower }}"
     - key: xroad.configuration-client.update-interval
       value: "{{ configuration_client_update_interval }}"
-{% if ds_tls %}
+    - key: xroad.signer.ocsp-response-retrieval-active
+      value: "true"
+    # proxy and ds-identity-hub gate their startup on these two rows (chart
+    # waits), so they must be seeded regardless of ds_tls or the pods deadlock.
     - key: xroad.proxy.dsp.participant-context-id
-      value: "{{ ss2_advertised_host }}"
+      value: "{{ ss2_advertised_host | default('xrd-ss2') }}"
+    - key: xroad.proxy-ui-api.dataspace.participant-id
+      value: "{{ ss2_advertised_host | default('xrd-ss2') }}"
+{% if ds_tls %}
     # Dataspace provisioning via the proxy-ui-api reconciler (replaces the manual
     # IH/CP seed). identity-hub-url is the advertised host so the derived holder
     # DID / credentialService / STS URL are resolvable by the LXD issuer; the
@@ -64,8 +70,6 @@ configSeed:
       value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ ss2_advertised_host }}:7182"
-    - key: xroad.proxy-ui-api.dataspace.participant-id
-      value: "{{ ss2_advertised_host }}"
     - key: xroad.proxy-ui-api.dataspace.management-context-enabled
       value: "false"
     - key: xroad.proxy-ui-api.dataspace.issuer-did

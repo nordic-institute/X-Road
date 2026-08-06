@@ -46,6 +46,10 @@ configSeed:
       value: https
     - key: xroad.proxy.dsp.participant-context-id
       value: xrd-ss2
+    # ds-identity-hub gates its startup on this row (waits), so the default
+    # seed must carry it or enabling the ds services deadlocks their pods.
+    - key: xroad.proxy-ui-api.dataspace.participant-id
+      value: xrd-ss2
     - key: xroad.op-monitor.scheme
       value: https
     # A signer serving a Security Server retrieves OCSP responses periodically.
