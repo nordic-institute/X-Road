@@ -41,7 +41,8 @@ seed_configuration_properties() {
 SET ROLE centerui;
 INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
 VALUES $rows
-ON CONFLICT DO NOTHING;
+ON CONFLICT (property_key) DO UPDATE
+  SET property_value = EXCLUDED.property_value, updated_at = now();
 EOF
   pg_ctlcluster 18 main stop
 }
