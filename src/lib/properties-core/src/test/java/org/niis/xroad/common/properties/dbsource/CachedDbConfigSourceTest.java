@@ -38,6 +38,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -104,6 +105,14 @@ public class CachedDbConfigSourceTest {
         assertEquals("app value", configSource.getValue("test.app.key"));
         assertEquals("a value", configSource.getValue("test.key"));
         assertNull(configSource.getValue("missing.key"));
+    }
+
+    @Test
+    void queryFailureAfterConnectFailsFastInsteadOfServingDefaults() {
+        DbSourceConfig config = mockConfig("test-app");
+        when(config.getTableName()).thenReturn("missing_table");
+
+        assertThrows(IllegalStateException.class, () -> new CachedDbConfigSource(config));
     }
 
     private DbSourceConfig mockConfig(String appName) {

@@ -27,63 +27,30 @@
 
 package org.niis.xroad.common.properties.dbsource;
 
-import lombok.extern.slf4j.Slf4j;
-
 import javax.sql.DataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-@Slf4j
 public class DbSourceRepository {
     private final DataSource dataSource;
 
     private String selectAllStatement;
-    private String selectValueStatement;
-    private String selectKeysStatement;
 
     public DbSourceRepository(DataSource dataSource, DbSourceConfig config) {
         this.dataSource = dataSource;
         prepareQueries(config);
     }
 
-    public Set<String> getPropertyNames() {
-        try (PreparedStatement preparedStatement = dataSource.getConnection().prepareStatement(selectKeysStatement)) {
-            Set<String> keys = new HashSet<>();
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    keys.add(resultSet.getString(1));
-                }
-            }
-            return keys;
-        } catch (SQLException e) {
-            log.error("db-config-source: could not get property names", e);
-            return Collections.emptySet();
-        }
-    }
-
-    public String getValue(String propertyName) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(selectValueStatement)) {
-            preparedStatement.setString(1, propertyName);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getString(2);
-                }
-            }
-        } catch (SQLException e) {
-            log.error("db-config-source: could not get property names", e);
-        }
-        return null;
-    }
-
+    /**
+     * Loads every stored override. Fails fast on any SQL error: the DSL layer is the only path stored
+     * configuration reaches a service, so silently starting on packaged defaults must never happen —
+     * a connection failure already aborts startup, and a post-connect query failure aborts it the same way.
+     */
     public Map<String, String> getProperties() {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(selectAllStatement);
@@ -94,18 +61,11 @@ public class DbSourceRepository {
             }
             return properties;
         } catch (SQLException e) {
-            log.error("db-config-source: could not get properties", e);
+            throw new IllegalStateException("db-config-source: could not load configuration overrides", e);
         }
-        return Map.of();
     }
-
 
     private void prepareQueries(DbSourceConfig config) {
         selectAllStatement = "SELECT c.property_key, c.property_value FROM %s c".formatted(config.getTableName());
-
-        selectValueStatement = "SELECT c.property_key, c.property_value FROM %s c WHERE c.property_key = ?"
-                .formatted(config.getTableName());
-
-        selectKeysStatement = "SELECT c.property_key FROM %s c".formatted(config.getTableName());
     }
 }
