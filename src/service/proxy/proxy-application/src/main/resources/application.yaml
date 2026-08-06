@@ -22,10 +22,9 @@ xroad:
 "%containerized":
   xroad:
     proxy:
+      # Framework-side counterpart of the key's DSL container default: quarkus.http.*
+      # interpolates this through SmallRye, which never sees DSL container defaults.
       health-check-enabled: true
-      memory-usage-threshold: 95
-      rpc:
-        listen-address: 0.0.0.0
   quarkus:
     http:
       host: ${xroad.proxy.health-check-interface}

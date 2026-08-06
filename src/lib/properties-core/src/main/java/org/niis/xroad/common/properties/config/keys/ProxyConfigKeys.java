@@ -107,6 +107,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> HEALTH_CHECK_ENABLED = PROXY
             .bool("health-check-enabled")
             .withDefaultValue(false)
+            .withContainerDefaultValue(true)
             .exposedInUi()
             .publishedToFramework()
             .build();
