@@ -237,6 +237,19 @@ services:
 {% if softtoken_signer_enabled | default(false) | bool %}
   softtoken-signer:
     replicas: 1
+    env:
+      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
+    extraVolumes:
+      - name: softtoken-signer-openbao-tls-certificate
+        secret:
+          secretName: {{ openbao_tls_secret_name }}
+          items:
+            - key: tls.crt
+              path: openbao.crt
+    extraVolumeMounts:
+      - mountPath: /etc/xroad/ssl/openbao.crt
+        subPath: openbao.crt
+        name: softtoken-signer-openbao-tls-certificate
 {% endif %}
   auxiliary-service:
     env:
