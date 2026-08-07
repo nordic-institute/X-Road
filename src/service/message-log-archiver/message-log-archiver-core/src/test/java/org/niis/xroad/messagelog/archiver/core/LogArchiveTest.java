@@ -42,8 +42,10 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.LogRecord;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.TimestampRecord;
@@ -206,16 +208,22 @@ class LogArchiveTest {
     }
 
     private MessageLogArchiverProperties createArchiverProperties(long maxFilesize) {
-        return ConfigUtils.initConfiguration(MessageLogArchiverProperties.class,
-                Map.of("xroad.message-log-archiver.clean-transaction-batch-size", "100",
+        var xRoadConfig = XRoadConfigBuilder.create()
+                .register(MessageLogArchiverConfigKeys.instance())
+                .overrides(Map.of(
+                        "xroad.message-log-archiver.clean-transaction-batch-size", "100",
                         "xroad.message-log-archiver.transaction-batch-size", "100",
                         "xroad.message-log-archiver.archive-path", "build/slog",
-                        "xroad.message-log-archiver.max-filesize", String.valueOf(maxFilesize)));
+                        "xroad.message-log-archiver.max-filesize", String.valueOf(maxFilesize)))
+                .build();
+        return new MessageLogArchiverProperties(xRoadConfig);
     }
 
     private MessageLogEncryptionProperties.ArchiveEncryptionConfig createEncryptionProperties(GroupingStrategy groupingStrategy) {
-        return ConfigUtils.initConfiguration(MessageLogEncryptionProperties.ArchiveEncryptionConfig.class,
-                Map.of("xroad.message-log-encryption.archive.grouping-strategy", groupingStrategy.name()));
+        return new MessageLogEncryptionProperties.ArchiveEncryptionConfig(XRoadConfigBuilder.create()
+                .register(MessageLogEncryptionConfigKeys.instance())
+                .overrides(Map.of("xroad.message-log-encryption.archive.grouping-strategy", groupingStrategy.name()))
+                .build());
     }
 
     private LogArchiveBase dummyLogArchiveBase() {

@@ -16,6 +16,67 @@ services:
           memory: 64M
         limits:
           memory: 256M
+
+  db-serverconf:
+    image: postgres:18
+    environment:
+      - POSTGRES_DB=serverconf
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=serverconf
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "serverconf", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+
+  db-serverconf-init:
+    image: ${DB_INIT_IMG}
+    pull_policy: always
+    environment:
+      - JDBC_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - JDBC_USER=serverconf
+      - JDBC_PASSWORD=secret
+      - CHANGELOG=serverconf
+      - DEFAULT_SCHEMA_NAME=public
+      - PROP_DB_USER=serverconf
+    depends_on:
+      db-serverconf:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+
+  db-serverconf-config-seed:
+    image: postgres:18
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U serverconf; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 -c \
+          "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+             ('xroad.common-rpc.use-tls', 'false', now(), now()),
+             ('xroad.common-global-conf.source', 'FILESYSTEM', now(), now()),
+             ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now())
+           ON CONFLICT DO NOTHING;"
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   op-monitor:
     image: ${OP_MONITOR_IMG}
     pull_policy: always
@@ -24,9 +85,9 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_USE_TLS=false
-      - XROAD_COMMON_GLOBAL_CONF_SOURCE=FILESYSTEM
-      - XROAD_OP_MONITOR_RPC_LISTEN_ADDRESS=0.0.0.0
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
@@ -36,9 +97,11 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
     depends_on:
       db-opmonitor-init:
+        condition: service_completed_successfully
+      db-serverconf-config-seed:
         condition: service_completed_successfully
     deploy:
       resources:

@@ -29,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
@@ -84,16 +86,19 @@ public class AcmeBeanConfig {
     public static class IsAcmeCertRenewalJobsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean isActive = Boolean.parseBoolean(context.getEnvironment()
-                    .getProperty("xroad.proxy-ui-api.acme-renewal-active", "true"));
-            if (!isActive) {
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
+            return schedulingEnabled(config.value(AdminServiceConfigKeys.ACME_RENEWAL_ACTIVE));
+        }
+
+        static boolean schedulingEnabled(boolean renewalActive) {
+            if (!renewalActive) {
                 log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
             }
             if (NodeProperties.isSecondaryNode()) {
                 log.info("This is a secondary cluster node, ACME certificate renewal job auto-scheduling disabled");
                 return false;
             }
-            return isActive;
+            return renewalActive;
         }
     }
 

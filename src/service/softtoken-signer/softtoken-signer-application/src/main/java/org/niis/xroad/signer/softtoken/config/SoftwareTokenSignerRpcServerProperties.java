@@ -26,25 +26,32 @@
  */
 package org.niis.xroad.signer.softtoken.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@ConfigMapping(prefix = "xroad.softtoken-signer.rpc")
-public interface SoftwareTokenSignerRpcServerProperties extends RpcServerProperties {
-    @WithName("enabled")
-    @WithDefault("true")
-    @Override
-    boolean enabled();
+import static org.niis.xroad.signer.softtoken.config.SoftTokenSignerConfigKeys.RPC_ENABLED;
+import static org.niis.xroad.signer.softtoken.config.SoftTokenSignerConfigKeys.RPC_LISTEN_ADDRESS;
+import static org.niis.xroad.signer.softtoken.config.SoftTokenSignerConfigKeys.RPC_PORT;
 
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
-    @Override
-    String listenAddress();
+/** Softtoken-signer RPC server properties ({@code xroad.softtoken-signer.rpc.*}). */
+@RequiredArgsConstructor
+public class SoftwareTokenSignerRpcServerProperties implements RpcServerProperties {
 
-    @WithName("port")
-    @WithDefault("5561")
+    private final XRoadConfig xRoadConfig;
+
     @Override
-    int port();
+    public boolean enabled() {
+        return xRoadConfig.value(RPC_ENABLED);
+    }
+
+    @Override
+    public String listenAddress() {
+        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    }
+
+    @Override
+    public int port() {
+        return xRoadConfig.value(RPC_PORT);
+    }
 }

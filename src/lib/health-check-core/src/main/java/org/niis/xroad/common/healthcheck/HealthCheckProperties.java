@@ -26,44 +26,31 @@
  */
 package org.niis.xroad.common.healthcheck;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-
 import java.util.Optional;
 
 /**
- * Shared health-check configuration (@ConfigMapping at prefix "xroad.health-check").
+ * Shared health-check configuration (prefix {@code xroad.health-check}).
  * <p>
- * Currently exposes a single {@link Memory} sub-group for heap-memory liveness check
- * tuning.
+ * Exposes a single {@link Memory} sub-group for heap-memory liveness check tuning.
  */
-@ConfigMapping(prefix = "xroad.health-check")
 public interface HealthCheckProperties {
 
-    /**
-     * Heap-memory liveness check tuning. See {@link Memory#thresholdPercent()}.
-     */
+    /** @return heap-memory liveness check tuning */
     Memory memory();
 
     /**
      * Heap-memory liveness check tuning.
      * <p>
-     * The threshold is intentionally {@link Optional} so an operator can disable the
-     * check (always-UP) by configuring an empty value in any source — typically via a
-     * YAML alias from a service-specific legacy key. When unset across all sources, the
-     * default value of 95 is applied.
+     * The threshold is {@link Optional} so an operator can disable the check by configuring an empty
+     * value. When unset, the default of 95 applies.
      */
     interface Memory {
         /**
-         * Heap-usage percentage above which the liveness probe reports DOWN. When absent
-         * (e.g. an explicit empty override), the bean reports UP unconditionally.
-         * Default: 95.
+         * Heap-usage percentage above which the liveness probe reports DOWN.
+         * When absent the bean reports UP unconditionally. Default: 95.
          *
          * @return the configured threshold percent or empty when explicitly disabled.
          */
-        @WithName("threshold-percent")
-        @WithDefault("95")
         Optional<Integer> thresholdPercent();
     }
 }

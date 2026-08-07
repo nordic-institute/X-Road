@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -79,14 +81,12 @@ public class SecurityServerConfiguration {
 
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            var env = context.getEnvironment();
-            boolean enabled = env.getProperty("xroad.proxy-ui-api.rate-limit-enabled", Boolean.class, true);
-            if (!enabled) {
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
+            if (!config.value(AdminServiceConfigKeys.RATE_LIMIT_ENABLED)) {
                 return false;
             }
-            int perSecond = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-second", Integer.class, 0);
-            int perMinute = env.getProperty("xroad.proxy-ui-api.rate-limit-requests-per-minute", Integer.class, 0);
-            return perSecond > 0 || perMinute > 0;
+            return config.value(AdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND) > 0
+                    || config.value(AdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE) > 0;
         }
     }
 

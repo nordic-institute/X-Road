@@ -45,6 +45,7 @@ import org.niis.xroad.monitor.common.SingleMetrics;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
 import org.niis.xroad.monitor.common.SystemMetricsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 import org.niis.xroad.monitor.core.executablelister.PackageInfo;
 import org.niis.xroad.monitor.core.executablelister.ProcessInfo;
 

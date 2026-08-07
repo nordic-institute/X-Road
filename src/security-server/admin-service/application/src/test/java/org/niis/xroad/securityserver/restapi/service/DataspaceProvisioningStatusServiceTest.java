@@ -40,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ABSENT;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ISSUED;
@@ -56,6 +57,8 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
+    private Dataspace dataspace;
+    @Mock
     private DataspaceReadinessPredicates readinessPredicates;
     @Mock
     private IdentityHubProvisioningClient identityHubClient;
@@ -67,13 +70,12 @@ class DataspaceProvisioningStatusServiceTest {
 
     @BeforeEach
     void setUp() {
-        var dataspace = new Dataspace();
-        dataspace.setParticipantId(PARTICIPANT_ID);
-        dataspace.setIdentityHubUrl("https://ih.example.test");
-        dataspace.setIssuerDid("did:web:issuer.example.test");
-        dataspace.setCredentialDefinitionId("xroad-membership-credential-definition");
-        dataspace.setMaxHolderPidSlots(20);
-        when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
+        lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
+        lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
+        lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
+        lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
+        lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient);
 

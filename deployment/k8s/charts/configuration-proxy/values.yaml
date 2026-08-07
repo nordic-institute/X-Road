@@ -69,7 +69,6 @@ services:
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE: "0"
       XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
       DB_CONFIG_SOURCE_USERNAME: "confproxy"
     envFromSecrets:
@@ -127,7 +126,6 @@ services:
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_USERNAME: "confproxy"
       XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_CONFIGURATION_PROXY_ADDRESS: "configuration-proxy"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-confproxy:5432/confproxy"
       DB_CONFIG_SOURCE_USERNAME: "confproxy"
     envFromSecrets:

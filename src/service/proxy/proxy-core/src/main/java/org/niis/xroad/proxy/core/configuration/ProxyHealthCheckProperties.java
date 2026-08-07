@@ -26,75 +26,87 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_AUTH_KEY_BACKOFF_MULTIPLIER;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_AUTH_KEY_ERROR_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_AUTH_KEY_MAX_ERROR_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_AUTH_KEY_SUCCESS_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_AUTH_KEY_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_HSM_BACKOFF_MULTIPLIER;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_HSM_ERROR_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_HSM_MAX_ERROR_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_HSM_SUCCESS_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.HEALTH_CHECK_HSM_TIMEOUT;
+
 /**
- * Proxy health-check configuration (@ConfigMapping at prefix "xroad.proxy.health-check").
+ * Proxy health-check configuration ({@code xroad.proxy.health-check.*}).
  * <p>
  * Exposes two independent {@link TtlGroup} sub-groups: {@link #authKey()} and {@link #hsm()}.
- * Each group tunes success-ttl / error-ttl / max-error-ttl / backoff-multiplier / timeout
- * independently. Defaults on both groups are identical:
- * success-ttl=2s, error-ttl=5s, max-error-ttl=30s, backoff-multiplier=2, timeout=5s.
  */
-@ConfigMapping(prefix = "xroad.proxy.health-check")
-public interface ProxyHealthCheckProperties {
+@RequiredArgsConstructor
+public class ProxyHealthCheckProperties {
 
-    /**
-     * TTL/backoff/timeout tunables for the AuthKey OCSP readiness check.
-     * Defaults identical to {@link #hsm()} on day one — tune independently.
-     */
-    @WithName("auth-key")
-    TtlGroup authKey();
+    private final XRoadConfig xRoadConfig;
 
-    /**
-     * TTL/backoff/timeout tunables for the HSM operational readiness check.
-     * Defaults identical to {@link #authKey()} on day one — tune independently.
-     */
-    @WithName("hsm")
-    TtlGroup hsm();
+    /** @return TTL/backoff/timeout tunables for the AuthKey OCSP readiness check */
+    public TtlGroup authKey() {
+        return new TtlGroup(
+                HEALTH_CHECK_AUTH_KEY_SUCCESS_TTL,
+                HEALTH_CHECK_AUTH_KEY_ERROR_TTL,
+                HEALTH_CHECK_AUTH_KEY_MAX_ERROR_TTL,
+                HEALTH_CHECK_AUTH_KEY_BACKOFF_MULTIPLIER,
+                HEALTH_CHECK_AUTH_KEY_TIMEOUT,
+                xRoadConfig);
+    }
 
-    /**
-     * Per-check TTL / backoff / timeout group.
-     * <p>
-     * Each group carries its own full default set: success-ttl=2s, error-ttl=5s,
-     * max-error-ttl=30s, backoff-multiplier=2, timeout=5s. No inheritance/fallback
-     * between groups — operators tune each group independently.
-     */
-    interface TtlGroup {
+    /** @return TTL/backoff/timeout tunables for the HSM operational readiness check */
+    public TtlGroup hsm() {
+        return new TtlGroup(
+                HEALTH_CHECK_HSM_SUCCESS_TTL,
+                HEALTH_CHECK_HSM_ERROR_TTL,
+                HEALTH_CHECK_HSM_MAX_ERROR_TTL,
+                HEALTH_CHECK_HSM_BACKOFF_MULTIPLIER,
+                HEALTH_CHECK_HSM_TIMEOUT,
+                xRoadConfig);
+    }
 
-        /** Cache duration for an OK response. Default: 2s. */
-        @WithName("success-ttl")
-        @WithDefault("2s")
-        Duration successTtl();
+    /** Per-check TTL / backoff / timeout group. */
+    public record TtlGroup(
+            ConfigKey<Duration> successTtlKey,
+            ConfigKey<Duration> errorTtlKey,
+            ConfigKey<Duration> maxErrorTtlKey,
+            ConfigKey<Integer> backoffMultiplierKey,
+            ConfigKey<Duration> timeoutKey,
+            XRoadConfig xRoadConfig) {
 
-        /**
-         * Initial cache duration for a non-OK response, before exponential backoff
-         * kicks in. Default: 5s.
-         */
-        @WithName("error-ttl")
-        @WithDefault("5s")
-        Duration errorTtl();
+        /** @return cache duration for an OK response */
+        public Duration successTtl() {
+            return xRoadConfig.value(successTtlKey);
+        }
 
-        /** Ceiling for the error-TTL after repeated failures. Default: 30s. */
-        @WithName("max-error-ttl")
-        @WithDefault("30s")
-        Duration maxErrorTtl();
+        /** @return initial cache duration for a non-OK response */
+        public Duration errorTtl() {
+            return xRoadConfig.value(errorTtlKey);
+        }
 
-        /**
-         * Multiplier applied to the current error-TTL on each consecutive failure.
-         * Default: 2 (5s -&gt; 10s -&gt; 20s -&gt; 30s cap).
-         */
-        @WithName("backoff-multiplier")
-        @WithDefault("2")
-        int backoffMultiplier();
+        /** @return ceiling for the error-TTL after repeated failures */
+        public Duration maxErrorTtl() {
+            return xRoadConfig.value(maxErrorTtlKey);
+        }
 
-        /** Per-call timeout bound applied by {@code TimedHealthCheck}. Default: 5s. */
-        @WithName("timeout")
-        @WithDefault("5s")
-        Duration timeout();
+        /** @return multiplier applied to error-TTL on each consecutive failure */
+        public int backoffMultiplier() {
+            return xRoadConfig.value(backoffMultiplierKey);
+        }
+
+        /** @return per-call timeout bound */
+        public Duration timeout() {
+            return xRoadConfig.value(timeoutKey);
+        }
     }
 }

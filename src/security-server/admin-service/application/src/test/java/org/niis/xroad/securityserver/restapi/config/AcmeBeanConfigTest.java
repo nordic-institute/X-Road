@@ -28,17 +28,12 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.common.properties.NodeProperties;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.env.Environment;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
 @ExtendWith(SystemStubsExtension.class)
@@ -47,39 +42,34 @@ class AcmeBeanConfigTest {
     @SystemStub
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
-    private final AcmeBeanConfig.IsAcmeCertRenewalJobsActive isAcmeCertRenewalJobsActive = new AcmeBeanConfig.IsAcmeCertRenewalJobsActive();
-
     @Test
     void doesNotMatchWhenRenewalInactive() {
-        assertFalse(matches("false", NodeProperties.NodeType.PRIMARY));
+        assertFalse(schedulingEnabled(false, NodeProperties.NodeType.PRIMARY));
     }
 
     @Test
     void doesNotMatchOnSecondaryNode() {
-        assertFalse(matches("true", NodeProperties.NodeType.SECONDARY));
+        assertFalse(schedulingEnabled(true, NodeProperties.NodeType.SECONDARY));
     }
 
     @Test
     void matchesOnPrimaryNodeWhenRenewalActive() {
-        assertTrue(matches("true", NodeProperties.NodeType.PRIMARY));
+        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.PRIMARY));
     }
 
     @Test
     void matchesOnStandaloneNodeWhenRenewalActive() {
-        assertTrue(matches("true", NodeProperties.NodeType.STANDALONE));
+        assertTrue(schedulingEnabled(true, NodeProperties.NodeType.STANDALONE));
     }
 
-    private boolean matches(String renewalActive, NodeProperties.NodeType nodeType) {
+    /**
+     * The renewal flag is resolved from the DSL (stored overrides + packaged defaults) rather than the
+     * Spring {@code Environment}, so the decision is exercised directly; only the node type still comes
+     * from the environment.
+     */
+    private boolean schedulingEnabled(boolean renewalActive, NodeProperties.NodeType nodeType) {
         variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
 
-        ConditionContext context = mock(ConditionContext.class);
-        AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
-        Environment environment = mock(Environment.class);
-
-        when(context.getEnvironment()).thenReturn(environment);
-        when(environment.getProperty("xroad.proxy-ui-api.acme-renewal-active", "true"))
-                .thenReturn(renewalActive);
-
-        return isAcmeCertRenewalJobsActive.matches(context, metadata);
+        return AcmeBeanConfig.IsAcmeCertRenewalJobsActive.schedulingEnabled(renewalActive);
     }
 }
