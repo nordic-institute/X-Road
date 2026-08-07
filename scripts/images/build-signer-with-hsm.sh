@@ -35,6 +35,8 @@ OPTIONS:
     --push                  Push image to registry
                             Default: true in CI, false locally
     --no-cache              Disable Docker build cache
+    --platforms <list>      Target platforms for buildx (e.g. linux/amd64,linux/arm64)
+                            Default: host platform
     --help                  Show this help
 
 ENVIRONMENT VARIABLES:
@@ -55,12 +57,14 @@ EOF
 
 PUSH=""
 NO_CACHE="false"
+PLATFORMS=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
   --help) show_help ;;
   --push) PUSH="true"; shift ;;
   --no-cache) NO_CACHE="true"; shift ;;
+  --platforms) PLATFORMS="$2"; shift 2 ;;
   *) log_error "Unknown option: $1"; show_help ;;
   esac
 done
@@ -115,8 +119,18 @@ build_cmd=(
   --file "${HSM_CONTEXT}/Dockerfile"
   --build-arg "BASE_SIGNER_IMAGE=${BASE_SIGNER_IMAGE}"
   --tag "$HSM_IMAGE"
-  --tag "${REGISTRY}/ss-signer-with-hsm:latest"
 )
+
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${REGISTRY}/ss-signer-with-hsm:latest")
+fi
+
+if [[ -n "$PLATFORMS" ]]; then
+  build_cmd+=(--platform "$PLATFORMS")
+fi
 
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)

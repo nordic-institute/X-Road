@@ -214,6 +214,7 @@ jobs:
           IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
         run: |
           ./build-security-server.sh --platforms linux/amd64,linux/arm64 --push
+          ./build-signer-with-hsm.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
