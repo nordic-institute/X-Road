@@ -231,7 +231,7 @@ jobs:
             -e "xroad_image_pull_registry=ghcr.io" \
             -e "xroad_image_pull_username=${GHCR_USERNAME}" \
             -e "xroad_image_pull_password=${GHCR_PASSWORD}" \
-            -e "xroad_image_pull_secret_namespaces=['cs','ss0','ss1']"
+            -e '{"xroad_image_pull_secret_namespaces": ["cs", "ss0", "ss1"]}'
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       # ------------------------------------------------------------ compose setup
