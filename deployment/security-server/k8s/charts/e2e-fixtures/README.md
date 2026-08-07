@@ -93,9 +93,8 @@ mechanism the existing `development/ansible/roles/xroad-hurl/templates/
 run-hurl.sh.j2` role's `download_cert()` already uses for the non-compose
 dev stack — not a new pattern invented for k8s.
 
-The `k8-ss2` hurl scenario (`development/hurl/scenarios/k8-ss2/`) is the
-*hybrid* (k8s-SS-to-external-LXD-CS) model and is intentionally not used
-here — this topology is fully in-cluster.
+This topology is fully in-cluster — there is no external CS/CA to bootstrap
+against, so `setup.hurl` is the only scenario this chart runs.
 
 ## 5. Out of scope (this slice)
 

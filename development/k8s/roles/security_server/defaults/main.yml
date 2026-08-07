@@ -75,19 +75,18 @@ messagelog_encryption_config: ""
 
 proxy_dsp_enabled: true
 
-# DS-HTTPS TLS on the EDC ports. The hybrid dev flavor turns this on implicitly by defining
-# ss2_advertised_host; a multi-release topology with no single advertised host opts in here
-# instead, and then addresses each ds-* service by its namespace-qualified Service name.
+# DS-HTTPS TLS on the EDC ports. A multi-release topology has no single advertised host, so it
+# opts in here explicitly and addresses each ds-* service by its namespace-qualified Service name.
 ds_tls_enabled: false
 
-# Secret key (and mounted filename) of the DS-HTTPS truststore inside ds-https-keystore.
-# The default matches the xrd-ca-signed PKCS12 this role's own ds_https_keystore.yml publishes;
-# the self-signed ds-https-keystore chart publishes a JRE-copy JKS named `cacerts` instead.
-ds_truststore_key: cacerts.p12
+# Secret key (and mounted filename) of the DS-HTTPS truststore inside the ds-https-keystore
+# Secret. Matches the self-signed ds-https-keystore chart's JRE-copy JKS name; set per-inventory
+# if a different producer is ever wired in.
+ds_truststore_key: cacerts
 
 # Whether this Security Server provisions a DSP management participant context in addition to its
 # host context. Management requests are routed through the management context when DSP is on, so
-# a topology that sends them over DSP needs this. Off by default, matching the hybrid dev flavor.
+# a topology that sends them over DSP needs this. Off by default.
 ds_mgmt_context_enabled: false
 
 # Per-release signer-HSM stop-gap toggle (chart's signer.hsm.enabled — see
@@ -97,12 +96,12 @@ ds_mgmt_context_enabled: false
 signer_hsm_enabled: false
 
 trusted_issuer_host: xrd-cs
-xrd_ca_external_host: xrd-ca.lxd
 
 # Per-release DSP participant-context-id override (chart's dsp.participantContextId — see
-# security-server chart values.yaml). Empty by default: the chart's own hardcoded "xrd-ss2" env
-# entries render unchanged. Set per Security Server release (e.g. one value per ss0/ss1 in a
-# multi-SS topology) to give each release a distinct identifier instead of conflating them.
+# security-server chart values.yaml). Empty by default: the chart's own hardcoded
+# "security-server" env entries render unchanged. Set per Security Server release (e.g. one
+# value per ss0/ss1 in a multi-SS topology) to give each release a distinct identifier instead
+# of conflating them.
 dsp_participant_context_id: ""
 
 serverconf_db:

@@ -1,23 +1,14 @@
 ---
-{# DS-HTTPS is driven from two different producers, so nothing here may assume either one.
-   The hybrid dev flavor (ss2_advertised_host set) signs against the shared xrd-ca in
-   security_server/tasks/ds_https_keystore.yml and publishes a PKCS12 truststore `cacerts.p12`;
-   the e2e flavor opts in with ds_tls_enabled and gets the self-signed ds-https-keystore chart,
-   which publishes a JRE-copy JKS `cacerts`. Same Secret name, different key, hence a var. #}
-{% set ds_tls = (ds_tls_enabled | default(false) | bool) or (ss2_advertised_host is defined) %}
-{% set ds_truststore_file = ds_truststore_key | default('cacerts.p12') %}
+{% set ds_tls = ds_tls_enabled | default(false) | bool %}
+{% set ds_truststore_file = ds_truststore_key | default('cacerts') %}
 {% set ds_truststore_opts = '-Djavax.net.ssl.trustStore=/etc/xroad/ssl/' ~ ds_truststore_file ~ ' -Djavax.net.ssl.trustStorePassword=changeit' %}
-{# Advertised DS hostnames. The hybrid flavor puts every EDC port on one LXD host, so all three
-   collapse to ss2_advertised_host. In k8s the ds-* services are separate, namespace-scoped
-   Services, so each is addressed on its own namespace-qualified name — the same rule the rest
-   of this topology follows, and the names the ds-https cert's SAN list already carries. #}
-{% set ds_cp_host = ss2_advertised_host | default('ds-control-plane.' ~ security_server_namespace) %}
-{% set ds_ih_host = ss2_advertised_host | default('ds-identity-hub.' ~ security_server_namespace) %}
-{% set ds_serverproxy_host = ss2_advertised_host | default('proxy.' ~ security_server_namespace) %}
-{# The hybrid flavor names the participant after its advertised host; a multi-release topology
-   passes an explicit per-release identifier instead (the same one the chart's
-   dsp.participantContextId carries). #}
-{% set ds_participant_id = ss2_advertised_host | default(dsp_participant_context_id) %}
+{# Advertised DS hostnames. In k8s the ds-* services are separate, namespace-scoped Services, so
+   each is addressed on its own namespace-qualified name — the same rule the rest of this
+   topology follows, and the names the ds-https cert's SAN list already carries. #}
+{% set ds_cp_host = 'ds-control-plane.' ~ security_server_namespace %}
+{% set ds_ih_host = 'ds-identity-hub.' ~ security_server_namespace %}
+{% set ds_serverproxy_host = 'proxy.' ~ security_server_namespace %}
+{% set ds_participant_id = dsp_participant_context_id %}
 {% set messagelog_encryption_enabled = (messagelog_encryption_config | default('')) | length > 0 %}
 {% if (xroad_image_registry | length > 0) or jvm_metrics_enabled %}
 global:
@@ -73,21 +64,11 @@ init:
 {% set _ = proxy_env.update({
   'JAVA_TOOL_OPTIONS': ds_truststore_opts,
 }) %}
-{# The hybrid flavor names the participant context after its advertised host. Multi-release
-   topologies instead set it per release through the chart's dsp.participantContextId, which
-   wins over a service-level env entry in _configmap.tpl — so don't emit a competing value. #}
-{% if ss2_advertised_host is defined %}
-{% set _ = proxy_env.update({
-  'XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID': ss2_advertised_host,
-}) %}
-{% endif %}
 {% endif %}
 {# Where this Security Server advertises its own server proxy for the DSP data plane. The product
    default is https://localhost:5500, which only holds when consumer and provider share a host;
-   compose overrides it per stack and a multi-release k8s topology needs the same per release.
-   Deliberately not emitted for the hybrid flavor, which has run without it: whether that flavor
-   also needs it is a separate question, and answering it blind would change a working env. #}
-{% if proxy_dsp_enabled and ss2_advertised_host is not defined %}
+   compose overrides it per stack and a multi-release k8s topology needs the same per release. #}
+{% if proxy_dsp_enabled %}
 {% set _ = proxy_env.update({
   'XROAD_PROXY_DSP_SERVERPROXY_ENDPOINT': 'https://' ~ ds_serverproxy_host ~ ':5500',
 }) %}
@@ -147,9 +128,8 @@ services:
 {% if ds_tls %}
       # Dataspace provisioning via the proxy-ui-api endpoint (replaces the manual IH/CP seed).
       # identity-hub-url is the advertised identity-hub host, so the derived holder DID /
-      # credentialService / STS URL resolve for whoever issues credentials: in the hybrid flavor
-      # that is the single LXD-facing hostname, in a multi-release topology it is each release's
-      # own namespace-qualified Service.
+      # credentialService / STS URL resolve for whoever issues credentials — each release's own
+      # namespace-qualified Service.
       XROAD_PROXY_UI_API_DATASPACE_ENABLED: "true"
       XROAD_PROXY_UI_API_DATASPACE_IDENTITY_HUB_URL: "https://{{ ds_ih_host }}:7182"
       XROAD_PROXY_UI_API_DATASPACE_PARTICIPANT_ID: "{{ ds_participant_id }}"
@@ -192,8 +172,8 @@ services:
   # provisioned by the cloudnative_pg role (see ds_*_db vars).
   # ds-* services talk to OpenBao over HTTPS via the Quarkus vault client,
   # so they need the same openbao TLS cert mount as proxy/signer/monitor.
-  # With ds_tls the shared xrd-ca-signed keystore lights up HTTPS on every
-  # EDC port, matching the LXD stack's ds-https-keystore.yml behaviour.
+  # With ds_tls the shared self-signed keystore (ds-https-keystore chart)
+  # lights up HTTPS on every EDC port.
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1
@@ -220,9 +200,6 @@ services:
       EDC_WEB_HTTPS_KEYMANAGER_PASSWORD: "changeit"
       JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }}"
 {% if svc == 'ds-control-plane' %}
-{% if ss2_advertised_host is defined %}
-      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "{{ ss2_advertised_host }}"
-{% endif %}
       EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_cp_host }}:8183/api/dsp/%s"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}

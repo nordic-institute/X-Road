@@ -25,13 +25,11 @@ argument_specs:
       messagelog_encryption_config: {type: str, default: ""}
       proxy_dsp_enabled: {type: bool, default: true}
       ds_tls_enabled: {type: bool, default: false}
-      ds_truststore_key: {type: str, default: cacerts.p12}
+      ds_truststore_key: {type: str, default: cacerts}
       ds_mgmt_context_enabled: {type: bool, default: false}
       dsp_participant_context_id: {type: str, default: ""}
       signer_hsm_enabled: {type: bool, default: false}
-      ss2_advertised_host: {type: str, required: false}
       trusted_issuer_host: {type: str, default: xrd-cs}
-      xrd_ca_external_host: {type: str, default: xrd-ca.lxd}
       serverconf_db: {type: dict, required: true}
       messagelog_db: {type: dict, required: true}
       opmonitor_db: {type: dict, required: true}

@@ -7,7 +7,6 @@ ENV_NAME="dev"
 RECREATE=false
 SKIP_IMAGES=false
 SKIP_FORWARD=false
-SKIP_INIT=false
 SKIP_PREFLIGHT=false
 SKIP_BOOTSTRAP=false
 CUSTOM_INVENTORY=""
@@ -19,17 +18,17 @@ usage() {
 Usage: $0 [options]
 
 Bring up the X-Road k8s environment: preflight → (optionally) build images →
-ansible site.yml → port-forward → (optionally) hurl init-ss2.
+ansible site.yml → port-forward.
 
 Options:
-  --env=dev|test|eks|e2e     Target environment (default: dev). 'e2e' brings up the full base
-                             topology used by the E2E suite's k8s env-mode: Central Server chart +
-                             two Security Server chart releases (ss0/ss1) + e2e-fixtures chart
-                             (test CA, mock IS, mailpit, hurl bootstrap), DSP left off.
+  --env=dev|test|eks|e2e     Target environment (default: dev). 'dev' and 'e2e' both bring up the
+                             full in-cluster topology (Central Server chart + two Security Server
+                             chart releases ss0/ss1 + e2e-fixtures chart: test CA, mock IS,
+                             mailpit, hurl bootstrap) via the same playbooks/site.yml, roles and
+                             charts, differing only by inventory values.
   --recreate                 Tear down environment before bringing it up
   --skip-images              Skip the Security Server image build
   --skip-forward             Skip kubectl port-forwards
-  --skip-init                Skip init-ss2.sh hurl bootstrap
   --skip-preflight           Skip tooling preflight check
   --skip-bootstrap           Skip venv + pip/collection dependency provisioning
   --custom-inventory=PATH    Use a custom inventory path
@@ -48,7 +47,6 @@ parse_arguments() {
       --recreate) RECREATE=true ;;
       --skip-images) SKIP_IMAGES=true ;;
       --skip-forward) SKIP_FORWARD=true ;;
-      --skip-init) SKIP_INIT=true ;;
       --skip-preflight) SKIP_PREFLIGHT=true ;;
       --skip-bootstrap) SKIP_BOOTSTRAP=true ;;
       --custom-inventory=*) CUSTOM_INVENTORY="${1#*=}" ;;
@@ -76,7 +74,6 @@ parse_arguments() {
   log_kv "  Skip bootstrap" "${SKIP_BOOTSTRAP}" 2 5
   log_kv "  Skip images" "${SKIP_IMAGES}" 2 5
   log_kv "  Skip port-forward" "${SKIP_FORWARD}" 2 5
-  log_kv "  Skip hurl init" "${SKIP_INIT}" 2 5
   log_kv "  Custom inventory" "${CUSTOM_INVENTORY:-<default>}" 2 5
 }
 
@@ -87,7 +84,7 @@ handleBootstrap() {
 
 handlePreflight() {
   [[ "${SKIP_PREFLIGHT}" == true ]] && { log_info "Skipping preflight"; return; }
-  SKIP_INIT="${SKIP_INIT}" "${CORE_ROOT}/scripts/env-k8s/preflight.sh"
+  "${CORE_ROOT}/scripts/env-k8s/preflight.sh"
 }
 
 handleRecreate() {
@@ -104,16 +101,10 @@ handleBuildImages() {
     return
   fi
   case "${ENV_NAME}" in
-    dev)
-      # dev's default topology is Security-Server-only (LXD-hosted CS/CA) — no Central Server or
-      # e2e-fixtures images needed.
-      log_info "Building X-Road container images into local registry (localhost:5555)"
-      IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" --push
-      ;;
-    e2e)
-      # e2e's topology is fully in-cluster (Central Server chart + e2e-fixtures chart), so it
-      # additionally needs the dev-infra tier (testca-dev, ...) and the Central Server image that
-      # build-security-server.sh alone doesn't produce.
+    dev|e2e)
+      # dev and e2e both bring up the full in-cluster topology (Central Server chart +
+      # e2e-fixtures chart + two Security Server chart releases), so both need the dev-infra tier
+      # (testca-dev, ...) and the Central Server image on top of the Security Server images.
       log_info "Building all local image tiers (dev-infra + Security Server + Central Server) into local registry (localhost:5555)"
       IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/build-images.sh"
       ;;
@@ -146,18 +137,11 @@ handlePortForward() {
 }
 
 handleInitialize() {
-  if [[ "${ENV_NAME}" == "e2e" ]]; then
-    log_info "hurl bootstrap already ran in-cluster as part of the e2e-fixtures chart (see playbooks/site.yml); nothing to do here"
-    return
-  fi
-  [[ "${SKIP_INIT}" == true ]] && { log_info "Skipping hurl init"; return; }
-  local init_script="${CORE_ROOT}/scripts/env-k8s/init-ss2.sh"
-  if [[ ! -x "${init_script}" ]]; then
-    log_warn "${init_script} not found or not executable; skipping"
-    return
-  fi
-  log_info "Running init-ss2.sh (hurl bootstrap)"
-  "${init_script}"
+  case "${ENV_NAME}" in
+    dev|e2e)
+      log_info "hurl bootstrap already ran in-cluster as part of the e2e-fixtures chart (see playbooks/site.yml); nothing to do here"
+      ;;
+  esac
 }
 
 main() {

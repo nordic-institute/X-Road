@@ -14,10 +14,6 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: Provision ds-https TLS material (xrd-ca anchored)
-  ansible.builtin.include_tasks: ds_https_keystore.yml
-  when: ss2_advertised_host is defined
-
 - name: Install/upgrade Security Server chart (non-blocking)
   kubernetes.core.helm:
     name: security-server

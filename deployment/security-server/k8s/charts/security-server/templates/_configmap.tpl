@@ -12,7 +12,7 @@ data:
   Per-release DSP participant-context-id override (see values.yaml's
   dsp.participantContextId comment). dict-as-dst wins over $env-as-src in
   `merge`, so this only takes effect when the value is actually set —
-  otherwise $env's own literal ("xrd-ss2" below) passes through unchanged.
+  otherwise $env's own literal ("security-server" below) passes through unchanged.
   */}}
   {{- if .root.Values.dsp.participantContextId }}
   {{- if eq .service "proxy" }}

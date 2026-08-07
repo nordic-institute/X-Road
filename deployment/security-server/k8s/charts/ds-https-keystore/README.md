@@ -32,22 +32,13 @@ Kubernetes API instead of a shared docker volume. The container
 idempotency-checks for an existing Secret before regenerating, mirroring
 compose's `[ -f ds-https.p12 ] && [ -f cacerts ] && exit 0` guard.
 
-This is deliberately **not** the same recipe as
-`development/k8s/roles/security_server/tasks/ds_https_keystore.yml`: that role
-CA-signs the cert via an *external* LXD test CA for the `k8-ss2` hybrid flavor
-(and publishes a PKCS12 **truststore**, `cacerts.p12`, built with
-`-jdktrust`, rather than a copied JRE `cacerts`). This chart's fully
-in-cluster topology has no external CA to anchor to, so it mirrors compose's
-self-signed recipe instead.
+This chart's fully in-cluster topology has no external CA to anchor to, so it
+mirrors compose's self-signed recipe rather than a CA-anchored one.
 
-**Owed to the DSP slice (09):** the security-server chart's DSP env wiring
-(`security-server-values.yaml.j2`) expects the Secret's truststore key named
-`cacerts.p12` (PKCS12); this Job publishes `cacerts` (JRE-copy JKS), matching
-compose. Reconciling the two — renaming this Job's output key or adjusting the
-SS chart's mount/env — plus distributing the Secret into the ss0/ss1
-namespaces, is left to the slice that wires DSP for the two-SS in-cluster
-topology. Slice 06 only needs the Central Server issuer to boot, which the
-keystore in the `cs` namespace satisfies.
+The `security_server` role reads the truststore under the key this Job
+publishes (`cacerts`, a JRE-copy JKS, matching compose), and the
+`ds_https_keystore` role replicates the Secret into every Security Server
+namespace listed in `security_server_instances`.
 
 ## 3. SAN set
 

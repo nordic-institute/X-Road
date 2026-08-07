@@ -69,9 +69,8 @@ external_service_bridges: []
 # hurl_skip_dsp_readiness_gates from this flag), so the bootstrap runs setup.hurl to its end.
 proxy_dsp_enabled: true
 
-# DS-HTTPS on the EDC ports. No single advertised host here — unlike the hybrid dev flavor's
-# ss2_advertised_host, each ds-* service is reached on its own namespace-qualified Service name,
-# which is what the ds-https cert's SAN list already covers.
+# DS-HTTPS on the EDC ports. No single advertised host — each ds-* service is reached on its own
+# namespace-qualified Service name, which is what the ds-https cert's SAN list already covers.
 ds_tls_enabled: true
 
 # The ds-https-keystore chart self-signs and publishes its truststore as a JRE-copy JKS named

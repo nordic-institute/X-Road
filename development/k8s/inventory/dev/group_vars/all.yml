@@ -1,11 +1,26 @@
 ---
+# Full base topology (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, issue 11:
+# dev-env-convergence): kind cluster + Central Server chart + two Security Server chart
+# releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao) +
+# e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap) — the same
+# playbooks/site.yml, roles and charts as inventory/e2e, differing only in the values below.
+# DSP is on. No LXD dependency: everything this environment needs runs in-cluster.
+
 cluster_provider: kind
 kind_cluster_name: xroad-dev-cluster
 kind_worker_count: 2
 kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
 
-security_server_namespace: ss
+# Retained as the single-instance fallback the OpenBao/Security Server loops default to when
+# security_server_instances isn't set — unused here since dev always sets that list, kept
+# defined to satisfy site.yml's pre_tasks assert.
+security_server_namespace: ss0
 monitoring_namespace: ss-monitoring
+
+central_server_namespace: cs
+e2e_fixtures_namespace: cs
+central_server_enabled: true
+e2e_fixtures_enabled: true
 
 xroad_image_registry: "localhost:5555"
 xroad_image_tag: "latest"
@@ -22,9 +37,13 @@ security_server_chart_repo: ""
 security_server_chart: "{{ charts_root }}/security-server"
 security_server_chart_version: ""
 
-external_service_bridge_chart_repo: ""
-external_service_bridge_chart: "{{ charts_root }}/external-service-bridge"
-external_service_bridge_chart_version: ""
+central_server_chart_repo: ""
+central_server_chart: "{{ charts_root }}/central-server"
+central_server_chart_version: ""
+
+e2e_fixtures_chart_repo: ""
+e2e_fixtures_chart: "{{ charts_root }}/e2e-fixtures"
+e2e_fixtures_chart_version: ""
 
 postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
 
@@ -43,48 +62,35 @@ containerd_config_patches:
 
 external_service_host: host.docker.internal
 
-# Pods resolve and route *.lxd hosts directly (lima socket_vmnet + LXD
-# dnsmasq), so bridges target container-canonical ports. The bare service
-# names exist for consumers that dial short hostnames — e.g. the
-# trusted-issuer DID did:web:xrd-cs%3A6183 resolved by ds-control-plane.
-external_service_bridges:
-  - name: xrd-cs
-    external_host: "xrd-cs.lxd"
-    ports:
-      - {name: http, port: 80, targetPort: 80}
-      - {name: https, port: 443, targetPort: 443}
-      - {name: registration, port: 4001, targetPort: 4001}
-      - {name: management, port: 4002, targetPort: 4002}
-      - {name: issuer-did, port: 6183, targetPort: 6183}
-      - {name: issuer-issuance, port: 6185, targetPort: 6185}
-      - {name: issuer-statuslist, port: 6187, targetPort: 6187}
-  - name: xrd-ca
-    external_host: "xrd-ca.lxd"
-    ports:
-      - {name: ca, port: 8888, targetPort: 8888}
-      - {name: tsa, port: 8899, targetPort: 8899}
-  - name: xrd-ss0
-    external_host: "xrd-ss0.lxd"
-    ports:
-      - {name: proxy, port: 5500, targetPort: 5500}
-      - {name: proxy-ocsp, port: 5577, targetPort: 5577}
-  - name: xrd-jaeger
-    # Jaeger runs as its own LXD container (xrd-jaeger.lxd, 10.10.10.x) on the same
-    # LXD bridge that the kind worker can route to. host.docker.internal would point
-    # at the lima VM eth0 where nothing listens on these ports — resolver Job inside
-    # the cluster CAN resolve xrd-jaeger.lxd via lima's inherited LXD DNS.
-    external_host: "xrd-jaeger.lxd"
-    ports:
-      - {name: otlp-grpc, port: 4317, targetPort: 4317}
-      - {name: otlp-http, port: 4318, targetPort: 4318}
-      - {name: ui, port: 80, targetPort: 80}
-      - {name: healthcheck, port: 13133, targetPort: 13133}
+# No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
+external_service_bridges: []
 
-otel_enabled: true
-otel_node_id: "ss2"
-otel_endpoint: "http://xrd-jaeger.{{ security_server_namespace }}.svc.cluster.local:4317"
-otel_sampler: "parentbased_always_on"
-otel_deployment_environment: "k8s-dev"
+# DSP on: same reasoning as e2e (see inventory/e2e/group_vars/all.yml) — turning it off would
+# leave a developer exercising a different send-path than what e2e/compose/production run.
+proxy_dsp_enabled: true
+
+# DS-HTTPS on the EDC ports, self-signed ds-https-keystore chart (see inventory/e2e for why the
+# truststore key differs from the role's own cacerts.p12 default).
+ds_tls_enabled: true
+ds_truststore_key: cacerts
+
+ds_mgmt_context_enabled: true
+
+# The Issuer Service is co-located in the Central Server dev image (port 6183), reached
+# cross-namespace — same as e2e.
+trusted_issuer_host: central-server.cs
+
+# Two Security Server chart releases in separate namespaces, mirroring e2e's ss0/ss1 topology.
+# ss1 enables the signer.hsm stop-gap toggle: the shared hurl bootstrap (e2e_fixtures role)
+# needs ss1 to expose a pkcs11 HARDWARE token regardless of which inventory runs it.
+security_server_instances:
+  - namespace: ss0
+    dsp_participant_context_id: xrd-ss0
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
+  - namespace: ss1
+    dsp_participant_context_id: xrd-ss1
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
+    signer_hsm_enabled: true
 
 deploy_prometheus: true
 deploy_netdata: true
@@ -93,25 +99,16 @@ openbao_ha_replicas: 2
 openbao_global_tls_disable: false
 openbao_tls_mode: self_signed
 
-# Identity advertised to the LXD side for the k8s-hosted SS2. The host-record
-# lands in LXD's dnsmasq so xrd-ss0/xrd-ss1 control planes resolve it to the
-# mac, where the 0.0.0.0 port-forwards below terminate.
-ss2_advertised_host: xrd-ss2.lxd
-ss2_advertised_ip: 192.168.105.1
-lxd_lima_instance: xroad-lxd
-
+# ss1 forwards to the same local host (localhost) as ss0, so it needs its own local ports —
+# ss1's are ss0's + 1, same scheme as inventory/e2e.
 port_forwards:
-  - {name: proxy-ui-api, namespace: "{{ security_server_namespace }}", resource: svc/proxy-ui-api, ports: "4000:4000"}
-  - {name: proxy-http, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5500:5500"}
-  - {name: proxy-ocsp, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "5577:5577"}
-  - {name: proxy-8080, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8080:8080"}
-  - {name: proxy-8443, namespace: "{{ security_server_namespace }}", resource: svc/proxy, ports: "8443:8443"}
-  # DSP participant-context seeding (mac-local) + LXD-facing identity endpoints.
-  # 0.0.0.0 listeners back the dnsmasq host-record xrd-ss2.lxd -> {{ ss2_advertised_ip }},
-  # letting LXD-side control planes resolve ss2's DID document, credential
-  # service, and DSP protocol endpoint.
-  # All on 0.0.0.0: Jetty's sniHostCheck rejects IP-literal HTTPS, so even
-  # mac-local seeding goes through the xrd-ss2.lxd name (-> 192.168.105.1).
-  - {name: ih-did, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7183:7183", address: "0.0.0.0"}
-  - {name: ih-credentials, namespace: "{{ security_server_namespace }}", resource: svc/ds-identity-hub, ports: "7185:7185", address: "0.0.0.0"}
-  - {name: cp-dsp, namespace: "{{ security_server_namespace }}", resource: svc/ds-control-plane, ports: "8183:8183", address: "0.0.0.0"}
+  - {name: proxy-ui-api, namespace: ss0, resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: ss0, resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: ss0, resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: ss0, resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: ss0, resource: svc/proxy, ports: "8443:8443"}
+  - {name: ss1-proxy-ui-api, namespace: ss1, resource: svc/proxy-ui-api, ports: "4001:4000"}
+  - {name: ss1-proxy-http, namespace: ss1, resource: svc/proxy, ports: "5501:5500"}
+  - {name: ss1-proxy-ocsp, namespace: ss1, resource: svc/proxy, ports: "5578:5577"}
+  - {name: ss1-proxy-8080, namespace: ss1, resource: svc/proxy, ports: "8081:8080"}
+  - {name: ss1-proxy-8443, namespace: ss1, resource: svc/proxy, ports: "8444:8443"}
