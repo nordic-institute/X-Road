@@ -234,6 +234,10 @@ services:
 {% endif %}
 {% endfor %}
 {% endif %}
+{% if softtoken_signer_enabled | default(false) | bool %}
+  softtoken-signer:
+    replicas: 1
+{% endif %}
   auxiliary-service:
     env:
 {% if serverconf_init_image | length > 0 %}

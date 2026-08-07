@@ -80,6 +80,7 @@
         security_server_namespace: "{{ ss_instance.namespace }}"
         dsp_participant_context_id: "{{ ss_instance.dsp_participant_context_id | default('') }}"
         signer_hsm_enabled: "{{ ss_instance.signer_hsm_enabled | default(false) }}"
+        softtoken_signer_enabled: "{{ ss_instance.softtoken_signer_enabled | default(false) }}"
         messagelog_encryption_config: "{{ ss_instance.messagelog_encryption_config | default('') }}"
       loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
       loop_control:

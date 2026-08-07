@@ -29,6 +29,7 @@ argument_specs:
       ds_mgmt_context_enabled: {type: bool, default: false}
       dsp_participant_context_id: {type: str, default: ""}
       signer_hsm_enabled: {type: bool, default: false}
+      softtoken_signer_enabled: {type: bool, default: false}
       trusted_issuer_host: {type: str, default: xrd-cs}
       serverconf_db: {type: dict, required: true}
       messagelog_db: {type: dict, required: true}

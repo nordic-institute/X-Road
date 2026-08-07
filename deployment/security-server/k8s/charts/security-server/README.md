@@ -145,7 +145,8 @@ trusted-issuer configuration property row into the existing
 The `Chart.yaml` `version` key is bumped only when the chart's public
 contract changes materially:
 
-- **Current version:** `0.3.0` — bumped from `0.2.0` alongside the
-  seed Job + README rewrite.
+- **Current version:** `0.4.0` — bumped from `0.3.0` alongside the
+  `softtoken-signer` service (off by default, `services.softtoken-signer.replicas: 0`).
+  Previously bumped to `0.3.0` from `0.2.0` alongside the seed Job + README rewrite.
 - `appVersion` tracks the X-Road runtime version and is independent of
   the chart version.

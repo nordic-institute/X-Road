@@ -448,6 +448,46 @@ services:
         persistentVolumeClaim:
           claimName: message-log-archives-pvc
 
+  # Split-out soft-token signing process (compose's `softtoken-signer` service). Not a token
+  # type — a separate signing process. When the channel is enabled, `SignerSignRpcClient.sign()`
+  # routes soft-token-based keys to it over gRPC instead of signing them co-located in `signer`.
+  # Off by default (replicas: 0, the chart's existing off-switch for optional
+  # workloads — see ds-control-plane/ds-identity-hub/ds-issuer-service below), so existing
+  # deployers and every non-toggled release render unchanged.
+  softtoken-signer:
+    otelServiceName: xroad-softtoken-signer
+    imageName: ss-softtoken-signer
+    replicas: 0
+    resources:
+      requests:
+        memory: 128Mi
+      limits:
+        memory: 384Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5561
+        name: grpc
+    debugPort: 9999
+    readinessProbe:
+      path: "/q/health/ready"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
+      XROAD_HOST: "softtoken-signer"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      XROAD_SOFTTOKEN_SIGNER_RPC_LISTEN_ADDRESS: "0.0.0.0"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+
   ds-control-plane:
     imageName: ds-control-plane
     replicas: 0

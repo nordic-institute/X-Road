@@ -95,6 +95,13 @@ ds_mgmt_context_enabled: false
 # release (e.g. e2e's ss1) that needs a pkcs11 HARDWARE token.
 signer_hsm_enabled: false
 
+# Per-release softtoken-signer toggle (chart's services.softtoken-signer.replicas — see
+# security-server chart values.yaml). Off by default: the chart renders no softtoken-signer
+# workload and proxy's env is unchanged. Set true for a single Security Server release (e.g.
+# e2e's ss0) that should sign soft-token-based keys through the split-out process instead of
+# co-located in `signer` — mirroring compose's E2eEnvSetup ss0=softtoken-signer / ss1=HSM split.
+softtoken_signer_enabled: false
+
 trusted_issuer_host: xrd-cs
 
 # Per-release DSP participant-context-id override (chart's dsp.participantContextId — see

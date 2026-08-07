@@ -81,12 +81,15 @@ ds_mgmt_context_enabled: true
 trusted_issuer_host: central-server.cs
 
 # Two Security Server chart releases in separate namespaces, mirroring e2e's ss0/ss1 topology.
-# ss1 enables the signer.hsm stop-gap toggle: the shared hurl bootstrap (e2e_fixtures role)
-# needs ss1 to expose a pkcs11 HARDWARE token regardless of which inventory runs it.
+# ss0 enables the softtoken-signer split (security_server role's softtoken_signer_enabled var)
+# and ss1 enables the signer.hsm stop-gap toggle: the shared hurl bootstrap (e2e_fixtures role)
+# needs ss1 to expose a pkcs11 HARDWARE token regardless of which inventory runs it. Mirrors
+# e2e's split so dev and e2e stay converged (issue 11).
 security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
+    softtoken_signer_enabled: true
   - namespace: ss1
     dsp_participant_context_id: xrd-ss1
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"

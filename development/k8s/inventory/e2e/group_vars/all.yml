@@ -96,9 +96,11 @@ trusted_issuer_host: central-server.cs
 # releases are never conflated on the chart's own hardcoded "xrd-ss2" default, and its own
 # openbao_tls_dir so the two releases' self-signed openbao certs (each SAN-scoped to its own
 # namespace) don't clobber each other's on-disk staging files mid-run.
-# ss1 also enables the signer.hsm stop-gap toggle (security_server role's
-# signer_hsm_enabled var) — setup.hurl's bootstrap needs ss1 to expose a
-# pkcs11 HARDWARE token; ss0 hardcodes token id 0 and doesn't need one, so
+# ss0 enables the softtoken-signer split (security_server role's
+# softtoken_signer_enabled var) — mirrors compose's E2eEnvSetup, which puts ss0 on the
+# split-out soft-token signing process and ss1 on SoftHSM. ss1 also enables the signer.hsm
+# stop-gap toggle (security_server role's signer_hsm_enabled var) — setup.hurl's bootstrap
+# needs ss1 to expose a pkcs11 HARDWARE token; ss0 hardcodes token id 0 and doesn't need one, so
 # it's left at the role's default (false).
 #
 # ss1 additionally enables messagelog DB + archive encryption with per-member
@@ -120,6 +122,7 @@ security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
+    softtoken_signer_enabled: true
   - namespace: ss1
     dsp_participant_context_id: xrd-ss1
     openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"

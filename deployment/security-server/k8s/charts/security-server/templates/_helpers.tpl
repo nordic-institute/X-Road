@@ -17,6 +17,20 @@ Generate volume name from path (e.g., /var/log/xroad -> var-log-xroad)
 
 
 {{/*
+softtoken-signer feature gate — non-empty when services.softtoken-signer.replicas > 0.
+Mirrors xroad.dsp.enabled's replicas-driven pattern (templates/dsp/_helpers.tpl): the workload's
+own render (services/all.yaml's generic replicas>0 skip) and the proxy consumer env
+(_configmap.tpl) both read this single value, so they cannot drift behind two separate toggles.
+
+Call shape:
+  {{- if include "xroad.softtokenSigner.enabled" . }} ... {{- end }}
+*/}}
+{{- define "xroad.softtokenSigner.enabled" -}}
+{{- $svc := index (.Values.services | default dict) "softtoken-signer" | default dict -}}
+{{- if gt (int ($svc.replicas | default 0)) 0 }}true{{ end -}}
+{{- end }}
+
+{{/*
 Service template
 */}}
 {{- define "xroad.service" -}}
