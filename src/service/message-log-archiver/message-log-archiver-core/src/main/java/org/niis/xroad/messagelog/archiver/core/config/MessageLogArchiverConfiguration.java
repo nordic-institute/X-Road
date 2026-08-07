@@ -27,10 +27,13 @@
 package org.niis.xroad.messagelog.archiver.core.config;
 
 import io.quarkus.vault.VaultKVSecretEngine;
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Singleton;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.DeploymentMode;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
@@ -48,8 +51,14 @@ public class MessageLogArchiverConfiguration extends MessageLogEncryptionConfig 
         return XRoadConfigBuilder.create()
                 .register(MessageLogEncryptionConfigKeys.instance())
                 .register(MessageLogArchiverConfigKeys.instance())
+                .deploymentMode(deploymentMode())
                 .dbOverrides(appName)
                 .build();
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
     }
 
     @ApplicationScoped

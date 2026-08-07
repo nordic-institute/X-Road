@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /**
  * Keys for the {@code xroad.configuration-proxy} scope, including scalars,
@@ -57,10 +58,15 @@ public final class ConfProxyConfigKeys implements ConfigKeyProvider {
 
     private static final ConfProxyConfigKeys INSTANCE = new ConfProxyConfigKeys();
 
-    /** {@code xroad.configuration-proxy.minimum-global-configuration-version}. */
+    /**
+     * {@code xroad.configuration-proxy.minimum-global-configuration-version}.
+     * The ceiling mirrors {@code GlobalConfVersion.CURRENT_VERSION} (not importable from this module);
+     * a generator-module test pins the two in sync.
+     */
     public static final ConfigKey<Integer> MINIMUM_GLOBAL_CONFIGURATION_VERSION = ROOT
             .integer("minimum-global-configuration-version")
             .withDefaultValue(2)
+            .withValidator(range(1, 6))
             .build();
 
     /** {@code xroad.configuration-proxy.address}. */

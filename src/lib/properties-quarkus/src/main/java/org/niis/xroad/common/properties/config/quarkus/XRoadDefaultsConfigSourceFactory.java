@@ -31,11 +31,13 @@ import io.smallrye.config.ConfigSourceContext;
 import io.smallrye.config.ConfigSourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.spi.ConfigSource;
+import org.niis.xroad.common.properties.config.ConfigKey;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
 import org.niis.xroad.common.properties.config.FrameworkPublishedConfig;
 import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,7 +84,33 @@ public final class XRoadDefaultsConfigSourceFactory implements ConfigSourceFacto
                 .filter(scope -> !scope.isEmpty())
                 .collect(Collectors.toSet());
         return providers.stream()
-                .filter(provider -> allowed.contains(provider.rootPath()))
+                .map(provider -> withKeysUnderScopes(provider, allowed))
+                .filter(provider -> !provider.keys().isEmpty())
                 .toList();
+    }
+
+    /**
+     * Filters per key, not per provider root path — a provider may declare keys under several
+     * roots (e.g. the SS admin registry also owns the bare {@code xroad.acme} document key).
+     */
+    private static ConfigKeyProvider withKeysUnderScopes(ConfigKeyProvider provider, Set<String> allowed) {
+        var keys = provider.keys().stream()
+                .filter(key -> allowed.stream().anyMatch(scope ->
+                        key.key().equals(scope) || key.key().startsWith(scope + ".")))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (keys.equals(provider.keys())) {
+            return provider;
+        }
+        return new ConfigKeyProvider() {
+            @Override
+            public String rootPath() {
+                return provider.rootPath();
+            }
+
+            @Override
+            public Set<ConfigKey<?>> keys() {
+                return keys;
+            }
+        };
     }
 }

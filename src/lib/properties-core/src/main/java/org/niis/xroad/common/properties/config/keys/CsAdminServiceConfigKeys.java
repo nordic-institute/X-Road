@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.util.Set;
 
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.range;
 
 /**
  * Central Server admin-service keys ({@code xroad.admin-service.*}, incl. {@code .tls.certificate-provisioning},
@@ -289,10 +290,15 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .string("generated-conf-dir")
             .withDefaultValue("/var/lib/xroad/public")
             .build();
-    /** {@code xroad.admin-service.global-conf-generator.minimum-global-configuration-version}. */
+    /**
+     * {@code xroad.admin-service.global-conf-generator.minimum-global-configuration-version}.
+     * The ceiling mirrors {@code GlobalConfVersion.CURRENT_VERSION} (not importable from this module);
+     * a generator-module test pins the two in sync.
+     */
     public static final ConfigKey<Integer> GLOBAL_CONF_GENERATOR_MINIMUM_GLOBAL_CONFIGURATION_VERSION = GLOBAL_CONF_GENERATOR
             .integer("minimum-global-configuration-version")
             .withDefaultValue(2)
+            .withValidator(range(1, 6))
             .build();
 
     // --- management-requests (auto-approval toggles) ---

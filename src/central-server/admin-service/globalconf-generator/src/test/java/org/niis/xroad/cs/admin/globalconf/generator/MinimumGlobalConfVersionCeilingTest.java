@@ -24,50 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-package org.niis.xroad.common.properties.config.quarkus;
+import ee.ria.xroad.common.GlobalConfVersion;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.ConfigKey;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
-import org.niis.xroad.common.properties.config.keys.ConfigKeyProviders;
-
-import java.util.List;
+import org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XRoadDefaultsConfigSourceFactoryTest {
-
-    private final List<ConfigKeyProvider> all = ConfigKeyProviders.allProviders();
+/**
+ * The minimum-global-configuration-version keys live in properties-core, which cannot import
+ * {@link GlobalConfVersion}, so their validator ceilings hardcode the current version. This
+ * test keeps them in sync: bumping {@code CURRENT_VERSION} must bump the validators too.
+ */
+class MinimumGlobalConfVersionCeilingTest {
 
     @Test
-    void publishesEveryProviderWhenScopesUnset() {
-        assertThat(XRoadDefaultsConfigSourceFactory.selectProviders(all, null)).isEqualTo(all);
-        assertThat(XRoadDefaultsConfigSourceFactory.selectProviders(all, "   ")).isEqualTo(all);
+    void validatorCeilingsTrackCurrentGlobalConfVersion() {
+        assertCeilingIsCurrentVersion(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_MINIMUM_GLOBAL_CONFIGURATION_VERSION);
+        assertCeilingIsCurrentVersion(ConfProxyConfigKeys.MINIMUM_GLOBAL_CONFIGURATION_VERSION);
     }
 
-    @Test
-    void publishesOnlyListedScopes() {
-        var selected = XRoadDefaultsConfigSourceFactory.selectProviders(all, "xroad.common");
-
-        assertThat(selected).containsExactly(CommonConfigKeys.instance());
-    }
-
-    @Test
-    void ignoresBlankAndUnknownScopes() {
-        var selected = XRoadDefaultsConfigSourceFactory.selectProviders(all, " xroad.common , , xroad.unknown ");
-
-        assertThat(selected).containsExactly(CommonConfigKeys.instance());
-    }
-
-    @Test
-    void selectsBareKeysOfProvidersSpanningSeveralRoots() {
-        var selected = XRoadDefaultsConfigSourceFactory.selectProviders(all, "xroad.acme");
-
-        assertThat(selected).hasSize(1);
-        assertThat(selected.getFirst().keys())
-                .extracting(ConfigKey::key)
-                .containsExactly("xroad.acme");
+    private static void assertCeilingIsCurrentVersion(ConfigKey<Integer> key) {
+        assertThat(key.validate(GlobalConfVersion.CURRENT_VERSION).valid()).isTrue();
+        assertThat(key.validate(GlobalConfVersion.CURRENT_VERSION + 1).valid()).isFalse();
     }
 }

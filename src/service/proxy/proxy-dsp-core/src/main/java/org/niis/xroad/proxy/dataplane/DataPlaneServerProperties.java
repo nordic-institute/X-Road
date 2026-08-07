@@ -34,6 +34,7 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_S
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_THREAD_POOL_IDLE_TIMEOUT;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_THREAD_POOL_MAX;
 import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_THREAD_POOL_MIN;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.SERVER_PORT;
 
 /** Configuration for the data-plane listener ({@code xroad.proxy.dsp.*}). */
 @RequiredArgsConstructor
@@ -66,8 +67,9 @@ public class DataPlaneServerProperties {
         return xRoadConfig.value(DSP_THREAD_POOL_IDLE_TIMEOUT);
     }
 
-    /** @return server-proxy endpoint URL */
+    /** @return server-proxy endpoint URL; defaults to localhost on the configured server-proxy port */
     public String serverproxyEndpoint() {
-        return xRoadConfig.value(DSP_SERVERPROXY_ENDPOINT);
+        return xRoadConfig.valueOpt(DSP_SERVERPROXY_ENDPOINT)
+                .orElseGet(() -> "https://localhost:" + xRoadConfig.value(SERVER_PORT));
     }
 }

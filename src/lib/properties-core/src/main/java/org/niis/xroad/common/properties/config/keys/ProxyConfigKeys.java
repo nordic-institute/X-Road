@@ -855,10 +855,12 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(60000)
             .build();
 
-    /** {@code xroad.proxy.dsp.serverproxy-endpoint}. */
+    /**
+     * {@code xroad.proxy.dsp.serverproxy-endpoint} — optional; when unset the reader derives
+     * {@code https://localhost:<xroad.proxy.server-port>} so the default follows the server port.
+     */
     public static final ConfigKey<String> DSP_SERVERPROXY_ENDPOINT = DSP
             .string("serverproxy-endpoint")
-            .withDefaultValue("https://localhost:5500")
             .build();
 
     /** {@code xroad.proxy.dsp.cache.enabled}. */

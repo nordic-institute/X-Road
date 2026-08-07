@@ -384,6 +384,7 @@ public abstract sealed class Prefix {
             super(prefix, shortKey, String[].class);
             converter = raw -> Stream.of(raw.split(","))
                     .map(String::trim)
+                    .filter(entry -> !entry.isEmpty())
                     .toArray(String[]::new);
         }
 
