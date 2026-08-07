@@ -328,7 +328,7 @@ public final class AcmeService {
                     throw new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_TOKEN_INVALID);
                 }
                 String content = httpChallenge.getAuthorization();
-                String acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH + token;
+                String acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token).toString();
                 try {
                     AtomicSave.execute(acmeChallenge, "tmp_challenge",
                             out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
