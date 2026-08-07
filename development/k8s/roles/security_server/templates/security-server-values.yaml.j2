@@ -41,16 +41,15 @@ init:
 # service that reaches OpenBao. The chart now fans this out itself to every
 # workload whose env carries XROAD_SECRET_STORE_HOST (services/all.yaml,
 # message-log-archiver-job-configmap.yaml) — including the archiver/cleanup
-# Job, which is the workload this used to get missed on (issue 16). Set only
-# when OpenBao actually serves TLS (dev); e2e/test run
-# openbao_global_tls_disable: true, so there is no CA to trust and the
-# render stays exactly the chart's untouched default.
-{% if not (openbao_global_tls_disable | default(false) | bool) %}
+# Job, which is the workload this used to get missed on. Set unconditionally:
+# the openbao role's listener config always carries tls_cert_file/tls_key_file
+# from the self-signed secret, so OpenBao serves TLS in every inventory —
+# openbao_global_tls_disable only tunes the OpenBao helm chart's
+# global.tlsDisable, not the listener, and must not gate this.
 secretStore:
   tls:
     caSecretName: {{ openbao_tls_secret_name }}
     caSecretKey: tls.crt
-{% endif %}
 
 {% set proxy_env = {
   'XROAD_PROXY_ADDON_OP_MONITOR_ENABLED': 'true',
