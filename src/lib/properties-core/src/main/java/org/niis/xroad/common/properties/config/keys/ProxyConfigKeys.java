@@ -78,6 +78,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     private static final String LISTEN_ADDRESS = "listen-address";
     private static final String JETTY_CONFIGURATION_FILE = "jetty-configuration-file";
     private static final String ANY_ADDRESS = "0.0.0.0";
+    private static final String LOCALHOST_IP = "127.0.0.1";
 
     private static final ProxyConfigKeys INSTANCE = new ProxyConfigKeys();
 
@@ -557,7 +558,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.tls.certificate-provisioning.ip-subject-alt-names}. */
     public static final ConfigKey<String[]> TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES = TLS_CERT_PROVISIONING
             .stringArray("ip-subject-alt-names")
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .exposedInUi()
             .build();
 
@@ -799,7 +800,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.rpc.listen-address}. */
     public static final ConfigKey<String> RPC_LISTEN_ADDRESS = RPC
             .string(LISTEN_ADDRESS)
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue(ANY_ADDRESS)
             .exposedInUi()
             .build();
@@ -827,7 +828,7 @@ public final class ProxyConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy.dsp.listen-address}. */
     public static final ConfigKey<String> DSP_LISTEN_ADDRESS = DSP
             .string(LISTEN_ADDRESS)
-            .withDefaultValue("127.0.0.1")
+            .withDefaultValue(LOCALHOST_IP)
             .withContainerDefaultValue(ANY_ADDRESS)
             .build();
 
