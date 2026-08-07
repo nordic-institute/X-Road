@@ -32,10 +32,20 @@ assert_kind() {
     fi
 }
 
-render_and_assert() {
+assert_kind_count() {
+    local out_file="$1" kind="$2" expected="$3"
+    local actual
+    actual="$(grep -cE "^kind: ${kind}\$" "${out_file}" || true)"
+    if [[ "${actual}" -eq "${expected}" ]]; then
+        log_success "  ${kind}: ${actual} (expected ${expected})"
+    else
+        log_error "  ${kind}: found ${actual}, expected ${expected} — the chart's default-values render changed. If deliberate, update this snapshot; if not, a resource was added or dropped unconditionally."
+        return 1
+    fi
+}
+
+render_chart() {
     local chart="$1"
-    shift
-    local expected_kinds=("$@")
     local chart_path="${CHARTS_DIR}/${chart}"
     local out_file="${WORK_DIR}/${chart}.yaml"
     local err_file="${WORK_DIR}/${chart}.err"
@@ -55,10 +65,41 @@ render_and_assert() {
     fi
 
     log_success "Rendered $(grep -cE '^kind: ' "${out_file}") resource(s)"
+}
+
+render_and_assert() {
+    local chart="$1"
+    shift
+    local expected_kinds=("$@")
+    local out_file="${WORK_DIR}/${chart}.yaml"
+
+    render_chart "${chart}" || return 1
 
     local chart_failed=0
     for kind in "${expected_kinds[@]}"; do
         assert_kind "${out_file}" "${kind}" || chart_failed=1
+    done
+
+    return "${chart_failed}"
+}
+
+# Exact per-kind resource counts at default values, for charts with non-E2E
+# consumers whose default render must not drift by accident. A count change is
+# a deliberate act: update the snapshot in the same change that alters the
+# render, and say so in the commit message.
+render_and_assert_snapshot() {
+    local chart="$1"
+    shift
+    local out_file="${WORK_DIR}/${chart}.yaml"
+
+    render_chart "${chart}" || return 1
+
+    local chart_failed=0
+    local pair kind expected
+    for pair in "$@"; do
+        kind="${pair%%=*}"
+        expected="${pair##*=}"
+        assert_kind_count "${out_file}" "${kind}" "${expected}" || chart_failed=1
     done
 
     return "${chart_failed}"
@@ -76,6 +117,15 @@ render_and_assert "e2e-fixtures" Deployment Job ConfigMap ServiceAccount || STAT
 echo ""
 
 render_and_assert "ds-https-keystore" Job ServiceAccount Role RoleBinding || STATUS=1
+echo ""
+
+render_and_assert_snapshot "security-server" \
+    ConfigMap=7 Deployment=6 Job=2 PersistentVolumeClaim=3 \
+    Role=7 RoleBinding=7 Service=6 ServiceAccount=7 || STATUS=1
+echo ""
+
+render_and_assert_snapshot "openbao-init" \
+    ConfigMap=1 Job=1 Role=1 RoleBinding=1 ServiceAccount=1 || STATUS=1
 echo ""
 
 echo "========================================"

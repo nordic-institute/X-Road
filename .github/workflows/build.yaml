@@ -128,7 +128,7 @@ jobs:
 
   build-summary:
     name: Build Summary
-    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services]
+    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services, chart-lint-smoke]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -144,10 +144,11 @@ jobs:
           | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | E2E Tests (all lanes) | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Service Integration Tests | ${{ needs.test-services.result == 'success' && '✅ Success' || needs.test-services.result == 'failure' && '❌ Failed' || needs.test-services.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | Chart Lint & Smoke | ${{ needs.chart-lint-smoke.result == 'success' && '✅ Success' || needs.chart-lint-smoke.result == 'failure' && '❌ Failed' || needs.chart-lint-smoke.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
 
           ## Overall Result
 
-          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
+          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success' && needs.chart-lint-smoke.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
 
           ## Quick Actions
 
