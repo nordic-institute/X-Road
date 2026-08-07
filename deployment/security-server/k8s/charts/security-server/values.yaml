@@ -735,6 +735,21 @@ messageLogEncryption:
   enabled: false
   applicationYaml: ""
 
+# Single top-level knob for OpenBao (secret store) TLS trust. Every workload
+# whose env carries XROAD_SECRET_STORE_HOST (services/all.yaml's fan-out
+# rule; messageLogArchiver is checked the same way) reaches the secret store
+# and, when caSecretName is set, gets the CA cert mounted at
+# /etc/xroad/ssl/openbao.crt plus the trust env matching its runtime —
+# QUARKUS_VAULT_TLS_CA_CERT for the Quarkus services, the
+# SPRING_CLOUD_VAULT_SSL_TRUST_STORE(_TYPE) pair for the Spring-based
+# proxy-ui-api. Default empty = today's behaviour: no cert Secret is
+# referenced, no volume or mount is added, render is unchanged — plaintext
+# to OpenBao or an already-trusted CA remains the deployer's responsibility.
+secretStore:
+  tls:
+    caSecretName: "" # Secret in the release namespace holding the OpenBao CA cert
+    caSecretKey: "tls.crt" # key within that Secret
+
 persistentVolumeClaims:
   backups-pvc:
     accessMode: ReadWriteOnce

@@ -14,6 +14,7 @@ argument_specs:
       serverconf_init_image: {type: str, required: false}
       jvm_metrics_enabled: {type: bool, default: false}
       openbao_tls_secret_name: {type: str, default: openbao-server-tls}
+      openbao_global_tls_disable: {type: bool, default: false}
       configuration_client_update_interval: {type: str, default: "10"}
       op_monitor_records_available_offset_seconds: {type: str, default: ""}
       proxy_timestamp_immediately: {type: bool, default: false}

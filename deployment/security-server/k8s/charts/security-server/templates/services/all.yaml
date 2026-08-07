@@ -41,6 +41,42 @@ the overlap. */}}
       "strategy" (dict "type" "Recreate")
     ) $cfg }}
 {{- end }}
+{{- /*
+OpenBao (secret store) TLS trust — values.yaml's secretStore.tls knob. The
+rule, not a per-service list: any workload whose own env carries
+XROAD_SECRET_STORE_HOST reaches the secret store (the same signal
+values.yaml already uses for 11 services today) and, when a CA Secret name
+is configured, gets the CA cert mounted at /etc/xroad/ssl/openbao.crt plus
+matching trust env — QUARKUS_VAULT_TLS_CA_CERT for every Quarkus service,
+the Spring pair for proxy-ui-api. Additive (concat, not replace) so it
+layers over whatever extraVolumes/extraVolumeMounts a service already
+carries (e.g. proxy's ds-https / messagelog-encryption mounts above).
+*/}}
+{{- if and $.Values.secretStore.tls.caSecretName (hasKey ($cfg.env | default dict) "XROAD_SECRET_STORE_HOST") }}
+{{- $trustVolumeName := printf "%s-openbao-tls-certificate" $service }}
+{{- $trustEnv := dict "QUARKUS_VAULT_TLS_CA_CERT" "/etc/xroad/ssl/openbao.crt" }}
+{{- if eq $service "proxy-ui-api" }}
+{{- $trustEnv = dict
+      "SPRING_CLOUD_VAULT_SSL_TRUST_STORE" "file:/etc/xroad/ssl/openbao.crt"
+      "SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE" "PEM"
+    }}
+{{- end }}
+{{- $cfg = merge (dict
+      "env" (merge $trustEnv ($cfg.env | default dict))
+      "extraVolumes" (concat ($cfg.extraVolumes | default list) (list (dict
+        "name" $trustVolumeName
+        "secret" (dict
+          "secretName" $.Values.secretStore.tls.caSecretName
+          "items" (list (dict "key" $.Values.secretStore.tls.caSecretKey "path" "openbao.crt"))
+        )
+      )))
+      "extraVolumeMounts" (concat ($cfg.extraVolumeMounts | default list) (list (dict
+        "mountPath" "/etc/xroad/ssl/openbao.crt"
+        "subPath" "openbao.crt"
+        "name" $trustVolumeName
+      )))
+    ) $cfg }}
+{{- end }}
 ---
 {{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $cfg) }}
 ---

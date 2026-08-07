@@ -1,7 +1,30 @@
 {{- $image := .Values.global.image }}
 {{- $archiver := .Values.messageLogArchiver }}
+{{- $archiverEnv := $archiver.env | default dict }}
 {{- $allVolumeMounts := concat ($archiver.volumeMounts | default list) ($archiver.extraVolumeMounts | default list) }}
 {{- $allVolumes := concat ($archiver.volumes | default list) ($archiver.extraVolumes | default list) }}
+{{- /*
+Same OpenBao TLS trust rule as services/all.yaml (values.yaml's
+secretStore.tls knob): the archiver/cleanup Job is the ephemeral workload
+that gets forgotten precisely because it isn't running when you look at
+the cluster (issue 16) — checking its env for XROAD_SECRET_STORE_HOST here
+covers it by the same rule rather than a special case.
+*/}}
+{{- if and .Values.secretStore.tls.caSecretName (hasKey $archiverEnv "XROAD_SECRET_STORE_HOST") }}
+{{- $archiverEnv = merge (dict "QUARKUS_VAULT_TLS_CA_CERT" "/etc/xroad/ssl/openbao.crt") $archiverEnv }}
+{{- $allVolumes = append $allVolumes (dict
+      "name" "message-log-archiver-openbao-tls-certificate"
+      "secret" (dict
+        "secretName" .Values.secretStore.tls.caSecretName
+        "items" (list (dict "key" .Values.secretStore.tls.caSecretKey "path" "openbao.crt"))
+      )
+    ) }}
+{{- $allVolumeMounts = append $allVolumeMounts (dict
+      "mountPath" "/etc/xroad/ssl/openbao.crt"
+      "subPath" "openbao.crt"
+      "name" "message-log-archiver-openbao-tls-certificate"
+    ) }}
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -36,7 +59,7 @@ data:
               env:
                 - name: JAVA_TOOL_OPTIONS
                   value: "-XX:MaxRAMPercentage={{ .Values.jvmHeap.maxRAMPercentage }}"
-              {{- range $name, $value := $archiver.env }}
+              {{- range $name, $value := $archiverEnv }}
                 - name: {{ $name }}
                   value: {{ $value | quote }}
               {{- end }}

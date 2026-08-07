@@ -19,6 +19,12 @@ security_server_wait_delay: 10
 
 openbao_tls_secret_name: openbao-server-tls
 
+# Mirrors the openbao role's own default (its defaults/main.yml is not
+# visible here — include_role does not leak role defaults across roles).
+# false = OpenBao serves TLS, so the chart's secretStore.tls knob is set
+# below; true (e2e/test) = no CA to trust, and the knob stays unset.
+openbao_global_tls_disable: false
+
 configuration_client_update_interval: "10"
 
 # op-monitor's records-available-timestamp-offset-seconds (chart/image default: 60s) delays how

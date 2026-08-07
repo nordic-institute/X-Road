@@ -35,10 +35,26 @@ init:
   opmonitor:
     dbUsername: {{ opmonitor_db.username }}
 
+# Single knob (chart's values.yaml secretStore.tls) replacing what used to be
+# per-workload QUARKUS_VAULT_TLS_CA_CERT / SPRING_CLOUD_VAULT_SSL_TRUST_STORE
+# env plus an openbao-tls-certificate volume+mount hand-wired onto every
+# service that reaches OpenBao. The chart now fans this out itself to every
+# workload whose env carries XROAD_SECRET_STORE_HOST (services/all.yaml,
+# message-log-archiver-job-configmap.yaml) — including the archiver/cleanup
+# Job, which is the workload this used to get missed on (issue 16). Set only
+# when OpenBao actually serves TLS (dev); e2e/test run
+# openbao_global_tls_disable: true, so there is no CA to trust and the
+# render stays exactly the chart's untouched default.
+{% if not (openbao_global_tls_disable | default(false) | bool) %}
+secretStore:
+  tls:
+    caSecretName: {{ openbao_tls_secret_name }}
+    caSecretKey: tls.crt
+{% endif %}
+
 {% set proxy_env = {
   'XROAD_PROXY_ADDON_OP_MONITOR_ENABLED': 'true',
   'XROAD_PROXY_DSP_ENABLED': proxy_dsp_enabled | string | lower,
-  'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt',
 } %}
 {% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
 {% set _ = proxy_env.update({
@@ -75,23 +91,22 @@ init:
 {% endif %}
 services:
 {% for svc, extra_env in [
-  ('configuration-client', {'XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL': configuration_client_update_interval, 'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
-  ('signer', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('configuration-client', {'XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL': configuration_client_update_interval}),
+  ('signer', {}),
   ('proxy', proxy_env),
-  ('monitor', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('monitor', {}),
 ] %}
+{% set has_extra_volumes = (ds_tls and svc == 'proxy') or (messagelog_encryption_enabled and svc == 'proxy') %}
+{% if extra_env or has_extra_volumes %}
   {{ svc }}:
+{% if extra_env %}
     env:
 {% for k, v in extra_env.items() %}
       {{ k }}: "{{ v }}"
 {% endfor %}
+{% endif %}
+{% if has_extra_volumes %}
     extraVolumes:
-      - name: {{ svc }}-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
 {% if ds_tls and svc == 'proxy' %}
       - name: {{ svc }}-ds-https
         secret:
@@ -103,9 +118,6 @@ services:
           name: message-log-encryption-config
 {% endif %}
     extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: {{ svc }}-openbao-tls-certificate
 {% if ds_tls and svc == 'proxy' %}
       - mountPath: /etc/xroad/ssl/{{ ds_truststore_file }}
         subPath: {{ ds_truststore_file }}
@@ -119,13 +131,13 @@ services:
         subPath: application.yaml
         name: message-log-encryption-config
 {% endif %}
+{% endif %}
+{% endif %}
 {% endfor %}
 
+{% if ds_tls %}
   proxy-ui-api:
     env:
-      SPRING_CLOUD_VAULT_SSL_TRUST_STORE: "file:/etc/xroad/ssl/openbao.crt"
-      SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE: "PEM"
-{% if ds_tls %}
       # Dataspace provisioning via the proxy-ui-api endpoint (replaces the manual IH/CP seed).
       # identity-hub-url is the advertised identity-hub host, so the derived holder DID /
       # credentialService / STS URL resolve for whoever issues credentials — each release's own
@@ -136,44 +148,20 @@ services:
       XROAD_PROXY_UI_API_DATASPACE_MANAGEMENT_CONTEXT_ENABLED: "{{ (ds_mgmt_context_enabled | default(false) | bool) | ternary('true', 'false') }}"
       XROAD_PROXY_UI_API_DATASPACE_ISSUER_DID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
 {% endif %}
-    extraVolumes:
-      - name: proxy-ui-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: proxy-ui-openbao-tls-certificate
 
   op-monitor:
     enabled: true
-    env:
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
 {% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
+    env:
       XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS: "{{ op_monitor_records_available_offset_seconds }}"
 {% endif %}
-    extraVolumes:
-      - name: op-monitor-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: op-monitor-openbao-tls-certificate
 
 {% if proxy_dsp_enabled %}
   # DSP services — bump replicas from chart default of 0. DB clusters are
-  # provisioned by the cloudnative_pg role (see ds_*_db vars).
-  # ds-* services talk to OpenBao over HTTPS via the Quarkus vault client,
-  # so they need the same openbao TLS cert mount as proxy/signer/monitor.
-  # With ds_tls the shared self-signed keystore (ds-https-keystore chart)
-  # lights up HTTPS on every EDC port.
+  # provisioned by the cloudnative_pg role (see ds_*_db vars). OpenBao TLS
+  # trust is the chart's secretStore.tls knob (set once, above), not
+  # per-service here. With ds_tls the shared self-signed keystore
+  # (ds-https-keystore chart) lights up HTTPS on every EDC port.
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1
@@ -191,9 +179,8 @@ services:
       port: 4099
       scheme: "HTTP"
 {% endif %}
-    env:
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
 {% if ds_tls %}
+    env:
       EDC_WEB_HTTPS_KEYSTORE_PATH: "/etc/xroad/ssl/ds-https.p12"
       EDC_WEB_HTTPS_KEYSTORE_TYPE: "PKCS12"
       EDC_WEB_HTTPS_KEYSTORE_PASSWORD: "changeit"
@@ -207,24 +194,11 @@ services:
       EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ds_ih_host }}"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
-{% endif %}
     extraVolumes:
-      - name: {{ svc }}-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-{% if ds_tls %}
       - name: {{ svc }}-ds-https
         secret:
           secretName: ds-https-keystore
-{% endif %}
     extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: {{ svc }}-openbao-tls-certificate
-{% if ds_tls %}
       - mountPath: /etc/xroad/ssl/ds-https.p12
         subPath: ds-https.p12
         name: {{ svc }}-ds-https
@@ -237,77 +211,39 @@ services:
 {% if softtoken_signer_enabled | default(false) | bool %}
   softtoken-signer:
     replicas: 1
-    env:
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
-    extraVolumes:
-      - name: softtoken-signer-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: softtoken-signer-openbao-tls-certificate
 {% endif %}
+{% if (serverconf_init_image | length > 0) or (messagelog_archive_cron | default('') | length > 0) or (messagelog_clean_cron | default('') | length > 0) %}
   auxiliary-service:
     env:
 {% if serverconf_init_image | length > 0 %}
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
 {% endif %}
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
 {% if (messagelog_archive_cron | default('')) | length > 0 %}
       XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_ARCHIVE_CRON: "{{ messagelog_archive_cron }}"
 {% endif %}
 {% if (messagelog_clean_cron | default('')) | length > 0 %}
       XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_CLEAN_CRON: "{{ messagelog_clean_cron }}"
 {% endif %}
-    extraVolumes:
-      - name: auxiliary-service-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: auxiliary-service-openbao-tls-certificate
+{% endif %}
 
+{% if messagelog_encryption_enabled or ((messagelog_archiver_clean_keep_records_for | default('')) | length > 0) %}
 messageLogArchiver:
-  env:
-    QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
 {% if (messagelog_archiver_clean_keep_records_for | default('')) | length > 0 %}
+  env:
     XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR: "{{ messagelog_archiver_clean_keep_records_for }}"
 {% endif %}
-  # The archiver's own Pod gets none of the auxiliary-service Deployment's mounts,
-  # so the CA cert QUARKUS_VAULT_TLS_CA_CERT above names has to be mounted here too.
-  # Unconditional: any archiver run that reaches OpenBao needs it, and messagelog
-  # encryption makes that mandatory rather than incidental — without it the Vault
-  # read fails closed as "No encryption keys found in Vault".
-  extraVolumes:
-    - name: message-log-archiver-openbao-tls-certificate
-      secret:
-        secretName: {{ openbao_tls_secret_name }}
-        items:
-          - key: tls.crt
-            path: openbao.crt
 {% if messagelog_encryption_enabled %}
+  extraVolumes:
     - name: message-log-encryption-config
       configMap:
         name: message-log-encryption-config
-{% endif %}
   extraVolumeMounts:
-    - mountPath: /etc/xroad/ssl/openbao.crt
-      subPath: openbao.crt
-      name: message-log-archiver-openbao-tls-certificate
-{% if messagelog_encryption_enabled %}
     # Same Job template serves both the archive and cleanup CLI invocations, so
     # one mount covers both — see MessageLogEncryptionProperties.
     - mountPath: /opt/app/config/application.yaml
       subPath: application.yaml
       name: message-log-encryption-config
+{% endif %}
 {% endif %}
 
 {% if messagelog_encryption_enabled %}
