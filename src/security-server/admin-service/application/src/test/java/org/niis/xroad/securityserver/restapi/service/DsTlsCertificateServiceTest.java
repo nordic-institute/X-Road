@@ -130,15 +130,31 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
-    void getEnrollmentStatusShouldReturnNoneWhenNoCertificateIsStored() throws Exception {
+    void getEnrollmentStatusShouldReturnNoneWithNoErrorWhenThereIsGenuinelyNoRecord() throws Exception {
         when(vaultClient.getDsHttpsTlsCredentials())
                 .thenThrow(XrdRuntimeException.systemException(MISSING_SECRET).build());
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus()).thenReturn(Optional.empty());
 
         var status = service.getEnrollmentStatus();
 
         assertThat(status.enrollmentMethod()).isEqualTo(EnrollmentMethod.NONE);
         assertThat(status.nextRenewalTime()).isNull();
         assertThat(status.lastError()).isNull();
+    }
+
+    @Test
+    void getEnrollmentStatusShouldSurfaceRecordedErrorWhenFirstEnrollmentIsFailingAndNoCertificateExistsYet()
+            throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenThrow(XrdRuntimeException.systemException(MISSING_SECRET).build());
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "eab credentials missing")));
+
+        var status = service.getEnrollmentStatus();
+
+        assertThat(status.enrollmentMethod()).isEqualTo(EnrollmentMethod.NONE);
+        assertThat(status.nextRenewalTime()).isNull();
+        assertThat(status.lastError()).isEqualTo("eab credentials missing");
     }
 
     @Test

@@ -55,7 +55,9 @@ public class DsTlsCertificateService {
 
     /**
      * Enrollment method and ACME renewal bookkeeping for the dataspace TLS certificate, as surfaced through the
-     * enrollment-status API. {@code NONE} means no certificate has been stored yet - neither uploaded nor enrolled.
+     * enrollment-status API. {@code NONE} means no certificate has been stored yet - neither uploaded nor
+     * enrolled - but a non-null {@code lastError} alongside {@code NONE} means a first ACME enrollment attempt
+     * exists and is failing; nothing is configured or served, yet the admin still needs to see why.
      */
     public record EnrollmentStatusView(EnrollmentMethod enrollmentMethod, Instant nextRenewalTime, String lastError) {
         public enum EnrollmentMethod { NONE, MANUAL, ACME }
@@ -99,12 +101,23 @@ public class DsTlsCertificateService {
      * Returns the current enrollment status: {@code NONE} when no certificate is stored at all, {@code MANUAL}
      * when a certificate exists but no enrollment status has ever been recorded for it (credentials written by a
      * build predating this status tracking default safely to manual), or the recorded method otherwise.
+     * <p>
+     * When no certificate is stored yet but an enrollment-status record exists - a first ACME enrollment attempt
+     * that has never yet succeeded - the recorded {@code lastError} (and {@code nextRenewalTime}, if the ACME
+     * server has ever suggested one) rides along with {@code NONE}: nothing is configured or served, but the
+     * admin still needs to see why enrollment keeps failing rather than a bare "not configured".
      */
     public EnrollmentStatusView getEnrollmentStatus() {
+        var recordedStatus = vaultClient.getDsHttpsTlsEnrollmentStatus();
         if (!dataspaceTlsCertificateExists()) {
-            return new EnrollmentStatusView(EnrollmentStatusView.EnrollmentMethod.NONE, null, null);
+            return recordedStatus
+                    .map(status -> new EnrollmentStatusView(
+                            EnrollmentStatusView.EnrollmentMethod.NONE,
+                            status.nextRenewalTime(),
+                            status.lastError()))
+                    .orElse(new EnrollmentStatusView(EnrollmentStatusView.EnrollmentMethod.NONE, null, null));
         }
-        return vaultClient.getDsHttpsTlsEnrollmentStatus()
+        return recordedStatus
                 .map(status -> new EnrollmentStatusView(
                         EnrollmentStatusView.EnrollmentMethod.valueOf(status.method().name()),
                         status.nextRenewalTime(),
