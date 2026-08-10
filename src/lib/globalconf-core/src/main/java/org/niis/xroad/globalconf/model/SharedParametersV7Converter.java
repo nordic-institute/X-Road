@@ -54,6 +54,9 @@ import java.util.Optional;
 public class SharedParametersV7Converter {
 
     SharedParameters convert(SharedParametersTypeV7 source) {
+        if (source == null) {
+            return null;
+        }
         String instanceIdentifier = source.getInstanceIdentifier();
         List<SharedParameters.ConfigurationSource> configurationSources = getConfigurationSources(source.getSource());
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());

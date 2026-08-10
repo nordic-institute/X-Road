@@ -420,35 +420,19 @@ public class VersionedConfigurationDirectoryTest {
         assertFalse(pathExists(configurationFiles, rootDir + "/bar/private-params.xml"));
         assertFalse(pathExists(configurationFiles, rootDir + "/bar/private-params.xml.metadata"));
 
-        assertTrue(pathExists(configurationFiles, rootDir + "/EE/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/EE/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/EE/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/EE/private-params.xml.metadata"));
+        assertHasSharedAndPrivateParams(configurationFiles, rootDir, "EE");
+        assertHasSharedAndPrivateParams(configurationFiles, rootDir, "foo_v2");
+        assertHasSharedAndPrivateParams(configurationFiles, rootDir, "baz_v3");
+        assertHasSharedAndPrivateParams(configurationFiles, rootDir, "qux_v4");
+        assertHasSharedAndPrivateParams(configurationFiles, rootDir, "quux_v5");
+        assertHasSharedAndPrivateParams(configurationFiles, rootDir, "corge_v6");
+    }
 
-        assertTrue(pathExists(configurationFiles, rootDir + "/foo_v2/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/foo_v2/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/foo_v2/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/foo_v2/private-params.xml.metadata"));
-
-        assertTrue(pathExists(configurationFiles, rootDir + "/baz_v3/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/baz_v3/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/baz_v3/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/baz_v3/private-params.xml.metadata"));
-
-        assertTrue(pathExists(configurationFiles, rootDir + "/qux_v4/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/qux_v4/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/qux_v4/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/qux_v4/private-params.xml.metadata"));
-
-        assertTrue(pathExists(configurationFiles, rootDir + "/quux_v5/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/quux_v5/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/quux_v5/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/quux_v5/private-params.xml.metadata"));
-
-        assertTrue(pathExists(configurationFiles, rootDir + "/corge_v6/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/corge_v6/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/corge_v6/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/corge_v6/private-params.xml.metadata"));
+    private void assertHasSharedAndPrivateParams(List<Path> configurationFiles, String rootDir, String instanceDir) {
+        assertTrue(pathExists(configurationFiles, rootDir + "/" + instanceDir + "/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/" + instanceDir + "/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/" + instanceDir + "/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/" + instanceDir + "/private-params.xml.metadata"));
     }
 
 
