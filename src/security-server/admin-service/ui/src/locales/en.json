@@ -1109,8 +1109,8 @@
             "automatic-activate-acme-sign-certificate": "If enabled, signing certificates are activated automatically when they have been ordered from via ACME (new or renew)",
             "acme-authorization-wait-attempts": "Number of attempts to check whether the ACME authorizations have completed before giving up",
             "acme-authorization-wait-interval": "Amount of time in milliseconds to wait between ACME authorization completion check attempts",
-            "acme-certification-wait-attempts": "Number of attempts to poll for ACME certificate issuance.",
-            "acme-certification-wait-interval": "Seconds between ACME certificate issuance polling attempts.",
+            "acme-certificate-wait-attempts": "Number of attempts to poll for ACME certificate issuance.",
+            "acme-certificate-wait-interval": "Seconds between ACME certificate issuance polling attempts.",
             "acme-certificate-account-key-pair-expiration": "Amount of days the ACME server account's self-signed certificate is valid",
             "acme-challenge-port-enabled": "If enabled, the API will listen on acme challenge port (default 80) for incoming ACME challenge requests",
             "acme-challenge-port": "Custom port number for ACME challenges. When set, the Security Server host's port 80 needs to redirect to this port, because ACME Servers always use port 80 for the challenge.",
@@ -1127,7 +1127,6 @@
             "proxy-tls-cipher-suites": "TLS cipher suites accepted by the Admin API proxy connection.",
             "key-management-api-whitelist": "Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management endpoints using basic authentication",
             "regular-api-whitelist": "Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular endpoints using api key authentication",
-            "configurable-properties-path": "Classpath or file path to the configurable-properties YAML file.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Vault PKI role name used when provisioning the Admin API TLS certificate.",
@@ -1145,7 +1144,6 @@
             "health-check-port": "The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.",
             "health-check-interface": "The network interface where the health check service listens to requests. Default is all available interfaces.",
             "hsm-health-check-enabled": "When enabled, the health-check endpoint also verifies HSM availability.",
-            "memory-usage-threshold": "Maximum allowed percentage (0-100) of proxy memory usage before the health check starts failing. Leave empty to disable.",
             "message-sign-digest-name": "Digest algorithm used to sign X-Road messages.",
             "verify-client-cert": "When enabled, the server proxy verifies the client proxy's TLS certificate.",
             "log-client-cert": "Whether to log client certificate subject information.",
@@ -1467,6 +1465,11 @@
             "db": {
               "encryption-enabled": "When enabled, message bodies are stored in the database in encrypted form.",
               "key-id": "Identifier of the encryption key used for database-level message log encryption."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Maximum allowed percentage (0-100) of heap memory usage before the liveness health check reports DOWN. Unset means the check never fails; containers default to 95."
             }
           },
           "common": {

@@ -26,79 +26,60 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
-/**
- * Business configuration for DSP asset access requests.
- */
-@ConfigMapping(prefix = "xroad.proxy.dsp")
-public interface AssetAccessClientProperties {
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_DEFAULT_TTL;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_CACHE_MAXIMUM_SIZE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_PARTICIPANT_CONTEXT_ID;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_PROTOCOL;
+
+/** Business configuration for DSP asset access requests ({@code xroad.proxy.dsp.*}). */
+@RequiredArgsConstructor
+public class AssetAccessClientProperties {
+
+    private final XRoadConfig xRoadConfig;
 
     /**
-     * The participant context ID used when calling the control plane asset access endpoint.
-     *
-     * <p>Per-SS local routing label that must match the {@code @id} used when seeding the
-     * Control Plane {@code ParticipantContext} on this SS. Convention: equal to the SS hostname
-     * (e.g. {@code xrd-ss0}, {@code xrd-ss1}). No default — must be set explicitly per SS via
-     * local config so a misconfigured deployment fails fast at startup rather than silently
-     * routing through a shared placeholder.
-     *
-     * @return participant context ID
+     * @return participant context ID used when calling the control plane asset access endpoint.
+     * No default — must be set explicitly per SS.
      */
-    @WithName("participant-context-id")
-    String participantContextId();
+    public String participantContextId() {
+        return xRoadConfig.value(DSP_PARTICIPANT_CONTEXT_ID);
+    }
 
-    /**
-     * The DSP protocol identifier for negotiation.
-     *
-     * @return protocol identifier
-     */
-    @WithDefault("http-dsp-profile-2025-1")
-    String protocol();
+    /** @return DSP protocol identifier for negotiation */
+    public String protocol() {
+        return xRoadConfig.value(DSP_PROTOCOL);
+    }
 
-    /**
-     * Asset access response cache configuration.
-     *
-     * @return cache configuration
-     */
-    Cache cache();
+    /** @return asset access response cache configuration */
+    public Cache cache() {
+        return new Cache(xRoadConfig);
+    }
 
-    /**
-     * Cache configuration for acquired asset access responses.
-     */
-    interface Cache {
+    /** Cache configuration for acquired asset access responses. */
+    @RequiredArgsConstructor
+    public static class Cache {
 
-        /**
-         * Whether the cache is enabled. When disabled, every {@code acquireAssetAccess} call
-         * results in a fresh gRPC round-trip to the control plane.
-         *
-         * @return {@code true} if caching is enabled
-         */
-        @WithDefault("true")
-        boolean enabled();
+        private final XRoadConfig xRoadConfig;
 
-        /**
-         * Default TTL applied to a cached entry when the control plane response does not
-         * carry an explicit {@code expiresAtEpochSeconds}.
-         *
-         * @return default TTL duration
-         */
-        @WithName("default-ttl")
-        @WithDefault("PT5M")
-        Duration defaultTtl();
+        /** @return whether the cache is enabled */
+        public boolean enabled() {
+            return xRoadConfig.value(DSP_CACHE_ENABLED);
+        }
 
-        /**
-         * Maximum number of entries kept in the cache. Once exceeded, entries are evicted
-         * by Caffeine's size-based policy.
-         *
-         * @return maximum number of cache entries
-         */
-        @WithName("maximum-size")
-        @WithDefault("10000")
-        long maximumSize();
+        /** @return default TTL for a cached entry */
+        public Duration defaultTtl() {
+            return xRoadConfig.value(DSP_CACHE_DEFAULT_TTL);
+        }
+
+        /** @return maximum number of entries in the cache */
+        public long maximumSize() {
+            return xRoadConfig.value(DSP_CACHE_MAXIMUM_SIZE);
+        }
     }
 }

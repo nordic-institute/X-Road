@@ -28,6 +28,7 @@ package org.niis.xroad.globalconf.impl.config;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
@@ -44,6 +45,11 @@ import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.GlobalC
 
 @Slf4j
 public class GlobalConfConfig {
+
+    @ApplicationScoped
+    public GlobalConfProperties globalConfProperties(XRoadConfig config) {
+        return new XRoadGlobalConfProperties(config);
+    }
 
     @ApplicationScoped
     public GlobalConfProvider globalConfProvider(GlobalConfSource source) {

@@ -41,14 +41,11 @@ public class ConfigurationPropertyDAOImpl extends AbstractDAOImpl<ConfigurationP
      * @param propertyKey the property key
      * @return Entity object containing the property if found
      */
-    public ConfigurationPropertyEntity getConfigurationProperty(Session session, String propertyKey, String scope) {
+    public ConfigurationPropertyEntity getConfigurationProperty(Session session, String propertyKey) {
         return session.createQuery(
-                        "FROM ConfigurationPropertyEntity "
-                                + "WHERE propertyKey = :propertyKey "
-                                + "AND ((:scope IS NULL AND scope IS NULL) OR scope = :scope)",
+                        "FROM ConfigurationPropertyEntity WHERE propertyKey = :propertyKey",
                         ConfigurationPropertyEntity.class)
                 .setParameter("propertyKey", propertyKey)
-                .setParameter("scope", scope, String.class)
                 .uniqueResult();
     }
 }

@@ -8,25 +8,32 @@
 # Compose parks these on the auxiliary-service container only (env vars on that service in
 # compose.ss-msglog.e2e.yaml); the e2e scenarios trigger archive/cleanup manually via the CLI for
 # deterministic timing. "off" is accepted by Quarkus SchedulerUtils.isOff for both properties.
-- name: preseed auxiliary-service message-log cron parking into local.yaml
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^xroad:'
-    marker: "  # {mark} MESSAGELOG ARCHIVE/CLEAN CRON PARKING (lxd dev preseed)"
-    block: "  auxiliary-service:\n    message-log:\n      archive-cron: \"off\"\n      clean-cron: \"off\""
+- name: seed auxiliary-service message-log cron parking
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item }}"
+      - "off"
+      - --yes
+  loop:
+    - xroad.auxiliary-service.message-log.archive-cron
+    - xroad.auxiliary-service.message-log.clean-cron
   notify: restart xroad-auxiliary-service
 
-# xroad.message-log-archiver.clean-keep-records-for defaults to 30 (days) — compose overrides it
-# via XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR=0 on message-log-cli so a freshly archived
-# record is eligible for cleanup immediately. Read by the CLI process itself (not
-# auxiliary-service), so it only needs to land in local.yaml — no restart, the CLI re-reads config
-# on every invocation.
-- name: preseed messagelog archiver immediate-cleanup retention into local.yaml
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^xroad:'
-    marker: "  # {mark} MESSAGELOG ARCHIVER CLEANUP RETENTION (lxd dev preseed)"
-    block: "  message-log-archiver:\n    clean-keep-records-for: 0"
+# xroad.message-log-archiver.clean-keep-records-for defaults to 30 (days) — compose seeds 0 so a
+# freshly archived record is eligible for cleanup immediately. Read by the CLI process itself
+# (not auxiliary-service), so no restart is needed: the CLI resolves config on every invocation.
+- name: seed messagelog archiver immediate-cleanup retention
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.message-log-archiver.clean-keep-records-for
+      - "0"
+      - --yes
 
 # xrd-ss1-ONLY, mirroring compose: ComposeEnvSetup.importPublicKeysToBao is only called for the
 # envSs1 environment (guarded by features.contains(Feature.MESSAGE_LOG_ENCRYPTION)) — ss0 never

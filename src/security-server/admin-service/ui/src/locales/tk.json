@@ -953,8 +953,8 @@
             "automatic-activate-acme-sign-certificate": "Işe girizilende, gol çekme şahadatnamalary ACME arkaly sargyt edilenden soň awtomatiki işe girizilýär (täze ýa-da täzeleme).",
             "acme-authorization-wait-attempts": "Vazgeçmezden öň ACME ygtyýarlandyrmalarynyň tamamlanmagyny barlamak üçin synanyşyk sany.",
             "acme-authorization-wait-interval": "ACME ygtyýarlandyrma tamamlanma barlag synanyşyklarynyň arasynda millisekuntlarda garaşma wagty.",
-            "acme-certification-wait-attempts": "ACME şahadatnamasy beriliş üçin soralmak synanyşyk sany.",
-            "acme-certification-wait-interval": "ACME şahadatnamasy beriliş soralmak synanyşyklarynyň arasynda sekuntlar.",
+            "acme-certificate-wait-attempts": "ACME şahadatnamasy beriliş üçin soralmak synanyşyk sany.",
+            "acme-certificate-wait-interval": "ACME şahadatnamasy beriliş soralmak synanyşyklarynyň arasynda sekuntlar.",
             "acme-certificate-account-key-pair-expiration": "ACME serwer hasabynyň öz-özüne gol çekilen şahadatnamasynyň näçe gün geçerlidiginiň möçberi.",
             "acme-challenge-port-enabled": "Işe girizilende, API gelen ACME challenge soraglary üçin acme challenge portunda (deslapky 80) diňleýär.",
             "acme-challenge-port": "ACME challengeleri üçin özel port belgisi. Kesgitlenende, ACME Serwerleri challenge üçin hemişe 80 portyny ulanýandygy sebäpli Howpsuzlyk Serweriniň 80-nji porty bu porta gönükdirilmeli.",
@@ -971,7 +971,6 @@
             "proxy-tls-cipher-suites": "Admin API proksi birikme tarapyndan kabul edilýän TLS şifrlemesi toplumlar.",
             "key-management-api-whitelist": "Esasy tassyklama ulanyp açar dolandyryş nokatlaryna jaň etmäge rugsat berilen CIDR belgilemesindäki sada IP salgylaryny ýa-da salgylaryň aralygyny öz içine alýan ütirli-bölünen sanaw.",
             "regular-api-whitelist": "API açar tassyklamasy ulanyp adaty nokatlara jaň etmäge rugsat berilen CIDR belgilemesindäki sada IP salgylaryny ýa-da salgylaryň aralygyny öz içine alýan ütirli-bölünen sanaw.",
-            "configurable-properties-path": "Sazlanylýan häsiýetler YAML faýlyna klasspath ýa-da faýl ýoly.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Admin API TLS şahadatnamasy üpjün edilende ulanylýan Vault PKI rol ady.",
@@ -989,7 +988,6 @@
             "health-check-port": "Saglyk barlag gullugynyň soraglary diňleýän TCP porty. Porty 0 etmek saglyk barlag gullugy doly öçürýär.",
             "health-check-interface": "Saglyk barlag gullugynyň soraglary diňleýän tor araýüzi. Deslapky ähli elýeterli araýüzlerdir.",
             "hsm-health-check-enabled": "Işe girizilende, saglyk barlag nokatynda HSM elýeterliligini hem barlaýar.",
-            "memory-usage-threshold": "Saglyk barlagy şowsuzlyga başlamazdan öň rugsat berilen proksi hakyda ulanylyşynyň iň uly göterimi (0-100). Öçürmek üçin boş goýuň.",
             "message-sign-digest-name": "X-Road habarlaryna gol çekmek üçin ulanylýan şifrlemesi algoritmi.",
             "verify-client-cert": "Işe girizilende, serwer proksi müşderi proksisiniň TLS şahadatnamasyny barlaýar.",
             "log-client-cert": "Müşderi şahadatnamasy subýekt maglumatlarynyň ýazyljakdygy.",
@@ -1311,6 +1309,11 @@
             "db": {
               "encryption-enabled": "Işe girizilende, habar eserasy bazasynda şifrlenip saklanylýar.",
               "key-id": "Maglumat bazasy derejesindäki habar ýazgy şifrlemesi üçin ulanylýan şifrlemesi açarynyň identifikatory."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Saglyk barlagy şowsuzlyga başlamazdan öň rugsat berilen hakyda ulanylyşynyň iň uly göterimi (0-100). Baha berilmese barlag hiç haçan şowsuz bolmaýar; konteýnerlerde deslapky baha 95."
             }
           },
           "common": {

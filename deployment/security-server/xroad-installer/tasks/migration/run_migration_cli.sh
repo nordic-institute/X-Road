@@ -232,8 +232,8 @@ main() {
       "$ini_file" "/etc/xroad/db.properties"
   done
 
-  # properties-to-db (ssl): migrate the SSL properties file under the
-  # proxy-ui-api scope. Path is configured in local.ini
+  # properties-to-db (ssl): migrate the SSL properties file into the
+  # configuration database. Path is configured in local.ini
   # (proxy-ui-api.ssl-properties); fall back to the canonical default.
   # Distinct sentinel id so future properties-to-db steps don't collide.
   local ssl_properties_file
@@ -241,8 +241,8 @@ main() {
     || echo "/etc/xroad/ssl.properties")
   if [[ -f "$ssl_properties_file" ]]; then
     run_migration_step "properties-to-db" --id "properties-to-db-ssl" \
-      --description "Migrate SSL properties\n  from: $ssl_properties_file\n  into: configuration database (proxy-ui-api scope)" \
-      "$ssl_properties_file" "/etc/xroad/db.properties" "proxy-ui-api"
+      --description "Migrate SSL properties\n  from: $ssl_properties_file\n  into: configuration database" \
+      "$ssl_properties_file" "/etc/xroad/db.properties"
   else
     log_info "SSL properties file not found at $ssl_properties_file — skipping properties-to-db (ssl) migration"
   fi
@@ -273,24 +273,24 @@ main() {
   fi
 
   # file-to-db (acme): stores the entire contents of acme.yml under property
-  # key xroad.acme (scope: proxy-ui-api). Distinct sentinel id so it doesn't
-  # collide with the mail file-to-db sentinel below.
+  # key xroad.acme. Distinct sentinel id so it doesn't collide with the mail
+  # file-to-db sentinel below.
   local acme_yml="/etc/xroad/conf.d/acme.yml"
   if [[ -f "$acme_yml" ]]; then
     run_migration_step "file-to-db" --id "file-to-db-acme" \
-      --description "Migrate ACME configuration (full file contents)\n  from: $acme_yml\n  into: configuration database\n  key:  xroad.acme (proxy-ui-api scope)" \
-      "$acme_yml" "/etc/xroad/db.properties" "xroad.acme" "proxy-ui-api"
+      --description "Migrate ACME configuration (full file contents)\n  from: $acme_yml\n  into: configuration database\n  key:  xroad.acme" \
+      "$acme_yml" "/etc/xroad/db.properties" "xroad.acme"
   else
     log_info "ACME configuration file not found at $acme_yml — skipping file-to-db (acme) migration"
   fi
 
   # file-to-db (mail): stores the entire contents of mail.yml under property
-  # key xroad.mail-notification (scope: proxy-ui-api).
+  # key xroad.mail-notification.
   local mail_yml="/etc/xroad/conf.d/mail.yml"
   if [[ -f "$mail_yml" ]]; then
     run_migration_step "file-to-db" --id "file-to-db-mail" \
-      --description "Migrate mail notification configuration (full file contents)\n  from: $mail_yml\n  into: configuration database\n  key:  xroad.mail-notification (proxy-ui-api scope)" \
-      "$mail_yml" "/etc/xroad/db.properties" "xroad.mail-notification" "proxy-ui-api"
+      --description "Migrate mail notification configuration (full file contents)\n  from: $mail_yml\n  into: configuration database\n  key:  xroad.mail-notification" \
+      "$mail_yml" "/etc/xroad/db.properties" "xroad.mail-notification"
   else
     log_info "Mail notification configuration file not found at $mail_yml — skipping file-to-db (mail) migration"
   fi

@@ -142,6 +142,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     MEMBER_NAME_NOT_FOUND("member_name_not_found"),
     INVALID_MEMBER_CLASS(ERROR_INVALID_MEMBER_CLASS),
     INVALID_INSTANCE_IDENTIFIER(ERROR_INVALID_INSTANCE_IDENTIFIER),
+    INVALID_PROPERTY_VALUE("invalid_property_value"),
     INSTANCE_IDENTIFIER_NOT_FOUND("instance_identifier_not_found"),
 
     INVALID_CONNECTION_TYPE(ERROR_INVALID_CONNECTION_TYPE),

@@ -1,0 +1,88 @@
+{{/*
+Seeds `.Values.configSeed.properties` into the serverconf
+`configuration_properties` table. The XRoadConfig DSL resolves DB overrides
+and packaged defaults only — pod env vars carrying xroad.* keys are ignored —
+so every non-default value the chart used to set through env must be a row
+here. Services that resolve these rows at startup declare a
+`{type: serverconfProperty}` wait so their pods block until the seed lands.
+
+Hook strategy (post-install/post-upgrade, weighted, delete-on-success):
+post-install/post-upgrade (db-serverconf must be Ready first), re-created on
+upgrade (Job.spec.template is immutable), successful Jobs cleaned up.
+
+Rows are upserted by property_key: INSERT ... ON CONFLICT DO NOTHING against
+the unique index on (property_key), followed by an
+UPDATE so upgrades refresh values.
+*/}}
+{{- if .Values.configSeed.properties }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-config-seed" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+    app: xroad-config-seed
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        {{- include "xroad.labels" . | nindent 8 }}
+        app: xroad-config-seed
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext.pod | nindent 8 }}
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      initContainers:
+        {{- include "xroad.dsp.wait.serverconfQuery" (dict
+              "root" $
+              "name" "wait-db-serverconf"
+              "sql" "SELECT 1 FROM configuration_properties LIMIT 1"
+              "requireNonEmpty" false
+              "timeoutMsg" "configuration_properties table not present in db-serverconf (Liquibase likely not finished)."
+              "timeoutHint" "kubectl logs job/serverconf-db-init") | nindent 8 }}
+      containers:
+        - name: seed
+          image: {{ .Values.postgres.image | quote }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext.container | nindent 12 }}
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-serverconf
+                  key: password
+          command: ["sh", "-c"]
+          # Quoted heredoc: the shell never interprets the SQL, so the only escaping needed
+          # is SQL's own doubled single quote, applied per key/value by the template.
+          args:
+            - |
+              psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+              SET search_path TO {{ .Values.init.serverconf.schema | default "public" }}, public;
+              {{- range .Values.configSeed.properties }}
+              INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
+                VALUES ('{{ .key | replace "'" "''" }}', '{{ .value | replace "'" "''" }}', now(), now())
+                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
+              {{- end }}
+              SQL
+          resources:
+            {{- toYaml .Values.waitGate.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+{{- end }}

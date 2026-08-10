@@ -19,6 +19,7 @@ dependencies {
 
   implementation(project(":lib:asic-core"))
   implementation(project(":lib:globalconf-impl"))
+  implementation(project(":lib:properties-core"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:keyconf-impl"))
@@ -49,6 +50,7 @@ dependencies {
 
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
+  testFixturesImplementation(project(":lib:properties-core"))
   testFixturesImplementation(project(":lib:messagelog-core"))
   testFixturesImplementation(project(":service:configuration-client:configuration-client-rpc-client"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))

@@ -59,7 +59,4 @@ public class ConfigurationPropertyEntity extends AuditableEntity {
     @Column(name = "property_value", nullable = false, length = 4096)
     private String propertyValue;
 
-    @Column(name = "scope")
-    private String scope;
-
 }

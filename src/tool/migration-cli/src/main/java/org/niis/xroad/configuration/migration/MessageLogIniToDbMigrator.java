@@ -98,7 +98,7 @@ public class MessageLogIniToDbMigrator extends BasePropertiesToDbMigrator {
 
     static void main(String[] args) {
         validateParams(args);
-        new MessageLogIniToDbMigrator().migrate(args[0], args[1], null);
+        new MessageLogIniToDbMigrator().migrate(args[0], args[1]);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

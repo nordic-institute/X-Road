@@ -29,6 +29,8 @@ package org.niis.xroad.cs.admin.core.config;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
@@ -98,16 +100,12 @@ public class BootstrapConfiguration {
 
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            var env = context.getEnvironment();
-            boolean enabled = env.getProperty("xroad.admin-service.rate-limit-enabled", Boolean.class, true);
-            if (!enabled) {
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), CsAdminServiceConfigKeys.instance());
+            if (!config.value(CsAdminServiceConfigKeys.RATE_LIMIT_ENABLED)) {
                 return false;
             }
-            int perSecond = env.getProperty(
-                    "xroad.admin-service.rate-limit-requests-per-second", Integer.class, 0);
-            int perMinute = env.getProperty(
-                    "xroad.admin-service.rate-limit-requests-per-minute", Integer.class, 0);
-            return perSecond > 0 || perMinute > 0;
+            return config.value(CsAdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND) > 0
+                    || config.value(CsAdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE) > 0;
         }
     }
 }

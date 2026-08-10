@@ -32,19 +32,24 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CertUtils;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CertHashBasedOcspResponderClientTest {
 
     private static final ProxyProperties.OcspResponderProperties PROPS =
-            ConfigUtils.defaultConfiguration(ProxyProperties.OcspResponderProperties.class);
+            new ProxyProperties.OcspResponderProperties(XRoadConfigBuilder.create()
+                    .register(ProxyConfigKeys.instance())
+                    .overrides(Map.of())
+                    .build());
 
     /**
      * Regression guard for X-Road 7.x interoperability.

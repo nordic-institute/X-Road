@@ -31,11 +31,5 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 /**
  * Channel properties for the gRPC client to the Control Plane provisioning service.
  */
-@SuppressWarnings("checkstyle:InterfaceIsType")
 public interface ControlPlaneProvisioningRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.dataspace.control-plane-provisioning.rpc";
-
-    String DEFAULT_HOST = "ds-control-plane";
-    String DEFAULT_PORT = "5461";
-    String DEFAULT_DEADLINE_AFTER = "60000";
 }

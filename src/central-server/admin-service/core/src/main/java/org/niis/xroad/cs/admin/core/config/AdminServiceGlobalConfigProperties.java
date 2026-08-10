@@ -26,18 +26,29 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.cs.admin.api.service.config.GlobalConfigDirectories;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "xroad.admin-service.global-conf-generator")
+/**
+ * Admin-service global configuration directories ({@code xroad.admin-service.global-conf-generator.*}),
+ * resolved through {@link XRoadConfig}.
+ */
 public class AdminServiceGlobalConfigProperties implements GlobalConfigDirectories {
 
-    private String internalDirectory;
-    private String externalDirectory;
+    private final XRoadConfig config;
+
+    public AdminServiceGlobalConfigProperties(XRoadConfig config) {
+        this.config = config;
+    }
+
+    @Override
+    public String getInternalDirectory() {
+        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_INTERNAL_DIRECTORY);
+    }
+
+    @Override
+    public String getExternalDirectory() {
+        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_EXTERNAL_DIRECTORY);
+    }
 }

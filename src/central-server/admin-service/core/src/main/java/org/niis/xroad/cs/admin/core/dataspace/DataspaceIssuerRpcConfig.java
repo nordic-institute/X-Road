@@ -26,10 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
-import lombok.Setter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,37 +35,21 @@ import org.springframework.context.annotation.Configuration;
  * Wires the gRPC client to the issuer provisioning service and its configuration properties.
  */
 @Configuration
-@EnableConfigurationProperties({
-        DataspaceIssuerProperties.class,
-        DataspaceIssuerRpcConfig.SpringIssuerProvisioningRpcChannelProperties.class})
 public class DataspaceIssuerRpcConfig {
 
     @Bean
-    IssuerProvisioningRpcClient issuerProvisioningRpcClient(
-            RpcChannelFactory rpcChannelFactory, SpringIssuerProvisioningRpcChannelProperties channelProperties) {
-        return new IssuerProvisioningRpcClient(rpcChannelFactory, channelProperties);
+    DataspaceIssuerProperties dataspaceIssuerProperties(XRoadConfig xRoadConfig) {
+        return new DataspaceIssuerProperties(xRoadConfig);
     }
 
-    @Setter
-    @ConfigurationProperties(prefix = IssuerProvisioningRpcChannelProperties.PREFIX)
-    static class SpringIssuerProvisioningRpcChannelProperties implements IssuerProvisioningRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+    @Bean
+    IssuerProvisioningRpcChannelProperties issuerProvisioningRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadIssuerProvisioningRpcChannelProperties(xRoadConfig);
+    }
 
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
+    @Bean
+    IssuerProvisioningRpcClient issuerProvisioningRpcClient(
+            RpcChannelFactory rpcChannelFactory, IssuerProvisioningRpcChannelProperties channelProperties) {
+        return new IssuerProvisioningRpcClient(rpcChannelFactory, channelProperties);
     }
 }

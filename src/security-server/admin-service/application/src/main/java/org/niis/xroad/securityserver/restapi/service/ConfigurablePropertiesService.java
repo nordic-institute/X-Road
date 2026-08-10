@@ -28,23 +28,44 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition.ConfigurableProperty;
+import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigCatalogue;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
+import org.niis.xroad.common.properties.config.keys.MonitorConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
+import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_PROPERTY_VALUE;
 
 /**
  * Service that handles configurable system parameters
@@ -58,22 +79,41 @@ public class ConfigurablePropertiesService {
 
     private static final Consumer<String> NOOP_VALUE_CONSUMER = _ -> { };
 
-    private final ConfigurablePropertiesDefinition configurableProperties;
+    /**
+     * Providers whose exposed keys make up the Security Server's system-parameters catalogue — the only
+     * source of the property list. The last five live outside properties-core, in the lightest module that
+     * can hold them, and reach this list through a compile dependency.
+     */
+    private static final List<ConfigKeyProvider> SS_PROVIDERS = List.of(
+            CommonConfigKeys.instance(),
+            CommonRpcConfigKeys.instance(),
+            ProxyConfigKeys.instance(),
+            ConfClientConfigKeys.instance(),
+            OpMonitorConfigKeys.instance(),
+            AuxiliaryServiceConfigKeys.instance(),
+            AdminServiceConfigKeys.instance(),
+            OcspVerifierConfigKeys.instance(),
+            GlobalConfConfigKeys.instance(),
+            ServerConfConfigKeys.instance(),
+            HealthCheckConfigKeys.instance(),
+            SignerConfigKeys.instance(),
+            SignerKeyConfigKeys.instance(),
+            MonitorConfigKeys.instance(),
+            MessageLogArchiverConfigKeys.instance(),
+            MessageLogEncryptionConfigKeys.instance());
+
     private final ConfigurationPropertyRepository repository;
 
     /**
-     * Returns all configurable system parameter defined in the configuration.
-     * <p>
-     * Combines the static system parameter definitions with the currently stored
-     * configuration values from the database. If a value is stored in the repository,
-     * it is used as the current value; otherwise the default value and service scope
-     * are returned.
+     * Returns every configurable system parameter the registry declares as exposed, combined with the
+     * currently stored configuration values. If a value is stored in the repository it is used as the
+     * current value; otherwise the declared default and target scope are returned.
      *
      * @return set of system properties with their metadata and current values
      */
     public Set<SecurityServerConfigurablePropertyDto> getConfigurationProperties() {
         var currentPropertiesValues = repository.findAll();
-        return configurableProperties.getConfigurableProperties()
+        return getAllPropertyDefinitions()
                 .stream()
                 .map(param -> toSecurityServerSystemParameterDto(param, currentPropertiesValues))
                 .collect(Collectors.toSet());
@@ -88,18 +128,17 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey   unique key of the system property
      * @param propertyValue new value for the system property
-     * @param scope         scope of the property (service name or null)
      */
-    public void updateConfigurableProperty(String propertyKey, String propertyValue, String scope) {
-        updateConfigurableProperty(propertyKey, propertyValue, scope, NOOP_VALUE_CONSUMER);
+    public void updateConfigurableProperty(String propertyKey, String propertyValue) {
+        updateConfigurableProperty(propertyKey, propertyValue, NOOP_VALUE_CONSUMER);
     }
 
     /**
      * Updates the value of an existing system parameter or creates a new one
      * if the property does not yet exist in the repository.
      * <p>
-     * If a configuration property with the given key and scope is found, its value is updated.
-     * Otherwise, a new {@link ConfigurationPropertyEntity} is created and persisted.
+     * If a configuration property with the given key is found, its value is updated. Otherwise, a new
+     * {@link ConfigurationPropertyEntity} is created and persisted.
      * </p>
      * <p>
      * This variant allows the caller to provide a consumer for the existing value before the update.
@@ -107,53 +146,103 @@ public class ConfigurablePropertiesService {
      *
      * @param propertyKey           unique key of the system property
      * @param propertyValue         new value for the system property
-     * @param scope                 scope of the property (service name or null)
      * @param existingValueConsumer callback that consumes the existing persisted property value
      *                              before the update, not invoked if the property does not exist
      *                              or has a {@code null} value
      */
-    public void updateConfigurableProperty(
-            String propertyKey, String propertyValue, String scope, Consumer<String> existingValueConsumer) {
+    public void updateConfigurableProperty(String propertyKey, String propertyValue, Consumer<String> existingValueConsumer) {
+        var key = findExposedKey(propertyKey)
+                .orElseThrow(() -> new NotFoundException(
+                        "Configurable property '%s' is not defined".formatted(propertyKey),
+                        NOT_FOUND.build()));
+        validateValue(key, propertyValue);
 
-        if (!isPropertyConfigurable(propertyKey, scope)) {
-            throw new NotFoundException(
-                    "Configurable property '%s' with scope '%s' is not defined".formatted(propertyKey, scope),
-                    NOT_FOUND.build());
-        }
-
-        var existing = repository.findConfigurationPropertyByPropertyKeyAndScope(propertyKey, scope);
+        var existing = repository.findConfigurationPropertyByPropertyKey(propertyKey);
         existing.map(ConfigurationPropertyEntity::getPropertyValue).ifPresent(existingValueConsumer);
 
-        var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey, scope));
+        var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey));
         entity.setPropertyValue(propertyValue);
         repository.saveOrUpdate(entity);
     }
 
     private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(
-            ConfigurableProperty parameter, List<ConfigurationPropertyEntity> storedValues) {
+            PropertyDefinition parameter, List<ConfigurationPropertyEntity> storedValues) {
         var systemPropertyDto = new SecurityServerConfigurablePropertyDto();
-        systemPropertyDto.setPropertyName(parameter.getPropertyName());
-        systemPropertyDto.setDefaultValue(parameter.getDefaultValue());
-        systemPropertyDto.setScope(parameter.getScope());
+        systemPropertyDto.setPropertyName(parameter.propertyName());
+        systemPropertyDto.setDefaultValue(parameter.defaultValue());
+        systemPropertyDto.setScope(parameter.scope());
         storedValues.stream()
-                .filter(v ->
-                        v.getPropertyKey().equals(parameter.getPropertyName())
-                                && Objects.equals(v.getScope(), parameter.getScope()))
+                .filter(v -> v.getPropertyKey().equals(parameter.propertyName()))
                 .map(ConfigurationPropertyEntity::getPropertyValue)
                 .findAny()
                 .ifPresent(systemPropertyDto::setCurrentValue);
         return systemPropertyDto;
     }
 
-    private boolean isPropertyConfigurable(String propertyKey, String scope) {
-        return configurableProperties.getConfigurableProperties().stream()
-                .anyMatch(p -> p.getPropertyName().equals(propertyKey) && Objects.equals(p.getScope(), scope));
+    /**
+     * A property is configurable when the registry declares it exposed. A {@code scope} supplied by the
+     * caller is still checked against the registry's own target scope — the REST contract carries it, and a
+     * mismatch means the caller is aiming at something else — but it no longer takes part in storage.
+     */
+    private Optional<ConfigKey<?>> findExposedKey(String propertyKey) {
+        return SS_PROVIDERS.stream()
+                .flatMap(provider -> provider.keys().stream())
+                .filter(key -> key.exposedInUi() && key.key().equals(propertyKey))
+                .findFirst();
     }
 
-    private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey, String scope) {
+    /**
+     * The owning service converts and validates every stored override eagerly at startup and refuses to
+     * start on failure, so a value must never reach the database without passing the key's own converter
+     * and validator here.
+     */
+    private static <T> void validateValue(ConfigKey<T> key, String rawValue) {
+        try {
+            var result = key.validate(key.convert(rawValue));
+            if (!result.valid()) {
+                throw new IllegalArgumentException(result.message());
+            }
+        } catch (RuntimeException e) {
+            throw new BadRequestException("Invalid value for property '%s': %s".formatted(key.key(), e.getMessage()),
+                    e, INVALID_PROPERTY_VALUE.build());
+        }
+    }
+
+    /** @return the exposed keys of {@link #SS_PROVIDERS}, flattened to name/default/target scope */
+    private List<PropertyDefinition> getAllPropertyDefinitions() {
+        return ConfigCatalogue.exposed(SS_PROVIDERS).stream()
+                .map(entry -> new PropertyDefinition(
+                        entry.key(), entry.defaultValue(), categoryToScope(entry.category())))
+                .toList();
+    }
+
+    /**
+     * Maps a DSL {@link Category} to the scope string the REST contract and the UI grouping use. No longer
+     * persisted — {@code configuration_properties} is keyed by {@code property_key} alone — but still part
+     * of the API, where it tells a client which process a property belongs to.
+     */
+    private static String categoryToScope(Category category) {
+        return switch (category) {
+            case PROXY -> "proxy";
+            case SIGNER -> "signer";
+            case PROXY_UI_API -> "proxy-ui-api";
+            case OP_MONITOR_DAEMON -> "op-monitor-daemon";
+            case MONITOR -> "monitor";
+            case CONFIGURATION_CLIENT -> "configuration-client";
+            case AUXILIARY_SERVICE -> "auxiliary-service";
+            case MESSAGE_LOG_ARCHIVER -> "message-log-archiver";
+            case COMMON -> null;
+            default -> throw XrdRuntimeException.systemInternalError(
+                    "Unmapped category for configurable properties catalogue: " + category);
+        };
+    }
+
+    private static ConfigurationPropertyEntity createEmptyConfigurationProperty(String propertyKey) {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(propertyKey);
-        entity.setScope(scope);
         return entity;
+    }
+
+    private record PropertyDefinition(String propertyName, String defaultValue, String scope) {
     }
 }

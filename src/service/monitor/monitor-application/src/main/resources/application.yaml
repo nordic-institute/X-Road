@@ -1,6 +1,8 @@
 quarkus:
   application:
     name: monitor
+  scheduler:
+    start-mode: forced
   config:
     locations:
       - xroad-common.yaml

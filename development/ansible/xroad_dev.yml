@@ -141,25 +141,6 @@
     - vars_files/local_repo.yml
     - vars_files/cp_database.yml
 
-- name: Configure HW tokens (SoftHSM2) for SS
-  hosts: ubuntu_hsm_ss
-  become: true
-  strategy: free
-  tags:
-    - ss
-    - hwtokens
-  vars:
-    hwtoken_label: "x-road-softhsm2"
-    hwtoken_so_pin: "1234"
-    hwtoken_user_pin: "Secret1234"
-  vars_files:
-    - vars_files/local_repo.yml
-  tasks:
-    - name: Run ubuntu_hsm_ss hwtoken tasks
-      include_role:
-        name: xroad-ss
-        tasks_from: hwtokens.yml
-
 - name: Install SS servers
   hosts: ss_servers
   become: true
@@ -192,11 +173,15 @@
     - name: Apply SS postinstall tweaks (db_property, postgres_remote_dev, opmonitor)
       include_tasks: roles/xroad-ss/tasks/postinstall.yml
     # The xroad-ss-installer flow does not run the xroad-ss role's pre-ss-install
-    # hook, so DSP runtime config + the ds-https TLS keystore never land and the
-    # DS services come up on plain http. Preseed them here, then restart the DS
-    # units (and proxy, which gets local-dsp.yaml) so they pick up TLS + config.
-    - name: Preseed DSP config + provision DS TLS keystore
+    # hook, so the EDC runtime config + the ds-https TLS keystore never land and
+    # the DS services come up on plain http. Preseed them here, then restart the
+    # DS units so they pick up TLS + config.
+    - name: Preseed EDC config + provision DS TLS keystore
       include_tasks: roles/xroad-ss/tasks/pre-ss-install.yml
+    # xroad.* runtime config goes through the configuration_properties DB layer
+    # (the DSL ignores conf.d yaml); this also restarts proxy and proxy-ui-api.
+    - name: Seed xroad.* runtime config into serverconf
+      include_tasks: roles/xroad-ss/tasks/seed-config-properties.yml
     # Runs before the restart task below so the proxy restart there picks up
     # the op-monitor addon flag from local.yaml.
     - name: Install and enable operational monitoring
@@ -217,14 +202,11 @@
         systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'
       register: ss_ds_units
       changed_when: false
-    # xroad-proxy-ui-api is NOT in this restart list: its dataspace provisioning
-    # config now lands in local.yaml via init-dev-configuration, which runs in
-    # the earlier "Apply dev env configuration" play — before this SS install
-    # play (and the installer's first start of proxy-ui-api) ever runs. The DS
-    # units and xroad-proxy still need the restart: their TLS keystore and
-    # local-ds-*.yaml/local-dsp.yaml configs are only preseeded above, by the
-    # pre-ss-install.yml re-run, which happens after the installer already
-    # started them without that config.
+    # xroad-proxy-ui-api is NOT in this restart list because the seed task above
+    # already restarts it (along with xroad-proxy) once its rows are in the DB.
+    # The DS units still need a restart here: their TLS keystore and
+    # local-ds-*.yaml configs are only preseeded above, by the pre-ss-install.yml
+    # re-run, which happens after the installer already started them without it.
     - name: Restart DS units and proxy to apply preseeded TLS + runtime config
       ansible.builtin.systemd:
         name: "{{ item }}"
@@ -237,6 +219,25 @@
   tags:
     - ss
     - install
+
+- name: Configure HW tokens (SoftHSM2) for SS
+  hosts: ubuntu_hsm_ss
+  become: true
+  strategy: free
+  tags:
+    - ss
+    - hwtokens
+  vars:
+    hwtoken_label: "x-road-softhsm2"
+    hwtoken_so_pin: "1234"
+    hwtoken_user_pin: "Secret1234"
+  vars_files:
+    - vars_files/local_repo.yml
+  tasks:
+    - name: Run ubuntu_hsm_ss hwtoken tasks
+      include_role:
+        name: xroad-ss
+        tasks_from: hwtokens.yml
 
 - name: Install IS servers
   hosts: is_servers

@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
   implementation(project(":service:proxy:proxy-core"))
+  implementation(project(":lib:properties-core"))
   implementation(platform(libs.quarkus.bom))
   implementation(libs.quarkus.arc)
   implementation(libs.jetty.server)

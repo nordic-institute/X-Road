@@ -115,6 +115,14 @@ edc:
   iam:
     issuer:
       id: "did:web:${HOSTNAME:localhost}%3A7183"
+    # trusted-issuer.issuer.id is declared here so the key is part of the property names
+    # QuarkusConfigBridge snapshots — an env var cannot introduce a hyphenated key on its own. The value
+    # comes from the X-Road key (EdcConfigKeys.TRUSTED_ISSUER_ID), which resolves from a stored override,
+    # an env var or conf.d. No fallback on purpose: an unset value fails startup naming both properties,
+    # whereas an empty DID would register a trusted issuer that rejects every credential.
+    trusted-issuer:
+      issuer:
+        id: ${xroad.edc.iam.trusted-issuer.issuer.id}
     dcp:
       scopes:
         membership:

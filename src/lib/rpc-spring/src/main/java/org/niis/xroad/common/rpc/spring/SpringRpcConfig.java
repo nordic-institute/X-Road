@@ -25,15 +25,16 @@
  */
 package org.niis.xroad.common.rpc.spring;
 
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.RpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
 import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -44,10 +45,12 @@ import java.util.Optional;
 
 @Configuration(proxyBeanMethods = false)
 @EnableScheduling
-@EnableConfigurationProperties({
-        SpringRpcProperties.class
-})
 public class SpringRpcConfig extends RpcConfig {
+
+    @Bean
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
+    }
 
     @Bean(initMethod = "init", destroyMethod = "shutdown")
     VaultKeyProvider reloadableVaultKeyManager(Optional<VaultTemplate> vaultTemplate,

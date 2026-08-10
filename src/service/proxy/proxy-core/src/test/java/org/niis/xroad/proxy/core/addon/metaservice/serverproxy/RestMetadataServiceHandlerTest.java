@@ -149,7 +149,7 @@ class RestMetadataServiceHandlerTest {
         when(clientProxy.clientTlsProtocols()).thenReturn(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS);
         when(clientProxy.clientTlsCiphers()).thenReturn(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
 
-        // Build a CommonProperties mock that supplies the temp files path
+        // Build an XRoadConfig that supplies the temp files path
         commonProperties = mock(CommonProperties.class);
         when(commonProperties.tempFilesPath()).thenReturn(TMP_DIR);
 

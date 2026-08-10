@@ -213,13 +213,12 @@ public class LegacyConfigMigrationCLI {
                       <db.properties path> Path to database properties file (signer)
 
                 File-to-DB Migration:
-                  migration-cli file-to-db <input-file> <db.properties path> <property key> [scope]
+                  migration-cli file-to-db <input-file> <db.properties path> <property key>
                     Migrates the entire contents of a file as a single property value into the DB.
                     Arguments:
                       <input-file>         Path to file whose contents will be stored as a property value
                       <db.properties path> Path to database properties file
                       <property key>       Property key under which the file contents will be stored
-                      [scope]              Optional scope for the property
 
                 INI to DB Migration:
                   migration-cli ini-to-db <input.ini> <db.properties path>
@@ -229,21 +228,19 @@ public class LegacyConfigMigrationCLI {
                       <db.properties path> Path to database properties file
 
                 Properties to DB Migration:
-                  migration-cli properties-to-db <input.properties> <db.properties path> [scope]
+                  migration-cli properties-to-db <input.properties> <db.properties path>
                     Migrates a properties file into the configuration database.
                     Arguments:
                       <input.properties>   Path to properties input file
                       <db.properties path> Path to database properties file
-                      [scope]              Optional scope for the properties
 
                 Set Property:
-                  migration-cli set-property <db.properties path> <property key> <property value> [scope]
+                  migration-cli set-property <db.properties path> <property key> <property value>
                     Sets a single property value in the configuration database.
                     Arguments:
                       <db.properties path> Path to database properties file
                       <property key>       Property key to set
                       <property value>     Property value to store
-                      [scope]              Optional scope for the property
 
                 Signer Token PINs Migration:
                   migration-cli signer-token-pins [<script-path>]
@@ -303,6 +300,8 @@ public class LegacyConfigMigrationCLI {
     }
 
     private static final String MESSAGELOG_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD";
+    private static final String NO_SCOPE_ARGUMENT =
+            " (rows are keyed by property_key alone; a scope argument is no longer accepted)";
 
     private static void migrateMessageLogKeys(String[] args) throws IOException {
         if (args.length != 2) {
@@ -363,7 +362,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting message log key mappings migration from: {}", mappingIniPath);
-        new MessageLogIniToDbMigrator().migrate(mappingIniPath, dbPropertiesPath, null);
+        new MessageLogIniToDbMigrator().migrate(mappingIniPath, dbPropertiesPath);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -416,7 +415,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting signer devices migration from: {}", devicesIniPath);
-        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath, "signer");
+        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -446,20 +445,18 @@ public class LegacyConfigMigrationCLI {
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void migrateFileToDb(String[] args) {
-        if (args.length != 3 && args.length != 4) {
-            log.error("File-to-DB migration requires 3 or 4 arguments");
-            log.error("Usage: migration-cli file-to-db <input-file> <db.properties path> <property key> [scope]");
+        if (args.length != 3) {
+            log.error("File-to-DB migration requires 3 arguments" + NO_SCOPE_ARGUMENT);
+            log.error("Usage: migration-cli file-to-db <input-file> <db.properties path> <property key>");
             log.error("  <input-file>         Path to file whose contents will be stored as a property value");
             log.error("  <db.properties path> Path to database properties file");
             log.error("  <property key>       Property key under which the file contents will be stored");
-            log.error("  [scope]              Optional scope for the property");
             System.exit(1);
         }
 
         String inputFilePath = args[0];
         String dbPropertiesPath = args[1];
         String propertyKey = args[2];
-        String scope = args.length == 4 ? args[3] : null;
 
         validateFilePath(inputFilePath, "input");
         validateFilePath(dbPropertiesPath, "database properties");
@@ -474,27 +471,24 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Starting file-to-db migration from: {} (property key={}, scope={})",
-                inputFilePath, propertyKey, scope == null ? "" : scope);
-        new FileToDbPropertyMigrator(propertyKey).migrate(inputFilePath, dbPropertiesPath, scope);
+        log.info("Starting file-to-db migration from: {} (property key={})", inputFilePath, propertyKey);
+        new FileToDbPropertyMigrator(propertyKey).migrate(inputFilePath, dbPropertiesPath);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void setProperty(String[] args) {
-        if (args.length != 3 && args.length != 4) {
-            log.error("set-property requires 3 or 4 arguments");
-            log.error("Usage: migration-cli set-property <db.properties path> <property key> <property value> [scope]");
+        if (args.length != 3) {
+            log.error("set-property requires 3 arguments" + NO_SCOPE_ARGUMENT);
+            log.error("Usage: migration-cli set-property <db.properties path> <property key> <property value>");
             log.error("  <db.properties path> Path to database properties file");
             log.error("  <property key>       Property key to set");
             log.error("  <property value>     Property value to store");
-            log.error("  [scope]              Optional scope for the property");
             System.exit(1);
         }
 
         String dbPropertiesPath = args[0];
         String propertyKey = args[1];
         String propertyValue = args[2];
-        String scope = args.length == 4 ? args[3] : null;
 
         validateFilePath(dbPropertiesPath, "database properties");
 
@@ -503,8 +497,8 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Setting property {} in DB (scope={})", propertyKey, scope == null ? "" : scope);
-        new SinglePropertySetter(propertyKey, propertyValue).migrate("cmdline", dbPropertiesPath, scope);
+        log.info("Setting property {} in DB", propertyKey);
+        new SinglePropertySetter(propertyKey, propertyValue).migrate("cmdline", dbPropertiesPath);
     }
 
     private static void migrateIniToDb(String[] args) {
@@ -531,20 +525,17 @@ public class LegacyConfigMigrationCLI {
         new IniToDbMigrator().migrate(iniInputPath, dbPropertiesPath);
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private static void migratePropertiesToDb(String[] args) {
-        if (args.length != 2 && args.length != 3) {
-            log.error("Properties to DB migration requires 2 or 3 arguments");
-            log.error("Usage: migration-cli properties-to-db <input.properties> <db.properties path> [scope]");
+        if (args.length != 2) {
+            log.error("Properties to DB migration requires 2 arguments" + NO_SCOPE_ARGUMENT);
+            log.error("Usage: migration-cli properties-to-db <input.properties> <db.properties path>");
             log.error("  <input.properties>   Path to properties input file");
             log.error("  <db.properties path> Path to database properties file");
-            log.error("  [scope]              Optional scope for the properties");
             System.exit(1);
         }
 
         String inputFilePath = args[0];
         String dbPropertiesPath = args[1];
-        String scope = args.length == 3 ? args[2] : null;
 
         validateFilePath(inputFilePath, "properties input");
         validateFilePath(dbPropertiesPath, "database properties");
@@ -554,8 +545,8 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Starting properties to DB migration from: {} (scope={})", inputFilePath, scope == null ? "" : scope);
-        new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath, scope);
+        log.info("Starting properties to DB migration from: {}", inputFilePath);
+        new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath);
     }
 
     private static void migrateSignerTokenPins(String[] args) throws IOException {
