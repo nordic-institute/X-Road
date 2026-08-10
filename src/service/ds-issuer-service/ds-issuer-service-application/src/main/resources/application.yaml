@@ -31,6 +31,15 @@ quarkus:
         enabled: true
         path: /var/log/xroad/ds-issuer-service.log
 
+xroad:
+  edc:
+    boot:
+      # org.eclipse.edc.web.jetty.JettyExtension is stock EDC's jetty-core module, already excluded
+      # from the runtime classpath entirely (lib:edc-jetty-core replaces it) - listed here too as
+      # defense in depth, so a future dependency reintroduction still cannot boot a second,
+      # unmanaged, plaintext/file-keystore Jetty WebServer alongside the owned one.
+      excluded-service-extensions: org.eclipse.edc.web.jetty.JettyExtension
+
 web:
   http:
     port: 6181

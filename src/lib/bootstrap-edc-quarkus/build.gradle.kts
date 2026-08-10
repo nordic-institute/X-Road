@@ -7,9 +7,10 @@ dependencies {
   implementation(libs.edc.boot)
   implementation(libs.edc.lib.http)
   // X-Road-owned replacement for the upstream org.eclipse.edc:jetty-core artifact - sources the
-  // HTTPS keystore from OpenBao with hot reload instead of a file path (see 05-owned-jetty-serving).
-  // Every ds-* application depends on this module transitively through bootstrap-edc-quarkus, so the
-  // upstream artifact must never be added back here or to any of those applications.
+  // HTTPS keystore from OpenBao with hot reload instead of a file path. Every ds-* application
+  // depends on this module transitively through bootstrap-edc-quarkus, so the upstream artifact
+  // must never be added back here, to any ds-* application, or to any dependency they pull in
+  // (org.eclipse.edc:http is a known transitive carrier of it - always exclude it there too).
   implementation(project(":lib:edc-jetty-core"))
   implementation(libs.edc.spi.core)
   implementation(libs.jetty.server)
