@@ -36,6 +36,7 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
 
 import java.util.Map;
 
@@ -68,13 +69,27 @@ public class AcmeCommonConfig {
             }
             return properties;
         } catch (Exception e) {
-            log.warn("Failed to load Acme yaml configuration", e);
+            log.error("Failed to load Acme yaml configuration - dataspace TLS ACME enrollment will fail for CAs "
+                    + "requiring EAB until this is fixed", e);
             return new AcmeProperties();
         }
     }
 
     private static Constructor createAcmeYamlConstructor() {
         Constructor constructor = new Constructor(AcmeProperties.class, new LoaderOptions());
+        // The xroad.acme key is shared with the Security Server, whose Credentials shape carries extra
+        // auth/sign-profile fields (auth-kid, auth-mac-key, sign-kid, sign-mac-key) this product's trimmed
+        // AcmeProperties.Credentials does not model, and its own top-level "contacts" map. Without this, a
+        // config block written for (or copied from) the Security Server would fail to bind at all, silently
+        // dropping every CA's EAB credentials into an empty AcmeProperties - see the catch above.
+        //
+        // Must go through setPropertyUtils(PropertyUtils) - not constructor.getPropertyUtils().set...(...) - to
+        // mark the instance "explicit". Otherwise, Yaml's own constructor (new Yaml(constructor) below) silently
+        // replaces it with the Representer's fresh, unconfigured PropertyUtils the moment it is constructed,
+        // undoing this entirely with no error or warning.
+        PropertyUtils propertyUtils = new PropertyUtils();
+        propertyUtils.setSkipMissingProperties(true);
+        constructor.setPropertyUtils(propertyUtils);
 
         TypeDescription acmePropertiesDescriptor = new TypeDescription(AcmeProperties.class);
         acmePropertiesDescriptor.substituteProperty("eab-credentials",

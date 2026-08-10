@@ -47,6 +47,18 @@ import org.springframework.scheduling.TaskScheduler;
  * The Central Server's DS stack is unconditionally installed and provisioned, so - unlike the Security Server's
  * equivalent - this connector has no "challenge port enabled" toggle of its own: it is always added, always bound
  * to loopback only. {@link AcmeChallengeFilter} is what actually restricts what answers on it.
+ * <p>
+ * <b>HA clusters: known race, not handled here.</b> The Central Server's documented HA mode runs multiple nodes
+ * against one shared database, with {@code /etc/xroad} - including the ACME account keystore
+ * ({@link AcmeConfig#ACME_ACCOUNT_KEYSTORE_PATH}) and challenge directory
+ * ({@link AcmeConfig#ACME_CHALLENGE_PATH}) - <em>not</em> synchronized between nodes. {@link #dsTlsAcmeEnrollmentScheduler}
+ * carries no node gate (unlike, say, a leader-election check), so every node that has the renewal kill-switch
+ * active runs its own independent enrollment/renewal cycle against its own local account keystore and challenge
+ * directory, racing the others for the single {@code tls/ds-https} vault slot. The Central Server has no
+ * leader/primary concept to hang a proper fix on ({@code HAConfigStatus}/{@code ha-node-name} only self-reports
+ * which node a process is, it elects nothing) - building one is out of scope here. Until a real fix lands, HA
+ * operators must keep {@code xroad.admin-service.ds-tls-acme.renewal-active} enabled on exactly one node and set
+ * it to {@code false} in that node's own (unsynchronized) {@code /etc/xroad/conf.d/local.ini} on every other node.
  */
 @Slf4j
 @Configuration

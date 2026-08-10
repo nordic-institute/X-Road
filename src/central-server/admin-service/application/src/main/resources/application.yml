@@ -147,6 +147,11 @@ xroad:
     regular-api-whitelist: 0.0.0.0/0, ::/0
     ds-tls-acme:
       # Renewal kill-switch: set to false to stop dataspace TLS ACME enrollment/renewal from running at all.
+      # HA clusters: /etc/xroad is per-node and NOT synchronized, and this scheduler has no leader-election
+      # gate - every node with this left enabled races every other node for the shared tls/ds-https vault
+      # slot, each against its own local ACME account keystore and challenge directory. Leave this enabled
+      # on exactly one node and set it to false here (in that node's own local.ini/local.yaml) on every
+      # other node until a real HA-aware fix exists.
       renewal-active: true
       renewal-retry-delay: 60
       renewal-interval: 3600
