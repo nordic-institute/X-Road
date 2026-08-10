@@ -298,7 +298,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> GLOBAL_CONF_GENERATOR_MINIMUM_GLOBAL_CONFIGURATION_VERSION = GLOBAL_CONF_GENERATOR
             .integer("minimum-global-configuration-version")
             .withDefaultValue(2)
-            .withValidator(range(1, 6))
+            .withValidator(range(1, 7))
             .build();
 
     // --- management-requests (auto-approval toggles) ---

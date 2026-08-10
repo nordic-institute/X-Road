@@ -66,7 +66,7 @@ public final class ConfProxyConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> MINIMUM_GLOBAL_CONFIGURATION_VERSION = ROOT
             .integer("minimum-global-configuration-version")
             .withDefaultValue(2)
-            .withValidator(range(1, 6))
+            .withValidator(range(1, 7))
             .build();
 
     /** {@code xroad.configuration-proxy.address}. */
