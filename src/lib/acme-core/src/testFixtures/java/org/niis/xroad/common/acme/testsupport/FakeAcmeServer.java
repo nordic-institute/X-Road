@@ -169,6 +169,7 @@ public final class FakeAcmeServer implements AutoCloseable {
                 case "HEAD /new-nonce", "GET /new-nonce" -> handleNewNonce(exchange);
                 case "POST /new-account" -> handleNewAccount(exchange);
                 case "POST /new-order" -> handleNewOrder(exchange);
+                case "POST /key-change" -> handleKeyChange(exchange);
                 default -> {
                     if (path.startsWith("/order/") && path.endsWith("/finalize")) {
                         handleFinalize(exchange, orderIdFrom(path, "/order/", "/finalize"));
@@ -214,6 +215,7 @@ public final class FakeAcmeServer implements AutoCloseable {
         body.put("newNonce", baseUrl + "/new-nonce");
         body.put("newAccount", baseUrl + "/new-account");
         body.put("newOrder", baseUrl + "/new-order");
+        body.put("keyChange", baseUrl + "/key-change");
         if (renewalInfoAvailable) {
             body.put("renewalInfo", baseUrl + "/renewal-info");
         }
@@ -271,6 +273,33 @@ public final class FakeAcmeServer implements AutoCloseable {
         Map<String, Object> boundJwk = JSON.readValue(innerJws.getUnverifiedPayload(), Map.class);
         PublicKey boundKey = PublicJsonWebKey.Factory.newPublicJwk(boundJwk).getPublicKey();
         return thumbprintOf(boundKey).equals(thumbprintOf(accountKey));
+    }
+
+    /**
+     * Handles acme4j's key-change request: a doubly-signed JWS where the outer envelope (signed by the
+     * account's current key, {@code kid} = account location) carries an inner envelope (signed by the new
+     * key, {@code jwk} = new public key) as its payload. Updates the account record so a subsequent login
+     * with the new key resolves to the same account, proving the rotation actually took effect server-side.
+     */
+    private void handleKeyChange(HttpExchange exchange) throws Exception {
+        JsonWebSignature outerJws = parseEnvelope(readJson(exchange));
+        String accountLocation = outerJws.getKeyIdHeaderValue();
+        if (accountLocation == null || !accountKeyByLocation.containsKey(accountLocation)) {
+            sendProblem(exchange, 400, "urn:ietf:params:acme:error:accountDoesNotExist", "unknown account");
+            return;
+        }
+
+        JsonNode innerEnvelope = JSON.readTree(outerJws.getUnverifiedPayload());
+        JsonWebSignature innerJws = parseEnvelope(innerEnvelope);
+        Map<String, Object> newJwk = objectHeader(innerJws, "jwk");
+        PublicKey newAccountKey = PublicJsonWebKey.Factory.newPublicJwk(newJwk).getPublicKey();
+
+        accountKeyByLocation.put(accountLocation, newAccountKey);
+        accountLocationByThumbprint.put(thumbprintOf(newAccountKey), accountLocation);
+
+        ObjectNode body = JSON.createObjectNode();
+        body.put("status", "valid");
+        sendJson(exchange, 200, body);
     }
 
     private void handleNewOrder(HttpExchange exchange) throws Exception {

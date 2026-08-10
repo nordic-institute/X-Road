@@ -72,6 +72,7 @@ dependencies {
 
   testImplementation(platform(libs.springBoot.bom))
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:acme-core")))
   testImplementation(libs.springBoot.starterJdbcTest)
   testImplementation(libs.springBoot.starterWebmvcTest)
   testImplementation(libs.springBoot.starterWebfluxTest)

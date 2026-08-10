@@ -93,9 +93,16 @@ public final class AcmeService {
     }
 
     public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
+        checkAccountKeyPairAndRenewIfNecessary(AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile(), memberId, caInfo, keyUsage);
+    }
+
+    /**
+     * Package-private seam for tests: {@link #checkAccountKeyPairAndRenewIfNecessary(String, ApprovedCAInfo, KeyUsageInfo)}
+     * always targets the real account keystore path; this overload lets tests point it at a keystore file of their own.
+     */
+    void checkAccountKeyPairAndRenewIfNecessary(File acmeKeystoreFile, String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
         try {
-            KeyPair currentAccountKeyPair = getAccountKeyPair(memberId, keyUsage, caInfo);
-            File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
+            KeyPair currentAccountKeyPair = getAccountKeyPair(acmeKeystoreFile, memberId, keyUsage, caInfo);
             char[] storePassword = acmeProperties.getAccountKeystorePassword();
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             String alias = getAlias(memberId, keyUsage, caInfo);
@@ -151,7 +158,12 @@ public final class AcmeService {
         return acmeClient.renewCertificate(account, subjectAltName, oldCertificate, newCsr, buildChallengeSettings());
     }
 
-    private AcmeAccountContext buildAccountContext(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair accountKeyPair) {
+    /**
+     * Package-private for tests: proves the certificate-profile-id resolution in isolation, notably the fall-back
+     * to {@code null} (plain {@code xrd-acme} scheme, no {@code profile_id} header) when the CA declares an
+     * authentication profile id but not a signing one (or vice versa) - see {@link AcmeClient}'s scheme selection.
+     */
+    AcmeAccountContext buildAccountContext(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair accountKeyPair) {
         String contactUri = Optional.ofNullable(mailNotificationProperties.getContacts())
                 .map(contacts -> contacts.get(memberId))
                 .orElse(null);
@@ -194,8 +206,14 @@ public final class AcmeService {
     }
 
     private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
+        return getAccountKeyPair(AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile(), memberId, keyUsage, caInfo);
+    }
+
+    /**
+     * Package-private seam for tests: see {@link #checkAccountKeyPairAndRenewIfNecessary(File, String, ApprovedCAInfo, KeyUsageInfo)}.
+     */
+    KeyPair getAccountKeyPair(File acmeKeystoreFile, String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
         String alias = getAlias(memberId, keyUsage, caInfo);
-        File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
         if (isEmpty(storePassword)) {
