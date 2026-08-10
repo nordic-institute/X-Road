@@ -187,6 +187,20 @@ cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 
+# Designate the test CA as a DS TLS CA. Dataspace TLS trust is fail-closed and reads only this
+# list (never approvedCA), so without this entry no ds-* peer would validate anything - see
+# XRDADR-42. The DS TLS certificate itself is written directly into each host's local secret
+# store before its ds-* units start (see ds-tls-vault-provision.yml in the xroad-ss/xroad-cs
+# roles, and the ds-tls-cert-init containers in the Compose test stacks); this designation is
+# the trust-anchor half, no acme_server_directory_url - the CA's own auto-enrollment role is not
+# exercised here.
+POST https://{{cs_host}}:4000/api/v1/ds-tls-cas
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+[MultipartFormData]
+certificate: file,ca/ca.pem;
+
+HTTP 201
+
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}

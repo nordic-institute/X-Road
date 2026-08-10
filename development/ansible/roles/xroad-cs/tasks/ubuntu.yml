@@ -30,6 +30,23 @@
     name: xroad-database-remote
   when: (database_admin_password is defined) and (database_admin_password != "")
 
+# TEMPORARY (dataspaces dev): installed ahead of xroad-centralserver so its local secret store
+# (OpenBao) is up before ds-tls-vault-provision.yml writes the DS TLS certificate -
+# xroad-ds-issuer-service (pulled in below) fails fast at boot if that vault slot is empty.
+# xroad-secret-store-local is already a direct dependency of xroad-ds-issuer-service, so
+# installing it explicitly here is a no-op for apt once the main install runs; it only changes
+# the order in which it configures.
+- name: install xroad-secret-store-local ahead of the rest of the package set
+  apt:
+    name: xroad-secret-store-local
+    state: latest
+  tags:
+    - install-xroad-cs-packages
+
+- include_tasks: ds-tls-vault-provision.yml
+  tags:
+    - install-xroad-cs-packages
+
 - name: install xroad central server
   apt:
     name: xroad-centralserver

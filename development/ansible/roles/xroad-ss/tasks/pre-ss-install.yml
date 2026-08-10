@@ -1,14 +1,16 @@
 ---
 # TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
 # that xroad-* packages auto-start EDC systemd units (ds-identity-hub,
-# ds-control-plane, xroad-proxy) before their runtime configs and TLS keystore
-# are on disk, causing crash-loop / StartLimitBurst. Pre-seeding here lets every
-# service boot exactly once, cleanly.
+# ds-control-plane, xroad-proxy) before their runtime configs are on disk,
+# causing crash-loop / StartLimitBurst. Pre-seeding here lets every service
+# boot exactly once, cleanly. The DS TLS certificate itself is provisioned
+# separately, from ubuntu.yml / rhel.yml (see ds-tls-vault-provision.yml) -
+# it needs the local secret store running, which isn't true yet when this
+# file executes.
 #
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
 #   - ds-control-plane:  participant-context-id
-#   - ds-identity-hub:   keystore path
 #   - xroad-proxy:       dsp.participant-context-id
 # AND the packages no longer start the units unconditionally during postinst.
 
@@ -74,36 +76,13 @@
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
+# 4. DS control-plane runtime overrides. EDC's QuarkusConfigBridge only sees
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
 #    EDC's @Setting resolution. These must exist before the unit's first start.
 #
-# TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
-#   keystore config as an answerable question.
-# ---------------------------------------------------------------------------
-- name: preseed ds-identity-hub runtime overrides
-  copy:
-    dest: /etc/xroad/conf.d/local-ds-identity-hub.yaml
-    owner: xroad
-    group: xroad
-    mode: "0640"
-    content: |
-      edc:
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
-
-# ---------------------------------------------------------------------------
-# 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
-#
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   participant-context-id, trusted-issuer.id, sts.oauth.token.url,
-#   dsp.callback.address, and keystore config.
+#   participant-context-id, trusted-issuer.id, sts.oauth.token.url, and
+#   dsp.callback.address.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
   copy:
@@ -134,24 +113,13 @@
             oauth:
               token:
                 url: "https://{{ inventory_hostname }}.lxd:7184/api/sts/token"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
       xroad:
         dsp:
           participant-context-id: "{{ inventory_hostname }}.lxd"
 
 # ---------------------------------------------------------------------------
-# 6. TLS keystore for DS services. Must be on disk before ds-* units start.
-#    Also installs xrd-ca into the system trust store so the JVM (xroad-proxy,
-#    Quarkus ds-* services) can verify peer certs at first boot.
-#
-# TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
-#   real PKI (replace xrd-ca with federation CA, rotate via PKI lifecycle).
+# 5. DS TLS certificate for DS services. Must be in the local secret store
+#    before ds-* units start - see ds-tls-vault-provision.yml, run once
+#    xroad-secret-store-local is installed and started (ubuntu.yml / rhel.yml),
+#    ahead of the rest of the security server package set.
 # ---------------------------------------------------------------------------
-- include_tasks: ds-https-keystore.yml

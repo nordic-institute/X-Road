@@ -1,23 +1,4 @@
 services:
-  ssl-keystore-init:
-    image: eclipse-temurin:21-jre-alpine
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        set -euo pipefail
-        cd /keystore
-        [ -f cacerts ] && exit 0
-        cp /opt/java/openjdk/lib/security/cacerts cacerts
-        chmod 0644 cacerts
-    volumes:
-      - ds-https-keystore:/keystore
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 128M
-
   configuration-client:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
@@ -34,7 +15,7 @@ services:
 
   proxy:
     environment:
-      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml -Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+      - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
@@ -56,8 +37,6 @@ services:
         condition: service_healthy
       op-monitor:
         condition: service_healthy
-      ssl-keystore-init:
-        condition: service_completed_successfully
 
   ui:
     environment:
