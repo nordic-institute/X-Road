@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.acme;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.exception.NotFoundException;
 
 import java.util.Map;

@@ -70,6 +70,7 @@ include("common:common-pgp")
 
 // Lib projects
 include("lib")
+include("lib:acme-core")
 include("lib:asic-core")
 include("lib:bootstrap-edc-quarkus")
 include("lib:edc-rpc")

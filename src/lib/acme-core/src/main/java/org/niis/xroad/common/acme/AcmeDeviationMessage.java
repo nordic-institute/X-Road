@@ -24,22 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import lombok.NonNull;
-import org.niis.xroad.common.core.exception.ErrorDeviation;
-import org.niis.xroad.common.exception.InternalServerErrorException;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.DeviationBuilder;
 
-public class AcmeServiceException extends InternalServerErrorException {
+@RequiredArgsConstructor
+public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
 
-    public AcmeServiceException(@NonNull final ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
+    EAB_SECRET_LENGTH("acme.eab_secret_length"),
+    FETCHING_METADATA_ERROR("acme.fetching_metadata_error"),
+    ACCOUNT_CREATION_FAILURE("acme.account_creation_failure"),
+    ACCOUNT_KEY_CHANGE_FAILURE("acme.account_key_change_failure"),
+    ORDER_CREATION_FAILURE("acme.order_creation_failure"),
+    ORDER_FINALIZATION_FAILURE("acme.order_finalization_failure"),
+    HTTP_CHALLENGE_FILE_CREATION("acme.http_challenge_file_creation"),
+    HTTP_CHALLENGE_FILE_DELETION("acme.http_challenge_file_deletion"),
+    HTTP_CHALLENGE_MISSING("acme.http_challenge_missing"),
+    HTTP_CHALLENGE_TOKEN_INVALID("acme.http_challenge_token_invalid"),
+    CHALLENGE_TRIGGER_FAILURE("acme.challenge_trigger_failure"),
+    AUTHORIZATION_FAILURE("acme.authorization_failure"),
+    AUTHORIZATION_WAIT_FAILURE("acme.authorization_wait_failure"),
+    CERTIFICATE_FAILURE("acme.certificate_failure"),
+    CERTIFICATE_WAIT_FAILURE("acme.certificate_wait_failure"),
+    FETCHING_RENEWAL_INFO_FAILURE("acme.fetching_renewal_info_failure");
 
-    public AcmeServiceException(final Throwable cause,
-                                @NonNull final ErrorDeviation errorDeviation) {
-        super(cause, errorDeviation);
+    private final String code;
+
+    @Override
+    public String code() {
+        return code;
     }
 
 }
-

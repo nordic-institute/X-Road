@@ -24,24 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.shredzone.acme4j.connector.HttpConnector;
+import org.shredzone.acme4j.connector.NetworkSettings;
 
-@Component
-public class GlobalConfBeanLookup implements ApplicationContextAware {
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpRequest;
 
-    private static ApplicationContext applicationContext;
+import static ee.ria.xroad.common.Version.XROAD_VERSION;
 
-    @SuppressWarnings("java:S2696")
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        GlobalConfBeanLookup.applicationContext = applicationContext;
+@Slf4j
+public class AcmeXroadHttpConnector extends HttpConnector {
+
+    static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
+    private final NetworkSettings networkSettings;
+
+    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
+        super(networkSettings);
+        this.networkSettings = networkSettings;
     }
 
-    static GlobalConfProvider getGlobalConfProvider() {
-        return applicationContext.getBean(GlobalConfProvider.class);
+    @Override
+    public HttpRequest.Builder createRequestBuilder(URL url) {
+        try {
+            return HttpRequest.newBuilder(url.toURI())
+                    .header("User-Agent", XROAD_ACME_USER_AGENT)
+                    .timeout(networkSettings.getTimeout());
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid URL", ex);
+        }
     }
+
 }

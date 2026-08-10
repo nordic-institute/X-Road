@@ -24,30 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.exception.DeviationBuilder;
+import java.nio.file.Path;
+import java.util.Objects;
 
 /**
- * Deviations for the member-cert ACME account keystore that the Security Server keeps on top of the shared ACME
- * core - key usage, member id and EAB-configuration lookup concerns that the core knows nothing about. Deviations
- * for the ACME protocol itself live in {@link org.niis.xroad.common.acme.AcmeDeviationMessage}.
+ * Configures how {@link AcmeClient} fulfils an HTTP-01 challenge and how long it waits for the ACME server to
+ * settle on a terminal status. The challenge directory is caller-owned: it is expected to also be served back to
+ * the ACME server at {@code /.well-known/acme-challenge/<token>} by the caller's own HTTP layer.
+ *
+ * @param challengeDirectory              directory the HTTP-01 response file is written to and removed from
+ * @param authorizationWaitAttempts       number of attempts to poll for authorization/challenge completion
+ * @param authorizationWaitIntervalSeconds fallback delay, in seconds, between authorization poll attempts
+ * @param certificateWaitAttempts         number of attempts to poll for order completion
+ * @param certificateWaitIntervalSeconds  fallback delay, in seconds, between order poll attempts
  */
-@RequiredArgsConstructor
-public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
+public record AcmeChallengeSettings(
+        Path challengeDirectory,
+        int authorizationWaitAttempts,
+        long authorizationWaitIntervalSeconds,
+        int certificateWaitAttempts,
+        long certificateWaitIntervalSeconds) {
 
-    EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing"),
-    ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
-    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing"),
-    ACME_YAML_MISSING("acme.acme_yaml_missing"),
-    ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR("acme.acme_yaml_account_keystore_password_update_error");
-
-    private final String code;
-
-    @Override
-    public String code() {
-        return code;
+    public AcmeChallengeSettings {
+        Objects.requireNonNull(challengeDirectory, "challengeDirectory must not be null");
     }
-
 }

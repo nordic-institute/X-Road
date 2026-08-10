@@ -24,44 +24,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import org.shredzone.acme4j.connector.Connection;
+import lombok.extern.slf4j.Slf4j;
+import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.connector.DefaultConnection;
 import org.shredzone.acme4j.connector.HttpConnector;
-import org.shredzone.acme4j.connector.NetworkSettings;
-import org.shredzone.acme4j.provider.AbstractAcmeProvider;
 
-import java.net.MalformedURLException;
-import java.net.URI;
+import java.io.IOException;
 import java.net.URL;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.function.Consumer;
 
-public class AcmeXroadProvider extends AbstractAcmeProvider {
+@Slf4j
+public class AcmeProfileIdConnection extends DefaultConnection {
 
-    @Override
-    public boolean accepts(URI serverUri) {
-        return AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme())
-                || (AcmeCustomSchema.XRD_ACME.getSchema() + "s").equals(serverUri.getScheme());
+    private static final String PROFILE_ID_HEADER_KEY = "profile_id";
+
+    public AcmeProfileIdConnection(HttpConnector httpConnector) {
+        super(httpConnector);
     }
 
     @Override
-    public URL resolve(URI serverUri) {
-        String protocol = AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
-        try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad server URI", ex);
+    protected void sendRequest(Session session, URL url, Consumer<HttpRequest.Builder> body) throws IOException {
+        var builder = httpConnector.createRequestBuilder(url)
+                .header("Accept-Charset", "utf-8")
+                .header("Accept-Language", session.getLanguageHeader());
+
+        if (session.networkSettings().isCompressionEnabled()) {
+            builder.header("Accept-Encoding", "gzip");
         }
-    }
 
-    @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new DefaultConnection(createHttpConnector(networkSettings));
-    }
+        AcmeProfileIdContext.current().ifPresent(profileId -> builder.setHeader("User-Agent",
+                PROFILE_ID_HEADER_KEY + "=" + profileId + " " + AcmeXroadHttpConnector.XROAD_ACME_USER_AGENT));
 
-    @Override
-    protected HttpConnector createHttpConnector(NetworkSettings settings) {
-        return new AcmeXroadHttpConnector(settings);
+        body.accept(builder);
+        try {
+            lastResponse = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+        } catch (InterruptedException ex) {
+            throw new IOException("Request was interrupted", ex);
+        }
     }
 
 }

@@ -24,30 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.exception.DeviationBuilder;
+import org.shredzone.acme4j.connector.Connection;
+import org.shredzone.acme4j.connector.DefaultConnection;
+import org.shredzone.acme4j.connector.HttpConnector;
+import org.shredzone.acme4j.connector.NetworkSettings;
+import org.shredzone.acme4j.provider.AbstractAcmeProvider;
 
-/**
- * Deviations for the member-cert ACME account keystore that the Security Server keeps on top of the shared ACME
- * core - key usage, member id and EAB-configuration lookup concerns that the core knows nothing about. Deviations
- * for the ACME protocol itself live in {@link org.niis.xroad.common.acme.AcmeDeviationMessage}.
- */
-@RequiredArgsConstructor
-public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
-    EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing"),
-    ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
-    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing"),
-    ACME_YAML_MISSING("acme.acme_yaml_missing"),
-    ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR("acme.acme_yaml_account_keystore_password_update_error");
-
-    private final String code;
+public class AcmeXroadProvider extends AbstractAcmeProvider {
 
     @Override
-    public String code() {
-        return code;
+    public boolean accepts(URI serverUri) {
+        return AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme())
+                || (AcmeCustomSchema.XRD_ACME.getSchema() + "s").equals(serverUri.getScheme());
+    }
+
+    @Override
+    public URL resolve(URI serverUri) {
+        String protocol = AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
+        try {
+            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException("Bad server URI", ex);
+        }
+    }
+
+    @Override
+    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
+        return new DefaultConnection(createHttpConnector(networkSettings));
+    }
+
+    @Override
+    protected HttpConnector createHttpConnector(NetworkSettings settings) {
+        return new AcmeXroadHttpConnector(settings);
     }
 
 }

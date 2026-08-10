@@ -24,18 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.acme;
 
-package org.niis.xroad.securityserver.restapi.acme;
+import java.util.Objects;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+/**
+ * External Account Binding credentials for an ACME account. Some certificate authorities (e.g. ZeroSSL) require
+ * every account to be bound to an out-of-band issued key identifier and MAC key; others (e.g. Let's Encrypt) need
+ * none, in which case no instance of this record is supplied.
+ *
+ * @param keyIdentifier      key identifier issued by the CA out of band
+ * @param macKey             shared MAC key issued by the CA out of band, base64url encoded if
+ *                           {@code macKeyBase64Encoded} is {@code true}, otherwise used as raw key material
+ * @param macKeyBase64Encoded whether {@code macKey} is base64url encoded
+ */
+public record AcmeEabCredentials(String keyIdentifier, String macKey, boolean macKeyBase64Encoded) {
 
-@Getter
-@RequiredArgsConstructor
-public enum AcmeCustomSchema {
-
-    XRD_ACME("xrd-acme"),
-    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
-
-    private final String schema;
+    public AcmeEabCredentials {
+        Objects.requireNonNull(keyIdentifier, "keyIdentifier must not be null");
+        Objects.requireNonNull(macKey, "macKey must not be null");
+    }
 }

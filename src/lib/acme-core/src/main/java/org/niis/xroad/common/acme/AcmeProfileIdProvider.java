@@ -24,38 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
 import lombok.extern.slf4j.Slf4j;
-import org.shredzone.acme4j.connector.HttpConnector;
+import org.shredzone.acme4j.connector.Connection;
 import org.shredzone.acme4j.connector.NetworkSettings;
 
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpRequest;
-
-import static ee.ria.xroad.common.Version.XROAD_VERSION;
 
 @Slf4j
-public class AcmeXroadHttpConnector extends HttpConnector {
+public class AcmeProfileIdProvider extends AcmeXroadProvider {
 
-    static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
-    private final NetworkSettings networkSettings;
-
-    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
-        super(networkSettings);
-        this.networkSettings = networkSettings;
+    @Override
+    public boolean accepts(URI serverUri) {
+        return AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme())
+                || (AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema() + "s").equals(serverUri.getScheme());
     }
 
     @Override
-    public HttpRequest.Builder createRequestBuilder(URL url) {
+    public URL resolve(URI serverUri) {
+        String protocol = AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
         try {
-            return HttpRequest.newBuilder(url.toURI())
-                    .header("User-Agent", XROAD_ACME_USER_AGENT)
-                    .timeout(networkSettings.getTimeout());
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException("Invalid URL", ex);
+            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException("Bad server URI", ex);
         }
+    }
+
+    @Override
+    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
+        return new AcmeProfileIdConnection(createHttpConnector(networkSettings));
     }
 
 }
