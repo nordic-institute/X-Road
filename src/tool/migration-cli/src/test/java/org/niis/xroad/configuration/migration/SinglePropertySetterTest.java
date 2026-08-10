@@ -61,7 +61,8 @@ class SinglePropertySetterTest {
             var exception = assertThrows(IllegalArgumentException.class,
                     () -> SinglePropertySetter.main(new String[]{"/etc/xroad/db.properties", "only-two"}));
 
-            assertEquals("Invalid number of arguments provided.", exception.getMessage());
+            assertEquals("Invalid number of arguments provided. Rows are keyed by property_key alone; "
+                    + "a scope argument is no longer accepted.", exception.getMessage());
         }
 
         @Test
@@ -85,27 +86,14 @@ class SinglePropertySetterTest {
     class PersistenceFlow {
 
         @Test
-        void savesPropertyWithoutScope() {
+        void savesProperty() {
             try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
                 new TestSinglePropertySetter("prop.key", "propValue")
                         .migrate("not/used", DB_PROPERTIES_PATH);
 
-                var dbRepo = mockedDb.constructed().getFirst();
-                Mockito.verify(dbRepo).saveProperty("prop.key", "propValue", null);
-                Mockito.verify(dbRepo).close();
-                Mockito.verifyNoMoreInteractions(dbRepo);
-            }
-        }
-
-        @Test
-        void savesPropertyWithScope() {
-            try (MockedConstruction<DbRepository> mockedDb = Mockito.mockConstruction(DbRepository.class)) {
-                new TestSinglePropertySetter("prop.key", "propValue")
-                        .migrate("not/used", DB_PROPERTIES_PATH, "signer");
-
                 assertEquals(1, mockedDb.constructed().size());
                 var dbRepo = mockedDb.constructed().getFirst();
-                Mockito.verify(dbRepo).saveProperty("prop.key", "propValue", "signer");
+                Mockito.verify(dbRepo).saveProperty("prop.key", "propValue");
                 Mockito.verify(dbRepo).close();
                 Mockito.verifyNoMoreInteractions(dbRepo);
             }

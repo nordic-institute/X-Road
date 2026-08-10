@@ -27,17 +27,123 @@ package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
 import io.quarkus.vault.VaultKVSecretEngine;
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
+import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
+import org.niis.xroad.signer.common.config.SignerKeyProperties;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 public class SignerConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
+                .register(SignerConfigKeys.instance())
+                .register(SignerKeyConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .overrides(profileOverrides())
+                .dbOverrides(appName)
+                .build();
+    }
+
+    /**
+     * Profile-scoped defaults the DSL cannot express: a signer serving a Security Server retrieves OCSP
+     * responses for its keys, while one serving a configuration proxy has no auth keys and leaves it off.
+     * DB overrides still win over these.
+     */
+    private static Map<String, String> profileOverrides() {
+        if (activeProfiles().contains("ss")) {
+            return Map.of(SignerConfigKeys.OCSP_RESPONSE_RETRIEVAL_ACTIVE.key(), "true");
+        }
+        return Map.of();
+    }
+
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ConfClientRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerRpcServerProperties signerRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerProperties signerProperties(XRoadConfig xRoadConfig) {
+        return new SignerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerAutologinProperties signerAutologinProperties(XRoadConfig xRoadConfig,
+                                                        SignerAutologinProperties.Tokens tokens) {
+        return new SignerAutologinProperties(xRoadConfig, tokens);
+    }
+
+    @ApplicationScoped
+    SignerHwTokenAddonProperties signerHwTokenAddonProperties(XRoadConfig xRoadConfig) {
+        return new SignerHwTokenAddonProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftwarePinHasherProperties softwarePinHasherProperties(XRoadConfig xRoadConfig) {
+        return new SoftwarePinHasherProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerKeyProperties signerKeyProperties(XRoadConfig xRoadConfig) {
+        return new SignerKeyProperties(xRoadConfig);
+    }
 
     @ApplicationScoped
     @Startup
@@ -58,4 +164,11 @@ public class SignerConfig {
         return new QuarkusVaultClient(kvSecretEngine);
     }
 
+    private static DeploymentMode deploymentMode() {
+        return activeProfiles().contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    private static List<String> activeProfiles() {
+        return ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+    }
 }

@@ -27,98 +27,93 @@
 package org.niis.xroad.cs.registrationservice.config;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CsRegistrationServiceConfigKeys;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientPropertyProvider;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.net.URI;
 import java.time.Duration;
 
 /**
- * Registration service configuration properties.
- * <p>
- * Can be defined in local.ini, e.g.:
- * <pre>
- * [registration-service]
- * rate-limit-enabled = true
- * </pre>
+ * Registration service configuration properties ({@code xroad.registration-service.*}),
+ * resolved through {@link XRoadConfig}.
  */
-@Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "xroad.registration-service")
-@Getter
-@Setter
 public class RegistrationServiceProperties implements AdminServiceClientPropertyProvider, IpThrottlingFilterConfig {
 
-    /**
-     * Controls whether the built-in rate limiting is enabled.
-     * <p>
-     * Note. If the service is behind a reverse proxy (default), the proxy needs to forward the real IP address for the
-     * rate-limiting to work correctly. Therefore, by default, using forward headers is enabled.
-     * <p>
-     * If the service is exposed directly, it must not use forwarded headers (can be spoofed by clients), and the
-     * corresponding configuration (server.forward-headers-strategy) needs to be disabled.
-     */
-    private boolean rateLimitEnabled;
+    private final XRoadConfig config;
 
-    /**
-     * Controls how many requests from an IP address are allowed per minute.
-     * Normally security servers should have a unique address and send second
-     * one registration request, so this value can be low.
-     * To disable this feature, set this value to -1.
-     */
-    private int rateLimitRequestsPerSecond;
+    public RegistrationServiceProperties(XRoadConfig config) {
+        this.config = config;
+    }
 
-    /**
-     * Controls how many requests from an IP address are allowed per minute.
-     * Normally security servers should have a unique address and send just
-     * one registration request, so this value can be low.
-     * To disable this feature, set this value to -1.
-     */
-    private int rateLimitRequestsPerMinute;
+    @Override
+    public boolean isRateLimitEnabled() {
+        return config.value(CsRegistrationServiceConfigKeys.RATE_LIMIT_ENABLED);
+    }
 
-    /**
-     * Controls how many IP addresses can be remembered in the rate-limit cache
-     * Tradeoff between memory usage and protection from a large attack.
-     */
-    private int rateLimitCacheSize;
+    @Override
+    public int getRateLimitRequestsPerSecond() {
+        return config.value(CsRegistrationServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND);
+    }
 
-    /**
-     * Controls how long the rate-limit cache entries are valid.
-     */
-    private int rateLimitExpireAfterAccessMinutes;
+    @Override
+    public int getRateLimitRequestsPerMinute() {
+        return config.value(CsRegistrationServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE);
+    }
 
-    /**
-     * Central server admin api base URL
-     */
-    private URI apiBaseUrl;
+    @Override
+    public int getRateLimitCacheSize() {
+        return config.value(CsRegistrationServiceConfigKeys.RATE_LIMIT_CACHE_SIZE);
+    }
 
-    /**
-     * API token for the central server API (required)
-     * The token needs to have the MANAGEMENT_SERVICE role (and for security, no other roles).
-     */
-    private String apiToken;
+    @Override
+    public int getRateLimitExpireAfterAccessMinutes() {
+        return config.value(CsRegistrationServiceConfigKeys.RATE_LIMIT_EXPIRE_AFTER_ACCESS_MINUTES);
+    }
 
-    /**
-     * HTTP client configuration.
-     */
-    private HttpClientProperties httpClientProperties = new HttpClientProperties();
+    @Override
+    public URI getApiBaseUrl() {
+        return URI.create(config.value(CsRegistrationServiceConfigKeys.API_BASE_URL));
+    }
+
+    @Override
+    public String getApiToken() {
+        return config.value(CsRegistrationServiceConfigKeys.API_TOKEN);
+    }
+
+    @Override
+    public HttpClientProperties getHttpClientProperties() {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.setMaxConnectionsPerRoute(config.value(CsRegistrationServiceConfigKeys.HTTP_CLIENT_MAX_CONNECTIONS_PER_ROUTE));
+        properties.setMaxConnectionsTotal(config.value(CsRegistrationServiceConfigKeys.HTTP_CLIENT_MAX_CONNECTIONS_TOTAL));
+        properties.setConnectionTimeoutSeconds(config.value(CsRegistrationServiceConfigKeys.HTTP_CLIENT_CONNECTION_TIMEOUT_SECONDS));
+        properties.setConnectionRequestTimeoutSeconds(
+                config.value(CsRegistrationServiceConfigKeys.HTTP_CLIENT_CONNECTION_REQUEST_TIMEOUT_SECONDS));
+        properties.setResponseTimeoutSeconds(config.value(CsRegistrationServiceConfigKeys.HTTP_CLIENT_RESPONSE_TIMEOUT_SECONDS));
+        return properties;
+    }
+
+    public VaultRetry getVaultRetry() {
+        return new VaultRetry(
+                config.value(CsRegistrationServiceConfigKeys.VAULT_RETRY_RETRY_MAX_ATTEMPTS),
+                config.value(CsRegistrationServiceConfigKeys.VAULT_RETRY_RETRY_DELAY),
+                Double.parseDouble(config.value(CsRegistrationServiceConfigKeys.VAULT_RETRY_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER)));
+    }
 
     /**
      * Vault TLS credentials retry configuration.
      */
-    private VaultRetry vaultRetry = new VaultRetry();
-
     @Getter
-    @Setter
     public static class VaultRetry {
-        private static final int DEFAULT_RETRY_MAX_ATTEMPTS = 5;
-        private static final Duration DEFAULT_RETRY_DELAY = Duration.ofSeconds(2);
-        private static final double DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = 2.0;
+        private final int retryMaxAttempts;
+        private final Duration retryDelay;
+        private final double retryExponentialBackoffMultiplier;
 
-        private int retryMaxAttempts = DEFAULT_RETRY_MAX_ATTEMPTS;
-        private Duration retryDelay = DEFAULT_RETRY_DELAY;
-        private double retryExponentialBackoffMultiplier = DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER;
+        public VaultRetry(int retryMaxAttempts, Duration retryDelay, double retryExponentialBackoffMultiplier) {
+            this.retryMaxAttempts = retryMaxAttempts;
+            this.retryDelay = retryDelay;
+            this.retryExponentialBackoffMultiplier = retryExponentialBackoffMultiplier;
+        }
     }
 }

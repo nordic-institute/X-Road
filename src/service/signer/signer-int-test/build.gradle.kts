@@ -20,7 +20,8 @@ intTestComposeEnv {
     "OPENBAO_DEV_IMG" to "openbao-dev",
     "DB_INIT_IMG" to "ss-db-init",
     "SIGNER_IMG" to "ss-signer",
-    "CA_IMG" to "testca-dev"
+    "CA_IMG" to "testca-dev",
+    "POSTGRES_DEV_IMG" to "postgres-dev"
   )
 }
 

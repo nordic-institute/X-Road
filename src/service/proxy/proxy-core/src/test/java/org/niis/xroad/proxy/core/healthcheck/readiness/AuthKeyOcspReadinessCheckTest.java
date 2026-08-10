@@ -33,7 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
@@ -58,7 +59,8 @@ class AuthKeyOcspReadinessCheckTest {
 
     @BeforeEach
     void setUp() {
-        ProxyHealthCheckProperties props = ConfigUtils.defaultConfiguration(ProxyHealthCheckProperties.class);
+        var xRoadConfig = XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build();
+        ProxyHealthCheckProperties props = new ProxyHealthCheckProperties(xRoadConfig);
         this.check = new AuthKeyOcspReadinessCheck(keyConfProvider, props);
     }
 

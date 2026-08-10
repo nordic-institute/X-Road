@@ -66,7 +66,7 @@ class AcmeConfigTest {
     void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
         when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        acmeCommonConfig.acmeProperties(config, "");
+        acmeCommonConfig.parseAcmeProperties(config, "");
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.ERROR);
@@ -77,16 +77,16 @@ class AcmeConfigTest {
     void testAcmePropertiesBeanIsCreatedWhenPropNotSet() {
         when(config.isAcmeChallengePortEnabled()).thenReturn(true);
 
-        assertNotNull(acmeCommonConfig.acmeProperties(config, null));
-        assertNotNull(acmeCommonConfig.acmeProperties(config, ""));
-        assertNotNull(acmeCommonConfig.acmeProperties(config, "not valid"));
+        assertNotNull(acmeCommonConfig.parseAcmeProperties(config, null));
+        assertNotNull(acmeCommonConfig.parseAcmeProperties(config, ""));
+        assertNotNull(acmeCommonConfig.parseAcmeProperties(config, "not valid"));
     }
 
     @Test
     void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
         when(config.isAcmeChallengePortEnabled()).thenReturn(false);
 
-        acmeCommonConfig.acmeProperties(config, null);
+        acmeCommonConfig.parseAcmeProperties(config, null);
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.getFirst().getLevel()).isEqualTo(Level.INFO);

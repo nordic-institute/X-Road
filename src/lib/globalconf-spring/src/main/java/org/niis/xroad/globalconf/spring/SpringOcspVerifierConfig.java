@@ -27,36 +27,26 @@
 
 package org.niis.xroad.globalconf.spring;
 
-import lombok.Setter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.impl.config.OcspVerifierConfig;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(SpringOcspVerifierConfig.SpringOcspVerifierProperties.class)
 public class SpringOcspVerifierConfig extends OcspVerifierConfig {
+
+    @Bean
+    @Override
+    public OcspVerifierProperties ocspVerifierProperties(XRoadConfig xRoadConfig) {
+        return super.ocspVerifierProperties(xRoadConfig);
+    }
 
     @Bean
     @Override
     public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {
         return super.ocspVerifierFactory(ocspVerifierProperties);
     }
-
-    @Setter
-    @ConfigurationProperties(prefix = OcspVerifierProperties.MAPPING_PREFIX)
-    public static class SpringOcspVerifierProperties implements OcspVerifierProperties {
-
-        int cachePeriod = Integer.parseInt(DEFAULT_OCSP_VERIFIER_CACHE_PERIOD);
-
-        @Override
-        public int cachePeriod() {
-            return cachePeriod;
-        }
-    }
-
 
 }

@@ -13,12 +13,13 @@ dependencies {
 
   implementation(project(":service:configuration-proxy:configuration-proxy-common"))
   implementation(project(":service:configuration-proxy:configuration-proxy-jpa"))
-
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:rpc-quarkus"))
+  implementation(project(":lib:properties-core"))
 
   implementation(project(":service:signer:signer-client"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
 
   testImplementation(libs.quarkus.junit5)
   testImplementation(libs.mockito.jupiter)

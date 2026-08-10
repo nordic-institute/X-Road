@@ -6,8 +6,8 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-domain"))
+  api(project(":lib:properties-core"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":common:common-core"))
-  implementation(libs.smallrye.config.core)
 }
 

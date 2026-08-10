@@ -11,6 +11,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-common"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":lib:globalconf-core"))
+  implementation(project(":lib:properties-core"))
   implementation(project(":lib:vault-quarkus"))
 
   implementation(libs.quarkus.arc)

@@ -26,14 +26,40 @@
  */
 package org.niis.xroad.confproxy.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithName;
-import org.niis.xroad.common.vault.quarkus.config.QuarkusCertificateProvisioningProperties;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
-@ConfigMapping(prefix = "xroad.configuration-proxy.tls")
-public interface ConfProxyTlsProperties {
+import java.util.Arrays;
+import java.util.List;
 
-    @WithName("certificate-provisioning")
-    QuarkusCertificateProvisioningProperties certificateProvisioning();
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH;
+import static org.niis.xroad.common.properties.config.keys.ConfProxyConfigKeys.TLS_CERT_PROVISIONING_TTL;
 
+/**
+ * {@link XRoadConfig}-backed TLS properties for the configuration proxy.
+ */
+@RequiredArgsConstructor
+public class ConfProxyTlsProperties {
+
+    private final XRoadConfig xRoadConfig;
+
+    public CertificateProvisioningProperties certificateProvisioning() {
+        return new CertificateProvisioningConfig(
+                xRoadConfig.value(TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME),
+                xRoadConfig.value(TLS_CERT_PROVISIONING_COMMON_NAME),
+                toList(xRoadConfig.value(TLS_CERT_PROVISIONING_ALT_NAMES)),
+                toList(xRoadConfig.value(TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
+                xRoadConfig.value(TLS_CERT_PROVISIONING_TTL),
+                xRoadConfig.value(TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
+    }
+
+    private static List<String> toList(String[] values) {
+        return Arrays.stream(values).filter(value -> !value.isBlank()).toList();
+    }
 }

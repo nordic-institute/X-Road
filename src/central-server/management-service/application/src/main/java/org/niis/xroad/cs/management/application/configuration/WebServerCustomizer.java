@@ -30,6 +30,8 @@ import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.cs.management.core.configuration.ManagementServiceProperties;
 import org.springframework.boot.jetty.servlet.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -71,16 +73,12 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
 
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            var env = context.getEnvironment();
-            boolean enabled = env.getProperty("xroad.management-service.rate-limit-enabled", Boolean.class, true);
-            if (!enabled) {
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), CsManagementServiceConfigKeys.instance());
+            if (!config.value(CsManagementServiceConfigKeys.RATE_LIMIT_ENABLED)) {
                 return false;
             }
-            int perSecond = env.getProperty(
-                    "xroad.management-service.rate-limit-requests-per-second", Integer.class, 0);
-            int perMinute = env.getProperty(
-                    "xroad.management-service.rate-limit-requests-per-minute", Integer.class, 0);
-            return perSecond > 0 || perMinute > 0;
+            return config.value(CsManagementServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND) > 0
+                    || config.value(CsManagementServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE) > 0;
         }
     }
 }

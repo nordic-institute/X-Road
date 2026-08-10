@@ -36,11 +36,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.properties.CommonProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.messagelog.MessageLogDbProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
@@ -76,9 +82,10 @@ abstract class AbstractMessageLogTest {
 
     ProxyProperties proxyProperties;
     ProxyMessageLogProperties messageLogProperties;
-    CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-            "xroad.common.temp-files-path", "build/tmp"
-    ));
+    CommonProperties commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
+            .register(CommonConfigKeys.instance())
+            .overrides(Map.of("xroad.common.temp-files-path", "build/tmp"))
+            .build());
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
@@ -99,14 +106,22 @@ abstract class AbstractMessageLogTest {
 
     protected void testSetUp(Map<String, String> configOverrides, boolean encrypted) throws Exception {
         // Initialize ProxyProperties with overrides
-        proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+        proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .build());
 
-        messageLogProperties = configOverrides.isEmpty()
-                ? ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class)
-                : ConfigUtils.initConfiguration(ProxyMessageLogProperties.class, configOverrides);
-        messageLogEncryptionProperties = ConfigUtils.initConfiguration(
-                MessageLogEncryptionProperties.class, configOverrides);
-        messageLogArchiverProperties = ConfigUtils.initConfiguration(MessageLogArchiverProperties.class, configOverrides);
+        messageLogProperties = new ProxyMessageLogProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(configOverrides)
+                .build());
+        messageLogEncryptionProperties = new MessageLogEncryptionProperties(XRoadConfigBuilder.create()
+                .register(MessageLogEncryptionConfigKeys.instance())
+                .overrides(configOverrides)
+                .build());
+        messageLogArchiverProperties = new MessageLogArchiverProperties(XRoadConfigBuilder.create()
+                .register(MessageLogArchiverConfigKeys.instance())
+                .overrides(configOverrides)
+                .build());
 
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
@@ -176,7 +191,6 @@ abstract class AbstractMessageLogTest {
 
     /**
      * Sends time stamping status message to LogManager
-     *
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {

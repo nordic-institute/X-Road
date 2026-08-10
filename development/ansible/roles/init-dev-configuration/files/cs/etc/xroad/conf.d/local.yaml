@@ -1,9 +1,0 @@
----
-xroad:
-  admin-service:
-    global-configuration-generation-rate-in-seconds: 10
-  configuration-client:
-    update-interval: 10 # default 60
-  dataspace:
-    issuer:
-      host: xrd-cs # hardcoded to lxd dev env host (cs_servers has exactly one host)

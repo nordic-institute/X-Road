@@ -1,0 +1,77 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+package org.niis.xroad.common.properties.config;
+
+import java.util.Optional;
+
+public sealed interface ConfigKey<T> permits Prefix.DefaultConfigKey {
+
+    /** @return UI grouping this key belongs to; {@link Category#COMMON} when unscoped */
+    Category category();
+
+    /** @return whether this key is shown/editable in the system-parameters UI; internal keys default to false */
+    default boolean exposedInUi() {
+        return false;
+    }
+
+    /**
+     * Whether the resolved value must also be published into the framework's own configuration
+     * (Spring {@code Environment} / SmallRye), which happens for keys a packaged
+     * {@code application.yaml} interpolates into a framework setting — e.g.
+     * {@code quarkus.http.port: ${xroad.proxy.health-check-port}}. Everything else stays out of the
+     * framework context and is read through {@link XRoadConfig} only.
+     *
+     * @return whether the framework config sees this key; defaults to false
+     */
+    default boolean publishedToFramework() {
+        return false;
+    }
+
+    String key();
+
+    String defaultValue();
+
+    T convertedDefaultValue();
+
+    /** @return the raw container-mode default, or {@code null} when none is declared (falls back to {@link #defaultValue()}). */
+    String containerDefaultValue();
+
+    /** @return the converted container-mode default, or {@code null} when none is declared. */
+    T convertedContainerDefaultValue();
+
+    Class<T> type();
+
+    T convert(String rawValue);
+
+    Validator.Result validate(T value);
+
+    /** @return human-readable summary of the validation constraint, empty when unconstrained */
+    default Optional<String> validationSummary() {
+        return Optional.empty();
+    }
+}

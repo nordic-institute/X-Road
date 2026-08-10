@@ -31,11 +31,5 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 /**
  * Channel properties for the gRPC client to the IdentityHub provisioning service.
  */
-@SuppressWarnings("checkstyle:InterfaceIsType")
 public interface IdentityHubProvisioningRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.dataspace.identity-hub-provisioning.rpc";
-
-    String DEFAULT_HOST = "ds-identity-hub";
-    String DEFAULT_PORT = "5460";
-    String DEFAULT_DEADLINE_AFTER = "60000";
 }

@@ -26,53 +26,63 @@
  */
 package org.niis.xroad.auxiliaryservice.application.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.util.Optional;
 
-@ConfigMapping(prefix = "xroad.auxiliary-service.readiness-check")
-public interface AuxiliaryServiceReadinessCheckProperties {
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.READINESS_CHECK_KUBERNETES_CA_CERT_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.READINESS_CHECK_KUBERNETES_CONNECT_TIMEOUT_MS;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.READINESS_CHECK_KUBERNETES_READ_TIMEOUT_MS;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.READINESS_CHECK_KUBERNETES_SERVICE_HOST;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.READINESS_CHECK_KUBERNETES_SERVICE_PORT;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.READINESS_CHECK_KUBERNETES_TOKEN_PATH;
 
-    /**
-     * Kubernetes API configuration for the Kubernetes API readiness check.
-     */
-    @WithName("kubernetes")
-    KubernetesApiProperties kubernetes();
+/** Auxiliary-service readiness-check configuration ({@code xroad.auxiliary-service.readiness-check.*}). */
+@RequiredArgsConstructor
+public class AuxiliaryServiceReadinessCheckProperties {
 
-    interface KubernetesApiProperties {
+    private final XRoadConfig xRoadConfig;
 
-        /**
-         * Kubernetes API server host.
-         * Auto-discovered from KUBERNETES_SERVICE_HOST env var.
-         */
-        @WithName("service-host")
-        @WithDefault("${KUBERNETES_SERVICE_HOST:}")
-        Optional<String> serviceHost();
+    /** @return Kubernetes API configuration for the readiness check */
+    public KubernetesApiProperties kubernetes() {
+        return new KubernetesApiProperties(xRoadConfig);
+    }
 
-        /**
-         * Kubernetes API server port.
-         * Auto-discovered from KUBERNETES_SERVICE_PORT env var.
-         */
-        @WithName("service-port")
-        @WithDefault("${KUBERNETES_SERVICE_PORT:}")
-        Optional<String> servicePort();
+    /** Kubernetes API sub-configuration ({@code xroad.auxiliary-service.readiness-check.kubernetes.*}). */
+    @RequiredArgsConstructor
+    public static class KubernetesApiProperties {
 
-        @WithName("token-path")
-        @WithDefault("/var/run/secrets/kubernetes.io/serviceaccount/token")
-        String tokenPath();
+        private final XRoadConfig xRoadConfig;
 
-        @WithName("ca-cert-path")
-        @WithDefault("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
-        String caCertPath();
+        /** @return Kubernetes API server host, or empty when not configured */
+        public Optional<String> serviceHost() {
+            return Optional.ofNullable(xRoadConfig.value(READINESS_CHECK_KUBERNETES_SERVICE_HOST));
+        }
 
-        @WithName("connect-timeout-ms")
-        @WithDefault("5000")
-        int connectTimeoutMs();
+        /** @return Kubernetes API server port, or empty when not configured */
+        public Optional<String> servicePort() {
+            return Optional.ofNullable(xRoadConfig.value(READINESS_CHECK_KUBERNETES_SERVICE_PORT));
+        }
 
-        @WithName("read-timeout-ms")
-        @WithDefault("5000")
-        int readTimeoutMs();
+        /** @return path to the service account token file */
+        public String tokenPath() {
+            return xRoadConfig.value(READINESS_CHECK_KUBERNETES_TOKEN_PATH);
+        }
+
+        /** @return path to the CA certificate file */
+        public String caCertPath() {
+            return xRoadConfig.value(READINESS_CHECK_KUBERNETES_CA_CERT_PATH);
+        }
+
+        /** @return connection timeout in milliseconds */
+        public int connectTimeoutMs() {
+            return xRoadConfig.value(READINESS_CHECK_KUBERNETES_CONNECT_TIMEOUT_MS);
+        }
+
+        /** @return read timeout in milliseconds */
+        public int readTimeoutMs() {
+            return xRoadConfig.value(READINESS_CHECK_KUBERNETES_READ_TIMEOUT_MS);
+        }
     }
 }

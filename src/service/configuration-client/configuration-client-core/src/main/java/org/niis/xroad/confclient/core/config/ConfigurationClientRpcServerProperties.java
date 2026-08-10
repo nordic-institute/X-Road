@@ -25,26 +25,32 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@ConfigMapping(prefix = "xroad.configuration-client.rpc")
-public interface ConfigurationClientRpcServerProperties extends RpcServerProperties {
+import static org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys.RPC_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys.RPC_LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys.RPC_PORT;
 
-    @WithName("enabled")
-    @WithDefault("true")
-    @Override
-    boolean enabled();
+/** Configuration-client RPC server properties ({@code xroad.configuration-client.rpc.*}). */
+@RequiredArgsConstructor
+public class ConfigurationClientRpcServerProperties implements RpcServerProperties {
 
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
-    @Override
-    String listenAddress();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("port")
-    @WithDefault("5665")
     @Override
-    int port();
+    public boolean enabled() {
+        return xRoadConfig.value(RPC_ENABLED);
+    }
+
+    @Override
+    public String listenAddress() {
+        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    }
+
+    @Override
+    public int port() {
+        return xRoadConfig.value(RPC_PORT);
+    }
 }

@@ -4,19 +4,48 @@ services:
   signer:
     environment:
       - QUARKUS_LOG_LEVEL=INFO
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
+
+  # xroad.configuration-proxy.* config now resolves through the XRoadConfig DSL (DB overrides +
+  # packaged defaults), not env vars. Test-specific overrides are seeded into configuration_properties
+  # by db-confproxy-config-seed below.
+  db-confproxy-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-confproxy -U confproxy; do sleep 1; done
+        PGPASSWORD=secret psql -h db-confproxy -U confproxy -d confproxy -c \
+          "INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+           ('xroad.configuration-proxy.address', 'configuration-proxy-webserver', now(), now()),
+           ('xroad.configuration-proxy.update-interval', '2s', now(), now()),
+           ('xroad.configuration-proxy.auto-init-soft-token', '4321', now(), now())
+           ON CONFLICT DO NOTHING;"
+    networks:
+      - xroad-network
+    depends_on:
+      db-confproxy-init:
+        condition: service_completed_successfully
 
   configuration-proxy:
     environment:
       - QUARKUS_LOG_LEVEL=INFO
       - QUARKUS_LOG_CATEGORY__ORG_NIIS_XROAD_CONFPROXY__LEVEL=DEBUG
-      - XROAD_CONFIGURATION_PROXY_ADDRESS=configuration-proxy-webserver
-      - XROAD_CONFIGURATION_PROXY_UPDATE_INTERVAL=2s
-      - XROAD_CONFIGURATION_PROXY_AUTO_INIT_SOFT_TOKEN=4321
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-confproxy:5432/confproxy
+      - DB_CONFIG_SOURCE_USERNAME=confproxy
+      - DB_CONFIG_SOURCE_PASSWORD=secret
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health/live" ]
     ports:
       - "0:4000"
       - "0:4099"
     volumes:
       - ./cp-container-files/anchors:/home/xroad/anchors:ro
+    depends_on:
+      db-confproxy-config-seed:
+        condition: service_completed_successfully
 
   # Replace dev xrd-cs with a local nginx serving static global configuration
   xrd-cs:

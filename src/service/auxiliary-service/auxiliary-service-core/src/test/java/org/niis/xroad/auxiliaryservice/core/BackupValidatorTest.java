@@ -31,14 +31,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.auxiliaryservice.core.backup.BackupValidator;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class BackupValidatorTest {
 
-    BackupProperties auxiliaryServiceProperties = ConfigUtils.defaultConfiguration(BackupProperties.class);
+    BackupProperties auxiliaryServiceProperties = new BackupProperties(XRoadConfigBuilder.create()
+            .register(AuxiliaryServiceConfigKeys.instance())
+            .build());
 
     BackupValidator validator = new BackupValidator(auxiliaryServiceProperties);
 

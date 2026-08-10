@@ -31,11 +31,17 @@ import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 import org.niis.xroad.messagelog.MessageRecordEncryption;
 
 public class MessageLogEncryptionConfig {
+
+    @ApplicationScoped
+    public MessageLogEncryptionProperties messageLogEncryptionProperties(XRoadConfig xRoadConfig) {
+        return new MessageLogEncryptionProperties(xRoadConfig);
+    }
 
     @ApplicationScoped
     public VaultArchivalPgpKeyProvider keyProvider(VaultClient vaultClient) {
