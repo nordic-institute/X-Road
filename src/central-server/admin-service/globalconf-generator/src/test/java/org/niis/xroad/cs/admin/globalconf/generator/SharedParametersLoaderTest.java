@@ -46,10 +46,13 @@ import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCa;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCaIntermediateCa;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCasService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
@@ -87,6 +90,11 @@ class SharedParametersLoaderTest {
     private static final String TSA_NAME = "TSA name";
     private static final String TSA_URL = "TSA url";
     private static final byte[] TSA_CERT = "TSA cert".getBytes(UTF_8);
+    private static final String DS_TLS_CA_NAME = "ds tls ca name";
+    private static final byte[] DS_TLS_CA_CERT = "ds tls ca cert".getBytes(UTF_8);
+    private static final byte[] DS_TLS_CA_INTERMEDIATE_CERT = "ds tls ca intermediate cert".getBytes(UTF_8);
+    private static final String DS_TLS_CA_ACME_SERVER_URL = "https://dstlsca/acme/directory";
+    private static final String DS_TLS_CERTIFICATE_PROFILE_ID = "xrd-ds-tls";
     private static final String XROAD_INSTANCE = "XRD";
     private static final String SECURITY_SERVER_ADDRESS = "security-server-address";
     private static final String SECURITY_SERVER_CODE = "SS1";
@@ -105,6 +113,8 @@ class SharedParametersLoaderTest {
     SystemParameterService systemParameterService;
     @Mock
     CertificationServicesService certificationServicesService;
+    @Mock
+    DsTlsCasService dsTlsCasService;
     @Mock
     TimestampingServicesService timestampingServicesService;
     @Mock
@@ -129,6 +139,7 @@ class SharedParametersLoaderTest {
         when(configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys())
                 .thenReturn(getNodeAddressesWithConfigurationSigningKeys());
         when(certificationServicesService.findAll()).thenReturn(List.of(getCertificationService()));
+        when(dsTlsCasService.findAll()).thenReturn(List.of(getDsTlsCa()));
 
         when(timestampingServicesService.getTimestampingServices()).thenReturn(Set.of(getApprovedTsa()));
         when(clientService.findAll()).thenReturn(getClients());
@@ -151,6 +162,7 @@ class SharedParametersLoaderTest {
         assertThat(parameters.getInstanceIdentifier()).isEqualTo(XROAD_INSTANCE);
         assertNodeAddressesWithConfigurationSigningKeys(parameters);
         assertApprovedCa(parameters);
+        assertApprovedDsTlsCa(parameters);
         assertApproveTsa(parameters);
         assertSecurityServers(parameters);
         assertGlobalGroups(parameters);
@@ -222,6 +234,19 @@ class SharedParametersLoaderTest {
         });
     }
 
+    private void assertApprovedDsTlsCa(SharedParameters parameters) {
+        assertThat(parameters.getApprovedDsTlsCas()).singleElement().satisfies(approvedDsTlsCa -> {
+            assertThat(approvedDsTlsCa.getName()).isEqualTo(DS_TLS_CA_NAME);
+            assertThat(approvedDsTlsCa.getTopCA()).isNotNull();
+            assertThat(approvedDsTlsCa.getTopCA().getCert()).isEqualTo(DS_TLS_CA_CERT);
+            assertThat(approvedDsTlsCa.getIntermediateCas())
+                    .singleElement()
+                    .satisfies(caInfo -> assertThat(caInfo.getCert()).isEqualTo(DS_TLS_CA_INTERMEDIATE_CERT));
+            assertThat(approvedDsTlsCa.getAcmeServer().getDirectoryURL()).isEqualTo(DS_TLS_CA_ACME_SERVER_URL);
+            assertThat(approvedDsTlsCa.getAcmeServer().getDsTlsCertificateProfileId()).isEqualTo(DS_TLS_CERTIFICATE_PROFILE_ID);
+        });
+    }
+
     private void assertNodeAddressesWithConfigurationSigningKeys(SharedParameters parameters) {
         assertThat(parameters.getSources()).singleElement().satisfies(src -> {
             assertThat(src.getAddress()).isEqualTo(CENTRAL_SERVICE);
@@ -268,6 +293,22 @@ class SharedParametersLoaderTest {
         ocsp.setCostType(CostType.FREE);
         ocsp.setCertificate(caOcspCert);
         return ocsp;
+    }
+
+    private DsTlsCa getDsTlsCa() {
+        var dsTlsCa = new DsTlsCa();
+        dsTlsCa.setName(DS_TLS_CA_NAME);
+        dsTlsCa.setCertificate(DS_TLS_CA_CERT);
+        dsTlsCa.setIntermediateCas(List.of(getDsTlsCaIntermediateCa()));
+        dsTlsCa.setAcmeServerDirectoryUrl(DS_TLS_CA_ACME_SERVER_URL);
+        dsTlsCa.setDsTlsCertificateProfileId(DS_TLS_CERTIFICATE_PROFILE_ID);
+        return dsTlsCa;
+    }
+
+    private DsTlsCaIntermediateCa getDsTlsCaIntermediateCa() {
+        var intermediateCa = new DsTlsCaIntermediateCa();
+        intermediateCa.setCaCertificate(new CertificateDetails().setEncoded(DS_TLS_CA_INTERMEDIATE_CERT));
+        return intermediateCa;
     }
 
     private ApprovedTsa getApprovedTsa() {

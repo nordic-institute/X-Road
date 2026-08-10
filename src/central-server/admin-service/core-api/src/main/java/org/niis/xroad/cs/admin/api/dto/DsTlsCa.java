@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,19 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.cs.admin.api.dto;
 
-import lombok.experimental.UtilityClass;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
-@UtilityClass
-public class GlobalConfVersion {
-    /**
-     * Current version number of the global configuration
-     **/
-    public static final int CURRENT_VERSION = 7;
+import java.time.Instant;
+import java.util.List;
 
-    /**
-     * Minimum supported version number of the global configuration
-     **/
-    public static final int MINIMUM_SUPPORTED_VERSION = 2;
+/**
+ * A designated DS TLS CA entry: name, top CA chain, optional intermediates and an optional ACME server.
+ * Kept entirely separate from {@link CertificationService} (approved CAs) — own persistence, own list,
+ * never consulted by member-cert validation.
+ */
+@Data
+@Accessors(chain = true)
+public class DsTlsCa {
+
+    private Integer id;
+
+    private String name;
+    private String issuerDistinguishedName;
+    private String subjectDistinguishedName;
+    private Instant notAfter;
+    private Instant notBefore;
+
+    private String acmeServerDirectoryUrl;
+    private String dsTlsCertificateProfileId;
+
+    private byte[] certificate;
+    private List<DsTlsCaIntermediateCa> intermediateCas;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+
 }

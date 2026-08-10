@@ -50,6 +50,7 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -557,6 +558,28 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getIpAddress() : null,
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getAuthenticationCertificateProfileId() : null,
                 ca.getAcmeServer() != null ? ca.getAcmeServer().getSigningCertificateProfileId() : null
+        );
+    }
+
+    @Override
+    public Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
+            String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getApprovedDsTlsCas()
+                .stream()
+                .map(this::createApprovedDsTlsCaInfo)
+                .toList();
+    }
+
+    private ApprovedDsTlsCaInfo createApprovedDsTlsCaInfo(SharedParameters.ApprovedDsTlsCa ca) {
+        List<byte[]> intermediateCaCerts = ca.getIntermediateCas() == null
+                ? List.of()
+                : ca.getIntermediateCas().stream().map(SharedParameters.CaInfo::getCert).toList();
+        return new ApprovedDsTlsCaInfo(
+                ca.getName(),
+                ca.getTopCA() != null ? ca.getTopCA().getCert() : null,
+                intermediateCaCerts,
+                ca.getAcmeServer() != null ? ca.getAcmeServer().getDirectoryURL() : null,
+                ca.getAcmeServer() != null ? ca.getAcmeServer().getDsTlsCertificateProfileId() : null
         );
     }
 

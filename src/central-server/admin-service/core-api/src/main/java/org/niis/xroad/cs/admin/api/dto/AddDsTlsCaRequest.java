@@ -1,5 +1,7 @@
 /*
  * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,19 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.cs.admin.api.dto;
 
-import lombok.experimental.UtilityClass;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@UtilityClass
-public class GlobalConfVersion {
-    /**
-     * Current version number of the global configuration
-     **/
-    public static final int CURRENT_VERSION = 7;
-
-    /**
-     * Minimum supported version number of the global configuration
-     **/
-    public static final int MINIMUM_SUPPORTED_VERSION = 2;
+@Getter
+@RequiredArgsConstructor
+public class AddDsTlsCaRequest {
+    private final byte[] certificate;
+    private final String acmeServerDirectoryUrl;
+    private final String dsTlsCertificateProfileId;
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,19 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.cs.admin.api.service;
 
-import lombok.experimental.UtilityClass;
+import org.niis.xroad.cs.admin.api.dto.AddDsTlsCaRequest;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCa;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCaIntermediateCa;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCaListItem;
 
-@UtilityClass
-public class GlobalConfVersion {
-    /**
-     * Current version number of the global configuration
-     **/
-    public static final int CURRENT_VERSION = 7;
+import java.util.List;
 
-    /**
-     * Minimum supported version number of the global configuration
-     **/
-    public static final int MINIMUM_SUPPORTED_VERSION = 2;
+/**
+ * Manages the {@code approvedDsTlsCa} globalconf list: designated CAs trusted for dataspace TLS server
+ * certificates. Own persistence, fully separate from the approved (member) CAs managed by
+ * {@link CertificationServicesService}; never consulted by member-cert validation.
+ */
+public interface DsTlsCasService {
+
+    DsTlsCa add(AddDsTlsCaRequest request);
+
+    DsTlsCa get(Integer id);
+
+    void delete(Integer id);
+
+    DsTlsCa update(DsTlsCa dsTlsCa);
+
+    List<DsTlsCa> findAll();
+
+    List<DsTlsCaListItem> getDsTlsCas();
+
+    CertificateDetails getCertificateDetails(Integer id);
+
+    DsTlsCaIntermediateCa addIntermediateCa(Integer dsTlsCaId, byte[] cert);
+
+    List<DsTlsCaIntermediateCa> getIntermediateCas(Integer dsTlsCaId);
+
+    DsTlsCaIntermediateCa getIntermediateCa(Integer intermediateCaId);
+
+    void deleteIntermediateCa(Integer intermediateCaId);
 }
