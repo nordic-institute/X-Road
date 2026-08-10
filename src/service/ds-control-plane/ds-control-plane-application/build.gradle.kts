@@ -46,7 +46,9 @@ dependencies {
   runtimeOnly(libs.edc.core.runtime)
   runtimeOnly(libs.edc.core.token)
   runtimeOnly(libs.edc.core.jersey)
-  runtimeOnly(libs.edc.core.jetty)
+  // Owned replacement for org.eclipse.edc:jetty-core, already pulled in transitively via
+  // lib:bootstrap-edc-quarkus - declared explicitly here too so the swap is visible at this level.
+  runtimeOnly(project(":lib:edc-jetty-core"))
   runtimeOnly(libs.edc.core.policy.monitor)
   runtimeOnly(libs.edc.api.observability)
   runtimeOnly(libs.edc.core.dataplane.selector)
@@ -68,3 +70,21 @@ dependencies {
   // Inlined virtual-controlplane-feature-dcp-bom contents (DCP bundle)
   runtimeOnly(libs.bundles.edc.dcp)
 }
+
+// Guards the owned Jetty module replacement: org.eclipse.edc:jetty-core must never
+// resolve here, or the stock upstream JettyExtension races the owned XRoadJettyExtension for the
+// WebServer registration and can silently boot a plaintext, file-keystore-fallback Jetty instead.
+tasks.register("verifyNoUpstreamEdcJettyCore") {
+  doLast {
+    val offending = configurations.getByName("runtimeClasspath")
+      .incoming.resolutionResult.allComponents
+      .mapNotNull { it.moduleVersion }
+      .filter { it.group == "org.eclipse.edc" && it.name == "jetty-core" }
+    check(offending.isEmpty()) {
+      "org.eclipse.edc:jetty-core resolved on the runtime classpath ($offending) - the owned " +
+        "lib:edc-jetty-core module must be the only Jetty WebServer implementation here; " +
+        "exclude jetty-core from whichever dependency reintroduced it."
+    }
+  }
+}
+tasks.named("check") { dependsOn("verifyNoUpstreamEdcJettyCore") }

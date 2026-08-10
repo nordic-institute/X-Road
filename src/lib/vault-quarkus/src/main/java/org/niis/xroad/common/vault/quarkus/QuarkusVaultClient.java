@@ -110,13 +110,14 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public InternalSSLKey getDsHttpsTlsCredentials() {
-        throw new NotImplementedException();
+    public InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH);
     }
 
     @Override
-    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod) {
-        throw new NotImplementedException();
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod)
+            throws IOException, CertificateEncodingException {
+        createTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH, internalSSLKey);
     }
 
     @Override
