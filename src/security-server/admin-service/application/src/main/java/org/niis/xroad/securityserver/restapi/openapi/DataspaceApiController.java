@@ -28,22 +28,32 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.util.ResourceUtils;
+import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
+import org.niis.xroad.securityserver.restapi.service.DsTlsCertificateService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_DATASPACE_TLS_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
+
 /**
- * Data space API controller — read-only provisioning status endpoint.
+ * Data space API controller — provisioning status and dataspace TLS certificate endpoints.
  */
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -53,12 +63,35 @@ import java.util.List;
 public class DataspaceApiController implements DataspaceApi {
 
     private final DataspaceProvisioningStatusService dataspaceProvisioningStatusService;
+    private final DsTlsCertificateService dsTlsCertificateService;
+    private final CertificateDetailsConverter certificateDetailsConverter;
+    private final AuditDataHelper auditDataHelper;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_DATASPACE_STATUS')")
     public ResponseEntity<DataspaceProvisioningStatusDto> getDataspaceProvisioningStatus() {
         DataspaceStatus status = dataspaceProvisioningStatusService.readStatus();
         return new ResponseEntity<>(toDto(status), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_DS_TLS_CERT')")
+    public ResponseEntity<CertificateDetailsDto> getDataspaceTlsCertificate() {
+        var certificate = dsTlsCertificateService.getDataspaceTlsCertificate();
+        return ResponseEntity.ok(certificateDetailsConverter.convert(certificate));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPLOAD_DS_TLS_CERT')")
+    @AuditEventMethod(event = UPLOAD_DATASPACE_TLS_CERT)
+    public ResponseEntity<CertificateDetailsDto> uploadDataspaceTlsCertificate(MultipartFile key, MultipartFile certificate) {
+        auditDataHelper.put(CERT_FILE_NAME, certificate.getOriginalFilename());
+
+        byte[] keyBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(key);
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificate);
+
+        var uploaded = dsTlsCertificateService.uploadDataspaceTlsCertificate(keyBytes, certificateBytes);
+        return ResponseEntity.ok(certificateDetailsConverter.convert(uploaded));
     }
 
     private DataspaceProvisioningStatusDto toDto(DataspaceStatus status) {

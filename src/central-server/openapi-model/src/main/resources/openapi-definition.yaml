@@ -28,6 +28,8 @@ tags:
     description: resources related to Central Server's member classes
   - name: clients
     description: resources related to Clients (Members and Subsystems)
+  - name: dataspace
+    description: resources related to the dataspace TLS certificate
   - name: configuration-sources
     description: general resources related to Configuration Sources
   - name: configuration-source-anchors
@@ -2979,6 +2981,60 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /dataspace/tls-certificate:
+    get:
+      tags:
+        - dataspace
+      summary: view the dataspace TLS certificate information
+      operationId: getDataspaceTlsCertificate
+      description: <h3>Administrator views the dataspace TLS certificate information.</h3>
+      responses:
+        '200':
+          description: certificate information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - dataspace
+      summary: upload an operator-provided dataspace TLS key and certificate
+      operationId: uploadDataspaceTlsCertificate
+      description:
+        <h3>Administrator uploads a dataspace TLS private key and certificate (or certificate chain) obtained out-of-band.</h3>
+      requestBody:
+        description: dataspace TLS private key and certificate
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DataspaceTlsCertificateFile'
+      responses:
+        '200':
+          description: dataspace TLS certificate stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/server-address:
     put:
       operationId: updateCentralServerAddress
@@ -3832,6 +3888,21 @@ components:
           format: binary
           type: string
       required:
+        - certificate
+      type: object
+    DataspaceTlsCertificateFile:
+      description: dataspace TLS private key and certificate (or certificate chain) files
+      properties:
+        key:
+          description: the private key file (PEM, PKCS#8)
+          format: binary
+          type: string
+        certificate:
+          description: the certificate or certificate chain file (PEM)
+          format: binary
+          type: string
+      required:
+        - key
         - certificate
       type: object
     CertificationServiceFileAndSettings:

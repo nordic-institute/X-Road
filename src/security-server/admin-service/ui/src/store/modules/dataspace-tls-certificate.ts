@@ -25,21 +25,24 @@
  * THE SOFTWARE.
  */
 
-export interface TlsCertificate {
-  hash: string;
-}
+import { defineStore } from 'pinia';
+import * as api from '@/util/api';
+import { CertificateDetails } from '@/openapi-types';
+import { multipartFormDataConfig } from '@niis/shared-ui';
 
-export interface TlsCertificatesHandler {
-  fetchTlsCertificate(): Promise<TlsCertificate>;
+export const useDataspaceTlsCertificate = defineStore('dataspace-tls-certificate', {
+  state: () => ({}),
+  getters: {},
 
-  downloadCertificate(): Promise<unknown>;
-
-  generateCsr(distinguishedName: string): Promise<unknown>;
-
-  generateKey(): Promise<unknown>;
-
-  uploadCertificate(file: File): Promise<unknown>;
-
-  // Only required when the view is used with the key-and-certificate upload mode (manual TLS material path).
-  uploadKeyAndCertificate?(keyFile: File, certificateFile: File): Promise<unknown>;
-}
+  actions: {
+    async fetchTlsCertificate() {
+      return api.get<CertificateDetails>('/dataspace/tls-certificate').then((res) => res.data);
+    },
+    async uploadKeyAndCertificate(keyFile: File, certificateFile: File) {
+      const formData = new FormData();
+      formData.set('key', keyFile, keyFile.name);
+      formData.set('certificate', certificateFile, certificateFile.name);
+      return api.post('/dataspace/tls-certificate', formData, multipartFormDataConfig());
+    },
+  },
+});
