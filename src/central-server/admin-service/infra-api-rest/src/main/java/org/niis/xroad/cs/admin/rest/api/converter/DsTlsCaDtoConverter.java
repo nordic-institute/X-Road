@@ -1,5 +1,7 @@
 /*
  * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -22,19 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.cs.admin.rest.api.converter;
 
-import lombok.experimental.UtilityClass;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+import org.niis.xroad.cs.admin.api.converter.GenericMapper;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCa;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCaListItem;
+import org.niis.xroad.cs.openapi.model.ApprovedDsTlsCaDto;
+import org.niis.xroad.cs.openapi.model.ApprovedDsTlsCaListItemDto;
 
-@UtilityClass
-public class GlobalConfVersion {
-    /**
-     * Current version number of the global configuration
-     **/
-    public static final int CURRENT_VERSION = 7;
+import java.util.Collection;
+import java.util.List;
 
-    /**
-     * Minimum supported version number of the global configuration
-     **/
-    public static final int MINIMUM_SUPPORTED_VERSION = 2;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface DsTlsCaDtoConverter extends GenericMapper {
+
+    ApprovedDsTlsCaDto convert(DsTlsCa dsTlsCa);
+
+    ApprovedDsTlsCaListItemDto convertListItem(DsTlsCaListItem listItem);
+
+    List<ApprovedDsTlsCaListItemDto> convertListItems(Collection<DsTlsCaListItem> items);
 }

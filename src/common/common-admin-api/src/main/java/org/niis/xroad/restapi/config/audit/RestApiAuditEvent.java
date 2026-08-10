@@ -164,6 +164,12 @@ public enum RestApiAuditEvent {
     ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA("Add intermediate CA"),
     ADD_INTERMEDIATE_CA_OCSP_RESPONDER("Add OCSP responder of intermediate CA"),
     EDIT_OCSP_RESPONDER("Edit OCSP responder"),
+
+    ADD_DS_TLS_CA("Add DS TLS CA"),
+    DELETE_DS_TLS_CA("Delete DS TLS CA"),
+    EDIT_DS_TLS_CA_SETTINGS("Edit DS TLS CA settings"),
+    ADD_DS_TLS_CA_INTERMEDIATE_CA("Add DS TLS CA intermediate CA"),
+    DELETE_DS_TLS_CA_INTERMEDIATE_CA("Delete DS TLS CA intermediate CA"),
     ADD_GLOBAL_GROUP("Add global group"),
     ADD_GLOBAL_GROUP_MEMBERS("Add members to global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),

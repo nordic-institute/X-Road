@@ -38,6 +38,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -283,6 +284,19 @@ public interface GlobalConfProvider {
      * @return all known approved CAs
      */
     default Collection<ApprovedCAInfo> getApprovedCAs(
+            String instanceIdentifier) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Approved DS TLS CAs are a separate, dedicated globalconf list (schema v7+); member-cert validation
+     * never reads it. Returns the flattened trust-anchor and, where auto-enrollment is enabled, ACME
+     * server details for each designated entry.
+     *
+     * @param instanceIdentifier the instance identifier
+     * @return all known approved DS TLS CAs, or an empty collection on globalconf versions that do not carry the list
+     */
+    default Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
             String instanceIdentifier) {
         return Collections.emptyList();
     }

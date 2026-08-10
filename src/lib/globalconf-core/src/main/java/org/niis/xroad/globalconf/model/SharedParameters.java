@@ -48,10 +48,19 @@ public class SharedParameters {
     private final List<SecurityServer> securityServers;
     private final List<GlobalGroup> globalGroups;
     private final GlobalSettings globalSettings;
+    private final List<ApprovedDsTlsCa> approvedDsTlsCas;
 
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
                             List<ApprovedTSA> approvedTSAs, List<Member> members, List<SecurityServer> securityServers,
                             List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
+        this(instanceIdentifier, sources, approvedCAs, approvedTSAs, members, securityServers, globalGroups, globalSettings,
+                List.of());
+    }
+
+    public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
+                            List<ApprovedTSA> approvedTSAs, List<Member> members, List<SecurityServer> securityServers,
+                            List<GlobalGroup> globalGroups, GlobalSettings globalSettings,
+                            List<ApprovedDsTlsCa> approvedDsTlsCas) {
         this.instanceIdentifier = instanceIdentifier;
         this.sources = sources;
         this.approvedCAs = approvedCAs;
@@ -60,6 +69,7 @@ public class SharedParameters {
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;
         this.globalSettings = globalSettings;
+        this.approvedDsTlsCas = approvedDsTlsCas != null ? approvedDsTlsCas : List.of();
     }
 
 
@@ -194,5 +204,21 @@ public class SharedParameters {
     public static class GlobalSettings {
         private List<MemberClass> memberClasses;
         private Integer ocspFreshnessSeconds;
+    }
+
+    @Data
+    public static class ApprovedDsTlsCa {
+        private String name;
+        private CaInfo topCA;
+        private List<CaInfo> intermediateCas;
+        private DsTlsAcmeServer acmeServer;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DsTlsAcmeServer {
+        private String directoryURL;
+        private String dsTlsCertificateProfileId;
     }
 }

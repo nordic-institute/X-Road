@@ -18,6 +18,8 @@ tags:
     description: resources related to Backups and Backup Restoration
   - name: certification-services
     description: resources related to Certification Services
+  - name: ds-tls-cas
+    description: resources related to Dataspace TLS Certification Authorities
   - name: members
     description: resources related to Members
   - name: subsystems
@@ -555,6 +557,270 @@ paths:
       summary: add an ocsp responder to a certification service
       tags:
         - certification-services
+  /ds-tls-cas:
+    get:
+      description: <h3>CS administrator views the list of designated DS TLS CAs for this X-Road instance.</h3>
+      operationId: getDsTlsCas
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of DS TLS CA objects
+                items:
+                  $ref: '#/components/schemas/ApprovedDsTlsCaListItem'
+                type: array
+                uniqueItems: false
+          description: list of DS TLS CAs
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get all DS TLS CAs
+      tags:
+        - ds-tls-cas
+    post:
+      description: <h3>CS administrator designates a CA as a DS TLS CA.</h3>
+      operationId: addDsTlsCa
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DsTlsCaFileAndSettings'
+        description: the new DS TLS CA with settings
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedDsTlsCa'
+          description: created item
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new DS TLS CA
+      tags:
+        - ds-tls-cas
+  /ds-tls-cas/{ds_tls_ca_id}:
+    parameters:
+      - $ref: '#/components/parameters/DsTlsCaIdParam'
+    delete:
+      description: <h3>CS Administrator removes a DS TLS CA designation.</h3>
+      operationId: deleteDsTlsCa
+      responses:
+        '204':
+          description: DS TLS CA deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a DS TLS CA
+      tags:
+        - ds-tls-cas
+    get:
+      description: <h3>CS administrator views the details of a designated DS TLS CA.</h3>
+      operationId: getDsTlsCa
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedDsTlsCa'
+          description: a DS TLS CA
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a DS TLS CA
+      tags:
+        - ds-tls-cas
+    patch:
+      description: <h3>CS administrator edits the settings of a DS TLS CA.</h3>
+      operationId: updateDsTlsCa
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DsTlsCaSettings'
+        description: the updated settings of the DS TLS CA
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedDsTlsCa'
+          description: the new state of the DS TLS CA
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the DS TLS CA
+      tags:
+        - ds-tls-cas
+  /ds-tls-cas/{ds_tls_ca_id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of a DS TLS CA's certificate.</h3>
+      operationId: getDsTlsCaCertificate
+      parameters:
+        - $ref: '#/components/parameters/DsTlsCaIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a DS TLS CA certificate
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a DS TLS CA certificate
+      tags:
+        - ds-tls-cas
+  /ds-tls-cas/{ds_tls_ca_id}/intermediate-cas:
+    parameters:
+      - $ref: '#/components/parameters/DsTlsCaIdParam'
+    get:
+      description: <h3>CS administrator views the intermediate CAs configured for a DS TLS CA.</h3>
+      operationId: getDsTlsCaIntermediateCas
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of DS TLS CA intermediate certificate authorities
+                items:
+                  $ref: '#/components/schemas/DsTlsCaIntermediateCa'
+                type: array
+                uniqueItems: false
+          description: list of intermediate certificate authorities belonging to the DS TLS CA
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the intermediate certificate authorities of a DS TLS CA
+      tags:
+        - ds-tls-cas
+    post:
+      description: <h3>CS administrator configures an intermediate CA for a DS TLS CA.</h3>
+      operationId: addDsTlsCaIntermediateCa
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+        description: the new intermediate certificate authority certificate file
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DsTlsCaIntermediateCa'
+          description: created item
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new intermediate certificate authority to a DS TLS CA
+      tags:
+        - ds-tls-cas
+  /ds-tls-ca-intermediate-cas/{intermediate_ca_id}:
+    parameters:
+      - $ref: '#/components/parameters/IntermediateCaIdParam'
+    delete:
+      description: <h3>CS administrator deletes a DS TLS CA intermediate CA.</h3>
+      operationId: deleteDsTlsCaIntermediateCa
+      responses:
+        '204':
+          description: DS TLS CA intermediate CA deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a DS TLS CA intermediate certificate authority
+      tags:
+        - ds-tls-cas
+    get:
+      description: <h3>CS administrator views the details of a DS TLS CA intermediate CA.</h3>
+      operationId: getDsTlsCaIntermediateCa
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DsTlsCaIntermediateCa'
+          description: a DS TLS CA intermediate certificate authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a DS TLS CA intermediate certificate authority
+      tags:
+        - ds-tls-cas
   /global-groups:
     get:
       description: <h3>CS administrator searches for global groups.</h3>
@@ -3603,6 +3869,142 @@ components:
           format: text
           type: string
       type: object
+    ApprovedDsTlsCaListItem:
+      description: DS TLS CA list item
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: DS TLS CA name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+      required:
+        - id
+        - name
+        - not_before
+        - not_after
+      type: object
+    ApprovedDsTlsCa:
+      description: >-
+        a DS TLS CA designated as a trust anchor for dataspace TLS server certificates. Separate from
+        certification services (approved CAs): member-cert validation never reads this list.
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: DS TLS CA name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        issuer_distinguished_name:
+          description: certificate issuer distinguished name
+          example: issuer123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_distinguished_name:
+          description: certificate subject distinguished name
+          example: subject123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        acme_server_directory_url:
+          description: presence enables auto-enrollment of dataspace TLS certificates from this CA
+          type: string
+          format: url
+          minLength: 1
+        ds_tls_certificate_profile_id:
+          description: profile id some ACME servers need to know the certificate usage type when ordering a dataspace TLS certificate
+          format: text
+          type: string
+          minLength: 1
+      required:
+        - id
+        - name
+      type: object
+    DsTlsCaFileAndSettings:
+      allOf:
+        - $ref: '#/components/schemas/CertificateFile'
+        - $ref: '#/components/schemas/DsTlsCaSettings'
+      description: DS TLS CA file and settings
+      type: object
+      required:
+        - certificate
+    DsTlsCaSettings:
+      description: DS TLS CA settings
+      properties:
+        acme_server_directory_url:
+          description: presence enables auto-enrollment of dataspace TLS certificates from this CA
+          format: url
+          type: string
+        ds_tls_certificate_profile_id:
+          description: profile id some ACME servers need to know the certificate usage type when ordering a dataspace TLS certificate
+          format: text
+          type: string
+      type: object
+    DsTlsCaIntermediateCa:
+      description: DS TLS CA intermediate certificate authority information
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        ds_tls_ca_id:
+          description: unique identifier of the DS TLS CA this intermediate CA belongs to
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        ca_certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+      required:
+        - ca_certificate
+      type: object
     DistinguishedName:
       type: object
       properties:
@@ -5151,6 +5553,15 @@ components:
       in: path
       name: certification_service_id
       description: unique identifier of the certification service
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
+    DsTlsCaIdParam:
+      in: path
+      name: ds_tls_ca_id
+      description: unique identifier of the DS TLS CA
       required: true
       schema:
         format: int32
