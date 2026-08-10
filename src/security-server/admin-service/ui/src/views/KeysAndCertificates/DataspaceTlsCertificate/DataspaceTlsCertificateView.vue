@@ -38,6 +38,9 @@
     :handler="handler"
     :cert-details-view-name="certDetailsView"
   >
+    <template #append-header>
+      <DataspaceTlsEnrollmentStatusChip />
+    </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
     </template>
@@ -50,6 +53,7 @@ import { Permissions, RouteName } from '@/global';
 import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
+import DataspaceTlsEnrollmentStatusChip from '@/views/KeysAndCertificates/DataspaceTlsCertificate/DataspaceTlsEnrollmentStatusChip.vue';
 import { useDataspaceTlsCertificate } from '@/store/modules/dataspace-tls-certificate';
 
 const { hasPermission } = useUser();

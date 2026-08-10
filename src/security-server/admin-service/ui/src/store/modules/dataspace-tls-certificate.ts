@@ -27,7 +27,7 @@
 
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
+import { CertificateDetails, DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
 import { multipartFormDataConfig } from '@niis/shared-ui';
 
 export const useDataspaceTlsCertificate = defineStore('dataspace-tls-certificate', {
@@ -43,6 +43,9 @@ export const useDataspaceTlsCertificate = defineStore('dataspace-tls-certificate
       formData.set('key', keyFile, keyFile.name);
       formData.set('certificate', certificateFile, certificateFile.name);
       return api.post('/dataspace/tls-certificate', formData, multipartFormDataConfig());
+    },
+    async fetchEnrollmentStatus() {
+      return api.get<DataspaceTlsCertificateEnrollmentStatus>('/dataspace/tls-certificate/enrollment-status').then((res) => res.data);
     },
   },
 });

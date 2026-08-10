@@ -33,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultKeyValueOperations;
@@ -44,6 +46,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +56,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 @Slf4j
 @RequiredArgsConstructor
 public class SpringVaultClient implements VaultClient {
+    private static final String DS_TLS_ENROLLMENT_METHOD_KEY = "method";
+    private static final String DS_TLS_NEXT_RENEWAL_TIME_KEY = "nextRenewalTime";
+    private static final String DS_TLS_LAST_ERROR_KEY = "lastError";
+
     private final VaultKeyValueOperations vaultClient;
 
     @Override
@@ -111,8 +118,30 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod)
+            throws IOException, CertificateEncodingException {
         createTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public void setDsHttpsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        var secret = new HashMap<String, String>();
+        secret.put(DS_TLS_ENROLLMENT_METHOD_KEY, status.method().name());
+        if (status.nextRenewalTime() != null) {
+            secret.put(DS_TLS_NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime().toString());
+        }
+        if (status.lastError() != null) {
+            secret.put(DS_TLS_LAST_ERROR_KEY, status.lastError());
+        }
+        vaultClient.put(DS_HTTPS_TLS_ENROLLMENT_STATUS_PATH, secret);
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsHttpsTlsEnrollmentStatus() {
+        return readSecret(DS_HTTPS_TLS_ENROLLMENT_STATUS_PATH).map(secret -> new DsTlsEnrollmentStatus(
+                DsTlsEnrollmentMethod.valueOf(secret.get(DS_TLS_ENROLLMENT_METHOD_KEY).toString()),
+                Optional.ofNullable(secret.get(DS_TLS_NEXT_RENEWAL_TIME_KEY)).map(Object::toString).map(Instant::parse).orElse(null),
+                Optional.ofNullable(secret.get(DS_TLS_LAST_ERROR_KEY)).map(Object::toString).orElse(null)));
     }
 
     @Override

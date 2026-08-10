@@ -36,10 +36,13 @@ import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConvert
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceTlsCertificateEnrollmentStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceTlsCertificateEnrollmentStatusDto.EnrollmentMethodEnum;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
 import org.niis.xroad.securityserver.restapi.service.DsTlsCertificateService;
+import org.niis.xroad.securityserver.restapi.service.DsTlsCertificateService.EnrollmentStatusView;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +50,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_DATASPACE_TLS_CERT;
@@ -82,6 +87,13 @@ public class DataspaceApiController implements DataspaceApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_DS_TLS_CERT')")
+    public ResponseEntity<DataspaceTlsCertificateEnrollmentStatusDto> getDataspaceTlsCertificateEnrollmentStatus() {
+        EnrollmentStatusView status = dsTlsCertificateService.getEnrollmentStatus();
+        return ResponseEntity.ok(toDto(status));
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('UPLOAD_DS_TLS_CERT')")
     @AuditEventMethod(event = UPLOAD_DATASPACE_TLS_CERT)
     public ResponseEntity<CertificateDetailsDto> uploadDataspaceTlsCertificate(MultipartFile key, MultipartFile certificate) {
@@ -112,6 +124,15 @@ public class DataspaceApiController implements DataspaceApi {
         dto.setKind(DataspaceParticipantContextStatusDto.KindEnum.valueOf(ctx.kind().name()));
         dto.setContextCreated(ctx.contextCreated());
         dto.setCredentialStatus(DataspaceParticipantContextStatusDto.CredentialStatusEnum.valueOf(ctx.credentialStatus()));
+        return dto;
+    }
+
+    private DataspaceTlsCertificateEnrollmentStatusDto toDto(EnrollmentStatusView status) {
+        var dto = new DataspaceTlsCertificateEnrollmentStatusDto(EnrollmentMethodEnum.valueOf(status.enrollmentMethod().name()));
+        if (status.nextRenewalTime() != null) {
+            dto.setNextRenewalTime(OffsetDateTime.ofInstant(status.nextRenewalTime(), ZoneOffset.UTC));
+        }
+        dto.setLastError(status.lastError());
         return dto;
     }
 }

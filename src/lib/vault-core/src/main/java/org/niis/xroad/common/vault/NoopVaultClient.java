@@ -89,8 +89,18 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
-    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) {
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod) {
         throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void setDsHttpsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsHttpsTlsEnrollmentStatus() {
+        return Optional.empty();
     }
 
     @Override

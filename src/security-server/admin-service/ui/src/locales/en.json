@@ -366,6 +366,15 @@
       "time": "Time"
     }
   },
+  "dsTlsCertificate": {
+    "enrollmentStatus": {
+      "acme": "ACME",
+      "error": "ACME error:",
+      "manual": "Manual",
+      "nextRenewal": "renews on {0}",
+      "none": "Not configured"
+    }
+  },
   "endpoints": {
     "addEndpoint": "Add Endpoint",
     "all": "ALL",

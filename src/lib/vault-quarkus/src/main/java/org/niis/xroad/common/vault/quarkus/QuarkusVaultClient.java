@@ -35,6 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 
@@ -113,7 +115,17 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) {
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void setDsHttpsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsHttpsTlsEnrollmentStatus() {
         throw new NotImplementedException();
     }
 

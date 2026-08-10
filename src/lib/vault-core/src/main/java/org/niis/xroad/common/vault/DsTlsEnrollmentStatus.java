@@ -24,31 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.vault;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.exception.DeviationBuilder;
+import java.time.Instant;
 
 /**
- * Deviations for the ACME account keystores the Security Server keeps on top of the shared ACME core - used by
- * both {@link AcmeService} (member-cert, keyed by member id and key usage) and {@link DsTlsAcmeService} (dataspace
- * TLS, keyed by a fixed non-member alias) - and EAB-configuration lookup concerns that the core knows nothing
- * about. Deviations for the ACME protocol itself live in {@link org.niis.xroad.common.acme.AcmeDeviationMessage}.
+ * Enrollment bookkeeping for the dataspace TLS certificate, stored separately from the credential material
+ * itself ({@link VaultClient#DS_HTTPS_TLS_CREDENTIALS_PATH}) so that recording a failed ACME renewal attempt
+ * never touches the currently served key and certificate.
+ *
+ * @param method          how the currently stored credential was obtained
+ * @param nextRenewalTime when the ACME renewal worker will next attempt renewal, or {@code null} when the
+ *                         method is {@link DsTlsEnrollmentMethod#MANUAL} or no renewal has been scheduled yet
+ * @param lastError       the most recent ACME enrollment or renewal error, or {@code null} when the last
+ *                         attempt (if any) succeeded
  */
-@RequiredArgsConstructor
-public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
-
-    EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing"),
-    ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
-    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing"),
-    ACME_YAML_MISSING("acme.acme_yaml_missing"),
-    ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR("acme.acme_yaml_account_keystore_password_update_error");
-
-    private final String code;
-
-    @Override
-    public String code() {
-        return code;
-    }
-
+public record DsTlsEnrollmentStatus(DsTlsEnrollmentMethod method, Instant nextRenewalTime, String lastError) {
 }
