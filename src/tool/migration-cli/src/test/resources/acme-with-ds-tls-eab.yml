@@ -1,0 +1,14 @@
+eab-credentials:
+  certificate-authorities:
+    "Test CA":
+      mac-key-base64-encoded: true
+      members:
+        "DEV:COM:1234":
+          auth-kid: keyid_2
+          auth-mac-key: addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625
+          sign-kid: keyid_3
+          sign-mac-key: 96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde
+        "dataspace-tls":
+          kid: dstls_keyid_1
+          mac-key: 7f1c9e5b2a4d6f80c3e17b95a2d4f608b1e3c7a95d2f4608e1b3c7a9d2f4608e
+account-keystore-password: testPassword123

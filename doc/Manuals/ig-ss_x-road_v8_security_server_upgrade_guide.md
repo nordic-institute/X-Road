@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 1.1
+Version: 1.2
 Doc. ID: IG-SS-8-UPGRADE
 
 ---
@@ -13,6 +13,7 @@ Doc. ID: IG-SS-8-UPGRADE
 |------------|---------|----------------------------------------------------------------------------|--------------------|
 | 19.05.2026 | 1.0     | Initial version                                                            | Egidijus Milierius |
 | 06.07.2026 | 1.1     | Added missing information regarding auxiliary-service, reformatting tables | Marc David         |
+| 10.08.2026 | 1.2     | Added DataSpace TLS migration and self-connect/port documentation         | Andres Rosenthal   |
 
 ## License
 
@@ -38,6 +39,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [Secrets in unattended mode](#secrets-in-unattended-mode)
   - [Resuming after a failed run](#resuming-after-a-failed-run)
 - [Manual upgrade procedure](#manual-upgrade-procedure)
+- [DataSpace TLS](#dataspace-tls)
+  - [Self-connect requirement](#self-connect-requirement)
+  - [DS ports](#ds-ports)
 - [Post-upgrade verification](#post-upgrade-verification)
 - [Rollback](#rollback)
 - [Troubleshooting](#troubleshooting)
@@ -209,7 +213,7 @@ The wizard runs thirteen ordered steps. Each step exits non-zero on failure; the
 | 7  | **Stop X-Road services**              | Discovers all active `xroad-*` units via `systemctl` and stops each one, waiting up to 60 s per service to reach inactive state.                                                                                                                                                                                      |
 | 8  | **Switch to V8 repository**           | Backs up the existing X-Road sources file(s) with a `.v7.bak.<timestamp>` suffix, writes the V8 sources file, imports the V8 GPG key, refreshes package metadata.                                                                                                                                                     |
 | 9  | **Upgrade packages**                  | Runs `apt-get install -y` / `dnf install -y` for the package named by `XROAD_SS_PACKAGE` (default `xroad-securityserver`).                                                                                                                                                                                            |
-| 10 | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service`, `management-service`, and `opmonitor`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service,opmonitor}`. Missing pairs are skipped.                                    |
+| 10 | **Migrate TLS to secret store**       | Reads `/etc/xroad/ssl/*.crt` and matching keys for `internal`, `proxy-ui-api`, `center-admin-service`, `management-service`, and `opmonitor`, then writes them to OpenBao under `xrd-secret/tls/{internal,admin-service,management-service,opmonitor}`. Missing pairs are skipped. Also extracts the legacy DataSpace TLS keystore, if present at `/etc/xroad/ssl/ds-https.p12` (PKCS12, alias `ds-https`), and writes its key and full certificate chain to `xrd-secret/tls/ds-https` — see [DataSpace TLS](#dataspace-tls).                                    |
 | 11 | **Run migration CLI**                 | Runs the migration-CLI sub-steps (see [Migration-CLI sub-steps](#migration-cli-sub-steps)) with sentinel-based idempotency under `/var/lib/xroad-upgrade/`.                                                                                                                                                           |
 | 12 | **Start X-Road services**             | Starts `xroad-signer`, `xroad-proxy`, `xroad-opmonitor`, `xroad-monitor`, `xroad-proxy-ui-api`, `xroad-auxiliary-service` in that order, waiting for each to reach active state. Services whose unit files are not installed (for example an absent op-monitor on a minimal installation) are skipped with a warning. |
 | 13 | **Clean up obsolete V7 config files** | Removes V7 configuration files no longer read by V8 (see [Manual upgrade procedure](#manual-upgrade-procedure) for the list). Interactive mode prompts; unattended deletes by default unless `XROAD_DELETE_OBSOLETE_FILES=no`.                                                                                        |
@@ -416,6 +420,19 @@ The output must now begin with `8.`.
 
 **10. Migrate TLS material to the local secret store.** For each existing pair `/etc/xroad/ssl/{internal,proxy-ui-api,center-admin-service,management-service,opmonitor}.{crt,key}` write a JSON `{"certificate": "...", "privateKey": "..."}` payload to `POST <secret-store>/v1/xrd-secret/tls/<path>`, where `<path>` is `internal`, `admin-service` (used for both `proxy-ui-api` and `center-admin-service`), `management-service`, or `opmonitor`. Secret-store address and root token come from `/etc/xroad/services/secret-store-local.conf` (`XROAD_SECRET_STORE_{SCHEME,HOST,PORT,TOKEN}`).
 
+If `/etc/xroad/ssl/ds-https.p12` exists (the legacy DataSpace TLS keystore — PKCS12, alias `ds-https`, historical password `changeit`), extract its key and full certificate chain and migrate them the same way, under `tls/ds-https`. Unlike the pairs above, this is a single PKCS12 file, so extraction is a two-step openssl call — one for the key, one for the certificate chain — before building the same JSON shape:
+
+```bash
+KEY=$(openssl pkcs12 -in /etc/xroad/ssl/ds-https.p12 -nodes -nocerts -passin pass:changeit \
+        | sed -n '/-----BEGIN PRIVATE KEY-----/,/-----END PRIVATE KEY-----/p' \
+        | sed ':a;N;$!ba;s/\n/\\n/g')
+CERT=$(openssl pkcs12 -in /etc/xroad/ssl/ds-https.p12 -nokeys -passin pass:changeit \
+        | sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' \
+        | sed ':a;N;$!ba;s/\n/\\n/g')
+```
+
+A wrong password makes the first `openssl pkcs12` call fail before either `curl` runs. The `-nokeys` call (no `-clcerts`/`-cacerts` split) extracts every certificate in the keystore in storage order — leaf first, then each intermediate — which is the full chain the secret store expects. Skip this step entirely if the file does not exist; it is specific to servers that ran the DataSpace feature before X-Road 8's ACME-based provisioning existed.
+
 **11. Run migration-CLI sub-steps.** Run each sub-step listed in [Migration-CLI sub-steps](#migration-cli-sub-steps) in order, only when the corresponding source file is present:
 
 ```bash
@@ -470,6 +487,36 @@ done
 /etc/xroad/conf.d/mail.yml
 /etc/xroad/db.properties.bak
 ```
+
+## DataSpace TLS
+
+X-Road 8 serves every `ds-*` HTTPS port on a Security Server from a single certificate — ACME-enrolled or manually uploaded — stored in the local secret store at `tls/ds-https`. Because one certificate covers every connector, two things follow.
+
+### Self-connect requirement
+
+`ds-control-plane` and `ds-identity-hub` are separate processes on the same host. Some of their traffic that logically never leaves the host — for example `ds-control-plane` requesting a token from `ds-identity-hub`'s Secure Token Service — is still an ordinary network call between two processes, and the DS TLS certificate's Subject Alternative Name is the server's public hostname only; no `localhost` or loopback alternative name is issued. If the server cannot resolve its own public hostname to a reachable address, this call fails TLS hostname verification and DSP negotiations stall.
+
+Satisfy this with either:
+
+- Split-horizon DNS — the public hostname resolves to a local or internal address when queried from the server itself.
+- A `/etc/hosts` entry pointing the public hostname at `127.0.0.1` (or the server's own address).
+
+Verify before enabling the DataSpace feature:
+
+```bash
+getent hosts <public-hostname>
+```
+
+### DS ports
+
+| Port | Service | Purpose | Reached from |
+|---|---|---|---|
+| 8183 | `ds-control-plane` | DSP (catalog, contract negotiation, transfer) | Other Security Servers, external dataspace participants |
+| 7183 | `ds-identity-hub` | did:web resolution | Other Security Servers, the Central Server, external participants |
+| 7184 | `ds-identity-hub` | Secure Token Service — `ds-control-plane` dials this on the same host via the public hostname (self-connect, see above) | `ds-control-plane` |
+| 7185 | `ds-identity-hub` | DCP credential retrieval | Other Security Servers, the Central Server |
+
+`ds-control-plane` also opens 8181 (base API), 8184 (control) and 8185 (signaling); `ds-identity-hub` opens 7181 (base API). All are covered by the same DS TLS certificate but are internal-only — no firewall or DNS action is needed for them beyond the self-connect requirement above.
 
 ## Post-upgrade verification
 
@@ -547,6 +594,7 @@ Each `step-<id>.done` represents a completed migration-CLI sub-step. Delete a sp
 | `Could not connect to PostgreSQL at … to verify version` | Auth or networking issue against the serverconf DB | Confirm `db.properties` credentials, that PostgreSQL is running, and the configured host/port is reachable |
 | `Secret store config not found at /etc/xroad/services/secret-store-local.conf` (TLS migration step) | `xroad-secret-store-local` is not installed or the package install step did not complete | Re-run from the failed step; verify the package was installed by step 9 |
 | `Connection to <secret-store> failed` (TLS migration step) | OpenBao is not running or not reachable | Verify `systemctl status` for the OpenBao service and that the host/port in `secret-store-local.conf` is correct |
+| `Failed to open /etc/xroad/ssl/ds-https.p12 (wrong password or corrupt PKCS12 keystore)` (TLS migration step) | The keystore was not produced by the standard dev/test recipe (password `changeit`), or the file is corrupt | Confirm the keystore's actual password out of band; the step aborts before writing anything to the secret store, so it is safe to re-run once the password is confirmed |
 | `Unattended mode: export XROAD_MIGRATION_SOFTTOKEN_PIN before running` | `keyconf` sub-step needs the soft token PIN | Supply the PIN via env, config file, or env file (see [Secrets in unattended mode](#secrets-in-unattended-mode)) |
 | `Migration CLI step '<step>' reported an error: …` | The migration-CLI itself printed a stack trace | Inspect the log; fix the underlying issue (for example a malformed `local.ini`); re-run the wizard — completed sub-steps are skipped |
 | `Service <name> did not stop within 60 seconds` | A service is stuck or has long-running connections | Investigate with `systemctl status <name>`; once stopped manually, re-run the wizard |

@@ -2,16 +2,17 @@
 
 **X-ROAD 8**
 
-Version: 1.0
+Version: 1.1
 Doc. ID: IG-CS-8-UPGRADE
 
 ---
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description     | Author             |
-|------------|---------|-----------------|--------------------|
-| 19.05.2026 | 1.0     | Initial version | Egidijus Milierius |
+| Date       | Version | Description                                                        | Author             |
+|------------|---------|---------------------------------------------------------------------|--------------------|
+| 19.05.2026 | 1.0     | Initial version                                                      | Egidijus Milierius |
+| 10.08.2026 | 1.1     | Added DataSpace TLS migration and self-connect/port documentation   | Andres Rosenthal   |
 
 ## License
 
@@ -27,6 +28,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 - [Prerequisites](#prerequisites)
 - [Before you start](#before-you-start)
 - [Manual upgrade procedure](#manual-upgrade-procedure)
+- [DataSpace TLS](#dataspace-tls)
+  - [Self-connect requirement](#self-connect-requirement)
+  - [DS ports](#ds-ports)
 - [Post-upgrade verification](#post-upgrade-verification)
 - [Rollback](#rollback)
 - [Troubleshooting](#troubleshooting)
@@ -179,6 +183,19 @@ The output must now begin with `8.`.
 
 The pattern matches what the Security Server wizard does in `migrate_tls_to_secret_store.sh`; if you want a working reference, read that script.
 
+If `/etc/xroad/ssl/ds-https.p12` exists (the legacy DataSpace TLS keystore for the co-located issuer service — PKCS12, alias `ds-https`, historical password `changeit`), migrate it the same way, under `tls/ds-https`. It is a single PKCS12 file rather than a `.crt`/`.key` pair, so extract the key and the full certificate chain first:
+
+```bash
+KEY=$(openssl pkcs12 -in /etc/xroad/ssl/ds-https.p12 -nodes -nocerts -passin pass:changeit \
+        | sed -n '/-----BEGIN PRIVATE KEY-----/,/-----END PRIVATE KEY-----/p' \
+        | sed ':a;N;$!ba;s/\n/\\n/g')
+CERT=$(openssl pkcs12 -in /etc/xroad/ssl/ds-https.p12 -nokeys -passin pass:changeit \
+        | sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p' \
+        | sed ':a;N;$!ba;s/\n/\\n/g')
+```
+
+A wrong password makes the first `openssl pkcs12` call fail before either value is used. The `-nokeys` call (no `-clcerts`/`-cacerts` split) extracts every certificate in storage order — leaf then each intermediate — which is the full chain the secret store expects. Skip this step if the file does not exist.
+
 **10. Run migration-CLI sub-steps.** The migration-CLI is shared between Security Server and Central Server — each sub-command skips cleanly when its source file is absent, so the operator's job is simply to run the full sequence in order. For a Central Server, the following sub-commands are the relevant ones:
 
 ```bash
@@ -225,6 +242,36 @@ done
 /etc/xroad/conf.d/*-logback*.xml
 /etc/xroad/db.properties.bak
 ```
+
+## DataSpace TLS
+
+X-Road 8 serves every `ds-*` HTTPS port on the co-located issuer service from a single certificate — ACME-enrolled or manually uploaded — stored in the local secret store at `tls/ds-https`. Because one certificate covers every connector, two things follow.
+
+### Self-connect requirement
+
+`ds-issuer-service`'s DID document, credential-issuance, status-list, and Secure Token Service endpoints all run in the same process, but any of them dialed as an ordinary network call — rather than an in-process call — hits the DS TLS certificate, whose Subject Alternative Name is the server's public hostname only; no `localhost` or loopback alternative name is issued. As with the Security Server, the Central Server must be able to resolve and reach itself through its own public hostname.
+
+Satisfy this with either:
+
+- Split-horizon DNS — the public hostname resolves to a local or internal address when queried from the server itself.
+- A `/etc/hosts` entry pointing the public hostname at `127.0.0.1` (or the server's own address).
+
+Verify before enabling the DataSpace feature:
+
+```bash
+getent hosts <public-hostname>
+```
+
+### DS ports
+
+| Port | Service | Purpose | Reached from |
+|---|---|---|---|
+| 6183 | `ds-issuer-service` | did:web resolution | Security Servers, external participants |
+| 6184 | `ds-issuer-service` | Secure Token Service — its own instance, distinct from the Security Server's `ds-identity-hub` (port 7184); the two never share a port | Self-connect (see above) |
+| 6185 | `ds-issuer-service` | DCP credential issuance | Security Servers |
+| 6187 | `ds-issuer-service` | Status list (credential revocation) | Security Servers, external participants |
+
+`ds-issuer-service` also opens 6181 (base API), covered by the same DS TLS certificate but internal-only.
 
 ## Post-upgrade verification
 
@@ -275,6 +322,7 @@ The upgrade is destructive once steps 7 (repo switch) and 8 (package install) ha
 | `migration-cli.jar sha256 verification failed` | Corrupt or partial download | Re-download the JAR and re-verify |
 | `Could not connect to PostgreSQL at …` | Auth or networking issue against the centerui DB | Confirm `db.properties` credentials, that PostgreSQL is running, and the configured host/port is reachable |
 | `Connection to <secret-store> failed` (TLS migration step) | OpenBao is not running or not reachable | Verify `systemctl status` for the OpenBao service and the host/port in `/etc/xroad/services/secret-store-local.conf` |
+| `openssl pkcs12` reports a MAC/password error while migrating `ds-https.p12` | The keystore was not produced by the standard dev/test recipe (password `changeit`), or the file is corrupt | Confirm the keystore's actual password out of band before retrying; nothing is written to the secret store until both `openssl pkcs12` calls succeed |
 | `Migration CLI step '<step>' reported an error: …` | The migration-CLI printed a stack trace | Inspect the log; fix the underlying issue; re-run only the failed sub-command |
 | `Package manager reported success but xroad-center version did not change` | V8 repository has no package for your architecture, or wrong repo URL | Verify the repo configuration and confirm packages exist for your architecture |
 
