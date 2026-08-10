@@ -21,6 +21,7 @@
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",
     "cannot_convert_bytes_to_certificate": "Cannot convert bytes to certificate",
     "cannot_read_certificate": "Cannot read TLS certificate",
+    "cert_validity_time": "The certificate is not within its validity period",
     "certificate_already_exists": "The imported certificate already exists",
     "certificate_import_failed": "Cannot import TLS certificate",
     "certificate_profile_info_class_not_found": "Certificate profile info class was not found",
@@ -38,6 +39,7 @@
     "configuration_part_validator_not_found": "Configuration part validator not found",
     "csr_generation_failed": "CSR generation failed",
     "double_file_extension": "Double file extension is not allowed",
+    "ds_tls_certificate_not_found": "Dataspace TLS certificate has not been configured",
     "error_activating_signing_key": "Error activating signing key",
     "error_deleting_signing_key": "Error deleting signing key",
     "error_recreating_anchor": "Error re-creating anchor file",
@@ -63,6 +65,7 @@
     "invalid_service_provider_id": "Invalid service provider id",
     "invalid_sort_properties": "Invalid sort parameter",
     "invalid_subsystem_id": "Invalid subsystem id",
+    "invalid_tls_private_key": "Invalid TLS private key",
     "invalid_url": "Invalid url",
     "key_and_cert_generation_failed": "Failed to generate TLS key and certificate",
     "key_generation_failed": "Signing key generation failed",
@@ -107,6 +110,7 @@
     "subsystem_not_registered_to_security_server": "Subsystem is not registered to the given security server.",
     "subsystem_registered_and_cannot_be_deleted": "Cannot delete already registered subsystem.",
     "timestamping_authority_not_found": "Timestamping authority not found",
+    "tls_key_certificate_mismatch": "The TLS certificate does not match the private key",
     "token_action_not_possible": "Token action not possible",
     "token_activation_failed": "Token activation failed",
     "token_deactivation_failed": "Token deactivation failed",
@@ -581,6 +585,7 @@
     "settings": {
       "apiKeys": "API Keys",
       "backupAndRestore": "Backup And Restore",
+      "dsTlsCertificate": "Dataspace TLS Certificate",
       "globalResources": "Global Resources",
       "systemSettings": "System Settings",
       "tlsCertificates": "TLS Certificates"
@@ -588,6 +593,10 @@
   },
   "tlsCertificates": {
     "downloadSuccess": "Management service TLS certificate successfully downloaded",
+    "dsTls": {
+      "key": "Dataspace TLS Certificate",
+      "keyText": "Dataspace TLS Key"
+    },
     "generateCsr": {
       "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
     },

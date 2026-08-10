@@ -51,7 +51,7 @@
           class="ml-4"
           variant="outlined"
           prepend-icon="upload"
-          text="tlsCertificates.uploadCertificate.button"
+          :text="uploadButtonText"
           @click="uploadCertificate"
         />
         <XrdBtn
@@ -69,7 +69,7 @@
         <v-table class="xrd bg-surface-container">
           <thead>
             <tr>
-              <th>{{ $t('tlsCertificates.key') }}</th>
+              <th>{{ $t(keyColumnHeader) }}</th>
               <th></th>
             </tr>
           </thead>
@@ -77,7 +77,7 @@
             <tr>
               <td class="on-surface font-weight-medium">
                 <v-icon icon="shield_lock" size="24" filled />
-                {{ $t('tlsCertificates.keyText') }}
+                {{ $t(keyRowLabel) }}
               </td>
               <td>
                 <XrdBtn
@@ -124,7 +124,13 @@
         @cancel="showGenerateCsrDialog = false"
       />
       <UploadCertificateDialog
-        v-if="showUploadCertificateDialog"
+        v-if="showUploadCertificateDialog && !keyCertificateUpload"
+        :handler="handler"
+        @upload="closeUploadCertificateDialog"
+        @cancel="showUploadCertificateDialog = false"
+      />
+      <UploadKeyAndCertificateDialog
+        v-if="showUploadCertificateDialog && keyCertificateUpload"
         :handler="handler"
         @upload="closeUploadCertificateDialog"
         @cancel="showUploadCertificateDialog = false"
@@ -143,11 +149,13 @@ import { useNotifications } from '../../composables';
 import GenerateCsrDialog from './dialogs/GenerateCsrDialog.vue';
 import GenerateKeyDialog from './dialogs/GenerateKeyDialog.vue';
 import UploadCertificateDialog from './dialogs/UploadCertificateDialog.vue';
+import UploadKeyAndCertificateDialog from './dialogs/UploadKeyAndCertificateDialog.vue';
 import { TlsCertificate, TlsCertificatesHandler } from '../../types';
 
 export default defineComponent({
   components: {
     UploadCertificateDialog,
+    UploadKeyAndCertificateDialog,
     GenerateKeyDialog,
     GenerateCsrDialog,
     XrdHashValue,
@@ -178,6 +186,23 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
+    // When true, uploading provides both the private key and the certificate (manual TLS material path)
+    // instead of only a certificate matching a key generated earlier. Defaults to false so existing
+    // instances (cert-only upload) are unaffected.
+    keyCertificateUpload: {
+      type: Boolean,
+      default: false,
+    },
+    // i18n keys for the key table's column header and row label, so each instance can describe its
+    // own key material. Default to the existing keys, preserving current behaviour.
+    keyColumnHeader: {
+      type: String,
+      default: 'tlsCertificates.key',
+    },
+    keyRowLabel: {
+      type: String,
+      default: 'tlsCertificates.keyText',
+    },
     handler: {
       type: Object as PropType<TlsCertificatesHandler>,
       required: true,
@@ -205,6 +230,11 @@ export default defineComponent({
       showGenerateCsrDialog: false,
       showUploadCertificateDialog: false,
     };
+  },
+  computed: {
+    uploadButtonText(): string {
+      return this.keyCertificateUpload ? 'tlsCertificates.uploadKeyAndCertificate.button' : 'tlsCertificates.uploadCertificate.button';
+    },
   },
   created() {
     this.fetchData();

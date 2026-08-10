@@ -419,6 +419,7 @@
     "cannot_delete_owner": "Cannot delete the owner",
     "cannot_register_owner": "Cannot register the owner",
     "cannot_unregister_owner": "Cannot unregister owner",
+    "cert_validity_time": "The certificate is not within its validity period",
     "cert_wrong_usage": "Wrong usage of certificate",
     "certificate_already_exists": "Certificate already exists",
     "certificate_authority_not_found": "Certificate authority not found",
@@ -452,6 +453,7 @@
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
     "diagnostic_request_failed": "Diagnostic request failed",
+    "ds_tls_certificate_not_found": "Dataspace TLS certificate has not been configured",
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
@@ -498,6 +500,7 @@
     "invalid_pem_csr": "Invalid PEM CSR",
     "invalid_service_client_id": "Invalid service client ID",
     "invalid_service_url": "Invalid service url",
+    "invalid_tls_private_key": "Invalid TLS private key",
     "invalid_wsdl": "Invalid WSDL",
     "invalid_wsdl_service_identifier": "Invalid WSDL service identifier",
     "io_error": "IO error",
@@ -569,6 +572,7 @@
     "ssl_authentication_failed": "SSL authentication failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",
+    "tls_key_certificate_mismatch": "The TLS certificate does not match the private key",
     "token": {
       "malformed_csr": "CSR data is malformed"
     },
@@ -1491,6 +1495,7 @@
     },
     "keys": {
       "apiKey": "API Keys",
+      "dsTlsCertificate": "Dataspace TLS Certificate",
       "signAndAuthKeys": "SIGN and AUTH Keys",
       "ssTlsCertificate": "Security Server TLS Key"
     },
@@ -1512,6 +1517,10 @@
   },
   "tlsCertificates": {
     "downloadSuccess": "Security Server TLS certificate successfully downloaded",
+    "dsTls": {
+      "key": "Dataspace TLS Certificate",
+      "keyText": "Dataspace TLS Key"
+    },
     "generateCsr": {
       "example": "CN=mysecurityserver.example.com, O=My Organization, C=EE"
     },

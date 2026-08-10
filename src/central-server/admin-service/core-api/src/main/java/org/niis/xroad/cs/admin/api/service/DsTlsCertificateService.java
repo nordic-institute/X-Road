@@ -24,22 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.api.service;
 
-export interface TlsCertificate {
-  hash: string;
-}
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 
-export interface TlsCertificatesHandler {
-  fetchTlsCertificate(): Promise<TlsCertificate>;
+public interface DsTlsCertificateService {
 
-  downloadCertificate(): Promise<unknown>;
+    CertificateDetails getCertificateDetails();
 
-  generateCsr(distinguishedName: string): Promise<unknown>;
-
-  generateKey(): Promise<unknown>;
-
-  uploadCertificate(file: File): Promise<unknown>;
-
-  // Only required when the view is used with the key-and-certificate upload mode (manual TLS material path).
-  uploadKeyAndCertificate?(keyFile: File, certificateFile: File): Promise<unknown>;
+    CertificateDetails uploadCertificate(byte[] keyBytes, byte[] certificateChainBytes);
 }

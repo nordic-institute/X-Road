@@ -108,6 +108,16 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getDsHttpsTlsCredentials() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 

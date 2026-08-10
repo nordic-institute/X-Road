@@ -323,7 +323,10 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_NEGOTIATION_FAILED("dsp_negotiation_failed"),
     DSP_TRANSFER_FAILED("dsp_transfer_failed"),
     DSP_ACQUISITION_FAILED("dsp_acquisition_failed"),
-    DSP_PROVISIONING_FAILED("dsp_provisioning_failed");
+    DSP_PROVISIONING_FAILED("dsp_provisioning_failed"),
+    DS_TLS_CERTIFICATE_NOT_FOUND("ds_tls_certificate_not_found"),
+    INVALID_TLS_PRIVATE_KEY("invalid_tls_private_key"),
+    TLS_KEY_CERTIFICATE_MISMATCH("tls_key_certificate_mismatch");
 
     private final String code;
 

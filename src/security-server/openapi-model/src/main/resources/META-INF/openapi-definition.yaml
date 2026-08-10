@@ -2577,6 +2577,64 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /dataspace/tls-certificate:
+    get:
+      tags:
+        - dataspace
+      summary: view the dataspace TLS certificate information
+      operationId: getDataspaceTlsCertificate
+      description: <h3>Administrator views the dataspace TLS certificate information.</h3>
+      responses:
+        '200':
+          description: certificate information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - dataspace
+      summary: upload an operator-provided dataspace TLS key and certificate
+      operationId: uploadDataspaceTlsCertificate
+      description:
+        <h3>Administrator uploads a dataspace TLS private key and certificate (or certificate chain) obtained out-of-band.</h3>
+      requestBody:
+        description: dataspace TLS private key and certificate
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DataspaceTlsCertificateFile'
+      responses:
+        '200':
+          description: dataspace TLS certificate stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/operational-monitoring:
     get:
       tags:
@@ -8676,5 +8734,20 @@ components:
             - ABSENT
             - ERROR
             - UNKNOWN
+    DataspaceTlsCertificateFile:
+      type: object
+      description: dataspace TLS private key and certificate (or certificate chain) files
+      properties:
+        key:
+          description: the private key file (PEM, PKCS#8)
+          format: binary
+          type: string
+        certificate:
+          description: the certificate or certificate chain file (PEM)
+          format: binary
+          type: string
+      required:
+        - key
+        - certificate
 security:
   - ApiKeyAuth: []
