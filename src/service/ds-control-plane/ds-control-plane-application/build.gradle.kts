@@ -46,7 +46,9 @@ dependencies {
   runtimeOnly(libs.edc.core.runtime)
   runtimeOnly(libs.edc.core.token)
   runtimeOnly(libs.edc.core.jersey)
-  runtimeOnly(libs.edc.core.jetty)
+  // Owned replacement for org.eclipse.edc:jetty-core, already pulled in transitively via
+  // lib:bootstrap-edc-quarkus - declared explicitly here too so the swap is visible at this level.
+  runtimeOnly(project(":lib:edc-jetty-core"))
   runtimeOnly(libs.edc.core.policy.monitor)
   runtimeOnly(libs.edc.api.observability)
   runtimeOnly(libs.edc.core.dataplane.selector)

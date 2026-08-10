@@ -17,7 +17,9 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
   implementation(libs.nimbus.jose.jwt)
-  implementation(libs.edc.core.jetty)
+  // Owned replacement for org.eclipse.edc:jetty-core (see 05-owned-jetty-serving); this module
+  // compiles against its WebServer implementation directly (XRoadIssuerRequestHeaderSizeExtension).
+  implementation(project(":lib:edc-jetty-core"))
   implementation(libs.jetty.server)
 
   constraints {

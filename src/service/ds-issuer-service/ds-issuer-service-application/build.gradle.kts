@@ -9,6 +9,7 @@ dependencies {
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:vault-quarkus"))
 
   implementation(libs.bundles.quarkus.containerized)
 
