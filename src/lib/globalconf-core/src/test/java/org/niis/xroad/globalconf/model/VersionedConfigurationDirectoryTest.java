@@ -222,6 +222,54 @@ public class VersionedConfigurationDirectoryTest {
         assertTrue(dir.findShared("xxx").isEmpty());
     }
 
+    @Test
+    public void readDirectoryContainingV7V6V5V4V3AndV2Configurations() throws Exception {
+        VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory("src/test/resources/globalconf_good_v7");
+
+        assertEquals("EE", dir.getInstanceIdentifier());
+
+        PrivateParameters p2 = dir.findPrivate("foo_v2").orElseThrow();
+
+        assertEquals("foo_v2", p2.getInstanceIdentifier());
+
+        SharedParameters s2 = dir.findShared("foo_v2").orElseThrow();
+
+        assertEquals("foo_v2", s2.getInstanceIdentifier());
+
+        PrivateParameters p3 = dir.findPrivate("baz_v3").orElseThrow();
+
+        assertEquals("baz_v3", p3.getInstanceIdentifier());
+
+        SharedParameters s3 = dir.findShared("baz_v3").orElseThrow();
+
+        assertEquals("baz_v3", s3.getInstanceIdentifier());
+
+        PrivateParameters p4 = dir.findPrivate("qux_v4").orElseThrow();
+
+        assertEquals("qux_v4", p4.getInstanceIdentifier());
+
+        SharedParameters s4 = dir.findShared("qux_v4").orElseThrow();
+
+        assertEquals("qux_v4", s4.getInstanceIdentifier());
+
+        SharedParameters s5 = dir.findShared("quux_v5").orElseThrow();
+
+        assertEquals("quux_v5", s5.getInstanceIdentifier());
+
+        SharedParameters s6 = dir.findShared("corge_v6").orElseThrow();
+
+        assertEquals("corge_v6", s6.getInstanceIdentifier());
+
+        SharedParameters s7 = dir.findShared("EE").orElseThrow();
+
+        assertEquals("EE", s7.getInstanceIdentifier());
+        assertFalse(s7.getApprovedDsTlsCas().isEmpty());
+
+        assertTrue(dir.findPrivate("bar").isEmpty());
+        assertTrue(dir.findShared("bar").isPresent());
+        assertTrue(dir.findShared("xxx").isEmpty());
+    }
+
     /**
      * Test to ensure that the list of available configuration files excluding metadata and directories
      * is read properly.
@@ -356,6 +404,51 @@ public class VersionedConfigurationDirectoryTest {
         assertFalse(pathExists(configurationFiles, rootDir + "/quux_v5/shared-params.xml.metadata"));
         assertTrue(pathExists(configurationFiles, rootDir + "/quux_v5/private-params.xml"));
         assertFalse(pathExists(configurationFiles, rootDir + "/quux_v5/private-params.xml.metadata"));
+    }
+
+    @Test
+    public void readConfigurationFilesContainingAllOfV7V6V5V4V3AndV2() throws Exception {
+        String rootDir = "src/test/resources/globalconf_good_v7";
+        VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory(rootDir);
+
+        List<Path> configurationFiles = dir.getConfigurationFiles();
+
+        assertFalse(pathExists(configurationFiles, rootDir + "/instance-identifier"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/bar/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/bar/shared-params.xml.metadata"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/bar/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/bar/private-params.xml.metadata"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/EE/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/EE/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/EE/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/EE/private-params.xml.metadata"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/foo_v2/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/foo_v2/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/foo_v2/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/foo_v2/private-params.xml.metadata"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/baz_v3/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/baz_v3/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/baz_v3/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/baz_v3/private-params.xml.metadata"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/qux_v4/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/qux_v4/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/qux_v4/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/qux_v4/private-params.xml.metadata"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/quux_v5/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/quux_v5/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/quux_v5/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/quux_v5/private-params.xml.metadata"));
+
+        assertTrue(pathExists(configurationFiles, rootDir + "/corge_v6/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/corge_v6/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/corge_v6/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/corge_v6/private-params.xml.metadata"));
     }
 
 

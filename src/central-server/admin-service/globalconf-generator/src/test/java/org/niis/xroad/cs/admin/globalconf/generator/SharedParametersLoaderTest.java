@@ -152,9 +152,14 @@ class SharedParametersLoaderTest {
         assertNodeAddressesWithConfigurationSigningKeys(parameters);
         assertApprovedCa(parameters);
         assertApproveTsa(parameters);
+        assertApprovedDsTlsCas(parameters);
         assertSecurityServers(parameters);
         assertGlobalGroups(parameters);
         assertGlobalSettings(parameters);
+    }
+
+    private void assertApprovedDsTlsCas(SharedParameters parameters) {
+        assertThat(parameters.getApprovedDsTlsCas()).isEmpty();
     }
 
     private void assertGlobalSettings(SharedParameters parameters) {

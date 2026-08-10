@@ -38,12 +38,12 @@ import org.niis.xroad.common.SortableByCostType;
 import java.util.List;
 
 @Getter
-@Builder(toBuilder = true)
 public class SharedParameters {
     private final String instanceIdentifier;
     private final List<ConfigurationSource> sources;
     private final List<ApprovedCA> approvedCAs;
     private final List<ApprovedTSA> approvedTSAs;
+    private final List<ApprovedDsTlsCa> approvedDsTlsCas;
     private final List<Member> members;
     private final List<SecurityServer> securityServers;
     private final List<GlobalGroup> globalGroups;
@@ -52,10 +52,19 @@ public class SharedParameters {
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
                             List<ApprovedTSA> approvedTSAs, List<Member> members, List<SecurityServer> securityServers,
                             List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
+        this(instanceIdentifier, sources, approvedCAs, approvedTSAs, null, members, securityServers, globalGroups,
+                globalSettings);
+    }
+
+    @Builder(toBuilder = true)
+    public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
+                            List<ApprovedTSA> approvedTSAs, List<ApprovedDsTlsCa> approvedDsTlsCas, List<Member> members,
+                            List<SecurityServer> securityServers, List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
         this.instanceIdentifier = instanceIdentifier;
         this.sources = sources;
         this.approvedCAs = approvedCAs;
         this.approvedTSAs = approvedTSAs;
+        this.approvedDsTlsCas = approvedDsTlsCas;
         this.members = members;
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;
@@ -122,6 +131,15 @@ public class SharedParameters {
         private String ipAddress;
         private String authenticationCertificateProfileId;
         private String signingCertificateProfileId;
+        private String dsTlsCertificateProfileId;
+
+        public AcmeServer(String directoryURL, String ipAddress, String authenticationCertificateProfileId,
+                          String signingCertificateProfileId) {
+            this.directoryURL = directoryURL;
+            this.ipAddress = ipAddress;
+            this.authenticationCertificateProfileId = authenticationCertificateProfileId;
+            this.signingCertificateProfileId = signingCertificateProfileId;
+        }
     }
 
     @Data
@@ -157,6 +175,14 @@ public class SharedParameters {
             this.url = url;
             this.cert = cert;
         }
+    }
+
+    @Data
+    public static class ApprovedDsTlsCa {
+        private String name;
+        private CaInfo topCA;
+        private List<CaInfo> intermediateCas;
+        private AcmeServer acmeServer;
     }
 
     @Data
