@@ -268,6 +268,13 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
             .exposedInUi()
             .build();
 
+    /** {@code xroad.signer.pin-hasher.salt-length} */
+    public static final ConfigKey<Integer> PIN_HASHER_SALT_LENGTH = PIN_HASHER
+            .integer("salt-length")
+            .withDefaultValue(16)
+            .exposedInUi()
+            .build();
+
     // --- xroad.signer.rpc -------------------------------------------------------
 
     /** {@code xroad.signer.rpc.enabled} */

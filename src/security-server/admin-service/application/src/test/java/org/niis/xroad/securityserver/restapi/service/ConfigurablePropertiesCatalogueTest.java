@@ -90,6 +90,7 @@ class ConfigurablePropertiesCatalogueTest {
             xroad.signer.pin-hasher.memory-kb|signer|19456
             xroad.signer.pin-hasher.parallelism|signer|4
             xroad.signer.pin-hasher.hash-length|signer|32
+            xroad.signer.pin-hasher.salt-length|signer|16
             xroad.env-monitor.certificate-info-sensor-interval|monitor|PT24H
             xroad.env-monitor.disk-space-sensor-interval|monitor|PT1M
             xroad.env-monitor.exec-listing-sensor-interval|monitor|PT1M

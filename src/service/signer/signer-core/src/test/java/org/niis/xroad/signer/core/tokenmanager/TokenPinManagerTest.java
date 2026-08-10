@@ -48,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -129,7 +130,7 @@ class TokenPinManagerTest {
         RuntimeTokenImpl tokenMock = tokenMock(TOKEN_EXTERNAL_ID);
         when(tokenMock.softwareTokenPinHash()).thenReturn(Optional.of(new byte[]{'h', 'a', 's', 'h'}));
 
-        when(softwarePinHasher.hashPin("token-pin".toCharArray())).thenReturn(new byte[]{'h', 'a', 's', 'h'});
+        when(softwarePinHasher.verifyPin(eq("token-pin".toCharArray()), any())).thenReturn(true);
 
         initRegistry(Set.of(tokenMock));
 

@@ -52,6 +52,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,6 +64,7 @@ public class KeyConfMigrator {
     private static final String SOFT_TOKEN = "softtoken";
     private static final String SOFTTOKEN_PIN_ENV_VAR = "XROAD_MIGRATION_SOFTTOKEN_PIN";
     private static final String INDENT_UNIT = "  ";
+    private static final int PIN_SALT_LENGTH = 16;
 
     public void migrate(String keyconfPath, String dbPropertiesPath) throws SQLException {
         KeyConfType keyConf = parseKeyConf(Path.of(keyconfPath, "keyconf.xml"));
@@ -239,13 +241,17 @@ public class KeyConfMigrator {
 
     /**
      * Hashes the pin. The same implementation as org.niis.xroad.signer.core.tokenmanager.token.SoftwarePinHasher
-     * with default parameter values.
+     * with default parameter values: a random per-token salt, with the result stored as {@code salt || hash}.
      */
     private byte[] hashPin(char[] pin) {
+        byte[] salt = new byte[PIN_SALT_LENGTH];
+        new SecureRandom().nextBytes(salt);
+
         var params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
                 .withIterations(4)
                 .withMemoryAsKB(19456)
                 .withParallelism(4)
+                .withSalt(salt)
                 .build();
         byte[] pinBytes = new String(pin).getBytes(StandardCharsets.UTF_8);
         byte[] hash = new byte[32];
@@ -254,6 +260,9 @@ public class KeyConfMigrator {
         generator.init(params);
         generator.generateBytes(pinBytes, hash);
 
-        return hash;
+        byte[] result = new byte[PIN_SALT_LENGTH + hash.length];
+        System.arraycopy(salt, 0, result, 0, PIN_SALT_LENGTH);
+        System.arraycopy(hash, 0, result, PIN_SALT_LENGTH, hash.length);
+        return result;
     }
 }

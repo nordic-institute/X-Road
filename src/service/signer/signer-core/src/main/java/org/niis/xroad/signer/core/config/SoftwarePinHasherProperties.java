@@ -32,6 +32,7 @@ import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_HA
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_ITERATIONS;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_MEMORY_KB;
 import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_PARALLELISM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_SALT_LENGTH;
 
 /**
  * Argon2 PIN-hashing parameters ({@code xroad.signer.pin-hasher.*}).
@@ -77,5 +78,17 @@ public class SoftwarePinHasherProperties {
      */
     public int hashLength() {
         return xRoadConfig.value(PIN_HASHER_HASH_LENGTH);
+    }
+
+    /**
+     * Length of the random per-hash salt in bytes.
+     * <p>
+     * Each PIN is hashed with a freshly generated salt of this length, so the same PIN
+     * produces unrelated hashes across tokens and installations.
+     *
+     * @return salt length in bytes
+     */
+    public int saltLength() {
+        return xRoadConfig.value(PIN_HASHER_SALT_LENGTH);
     }
 }

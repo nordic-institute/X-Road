@@ -41,7 +41,6 @@ import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -139,7 +138,6 @@ public final class TokenPinManager {
     }
 
     public boolean verifyTokenPin(String tokenId, char[] pin) {
-        var pinHash = softwarePinHasher.hashPin(pin);
         var actualHash = tokenRegistry.readAction(ctx ->
                 ctx.findToken(tokenId).softwareTokenPinHash().orElseThrow(() ->
                                 XrdRuntimeException.systemException(ErrorCode.TOKEN_NOT_INITIALIZED)
@@ -148,7 +146,7 @@ public final class TokenPinManager {
                 )
         );
 
-        var result = Arrays.equals(pinHash, actualHash);
+        var result = softwarePinHasher.verifyPin(pin, actualHash);
 
         log.debug("verifyTokenPin({}, pin) pin found in db? {}, result = {}", tokenId, actualHash != null, result);
         return result;

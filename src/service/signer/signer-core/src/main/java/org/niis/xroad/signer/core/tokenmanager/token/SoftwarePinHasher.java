@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
@@ -34,29 +33,72 @@ import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Arrays;
 
 @ApplicationScoped
 @RequiredArgsConstructor
 public class SoftwarePinHasher {
     private final SoftwarePinHasherProperties properties;
 
-    private Argon2Parameters params;
+    private final SecureRandom secureRandom = new SecureRandom();
 
-    @PostConstruct
-    public void init() {
-        this.params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-                .withIterations(properties.iterations())
-                .withMemoryAsKB(properties.memoryKb())
-                .withParallelism(properties.parallelism())
-                .build();
+    /**
+     * Hashes the given PIN with a freshly generated random salt and returns {@code salt || hash}.
+     */
+    public byte[] hashPin(char[] pin) {
+        byte[] salt = new byte[properties.saltLength()];
+        secureRandom.nextBytes(salt);
+
+        byte[] hash = computeHash(pin, salt, properties.hashLength());
+
+        byte[] result = new byte[salt.length + hash.length];
+        System.arraycopy(salt, 0, result, 0, salt.length);
+        System.arraycopy(hash, 0, result, salt.length, hash.length);
+        return result;
     }
 
-    public byte[] hashPin(char[] pin) {
-        byte[] pinBytes = new String(pin).getBytes(StandardCharsets.UTF_8);
-        byte[] hash = new byte[properties.hashLength()];
+    /**
+     * Verifies a candidate PIN against a stored hash produced by {@link #hashPin(char[])}.
+     * Also accepts pre-existing hashes computed without a per-token salt, so tokens whose
+     * PIN was set before salting was introduced keep working.
+     */
+    public boolean verifyPin(char[] pin, byte[] storedHash) {
+        if (storedHash == null || storedHash.length == 0) {
+            return false;
+        }
 
-        Argon2BytesGenerator generator = new Argon2BytesGenerator();
-        generator.init(params);
+        if (storedHash.length == properties.hashLength()) {
+            byte[] candidate = computeHash(pin, null, properties.hashLength());
+            return MessageDigest.isEqual(candidate, storedHash);
+        }
+
+        if (storedHash.length == properties.saltLength() + properties.hashLength()) {
+            byte[] salt = Arrays.copyOfRange(storedHash, 0, properties.saltLength());
+            byte[] expectedHash = Arrays.copyOfRange(storedHash, properties.saltLength(), storedHash.length);
+            byte[] candidate = computeHash(pin, salt, expectedHash.length);
+            return MessageDigest.isEqual(candidate, expectedHash);
+        }
+
+        return false;
+    }
+
+    private byte[] computeHash(char[] pin, byte[] salt, int hashLength) {
+        Argon2Parameters.Builder builder = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+                .withIterations(properties.iterations())
+                .withMemoryAsKB(properties.memoryKb())
+                .withParallelism(properties.parallelism());
+
+        if (salt != null) {
+            builder.withSalt(salt);
+        }
+
+        byte[] pinBytes = new String(pin).getBytes(StandardCharsets.UTF_8);
+        byte[] hash = new byte[hashLength];
+
+        var generator = new Argon2BytesGenerator();
+        generator.init(builder.build());
         generator.generateBytes(pinBytes, hash);
 
         return hash;

@@ -33,10 +33,18 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SoftwarePinHasherTest {
+
+    private static final int SALT_LENGTH = 16;
+    private static final int HASH_LENGTH = 32;
 
     private SoftwarePinHasher softwarePinHasher;
 
@@ -44,7 +52,6 @@ class SoftwarePinHasherTest {
     void setUp() {
         softwarePinHasher = new SoftwarePinHasher(new SoftwarePinHasherProperties(
                 XRoadConfigBuilder.create().register(SignerConfigKeys.instance()).build()));
-        softwarePinHasher.init();
     }
 
     @Test
@@ -52,7 +59,37 @@ class SoftwarePinHasherTest {
         byte[] hash = softwarePinHasher.hashPin("1234".toCharArray());
 
         assertNotNull(hash);
-        assertEquals(32, hash.length, "Hash length should be 32 bytes");
+        assertEquals(SALT_LENGTH + HASH_LENGTH, hash.length, "Hash length should be salt length + hash length");
+    }
+
+    @Test
+    void hashPinSaltApplied() {
+        byte[] hash1 = softwarePinHasher.hashPin("1234".toCharArray());
+        byte[] hash2 = softwarePinHasher.hashPin("1234".toCharArray());
+
+        assertFalse(Arrays.equals(hash1, hash2), "Same PIN should produce different salted hashes");
+        assertEquals(SALT_LENGTH + HASH_LENGTH, hash1.length, "Hash length should be salt length + hash length");
+    }
+
+    @Test
+    void verifyPinShouldSucceedForCorrectPin() {
+        byte[] hash = softwarePinHasher.hashPin("1234".toCharArray());
+
+        assertTrue(softwarePinHasher.verifyPin("1234".toCharArray(), hash));
+        assertFalse(softwarePinHasher.verifyPin("4321".toCharArray(), hash));
+    }
+
+    @Test
+    void verifyPinShouldSupportLegacyUnsaltedHash() {
+        SoftwarePinHasher legacyHasher = new SoftwarePinHasher(new SoftwarePinHasherProperties(
+                XRoadConfigBuilder.create()
+                        .register(SignerConfigKeys.instance())
+                        .overrides(Map.of("xroad.signer.pin-hasher.salt-length", "0"))
+                        .build()));
+        byte[] legacyHash = legacyHasher.hashPin("1234".toCharArray());
+
+        assertEquals(HASH_LENGTH, legacyHash.length);
+        assertTrue(softwarePinHasher.verifyPin("1234".toCharArray(), legacyHash));
     }
 
 }
