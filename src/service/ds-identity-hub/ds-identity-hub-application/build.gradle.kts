@@ -12,6 +12,11 @@ dependencies {
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:vault-quarkus"))
+  // The fail-closed dataspace TLS trust extension (lib:bootstrap-edc-quarkus) resolves
+  // GlobalConfProvider through EDC @Inject, which falls back to Quarkus CDI - globalconf-impl
+  // supplies that CDI bean and is not otherwise on this app's classpath (unlike ds-control-plane,
+  // which already carries it transitively via lib:serverconf-impl).
+  implementation(project(":lib:globalconf-impl"))
 
   implementation(libs.bundles.quarkus.containerized)
 
