@@ -38,6 +38,9 @@
     key-row-label="tlsCertificates.dsTls.keyText"
     :handler="handler"
   >
+    <template #append-header>
+      <DataspaceTlsEnrollmentStatusChip />
+    </template>
     <template #tabs>
       <SettingsViewTabs />
     </template>
@@ -47,6 +50,7 @@
 <script lang="ts" setup>
 import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate } from '@niis/shared-ui';
 import SettingsViewTabs from '../SettingsViewTabs.vue';
+import DataspaceTlsEnrollmentStatusChip from './DataspaceTlsEnrollmentStatusChip.vue';
 import { useUser } from '@/store/modules/user';
 import { computed } from 'vue';
 import { Permissions, RouteName } from '@/global';

@@ -27,9 +27,12 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService.EnrollmentStatusView;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
 import org.niis.xroad.cs.openapi.DataspaceApi;
 import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.cs.openapi.model.DataspaceTlsCertificateEnrollmentStatusDto;
+import org.niis.xroad.cs.openapi.model.DataspaceTlsCertificateEnrollmentStatusDto.EnrollmentMethodEnum;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -39,6 +42,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_DATASPACE_TLS_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
@@ -61,6 +67,13 @@ public class DataspaceApiController implements DataspaceApi {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('VIEW_DS_TLS_CERT')")
+    public ResponseEntity<DataspaceTlsCertificateEnrollmentStatusDto> getDataspaceTlsCertificateEnrollmentStatus() {
+        EnrollmentStatusView status = dsTlsCertificateService.getEnrollmentStatus();
+        return ok(toDto(status));
+    }
+
+    @Override
     @PreAuthorize("hasAuthority('UPLOAD_DS_TLS_CERT')")
     @AuditEventMethod(event = UPLOAD_DATASPACE_TLS_CERT)
     public ResponseEntity<CertificateDetailsDto> uploadDataspaceTlsCertificate(MultipartFile key, MultipartFile certificate) {
@@ -71,5 +84,15 @@ public class DataspaceApiController implements DataspaceApi {
 
         var certificateDetails = dsTlsCertificateService.uploadCertificate(keyBytes, certificateBytes);
         return ok(certificateDetailsDtoConverter.convert(certificateDetails));
+    }
+
+    private DataspaceTlsCertificateEnrollmentStatusDto toDto(EnrollmentStatusView status) {
+        var dto = new DataspaceTlsCertificateEnrollmentStatusDto();
+        dto.setEnrollmentMethod(EnrollmentMethodEnum.valueOf(status.enrollmentMethod().name()));
+        if (status.nextRenewalTime() != null) {
+            dto.setNextRenewalTime(OffsetDateTime.ofInstant(status.nextRenewalTime(), ZoneOffset.UTC));
+        }
+        dto.setLastError(status.lastError());
+        return dto;
     }
 }

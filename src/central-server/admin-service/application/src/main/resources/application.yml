@@ -145,6 +145,20 @@ xroad:
           - 127.0.0.1
     key-management-api-whitelist: 127.0.0.0/8, ::1
     regular-api-whitelist: 0.0.0.0/0, ::/0
+    ds-tls-acme:
+      # Renewal kill-switch: set to false to stop dataspace TLS ACME enrollment/renewal from running at all.
+      renewal-active: true
+      renewal-retry-delay: 60
+      renewal-interval: 3600
+      renewal-time-before-expiration-date: 14
+      keypair-renewal-time-before-expiration-date: 14
+      authorization-wait-attempts: 5
+      authorization-wait-interval: 5
+      certificate-wait-attempts: 5
+      certificate-wait-interval: 5
+      certificate-account-key-pair-expiration: 365
+      challenge-port: 8180
+      key-length: 2048
   dataspace:
     issuer:
       host: ${XROAD_HOST:localhost}

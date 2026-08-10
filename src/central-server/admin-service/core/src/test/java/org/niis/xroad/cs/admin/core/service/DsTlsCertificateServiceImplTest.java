@@ -38,6 +38,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
@@ -48,12 +50,19 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
+import static org.niis.xroad.cs.admin.api.service.DsTlsCertificateService.EnrollmentStatusView.EnrollmentMethod;
 
 @ExtendWith(MockitoExtension.class)
 class DsTlsCertificateServiceImplTest {
@@ -117,9 +126,117 @@ class DsTlsCertificateServiceImplTest {
 
         var details = service.uploadCertificate(keyBytes, certBytes);
 
-        verify(vaultClient).createDsHttpsTlsCredentials(validated);
+        verify(vaultClient).createDsHttpsTlsCredentials(validated, DsTlsEnrollmentMethod.MANUAL);
+        verify(vaultClient).setDsHttpsTlsEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.MANUAL, null, null));
         verify(auditDataHelper).putCertificateHash(certificate);
         assertThat(details.getSerial()).isEqualTo(certificate.getSerialNumber().toString());
+    }
+
+    @Test
+    void getDataspaceTlsCertificateShouldReturnRawLeafCertificate() throws Exception {
+        X509Certificate certificate = selfSignedCertificate();
+        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(null, new X509Certificate[]{certificate}));
+
+        assertThat(service.getDataspaceTlsCertificate()).isEqualTo(certificate);
+    }
+
+    @Test
+    void getDataspaceTlsCertificateShouldThrowNotFoundWhenSlotIsEmpty() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenThrow(XrdRuntimeException.systemException(MISSING_SECRET).build());
+
+        assertThatThrownBy(() -> service.getDataspaceTlsCertificate())
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void getEnrollmentStatusShouldReturnNoneWithNoErrorWhenThereIsGenuinelyNoRecord() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenThrow(XrdRuntimeException.systemException(MISSING_SECRET).build());
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        var status = service.getEnrollmentStatus();
+
+        assertThat(status.enrollmentMethod()).isEqualTo(EnrollmentMethod.NONE);
+        assertThat(status.nextRenewalTime()).isNull();
+        assertThat(status.lastError()).isNull();
+    }
+
+    @Test
+    void getEnrollmentStatusShouldSurfaceRecordedErrorWhenFirstEnrollmentIsFailingAndNoCertificateExistsYet()
+            throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenThrow(XrdRuntimeException.systemException(MISSING_SECRET).build());
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "eab credentials missing")));
+
+        var status = service.getEnrollmentStatus();
+
+        assertThat(status.enrollmentMethod()).isEqualTo(EnrollmentMethod.NONE);
+        assertThat(status.nextRenewalTime()).isNull();
+        assertThat(status.lastError()).isEqualTo("eab credentials missing");
+    }
+
+    @Test
+    void getEnrollmentStatusShouldDefaultToManualWhenCertificateExistsButNoStatusWasEverRecorded() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenReturn(new InternalSSLKey(null, new X509Certificate[]{selfSignedCertificate()}));
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        var status = service.getEnrollmentStatus();
+
+        assertThat(status.enrollmentMethod()).isEqualTo(EnrollmentMethod.MANUAL);
+    }
+
+    @Test
+    void getEnrollmentStatusShouldReturnRecordedAcmeState() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenReturn(new InternalSSLKey(null, new X509Certificate[]{selfSignedCertificate()}));
+        Instant nextRenewal = Instant.now().plus(30, ChronoUnit.DAYS);
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewal, "boom")));
+
+        var status = service.getEnrollmentStatus();
+
+        assertThat(status.enrollmentMethod()).isEqualTo(EnrollmentMethod.ACME);
+        assertThat(status.nextRenewalTime()).isEqualTo(nextRenewal);
+        assertThat(status.lastError()).isEqualTo("boom");
+    }
+
+    @Test
+    void storeAcmeEnrolledCertificateShouldTagAcmeAndClearAnyPriorError() throws Exception {
+        KeyPair keyPair = generateKeyPair();
+        X509Certificate[] chain = {selfSignedCertificate()};
+        Instant nextRenewal = Instant.now().plus(60, ChronoUnit.DAYS);
+
+        service.storeAcmeEnrolledCertificate(keyPair.getPrivate(), chain, nextRenewal);
+
+        verify(vaultClient).createDsHttpsTlsCredentials(any(InternalSSLKey.class), eq(DsTlsEnrollmentMethod.ACME));
+        verify(vaultClient).setDsHttpsTlsEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewal, null));
+    }
+
+    @Test
+    void recordAcmeOutcomeShouldPreserveMethodAndRenewalTimeWhileUpdatingError() {
+        Instant nextRenewal = Instant.now().plus(10, ChronoUnit.DAYS);
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewal, null)));
+
+        boolean changed = service.recordAcmeOutcome("order failed");
+
+        assertThat(changed).isTrue();
+        verify(vaultClient).setDsHttpsTlsEnrollmentStatus(
+                new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewal, "order failed"));
+    }
+
+    @Test
+    void recordAcmeOutcomeShouldBeNoOpWhenErrorIsUnchanged() {
+        when(vaultClient.getDsHttpsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "same error")));
+
+        boolean changed = service.recordAcmeOutcome("same error");
+
+        assertThat(changed).isFalse();
+        verify(vaultClient, never()).setDsHttpsTlsEnrollmentStatus(any());
     }
 
     private static X509Certificate selfSignedCertificate() throws Exception {

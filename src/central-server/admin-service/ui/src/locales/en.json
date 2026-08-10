@@ -16,6 +16,15 @@
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
     "description": "Use valid description characters only"
   },
+  "dsTlsCertificate": {
+    "enrollmentStatus": {
+      "acme": "ACME",
+      "error": "ACME error:",
+      "manual": "Manual",
+      "nextRenewal": "renews on {0}",
+      "none": "Not configured"
+    }
+  },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",
@@ -499,6 +508,9 @@
     "unregistered": "Unregistered"
   },
   "status": {
+    "ds_tls_acme": {
+      "failing": "Dataspace TLS certificate ACME enrollment/renewal failing: {0}"
+    },
     "global_conf_generation": {
       "failing": "Global configuration generation failing since {0}",
       "global_conf_expired": "Global configuration expired",

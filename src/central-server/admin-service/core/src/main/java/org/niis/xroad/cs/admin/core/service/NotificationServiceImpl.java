@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -69,6 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final AdminServiceProperties adminServiceProperties;
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalConfGenerationStatusService globalConfGenerationStatus;
+    private final DsTlsCertificateService dsTlsCertificateService;
 
     @Override
     public Set<AlertInfo> getAlerts() {
@@ -89,7 +91,22 @@ public class NotificationServiceImpl implements NotificationService {
                 alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_EXTERNAL, tokens));
             }
         }
+        alerts.addAll(checkDsTlsAcmeEnrollmentStatus());
         return alerts;
+    }
+
+    /**
+     * The Central Server has no mail-notification machinery, so ACME enrollment/renewal failures surface here
+     * instead - the CS has no independent way to know it just failed, since this reads the vault-backed status
+     * record fresh on every poll. That is also what dedupes the alert: it is a live read of the current error,
+     * not a discrete event, so an unchanged error keeps producing the same single banner rather than repeating it.
+     */
+    private Set<AlertInfo> checkDsTlsAcmeEnrollmentStatus() {
+        String lastError = dsTlsCertificateService.getEnrollmentStatus().lastError();
+        if (lastError == null) {
+            return Set.of();
+        }
+        return Set.of(new AlertInfo("status.ds_tls_acme.failing", lastError));
     }
 
     private boolean isInitialized(List<TokenInfo> tokens) {

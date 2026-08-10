@@ -24,26 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.acme;
 
-import * as api from '@/util/api';
-import { CertificateDetails, DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
-import { defineStore } from 'pinia';
-import { multipartFormDataConfig } from '@niis/shared-ui';
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-export const useDataspaceTlsCertificate = defineStore('dataspaceTlsCertificate', {
-  state: () => ({}),
-  actions: {
-    async fetchTlsCertificate() {
-      return api.get<CertificateDetails>('/dataspace/tls-certificate').then((res) => res.data);
-    },
-    async fetchEnrollmentStatus() {
-      return api.get<DataspaceTlsCertificateEnrollmentStatus>('/dataspace/tls-certificate/enrollment-status').then((res) => res.data);
-    },
-    async uploadKeyAndCertificate(keyFile: File, certificateFile: File) {
-      const formData = new FormData();
-      formData.set('key', keyFile, keyFile.name);
-      formData.set('certificate', certificateFile, certificateFile.name);
-      return api.post('/dataspace/tls-certificate', formData, multipartFormDataConfig());
-    },
-  },
-});
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class AcmeChallengeTokenValidationTest {
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {
+            "..",
+            "../evil",
+            "../../etc/xroad/conf.d/local.ini",
+            "/tmp/evil",
+            "foo/bar",
+            "foo\\bar",
+            "foo.bar"
+    })
+    void rejectsUnsafeTokens(String token) {
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "xK3_-yZ9abcDEF01",
+            "AbCd1234_-efGH",
+            "a"
+    })
+    void acceptsRealisticBase64UrlTokens(String token) {
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
+    }
+
+    @Test
+    void validTokenResolvesUnderChallengePath() {
+        String token = "xK3_-yZ9abcDEF01";
+
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
+
+        Path base = AcmeConfig.ACME_CHALLENGE_PATH.normalize();
+        Path resolved = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token).normalize();
+        assertThat(resolved.startsWith(base)).isTrue();
+    }
+
+}

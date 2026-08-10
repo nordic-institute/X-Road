@@ -24,26 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.acme;
 
-import * as api from '@/util/api';
-import { CertificateDetails, DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
-import { defineStore } from 'pinia';
-import { multipartFormDataConfig } from '@niis/shared-ui';
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.DeviationBuilder;
 
-export const useDataspaceTlsCertificate = defineStore('dataspaceTlsCertificate', {
-  state: () => ({}),
-  actions: {
-    async fetchTlsCertificate() {
-      return api.get<CertificateDetails>('/dataspace/tls-certificate').then((res) => res.data);
-    },
-    async fetchEnrollmentStatus() {
-      return api.get<DataspaceTlsCertificateEnrollmentStatus>('/dataspace/tls-certificate/enrollment-status').then((res) => res.data);
-    },
-    async uploadKeyAndCertificate(keyFile: File, certificateFile: File) {
-      const formData = new FormData();
-      formData.set('key', keyFile, keyFile.name);
-      formData.set('certificate', certificateFile, certificateFile.name);
-      return api.post('/dataspace/tls-certificate', formData, multipartFormDataConfig());
-    },
-  },
-});
+/**
+ * Deviations for the ACME account keystore the Central Server keeps on top of the shared ACME core, and for
+ * EAB-configuration lookup concerns the core knows nothing about. Deviations for the ACME protocol itself live in
+ * {@link org.niis.xroad.common.acme.AcmeDeviationMessage}.
+ */
+@RequiredArgsConstructor
+public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
+
+    EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing"),
+    ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
+    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing");
+
+    private final String code;
+
+    @Override
+    public String code() {
+        return code;
+    }
+
+}

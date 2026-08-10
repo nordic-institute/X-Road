@@ -3035,6 +3035,30 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /dataspace/tls-certificate/enrollment-status:
+    get:
+      tags:
+        - dataspace
+      summary: view the dataspace TLS certificate enrollment status
+      operationId: getDataspaceTlsCertificateEnrollmentStatus
+      description: <h3>Administrator views the dataspace TLS certificate's enrollment method and ACME renewal state.</h3>
+      responses:
+        '200':
+          description: dataspace TLS certificate enrollment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataspaceTlsCertificateEnrollmentStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/server-address:
     put:
       operationId: updateCentralServerAddress
@@ -3905,6 +3929,33 @@ components:
         - key
         - certificate
       type: object
+    DataspaceTlsCertificateEnrollmentStatus:
+      type: object
+      description: enrollment method and ACME renewal state of the dataspace TLS certificate
+      required:
+        - enrollment_method
+      properties:
+        enrollment_method:
+          type: string
+          readOnly: true
+          description: |
+            how the currently stored certificate (if any) was obtained: NONE - no certificate stored yet;
+            MANUAL - uploaded by an operator; ACME - enrolled or renewed automatically
+          enum:
+            - NONE
+            - MANUAL
+            - ACME
+        next_renewal_time:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          description: when the ACME renewal worker will next attempt renewal, absent for MANUAL or NONE
+        last_error:
+          type: string
+          readOnly: true
+          nullable: true
+          description: the most recent ACME enrollment or renewal error, absent when the last attempt succeeded
     CertificationServiceFileAndSettings:
       allOf:
         - $ref: '#/components/schemas/CertificateFile'

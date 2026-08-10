@@ -22,9 +22,11 @@ dependencies {
   implementation(libs.apache.commonsCompress)
   implementation(libs.mapstruct)
   implementation(project(":lib:rpc-spring"))
+  implementation(project(":lib:acme-core"))
   implementation(project(":service:ds-issuer-service:ds-issuer-service-provisioning-protocol"))
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:acme-core")))
   testImplementation(libs.springBoot.starterTest)
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.liquibase:liquibase-core")

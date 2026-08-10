@@ -25,12 +25,16 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService;
@@ -39,7 +43,10 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.validator.DsTlsMaterialValidator;
 import org.springframework.stereotype.Service;
 
+import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.util.Objects;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
@@ -62,12 +69,18 @@ class DsTlsCertificateServiceImpl implements DsTlsCertificateService {
     }
 
     @Override
+    public X509Certificate getDataspaceTlsCertificate() {
+        return getCertificate();
+    }
+
+    @Override
     public CertificateDetails uploadCertificate(byte[] keyBytes, byte[] certificateChainBytes) {
         var validated = dsTlsMaterialValidator.validate(keyBytes, certificateChainBytes);
         X509Certificate leafCertificate = validated.getCertChain()[0];
 
         try {
-            vaultClient.createDsHttpsTlsCredentials(validated);
+            vaultClient.createDsHttpsTlsCredentials(validated, DsTlsEnrollmentMethod.MANUAL);
+            vaultClient.setDsHttpsTlsEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.MANUAL, null, null));
         } catch (Exception e) {
             log.error("Failed to store dataspace TLS certificate", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
@@ -77,12 +90,69 @@ class DsTlsCertificateServiceImpl implements DsTlsCertificateService {
         return certificateConverter.toCertificateDetails(leafCertificate);
     }
 
+    @Override
+    public EnrollmentStatusView getEnrollmentStatus() {
+        var recordedStatus = vaultClient.getDsHttpsTlsEnrollmentStatus();
+        if (!dataspaceTlsCertificateExists()) {
+            return recordedStatus
+                    .map(status -> new EnrollmentStatusView(
+                            EnrollmentStatusView.EnrollmentMethod.NONE,
+                            status.nextRenewalTime(),
+                            status.lastError()))
+                    .orElse(new EnrollmentStatusView(EnrollmentStatusView.EnrollmentMethod.NONE, null, null));
+        }
+        return recordedStatus
+                .map(status -> new EnrollmentStatusView(
+                        EnrollmentStatusView.EnrollmentMethod.valueOf(status.method().name()),
+                        status.nextRenewalTime(),
+                        status.lastError()))
+                .orElse(new EnrollmentStatusView(EnrollmentStatusView.EnrollmentMethod.MANUAL, null, null));
+    }
+
+    @Override
+    public void storeAcmeEnrolledCertificate(PrivateKey privateKey, X509Certificate[] certificateChain, Instant nextRenewalTime) {
+        try {
+            vaultClient.createDsHttpsTlsCredentials(new InternalSSLKey(privateKey, certificateChain), DsTlsEnrollmentMethod.ACME);
+            vaultClient.setDsHttpsTlsEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewalTime, null));
+        } catch (Exception e) {
+            log.error("Failed to store ACME-enrolled dataspace TLS certificate", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+    }
+
+    @Override
+    public boolean recordAcmeOutcome(String errorDescription) {
+        var current = vaultClient.getDsHttpsTlsEnrollmentStatus()
+                .orElse(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, null));
+        if (Objects.equals(current.lastError(), errorDescription)) {
+            return false;
+        }
+        vaultClient.setDsHttpsTlsEnrollmentStatus(
+                new DsTlsEnrollmentStatus(current.method(), current.nextRenewalTime(), errorDescription));
+        return true;
+    }
+
     private X509Certificate getCertificate() {
         try {
             return vaultClient.getDsHttpsTlsCredentials().getCertChain()[0];
         } catch (XrdRuntimeException e) {
             if (e.isCausedBy(MISSING_SECRET)) {
                 throw new NotFoundException(DS_TLS_CERTIFICATE_NOT_FOUND.build());
+            }
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to read dataspace TLS certificate", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+    }
+
+    private boolean dataspaceTlsCertificateExists() {
+        try {
+            vaultClient.getDsHttpsTlsCredentials();
+            return true;
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(MISSING_SECRET)) {
+                return false;
             }
             throw e;
         } catch (Exception e) {
