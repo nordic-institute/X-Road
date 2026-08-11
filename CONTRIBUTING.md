@@ -198,10 +198,20 @@ Before opening a pull request, run the full build:
 
 ```
 pnpm install --frozen-lockfile
-pnpm -r run lint          # ESLint and Prettier
-pnpm -r run type-check    # TypeScript
-pnpm -r run test          # unit tests
+pnpm -r run generate-types   # OpenAPI types, generated and not kept in the repository
+pnpm -r run lint             # ESLint and Prettier
+pnpm -r run type-check       # TypeScript
+pnpm -r run test             # unit tests
 ```
+
+Use `--frozen-lockfile` to install exactly what `pnpm-lock.yaml` pins, the same way the pipeline does. When you
+intentionally add or update a dependency, run `pnpm install` without the flag and commit the updated lock file.
+
+**If your change adds or updates a dependency.** Gradle dependency verification pins every dependency with a SHA-256
+checksum in `src/gradle/verification-metadata.xml`. Adding a dependency or bumping a version in `libs.versions.toml`
+makes the build fail until the verification metadata is regenerated and committed together with the change. See
+[Gradle dependency verification](development/docs/gradle-dependency-verification.md) for the regeneration script and
+for troubleshooting platform-specific verification failures.
 
 ### Submitting a Pull Request
 
