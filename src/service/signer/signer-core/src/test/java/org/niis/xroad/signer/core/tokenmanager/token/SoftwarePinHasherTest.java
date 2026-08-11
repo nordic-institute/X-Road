@@ -27,14 +27,16 @@
 
 package org.niis.xroad.signer.core.tokenmanager.token;
 
+import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
+import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -81,15 +83,26 @@ class SoftwarePinHasherTest {
 
     @Test
     void verifyPinShouldSupportLegacyUnsaltedHash() {
-        SoftwarePinHasher legacyHasher = new SoftwarePinHasher(new SoftwarePinHasherProperties(
-                XRoadConfigBuilder.create()
-                        .register(SignerConfigKeys.instance())
-                        .overrides(Map.of("xroad.signer.pin-hasher.salt-length", "0"))
-                        .build()));
-        byte[] legacyHash = legacyHasher.hashPin("1234".toCharArray());
+        byte[] legacyHash = rawArgon2Hash();
 
         assertEquals(HASH_LENGTH, legacyHash.length);
         assertTrue(softwarePinHasher.verifyPin("1234".toCharArray(), legacyHash));
+        assertFalse(softwarePinHasher.verifyPin("4321".toCharArray(), legacyHash));
+    }
+
+    private byte[] rawArgon2Hash() {
+        Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+                .withIterations(4)
+                .withMemoryAsKB(19456)
+                .withParallelism(4)
+                .build();
+        byte[] pinBytes = "1234".getBytes(StandardCharsets.UTF_8);
+        byte[] hash = new byte[SoftwarePinHasherTest.HASH_LENGTH];
+
+        var generator = new Argon2BytesGenerator();
+        generator.init(params);
+        generator.generateBytes(pinBytes, hash);
+        return hash;
     }
 
 }
