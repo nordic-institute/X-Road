@@ -56,17 +56,27 @@
     # The module config lives in the configuration_properties DB override layer
     # (the DSL ignores conf.d yaml); slot-ids keeps softhsm's uninitialized free
     # slot from surfacing as a second hardware token. Deterministic upsert.
+    #
+    # Built as a real YAML mapping and serialized with to_json: a bare literal
+    # string that merely looks like JSON gets coerced by Ansible into a native
+    # dict and re-stringified with Python repr() (single quotes, True/False),
+    # which the DSL's strict JSON parser then rejects.
     - name: Seed SoftHSM2 signer module into serverconf configuration_properties
       become: true
+      vars:
+        softhsm2_module_config:
+          softhsm2:
+            library: /usr/lib/softhsm/libsofthsm2.so
+            os-locking-ok: true
+            library-cant-create-os-threads: true
+            slot-ids: "{{ [softhsm2_slot_id.stdout | trim | int] }}"
+            token-id-format: "1"
       command:
         argv:
           - /usr/share/xroad/scripts/db_property.sh
           - set
           - xroad.signer.modules
-          - >-
-            {"softhsm2":{"library":"/usr/lib/softhsm/libsofthsm2.so","os-locking-ok":true,
-            "library-cant-create-os-threads":true,"slot-ids":[{{ softhsm2_slot_id.stdout | trim }}],
-            "token-id-format":"1"}}
+          - "{{ softhsm2_module_config | to_json }}"
           - --yes
 
     - name: Recursively chown tokens to xroad

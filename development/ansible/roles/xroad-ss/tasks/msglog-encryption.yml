@@ -53,13 +53,29 @@
       value: "3BD9C292C63580F8"
     - key: xroad.message-log-encryption.archive.grouping-strategy
       value: SUBSYSTEM
-    - key: xroad.message-log-encryption.archive.grouping-keys
-      value: >-
-        {"not/existing/member":["8A4BB80EEE081BDE"],
-        "DEV/COM/4321":["E93952B01C2D2EA5","8A4BB80EEE081BDE"],
-        "another/fake/member":["1234567890ABCDEF"]}
   loop_control:
     label: "{{ item.key }}"
+  notify: restart xroad-proxy
+  when: inventory_hostname == 'xrd-ss1'
+
+# Built as a real YAML mapping and serialized with to_json: a bare literal string
+# that merely looks like JSON gets coerced by Ansible into a native dict and
+# re-stringified with Python repr() (single quotes, True/False), which the DSL's
+# strict JSON parser then rejects.
+- name: seed messagelog archive encryption grouping-keys config (xrd-ss1)
+  become: true
+  vars:
+    grouping_keys_config:
+      "not/existing/member": ["8A4BB80EEE081BDE"]
+      "DEV/COM/4321": ["E93952B01C2D2EA5", "8A4BB80EEE081BDE"]
+      "another/fake/member": ["1234567890ABCDEF"]
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.message-log-encryption.archive.grouping-keys
+      - "{{ grouping_keys_config | to_json }}"
+      - --yes
   notify: restart xroad-proxy
   when: inventory_hostname == 'xrd-ss1'
 
