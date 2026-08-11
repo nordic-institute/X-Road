@@ -181,15 +181,13 @@ without it. The header is added automatically to Java sources:
 
 For the frontend sources, the equivalent commands are `pnpm -r run license-add` and `pnpm -r run license-check`.
 
-**Run the checks.**
-
-For faster, targeted verification:
+**Run the checks.** For faster, targeted verification:
 ```
 ./gradlew checkstyleMain checkstyleTest   # Java code style
 ./gradlew test                            # unit tests
 ```
 
-Before opening a pull request, run the full build:
+**Run the full build.** Before opening a pull request, run the full build:
 ```
 ./gradlew build                           # full build with tests and style checks
 ```
