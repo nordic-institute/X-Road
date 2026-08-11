@@ -251,15 +251,15 @@ agreement on the proposed approach and avoids unnecessary rework.
 
 Before opening a pull request, please review the following checklist and verify that all the requirements are met.
 
-- The pull request contains a single feature or bug fix.
-- The pull request title follows the pull request naming convention.
-- Commit messages follow the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
-- The build and the tests pass locally.
-- Checkstyle and lint checks pass, and new files carry the MIT licence header.
-- New and changed code is covered by tests; test coverage is not lower than before.
-- Documentation has been updated where needed.
-- The branch has no merge conflicts with the target branch.
-- If this is your first contribution, the [Contributor Licence Agreement](CLA.md) has been signed and delivered to NIIS.
+* The pull request contains a single feature or bug fix.
+* The pull request title follows the pull request naming convention.
+* Commit messages follow the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
+* The build and the tests pass locally.
+* Checkstyle and lint checks pass, and new files carry the MIT licence header.
+* New and changed code is covered by tests; test coverage is not lower than before.
+* Documentation has been updated where needed.
+* The branch has no merge conflicts with the target branch.
+* If this is your first contribution, the [Contributor Licence Agreement](CLA.md) has been signed and delivered to NIIS.
 
 ## Development Conventions
 
