@@ -30,7 +30,9 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
@@ -42,6 +44,7 @@ import org.niis.xroad.serverconf.model.ParticipantType;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -62,6 +65,26 @@ public class DsParticipantDAOImplTest {
 
     private final DsParticipantDAOImpl dao = new DsParticipantDAOImpl();
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
+
+    /**
+     * The production at-most-one-SYSTEM-row rule is the Postgres partial unique index from changelog
+     * {@code 012-ds-participant-pinning}; HSQLDB has no partial indexes, so the test schema emulates it
+     * with a generated column carrying the same constraint name.
+     */
+    @BeforeClass
+    public static void createSystemSingletonConstraint() {
+        DATABASE_CTX.doInTransaction(session -> {
+            session.doWork(connection -> {
+                try (var statement = connection.createStatement()) {
+                    statement.execute("ALTER TABLE ds_participant ADD COLUMN system_singleton VARCHAR(16)"
+                            + " GENERATED ALWAYS AS (CASE WHEN participant_type = 'SYSTEM' THEN 'SYSTEM' END)");
+                    statement.execute("ALTER TABLE ds_participant ADD CONSTRAINT uniq_ds_participant_system_singleton"
+                            + " UNIQUE (system_singleton)");
+                }
+            });
+            return null;
+        });
+    }
 
     @AfterClass
     public static void afterClass() {
@@ -90,10 +113,7 @@ public class DsParticipantDAOImplTest {
 
     @Test
     public void persistsAndLoadsSystemParticipant() {
-        DATABASE_CTX.doInTransaction(session -> {
-            dao.save(session, systemParticipant());
-            return null;
-        });
+        ensureSystemParticipant();
 
         Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(dao::findSystemParticipant);
 
@@ -131,37 +151,64 @@ public class DsParticipantDAOImplTest {
 
     @Test
     public void rejectsMemberRowWithoutIdentifier() {
-        assertThrows(RuntimeException.class, () -> DATABASE_CTX.doInTransaction(session -> {
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
             DsParticipantEntity invalid = new DsParticipantEntity();
             invalid.setParticipantType(ParticipantType.MEMBER);
             invalid.setCtxId(XROAD_INSTANCE + ":" + MEMBER_CLASS + ":no-identifier");
             invalid.setDid("did:web:" + SS_HOST + ":v1:" + XROAD_INSTANCE + ":" + MEMBER_CLASS + ":no-identifier");
             invalid.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
             invalid.setState(ParticipantState.ACTIVE);
-            session.persist(invalid);
-            session.flush();
-            return null;
-        }));
+
+            var violation = assertThrows(ConstraintViolationException.class, () -> {
+                session.persist(invalid);
+                session.flush();
+            });
+            assertThat(violation.getMessage()).containsIgnoringCase("valid_participant_type_identifier");
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
     }
 
     @Test
     public void rejectsSystemRowWithIdentifier() {
         ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-system-owner");
 
-        assertThrows(RuntimeException.class, () -> DATABASE_CTX.doInTransaction(session -> {
-            ClientIdEntity identifier = identifierDAO.findOrCreateClientId(session, member);
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            // cleared within this rolled-back transaction so only the type/identifier CHECK can fire,
+            // not the SYSTEM singleton constraint
+            session.createMutationQuery("delete from DsParticipantEntity where participantType = :type")
+                    .setParameter("type", ParticipantType.SYSTEM)
+                    .executeUpdate();
 
-            DsParticipantEntity invalid = new DsParticipantEntity();
-            invalid.setParticipantType(ParticipantType.SYSTEM);
-            invalid.setMemberIdentifier(identifier);
-            invalid.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-            invalid.setDid(ParticipantIdentifierScheme.systemDid(SS_HOST));
-            invalid.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-            invalid.setState(ParticipantState.ACTIVE);
-            session.persist(invalid);
-            session.flush();
-            return null;
-        }));
+            DsParticipantEntity invalid = systemParticipant();
+            invalid.setMemberIdentifier(identifierDAO.findOrCreateClientId(session, member));
+
+            var violation = assertThrows(ConstraintViolationException.class, () -> {
+                session.persist(invalid);
+                session.flush();
+            });
+            assertThat(violation.getMessage()).containsIgnoringCase("valid_participant_type_identifier");
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
+    }
+
+    @Test
+    public void rejectsSecondSystemParticipant() {
+        ensureSystemParticipant();
+
+        Session session = DATABASE_CTX.beginTransaction();
+        try {
+            var violation = assertThrows(ConstraintViolationException.class, () -> {
+                session.persist(systemParticipant());
+                session.flush();
+            });
+            assertThat(violation.getMessage()).containsIgnoringCase("uniq_ds_participant_system_singleton");
+        } finally {
+            DATABASE_CTX.rollbackTransaction();
+        }
     }
 
     private DsParticipantEntity memberParticipant(Session session, ClientId member) {
@@ -175,6 +222,15 @@ public class DsParticipantDAOImplTest {
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
+    }
+
+    private void ensureSystemParticipant() {
+        DATABASE_CTX.doInTransaction(session -> {
+            if (dao.findSystemParticipant(session).isEmpty()) {
+                dao.save(session, systemParticipant());
+            }
+            return null;
+        });
     }
 
     private DsParticipantEntity systemParticipant() {

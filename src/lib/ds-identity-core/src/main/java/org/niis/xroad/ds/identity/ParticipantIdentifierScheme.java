@@ -47,7 +47,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *
  * <p>Encoding is colon-canonical percent-encoding: every character outside {@code A-Z a-z 0-9 . - _} is
  * percent-encoded, case-preserving, UTF-8. The mapping is one-to-one and reversible, so decoding always
- * recovers the original member identifier.
+ * recovers the original member identifier. Decoding accepts only the canonical form — uppercase hex
+ * escapes, and escapes only for characters that require encoding — so no two accepted encoded forms
+ * decode to the same participant.
  */
 @UtilityClass
 public class ParticipantIdentifierScheme {
@@ -82,6 +84,7 @@ public class ParticipantIdentifierScheme {
 
     private static final int PERCENT_ESCAPE_HEX_LENGTH = 2;
     private static final int HEX_RADIX = 16;
+    private static final int HEX_LETTER_A_VALUE = 10;
 
     /**
      * Derives the member ctx-id: {@code {enc(instance)}:{enc(class)}:{enc(code)}}.
@@ -204,7 +207,7 @@ public class ParticipantIdentifierScheme {
     }
 
     private static void requireNonBlank(String value, String label) {
-        if (value == null || value.isEmpty()) {
+        if (value == null || value.isBlank()) {
             throw XrdRuntimeException.systemException(VALIDATION_ERROR, "%s must not be blank", label);
         }
     }
@@ -217,7 +220,21 @@ public class ParticipantIdentifierScheme {
 
     private static String encodeHost(String ssHost) {
         requireNonBlank(ssHost, "ss-host");
+        for (int i = 0; i < ssHost.length(); i++) {
+            char c = ssHost.charAt(i);
+            if (!isHostChar(c) && c != ':') {
+                throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                        "ss-host '%s' has an invalid character '%s' at index %d", ssHost, c, i);
+            }
+        }
         return ssHost.replace(SEGMENT_SEPARATOR, "%" + HOST_PORT_ESCAPE);
+    }
+
+    private static boolean isHostChar(char c) {
+        return (c >= 'A' && c <= 'Z')
+                || (c >= 'a' && c <= 'z')
+                || (c >= '0' && c <= '9')
+                || c == '.' || c == '-' || c == '_';
     }
 
     private static String decodeHost(String encodedHost) {
@@ -235,15 +252,17 @@ public class ParticipantIdentifierScheme {
                     throw malformed("DID host segment '%s' has a truncated percent-escape at index %d", encodedHost, i);
                 }
                 String escape = encodedHost.substring(i + 1, escapeEnd);
-                if (!HOST_PORT_ESCAPE.equalsIgnoreCase(escape)) {
+                if (!HOST_PORT_ESCAPE.equals(escape)) {
                     throw malformed("DID host segment '%s' has an unsupported percent-escape '%%%s' at index %d",
                             encodedHost, escape, i);
                 }
                 decoded.append(':');
                 i = escapeEnd;
-            } else {
+            } else if (isHostChar(c)) {
                 decoded.append(c);
                 i++;
+            } else {
+                throw malformed("DID host segment '%s' has an invalid character '%s' at index %d", encodedHost, c, i);
             }
         }
         return decoded.toString();
@@ -256,6 +275,16 @@ public class ParticipantIdentifierScheme {
                 || (c >= 'a' && c <= 'z')
                 || (c >= '0' && c <= '9')
                 || c == '.' || c == '-' || c == '_';
+    }
+
+    private static int upperHexDigit(char c) {
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        }
+        if (c >= 'A' && c <= 'F') {
+            return c - 'A' + HEX_LETTER_A_VALUE;
+        }
+        return -1;
     }
 
     private static String encodeSegment(String value) {
@@ -282,12 +311,18 @@ public class ParticipantIdentifierScheme {
                     throw malformed("segment '%s' has a truncated percent-escape at index %d", value, i);
                 }
                 String hex = value.substring(i + 1, escapeEnd);
-                int hi = Character.digit(hex.charAt(0), HEX_RADIX);
-                int lo = Character.digit(hex.charAt(1), HEX_RADIX);
+                int hi = upperHexDigit(hex.charAt(0));
+                int lo = upperHexDigit(hex.charAt(1));
                 if (hi < 0 || lo < 0) {
-                    throw malformed("segment '%s' has an invalid percent-escape '%%%s' at index %d", value, hex, i);
+                    throw malformed("segment '%s' has a non-canonical percent-escape '%%%s' at index %d;"
+                            + " only uppercase hex is accepted", value, hex, i);
                 }
-                decoded.write(hi * HEX_RADIX + lo);
+                int decodedByte = hi * HEX_RADIX + lo;
+                if (isUnreserved(decodedByte)) {
+                    throw malformed("segment '%s' has a non-canonical percent-escape '%%%s' at index %d"
+                            + " for a character that must stay unencoded", value, hex, i);
+                }
+                decoded.write(decodedByte);
                 i = escapeEnd;
             } else if (isUnreserved(c)) {
                 decoded.write(c);

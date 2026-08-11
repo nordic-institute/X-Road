@@ -60,8 +60,6 @@
             ALTER TABLE ds_participant ADD CONSTRAINT valid_participant_type_identifier
                 CHECK ((participant_type = 'MEMBER' AND member_identifier IS NOT NULL)
                     OR (participant_type = 'SYSTEM' AND member_identifier IS NULL));
-            ALTER TABLE ds_participant ADD CONSTRAINT valid_participant_state
-                CHECK (state IN ('ACTIVE'));
 
             DROP TRIGGER IF EXISTS set_timestamps ON ds_participant;
             CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON ds_participant

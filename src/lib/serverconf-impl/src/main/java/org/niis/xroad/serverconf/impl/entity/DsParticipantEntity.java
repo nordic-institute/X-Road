@@ -60,8 +60,9 @@ import static jakarta.persistence.AccessType.FIELD;
 @Setter
 @Entity
 @Table(name = DsParticipantEntity.TABLE_NAME,
-        check = @CheckConstraint(constraint = "(participant_type = 'MEMBER' AND member_identifier IS NOT NULL) "
-                + "OR (participant_type = 'SYSTEM' AND member_identifier IS NULL)"))
+        check = @CheckConstraint(name = "valid_participant_type_identifier",
+                constraint = "(participant_type = 'MEMBER' AND member_identifier IS NOT NULL) "
+                        + "OR (participant_type = 'SYSTEM' AND member_identifier IS NULL)"))
 @Access(FIELD)
 public class DsParticipantEntity extends AuditableEntity {
 

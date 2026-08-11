@@ -196,6 +196,19 @@ class ParticipantIdentifierSchemeTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+            "DEV:COM:222%2b",
+            "DEV:COM:222%2B%2c",
+            "DEV:COM:%41BC",
+            "DEV:COM:2%5F2",
+    })
+    void decodeMemberCtxIdShouldRejectNonCanonicalEscapes(String nonCanonicalCtxId) {
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeMemberCtxId(nonCanonicalCtxId))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("non-canonical");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
             "DEV:COM:%C0%80",
             "DEV:COM:%80",
             "DEV:COM:%C3",
@@ -245,6 +258,18 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @Test
+    void decodeDidShouldRejectNonCanonicalHostEscape() {
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeDid("did:web:ss0.example.org%3a7183:v1:DEV:COM:222"))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void decodeDidShouldRejectInvalidHostCharacters() {
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeDid("did:web:ss0.example.org/path:v1:DEV:COM:222"))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
     void encodingShouldRejectSubsystemIdentifiers() {
         var subsystem = ClientId.Conf.create("DEV", "COM", "222", "SUB");
 
@@ -261,6 +286,17 @@ class ParticipantIdentifierSchemeTest {
         assertThatThrownBy(() -> ParticipantIdentifierScheme.memberDid(member, ""))
                 .isInstanceOf(XrdRuntimeException.class);
         assertThatThrownBy(() -> ParticipantIdentifierScheme.systemDid(null))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"   ", "ss0.example.org%3A7183", "ss0 example.org", "ss0.example.org/path"})
+    void encodingShouldRejectInvalidHost(String invalidHost) {
+        var member = ClientId.Conf.create("DEV", "COM", "222");
+
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.memberDid(member, invalidHost))
+                .isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.systemDid(invalidHost))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 }
