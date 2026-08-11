@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 
 class ParticipantPinningCheckTest {
 
@@ -101,6 +102,33 @@ class ParticipantPinningCheckTest {
 
         // the pinned row itself is never mutated by a failed check
         assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST), pinned.getDid());
+    }
+
+    @Test
+    void verifyThrowsWhenRowIsPinnedUnderUnsupportedSchemeVersion() {
+        DsParticipantEntity pinned = memberParticipant(MEMBER, SS_HOST);
+        pinned.setSchemeVersion("v2");
+
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
+                () -> ParticipantPinningCheck.verify(pinned, SS_HOST));
+
+        assertEquals(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code(), ex.getCode());
+        assertEquals(List.of("v2", ParticipantIdentifierScheme.SCHEME_VERSION), ex.getErrorCodeMetadata());
+
+        // the pinned row itself is never mutated by a failed check
+        assertEquals("v2", pinned.getSchemeVersion());
+        assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), pinned.getCtxId());
+    }
+
+    @Test
+    void verifyThrowsVersionErrorNotMismatchWhenVersionAndIdentifiersBothDiffer() {
+        DsParticipantEntity pinned = memberParticipant(MEMBER, SS_HOST);
+        pinned.setSchemeVersion("v2");
+
+        XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
+                () -> ParticipantPinningCheck.verify(pinned, "ss1.example.org"));
+
+        assertEquals(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code(), ex.getCode());
     }
 
     private static DsParticipantEntity memberParticipant(ClientId member, String ssHost) {

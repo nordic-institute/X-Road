@@ -44,6 +44,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAI
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
@@ -86,6 +87,8 @@ public final class ClientFacingErrorPolicy {
         rule(DSP_PROVISIONING_FAILED, INTERNAL_ERROR, "Failed to provision access for the requested service.");
         rule(DSP_PARTICIPANT_IDENTIFIER_MISMATCH, INTERNAL_ERROR,
                 "The participant identity configured on the security server is inconsistent.");
+        rule(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED, INTERNAL_ERROR,
+                "The participant identity configured on the security server uses an unsupported identifier scheme version.");
     }
 
     private static void rule(ErrorCode dspCode, ErrorCode clientFacingCode, String genericMessage) {

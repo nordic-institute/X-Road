@@ -34,6 +34,7 @@ import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 
 /**
  * Verifies a pinned {@code ds_participant} row against a fresh re-derivation, per XRDADR-41's
@@ -49,11 +50,23 @@ public class ParticipantPinningCheck {
      *
      * @param pinned the previously pinned participant row
      * @param ssHost the Security Server's current public address, as {@code host} or {@code host:port}
-     * @throws XrdRuntimeException with {@code DSP_PARTICIPANT_IDENTIFIER_MISMATCH} and metadata
-     *         {@code [pinnedCtxId, pinnedDid, derivedCtxId, derivedDid]} if the re-derived ctx-id
-     *         or DID differs from the pinned row
+     * @throws XrdRuntimeException with {@code DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED} and metadata
+     *         {@code [pinnedSchemeVersion, supportedSchemeVersion]} if the row is pinned under a scheme
+     *         version this check does not implement, or with {@code DSP_PARTICIPANT_IDENTIFIER_MISMATCH}
+     *         and metadata {@code [pinnedCtxId, pinnedDid, derivedCtxId, derivedDid]} if the re-derived
+     *         ctx-id or DID differs from the pinned row
      */
     public static void verify(DsParticipantEntity pinned, String ssHost) {
+        if (!ParticipantIdentifierScheme.SCHEME_VERSION.equals(pinned.getSchemeVersion())) {
+            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED)
+                    .metadataItems(pinned.getSchemeVersion(), ParticipantIdentifierScheme.SCHEME_VERSION)
+                    .details(("participant '%s' is pinned under scheme version '%s', but only '%s' is supported; "
+                            + "the pinned identifiers cannot be verified against the '%s' derivation")
+                            .formatted(pinned.getCtxId(), pinned.getSchemeVersion(),
+                                    ParticipantIdentifierScheme.SCHEME_VERSION, ParticipantIdentifierScheme.SCHEME_VERSION))
+                    .build();
+        }
+
         Derived derived = derive(pinned, ssHost);
 
         if (!pinned.getCtxId().equals(derived.ctxId()) || !pinned.getDid().equals(derived.did())) {
