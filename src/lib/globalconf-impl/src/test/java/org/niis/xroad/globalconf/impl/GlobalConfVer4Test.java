@@ -36,6 +36,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.DsTlsCaInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -131,5 +132,11 @@ public class GlobalConfVer4Test {
         assertEquals("http://ca:8887/acme/directory", v3pki1.getAcmeServerDirectoryUrl());
         assertNull(v3pki1.getAuthenticationCertificateProfileId());
         assertNull(v3pki1.getSigningCertificateProfileId());
+    }
+
+    @Test
+    public void getApprovedDsTlsCasReturnsEmptyForOlderGlobalConfVersion() {
+        Collection<DsTlsCaInfo> eeDsTlsCas = globalConfProvider.getApprovedDsTlsCas("EE");
+        assertTrue(eeDsTlsCas.isEmpty());
     }
 }

@@ -64,7 +64,7 @@ public class SharedParameters {
         this.sources = sources;
         this.approvedCAs = approvedCAs;
         this.approvedTSAs = approvedTSAs;
-        this.approvedDsTlsCas = approvedDsTlsCas;
+        this.approvedDsTlsCas = approvedDsTlsCas != null ? approvedDsTlsCas : List.of();
         this.members = members;
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;
