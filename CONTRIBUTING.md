@@ -6,12 +6,13 @@
 First off, thanks for taking the time to contribute! ❤️ 
 
 The guidelines described in this document apply to the X-Road core and all the official
-[X-Road extensions](https://x-road.global/xroad-extensions) (e.g., X-Road Metrics, MISP2).
+[X-Road extensions](https://x-road.global/xroad-extensions) (e.g., X-Road Metrics).
 
 All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for us maintainers and smooth out the experience for all involved. The community looks forward to your contributions. 🎉
 
 ## Table of Contents
 
+* [Code of Conduct](#code-of-conduct)
 * [I Have a Question](#i-have-a-question)
 * [I Want To Contribute](#i-want-to-contribute)
   * [Legal Notice](#legal-notice)
@@ -22,6 +23,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
     * [Submitting an Enhancement Request](#submitting-an-enhancement-request)
   * [Security Issues And Vulnerabilities](#security-issues-and-vulnerabilities)
   * [Your First Code Contribution](#your-first-code-contribution)
+    * [Verifying Your Changes Locally](#verifying-your-changes-locally)
   * [Submitting a Pull Request](#submitting-a-pull-request)
     * [Pull Request Checklist](#pull-request-checklist)
 * [Styleguides](#styleguides)
@@ -30,6 +32,13 @@ All types of contributions are encouraged and valued. See the [Table of Contents
   * [Commit Messages](#commit-messages)
   * [Tagging](#tagging)
   * [Java](#java)
+
+## Code of Conduct
+
+Everyone participating in the X-Road project is expected to follow the
+[X-Road Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it. Unacceptable
+behaviour can be reported to the community leaders responsible for enforcement through the
+[NIIS contact form](https://www.niis.org/contact) or by email (`info@niis.org`).
 
 ## I Have a Question
 
@@ -69,7 +78,7 @@ project. Therefore, it is enough to sign the CLA once before the first
 contribution, and not with every contribution.
 
 The CLA can be signed digitally using a
-[qualified electronic signature](https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/Introduction+to+e-signature).
+[qualified electronic signature](https://ec.europa.eu/digital-building-blocks/sites/display/DIGITAL/eSignature).
 A digitally signed CLA must be emailed to `x-road@niis.org`.
 
 All contributors may use the [Dokobit](https://www.dokobit.com/) e-signing service to sign the CLA. Contributors from 
@@ -94,11 +103,9 @@ X-Road enhancement requests and error reports can be submitted directly to this 
   the `Ideas` category:
   * [X-Road](https://github.com/nordic-institute/X-Road/discussions/new?category=ideas)
   * [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/discussions/new?category=ideas)
-  * [MISP2](https://github.com/nordic-institute/misp2/discussions/new?category=ideas)
 * To report an error, please create an issue in the specific software repository:
   * [X-Road](https://github.com/nordic-institute/X-Road/issues/new/choose)
   * [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues/new/choose)
-  * [MISP2](https://github.com/nordic-institute/misp2/issues/new/choose)
 
 #### Submitting a Bug
 
@@ -109,16 +116,14 @@ Before submitting a bug:
   and problems.
 * Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a
   feature. Also, check the Slack history for previous questions on the same topic.
-* Perform a cursory search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV),
-  [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) or
-  [MISP2](https://nordic-institute.atlassian.net/browse/MISPDEV) backlogs depending on the software, to see if the
-  problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead
-  of opening a new one.
-* Perform a cursory search on the [X-Road](https://github.com/nordic-institute/X-Road/issues),
-  [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues) or
-  [MISP2](https://github.com/nordic-institute/misp2/issues) GitHub issues depending on the software, to see if the 
-  problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead
-  of opening a new one.
+* Perform a cursory search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV) or
+  [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) backlogs depending on the software, to see
+  if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue
+  instead of opening a new one.
+* Perform a cursory search on the [X-Road](https://github.com/nordic-institute/X-Road/issues) or
+  [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues) GitHub issues depending on the software,
+  to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing
+  issue instead of opening a new one.
 
 When submitting a bug, explain the problem and include additional details to help maintainers reproduce the problem:
 
@@ -136,19 +141,16 @@ When submitting a bug, explain the problem and include additional details to hel
 Before submitting an enhancement request:
 
 * Make sure that you are using the latest version.
-* Read the software specific documentation for [X-Road](https://docs.x-road.global),
-  [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/tree/master/docs)
-  or [MISP2](https://github.com/nordic-institute/misp2/tree/develop/docs) carefully and find out if the functionality
-  is already covered, maybe by an individual configuration.
-* Perform a search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV),
-  [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) or
-  [MISP2](https://nordic-institute.atlassian.net/browse/MISPDEV) backlogs to see if the enhancement has already been
-  suggested. If it has, add a comment to the existing issue instead of opening a new one.
-* Perform a search on the [X-Road](https://github.com/nordic-institute/X-Road/discussions/categories/ideas),
-  [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/discussions/categories/ideas) or
-  [MISP2](https://github.com/nordic-institute/misp2/discussions/categories/ideas) discussion boards ideas category to
-  see if the enhancement has already been suggested. If it has, add a comment to the existing discussion instead of
-  opening a new one.
+* Read the software specific documentation for [X-Road](https://docs.x-road.global) or
+  [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/tree/master/docs) carefully and find out if the
+  functionality is already covered, maybe by an individual configuration.
+* Perform a search on the [X-Road](https://nordic-institute.atlassian.net/browse/XRDDEV) or
+  [X-Road Metrics](https://nordic-institute.atlassian.net/browse/OPMONDEV) backlogs to see if the enhancement has
+  already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+* Perform a search on the [X-Road](https://github.com/nordic-institute/X-Road/discussions/categories/ideas) or
+  [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/discussions/categories/ideas) discussion boards
+  ideas category to see if the enhancement has already been suggested. If it has, add a comment to the existing
+  discussion instead of opening a new one.
 * Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to
   convince the project's developers of the merits of this feature. Keep in mind that we want features that will be
   useful to the majority of our users and not just a small subset. If you're just targeting a minority of users,
@@ -159,15 +161,12 @@ The evaluation process of the enhancement requests is described
 
 ### Security Issues And Vulnerabilities
 
-Security issues and vulnerabilities are reported privately to the [X-Road Service
-Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) using the
-`Report a software problem` request type.
-[Sign up](https://id.atlassian.com/signup) for an account and
-get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
+**Never report a security vulnerability in a public issue, discussion or pull request.**
 
-Another alternative to report security issues and vulnerabilities is the X-Road bug bounty program. 
-[Visit the program details](https://nordic-institute.atlassian.net/wiki/spaces/XRDBUGBOUNTY) to get
-started.
+Security issues and vulnerabilities are reported privately as described in the
+[X-Road Security and Vulnerability Disclosure Policy](SECURITY.md). The policy is the single source of truth on
+supported versions, reporting channels, the information to include in a report, coordinated disclosure and good faith
+security research.
 
 ### Your First Code Contribution
 
@@ -179,9 +178,49 @@ Unsure where to begin contributing to X-Road? You can start by looking through t
 * [Good first issues for X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 * [Help wanted issues for X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
-X-Road can be developed locally. For instructions on how to do this, see the [build instructions](src/BUILD.md). Also,
+X-Road can be developed locally. For instructions on how to do this, see the [build instructions](src/BUILD.md) and the
+[script reference](scripts/README.md) that maps common development tasks to the scripts implementing them. Also,
 completing the X-Road Academy [Core Developer training](https://academy.x-road.global/courses/x-road-core-developer) is
 strongly recommended.
+
+#### Verifying Your Changes Locally
+
+The same checks that run in the pull request pipeline can be run locally. Running them before opening a pull request
+saves a review round trip. All the commands below are run in the `src` directory.
+
+**Install the Git hooks.** The repository ships a `commit-msg` hook that validates commit messages against the
+[commit message conventions](#commit-messages). The hook is not active until it is installed:
+
+```
+./gradlew installGitHooks
+```
+
+**Add the licence header to new files.** Every source file must carry the MIT licence header, and the build fails
+without it. The header is added automatically to Java sources:
+
+```
+./gradlew licenseFormatMain licenseFormatTest   # add missing headers
+./gradlew licenseMain licenseTest               # verify headers
+```
+
+For the frontend sources, the equivalent commands are `pnpm -r run license-add` and `pnpm -r run license-check`.
+
+**Run the checks.**
+
+```
+./gradlew checkstyleMain checkstyleTest   # Java code style
+./gradlew test                            # unit tests
+./gradlew build                           # full build with tests and style checks
+```
+
+**Run the frontend checks.** The admin user interfaces form a pnpm workspace rooted in `src`:
+
+```
+pnpm install
+pnpm -r run lint          # ESLint and Prettier
+pnpm -r run type-check    # TypeScript
+pnpm -r run test          # unit tests
+```
 
 ### Submitting a Pull Request
 
@@ -305,8 +344,3 @@ The versions merged to `X-Road/master` branch are tagged with annotated tags. E.
 `git tag -a 7.0.0 -m "X-Road 7.0.0"`
 
 The versions merged to `X-Road/develop` branch are not tagged.
-
-### Java
-
-[Checkstyle](http://checkstyle.sourceforge.net/) MUST NOT issue any errors with the configuration defined in 
-[here](https://github.com/nordic-institute/X-Road/blob/develop/src/config/checkstyle/checkstyle.xml).

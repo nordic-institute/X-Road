@@ -1,0 +1,25 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🔒 Security vulnerability
+    url: https://github.com/nordic-institute/X-Road/blob/develop/SECURITY.md
+    about: Never report security vulnerabilities in a public issue. Follow the security policy to report them privately.
+
+  - name: 💡 Enhancement request or new idea
+    url: https://github.com/nordic-institute/X-Road/discussions/new?category=ideas
+    about: Propose new functionality in the Ideas category of GitHub Discussions.
+
+  - name: 💬 Question or community support
+    url: https://x-road.global/community
+    about: Ask the X-Road community on Slack. Please check the documentation and Knowledge Base first.
+
+  - name: 📖 Documentation
+    url: https://docs.x-road.global
+    about: X-Road documentation portal.
+
+  - name: 🤓Training
+    url: https://academy.x-road.global/
+    about: X-Road training platform.
+
+  - name: 🛠️ Commercial and member support
+    url: https://x-road.global/xroad-technology-partners-companies
+    about: X-Road Technology Partners.
