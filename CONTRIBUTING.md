@@ -196,11 +196,18 @@ For the frontend sources, the equivalent commands are `pnpm -r run license-add` 
 
 ```
 pnpm install --frozen-lockfile
-pnpm -r run generate-types   # OpenAPI types, generated and not kept in the repository
-pnpm -r run lint             # ESLint and Prettier
-pnpm -r run type-check       # TypeScript
-pnpm -r run test             # unit tests
+pnpm -r run generate-types              # OpenAPI types, generated and not kept in version control
+pnpm exec playwright install chromium   # browser used by the unit tests
+pnpm run test-ss                        # Security Server admin UI
+pnpm run test-cs                        # Central Server admin UI
 ```
+
+The order matters on a clean checkout. The generated type definitions are excluded from version control, and the tests
+do not run without a browser. The `test-ss` and `test-cs` scripts generate the remaining type definitions, run the
+TypeScript type check and then the unit tests, which is also what the pipeline does.
+
+ESLint and Prettier are not part of the pipeline, but you can run them for a single package while working on it, for
+example `pnpm --filter xroad-securityserver-admin-ui run lint`.
 
 Use `--frozen-lockfile` to install exactly what `pnpm-lock.yaml` pins, the same way the pipeline does. When you
 intentionally add or update a dependency, run `pnpm install` without the flag and commit the updated lock file.
