@@ -1,4 +1,13 @@
 ---
+- name: wait for any boot-time apt/dpkg lock to clear
+  ansible.builtin.command: flock -n /var/lib/dpkg/lock-frontend flock -n /var/lib/dpkg/lock true
+  register: apt_lock_check
+  changed_when: false
+  failed_when: false
+  retries: 30
+  delay: 2
+  until: apt_lock_check.rc == 0
+
 - name: Remove old repo config
   file:
     path: /etc/apt/sources.list.d/xroad.list
@@ -10,6 +19,7 @@
     state: present
     update_cache: true
     install_recommends: false
+    lock_timeout: 120
   vars:
     items:
       - acl
