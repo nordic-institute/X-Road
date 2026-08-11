@@ -66,6 +66,8 @@ public class KeyConfMigrator {
     private static final String INDENT_UNIT = "  ";
     private static final int PIN_SALT_LENGTH = 16;
 
+    private final SecureRandom secureRandom = new SecureRandom();
+
     public void migrate(String keyconfPath, String dbPropertiesPath) throws SQLException {
         KeyConfType keyConf = parseKeyConf(Path.of(keyconfPath, "keyconf.xml"));
 
@@ -245,7 +247,7 @@ public class KeyConfMigrator {
      */
     private byte[] hashPin(char[] pin) {
         byte[] salt = new byte[PIN_SALT_LENGTH];
-        new SecureRandom().nextBytes(salt);
+        secureRandom.nextBytes(salt);
 
         var params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
                 .withIterations(4)

@@ -70,7 +70,7 @@ public class SoftwarePinHasher {
         }
 
         if (storedHash.length == properties.hashLength()) {
-            byte[] candidate = computeHash(pin, null, properties.hashLength());
+            byte[] candidate = computeHash(pin, new byte[0], properties.hashLength());
             return MessageDigest.isEqual(candidate, storedHash);
         }
 
@@ -90,7 +90,7 @@ public class SoftwarePinHasher {
                 .withMemoryAsKB(properties.memoryKb())
                 .withParallelism(properties.parallelism());
 
-        if (salt != null) {
+        if (salt.length != 0) {
             builder.withSalt(salt);
         }
 
