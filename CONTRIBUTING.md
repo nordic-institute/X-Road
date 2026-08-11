@@ -8,16 +8,15 @@ First off, thanks for taking the time to contribute! ❤️
 The guidelines described in this document apply to the X-Road core and all the official
 [X-Road extensions](https://x-road.global/xroad-extensions) (e.g., X-Road Metrics).
 
-All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for us maintainers and smooth out the experience for all involved. The community looks forward to your contributions. 🎉
+All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for the maintainers and smooth out the experience for all involved. The community looks forward to your contributions. 🎉
 
 ## Table of Contents
 
 * [Code of Conduct](#code-of-conduct)
 * [I Have a Question](#i-have-a-question)
 * [I Want To Contribute](#i-want-to-contribute)
+  * [Quick Start](#quick-start)  
   * [Legal Notice](#legal-notice)
-    * [Review the CLA document](#review-the-cla-document)
-    * [Sign the CLA](#sign-the-cla)
   * [Enhancement Requests and Error Reports](#enhancement-requests-and-error-reports)
     * [Submitting a Bug](#submitting-a-bug)
     * [Submitting an Enhancement Request](#submitting-an-enhancement-request)
@@ -26,7 +25,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
     * [Verifying Your Changes Locally](#verifying-your-changes-locally)
   * [Submitting a Pull Request](#submitting-a-pull-request)
     * [Pull Request Checklist](#pull-request-checklist)
-* [Styleguides](#styleguides)
+* [Development Conventions](#development-conventions)
   * [Branching Pattern](#branching-pattern)
   * [Pull Requests](#pull-requests)
   * [Commit Messages](#commit-messages)
@@ -46,52 +45,31 @@ Before you ask a question, it is best to check the existing resources first:
 - [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB);
 - [List of X-Road resources](https://x-road.global/resources).
 
-If you then still feel the need to ask a question and need clarification, please submit a question to the [X-Road community Slack](https://jointxroad.slack.com/)
-or open an [issue](https://github.com/nordic-institute/X-Road/issues/new).
+If you still need help, ask a question in the [X-Road community Slack](https://jointxroad.slack.com/) or open a GitHub [issue](https://github.com/nordic-institute/X-Road/issues/new).
 
 If you're not a member of the X-Road community Slack yet, you can join [here](https://x-road.global/community).
 
 ## I Want To Contribute
 
+### Quick Start
+
+To contribute a code change:
+
+1. Fork the X-Road repository and clone your fork.
+2. Create a branch from `develop`.
+3. Follow the [build instructions](src/BUILD.md) to set up your development environment.
+4. Make your changes and add or update tests.
+5. [Verify your changes locally](#verifying-your-changes-locally).
+6. Commit your changes following the [commit message conventions](#commit-messages).
+7. Push the branch to your fork.
+8. Open a pull request against `develop`.
+9. Complete the CLA process if this is your first contribution.
+
 ### Legal Notice
 
-We appreciate community contributions to X-Road open source code repositories
-managed by NIIS. By signing a [contributor licence agreement](https://en.wikipedia.org/wiki/Contributor_License_Agreement),
-we ensure that the community is free to use your contributions.
+All contributors must sign the NIIS Contributor Licence Agreement (CLA) before their first contribution can be approved. You only need to sign the CLA once.
 
-#### Review the CLA document
-
-The NIIS Contributor Licence Agreement (CLA) document is available as
-a [Word](https://github.com/nordic-institute/X-Road-development/blob/master/docs/NIIS_Contributor_Licence_Agreement.docx) and
-[PDF](https://github.com/nordic-institute/X-Road-development/blob/master/docs/NIIS_Contributor_Licence_Agreement.pdf) document.
-
-#### Sign the CLA
-
-When you contribute to X-Road open source project on GitHub with a new pull
-request, it will be checked whether you have signed the CLA. If required, the
-pull request will be commented on with further instructions. The CLA must be
-received by NIIS prior to approval of the pull request. The CLA covers any and
-all submissions that the contributor now, or in the future, submits to the
-project. Therefore, it is enough to sign the CLA once before the first
-contribution, and not with every contribution.
-
-The CLA can be signed digitally using a
-[qualified electronic signature](https://ec.europa.eu/digital-building-blocks/sites/display/DIGITAL/eSignature).
-A digitally signed CLA must be emailed to `x-road@niis.org`.
-
-All contributors may use the [Dokobit](https://www.dokobit.com/) e-signing service to sign the CLA. Contributors from 
-Belgium, Estonia, Finland, Iceland, Latvia, Lithuania, Poland, Portugal and Spain may use Dokobit with their national 
-eID providers. Instead, contributors from countries without an approved national eID provider must first send 
-their name and email address to `x-road@niis.org`. Please use "Sign X-Road CLA with Dokobit" as the email subject. After 
-receiving the information, we'll send you the instructions on how to proceed by email.
-
-Alternatively, the CLA can be printed out, signed manually and sent to NIIS
-by post:
-
-    MTÜ Nordic Institute for Interoperability Solutions
-    Hobujaama 4
-    10151 Tallinn
-    Estonia
+[Read and sign the NIIS Contributor Licence Agreement (CLA) →](CLA.md)
 
 ### Enhancement Requests and Error Reports
 
@@ -109,7 +87,7 @@ X-Road enhancement requests and error reports can be submitted directly to this 
 
 Before submitting a bug:
 
-* Make sure that you are using the latest version.
+* Make sure that you are using an officially supported version.
 * Check the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB) for a list of common questions
   and problems.
 * Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a
@@ -183,8 +161,8 @@ strongly recommended.
 
 #### Verifying Your Changes Locally
 
-The same checks that run in the pull request pipeline can be run locally. Running them before opening a pull request
-saves a review round trip. All the commands below are run in the `src` directory.
+Run the following checks locally before opening a pull request. The pull request pipeline will run these checks 
+again together with additional CI validations. All the commands below are run in the `src` directory.
 
 **Install the Git hooks.** The repository ships a `commit-msg` hook that validates commit messages against the
 [commit message conventions](#commit-messages). The hook is not active until it is installed:
@@ -205,16 +183,21 @@ For the frontend sources, the equivalent commands are `pnpm -r run license-add` 
 
 **Run the checks.**
 
+For faster, targeted verification:
 ```
 ./gradlew checkstyleMain checkstyleTest   # Java code style
 ./gradlew test                            # unit tests
+```
+
+Before opening a pull request, run the full build:
+```
 ./gradlew build                           # full build with tests and style checks
 ```
 
 **Run the frontend checks.** The admin user interfaces form a pnpm workspace rooted in `src`:
 
 ```
-pnpm install
+pnpm install --frozen-lockfile
 pnpm -r run lint          # ESLint and Prettier
 pnpm -r run type-check    # TypeScript
 pnpm -r run test          # unit tests
@@ -222,67 +205,73 @@ pnpm -r run test          # unit tests
 
 ### Submitting a Pull Request
 
-To ease the review work and to make clearer what changes are done, a pull request should contain one feature or bug
-fix. The larger the pull request is, the more complex it is to review. Pull requests are generally reviewed and
-accepted on first-come, first-served (FCFS) basis. Also, it's recommended to start the [CLA process](#sign-the-cla)
-already before opening a pull request.
+To make changes easier to review and understand, a pull request should normally contain a single feature or bug fix.
+Smaller pull requests are generally easier and faster to review.
 
-If a pull request implements a new feature or a bigger change in an existing feature, it's strongly recommended to
+Pull requests are generally reviewed on first-come, first-served (FCFS) basis. Also, it's recommended 
+to complete the [CLA process](CLA.md#sign-the-cla) already before opening a pull request.
+
+After you submit a pull request:
+
+1. Automated CI checks are run.
+2. A maintainer checks the CLA.
+3. Once the CLA has been signed, a maintainer reviews the changes.
+4. You may be asked to make changes.
+5. Push additional commits to the same branch to update the pull request.
+6. Resolve merge conflicts if the target branch changes.
+7. Once the required checks and reviews pass, a maintainer merges the pull request.
+
+If a pull request implements a new feature or a bigger change in an existing feature, it's recommended to
 submit an enhancement request in advance and indicate in the enhancement request that the implementation will be
-provided too. In that way, it's possible to ensure in advance that the pull request will be approved.
+provided too. This helps confirm that the proposed change aligns with the project's direction before significant 
+implementation work begins.
 
 Also, in case you're planning to implement an existing backlog item, let NIIS know about your plans in advance to avoid
 duplicate work.
 
-In case a pull request includes changes in the architecture, it's strongly recommended to discuss the changes with NIIS
-in advance. Agreeing on the details of the changes upfront will likely speed up the approval process.
+Discuss significant architectural changes with NIIS before starting implementation. This helps establish 
+agreement on the proposed approach and avoids unnecessary rework.
 
 #### Pull Request Checklist
 
 Before opening a pull request, please review the following checklist and verify that all the requirements are met.
 
 - The pull request contains a single feature or bug fix.
-- The pull request title follows the `<TYPE>: <ISSUE_ID> <SHORT_DESCRIPTION>` format.
+- The pull request title follows the pull request naming convention.
 - Commit messages follow the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
 - The build and the tests pass locally.
 - Checkstyle and lint checks pass, and new files carry the MIT licence header.
 - New and changed code is covered by tests; test coverage is not lower than before.
 - Documentation has been updated where needed.
 - The branch has no merge conflicts with the target branch.
-- A signed [Contributor Licence Agreement](https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#legal-notice) has been delivered to NIIS, or is on its way.
+- If this is your first contribution, the [Contributor Licence Agreement](CLA.md) has been signed and delivered to NIIS.
 
-## Styleguides
+## Development Conventions
 
 ### Branching Pattern
 
 Branching pattern follows the
-[Gitflow model](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). 
-Two long-running, perpetual branches – `master` and `develop` – together with additional branches – `feature`, `beta`,
-`released minor version` and `bugfix` – are used.
+[Gitflow model](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow).
 
-* `master` branch is used to release X-Road software into production.
-* `develop` branch is used to accumulate features for the next big release.
-* `feature` branches are used to work on features (or closely related sets of features) to enhance X-Road core software.
-  * `feature` branches are named using the id of the feature's backlog item, e.g., `XRDDEV-123` for JIRA tickets or
-    `ISSUE123` for GitHub issues.
-* `beta` branches are used to prepare new production releases.
-* `released minor version` branches are used to track all patch versions released related to a specific minor version.
-  * for example, `release-7.0` branch contains version `7.0.0` and all its bugfix releases (e.g., `7.0.1`, `7.0.2`,
-    ..., `7.0.5`, etc.).
-* `bugfix` branches are used to prepare patch releases.
+For contributions, create a branch from `develop` and submit the pull request back to `develop`:
 
-The latest development version is always available in the `develop` branch and the latest stable version in the
-`master` branch.
+```
+develop
+  └── ISSUE-123
+        └── Pull Request → develop
+```
+
+The latest development version is available in `develop`, while `master` contains the latest stable version.
 
 ### Pull Requests
 
 Pull requests made against the `X-Road/develop` branch MUST follow these conventions:
 
-* Pull request name format is `<TYPE>: <ISSUE_ID> <SHORT_DESCRIPTION>`, for example:
+* Pull request name format is `<TYPE>: [<ISSUE_ID>] <SHORT_DESCRIPTION>`, for example:
   `feat: XRDDEV-1669 Allow overriding startup parameters`
   * `TYPE` = conventional commit type. One of: build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test
   * `ISSUE_ID` = id of the feature's / bug's backlog item. If the pull request is not related to any backlog item,
-    `ISSUE_ID` can be omitted. If the issue is a GitHub issue, it can be `ISSUE1669 Allow overriding startup parameters`
+    `ISSUE_ID` can be omitted. If the issue is a GitHub issue, it can be `ISSUE-1669 Allow overriding startup parameters`
     instead.
   * `SHORT_DESCRIPTION` = short description of the changes included in the pull request.
 * The pull request's description field must contain more detailed information about the changes. Any relevant
