@@ -44,6 +44,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOU
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTION_MISSING;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
@@ -68,7 +69,8 @@ class ClientFacingErrorPolicyTest {
                 Arguments.of(DSP_NEGOTIATION_FAILED, SERVICE_FAILED),
                 Arguments.of(DSP_TRANSFER_FAILED, SERVICE_FAILED),
                 Arguments.of(DSP_PARTICIPANT_CONTEXT_FAILED, INTERNAL_ERROR),
-                Arguments.of(DSP_PROVISIONING_FAILED, INTERNAL_ERROR)
+                Arguments.of(DSP_PROVISIONING_FAILED, INTERNAL_ERROR),
+                Arguments.of(DSP_PARTICIPANT_IDENTIFIER_MISMATCH, INTERNAL_ERROR)
         );
     }
 

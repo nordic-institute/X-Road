@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="serverconf/012-ds-participant-pinning.xml">
+
+    <!--
+        Participant lifecycle table per XRDADR-41 ("Storage - derive, then store"): pins each
+        dataspace participant's derived ctx-id, DID and scheme version at first provisioning, so a
+        later derivation-rule change can never silently re-identify a provisioned participant.
+        Nothing populates or reads this table yet.
+    -->
+    <changeSet author="niis" id="012-ds-participant-pinning">
+        <createTable tableName="ds_participant">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="participant_type" type="VARCHAR(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_identifier" type="BIGINT"/>
+            <column name="ctx_id" type="VARCHAR(4000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="did" type="VARCHAR(4000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scheme_version" type="VARCHAR(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="member_identifier" baseTableName="ds_participant"
+                                  constraintName="fk_ds_participant_member_identifier" deferrable="false" initiallyDeferred="false"
+                                  referencedColumnNames="id" referencedTableName="identifier"/>
+
+        <addUniqueConstraint columnNames="member_identifier" constraintName="uniq_ds_participant_member_identifier"
+                              tableName="ds_participant"/>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            CREATE UNIQUE INDEX uniq_ds_participant_system_singleton ON ds_participant(participant_type)
+                WHERE participant_type = 'SYSTEM';
+            ]]></sql>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            ALTER TABLE ds_participant ADD CONSTRAINT valid_participant_type_identifier
+                CHECK ((participant_type = 'MEMBER' AND member_identifier IS NOT NULL)
+                    OR (participant_type = 'SYSTEM' AND member_identifier IS NULL));
+            ALTER TABLE ds_participant ADD CONSTRAINT valid_participant_state
+                CHECK (state IN ('ACTIVE'));
+
+            DROP TRIGGER IF EXISTS set_timestamps ON ds_participant;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON ds_participant
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+            DROP TRIGGER IF EXISTS update_history ON ds_participant;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON ds_participant
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
