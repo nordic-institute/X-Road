@@ -19,7 +19,7 @@ body:
           required: true
         - label: I am using a [supported version](https://github.com/nordic-institute/X-Road/blob/develop/SECURITY.md#supported-versions) of the software.
           required: true
-        - label: I searched the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB), the [XRDDEV backlog](https://nordic-institute.atlassian.net/browse/XRDDEV) and the [existing issues](https://github.com/nordic-institute/X-Road/issues), and did not find this problem already reported.
+        - label: I searched the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB), the [X-Road backlog](https://nordic-institute.atlassian.net/browse/XRDDEV) and the [existing GitHub issues](https://github.com/nordic-institute/X-Road/issues), and did not find this problem already reported.
           required: true
 
   - type: input
@@ -34,7 +34,7 @@ body:
     id: component
     attributes:
       label: Affected component
-      description: For example Security Server, Central Server, Configuration Proxy, Signer.
+      description: For example Security Server, Central Server, Configuration Proxy.
       placeholder: Security Server
     validations:
       required: true

@@ -31,7 +31,6 @@ All types of contributions are encouraged and valued. See the [Table of Contents
   * [Pull Requests](#pull-requests)
   * [Commit Messages](#commit-messages)
   * [Tagging](#tagging)
-  * [Java](#java)
 
 ## Code of Conduct
 
