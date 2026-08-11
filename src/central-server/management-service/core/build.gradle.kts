@@ -8,6 +8,7 @@ dependencies {
 
   api(project(":central-server:admin-service:api-client"))
   implementation(project(":lib:globalconf-spring"))
+  implementation(project(":lib:properties-core"))
   implementation(project(":common:common-domain"))
   implementation(libs.springBoot.starterWeb) {
     exclude(module = "spring-webmvc")

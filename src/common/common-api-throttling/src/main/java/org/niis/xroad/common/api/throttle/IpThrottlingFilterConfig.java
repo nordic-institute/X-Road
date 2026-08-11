@@ -28,6 +28,12 @@ package org.niis.xroad.common.api.throttle;
 public interface IpThrottlingFilterConfig {
 
     /**
+     * Whether IP rate limiting is active. When {@code false} the filter passes every
+     * request through without throttling.
+     */
+    boolean isRateLimitEnabled();
+
+    /**
      * Controls how many requests from an IP address are allowed per minute.
      * Normally security servers should have a unique address and send second
      * one management request, so this value can be low.

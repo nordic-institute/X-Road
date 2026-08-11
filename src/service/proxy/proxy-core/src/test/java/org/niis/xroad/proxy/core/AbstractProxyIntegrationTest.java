@@ -42,7 +42,10 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.vault.NoopVaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -192,10 +195,14 @@ public abstract class AbstractProxyIntegrationTest {
         ));
         properties.putAll(ADDITIONAL_PROPERTIES);
 
-        ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);
-        CommonProperties commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-                "xroad.common.temp-files-path", "build/"
-        ));
+        ProxyProperties proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(properties)
+                .build());
+        CommonProperties commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of("xroad.common.temp-files-path", "build/"))
+                .build());
         startServices(proxyProperties, commonProperties);
     }
 

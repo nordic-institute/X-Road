@@ -39,11 +39,11 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
+import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
-import org.niis.xroad.cs.registrationservice.config.RegistrationServiceProperties;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +56,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.net.URI;
 import java.security.KeyPairGenerator;
 import java.util.Collections;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -77,8 +77,6 @@ class RegistrationRequestApiTest {
             .build();
 
     @Autowired
-    private RegistrationServiceProperties properties;
-    @Autowired
     private GlobalConfProvider globalConfProvider;
 
     @TestConfiguration
@@ -88,6 +86,14 @@ class RegistrationRequestApiTest {
         GlobalConfProvider testGlobalConfProvider() {
             return new TestGlobalConf();
         }
+
+        @Bean
+        @Primary
+        XRoadConfigOverrides testXRoadConfigOverrides() {
+            return new XRoadConfigOverrides(Map.of(
+                    "xroad.registration-service.api-base-url",
+                    "http://127.0.0.1:%d/api/v1".formatted(wireMockRule.getPort())));
+        }
     }
 
     @Autowired
@@ -96,7 +102,6 @@ class RegistrationRequestApiTest {
     @Test
     void shouldRegisterAuthCert() throws Exception {
 
-        properties.setApiBaseUrl(URI.create(String.format("http://127.0.0.1:%d/api/v1", wireMockRule.getPort())));
         var response = new AuthenticationCertificateRegistrationRequestDto();
         response.setId(42);
         response.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
@@ -118,7 +123,6 @@ class RegistrationRequestApiTest {
     @Test
     void shouldReturnSoapFaultOnApiError() throws Exception {
 
-        properties.setApiBaseUrl(URI.create(String.format("http://127.0.0.1:%d/api/v1", wireMockRule.getPort())));
         var response = new ErrorInfoDto();
         response.setStatus(409);
         response.setError(new CodeWithDetailsDto().code("error"));

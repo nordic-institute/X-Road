@@ -26,20 +26,58 @@ package org.niis.xroad.confproxy.common.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.confclient.common.config.ConfigurationClientConfig;
 import org.niis.xroad.confclient.common.service.ConfigurationClientService;
 import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 
 public class ConfProxyConfig {
 
     @ApplicationScoped
-    HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfClientProperties confClientProperties) {
-        return new HttpUrlConnectionConfigurer(confClientProperties);
+    ConfigurationClientConfig configurationClientConfig(XRoadConfig xRoadConfig) {
+        return new ConfigurationClientConfig() {
+            @Override
+            public String allowedFederations() {
+                return xRoadConfig.value(ConfClientConfigKeys.ALLOWED_FEDERATIONS);
+            }
+
+            @Override
+            public boolean globalConfHostnameVerification() {
+                return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_HOSTNAME_VERIFICATION);
+            }
+
+            @Override
+            public boolean globalConfTlsCertVerification() {
+                return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_TLS_CERT_VERIFICATION);
+            }
+
+            @Override
+            public int downloaderConnectTimeout() {
+                return xRoadConfig.value(ConfClientConfigKeys.DOWNLOADER_CONNECT_TIMEOUT);
+            }
+
+            @Override
+            public int downloaderReadTimeout() {
+                return xRoadConfig.value(ConfClientConfigKeys.DOWNLOADER_READ_TIMEOUT);
+            }
+
+            @Override
+            public String globalConfDir() {
+                return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_DIR);
+            }
+        };
+    }
+
+    @ApplicationScoped
+    HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfigurationClientConfig confClientConfig) {
+        return new HttpUrlConnectionConfigurer(confClientConfig);
     }
 
     @ApplicationScoped
     ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
-                                                          ConfClientProperties confClientProperties,
+                                                          ConfigurationClientConfig confClientConfig,
                                                           CommonProperties commonProperties) {
-        return new ConfigurationClientService(httpUrlConnectionConfigurer, confClientProperties, commonProperties::tempFilesPath);
+        return new ConfigurationClientService(httpUrlConnectionConfigurer, confClientConfig, commonProperties::tempFilesPath);
     }
 }

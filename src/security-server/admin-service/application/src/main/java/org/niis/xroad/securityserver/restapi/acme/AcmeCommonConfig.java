@@ -29,7 +29,8 @@ package org.niis.xroad.securityserver.restapi.acme;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.acme.AcmeClient;
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -49,7 +50,11 @@ public class AcmeCommonConfig {
     }
 
     @Bean
-    public AcmeProperties acmeProperties(AcmeConfig acmeConfig, @Value("${xroad.acme:}") String acmeConfiguration) {
+    public AcmeProperties acmeProperties(AcmeConfig acmeConfig, XRoadConfig xRoadConfig) {
+        return parseAcmeProperties(acmeConfig, xRoadConfig.value(AdminServiceConfigKeys.ACME));
+    }
+
+    AcmeProperties parseAcmeProperties(AcmeConfig acmeConfig, String acmeConfiguration) {
         if (StringUtils.isBlank(acmeConfiguration)) {
             if (acmeConfig.isAcmeChallengePortEnabled()) {
                 log.error("Acme challenge port enabled, but configuration is missing.");

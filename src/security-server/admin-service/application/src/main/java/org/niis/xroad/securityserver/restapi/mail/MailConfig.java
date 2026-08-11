@@ -28,7 +28,8 @@ package org.niis.xroad.securityserver.restapi.mail;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +50,8 @@ import java.util.Properties;
 public class MailConfig {
 
     @Bean
-    public MailNotificationProperties mailNotificationProperties(@Value("${xroad.mail-notification:}") String mailConfig) {
+    public MailNotificationProperties mailNotificationProperties(XRoadConfig xRoadConfig) {
+        String mailConfig = xRoadConfig.value(AdminServiceConfigKeys.MAIL_NOTIFICATION);
         if (StringUtils.isBlank(mailConfig)) {
             log.warn("Configuration 'xroad.mail-notification' property not set");
             return new MailNotificationProperties();

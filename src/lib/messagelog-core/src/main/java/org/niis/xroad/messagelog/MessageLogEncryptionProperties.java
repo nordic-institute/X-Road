@@ -25,61 +25,79 @@
  */
 package org.niis.xroad.messagelog;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys.ARCHIVE_DEFAULT_KEY_ID;
+import static org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys.ARCHIVE_ENCRYPTION_ENABLED;
+import static org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys.ARCHIVE_GROUPING_KEYS;
+import static org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys.ARCHIVE_GROUPING_STRATEGY;
+import static org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys.DB_ENCRYPTION_ENABLED;
+import static org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys.DB_KEY_ID;
+
 /**
- * Message log archival properties
+ * Message log encryption properties.
  */
-@ConfigMapping(prefix = "xroad.message-log-encryption")
-public interface MessageLogEncryptionProperties {
+@RequiredArgsConstructor
+public class MessageLogEncryptionProperties {
 
-    @WithName("archive")
-    ArchiveEncryptionConfig archive();
+    private final XRoadConfig xRoadConfig;
+    private final ArchiveEncryptionConfig archive;
+    private final DbEncryptionConfig db;
 
-    @WithName("db")
-    DbEncryptionConfig db();
-
-    interface ArchiveEncryptionConfig {
-
-        @WithName("encryption-enabled")
-        @WithDefault("false")
-        boolean encryptionEnabled();
-
-        @WithName("default-key-id")
-        Optional<String> defaultKeyId();
-
-        @WithName("grouping-strategy")
-        @WithDefault("NONE")
-        GroupingStrategy groupingStrategy();
-
-        @WithName("grouping-keys")
-        @WithDefault("")
-        Map<String, Set<String>> grouping();
-
+    public MessageLogEncryptionProperties(XRoadConfig xRoadConfig) {
+        this.xRoadConfig = xRoadConfig;
+        this.archive = new ArchiveEncryptionConfig(xRoadConfig);
+        this.db = new DbEncryptionConfig(xRoadConfig);
     }
 
-    interface DbEncryptionConfig {
-        /**
-         * @return true if message log database encryption is enabled
-         */
-        @WithName("encryption-enabled")
-        @WithDefault("false")
-        boolean enabled();
+    public ArchiveEncryptionConfig archive() {
+        return archive;
+    }
 
-        /**
-         * @return message log encryption key ID. Required when encryption is enabled.
-         * This ID is used as the HKDF salt for key derivation from the Vault secret.
-         */
-        @WithName("key-id")
-        @WithDefault("default")
-        String keyId();
+    public DbEncryptionConfig db() {
+        return db;
+    }
+
+    @RequiredArgsConstructor
+    public static class ArchiveEncryptionConfig {
+
+        private final XRoadConfig xRoadConfig;
+
+        public boolean encryptionEnabled() {
+            return xRoadConfig.value(ARCHIVE_ENCRYPTION_ENABLED);
+        }
+
+        public Optional<String> defaultKeyId() {
+            return xRoadConfig.valueOpt(ARCHIVE_DEFAULT_KEY_ID);
+        }
+
+        public GroupingStrategy groupingStrategy() {
+            return xRoadConfig.value(ARCHIVE_GROUPING_STRATEGY);
+        }
+
+        public Map<String, Set<String>> grouping() {
+            return xRoadConfig.value(ARCHIVE_GROUPING_KEYS);
+        }
+    }
+
+    @RequiredArgsConstructor
+    public static class DbEncryptionConfig {
+
+        private final XRoadConfig xRoadConfig;
+
+        public boolean enabled() {
+            return xRoadConfig.value(DB_ENCRYPTION_ENABLED);
+        }
+
+        public String keyId() {
+            return xRoadConfig.value(DB_KEY_ID);
+        }
     }
 
 }

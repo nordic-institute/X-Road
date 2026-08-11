@@ -8,7 +8,7 @@
   command: >-
     /usr/share/xroad/scripts/db_property.sh set
     {{ item.key }} "{{ item.value }}"
-    proxy --yes
+    --yes
   loop:
     - { key: "xroad.proxy.health-check-port", value: "{{ xroad_proxy_health_check_port }}" }
     - { key: "xroad.proxy.health-check-enabled", value: "true" }
@@ -22,7 +22,7 @@
     /usr/share/xroad/scripts/db_property.sh set
     xroad.message-log-archiver.archive-transfer-command
     "rm -f /var/lib/xroad/mlog*.zip"
-    message-log-archiver --yes
+    --yes
   when: (xroad_delete_archive_files is defined) and (xroad_delete_archive_files)
   changed_when: true
 
@@ -31,7 +31,7 @@
     /usr/share/xroad/scripts/db_property.sh set
     xroad.message-log-archiver.clean-keep-records-for
     "{{ xroad_message_log_keep_records_for }}"
-    message-log-archiver --yes
+    --yes
   when: xroad_message_log_keep_records_for is defined
   changed_when: true
 
@@ -40,7 +40,7 @@
     /usr/share/xroad/scripts/db_property.sh set
     xroad.configuration-client.update-interval
     "{{ xroad_configuration_update_interval }}"
-    configuration-client --yes
+    --yes
   when: xroad_configuration_update_interval is defined
   changed_when: true
   notify: restart xroad-confclient

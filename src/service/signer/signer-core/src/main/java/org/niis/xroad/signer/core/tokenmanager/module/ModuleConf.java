@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.signer.core.config.ModuleProperties;
+import org.niis.xroad.signer.common.config.SignerModuleConfig;
 import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.util.Collection;
@@ -129,7 +129,7 @@ public class ModuleConf {
             MODULES.clear();
             MODULES.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
 
-            if (signerProperties.modulesConfig() == null || !signerProperties.modulesConfig().isEmpty()) {
+            if (!signerProperties.modulesConfig().isEmpty()) {
                 signerProperties.modulesConfig().forEach(this::parseConfiguration);
             } else {
                 log.warn("Module configuration not found");
@@ -139,7 +139,7 @@ public class ModuleConf {
         }
     }
 
-    private void parseConfiguration(String module, ModuleProperties properties) {
+    private void parseConfiguration(String module, SignerModuleConfig properties) {
         boolean enabled = properties.enabled();
 
         if (SoftwareModuleType.TYPE.equalsIgnoreCase(module)) {
@@ -210,7 +210,7 @@ public class ModuleConf {
                 slotIds));
     }
 
-    private PubKeyAttributes loadPubKeyAttributes(String module, ModuleProperties properties) {
+    private PubKeyAttributes loadPubKeyAttributes(String module, SignerModuleConfig properties) {
         PubKeyAttributes attributes = new PubKeyAttributes();
 
         // Default values for backward compatibility are used.
@@ -227,7 +227,7 @@ public class ModuleConf {
         return attributes;
     }
 
-    private PrivKeyAttributes loadPrivKeyAttributes(String module, ModuleProperties properties) {
+    private PrivKeyAttributes loadPrivKeyAttributes(String module, SignerModuleConfig properties) {
         PrivKeyAttributes attributes = new PrivKeyAttributes();
 
         // Default values for backward compatibility are used.

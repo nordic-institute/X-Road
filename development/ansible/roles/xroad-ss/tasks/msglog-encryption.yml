@@ -1,11 +1,10 @@
 ---
 # Messagelog DB + archive encryption for dev stacks. xroad.message-log-encryption.db.encryption-enabled
 # and .archive.encryption-enabled default false (MessageLogEncryptionProperties in
-# lib/messagelog-core) — compose enables the equivalent via the msglog_encryption_config/
-# application.yaml mount. Both subkeys must live under the SAME top-level "message-log-encryption:"
-# block: YAML (and SnakeYAML, which SmallRye's file source uses) silently keeps only the LAST
-# occurrence of a duplicate top-level key, so a separate blockinfile block for "archive" would
-# silently discard this one (or vice versa) depending on insertion order.
+# lib/messagelog-core) — compose enables the equivalent via configuration_properties seeds.
+# These land in the same table here: the XRoadConfig DSL resolves DB overrides and packaged
+# defaults only, never conf.d yaml, so each key is its own row and the single-block /
+# duplicate-top-level-key constraint a YAML preseed had no longer applies.
 #
 # No DB key provisioning is needed: the DB master key is generated unconditionally at SS init
 # (EncryptionInitializationService.initializeMessageLogDatabaseEncryption()) and stored in
@@ -25,36 +24,64 @@
 # (src/security-server/e2e-test/src/intTest/resources/gpg_keys/) 1:1. The archive signing secret
 # key is generated unconditionally at SS init (InitializationService.prepareEncryption ->
 # initializeMessageLogArchivalEncryption), so only the recipient public keys need importing.
-- name: preseed messagelog DB encryption config into local.yaml (xrd-ss0)
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^xroad:'
-    marker: "  # {mark} MESSAGELOG DB + ARCHIVE ENCRYPTION (lxd dev preseed)"
-    block: "  message-log-encryption:\n    db:\n      encryption-enabled: true"
+- name: seed messagelog DB encryption config
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.message-log-encryption.db.encryption-enabled
+      - "true"
+      - --yes
   notify: restart xroad-proxy
-  when: inventory_hostname != 'xrd-ss1'
 
-- name: preseed messagelog DB and archive encryption config into local.yaml (xrd-ss1)
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^xroad:'
-    marker: "  # {mark} MESSAGELOG DB + ARCHIVE ENCRYPTION (lxd dev preseed)"
-    block: "  message-log-encryption:\n    db:\n      encryption-enabled: true\n    archive:\n      encryption-enabled: true\n      default-key-id: 3BD9C292C63580F8\n      grouping-strategy: SUBSYSTEM\n      grouping-keys:\n        \"not/existing/member\": 8A4BB80EEE081BDE\n        \"DEV/COM/4321\": E93952B01C2D2EA5,8A4BB80EEE081BDE\n        \"another/fake/member\": 1234567890ABCDEF"
+# grouping-keys is a single JSON-document DSL key (Map<String, Set<String>>), so the
+# per-member key lists are arrays rather than the CSV form a SmallRye yaml source took.
+- name: seed messagelog archive encryption config (xrd-ss1)
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop:
+    - key: xroad.message-log-encryption.archive.encryption-enabled
+      value: "true"
+    - key: xroad.message-log-encryption.archive.default-key-id
+      value: "3BD9C292C63580F8"
+    - key: xroad.message-log-encryption.archive.grouping-strategy
+      value: SUBSYSTEM
+    - key: xroad.message-log-encryption.archive.grouping-keys
+      value: >-
+        {"not/existing/member":["8A4BB80EEE081BDE"],
+        "DEV/COM/4321":["E93952B01C2D2EA5","8A4BB80EEE081BDE"],
+        "another/fake/member":["1234567890ABCDEF"]}
+  loop_control:
+    label: "{{ item.key }}"
   notify: restart xroad-proxy
   when: inventory_hostname == 'xrd-ss1'
 
-# Single owner of the "proxy:" subtree in local.yaml — the file is one YAML document, so a
-# second blockinfile block declaring "proxy:" would collide (duplicate key, last-one-wins /
-# loader error). Everything proxy-scoped that dev stacks preseed goes here: the op-monitor
-# addon flag (conditional, paired with the daemon install in opmonitor.yml) and
-# timestamp-immediately, which compose sets on its proxies via
-# XROAD_PROXY_MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY=true (compose.e2e.yaml). Without
-# it the batch timestamper's ~60s cadence races the e2e archive trigger: un-timestamped
-# records are not archivable, so fresh test traffic silently survives archival and cleanup.
-- name: preseed proxy config into local.yaml
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^xroad:'
-    marker: "  # {mark} PROXY (lxd dev preseed)"
-    block: "  proxy:\n    message-log:\n      timestamper:\n        timestamp-immediately: true\n{% if xroad_install_opmonitoring | default(false) | bool %}    addon:\n      op-monitor:\n        enabled: true{% endif %}"
+# timestamp-immediately: without it the batch timestamper's ~60s cadence races the e2e
+# archive trigger - un-timestamped records are not archivable, so fresh test traffic
+# silently survives archival and cleanup. The op-monitor addon flag is paired with the
+# daemon install in opmonitor.yml and gated on the same variable.
+- name: seed proxy config
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop: "{{ proxy_seed_properties }}"
+  vars:
+    proxy_seed_properties: >-
+      {{ [{'key': 'xroad.proxy.message-log.timestamper.timestamp-immediately', 'value': 'true'}]
+         + ([{'key': 'xroad.proxy.addon.op-monitor.enabled', 'value': 'true'}]
+            if (xroad_install_opmonitoring | default(false) | bool) else []) }}
+  loop_control:
+    label: "{{ item.key }}"
   notify: restart xroad-proxy

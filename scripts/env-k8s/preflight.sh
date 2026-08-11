@@ -77,7 +77,7 @@ if command -v ansible-galaxy >/dev/null 2>&1; then
   for coll in kubernetes.core community.crypto ansible.posix; do
     if ! ansible-galaxy collection list "${coll}" 2>/dev/null | grep -q "${coll}"; then
       log_warn "Ansible collection not installed: ${coll}"
-      log_info "  Install: ansible-galaxy collection install -r ${K8S_ROOT}/requirements.yml"
+      log_info "  Install: ansible-galaxy collection install -r ${K8S_ROOT}/requirements.yml --force"
       fail=1
     else
       log_kv "  collection ${coll}" "installed" 4 2

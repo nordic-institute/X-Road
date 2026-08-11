@@ -1032,8 +1032,8 @@
             "automatic-activate-acme-sign-certificate": "Kui lubatud, aktiveeritakse allkirjastamissertifikaadid automaatselt, kui need on ACME kaudu tellitud (uus või uuendamine).",
             "acme-authorization-wait-attempts": "Katsete arv, et kontrollida, kas ACME autoriseeringud on lõpetatud, enne loobumist.",
             "acme-authorization-wait-interval": "Ooteaeg millisekundites ACME autoriseeringu lõpuleviimise kontrollkatsete vahel.",
-            "acme-certification-wait-attempts": "Katsete arv ACME sertifikaadi väljastamise küsitlemiseks.",
-            "acme-certification-wait-interval": "Sekundid ACME sertifikaadi väljastamise küsitlemiskatsete vahel.",
+            "acme-certificate-wait-attempts": "Katsete arv ACME sertifikaadi väljastamise küsitlemiseks.",
+            "acme-certificate-wait-interval": "Sekundid ACME sertifikaadi väljastamise küsitlemiskatsete vahel.",
             "acme-certificate-account-key-pair-expiration": "Päevade arv, mille jooksul ACME serveri konto iseallkirjastatud sertifikaat kehtib.",
             "acme-challenge-port-enabled": "Kui lubatud, kuulab API ACME väljakutse pordil (vaikimisi 80) sissetulevaid ACME väljakutse päringuid.",
             "acme-challenge-port": "Kohandatud pordi number ACME väljakutsetele. Kui seadistatud, peab turvaserveri hosti port 80 suunama sellele pordile, kuna ACME serverid kasutavad alati port 80 väljakutse jaoks.",
@@ -1050,7 +1050,6 @@
             "proxy-tls-cipher-suites": "TLS šifreeringupaketid, mida aktsepteeritakse Admin API puhverserveri ühendusel.",
             "key-management-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda võtmehalduse lõpp-punkte põhiautentimisega.",
             "regular-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda tavalisi lõpp-punkte API võtme autentimisega.",
-            "configurable-properties-path": "Klassirada või failitee konfigureeritavate omaduste YAML-failini.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse Admin API TLS sertifikaadi ettevalmistamisel.",
@@ -1068,7 +1067,6 @@
             "health-check-port": "TCP port, kus tervisekontrolli teenus kuulab päringuid. Pordi seadistamine väärtusele 0 keelab tervisekontrolli teenuse täielikult.",
             "health-check-interface": "Võrguliides, kus tervisekontrolli teenus kuulab päringuid. Vaikimisi kõik saadaolevad liidesed.",
             "hsm-health-check-enabled": "Kui lubatud, kontrollib tervisekontrolli lõpp-punkt ka HSM kättesaadavust.",
-            "memory-usage-threshold": "Maksimaalne lubatud protsent (0-100) puhverserveri mälukasutusest enne tervisekontrolli ebaõnnestumist. Keelamiseks jäta tühjaks.",
             "message-sign-digest-name": "Räsialgoritm, mida kasutatakse X-Road sõnumite allkirjastamiseks.",
             "verify-client-cert": "Kui lubatud, kontrollib serveri puhverserver kliendi puhverserveri TLS sertifikaati.",
             "log-client-cert": "Kas logida kliendi sertifikaadi teema teavet.",
@@ -1390,6 +1388,11 @@
             "db": {
               "encryption-enabled": "Kui lubatud, salvestatakse sõnumite kehad andmebaasi krüptitud kujul.",
               "key-id": "Andmebaasitasemel sõnumilogi krüptimiseks kasutatava krüptimisvõtme identifikaator."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Maksimaalne lubatud protsent (0-100) mälukasutusest enne tervisekontrolli ebaõnnestumist. Kui väärtus puudub, ei ebaõnnestu kontroll kunagi; konteinerites on vaikeväärtus 95."
             }
           },
           "common": {

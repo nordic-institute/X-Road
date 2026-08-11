@@ -32,9 +32,11 @@ import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.ApiKeysAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 /**
  * API tests for the {@code /api-keys} endpoint against the real CS backend.
@@ -59,6 +61,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SuppressWarnings("checkstyle:magicnumber")
 class ApiKeysApiTest extends CsApiTest {
+
+    /** Covers the seeded 1s api-key list cache TTL plus scheduling jitter. */
+    private static final Duration KEY_LIST_CACHE_GRACE = Duration.ofSeconds(10);
 
     private static final String ROLE_SECURITY_OFFICER = "XROAD_SECURITY_OFFICER";
     private static final String ROLE_REGISTRATION_OFFICER = "XROAD_REGISTRATION_OFFICER";
@@ -126,22 +131,26 @@ class ApiKeysApiTest extends CsApiTest {
                         .jsonPath()
                         .getLong("id"));
 
-        Step.then("the key appears in the list before revocation", () -> {
-            var ids = client.listKeysRaw().stream()
-                    .map(k -> ((Number) k.get("id")).longValue())
-                    .toList();
-            assertThat(ids).contains(keyId);
-        });
+        // The key list is served from a TTL cache that can hold a snapshot taken before this
+        // test's write committed (eviction happens before commit), so poll past the staleness.
+        Step.then("the key appears in the list before revocation", () ->
+                await().atMost(KEY_LIST_CACHE_GRACE).untilAsserted(() -> {
+                    var ids = client.listKeysRaw().stream()
+                            .map(k -> ((Number) k.get("id")).longValue())
+                            .toList();
+                    assertThat(ids).contains(keyId);
+                }));
 
         Step.when("the key is revoked", () ->
                 client.revokeKey(keyId).statusCode(200));
 
-        Step.then("the key is absent from the list after revocation", () -> {
-            var ids = client.listKeysRaw().stream()
-                    .map(k -> ((Number) k.get("id")).longValue())
-                    .toList();
-            assertThat(ids).doesNotContain(keyId);
-        });
+        Step.then("the key is absent from the list after revocation", () ->
+                await().atMost(KEY_LIST_CACHE_GRACE).untilAsserted(() -> {
+                    var ids = client.listKeysRaw().stream()
+                            .map(k -> ((Number) k.get("id")).longValue())
+                            .toList();
+                    assertThat(ids).doesNotContain(keyId);
+                }));
     }
 
     @Test

@@ -26,71 +26,7 @@
  */
 package org.niis.xroad.common.rpc.quarkus;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.RpcProperties;
-import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
-import java.time.Duration;
-import java.util.List;
-
-import static org.niis.xroad.common.rpc.RpcProperties.PREFIX;
-
-@ConfigMapping(prefix = PREFIX)
 public interface QuarkusRpcProperties extends RpcProperties {
-
-    @WithName("use-tls")
-    @WithDefault(DEFAULT_USE_TLS)
-    boolean useTls();
-
-    @WithName("certificate-provisioning")
-    QuarkusRpcCertificateProvisioningProperties certificateProvisioning();
-
-    interface QuarkusRpcCertificateProvisioningProperties extends RpcCertificateProvisioningProperties, CertificateProvisioningProperties {
-
-        @WithName("issuance-role-name")
-        @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
-        String issuanceRoleName();
-
-        @WithName("common-name")
-        @WithDefault(DEFAULT_COMMON_NAME)
-        String commonName();
-
-        @WithName("alt-names")
-        @WithDefault("[]")
-        List<String> altNames();
-
-        @WithName("ip-subject-alt-names")
-        @WithDefault("[]")
-        List<String> ipSubjectAltNames();
-
-        @WithName("ttl")
-        @WithDefault(DEFAULT_TTL)
-        Duration ttl();
-
-        @WithName("secret-store-pki-path")
-        @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
-        String secretStorePkiPath();
-
-        @WithName("refresh-interval")
-        @WithDefault(DEFAULT_REFRESH_INTERVAL)
-        Duration refreshInterval();
-
-        @WithName("retry-base-delay")
-        @WithDefault(DEFAULT_RETRY_DELAY)
-        Duration retryDelay();
-
-        @WithName("retry-exponential-backoff-multiplier")
-        @WithDefault(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER)
-        Double retryExponentialBackoffMultiplier();
-
-        @WithName("retry-max-attempts")
-        @WithDefault(DEFAULT_RETRY_MAX_ATTEMPTS)
-        int retryMaxAttempts();
-
-        @WithName("retry-timeout")
-        @WithDefault(DEFAULT_RETRY_TIMEOUT)
-        Duration retryTimeout();
-    }
 }

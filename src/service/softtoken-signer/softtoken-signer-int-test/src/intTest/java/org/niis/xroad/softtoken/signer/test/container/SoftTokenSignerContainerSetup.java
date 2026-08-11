@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
@@ -54,6 +55,9 @@ import static org.awaitility.Awaitility.await;
  */
 @Slf4j
 public class SoftTokenSignerContainerSetup extends BaseComposeSetup {
+    private static final int SIGNER_GRPC_PORT = CommonRpcConfigKeys.CHANNEL_SIGNER_PORT.convertedDefaultValue();
+    private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
+    private static final Duration SOFTTOKEN_SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
 
     public static final String SIGNER = "signer";
     public static final String SOFTTOKEN_SIGNER = "softtoken-signer";
@@ -67,9 +71,6 @@ public class SoftTokenSignerContainerSetup extends BaseComposeSetup {
      */
     public static final String SIGNER_AVAILABILITY_LOCK = "softtoken-signer-signer-availability";
 
-    private static final int SIGNER_GRPC_PORT = Integer.parseInt(SignerRpcChannelProperties.DEFAULT_PORT);
-    private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
-    private static final Duration SOFTTOKEN_SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
     @Getter
@@ -126,7 +127,7 @@ public class SoftTokenSignerContainerSetup extends BaseComposeSetup {
 
             @Override
             public int deadlineAfter() {
-                return Integer.parseInt(SignerRpcChannelProperties.DEFAULT_DEADLINE_AFTER);
+                return CommonRpcConfigKeys.CHANNEL_SIGNER_DEADLINE_AFTER.convertedDefaultValue();
             }
         };
     }

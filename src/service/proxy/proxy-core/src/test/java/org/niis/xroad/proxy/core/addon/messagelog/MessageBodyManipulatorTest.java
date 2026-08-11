@@ -37,7 +37,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.proxy.core.configuration.ProxyMessageLogProperties;
 import org.w3c.dom.Document;
@@ -96,7 +97,7 @@ class MessageBodyManipulatorTest {
         }
 
         TestableMessageBodyManipulator(boolean globalBodyLogging) {
-            this(ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class), globalBodyLogging,
+            this(new ProxyMessageLogProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build()), globalBodyLogging,
                     new ArrayList<>(), new ArrayList<>());
         }
     }
@@ -243,7 +244,8 @@ class MessageBodyManipulatorTest {
      */
     @Test
     void clientIdSearching() {
-        MessageBodyManipulator manipulator = new MessageBodyManipulator(ConfigUtils.defaultConfiguration(ProxyMessageLogProperties.class));
+        var defaultProps = new ProxyMessageLogProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build());
+        MessageBodyManipulator manipulator = new MessageBodyManipulator(defaultProps);
         ClientId.Conf ss1 = ClientId.Conf.create("instance", "memberclass", "membercode", "ss1");
         ClientId.Conf cmember = ClientId.Conf.create("instance", "memberclass", "membercode", null);
         ClientId.Conf ss2 = ClientId.Conf.create("instance", "memberclass", "membercode", "ss2");

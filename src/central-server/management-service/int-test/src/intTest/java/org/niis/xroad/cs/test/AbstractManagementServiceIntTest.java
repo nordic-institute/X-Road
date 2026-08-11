@@ -250,10 +250,10 @@ abstract class AbstractManagementServiceIntTest {
     private String adminApiToken() {
         if (adminApiToken == null) {
             var result = containerSetup.execInContainer(CS,
-                    "/usr/share/xroad/scripts/yaml_helper.sh",
-                    "get",
-                    "/etc/xroad/conf.d/local-tls.yaml",
-                    "xroad.management-service.api-token");
+                    "su", "-c",
+                    "psql -qtA centerui_production -c \"SET ROLE centerui; SELECT property_value FROM configuration_properties"
+                            + " WHERE property_key = 'xroad.management-service.api-token';\"",
+                    "postgres");
             adminApiToken = result.getStdout().trim();
         }
         return adminApiToken;

@@ -31,7 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
@@ -51,8 +52,10 @@ class GlobalConfRpcCacheTest {
     @Spy
     FSGlobalConfValidator globalConfValidator = new FSGlobalConfValidator();
     @Spy
-    ConfigurationClientProperties configurationClientProperties = ConfigUtils.initConfiguration(ConfigurationClientProperties.class,
-            Map.of("xroad.configuration-client.global-conf-dir", GOOD_CONF_DIR));
+    ConfigurationClientProperties configurationClientProperties = new ConfigurationClientProperties(XRoadConfigBuilder.create()
+            .register(ConfClientConfigKeys.instance())
+            .overrides(Map.of("xroad.configuration-client.global-conf-dir", GOOD_CONF_DIR))
+            .build());
     @Spy
     GetGlobalConfRespFactory getGlobalConfRespFactory = new GetGlobalConfRespFactory(configurationClientProperties);
 

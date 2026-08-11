@@ -10,4 +10,6 @@
 
 - include_tasks: postinstall.yml
 
+- include_tasks: seed-config-properties.yml
+
 - include_tasks: post-ss-install.yml

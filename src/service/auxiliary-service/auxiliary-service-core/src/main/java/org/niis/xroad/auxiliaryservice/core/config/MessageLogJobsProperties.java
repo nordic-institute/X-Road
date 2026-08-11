@@ -27,23 +27,28 @@
 
 package org.niis.xroad.auxiliaryservice.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-@ConfigMapping(prefix = "xroad.auxiliary-service.message-log")
-public interface MessageLogJobsProperties {
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.MESSAGE_LOG_ARCHIVE_CRON;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.MESSAGE_LOG_CLEAN_CRON;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.MESSAGE_LOG_COMMAND_PATH;
 
-    @WithName("archive-cron")
-    @WithDefault("0 0 0/6 1/1 * ?")
-    String archiveCron();
+@RequiredArgsConstructor
+public class MessageLogJobsProperties {
 
-    @WithName("clean-cron")
-    @WithDefault("0 0 0/12 1/1 * ?")
-    String cleanupCron();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("command-path")
-    @WithDefault("/usr/share/xroad/bin/xroad-message-log-archiver")
-    String commandPath();
+    public String archiveCron() {
+        return xRoadConfig.value(MESSAGE_LOG_ARCHIVE_CRON);
+    }
+
+    public String cleanupCron() {
+        return xRoadConfig.value(MESSAGE_LOG_CLEAN_CRON);
+    }
+
+    public String commandPath() {
+        return xRoadConfig.value(MESSAGE_LOG_COMMAND_PATH);
+    }
 
 }

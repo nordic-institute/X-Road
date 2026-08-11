@@ -12,14 +12,18 @@
     name: xroad-opmonitor
     state: present
 
-# The proxy-side addon flag lives in the shared "proxy:" block owned by msglog-encryption.yml
-# (single-owner rule for top-level local.yaml keys), gated on the same xroad_install_opmonitoring.
-- name: preseed op-monitor addon config into local.yaml
-  blockinfile:
-    path: /etc/xroad/conf.d/local.yaml
-    insertafter: '^xroad:'
-    marker: "  # {mark} OP-MONITOR ADDON (lxd dev preseed)"
-    block: "  op-monitor:\n    records-available-timestamp-offset-seconds: 1"
+# The proxy-side addon flag is seeded by msglog-encryption.yml, gated on the same
+# xroad_install_opmonitoring. Config goes into configuration_properties: the
+# XRoadConfig DSL resolves DB overrides and packaged defaults only, never conf.d yaml.
+- name: seed op-monitor addon config
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.op-monitor.records-available-timestamp-offset-seconds
+      - "1"
+      - --yes
   notify: restart xroad-proxy
 
 # deb postinst auto-starts the daemon on Ubuntu; the RHEL package does not.

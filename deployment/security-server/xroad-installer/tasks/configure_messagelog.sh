@@ -9,7 +9,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/common.sh"
 
 PROPERTY="xroad.proxy.message-log.enabled"
-SCOPE="proxy"
 DB_PROPERTY_UTIL="/usr/share/xroad/scripts/db_property.sh"
 
 # Message log is enabled by default.
@@ -31,13 +30,13 @@ main() {
   fi
 
   if [[ "$XROAD_MESSAGELOG_ENABLED" == "true" ]]; then
-    log_message "Enabling message log: removing any $PROPERTY override (scope: $SCOPE) from the configuration database"
-    if ! "$DB_PROPERTY_UTIL" remove "$PROPERTY" "$SCOPE" --yes; then
+    log_message "Enabling message log: removing any $PROPERTY override from the configuration database"
+    if ! "$DB_PROPERTY_UTIL" remove "$PROPERTY" --yes; then
       log_die "Failed to remove $PROPERTY override from the configuration database"
     fi
   else
-    log_message "Disabling message log: setting $PROPERTY = false (scope: $SCOPE) in the configuration database"
-    if ! "$DB_PROPERTY_UTIL" set "$PROPERTY" "false" "$SCOPE" --yes; then
+    log_message "Disabling message log: setting $PROPERTY = false in the configuration database"
+    if ! "$DB_PROPERTY_UTIL" set "$PROPERTY" "false" --yes; then
       log_die "Failed to set $PROPERTY in the configuration database"
     fi
   fi

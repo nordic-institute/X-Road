@@ -45,7 +45,8 @@ import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyProvider;
 import org.niis.xroad.common.pgp.PgpKeyResolver;
 import org.niis.xroad.common.pgp.StreamingPgpEncryptor;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.MessageLogArchiverConfigKeys;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.archive.EncryptionConfig;
 import org.niis.xroad.messagelog.archive.GroupingStrategy;
@@ -308,11 +309,15 @@ class LogArchiveCacheTest {
     }
 
     private MessageLogArchiverProperties createArchiverProperties() {
-        return ConfigUtils.initConfiguration(MessageLogArchiverProperties.class,
-                Map.of("xroad.message-log-archiver.clean-transaction-batch-size", "100",
+        var xRoadConfig = XRoadConfigBuilder.create()
+                .register(MessageLogArchiverConfigKeys.instance())
+                .overrides(Map.of(
+                        "xroad.message-log-archiver.clean-transaction-batch-size", "100",
                         "xroad.message-log-archiver.transaction-batch-size", "100",
                         "xroad.message-log-archiver.archive-path", "build/slog",
-                        "xroad.message-log-archiver.max-filesize", String.valueOf(archiveMaxFilesize)));
+                        "xroad.message-log-archiver.max-filesize", String.valueOf(archiveMaxFilesize)))
+                .build();
+        return new MessageLogArchiverProperties(xRoadConfig);
     }
 
     private MessageRecord createRequestRecordNormal() throws Exception {

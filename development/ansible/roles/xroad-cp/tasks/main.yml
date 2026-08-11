@@ -11,3 +11,30 @@
     force: true
 - include_tasks: ubuntu.yml
   when: ansible_facts['os_family'] == "Debian"
+
+# The XRoadConfig DSL ignores conf.d yaml; confproxy runtime config lives in the
+# confproxy configuration_properties table. Deterministic upsert.
+- name: seed confproxy runtime config into configuration_properties
+  become: true
+  become_user: postgres
+  command:
+    argv:
+      - psql
+      - -v
+      - ON_ERROR_STOP=1
+      - -d
+      - confproxy
+      - -c
+      - |
+        SET ROLE confproxy;
+        DELETE FROM configuration_properties WHERE property_key IN (
+          'xroad.configuration-proxy.update-interval',
+          'xroad.configuration-proxy.address');
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.configuration-proxy.update-interval', '30s', now(), now()),
+        ('xroad.configuration-proxy.address', '{{ inventory_hostname }}', now(), now());
+
+- name: restart configuration-proxy to resolve the seeded configuration
+  systemd:
+    name: xroad-confproxy
+    state: restarted

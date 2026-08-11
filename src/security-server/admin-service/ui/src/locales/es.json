@@ -975,8 +975,8 @@
             "automatic-activate-acme-sign-certificate": "Si está habilitado, los certificados de firma se activan automáticamente cuando han sido solicitados a través de ACME (nuevos o renovados).",
             "acme-authorization-wait-attempts": "Número de intentos para verificar si las autorizaciones ACME se han completado antes de abandonar.",
             "acme-authorization-wait-interval": "Cantidad de tiempo en milisegundos para esperar entre intentos de verificación de completitud de autorización ACME.",
-            "acme-certification-wait-attempts": "Número de intentos para consultar la emisión de certificados ACME.",
-            "acme-certification-wait-interval": "Segundos entre intentos de consulta de emisión de certificados ACME.",
+            "acme-certificate-wait-attempts": "Número de intentos para consultar la emisión de certificados ACME.",
+            "acme-certificate-wait-interval": "Segundos entre intentos de consulta de emisión de certificados ACME.",
             "acme-certificate-account-key-pair-expiration": "Cantidad de días que es válido el certificado autofirmado de la cuenta del servidor ACME.",
             "acme-challenge-port-enabled": "Si está habilitado, la API escuchará en el puerto de desafío ACME (predeterminado 80) para las solicitudes de desafío ACME entrantes.",
             "acme-challenge-port": "Número de puerto personalizado para los desafíos ACME. Cuando se establece, el puerto 80 del host del Servidor de Seguridad debe redirigir a este puerto, ya que los Servidores ACME siempre utilizan el puerto 80 para el desafío.",
@@ -993,7 +993,6 @@
             "proxy-tls-cipher-suites": "Conjuntos de cifrado TLS aceptados en la conexión proxy de la API de administración.",
             "key-management-api-whitelist": "Lista separada por comas de direcciones IP simples o rangos de direcciones en notación CIDR, que pueden llamar a los endpoints de gestión de claves mediante autenticación básica.",
             "regular-api-whitelist": "Lista separada por comas de direcciones IP simples o rangos de direcciones en notación CIDR, que pueden llamar a los endpoints regulares mediante autenticación con clave de API.",
-            "configurable-properties-path": "Ruta de classpath o ruta de archivo al archivo YAML de propiedades configurables.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Nombre del rol PKI de Vault utilizado al aprovisionar el certificado TLS de la API de administración.",
@@ -1011,7 +1010,6 @@
             "health-check-port": "El puerto TCP donde el servicio de verificación de estado escucha solicitudes. Establecer el puerto en 0 deshabilita completamente el servicio de verificación de estado.",
             "health-check-interface": "La interfaz de red donde el servicio de verificación de estado escucha solicitudes. El valor predeterminado es todas las interfaces disponibles.",
             "hsm-health-check-enabled": "Cuando está habilitado, el endpoint de verificación de estado también verifica la disponibilidad del HSM.",
-            "memory-usage-threshold": "Porcentaje máximo permitido (0-100) de uso de memoria del proxy antes de que la verificación de estado comience a fallar. Dejar vacío para deshabilitar.",
             "message-sign-digest-name": "Algoritmo de resumen utilizado para firmar mensajes X-Road.",
             "verify-client-cert": "Cuando está habilitado, el proxy del servidor verifica el certificado TLS del proxy del cliente.",
             "log-client-cert": "Si se debe registrar la información del sujeto del certificado del cliente.",
@@ -1333,6 +1331,11 @@
             "db": {
               "encryption-enabled": "Cuando está habilitado, los cuerpos de los mensajes se almacenan en la base de datos en forma cifrada.",
               "key-id": "Identificador de la clave de cifrado utilizada para el cifrado del registro de mensajes a nivel de base de datos."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Porcentaje máximo permitido (0-100) de uso de memoria antes de que la verificación de estado comience a fallar. Sin valor establecido la verificación nunca falla; en contenedores el valor por defecto es 95."
             }
           },
           "common": {

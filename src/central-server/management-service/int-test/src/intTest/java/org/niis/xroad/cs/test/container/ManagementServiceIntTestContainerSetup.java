@@ -36,7 +36,11 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.time.Duration;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * Central Server management-service test stack: the CS admin-service container (management endpoint
@@ -47,6 +51,7 @@ import java.time.Duration;
 public class ManagementServiceIntTestContainerSetup extends BaseComposeSetup {
 
     private static final Duration CS_STARTUP_TIMEOUT = Duration.ofSeconds(90);
+    private static final int READINESS_PROBE_TIMEOUT_MS = 1000;
     private static final String COMPOSE_FILE = "compose.intTest.yaml";
 
     public static final String CS = "cs-admin-service";
@@ -77,6 +82,30 @@ public class ManagementServiceIntTestContainerSetup extends BaseComposeSetup {
     protected void onPostStart() {
         log.info("Initializing centerui schema for tests...");
         new LiquibaseExecutor(new ContainerDatabaseProvider(this)).executeChangesets();
+        restartManagementService();
+    }
+
+    /**
+     * The changelog above drops and re-creates the whole centerui schema, including the
+     * {@code configuration_properties} DB override layer the management service resolved at startup.
+     * Restart it so it picks up the baseline test configuration (api-token, rate limits, mock admin API).
+     */
+    private void restartManagementService() {
+        log.info("Restarting management service to pick up the re-initialized configuration...");
+        execInContainer(CS, "supervisorctl", "restart", "xroad-center-management-service");
+        await().atMost(CS_STARTUP_TIMEOUT)
+                .pollInterval(Duration.ofSeconds(1))
+                .ignoreExceptions()
+                .until(() -> {
+                    var connection = (HttpURLConnection) URI.create(managementServiceUrl()).toURL().openConnection();
+                    connection.setConnectTimeout(READINESS_PROBE_TIMEOUT_MS);
+                    connection.setReadTimeout(READINESS_PROBE_TIMEOUT_MS);
+                    try {
+                        return connection.getResponseCode() > 0;
+                    } finally {
+                        connection.disconnect();
+                    }
+                });
     }
 
     @Override

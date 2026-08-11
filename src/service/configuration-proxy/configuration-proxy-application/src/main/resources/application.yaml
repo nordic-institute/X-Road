@@ -25,12 +25,8 @@ quarkus:
         level: "INFO"
 
 xroad:
-  configuration-proxy:
-    tls:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
+  config:
+    defaults-scopes: xroad.common,xroad.configuration-proxy
   db:
     confproxy:
       hibernate:

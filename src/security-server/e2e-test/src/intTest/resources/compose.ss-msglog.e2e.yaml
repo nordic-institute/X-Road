@@ -1,11 +1,36 @@
 services:
+  config-seed-msglog:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        -- disable the jobs; tests trigger them manually
+        ('xroad.auxiliary-service.message-log.archive-cron', 'off', now(), now()),
+        ('xroad.auxiliary-service.message-log.clean-cron', 'disabled', now(), now()),
+        ('xroad.message-log-archiver.clean-keep-records-for', '0', now(), now())
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   auxiliary-service:
-    environment:
-      # disabling jobs, will trigger them manually in tests
-      - XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_ARCHIVE_CRON=off
-      - XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_CLEAN_CRON=disabled
-      # - XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_ARCHIVE_CRON=*/2 * * * * ?
-      # - XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_CLEAN_CRON=*/3 * * * * ?
+    depends_on:
+      config-seed-msglog:
+        condition: service_completed_successfully
+
   message-log-cli:
     image: ${MESSAGE_LOG_ARCHIVER_IMG}
     entrypoint: [ "tail", "-f", "/dev/null" ]  # keep alive for test exec
@@ -13,17 +38,21 @@ services:
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR=0
     networks:
       - xrd-ss-network
     ports:
       - "0:9999" # debug
     depends_on:
       db-messagelog-init:
+        condition: service_completed_successfully
+      config-seed-msglog:
         condition: service_completed_successfully
       openbao:
         condition: service_healthy

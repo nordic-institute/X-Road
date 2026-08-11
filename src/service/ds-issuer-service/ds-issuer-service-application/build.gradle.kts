@@ -10,6 +10,10 @@ dependencies {
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:vault-quarkus"))
+  implementation(project(":lib:properties-core"))
+  implementation(project(":lib:rpc-core"))
+  implementation(project(":service:signer:signer-client"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
 
   implementation(libs.bundles.quarkus.containerized)
 

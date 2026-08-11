@@ -29,12 +29,17 @@ import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
+import org.niis.xroad.common.properties.config.XRoadConfigOverrides;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.MockMvcPrint;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,6 +56,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -63,16 +69,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SuppressWarnings("java:S2925")
 @SpringBootTest(
         classes = {ApplicationIpRateLimitTest.TestIpRateLimitController.class},
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {"xroad.admin-service.rate-limit-requests-per-minute=10",
-                      "xroad.admin-service.rate-limit-requests-per-second=5"}
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK
 )
 @ComponentScan({"org.niis.xroad.cs.admin.core.config"})
 @ActiveProfiles({"test"})
 @AutoConfigureMockMvc(print = MockMvcPrint.LOG_DEBUG)
+@Import(ApplicationIpRateLimitTest.RateLimitOverridesConfiguration.class)
 class ApplicationIpRateLimitTest {
     private static final int RUNS_PER_MINUTE = 11;
     private static final int RUNS_PER_SECOND = 6;
+
+    @TestConfiguration
+    static class RateLimitOverridesConfiguration {
+        @Bean
+        @Primary
+        XRoadConfigOverrides testXRoadConfigOverrides() {
+            return new XRoadConfigOverrides(Map.of(
+                    "xroad.admin-service.rate-limit-requests-per-minute", "10",
+                    "xroad.admin-service.rate-limit-requests-per-second", "5",
+                    "xroad.common-rpc.use-tls", "false"));
+        }
+    }
 
     @Autowired
     private MockMvc mvc;

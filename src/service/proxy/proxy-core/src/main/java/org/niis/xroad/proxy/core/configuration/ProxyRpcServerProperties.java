@@ -24,29 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.core.configuration;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@ConfigMapping(prefix = "xroad.proxy.rpc")
-public interface ProxyRpcServerProperties extends RpcServerProperties {
-    @WithName("enabled")
-    @WithDefault("true")
-    @Override
-    boolean enabled();
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.RPC_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.RPC_LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.RPC_PORT;
 
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
-    @Override
-    String listenAddress();
+/** Proxy RPC server properties ({@code xroad.proxy.rpc.*}). */
+@RequiredArgsConstructor
+public class ProxyRpcServerProperties implements RpcServerProperties {
 
-    @WithName("port")
-    @WithDefault("5567")
-    @Override
-    int port();
+    private final XRoadConfig xRoadConfig;
 
+    @Override
+    public boolean enabled() {
+        return xRoadConfig.value(RPC_ENABLED);
+    }
+
+    @Override
+    public String listenAddress() {
+        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    }
+
+    @Override
+    public int port() {
+        return xRoadConfig.value(RPC_PORT);
+    }
 }

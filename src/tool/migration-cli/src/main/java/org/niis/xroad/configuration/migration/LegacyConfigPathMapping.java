@@ -57,6 +57,7 @@ public class LegacyConfigPathMapping {
         addMapping("proxy.ocsp-responder-client-read-timeout", "proxy.ocsp-responder.client-read-timeout");
         addMapping("proxy.jetty-ocsp-responder-configuration-file", "proxy.ocsp-responder.jetty-configuration-file");
         addMapping("proxy.server-listen-address", "proxy.server.listen-address");
+        addMapping("proxy.memory-usage-threshold", "health-check.memory.threshold-percent");
         addMapping("proxy.server-listen-port", "proxy.server.listen-port");
         addMapping("proxy.server-connector-initial-idle-time", "proxy.server.connector-initial-idle-time");
         addMapping("proxy.server-support-clients-pooled-connections", "proxy.server.support-clients-pooled-connections");

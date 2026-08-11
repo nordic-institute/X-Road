@@ -2,11 +2,11 @@
 # Manage rows in the X-Road configuration_properties table.
 #
 # Usage:
-#   db_property.sh set    <key> <value> [scope] [--yes|-y]
-#   db_property.sh remove <key>         [scope] [--yes|-y]
+#   db_property.sh set    <key> <value> [--yes|-y]
+#   db_property.sh remove <key>         [--yes|-y]
 #
-# When [scope] is omitted, the row is keyed by (property_key) with scope IS NULL.
-# When [scope] is given, the row is keyed by (property_key, scope).
+# Rows are keyed by property_key alone. Every process reads every row: the former per-application
+# `scope` column was dropped once the config source stopped filtering by it.
 # For `set`, an existing row triggers an overwrite prompt unless --yes is given.
 # For `remove`, an existing row triggers a delete prompt unless --yes is given;
 # if no matching row exists, the command is a no-op success.
@@ -24,17 +24,17 @@ usage() {
 Usage: $(basename "$0") <command> [options]
 
 Commands:
-  set    <key> <value> [scope] [--yes|-y]
+  set    <key> <value> [--yes|-y]
          Insert or update a row in configuration_properties.
 
-  remove <key>         [scope] [--yes|-y]
+  remove <key>         [--yes|-y]
          Delete a row from configuration_properties. No-op if absent.
 
 Common options:
   -y, --yes   Skip interactive confirmation prompt
   -h, --help  Show this help
 
-If [scope] is omitted, the row is keyed by (property_key) with scope IS NULL.
+Rows are keyed by property_key alone; there is no per-application scope.
 EOF
   exit 64
 }
@@ -92,15 +92,15 @@ psql_q() {
 }
 
 row_exists() {
-  if [[ -z "$SCOPE" ]]; then
-    psql_q -v k="$KEY" <<'SQL'
-SELECT 1 FROM configuration_properties WHERE property_key = :'k' AND scope IS NULL LIMIT 1;
+  psql_q -v k="$KEY" <<'SQL'
+SELECT 1 FROM configuration_properties WHERE property_key = :'k' LIMIT 1;
 SQL
-  else
-    psql_q -v k="$KEY" -v s="$SCOPE" <<'SQL'
-SELECT 1 FROM configuration_properties WHERE property_key = :'k' AND scope = :'s' LIMIT 1;
-SQL
-  fi
+}
+
+# A third positional used to be the scope. Fail loudly rather than ignore it: the row it would have
+# written is no longer distinguishable from the unscoped one.
+reject_scope_argument() {
+  die "This version keys rows by property_key alone; drop the '$1' scope argument (see --help)."
 }
 
 confirm() {
@@ -113,68 +113,49 @@ confirm() {
 
 cmd_set() {
   parse_args "$@"
-  (( ${#POS[@]} >= 2 && ${#POS[@]} <= 3 )) || usage
+  (( ${#POS[@]} == 3 )) && reject_scope_argument "${POS[2]}"
+  (( ${#POS[@]} == 2 )) || usage
   KEY="${POS[0]}"
   VALUE="${POS[1]}"
-  SCOPE="${POS[2]:-}"
 
   load_db_properties
 
   if [[ -n "$(row_exists)" && "$ASSUME_YES" -ne 1 ]]; then
-    confirm "Property '${KEY}'${SCOPE:+ (scope=$SCOPE)} already exists. Overwrite?"
+    confirm "Property '${KEY}' already exists. Overwrite?"
   fi
 
-  # UPSERT against partial unique indexes:
-  #   uniq_key       on (property_key)        WHERE scope IS NULL
-  #   uniq_key_scope on (property_key, scope) WHERE scope IS NOT NULL
-  # Matches the pattern in tool/migration-cli/DbRepository.java.
-  if [[ -z "$SCOPE" ]]; then
-    psql_q -v k="$KEY" -v v="$VALUE" <<'SQL'
+  psql_q -v k="$KEY" -v v="$VALUE" <<'SQL'
 INSERT INTO configuration_properties (property_key, property_value)
 VALUES (:'k', :'v')
-ON CONFLICT (property_key) WHERE scope IS NULL
+ON CONFLICT (property_key)
 DO UPDATE SET property_value = EXCLUDED.property_value;
 SQL
-  else
-    psql_q -v k="$KEY" -v v="$VALUE" -v s="$SCOPE" <<'SQL'
-INSERT INTO configuration_properties (property_key, property_value, scope)
-VALUES (:'k', :'v', :'s')
-ON CONFLICT (property_key, scope) WHERE scope IS NOT NULL
-DO UPDATE SET property_value = EXCLUDED.property_value;
-SQL
-  fi
 
-  log "Set: ${KEY}${SCOPE:+ (scope=$SCOPE)}"
+  log "Set: ${KEY}"
 }
 
 cmd_remove() {
   parse_args "$@"
-  (( ${#POS[@]} >= 1 && ${#POS[@]} <= 2 )) || usage
+  (( ${#POS[@]} == 2 )) && reject_scope_argument "${POS[1]}"
+  (( ${#POS[@]} == 1 )) || usage
   KEY="${POS[0]}"
-  SCOPE="${POS[1]:-}"
 
   load_db_properties
 
   if [[ -z "$(row_exists)" ]]; then
-    log "Nothing to remove: ${KEY}${SCOPE:+ (scope=$SCOPE)}"
+    log "Nothing to remove: ${KEY}"
     exit 0
   fi
 
   if (( ASSUME_YES != 1 )); then
-    confirm "Delete property '${KEY}'${SCOPE:+ (scope=$SCOPE)}?"
+    confirm "Delete property '${KEY}'?"
   fi
 
-  if [[ -z "$SCOPE" ]]; then
-    psql_q -v k="$KEY" <<'SQL'
-DELETE FROM configuration_properties WHERE property_key = :'k' AND scope IS NULL;
+  psql_q -v k="$KEY" <<'SQL'
+DELETE FROM configuration_properties WHERE property_key = :'k';
 SQL
-  else
-    psql_q -v k="$KEY" -v s="$SCOPE" <<'SQL'
-DELETE FROM configuration_properties WHERE property_key = :'k' AND scope = :'s';
-SQL
-  fi
 
-  log "Removed: ${KEY}${SCOPE:+ (scope=$SCOPE)}"
+  log "Removed: ${KEY}"
 }
 
 main() {
