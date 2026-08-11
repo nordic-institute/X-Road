@@ -30,7 +30,6 @@ All types of contributions are encouraged and valued. See the [Table of Contents
   * [Branching Pattern](#branching-pattern)
   * [Pull Requests](#pull-requests)
   * [Commit Messages](#commit-messages)
-  * [Tagging](#tagging)
 
 ## Code of Conduct
 
@@ -240,27 +239,17 @@ in advance. Agreeing on the details of the changes upfront will likely speed up 
 
 #### Pull Request Checklist
 
-Before opening a pull request, it's recommended to review the following checklist and make sure that all the
-requirements are met.
+Before opening a pull request, please review the following checklist and verify that all the requirements are met.
 
-* Are the features OK to be accepted to the project?
-* Does the PR meet the style guides?
-* Is the source code available?
-* Are all the required dependencies available?
-* No merge conflicts?
-* Is there enough test coverage?
-  * During the pull request review process it's checked that the test coverage is equal or higher than in the previous
-    version.
-* SonarQube checks pass?
-  * During the pull request review process it's checked that SonarQube shows no bugs or code smells of severity blocker
-    or critical.
-* Does the build and the test cases work?
-* Does the packaging work (Ubuntu & RHEL)?
-* Can the software be installed on a clean system (Ubuntu & RHEL)?
-* Can the software version be upgraded from two previous versions?
-* Has the documentation been updated?
-* Is the code licensing OK?
-* Has the contributor delivered a signed CLA?
+- The pull request contains a single feature or bug fix.
+- The pull request title follows the `<TYPE>: <ISSUE_ID> <SHORT_DESCRIPTION>` format.
+- Commit messages follow the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
+- The build and the tests pass locally.
+- Checkstyle and lint checks pass, and new files carry the MIT licence header.
+- New and changed code is covered by tests; test coverage is not lower than before.
+- Documentation has been updated where needed.
+- The branch has no merge conflicts with the target branch.
+- A signed [Contributor Licence Agreement](https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#legal-notice) has been delivered to NIIS, or is on its way.
 
 ## Styleguides
 
@@ -335,11 +324,3 @@ Refs: XRDDEV-123"
 ```
 
 If the commit is not related to any backlog item, the issue ID can be omitted.
-
-### Tagging
-
-The versions merged to `X-Road/master` branch are tagged with annotated tags. E.g.
-
-`git tag -a 7.0.0 -m "X-Road 7.0.0"`
-
-The versions merged to `X-Road/develop` branch are not tagged.
