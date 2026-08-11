@@ -196,6 +196,21 @@ class ParticipantIdentifierSchemeTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+            "DEV:COM:%C0%80",
+            "DEV:COM:%80",
+            "DEV:COM:%C3",
+            "DEV:COM:%E2%82",
+            "DEV:COM:%ED%A0%80",
+            "DEV:COM:2%FF2"
+    })
+    void decodeMemberCtxIdShouldRejectMalformedUtf8ByteSequences(String malformedCtxId) {
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.decodeMemberCtxId(malformedCtxId))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining("invalid UTF-8");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
             "http:web:ss0.example.org:v1:DEV:COM:222",
             "did:ftp:ss0.example.org:v1:DEV:COM:222",
     })

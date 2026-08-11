@@ -31,6 +31,9 @@ import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -294,6 +297,17 @@ public class ParticipantIdentifierScheme {
                         value, c, i);
             }
         }
-        return decoded.toString(StandardCharsets.UTF_8);
+        return strictUtf8(decoded.toByteArray(), value);
+    }
+
+    private static String strictUtf8(byte[] bytes, String value) {
+        var decoder = StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+        try {
+            return decoder.decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (CharacterCodingException e) {
+            throw malformed("segment '%s' percent-decodes to an invalid UTF-8 byte sequence", value);
+        }
     }
 }
