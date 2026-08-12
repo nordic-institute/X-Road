@@ -8696,6 +8696,7 @@ components:
           enum:
             - HOST
             - MANAGEMENT
+            - MEMBER
         context_created:
           type: boolean
           readOnly: true

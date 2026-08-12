@@ -26,19 +26,39 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
+import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.ParticipantType;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -55,6 +75,10 @@ class DataspaceProvisioningServiceTest {
     private static final String HOLDER_PID_SLOT1 = PARTICIPANT_ID + "-xroad-membership-credential-request-1";
     private static final String HOLDER_PID_SLOT2 = PARTICIPANT_ID + "-xroad-membership-credential-request-2";
 
+    private static final ClientId OWNER = ClientId.Conf.create("TEST", "ORG", "OWNER");
+    private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
+    private static final String SS_HOST = "ih.example.test:7183";
+
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
@@ -63,6 +87,12 @@ class DataspaceProvisioningServiceTest {
     private IdentityHubProvisioningClient identityHubClient;
     @Mock
     private ControlPlaneProvisioningClient controlPlaneClient;
+    @Mock
+    private ClientRepository clientRepository;
+    @Mock
+    private ServerConfRepository serverConfRepository;
+    @Mock
+    private DsParticipantRepository dsParticipantRepository;
 
     private DataspaceProvisioningService service;
 
@@ -74,7 +104,8 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient);
+        service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
+                clientRepository, serverConfRepository, dsParticipantRepository);
     }
 
     // --- submitCredentialRequest ---
@@ -215,53 +246,164 @@ class DataspaceProvisioningServiceTest {
         verify(identityHubClient, times(2)).getCredentialRequestState(eq(PARTICIPANT_ID), anyString());
     }
 
-    // --- participantContextIds ---
+    // --- participantContexts ---
 
     @Test
-    void participantContextIdsReturnsOnlyHostWhenManagementNotRegistered() {
-        var ids = service.participantContextIds(false);
+    void participantContextsReturnsOnlyHostAndOwnerWhenManagementNotRegisteredAndNoOtherClients() {
+        givenServerConfWithOwner(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
 
-        assertThat(ids).containsExactly(PARTICIPANT_ID);
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).containsExactly(
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, slashForm(OWNER)),
+                new DataspaceProvisioningService.ParticipantContext(ParticipantIdentifierScheme.memberCtxId(OWNER),
+                        ParticipantKind.MEMBER, slashForm(OWNER)));
     }
 
     @Test
-    void participantContextIdsIncludesMgmtWhenManagementRegistered() {
-        var ids = service.participantContextIds(true);
+    void participantContextsIncludesManagementContextWhenManagementRegistered() {
+        givenServerConfWithOwner(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
 
-        assertThat(ids).containsExactly(PARTICIPANT_ID, PARTICIPANT_ID + "-mgmt");
+        var contexts = service.participantContexts(true);
+
+        assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::kind)
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
+        assertThat(contexts.get(1).participantId()).isEqualTo(PARTICIPANT_ID + "-mgmt");
     }
 
-    // --- ensureParticipantContexts ---
+    @Test
+    void participantContextsAddsOneMemberContextPerHostedMember() {
+        givenServerConfWithOwner(OWNER);
+        var memberClient = clientWith(MEMBER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(memberClient));
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::kind)
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.MEMBER, ParticipantKind.MEMBER);
+        assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::participantId)
+                .contains(ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
+    }
 
     @Test
-    void ensureParticipantContextsCreatesOnlyHostContextWhenManagementNotRegistered() {
-        service.ensureParticipantContexts(false, "TEST/ORG/CODE");
+    void participantContextsCollapsesSubsystemOfAlreadyProvisionedMemberIntoNoNewContext() {
+        givenServerConfWithOwner(OWNER);
+        var subsystem = ClientId.Conf.create(MEMBER.getXRoadInstance(), MEMBER.getMemberClass(), MEMBER.getMemberCode(), "SUB");
+        var memberClient = clientWith(MEMBER);
+        var subsystemClient = clientWith(subsystem);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(memberClient, subsystemClient));
 
-        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
+        var contexts = service.participantContexts(false);
+
+        // owner + MEMBER once, even though a subsystem of MEMBER is also a local client
+        assertThat(contexts).hasSize(3);
+        assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
+                .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
+                .containsExactlyInAnyOrder(ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
+    }
+
+    @Test
+    void participantContextsReturnsOnlyHostWhenOwnerNotYetSet() {
+        var serverConf = mock(ServerConfEntity.class);
+        when(serverConf.getOwner()).thenReturn(null);
+        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).containsExactly(
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null));
+    }
+
+    // --- ensureParticipantContext (HOST / MANAGEMENT) ---
+
+    @Test
+    void ensureParticipantContextCreatesIhAndCpForHostParticipant() {
+        service.ensureParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, slashForm(OWNER));
+
+        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), eq(slashForm(OWNER)), any(), any(), any());
         verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
         verify(controlPlaneClient).putParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
+        verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
     }
 
     @Test
-    void ensureParticipantContextsCreatesBothContextsWhenManagementRegistered() {
+    void ensureParticipantContextUsesMgmtDidSuffixForManagementParticipant() {
         var mgmtId = PARTICIPANT_ID + "-mgmt";
 
-        service.ensureParticipantContexts(true, "TEST/ORG/CODE");
+        service.ensureParticipantContext(mgmtId, ParticipantKind.MANAGEMENT, slashForm(OWNER));
 
-        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
-        verify(identityHubClient).createParticipantContext(eq(mgmtId), any(), any(), any(), any(), any());
-        verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
-        verify(controlPlaneClient).createParticipantContext(eq(mgmtId), any());
+        verify(identityHubClient).createParticipantContext(eq(mgmtId), argThatEndsWith(":mgmt"), eq(slashForm(OWNER)), any(), any(), any());
     }
 
-    // --- ensureParticipantContext (single) ---
+    // --- ensureParticipantContext (MEMBER) ---
 
     @Test
-    void ensureParticipantContextCreatesIhAndCpForSingleParticipant() {
-        service.ensureParticipantContext(PARTICIPANT_ID, "TEST/ORG/CODE");
+    void ensureParticipantContextPinsNewMemberOnFirstCall() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
-        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any());
-        verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
-        verify(controlPlaneClient).putParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER));
+
+        verify(dsParticipantRepository).pinMemberParticipant(MEMBER, ParticipantIdentifierScheme.memberCtxId(MEMBER), expectedDid);
+        verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextVerifiesAlreadyPinnedMemberAndDoesNotRepin() {
+        var pinned = pinnedParticipant(MEMBER, SS_HOST);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
+
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER));
+
+        verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
+        verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextThrowsWhenPinnedRowNoLongerMatchesDerivation() {
+        var pinned = pinnedParticipant(MEMBER, "ih.other.test:7183");
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
+
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        assertThatThrownBy(() ->
+                service.ensureParticipantContext(memberCtxId, ParticipantKind.MEMBER, slashForm(MEMBER)))
+                .isInstanceOf(XrdRuntimeException.class);
+
+        verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
+        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+    }
+
+    private void givenServerConfWithOwner(ClientId owner) {
+        var ownerEntity = clientWith(owner);
+        var serverConf = mock(ServerConfEntity.class);
+        when(serverConf.getOwner()).thenReturn(ownerEntity);
+        when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+    }
+
+    private ClientEntity clientWith(ClientId id) {
+        var entity = mock(ClientEntity.class);
+        when(entity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(id));
+        return entity;
+    }
+
+    private DsParticipantEntity pinnedParticipant(ClientId member, String ssHost) {
+        var participant = new DsParticipantEntity();
+        participant.setParticipantType(ParticipantType.MEMBER);
+        participant.setMemberIdentifier(ClientIdEntityFactory.create(member));
+        participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost));
+        participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        participant.setState(ParticipantState.ACTIVE);
+        return participant;
+    }
+
+    private static String slashForm(ClientId id) {
+        return "%s/%s/%s".formatted(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
+    }
+
+    private static String argThatEndsWith(String suffix) {
+        return argThat(value -> value != null && value.endsWith(suffix));
     }
 }

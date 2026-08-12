@@ -26,17 +26,29 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
+import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
+import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.serverconf.impl.participant.ParticipantPinningCheck;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
  * Provisions this security server's data space participant contexts (IdentityHub + Control Plane)
@@ -45,7 +57,13 @@ import java.util.Optional;
  * <p>Exposes non-blocking, single-step primitives for use by
  * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
  * <ul>
- *   <li>{@link #ensureParticipantContext(String, String)} — idempotent context creation for one participant (IH + CP).</li>
+ *   <li>{@link #participantContexts(boolean)} — enumerates the host, management (when registered)
+ *       and per-member contexts to provision, member-level identity from
+ *       {@link ClientRepository#getAllLocalClients()} plus the SS owner unconditionally.</li>
+ *   <li>{@link #ensureParticipantContext(String, ParticipantKind, String)} — idempotent context
+ *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context this
+ *       pins the member's ctx-id/DID into {@code ds_participant} on first call and verifies the
+ *       pinned row against a fresh derivation on every later call.</li>
  *   <li>{@link #submitCredentialRequest(String)} — submits a credential request into the next available
  *       slot only when no active request (PENDING or ISSUED) exists; advances past slots in terminal ERROR.</li>
  *   <li>{@link #readCredentialStatus(String)} — returns the current credential status
@@ -69,13 +87,25 @@ public class DataspaceProvisioningService {
     public static final String STATUS_ABSENT = "ABSENT";
     public static final String STATUS_UNKNOWN = "UNKNOWN";
 
-    public enum ParticipantKind { HOST, MANAGEMENT }
+    public enum ParticipantKind { HOST, MANAGEMENT, MEMBER }
+
+    /**
+     * One participant context to provision or report on.
+     *
+     * @param participantId     the participant context id
+     * @param kind              HOST, MANAGEMENT or MEMBER
+     * @param memberIdSlashForm the X-Road member id this context's credential is issued to, formatted as
+     *                          {@code instance/memberClass/memberCode}; {@code null} when the SS owner is
+     *                          not yet known (HOST/MANAGEMENT only — MEMBER contexts never appear in that case)
+     */
+    public record ParticipantContext(String participantId, ParticipantKind kind, @Nullable String memberIdSlashForm) {
+    }
 
     /**
      * Read-only snapshot of one participant context's provisioning state.
      *
      * @param participantId    the participant context id
-     * @param kind             HOST or MANAGEMENT
+     * @param kind             HOST, MANAGEMENT or MEMBER
      * @param contextCreated   whether the participant context exists in IdentityHub
      * @param credentialStatus ISSUED / PENDING / ABSENT / ERROR / UNKNOWN
      */
@@ -94,36 +124,36 @@ public class DataspaceProvisioningService {
     private static final int DID_PORT = 7183;
     private static final int STS_PORT = 7184;
     private static final int CREDENTIAL_PORT = 7185;
+    private static final int MEMBER_ID_SLASH_FORM_SEGMENT_COUNT = 3;
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
     private final ControlPlaneProvisioningClient controlPlaneClient;
+    private final ClientRepository clientRepository;
+    private final ServerConfRepository serverConfRepository;
+    private final DsParticipantRepository dsParticipantRepository;
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
      *
-     * @param participantId          the participant context id
-     * @param ownerMemberIdSlashForm the SS owner member id formatted as {@code instance/memberClass/memberCode}
-     */
-    public void ensureParticipantContext(String participantId, String ownerMemberIdSlashForm) {
-        var ds = adminServiceProperties.getDataspace();
-        var identityHubHost = hostOf(ds.getIdentityHubUrl());
-        ensureParticipantContext(ds, participantId, identityHubHost, ownerMemberIdSlashForm);
-    }
-
-    /**
-     * Creates (idempotently) the IdentityHub and Control Plane participant contexts for the host participant
-     * and, when {@code managementRegistered} is true, for the management participant context as well.
+     * <p>For a {@link ParticipantKind#MEMBER} context, the member's ctx-id and DID are pinned into
+     * {@code ds_participant} on the first call and re-verified against a fresh derivation on every
+     * later call — the pinned row is never overwritten.
      *
-     * @param managementRegistered   whether the MANAGEMENT subsystem is registered on this security server
-     * @param ownerMemberIdSlashForm the SS owner member id formatted as {@code instance/memberClass/memberCode}
+     * @param participantId      the participant context id
+     * @param kind                HOST, MANAGEMENT or MEMBER
+     * @param memberIdSlashForm  the member id this context's credential is issued to, formatted as
+     *                           {@code instance/memberClass/memberCode}
      */
-    public void ensureParticipantContexts(boolean managementRegistered, String ownerMemberIdSlashForm) {
+    public void ensureParticipantContext(String participantId, ParticipantKind kind, String memberIdSlashForm) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
-        for (var participantId : participantContextIds(managementRegistered)) {
-            ensureParticipantContext(ds, participantId, identityHubHost, ownerMemberIdSlashForm);
-        }
+
+        var did = didFor(identityHubHost, kind, memberIdSlashForm);
+
+        createIdentityHubContext(participantId, did, identityHubHost, memberIdSlashForm);
+        controlPlaneClient.createParticipantContext(participantId, did);
+        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
 
     /**
@@ -183,18 +213,38 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Returns the participant context ids for the given management subsystem registration state.
+     * Enumerates the participant contexts to provision or report on: the host context, the management
+     * context when {@code managementRegistered}, and one member context per distinct X-Road member
+     * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
+     * members as soon as they have a local client. Member ctx-ids follow the v1 scheme
+     * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant} —
+     * pinning happens as a side effect of {@link #ensureParticipantContext(String, ParticipantKind, String)}.
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
-    public List<String> participantContextIds(boolean managementRegistered) {
-        var participantId = adminServiceProperties.getDataspace().getParticipantId();
-        List<String> ids = new ArrayList<>();
-        ids.add(participantId);
+    @Transactional(readOnly = true)
+    public List<ParticipantContext> participantContexts(boolean managementRegistered) {
+        var ds = adminServiceProperties.getDataspace();
+        var hostParticipantId = ds.getParticipantId();
+
+        var owner = serverConfRepository.getServerConf().getOwner();
+        var ownerId = owner == null ? null : owner.getIdentifier();
+        var ownerSlashForm = ownerId == null ? null : slashForm(ownerId);
+
+        List<ParticipantContext> contexts = new ArrayList<>();
+        contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, ownerSlashForm));
         if (managementRegistered) {
-            ids.add(participantId + MANAGEMENT_CONTEXT_SUFFIX);
+            contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, ownerSlashForm));
         }
-        return ids;
+
+        if (ownerId != null) {
+            for (var member : hostedMembers(ownerId)) {
+                contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER,
+                        slashForm(member)));
+            }
+        }
+
+        return contexts;
     }
 
     /**
@@ -204,14 +254,26 @@ public class DataspaceProvisioningService {
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
+    @Transactional(readOnly = true)
     public List<ParticipantContextStatus> readParticipantContextStatuses(boolean managementRegistered) {
-        var hostParticipantId = adminServiceProperties.getDataspace().getParticipantId();
-        List<ParticipantContextStatus> result = new ArrayList<>();
-        result.add(readContextStatus(hostParticipantId, ParticipantKind.HOST));
-        if (managementRegistered) {
-            result.add(readContextStatus(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT));
+        return participantContexts(managementRegistered).stream()
+                .map(ctx -> readContextStatus(ctx.participantId(), ctx.kind()))
+                .toList();
+    }
+
+    private Set<ClientId> hostedMembers(ClientId owner) {
+        Set<ClientId> members = new LinkedHashSet<>();
+        members.add(owner);
+        for (var client : clientRepository.getAllLocalClients()) {
+            members.add(memberLevelId(client.getIdentifier()));
         }
-        return result;
+        return members;
+    }
+
+    private static ClientId memberLevelId(ClientId id) {
+        return id.getSubsystemCode() == null
+                ? id
+                : ClientId.Conf.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
     }
 
     private ParticipantContextStatus readContextStatus(String participantId, ParticipantKind kind) {
@@ -232,16 +294,26 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(participantId)).orElse(STATUS_ABSENT);
     }
 
-    private void ensureParticipantContext(Dataspace ds, String participantId, String identityHubHost, String memberId) {
-        var did = didFor(identityHubHost, participantId);
-        createIdentityHubContext(participantId, did, identityHubHost, memberId);
-        controlPlaneClient.createParticipantContext(participantId, did);
-        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+    private String didFor(String identityHubHost, ParticipantKind kind, String memberIdSlashForm) {
+        if (kind == ParticipantKind.MEMBER) {
+            var ssHost = identityHubHost + ":" + DID_PORT;
+            return pinnedMemberDid(parseSlashForm(memberIdSlashForm), ssHost);
+        }
+        var did = "did:web:" + identityHubHost + "%3A" + DID_PORT;
+        return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
     }
 
-    private String didFor(String identityHubHost, String participantId) {
-        var did = "did:web:" + identityHubHost + "%3A" + DID_PORT;
-        return participantId.endsWith(MANAGEMENT_CONTEXT_SUFFIX) ? did + ":mgmt" : did;
+    private String pinnedMemberDid(ClientId member, String ssHost) {
+        var pinned = dsParticipantRepository.findByMemberIdentifier(member);
+        if (pinned.isPresent()) {
+            ParticipantPinningCheck.verify(pinned.get(), ssHost);
+            return pinned.get().getDid();
+        }
+
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
+        var did = ParticipantIdentifierScheme.memberDid(member, ssHost);
+        dsParticipantRepository.pinMemberParticipant(member, ctxId, did);
+        return did;
     }
 
     private void createIdentityHubContext(String participantId, String did, String identityHubHost, String memberId) {
@@ -264,6 +336,20 @@ public class DataspaceProvisioningService {
     private String holderPid(String participantId, int slot) {
         var base = participantId + "-" + HOLDER_PID_BASE;
         return slot == 0 ? base : base + "-" + slot;
+    }
+
+    private static String slashForm(ClientId id) {
+        return "%s/%s/%s".formatted(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
+    }
+
+    private static ClientId parseSlashForm(String memberIdSlashForm) {
+        var parts = memberIdSlashForm.split("/", -1);
+        if (parts.length != MEMBER_ID_SLASH_FORM_SEGMENT_COUNT) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "member id '%s' must have exactly %d slash-separated segments",
+                    memberIdSlashForm, MEMBER_ID_SLASH_FORM_SEGMENT_COUNT);
+        }
+        return ClientId.Conf.create(parts[0], parts[1], parts[2]);
     }
 
 }

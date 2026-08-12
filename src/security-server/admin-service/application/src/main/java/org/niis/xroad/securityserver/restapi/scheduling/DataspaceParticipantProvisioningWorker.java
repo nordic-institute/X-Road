@@ -75,19 +75,17 @@ public class DataspaceParticipantProvisioningWorker {
             return;
         }
 
-        var owner = serverConf.getOwner();
-        if (owner == null) {
+        if (serverConf.getOwner() == null) {
             log.debug("Data space provisioning: server owner not set, skipping");
             return;
         }
-        var ownerId = owner.getIdentifier();
-        var ownerMemberIdSlashForm = "%s/%s/%s".formatted(ownerId.getXRoadInstance(), ownerId.getMemberClass(), ownerId.getMemberCode());
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
-            dataspaceProvisioningService.ensureParticipantContext(participantId, ownerMemberIdSlashForm);
+        var contexts = dataspaceProvisioningService.participantContexts(true);
+        for (var context : contexts) {
+            dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(), context.memberIdSlashForm());
         }
 
         if (!authCertRegistered) {
@@ -95,7 +93,8 @@ public class DataspaceParticipantProvisioningWorker {
             return;
         }
 
-        for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
+        for (var context : contexts) {
+            var participantId = context.participantId();
             var status = dataspaceProvisioningService.readCredentialStatus(participantId);
             if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
                 log.debug("Data space provisioning: participant {} credential already ISSUED", participantId);
