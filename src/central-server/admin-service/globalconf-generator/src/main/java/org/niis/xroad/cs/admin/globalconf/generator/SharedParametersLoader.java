@@ -78,7 +78,7 @@ class SharedParametersLoader {
 
     SharedParameters load() {
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
+                getApprovedTSAs(), List.of(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {

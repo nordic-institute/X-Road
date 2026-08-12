@@ -1,19 +1,21 @@
 /*
  * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,19 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.model.SharedParametersV7Marshaller;
+import org.springframework.stereotype.Component;
 
-@UtilityClass
-public class GlobalConfVersion {
-    /**
-     * Current version number of the global configuration
-     **/
-    public static final int CURRENT_VERSION = 7;
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class SharedParametersV7Generator {
+    private final SharedParametersV7Marshaller marshaller = new SharedParametersV7Marshaller();
+    private final SharedParametersLoader loader;
 
-    /**
-     * Minimum supported version number of the global configuration
-     **/
-    public static final int MINIMUM_SUPPORTED_VERSION = 2;
+    String generate() {
+        log.debug("Generating shared parameters");
+        var parameters = loader.load();
+        log.trace("Shared parameters loaded: {}", parameters);
+        return marshaller.marshall(parameters);
+    }
 }
