@@ -1,13 +1,13 @@
 # Gradle Dependency Verification
 
-SHA-256 checksums in `core/src/gradle/verification-metadata.xml` pin every dependency for reproducible builds.
+SHA-256 checksums in `src/gradle/verification-metadata.xml` pin every dependency for reproducible builds.
 
 ## Updating after a dependency change
 
 After bumping a version in `libs.versions.toml` or adding a dependency:
 
 ```bash
-bash core/development/docs/regenerate-verification-metadata.sh
+bash development/docs/regenerate-verification-metadata.sh
 ```
 
 The orchestrator runs:
@@ -23,7 +23,7 @@ Commit the resulting `verification-metadata.xml`.
 - **Gradle step fails** → metadata already cleared. Restore with `git checkout src/gradle/verification-metadata.xml` before retry.
 - **Build verifies on your host but fails on Linux/Windows CI** → OS-classifier entries missing. Re-run the orchestrator, or just the gap-filler:
   ```bash
-  bash core/development/docs/update-verification-metadata.sh
+  bash development/docs/update-verification-metadata.sh
   ```
 - **`HTTP 404` lines** during gap-fill: artifact not published for that platform — expected and skipped.
 
