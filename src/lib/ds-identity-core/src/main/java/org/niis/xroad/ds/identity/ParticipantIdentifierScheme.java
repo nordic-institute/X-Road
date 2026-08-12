@@ -32,6 +32,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
@@ -289,7 +290,7 @@ public class ParticipantIdentifierScheme {
 
     private static String encodeSegment(String value) {
         var encoded = new StringBuilder();
-        for (byte b : value.getBytes(StandardCharsets.UTF_8)) {
+        for (byte b : strictUtf8Bytes(value)) {
             int c = Byte.toUnsignedInt(b);
             if (isUnreserved(c)) {
                 encoded.append((char) c);
@@ -333,6 +334,23 @@ public class ParticipantIdentifierScheme {
             }
         }
         return strictUtf8(decoded.toByteArray(), value);
+    }
+
+    // getBytes(UTF_8) would silently replace an unpaired surrogate with U+FFFD, colliding with a
+    // distinct identifier that genuinely contains U+FFFD
+    private static byte[] strictUtf8Bytes(String value) {
+        var encoder = StandardCharsets.UTF_8.newEncoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+        try {
+            ByteBuffer buffer = encoder.encode(CharBuffer.wrap(value));
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            return bytes;
+        } catch (CharacterCodingException e) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "identifier component '%s' is not a valid UTF-16 string and cannot be encoded", value);
+        }
     }
 
     private static String strictUtf8(byte[] bytes, String value) {

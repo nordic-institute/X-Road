@@ -112,6 +112,26 @@ class ParticipantIdentifierSchemeTest {
         assertThat(decoded.getMemberCode()).isEqualTo("MiXeDcAsE222");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"\uD800", "\uDC00", "222\uD800A"})
+    void encodingShouldRejectUnpairedSurrogates(String memberCode) {
+        var member = ClientId.Conf.create("DEV", "COM", memberCode);
+
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.memberCtxId(member))
+                .isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.memberDid(member, SS_HOST))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void shouldRoundTripReplacementCharacterMemberCode() {
+        var member = ClientId.Conf.create("DEV", "COM", "222�");
+
+        var decoded = ParticipantIdentifierScheme.decodeMemberCtxId(ParticipantIdentifierScheme.memberCtxId(member));
+
+        assertThat(decoded.getMemberCode()).isEqualTo(member.getMemberCode());
+    }
+
     @Test
     void shouldRoundTripNonAsciiUtf8MemberCode() {
         var member = ClientId.Conf.create("DEV", "COM", "Ääriston-Оператор-企業");
