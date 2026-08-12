@@ -1,0 +1,67 @@
+---
+# WIP / DEV: provision the DS TLS certificate directly into this host's local secret store
+# (OpenBao), before the DS Issuer Service unit starts.
+#
+# Trust root: xrd-ca (the env-wide test CA) - see the xroad-ss role's copy of this file for the
+# full reasoning (shared across every ds-* host). Unlike the retired ds-https-keystore.yml
+# recipe, there is no system trust store step here: DS TLS outbound trust is fail-closed from
+# globalconf's approvedDsTlsCa list alone, so importing xrd-ca into the OS/JVM cacerts would have
+# no effect on ds-* peer validation any more.
+#
+# This runs after xroad-secret-store-local is installed and started (see ubuntu.yml) but before
+# the rest of the central server package set - xroad-ds-issuer-service fails fast at boot if the
+# vault slot is empty, so the write must land first.
+
+- name: set ds-tls provisioning facts
+  set_fact:
+    xrd_ca_host: "{{ groups.ca_servers | first }}"
+
+- name: wait for xrd-ca signing endpoint to be ready
+  uri:
+    url: "http://{{ xrd_ca_host }}:8888/testca/certs/ca.cert.pem"
+    status_code: 200
+  register: xrdca_ready
+  retries: 30
+  delay: 2
+  until: xrdca_ready.status == 200
+
+- name: check whether the DS TLS vault slot is already populated
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    . /etc/xroad/services/secret-store-local.conf &&
+    curl -fsS -o /dev/null -w '%{http_code}'
+    -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}"
+    "${XROAD_SECRET_STORE_SCHEME}://${XROAD_SECRET_STORE_HOST}:${XROAD_SECRET_STORE_PORT}/v1/xrd-secret/tls/ds-https"
+  args:
+    executable: /bin/bash
+  register: ds_tls_vault_check
+  changed_when: false
+  failed_when: false
+
+# localhost covers loopback; service-to-service callers use hostnames.
+- name: provision DS TLS certificate from xrd-ca and write it to the local secret store
+  ansible.builtin.shell: |
+    set -euo pipefail
+    workdir="$(mktemp -d)"
+    trap 'rm -rf "$workdir"' EXIT
+    cd "$workdir"
+    openssl genrsa -out ds-https-key.pem 2048
+    openssl req -new -key ds-https-key.pem -out ds-https.csr -subj "/CN=${HOST}" \
+      -addext "subjectAltName=DNS:${HOST},DNS:${HOST}.lxd,DNS:localhost"
+    curl -fsS -X POST -F "type=auth" -F "certreq=@ds-https.csr" "http://${CA_HOST}:8888/testca/sign" -o ds-https-cert.pem
+    curl -fsS "http://${CA_HOST}:8888/testca/certs/ca.cert.pem" -o ds-https-ca.pem
+    cert_content=$(cat ds-https-cert.pem ds-https-ca.pem | sed ':a;N;$!ba;s/\n/\\n/g')
+    key_content=$(sed ':a;N;$!ba;s/\n/\\n/g' ds-https-key.pem)
+    payload="{\"certificate\": \"${cert_content}\", \"privateKey\": \"${key_content}\"}"
+    . /etc/xroad/services/secret-store-local.conf
+    curl -fsS -X POST \
+      -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
+      -H "Content-Type: application/json" \
+      -d "$payload" \
+      "${XROAD_SECRET_STORE_SCHEME}://${XROAD_SECRET_STORE_HOST}:${XROAD_SECRET_STORE_PORT}/v1/xrd-secret/tls/ds-https"
+  args:
+    executable: /bin/bash
+  environment:
+    HOST: "{{ inventory_hostname }}"
+    CA_HOST: "{{ xrd_ca_host }}"
+  when: ds_tls_vault_check.stdout | default('') != "200"

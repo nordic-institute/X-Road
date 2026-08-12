@@ -8,6 +8,15 @@
 metrics = "4.2.39"
 jersey = "4.0.2"
 jetty = "12.1.10"
+# EDC's jetty-core module pins its own internal Jetty stack (jetty-server/jetty-http/jetty-ee10-servlet)
+# independently of this project's own Jetty version above (which is ee11-based, see jetty-ee11-servlet
+# below). jetty-ee10-servlet is the one part of that internal pin the owned lib:edc-jetty-core module
+# (which supersedes EDC's jetty-core artifact) needs directly, since EDC's JettyService is built on
+# jetty-ee10's ServletContextHandler/ServletHandler/ServletHolder. This exact module+version is also
+# the floor the root build.gradle.kts's global CVE-driven resolutionStrategy already forces (a
+# historically-observed 12.1.6 transitive pull raised to 12.1.9 for known CVEs) - so this is not a
+# separate override, it matches that forced floor exactly.
+jettyEe10 = "12.1.9"
 jaxb = "4.0.9"
 hibernate = "7.3.4.Final"
 mapstruct = "1.6.3"
@@ -53,6 +62,7 @@ jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
 jetty-ee11-servlet = { module = "org.eclipse.jetty.ee11:jetty-ee11-servlet", version.ref = "jetty" }
+jetty-ee10-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet", version.ref = "jettyEe10" }
 
 jersey-container-servlet = { module = "org.glassfish.jersey.containers:jersey-container-servlet", version.ref = "jersey" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
@@ -268,7 +278,6 @@ edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
 edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-core-token = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
 edc-core-jersey = { module = "org.eclipse.edc:jersey-core", version.ref = "edc" }
-edc-core-jetty = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
 edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
 edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
 edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }

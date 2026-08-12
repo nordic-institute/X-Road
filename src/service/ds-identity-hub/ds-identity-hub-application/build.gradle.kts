@@ -11,6 +11,12 @@ dependencies {
 
   implementation(project(":lib:bootstrap-edc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:vault-quarkus"))
+  // The fail-closed dataspace TLS trust extension (lib:bootstrap-edc-quarkus) resolves
+  // GlobalConfProvider through EDC @Inject, which falls back to Quarkus CDI - globalconf-impl
+  // supplies that CDI bean and is not otherwise on this app's classpath (unlike ds-control-plane,
+  // which already carries it transitively via lib:serverconf-impl).
+  implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:properties-core"))
   implementation(project(":lib:rpc-core"))
 
@@ -44,7 +50,13 @@ dependencies {
   runtimeOnly(libs.edc.boot)
   runtimeOnly(libs.edc.core.connector)
   runtimeOnly(libs.edc.core.runtime)
-  runtimeOnly(libs.edc.http)
+  runtimeOnly(libs.edc.http) {
+    // org.eclipse.edc:http pulls org.eclipse.edc:jetty-core compile-scope transitively - the
+    // owned lib:edc-jetty-core replacement must be the only Jetty WebServer ServiceExtension
+    // on the classpath, or the stock upstream one races it for registration and can silently
+    // boot a plaintext, file-keystore-fallback Jetty instead.
+    exclude(group = "org.eclipse.edc", module = "jetty-core")
+  }
   runtimeOnly(libs.edc.api.observability)
   runtimeOnly(libs.edc.jsonld)
   runtimeOnly(libs.edc.configuration.filesystem)
@@ -59,3 +71,21 @@ dependencies {
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-xroad-claim"))
   runtimeOnly(project(":service:ds-identity-hub:ds-identity-hub-provisioning-api"))
 }
+
+// Guards the owned Jetty module replacement: org.eclipse.edc:jetty-core must never
+// resolve here, or the stock upstream JettyExtension races the owned XRoadJettyExtension for the
+// WebServer registration and can silently boot a plaintext, file-keystore-fallback Jetty instead.
+tasks.register("verifyNoUpstreamEdcJettyCore") {
+  doLast {
+    val offending = configurations.getByName("runtimeClasspath")
+      .incoming.resolutionResult.allComponents
+      .mapNotNull { it.moduleVersion }
+      .filter { it.group == "org.eclipse.edc" && it.name == "jetty-core" }
+    check(offending.isEmpty()) {
+      "org.eclipse.edc:jetty-core resolved on the runtime classpath ($offending) - the owned " +
+        "lib:edc-jetty-core module must be the only Jetty WebServer implementation here; " +
+        "exclude jetty-core from whichever dependency reintroduced it."
+    }
+  }
+}
+tasks.named("check") { dependsOn("verifyNoUpstreamEdcJettyCore") }

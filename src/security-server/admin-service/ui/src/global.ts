@@ -77,6 +77,8 @@ export enum RouteName {
   InitialConfiguration = 'initial-configuration',
   InitialAdminUser = 'initial-admin-user',
   AddServiceClientAccessRight = 'add-service-client-access-right',
+  DsTlsCertificate = 'ds-tls-certificate',
+  DsTlsCertificateDetails = 'ds-tls-certificate-details',
   NotFound = 'not-found',
 }
 
@@ -168,6 +170,8 @@ export enum Permissions {
   VIEW_CLIENT_SERVICES = 'VIEW_CLIENT_SERVICES', // subsystem "services" tab
   VIEW_ENDPOINT_ACL = 'VIEW_ENDPOINT_ACL', // client > services > rest > endpoint > acces rights
   VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
+  VIEW_DS_TLS_CERT = 'VIEW_DS_TLS_CERT', // view dataspace TLS certificate in keys and certificates tab
+  UPLOAD_DS_TLS_CERT = 'UPLOAD_DS_TLS_CERT', // upload dataspace TLS key and certificate
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab

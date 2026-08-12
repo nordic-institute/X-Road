@@ -297,15 +297,12 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
-      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:5588/q/health" ]
     networks:
       - xrd-ss-network
-    volumes:
-      - ds-https-keystore:/etc/xroad/ssl:ro
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -395,8 +392,6 @@ services:
         condition: service_healthy
       db-serverconf-config-seed:
         condition: service_completed_successfully
-volumes:
-  ds-https-keystore:
 
 networks:
   xrd-ss-network:

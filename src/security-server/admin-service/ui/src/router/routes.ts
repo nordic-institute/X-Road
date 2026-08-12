@@ -59,6 +59,8 @@ import InternalCertificateDetails from '@/views/InternalCertificateDetails/Inter
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysView.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
+import DataspaceTlsCertificateView from '@/views/KeysAndCertificates/DataspaceTlsCertificate/DataspaceTlsCertificateView.vue';
+import DataspaceTlsCertificateDetails from '@/views/KeysAndCertificates/DataspaceTlsCertificate/DataspaceTlsCertificateDetails.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
@@ -148,6 +150,13 @@ const routes: RouteRecordRaw[] = [
             component: SSTlsCertificate,
             props: true,
             meta: { permissions: [Permissions.VIEW_INTERNAL_TLS_CERT] },
+          },
+          {
+            name: RouteName.DsTlsCertificate,
+            path: 'ds-tls-cert',
+            component: DataspaceTlsCertificateView,
+            props: true,
+            meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
           },
         ],
       },
@@ -500,6 +509,15 @@ const routes: RouteRecordRaw[] = [
         path: '/internal-tls-certificate',
         components: {
           default: InternalCertificateDetails,
+          navigation: XrdMainNavigationContainer,
+        },
+        props: { default: true },
+      },
+      {
+        name: RouteName.DsTlsCertificateDetails,
+        path: '/ds-tls-certificate',
+        components: {
+          default: DataspaceTlsCertificateDetails,
           navigation: XrdMainNavigationContainer,
         },
         props: { default: true },

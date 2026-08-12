@@ -35,6 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 
@@ -105,6 +107,27 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod)
+            throws IOException, CertificateEncodingException {
+        createTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public void setDsHttpsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsHttpsTlsEnrollmentStatus() {
+        throw new NotImplementedException();
     }
 
     @Override

@@ -27,6 +27,7 @@ dependencies {
   implementation(platform(libs.springCloud.bom))
 
   implementation(project(":lib:globalconf-spring"))
+  implementation(project(":lib:acme-core"))
   implementation(project(":service:signer:signer-client-spring"))
   implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:serverconf-spring"))
@@ -56,7 +57,6 @@ dependencies {
   implementation(libs.springBoot.starterCache)
   implementation(libs.springBoot.starterMail)
   implementation(libs.springBoot.starterValidation)
-  implementation(libs.acme4j)
   implementation(libs.libpam4j)
   implementation(libs.apache.commonsCompress)
   implementation(libs.wsdl4j)
@@ -75,6 +75,7 @@ dependencies {
 
   testImplementation(platform(libs.springBoot.bom))
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:acme-core")))
   testImplementation(libs.springBoot.starterJdbcTest)
   testImplementation(libs.springBoot.starterWebmvcTest)
   testImplementation(libs.springBoot.starterWebfluxTest)

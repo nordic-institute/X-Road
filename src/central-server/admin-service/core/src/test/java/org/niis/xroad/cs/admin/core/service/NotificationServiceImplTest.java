@@ -40,6 +40,9 @@ import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService.EnrollmentStatusView;
+import org.niis.xroad.cs.admin.api.service.DsTlsCertificateService.EnrollmentStatusView.EnrollmentMethod;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
@@ -77,6 +80,8 @@ class NotificationServiceImplTest {
     private GlobalConfGenerationStatusService globalConfGenerationStatus;
     @Mock
     private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private DsTlsCertificateService dsTlsCertificateService;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -96,6 +101,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
+        mockDsTlsAcmeEnrollmentOk();
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
@@ -113,6 +119,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id-other");
         mockInitialized(true, true);
+        mockDsTlsAcmeEnrollmentOk();
 
         Instant time = TimeUtils.now();
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(FAILURE, time));
@@ -135,6 +142,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(false, true);
+        mockDsTlsAcmeEnrollmentOk();
         when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
@@ -155,6 +163,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, false);
+        mockDsTlsAcmeEnrollmentOk();
 
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(UNKNOWN, null));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
@@ -176,6 +185,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
+        mockDsTlsAcmeEnrollmentOk();
         when(globalConfGenerationStatus.get())
                 .thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now().minus(1, HOURS)));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
@@ -188,6 +198,31 @@ class NotificationServiceImplTest {
 
         assertThat(alerts).hasSize(1)
                 .contains(new AlertInfo("status.global_conf_generation.global_conf_expired"));
+    }
+
+    @Test
+    void getAlertsDsTlsAcmeFailing() {
+        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
+        confSigningKey.setKeyIdentifier("id");
+        mockInitialized(true, true);
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
+        when(dsTlsCertificateService.getEnrollmentStatus())
+                .thenReturn(new EnrollmentStatusView(EnrollmentMethod.NONE, null, "eab credentials missing"));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(1)
+                .contains(new AlertInfo("status.ds_tls_acme.failing", "eab credentials missing"));
+    }
+
+    private void mockDsTlsAcmeEnrollmentOk() {
+        when(dsTlsCertificateService.getEnrollmentStatus())
+                .thenReturn(new EnrollmentStatusView(EnrollmentMethod.ACME, TimeUtils.now(), null));
     }
 
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {

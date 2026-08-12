@@ -58,6 +58,23 @@
   tags:
     - install-xroad-ss-packages
 
+# TEMPORARY (dataspaces dev): installed ahead of the full package set so its local secret store
+# (OpenBao) is up before ds-tls-vault-provision.yml writes the DS TLS certificate - the ds-control-
+# plane / ds-identity-hub packages (pulled in below) fail fast at boot if that vault slot is empty.
+# xroad-secret-store-local is already a transitive dependency of the full package set (via
+# xroad-proxy -> xroad-confclient), so installing it explicitly here is a no-op for yum once the
+# main install runs; it only changes the order in which it configures.
+- name: install xroad-secret-store-local ahead of the rest of the package set
+  yum:
+    name: xroad-secret-store-local
+    state: latest
+  tags:
+    - install-xroad-ss-packages
+
+- include_tasks: ds-tls-vault-provision.yml
+  tags:
+    - install-xroad-ss-packages
+
 - name: install xroad packages and dependencies from set up repository
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"

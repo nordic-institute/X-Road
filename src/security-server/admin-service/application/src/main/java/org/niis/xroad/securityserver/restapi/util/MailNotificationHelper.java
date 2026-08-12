@@ -175,6 +175,29 @@ public class MailNotificationHelper {
         }
     }
 
+    public void sendDsTlsAcmeSuccessNotification(String memberId, SecurityServerId.Conf securityServerId, boolean isEnrollment) {
+        if (notificationConfig.isAcmeRenewalSuccessNotificationEnabled()) {
+            String messageKeyPrefix = isEnrollment ? "ds_tls_cert_enrollment_success" : "ds_tls_cert_renewal_success";
+            String title = notificationMessageSourceAccessor.getMessage(messageKeyPrefix + "_title");
+            String content = notificationMessageSourceAccessor.getMessage(messageKeyPrefix + "_content",
+                    new String[]{securityServerId.asEncodedId()});
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId))
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
+    public void sendDsTlsAcmeFailureNotification(String memberId, SecurityServerId.Conf securityServerId, String errorDescription) {
+        if (notificationConfig.isAcmeRenewalFailureNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("ds_tls_cert_acme_failure_title");
+            String content = notificationMessageSourceAccessor.getMessage("ds_tls_cert_acme_failure_content",
+                    new String[]{securityServerId.asEncodedId(), errorDescription});
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId))
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
     public void sendTestMail(String recipientAddress, String securityServerId) {
         verifyRecipientIsConfiguredContact(recipientAddress);
         mailService.sendTestMail(recipientAddress,

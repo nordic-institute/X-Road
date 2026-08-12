@@ -54,6 +54,8 @@ export enum RouteName {
   BackupAndRestore = 'backup-and-restore',
   ApiKeys = 'api-keys',
   TlsCertificates = 'tls-certificates',
+  DsTlsCertificate = 'ds-tls-certificate',
+  DsTlsCertificateDetails = 'ds-tls-certificate-details',
   CreateApiKey = 'create-api-key',
   GlobalConfiguration = 'global-configuration',
   InternalConfiguration = 'internal-configuration',
@@ -139,6 +141,8 @@ export enum Permissions {
   GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT = 'GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT',
   GENERATE_MANAGEMENT_SERVICE_TLS_CSR = 'GENERATE_MANAGEMENT_SERVICE_TLS_CSR',
   UPLOAD_MANAGEMENT_SERVICE_TLS_CERT = 'UPLOAD_MANAGEMENT_SERVICE_TLS_CERT',
+  VIEW_DS_TLS_CERT = 'VIEW_DS_TLS_CERT',
+  UPLOAD_DS_TLS_CERT = 'UPLOAD_DS_TLS_CERT',
   VIEW_VERSION = 'VIEW_VERSION',
   CREATE_API_KEY = 'CREATE_API_KEY', // api key
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key

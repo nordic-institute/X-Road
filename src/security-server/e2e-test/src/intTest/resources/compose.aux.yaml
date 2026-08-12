@@ -3,6 +3,9 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
+      # Additional SANs beyond XROAD_HOST (the CN) so the same certificate validates for every
+      # hostname that dials this container's ds-issuer-service across the aux/ss0/ss1 stacks.
+      - DS_TLS_SAN=DNS:cs,DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:ss0-ds-identity-hub,DNS:ss1-ds-identity-hub,DNS:ss0-ds-control-plane,DNS:ss1-ds-control-plane,DNS:xrd-ss0,DNS:xrd-ss1,DNS:localhost
     deploy:
       resources:
         reservations:
@@ -22,12 +25,9 @@ services:
       - "0:6187" # Issuer statuslist API
     networks:
       - xroad-network
-    volumes:
-      - ds-https-keystore:/etc/xroad/ds-ssl:ro
-      - ./container-files/etc/xroad/db-config-seed/50-e2e.properties:/etc/xroad/db-config-seed/50-e2e.properties:ro
     depends_on:
-      ds-https-keystore-init:
-        condition: service_completed_successfully
+      testca:
+        condition: service_healthy
   testca:
     image: ${CA_IMG}
     pull_policy: always
@@ -104,35 +104,6 @@ services:
       - xroad-network
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
-  ds-https-keystore-init:
-    image: eclipse-temurin:21-jre-alpine
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        set -euo pipefail
-        cd /keystore
-        [ -f ds-https.p12 ] && [ -f cacerts ] && exit 0
-        apk add --no-cache openssl
-        openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-          -keyout ds-https-key.pem -out ds-https-cert.pem \
-          -subj "/CN=xrd-ds" \
-          -addext "subjectAltName=DNS:cs,DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:ss0-ds-identity-hub,DNS:ss1-ds-identity-hub,DNS:ss0-ds-control-plane,DNS:ss1-ds-control-plane,DNS:xrd-ss0,DNS:xrd-ss1,DNS:localhost"
-        openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
-          -name ds-https -password pass:changeit
-        cp /opt/java/openjdk/lib/security/cacerts cacerts
-        chmod u+w cacerts
-        keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
-          -keystore cacerts -storepass changeit
-        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem
-    volumes:
-      - ds-https-keystore:/keystore
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 256M
-
   hurl:
     build:
         context: hurl
@@ -194,9 +165,6 @@ services:
 
 volumes:
   ca-volume:
-  ds-https-keystore:
-    external: true
-    name: e2e-ds-https-keystore
 networks:
   xroad-network:
     name: xroad-network

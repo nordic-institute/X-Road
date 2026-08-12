@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.acme;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.acme.AcmeClient;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,11 @@ import java.util.Map;
 @Slf4j
 @Configuration
 public class AcmeCommonConfig {
+
+    @Bean
+    public AcmeClient acmeClient() {
+        return new AcmeClient();
+    }
 
     @Bean
     public AcmeProperties acmeProperties(AcmeConfig acmeConfig, XRoadConfig xRoadConfig) {

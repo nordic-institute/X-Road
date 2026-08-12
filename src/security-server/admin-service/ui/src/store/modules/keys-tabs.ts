@@ -57,6 +57,15 @@ const tabs = [
     },
     permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
   },
+  {
+    key: 'ds-tls-certificate-tab-button',
+    name: 'tab.keys.dsTlsCertificate',
+    icon: 'shield_lock',
+    to: {
+      name: RouteName.DsTlsCertificate,
+    },
+    permissions: [Permissions.VIEW_DS_TLS_CERT],
+  },
 ] as Tab[];
 
 export const useKeysTabs = defineStore('keys-tabs', {

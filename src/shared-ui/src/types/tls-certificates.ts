@@ -39,4 +39,7 @@ export interface TlsCertificatesHandler {
   generateKey(): Promise<unknown>;
 
   uploadCertificate(file: File): Promise<unknown>;
+
+  // Only required when the view is used with the key-and-certificate upload mode (manual TLS material path).
+  uploadKeyAndCertificate?(keyFile: File, certificateFile: File): Promise<unknown>;
 }

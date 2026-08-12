@@ -39,10 +39,12 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCa;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCasService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
@@ -67,6 +69,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 class SharedParametersLoader {
     private final SystemParameterService systemParameterService;
     private final CertificationServicesService certificationServicesService;
+    private final DsTlsCasService dsTlsCasService;
     private final TimestampingServicesService timestampingServicesService;
     private final ClientService clientService;
     private final SecurityServerService securityServerService;
@@ -78,7 +81,8 @@ class SharedParametersLoader {
 
     SharedParameters load() {
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
+                getApprovedTSAs(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings(),
+                getApprovedDsTlsCas());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -137,6 +141,29 @@ class SharedParametersLoader {
         }
         approvedCA.setDefaultCsrFormat(ca.getDefaultCsrFormat());
         return approvedCA;
+    }
+
+    private List<SharedParameters.ApprovedDsTlsCa> getApprovedDsTlsCas() {
+        var approvedDsTlsCas = dsTlsCasService.findAll();
+        return approvedDsTlsCas.stream()
+                .map(this::toApprovedDsTlsCa)
+                .toList();
+    }
+
+    private SharedParameters.ApprovedDsTlsCa toApprovedDsTlsCa(DsTlsCa ca) {
+        var approvedDsTlsCa = new SharedParameters.ApprovedDsTlsCa();
+        approvedDsTlsCa.setName(ca.getName());
+        approvedDsTlsCa.setTopCA(new SharedParameters.CaInfo(ca.getCertificate(), List.of()));
+        approvedDsTlsCa.setIntermediateCas(ca.getIntermediateCas().stream()
+                .map(intermediateCa -> new SharedParameters.CaInfo(intermediateCa.getCaCertificate().getEncoded(), List.of()))
+                .toList());
+        if (isNotBlank(ca.getAcmeServerDirectoryUrl())) {
+            approvedDsTlsCa.setAcmeServer(new SharedParameters.DsTlsAcmeServer(
+                    ca.getAcmeServerDirectoryUrl(),
+                    isNotBlank(ca.getDsTlsCertificateProfileId()) ? ca.getDsTlsCertificateProfileId() : null
+            ));
+        }
+        return approvedDsTlsCa;
     }
 
     private List<SharedParameters.CaInfo> toCaInfos(List<CertificateAuthority> cas) {

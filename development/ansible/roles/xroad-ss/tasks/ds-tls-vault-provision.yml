@@ -1,0 +1,80 @@
+---
+# WIP / DEV: provision the DS TLS certificate directly into this host's local secret store
+# (OpenBao), before any ds-* unit starts.
+#
+# Trust root: xrd-ca (the env-wide test CA). One CA signs every ds-* host's server cert, so all
+# hosts trust each other through a single anchor once that anchor is designated as a DS TLS CA
+# (development/hurl/scenarios/setup.hurl POSTs the same xrd-ca chain to the Central Server's
+# /ds-tls-cas endpoint). OpenBao's own xrd-pki engine is NOT used for this - its CA is
+# per-container, which would force cross-distribution of three CA bundles for inter-host trust.
+# xrd-ca's auth_ext profile already issues with EKU = clientAuth, serverAuth (verified in
+# /home/ca/CA/CA.cnf), suitable for TLS server use.
+#
+# Unlike the retired ds-https-keystore.yml recipe, there is no system trust store step here: DS
+# TLS outbound trust is fail-closed from globalconf's approvedDsTlsCa list alone (the JVM default
+# trust store is replaced, not extended), so importing xrd-ca into the OS/JVM cacerts would have
+# no effect on ds-* peer validation any more.
+#
+# This runs after xroad-secret-store-local is installed and started (see ubuntu.yml / rhel.yml)
+# but before the rest of the security server package set - ds-control-plane and ds-identity-hub
+# fail fast at boot if the vault slot is empty, so the write must land first.
+#
+# Production: replace xrd-ca with the federation's real internal CA, or rely on ACME
+# auto-enrollment / the manual-upload admin UI once the Security Server is up.
+
+- name: set ds-tls provisioning facts
+  set_fact:
+    xrd_ca_host: "{{ groups.ca_servers | first }}"
+
+# curl instead of the uri module: ansible-core >= 2.19 loads its own CA trust data even for plain
+# http uri calls, and that load fails on RHEL 9 targets ([ASN1: NOT_ENOUGH_DATA] from /etc/pki
+# cert scanning) regardless of endpoint state. curl is guaranteed present (xroad-base Depends).
+- name: wait for xrd-ca signing endpoint to be ready
+  command: curl -fsS -o /dev/null "http://{{ xrd_ca_host }}:8888/testca/certs/ca.cert.pem"
+  register: xrdca_ready
+  retries: 30
+  delay: 2
+  until: xrdca_ready.rc == 0
+  changed_when: false
+
+- name: check whether the DS TLS vault slot is already populated
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    . /etc/xroad/services/secret-store-local.conf &&
+    curl -fsS -o /dev/null -w '%{http_code}'
+    -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}"
+    "${XROAD_SECRET_STORE_SCHEME}://${XROAD_SECRET_STORE_HOST}:${XROAD_SECRET_STORE_PORT}/v1/xrd-secret/tls/ds-https"
+  args:
+    executable: /bin/bash
+  register: ds_tls_vault_check
+  changed_when: false
+  failed_when: false
+
+# Shell body intentionally contains no jinja2 templating - Ansible's split_args trips on jinja2 +
+# nested quotes. Values come in via environment: instead.
+- name: provision DS TLS certificate from xrd-ca and write it to the local secret store
+  ansible.builtin.shell: |
+    set -euo pipefail
+    workdir="$(mktemp -d)"
+    trap 'rm -rf "$workdir"' EXIT
+    cd "$workdir"
+    openssl genrsa -out ds-https-key.pem 2048
+    openssl req -new -key ds-https-key.pem -out ds-https.csr -subj "/CN=${HOST}" \
+      -addext "subjectAltName=DNS:${HOST},DNS:${HOST}.lxd,DNS:localhost"
+    curl -fsS -X POST -F "type=auth" -F "certreq=@ds-https.csr" "http://${CA_HOST}:8888/testca/sign" -o ds-https-cert.pem
+    curl -fsS "http://${CA_HOST}:8888/testca/certs/ca.cert.pem" -o ds-https-ca.pem
+    cert_content=$(cat ds-https-cert.pem ds-https-ca.pem | sed ':a;N;$!ba;s/\n/\\n/g')
+    key_content=$(sed ':a;N;$!ba;s/\n/\\n/g' ds-https-key.pem)
+    payload="{\"certificate\": \"${cert_content}\", \"privateKey\": \"${key_content}\"}"
+    . /etc/xroad/services/secret-store-local.conf
+    curl -fsS -X POST \
+      -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
+      -H "Content-Type: application/json" \
+      -d "$payload" \
+      "${XROAD_SECRET_STORE_SCHEME}://${XROAD_SECRET_STORE_HOST}:${XROAD_SECRET_STORE_PORT}/v1/xrd-secret/tls/ds-https"
+  args:
+    executable: /bin/bash
+  environment:
+    HOST: "{{ inventory_hostname }}"
+    CA_HOST: "{{ xrd_ca_host }}"
+  when: ds_tls_vault_check.stdout | default('') != "200"

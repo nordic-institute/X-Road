@@ -367,6 +367,13 @@
     "uploadCertificate": {
       "button": "Upload certificate",
       "label": "Upload the certificate file from your computer"
+    },
+    "uploadKeyAndCertificate": {
+      "button": "Upload key and certificate",
+      "certificateLabel": "Upload the certificate file from your computer",
+      "keyLabel": "Upload the private key file from your computer",
+      "success": "TLS key and certificate successfully uploaded",
+      "title": "Upload TLS Key and Certificate"
     }
   },
   "type": "Type",

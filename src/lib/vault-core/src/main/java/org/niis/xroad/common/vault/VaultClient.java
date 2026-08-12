@@ -55,6 +55,8 @@ public interface VaultClient {
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
     String CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH = "tls/configuration-proxy";
+    String DS_HTTPS_TLS_CREDENTIALS_PATH = "tls/ds-https";
+    String DS_HTTPS_TLS_ENROLLMENT_STATUS_PATH = "tls/ds-https-enrollment-status";
 
     String MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH = "message-log/archival/pgp/secret-key";
     String MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH = "message-log/archival/pgp/public-keys";
@@ -82,6 +84,32 @@ public interface VaultClient {
     InternalSSLKey getConfigurationProxyTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
+
+    InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
+
+    /**
+     * Stores dataspace TLS credentials, tagging the write as a manual (operator-provided) enrollment.
+     * Equivalent to {@code createDsHttpsTlsCredentials(internalSSLKey, DsTlsEnrollmentMethod.MANUAL)}.
+     */
+    default void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createDsHttpsTlsCredentials(internalSSLKey, DsTlsEnrollmentMethod.MANUAL);
+    }
+
+    void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey, DsTlsEnrollmentMethod enrollmentMethod)
+            throws IOException, CertificateEncodingException;
+
+    /**
+     * Stores the dataspace TLS certificate's enrollment method, next ACME renewal time and last ACME error,
+     * separately from the credential material itself so that recording a failed renewal attempt never
+     * touches the currently served key and certificate.
+     */
+    void setDsHttpsTlsEnrollmentStatus(DsTlsEnrollmentStatus status);
+
+    /**
+     * Returns the dataspace TLS certificate's enrollment status, or empty when none has ever been recorded -
+     * e.g. credentials written before this status tracking existed.
+     */
+    Optional<DsTlsEnrollmentStatus> getDsHttpsTlsEnrollmentStatus();
 
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 

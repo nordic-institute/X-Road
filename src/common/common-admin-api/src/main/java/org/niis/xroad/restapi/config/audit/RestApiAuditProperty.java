@@ -141,6 +141,7 @@ public enum RestApiAuditProperty {
     ACME_IP_ADDRESSES,
     AUTH_CERT_PROFILE_ID,
     SIGN_CERT_PROFILE_ID,
+    DS_TLS_CERTIFICATE_PROFILE_ID,
 
     TSA_ID,
     TSA_NAME,

@@ -24,11 +24,6 @@ services:
           memory: 768M
         limits:
           memory: 3072M
-    volumes:
-      - ds-https-keystore:/etc/xroad/ds-ssl:ro
-    depends_on:
-      ds-https-keystore-init:
-        condition: service_completed_successfully
 
   mock-server:
     image: mockserver/mockserver:mockserver-7.4.0
@@ -40,35 +35,3 @@ services:
           memory: 128M
         limits:
           memory: 512M
-
-  ds-https-keystore-init:
-    image: eclipse-temurin:21-jre-alpine
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        set -euo pipefail
-        cd /keystore
-        [ -f ds-https.p12 ] && [ -f cacerts ] && exit 0
-        apk add --no-cache openssl
-        openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-          -keyout ds-https-key.pem -out ds-https-cert.pem \
-          -subj "/CN=xrd-ds" \
-          -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
-        openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
-          -name ds-https -password pass:changeit
-        cp /opt/java/openjdk/lib/security/cacerts cacerts
-        chmod u+w cacerts
-        keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
-          -keystore cacerts -storepass changeit
-        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem
-    volumes:
-      - ds-https-keystore:/keystore
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 256M
-
-volumes:
-  ds-https-keystore:

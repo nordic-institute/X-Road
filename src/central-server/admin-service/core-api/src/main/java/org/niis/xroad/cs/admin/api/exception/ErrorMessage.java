@@ -83,6 +83,8 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     SECURITY_SERVER_NOT_FOUND("security_server_not_found"),
     CERTIFICATION_SERVICE_NOT_FOUND("certification_service_not_found"),
     INTERMEDIATE_CA_NOT_FOUND("intermediate_ca_not_found"),
+    DS_TLS_CA_NOT_FOUND("ds_tls_ca_not_found"),
+    DS_TLS_CA_INTERMEDIATE_CA_NOT_FOUND("ds_tls_ca_intermediate_ca_not_found"),
     TIMESTAMPING_AUTHORITY_NOT_FOUND("timestamping_authority_not_found"),
     OCSP_RESPONDER_NOT_FOUND("ocsp_responder_not_found"),
     INVALID_URL("invalid_url"),

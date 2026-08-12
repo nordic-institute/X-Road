@@ -1,16 +1,19 @@
 ---
 # TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
 # that xroad-centralserver package auto-starts xroad-ds-issuer-service before
-# its runtime config and TLS keystore are on disk, causing crash-loop /
-# StartLimitBurst. Pre-seeding here lets the service boot exactly once, cleanly.
+# its runtime config is on disk, causing crash-loop / StartLimitBurst.
+# Pre-seeding here lets the service boot exactly once, cleanly. The DS TLS
+# certificate itself is provisioned separately, from ubuntu.yml (see
+# ds-tls-vault-provision.yml) - it needs the local secret store running,
+# which isn't true yet when this file executes.
 #
 # Remove this file (and the `include_tasks: pre-cs-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
-#   - ds-issuer-service: hostname, statuslist.callback.address, keystore
+#   - ds-issuer-service: hostname, statuslist.callback.address
 # AND the package no longer starts the unit unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
-# of xroad-cs) before this file runs, so keystore tasks below can `chown
+# of xroad-cs) before this file runs, so the preseed task below can `chown
 # xroad:xroad` without pre-creating anything.
 
 # ---------------------------------------------------------------------------
@@ -78,11 +81,11 @@
 #    because the systemd unit doesn't export HOSTNAME to the JVM, so EDC
 #    defaults to "localhost". The URL must be reachable from any consumer SS's
 #    Identity Hub during VP validation — we point at the CS host directly.
-#    https because ds-https-keystore.yml enables TLS on every ds-* port; plain
-#    http would surface as "unexpected end of stream" on the IH side.
+#    https because every ds-* port always serves TLS (owned Jetty module);
+#    plain http would surface as "unexpected end of stream" on the IH side.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
-#   hostname, statuslist.callback.address, and keystore config.
+#   hostname and statuslist.callback.address as answerable questions.
 # ---------------------------------------------------------------------------
 - name: preseed ds-issuer-service runtime overrides
   copy:
@@ -95,23 +98,11 @@
         hostname: "{{ groups['cs_servers'] | first }}"
         statuslist:
           callback:
-            # https because ds-https-keystore.yml enables TLS on every ds-* port —
-            # plain http here surfaces as "unexpected end of stream" on the IH side.
             address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
 
 # ---------------------------------------------------------------------------
-# 3. TLS keystore for DS services. Must be on disk before ds-* units start.
-#    Also installs xrd-ca into the system trust store.
-#
-# TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
-#   real PKI (replace xrd-ca with federation CA, rotate via PKI lifecycle).
+# 3. DS TLS certificate for DS services. Must be in the local secret store
+#    before the DS Issuer Service unit starts - see ds-tls-vault-provision.yml,
+#    run once xroad-secret-store-local is installed and started (ubuntu.yml),
+#    ahead of the rest of the central server package set.
 # ---------------------------------------------------------------------------
-- include_tasks: ds-https-keystore.yml

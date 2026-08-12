@@ -29,29 +29,20 @@ package org.niis.xroad.securityserver.restapi.acme;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.DeviationBuilder;
 
+/**
+ * Deviations for the ACME account keystores the Security Server keeps on top of the shared ACME core - used by
+ * both {@link AcmeService} (member-cert, keyed by member id and key usage) and {@link DsTlsAcmeService} (dataspace
+ * TLS, keyed by a fixed non-member alias) - and EAB-configuration lookup concerns that the core knows nothing
+ * about. Deviations for the ACME protocol itself live in {@link org.niis.xroad.common.acme.AcmeDeviationMessage}.
+ */
 @RequiredArgsConstructor
 public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
 
     EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing"),
-    EAB_SECRET_LENGTH("acme.eab_secret_length"),
     ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
     ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing"),
     ACME_YAML_MISSING("acme.acme_yaml_missing"),
-    ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR("acme.acme_yaml_account_keystore_password_update_error"),
-    FETCHING_METADATA_ERROR("acme.fetching_metadata_error"),
-    ACCOUNT_CREATION_FAILURE("acme.account_creation_failure"),
-    ORDER_CREATION_FAILURE("acme.order_creation_failure"),
-    ORDER_FINALIZATION_FAILURE("acme.order_finalization_failure"),
-    HTTP_CHALLENGE_FILE_CREATION("acme.http_challenge_file_creation"),
-    HTTP_CHALLENGE_FILE_DELETION("acme.http_challenge_file_deletion"),
-    HTTP_CHALLENGE_MISSING("acme.http_challenge_missing"),
-    HTTP_CHALLENGE_TOKEN_INVALID("acme.http_challenge_token_invalid"),
-    CHALLENGE_TRIGGER_FAILURE("acme.challenge_trigger_failure"),
-    AUTHORIZATION_FAILURE("acme.authorization_failure"),
-    AUTHORIZATION_WAIT_FAILURE("acme.authorization_wait_failure"),
-    CERTIFICATE_FAILURE("acme.certificate_failure"),
-    CERTIFICATE_WAIT_FAILURE("acme.certificate_wait_failure"),
-    FETCHING_RENEWAL_INFO_FAILURE("acme.fetching_renewal_info_failure");
+    ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR("acme.acme_yaml_account_keystore_password_update_error");
 
     private final String code;
 
@@ -59,6 +50,5 @@ public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuild
     public String code() {
         return code;
     }
-
 
 }

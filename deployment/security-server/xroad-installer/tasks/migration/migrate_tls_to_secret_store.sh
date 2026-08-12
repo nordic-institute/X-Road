@@ -24,6 +24,13 @@ declare -A SECRET_PATH_MAPPING=(
   ["opmonitor"]="opmonitor"
 )
 
+# Legacy DataSpace TLS keystore: unlike the plain PEM cert/key pairs above, this one is a PKCS12
+# keystore (single key + full chain, alias "ds-https"). The password is the fixed value hardcoded
+# throughout the retiring ds-https-keystore dev/test recipe — there is no operator-configurable
+# alternative to read instead.
+DS_HTTPS_KEYSTORE="/etc/xroad/ssl/ds-https.p12"
+DS_HTTPS_KEYSTORE_PASSWORD="changeit"
+
 load_secret_store_env() {
   if [[ ! -f "$SECRET_STORE_LOCAL_CONF" ]]; then
     log_die "Secret store config not found at $SECRET_STORE_LOCAL_CONF — xroad-secret-store-local must be installed before this step."
@@ -109,6 +116,53 @@ migrate_certificates() {
   log_info "TLS migration summary: $migrated migrated, $skipped skipped"
 }
 
+# Extracts the key and full certificate chain from the legacy DS TLS PKCS12 keystore and migrates
+# them to the secret store, in the same JSON shape as migrate_certificates() above. Unlike a plain
+# .crt/.key pair, a PKCS12 keystore requires an openssl extraction step first; each extraction is
+# checked against the keystore password independently so a wrong password is caught before the
+# other is even attempted, and definitely before any secret-store write.
+migrate_ds_https_keystore() {
+  if [[ ! -f "$DS_HTTPS_KEYSTORE" ]]; then
+    log_message "$DS_HTTPS_KEYSTORE does not exist, skipping DS TLS keystore migration to secret store..."
+    return 0
+  fi
+
+  local key_raw cert_raw key_content cert_content payload
+
+  if ! key_raw=$(openssl pkcs12 -in "$DS_HTTPS_KEYSTORE" -nodes -nocerts \
+      -passin "pass:${DS_HTTPS_KEYSTORE_PASSWORD}" 2>&1); then
+    log_die "Failed to open $DS_HTTPS_KEYSTORE (wrong password or corrupt PKCS12 keystore): $key_raw"
+  fi
+
+  # Discard PKCS12 bag-attribute noise (friendlyName, localKeyID, ...) surrounding the PEM block —
+  # only lines between the markers (inclusive) are kept.
+  key_content=$(printf '%s\n' "$key_raw" | sed -n '/-----BEGIN PRIVATE KEY-----/,/-----END PRIVATE KEY-----/p')
+  if [[ -z "$key_content" ]]; then
+    log_die "$DS_HTTPS_KEYSTORE did not yield a private key after extraction."
+  fi
+
+  # No -clcerts/-cacerts split: a single -nokeys call preserves the leaf-then-intermediates order
+  # the keystore was built with, which is exactly the full chain order the secret store expects.
+  if ! cert_raw=$(openssl pkcs12 -in "$DS_HTTPS_KEYSTORE" -nokeys \
+      -passin "pass:${DS_HTTPS_KEYSTORE_PASSWORD}" 2>&1); then
+    log_die "Failed to extract the certificate chain from $DS_HTTPS_KEYSTORE (wrong password or corrupt PKCS12 keystore): $cert_raw"
+  fi
+
+  cert_content=$(printf '%s\n' "$cert_raw" | sed -n '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/p')
+  if [[ -z "$cert_content" ]]; then
+    log_die "$DS_HTTPS_KEYSTORE did not yield any certificates after extraction."
+  fi
+
+  cert_content=$(printf '%s\n' "$cert_content" | sed ':a;N;$!ba;s/\n/\\n/g')
+  key_content=$(printf '%s\n' "$key_content" | sed ':a;N;$!ba;s/\n/\\n/g')
+  payload="{\"certificate\": \"${cert_content}\", \"privateKey\": \"${key_content}\"}"
+
+  secret_store_api "POST" "/v1/xrd-secret/tls/ds-https" "$payload" \
+    "Migrating $DS_HTTPS_KEYSTORE to secret store"
+
+  log_info "Migrated $DS_HTTPS_KEYSTORE into secret store at xrd-secret/tls/ds-https"
+}
+
 main() {
   log_message "==========================================="
   log_message "Step: Migrate TLS Certificates to Secret Store"
@@ -119,6 +173,7 @@ main() {
 
   load_secret_store_env
   migrate_certificates
+  migrate_ds_https_keystore
 
   log_message ""
   log_info "TLS-to-secret-store migration completed."

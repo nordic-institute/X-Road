@@ -140,19 +140,4 @@ if [ -f /etc/openbao/openbao.env ]; then
   set +a
 fi
 
-# Trust the dev dataspace HTTPS certificate when present (e2e mounts it) so the
-# co-located Issuer Service can resolve security-server DIDs over HTTPS during
-# credential issuance. OpenBao's own CA is already in the default JVM truststore.
-DS_HTTPS_CERT="/etc/xroad/ds-ssl/ds-https-cert.pem"
-if [ -f "$DS_HTTPS_CERT" ]; then
-  JVM_CACERTS=$(find /usr/lib/jvm -name cacerts 2>/dev/null | head -1)
-  if [ -n "$JVM_CACERTS" ] && ! keytool -list -keystore "$JVM_CACERTS" -storepass changeit -alias ds-https >/dev/null 2>&1; then
-    log "Importing dataspace HTTPS certificate into JVM truststore"
-    keytool -importcert -noprompt -trustcacerts -alias ds-https -file "$DS_HTTPS_CERT" \
-      -keystore "$JVM_CACERTS" -storepass changeit || warn "Failed to import ds-https certificate"
-  fi
-fi
-
-seed_configuration_properties
-
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
