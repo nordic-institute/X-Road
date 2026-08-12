@@ -39,10 +39,13 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificationService;
+import org.niis.xroad.cs.admin.api.dto.DsTlsCertificationAuthority;
+import org.niis.xroad.cs.admin.api.dto.DsTlsIntermediateCertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
@@ -68,6 +71,7 @@ class SharedParametersLoader {
     private final SystemParameterService systemParameterService;
     private final CertificationServicesService certificationServicesService;
     private final TimestampingServicesService timestampingServicesService;
+    private final DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
     private final ClientService clientService;
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
@@ -78,7 +82,7 @@ class SharedParametersLoader {
 
     SharedParameters load() {
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), List.of(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
+                getApprovedTSAs(), getApprovedDsTlsCas(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -161,6 +165,30 @@ class SharedParametersLoader {
                         tsa.getUrl(),
                         tsa.getCertificate().getEncoded(),
                         tsa.getCostType()))
+                .toList();
+    }
+
+    private List<SharedParameters.ApprovedDsTlsCa> getApprovedDsTlsCas() {
+        return dsTlsCertificationAuthoritiesService.findAll().stream()
+                .map(this::toApprovedDsTlsCa)
+                .toList();
+    }
+
+    private SharedParameters.ApprovedDsTlsCa toApprovedDsTlsCa(DsTlsCertificationAuthority ca) {
+        var approvedDsTlsCa = new SharedParameters.ApprovedDsTlsCa();
+        approvedDsTlsCa.setName(ca.getName());
+        approvedDsTlsCa.setTopCA(new SharedParameters.CaInfo(ca.getCertificate(), List.of()));
+        approvedDsTlsCa.setIntermediateCas(toDsTlsCaInfos(ca.getIntermediateCas()));
+        if (isNotBlank(ca.getAcmeServerDirectoryUrl())) {
+            approvedDsTlsCa.setAcmeServer(new SharedParameters.AcmeServer(
+                    ca.getAcmeServerDirectoryUrl(), null, null, null, ca.getDsTlsCertificateProfileId()));
+        }
+        return approvedDsTlsCa;
+    }
+
+    private List<SharedParameters.CaInfo> toDsTlsCaInfos(List<DsTlsIntermediateCertificateAuthority> cas) {
+        return cas.stream()
+                .map(ca -> new SharedParameters.CaInfo(ca.getCaCertificate().getEncoded(), List.of()))
                 .toList();
     }
 

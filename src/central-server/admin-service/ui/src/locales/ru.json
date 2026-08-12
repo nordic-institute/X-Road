@@ -123,6 +123,7 @@
     "authenticationCertificateProfileId": "ID профиля сертификата аутентификации",
     "certFile": "Файл сертификата",
     "certProfile": "Информация о профиле сертификата",
+    "dsTlsCertificateProfileId": "Идентификатор профиля сертификата DS TLS",
     "distinguishedName": "Отличительное имя",
     "init": {
       "address": "Адрес центрального сервера",
@@ -138,6 +139,7 @@
     "keyLabel": "Удобное имя ключа",
     "memberCode": "Код участника",
     "memberName": "Имя участника",
+    "name": "Имя",
     "securityServerAddress": "Адрес сервера безопасности",
     "serverCode": "Код сервера",
     "serviceAddress": "Адрес центрального сервера",
@@ -619,6 +621,23 @@
     "certProfileInputExplanation": "Полное имя класса, реализующего интерфейс ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Сервисы сертификации",
     "defaultCsrFormat": "Формат CSR по умолчанию",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "Добавить удостоверяющий центр DS TLS",
+      "delete": {
+        "confirmationDialog": {
+          "message": "Вы уверены, что хотите удалить удостоверяющий центр DS TLS \"{name}\"?",
+          "title": "Вы уверены?"
+        },
+        "success": "Удостоверяющий центр DS TLS успешно удален"
+      },
+      "dsTlsCertificateProfileIdExplanation": "Идентификатор профиля, используемый некоторыми серверами ACME, чтобы узнать тип использования сертификата при заказе сертификата DS TLS.",
+      "dsTlsCertificationAuthorities": "Удостоверяющие центры DS TLS",
+      "dsTlsCertificationAuthority": "Удостоверяющий центр DS TLS",
+      "nameExplanation": "Произвольное имя, идентифицирующее этот удостоверяющий центр, например \"Let's Encrypt\".",
+      "settings": {
+        "title": "Настройки УЦ DS TLS"
+      }
+    },
     "timestampingService": {
       "addedSuccessfully": "Служба временных меток успешно добавлена",
       "dialog": {

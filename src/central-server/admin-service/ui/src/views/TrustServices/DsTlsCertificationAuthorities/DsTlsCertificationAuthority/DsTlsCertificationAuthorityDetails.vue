@@ -24,27 +24,49 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!--
+  DS TLS certification authority details view
+-->
 <template>
-  <XrdView title="tab.main.trustServices">
-    <CertificationServicesList />
-
-    <TimestampingServicesList v-if="showTsaList" class="mt-4" />
-
-    <DsTlsCertificationAuthoritiesList v-if="showDsTlsCertificationAuthoritiesList" class="mt-4" />
-  </XrdView>
+  <XrdSubView id="ds-tls-certification-authority-details">
+    <XrdCard :loading>
+      <XrdCardTable>
+        <XrdCardTableRow
+          data-test="subject-distinguished-name-card"
+          label="trustServices.trustService.details.subjectDistinguishedName"
+          :value="current?.subject_distinguished_name || ''"
+        />
+        <XrdCardTableRow
+          data-test="issuer-distinguished-name-card"
+          label="trustServices.trustService.details.issuerDistinguishedName"
+          :value="current?.issuer_distinguished_name || ''"
+        />
+        <XrdCardTableRow data-test="valid-from-card" label="trustServices.validFrom">
+          <template #value>
+            <XrdDateTime :value="current?.not_before" />
+          </template>
+        </XrdCardTableRow>
+        <XrdCardTableRow data-test="valid-to-card" label="trustServices.validTo">
+          <template #value>
+            <XrdDateTime :value="current?.not_after" />
+          </template>
+        </XrdCardTableRow>
+      </XrdCardTable>
+    </XrdCard>
+  </XrdSubView>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { useUser } from '@/store/modules/user';
-import { Permissions } from '@/global';
-import { XrdView } from '@niis/shared-ui';
-import TimestampingServicesList from './TimestampingServices/TimestampingServicesList.vue';
-import CertificationServicesList from '@/views/TrustServices/CertificationServices/CertificationServicesList.vue';
-import DsTlsCertificationAuthoritiesList from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthoritiesList.vue';
 
-const { hasPermission } = useUser();
-const showTsaList = computed(() => hasPermission(Permissions.VIEW_APPROVED_TSAS));
-const showDsTlsCertificationAuthoritiesList = computed(() => hasPermission(Permissions.VIEW_APPROVED_DS_TLS_CAS));
+import { XrdCard, XrdCardTable, XrdCardTableRow, XrdDateTime, XrdSubView } from '@niis/shared-ui';
+
+import { useDsTlsCertificationAuthorityService } from '@/store/modules/trust-services';
+
+const dsTlsCertificationAuthorityStore = useDsTlsCertificationAuthorityService();
+
+const current = computed(() => dsTlsCertificationAuthorityStore.current);
+const loading = computed(() => dsTlsCertificationAuthorityStore.loadingCurrent);
 </script>
+
 <style lang="scss" scoped></style>

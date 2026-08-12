@@ -18,6 +18,10 @@ tags:
     description: resources related to Backups and Backup Restoration
   - name: certification-services
     description: resources related to Certification Services
+  - name: ds-tls-certification-authorities
+    description: resources related to approved DataSpace TLS certification authorities
+  - name: ds-tls-intermediate-cas
+    description: resources related to Intermediate Certificate Authorities of approved DataSpace TLS certification authorities
   - name: members
     description: resources related to Members
   - name: subsystems
@@ -555,6 +559,215 @@ paths:
       summary: add an ocsp responder to a certification service
       tags:
         - certification-services
+  /ds-tls-certification-authorities:
+    get:
+      description: <h3>CS administrator views the list of approved DataSpace TLS certification authorities.</h3>
+      operationId: getDsTlsCertificationAuthorities
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of DS TLS certification authority objects
+                items:
+                  $ref: '#/components/schemas/ApprovedDsTlsCertificationAuthorityListItem'
+                type: array
+                uniqueItems: false
+          description: list of DS TLS certification authorities
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get all DS TLS certification authorities
+      tags:
+        - ds-tls-certification-authorities
+    post:
+      description: <h3>CS administrator adds an approved DataSpace TLS certification authority.</h3>
+      operationId: addDsTlsCertificationAuthority
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DsTlsCertificationAuthorityFileAndSettings'
+        description: the new DS TLS certification authority with settings
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedDsTlsCertificationAuthority'
+          description: created item
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new DS TLS certification authority
+      tags:
+        - ds-tls-certification-authorities
+  /ds-tls-certification-authorities/{ds_tls_certification_authority_id}:
+    parameters:
+      - $ref: '#/components/parameters/DsTlsCertificationAuthorityIdParam'
+    delete:
+      description: <h3>CS administrator deletes a DS TLS certification authority.</h3>
+      operationId: deleteDsTlsCertificationAuthority
+      responses:
+        '204':
+          description: DS TLS certification authority deletion was successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete DS TLS certification authority
+      tags:
+        - ds-tls-certification-authorities
+    get:
+      description: <h3>CS administrator views the details of an approved DS TLS certification authority.</h3>
+      operationId: getDsTlsCertificationAuthority
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedDsTlsCertificationAuthority'
+          description: a DS TLS certification authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a DS TLS certification authority
+      tags:
+        - ds-tls-certification-authorities
+    patch:
+      description: <h3>CS administrator edits the settings of a DS TLS certification authority.</h3>
+      operationId: updateDsTlsCertificationAuthority
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DsTlsCertificationAuthoritySettings'
+        description: the updated settings of the DS TLS certification authority
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedDsTlsCertificationAuthority'
+          description: the new state of the DS TLS certification authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the DS TLS certification authority
+      tags:
+        - ds-tls-certification-authorities
+  /ds-tls-certification-authorities/{ds_tls_certification_authority_id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved DS TLS certification authority certificate.</h3>
+      operationId: getDsTlsCertificationAuthorityCertificate
+      parameters:
+        - $ref: '#/components/parameters/DsTlsCertificationAuthorityIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a DS TLS certification authority certificate
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a DS TLS certification authority certificate
+      tags:
+        - ds-tls-certification-authorities
+  /ds-tls-certification-authorities/{ds_tls_certification_authority_id}/intermediate-cas:
+    parameters:
+      - $ref: '#/components/parameters/DsTlsCertificationAuthorityIdParam'
+    get:
+      description: <h3>CS administrator views the intermediate CAs configured for a DS TLS certification authority.</h3>
+      operationId: getDsTlsCertificationAuthorityIntermediateCas
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of DS TLS intermediate certificate authorities
+                items:
+                  $ref: '#/components/schemas/DsTlsIntermediateCertificateAuthority'
+                type: array
+                uniqueItems: false
+          description: list of intermediate certificate authorities belonging to the DS TLS certification authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the intermediate certificate authorities of a DS TLS certification authority
+      tags:
+        - ds-tls-certification-authorities
+    post:
+      description: <h3>CS administrator configures an intermediate CA for a DS TLS certification authority.</h3>
+      operationId: addDsTlsCertificationAuthorityIntermediateCa
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+        description: the new intermediate certificate authority certificate file
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DsTlsIntermediateCertificateAuthority'
+          description: created item
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new intermediate certificate authority to a DS TLS certification authority
+      tags:
+        - ds-tls-certification-authorities
   /global-groups:
     get:
       description: <h3>CS administrator searches for global groups.</h3>
@@ -1547,6 +1760,51 @@ paths:
       summary: delete an intermediate certificate authority ocsp responder
       tags:
         - intermediate-cas
+  /ds-tls-intermediate-cas/{ds_tls_intermediate_ca_id}:
+    parameters:
+      - $ref: '#/components/parameters/DsTlsIntermediateCaIdParam'
+    delete:
+      description: <h3>CS administrator deletes a DS TLS intermediate CA.</h3>
+      operationId: deleteDsTlsIntermediateCa
+      responses:
+        '204':
+          description: DS TLS intermediate CA deletion was successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a DS TLS intermediate certificate authority
+      tags:
+        - ds-tls-intermediate-cas
+    get:
+      description: <h3>CS administrator views the details of a DS TLS intermediate CA.</h3>
+      operationId: getDsTlsIntermediateCa
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DsTlsIntermediateCertificateAuthority'
+          description: DS TLS intermediate certificate authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a DS TLS intermediate certificate authority
+      tags:
+        - ds-tls-intermediate-cas
   /member-classes:
     get:
       description: <h3>CS Administrator lists member classes.</h3>
@@ -3325,6 +3583,103 @@ components:
         - tls_auth
         - certificate_profile_info
       type: object
+    ApprovedDsTlsCertificationAuthorityListItem:
+      description: DS TLS certification authority list item
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: DS TLS certification authority name
+          example: Let's Encrypt
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+      required:
+        - id
+        - name
+        - not_before
+        - not_after
+      type: object
+    ApprovedDsTlsCertificationAuthority:
+      description: >-
+        approved DS TLS certification authority (globalconf approvedDsTlsCa entry). Only the ACME directory URL and
+        the DS TLS certificate profile id are exposed for the ACME server - the shared ACME type's auth/sign
+        profile ids are meaningless for these entries and are never surfaced here.
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: DS TLS certification authority name
+          example: Let's Encrypt
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        issuer_distinguished_name:
+          description: certificate issuer distinguished name
+          example: issuer123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_distinguished_name:
+          description: certificate subject distinguished name
+          example: subject123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        acme_server_directory_url:
+          description: enables auto-enrollment from this CA's ACME server when set
+          type: string
+          format: url
+          minLength: 1
+        ds_tls_certificate_profile_id:
+          description: certificate profile id some ACME servers need to know the DS TLS certificate usage type
+          format: text
+          type: string
+          minLength: 1
+      required:
+        - id
+        - name
+      type: object
     Backup:
       description: central server backup # potential-common-api
       properties:
@@ -3602,6 +3957,56 @@ components:
         signing_certificate_profile_id:
           format: text
           type: string
+      type: object
+    DsTlsCertificationAuthoritySettings:
+      description: >-
+        DS TLS certification authority settings. Only the ACME directory URL and the DS TLS certificate profile id
+        are settable for the ACME server - the shared ACME type's auth/sign profile ids do not apply here.
+      properties:
+        name:
+          description: DS TLS certification authority name
+          example: Let's Encrypt
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        acme_server_directory_url:
+          description: enables auto-enrollment from this CA's ACME server when set
+          format: url
+          type: string
+        ds_tls_certificate_profile_id:
+          description: certificate profile id some ACME servers need to know the DS TLS certificate usage type
+          format: text
+          type: string
+      type: object
+    DsTlsCertificationAuthorityFileAndSettings:
+      allOf:
+        - $ref: '#/components/schemas/CertificateFile'
+        - $ref: '#/components/schemas/DsTlsCertificationAuthoritySettings'
+      description: DS TLS certification authority file and settings
+      type: object
+      required:
+        - certificate
+        - name
+    DsTlsIntermediateCertificateAuthority:
+      description: DS TLS intermediate certificate authority information
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        ds_tls_certification_authority_id:
+          description: unique identifier of the owning DS TLS certification authority
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        ca_certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+      required:
+        - ca_certificate
       type: object
     DistinguishedName:
       type: object
@@ -5156,6 +5561,15 @@ components:
         format: int32
         minimum: 1
         type: integer
+    DsTlsCertificationAuthorityIdParam:
+      in: path
+      name: ds_tls_certification_authority_id
+      description: unique identifier of the DS TLS certification authority
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
     FilenameParam:
       in: path
       name: filename
@@ -5214,6 +5628,15 @@ components:
       in: path
       name: intermediate_ca_id
       description: unique identifier of the intermediate certificate authority
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
+    DsTlsIntermediateCaIdParam:
+      in: path
+      name: ds_tls_intermediate_ca_id
+      description: unique identifier of the DS TLS intermediate certificate authority
       required: true
       schema:
         format: int32
