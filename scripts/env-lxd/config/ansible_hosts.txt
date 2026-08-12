@@ -51,3 +51,4 @@ xroad_install_opmonitoring=true
 
 [all:vars]
 ansible_lxd_remote=xroad-lxd
+disable_automatic_upgrades=true
