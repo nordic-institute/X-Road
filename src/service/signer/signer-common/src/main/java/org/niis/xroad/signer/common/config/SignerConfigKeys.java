@@ -40,6 +40,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
+import static org.niis.xroad.common.properties.config.Validator.range;
+
 /**
  * DSL config keys for the {@code xroad.signer} namespace.
  *
@@ -67,6 +69,9 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     private static final Prefix RPC = SIGNER.subPrefix("rpc");
 
     private static final String ENABLED = "enabled";
+
+    private static final int MIN_PIN_HASHER_SALT_LENGTH = 8;
+    private static final int MAX_PIN_HASHER_SALT_LENGTH = 64;
 
     private static final SignerConfigKeys INSTANCE = new SignerConfigKeys();
 
@@ -265,6 +270,14 @@ public final class SignerConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> PIN_HASHER_HASH_LENGTH = PIN_HASHER
             .integer("hash-length")
             .withDefaultValue(32)
+            .exposedInUi()
+            .build();
+
+    /** {@code xroad.signer.pin-hasher.salt-length} */
+    public static final ConfigKey<Integer> PIN_HASHER_SALT_LENGTH = PIN_HASHER
+            .integer("salt-length")
+            .withDefaultValue(16)
+            .withValidator(range(MIN_PIN_HASHER_SALT_LENGTH, MAX_PIN_HASHER_SALT_LENGTH))
             .exposedInUi()
             .build();
 

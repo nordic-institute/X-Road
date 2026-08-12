@@ -90,6 +90,7 @@ class ConfigurablePropertiesCatalogueTest {
             xroad.signer.pin-hasher.memory-kb|signer|19456
             xroad.signer.pin-hasher.parallelism|signer|4
             xroad.signer.pin-hasher.hash-length|signer|32
+            xroad.signer.pin-hasher.salt-length|signer|16
             xroad.env-monitor.certificate-info-sensor-interval|monitor|PT24H
             xroad.env-monitor.disk-space-sensor-interval|monitor|PT1M
             xroad.env-monitor.exec-listing-sensor-interval|monitor|PT1M
@@ -159,12 +160,13 @@ class ConfigurablePropertiesCatalogueTest {
                 .map(SecurityServerConfigurablePropertyDto::getPropertyName)
                 .collect(Collectors.toSet());
 
-        assertThat(keys).contains(
-                "xroad.proxy-ui-api.acme-certificate-wait-attempts",
-                "xroad.proxy-ui-api.acme-certificate-wait-interval");
-        assertThat(keys).doesNotContain(
-                "xroad.proxy-ui-api.acme-certification-wait-attempts",
-                "xroad.proxy-ui-api.acme-certification-wait-interval");
+        assertThat(keys)
+                .contains(
+                        "xroad.proxy-ui-api.acme-certificate-wait-attempts",
+                        "xroad.proxy-ui-api.acme-certificate-wait-interval")
+                .doesNotContain(
+                        "xroad.proxy-ui-api.acme-certification-wait-attempts",
+                        "xroad.proxy-ui-api.acme-certification-wait-interval");
     }
 
     @Test
@@ -173,9 +175,11 @@ class ConfigurablePropertiesCatalogueTest {
                 .map(SecurityServerConfigurablePropertyDto::getPropertyName)
                 .collect(Collectors.toSet());
 
-        assertThat(keys).doesNotContain(
-                "xroad.signer.modules",
-                "xroad.message-log-encryption.archive.grouping-keys");
+        assertThat(keys)
+                .isNotEmpty()
+                .doesNotContain(
+                        "xroad.signer.modules",
+                        "xroad.message-log-encryption.archive.grouping-keys");
     }
 
     private static Map<String, ExpectedProperty> expectedCrossModuleProperties() {
