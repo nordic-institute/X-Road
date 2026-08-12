@@ -32,6 +32,7 @@ dependencies {
   implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:serverconf-spring"))
   implementation(project(":lib:rpc-spring"))
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":common:common-admin-api"))
   implementation(project(":common:common-message"))
   implementation(project(":common:common-management-request"))
