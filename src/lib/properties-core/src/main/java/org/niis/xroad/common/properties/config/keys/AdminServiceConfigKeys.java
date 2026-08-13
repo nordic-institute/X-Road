@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES_STRING;
 import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS_STRING;
 import static org.niis.xroad.common.properties.EnvProperties.xroadHost;
+import static org.niis.xroad.common.properties.config.Validator.nonEmpty;
 
 /**
  * Security Server admin-service keys ({@code xroad.proxy-ui-api.*}, incl. {@code .tls} and the
@@ -317,12 +318,14 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.proxy-ui-api.acme-account-keystore-path}. */
     public static final ConfigKey<String> ACME_ACCOUNT_KEYSTORE_PATH = ADMIN
             .string("acme-account-keystore-path")
+            .withValidator(nonEmpty())
             .withDefaultValue("/etc/xroad/ssl/acme.p12")
             .exposedInUi()
             .build();
     /** {@code xroad.proxy-ui-api.acme-challenge-path}. */
     public static final ConfigKey<String> ACME_CHALLENGE_PATH = ADMIN
             .string("acme-challenge-path")
+            .withValidator(nonEmpty())
             .withDefaultValue("/etc/xroad/acme-challenge")
             .exposedInUi()
             .build();
