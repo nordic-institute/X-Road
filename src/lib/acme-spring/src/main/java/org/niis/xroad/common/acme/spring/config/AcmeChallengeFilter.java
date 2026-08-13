@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.acme.spring.config;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -42,7 +42,7 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AcmeChallangeFilter implements Filter {
+public class AcmeChallengeFilter implements Filter {
 
     private final AcmeConfig acmeConfig;
 

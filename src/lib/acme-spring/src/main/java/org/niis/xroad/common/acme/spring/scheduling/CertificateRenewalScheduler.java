@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.scheduling;
+package org.niis.xroad.common.acme.spring.scheduling;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 @RequiredArgsConstructor
 public class CertificateRenewalScheduler {
 
-    private final AcmeClientWorker acmeClientWorker;
+    private final AcmeRenewalWorker acmeRenewalWorker;
     private final AcmeConfig acmeConfig;
     private final TaskScheduler taskScheduler;
     private ScheduledFuture<?> scheduledFuture;
@@ -84,7 +84,7 @@ public class CertificateRenewalScheduler {
 
     private void runJob() {
         try {
-            acmeClientWorker.execute(this);
+            acmeRenewalWorker.execute(this);
         } finally {
             reschedule(getNextDelay());
         }

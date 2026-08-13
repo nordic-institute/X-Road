@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.controller;
+package org.niis.xroad.common.acme.spring.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.AcmeConfig;

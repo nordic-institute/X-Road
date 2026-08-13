@@ -37,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.acme.AcmeKeyPurpose;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
+import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -80,7 +82,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Component
 @Transactional
 @RequiredArgsConstructor
-public class AcmeClientWorker {
+public class AcmeClientWorker implements AcmeRenewalWorker {
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
@@ -92,6 +94,7 @@ public class AcmeClientWorker {
     private final AcmeConfig acmeConfig;
     private final AdminServiceProperties adminServiceProperties;
 
+    @Override
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
 

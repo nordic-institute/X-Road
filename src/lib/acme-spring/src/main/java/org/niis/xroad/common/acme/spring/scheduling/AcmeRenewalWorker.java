@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,39 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring;
+package org.niis.xroad.common.acme.spring.scheduling;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeCustomSchema;
-import org.niis.xroad.common.acme.AcmeXroadProvider;
-import org.shredzone.acme4j.connector.Connection;
-import org.shredzone.acme4j.connector.NetworkSettings;
+/**
+ * The unit of work {@link CertificateRenewalScheduler} triggers on each scheduling cycle.
+ * <p>
+ * Consumers of acme-spring implement this with whatever certificate lookup and renewal logic their
+ * deployment needs, and register the implementation as a Spring bean so it is picked up as the
+ * scheduler's dependency.
+ */
+public interface AcmeRenewalWorker {
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-@Slf4j
-public class AcmeProfileIdProvider extends AcmeXroadProvider {
-
-    @Override
-    public boolean accepts(URI serverUri) {
-        return AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme())
-                || (AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema() + "s").equals(serverUri.getScheme());
-    }
-
-    @Override
-    public URL resolve(URI serverUri) {
-        String protocol = AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
-        try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad server URI", ex);
-        }
-    }
-
-    @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new AcmeProfileIdConnection(createHttpConnector(networkSettings));
-    }
-
+    /**
+     * Runs one certificate renewal cycle.
+     *
+     * @param scheduler the scheduler driving this cycle, used to report the outcome back
+     */
+    void execute(CertificateRenewalScheduler scheduler);
 }

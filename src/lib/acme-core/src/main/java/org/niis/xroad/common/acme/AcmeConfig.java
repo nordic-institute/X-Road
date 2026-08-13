@@ -51,7 +51,7 @@ public interface AcmeConfig {
     }
 
     /**
-     * raw usage with default in org.niis.xroad.securityserver.restapi.config.AcmeBeanConfig.IsAcmeCertRenewalJobsActive
+     * raw usage with default in org.niis.xroad.common.acme.spring.config.AcmeSchedulingConfig.IsAcmeCertRenewalJobsActive
      */
     boolean isAcmeRenewalActive();
 

@@ -1,1 +1,1 @@
-org.niis.xroad.common.acme.spring.AcmeProfileIdProvider
+org.niis.xroad.common.acme.spring.provider.AcmeProfileIdProvider
