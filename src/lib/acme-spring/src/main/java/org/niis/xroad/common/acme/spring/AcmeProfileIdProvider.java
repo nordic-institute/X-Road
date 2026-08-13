@@ -24,10 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme.spring;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeCustomSchema;
+import org.niis.xroad.common.acme.AcmeXroadProvider;
 import org.shredzone.acme4j.connector.Connection;
 import org.shredzone.acme4j.connector.NetworkSettings;
 

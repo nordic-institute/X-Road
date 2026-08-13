@@ -4,4 +4,7 @@ plugins {
 
 dependencies {
   api(project(":lib:acme-core"))
+  api(project(":lib:globalconf-spring"))
+
+  implementation(libs.springBoot.starter)
 }

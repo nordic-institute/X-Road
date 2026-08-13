@@ -24,24 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import org.shredzone.acme4j.connector.Connection;
+import org.shredzone.acme4j.connector.DefaultConnection;
+import org.shredzone.acme4j.connector.HttpConnector;
+import org.shredzone.acme4j.connector.NetworkSettings;
+import org.shredzone.acme4j.provider.AbstractAcmeProvider;
 
-@Component
-public class GlobalConfBeanLookup implements ApplicationContextAware {
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
-    private static ApplicationContext applicationContext;
+public class AcmeXroadProvider extends AbstractAcmeProvider {
 
-    @SuppressWarnings("java:S2696")
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        GlobalConfBeanLookup.applicationContext = applicationContext;
+    @Override
+    public boolean accepts(URI serverUri) {
+        return AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme())
+                || (AcmeCustomSchema.XRD_ACME.getSchema() + "s").equals(serverUri.getScheme());
     }
 
-    static GlobalConfProvider getGlobalConfProvider() {
-        return applicationContext.getBean(GlobalConfProvider.class);
+    @Override
+    public URL resolve(URI serverUri) {
+        String protocol = AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
+        try {
+            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException("Bad server URI", ex);
+        }
     }
+
+    @Override
+    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
+        return new DefaultConnection(createHttpConnector(networkSettings));
+    }
+
+    @Override
+    protected HttpConnector createHttpConnector(NetworkSettings settings) {
+        return new AcmeXroadHttpConnector(settings);
+    }
+
 }

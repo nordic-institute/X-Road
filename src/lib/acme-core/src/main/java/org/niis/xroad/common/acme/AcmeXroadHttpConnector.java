@@ -24,45 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import org.niis.xroad.common.acme.AcmeCustomSchema;
-import org.shredzone.acme4j.connector.Connection;
-import org.shredzone.acme4j.connector.DefaultConnection;
+import lombok.extern.slf4j.Slf4j;
 import org.shredzone.acme4j.connector.HttpConnector;
 import org.shredzone.acme4j.connector.NetworkSettings;
-import org.shredzone.acme4j.provider.AbstractAcmeProvider;
 
-import java.net.MalformedURLException;
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpRequest;
 
-public class AcmeXroadProvider extends AbstractAcmeProvider {
+import static ee.ria.xroad.common.Version.XROAD_VERSION;
 
-    @Override
-    public boolean accepts(URI serverUri) {
-        return AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme())
-                || (AcmeCustomSchema.XRD_ACME.getSchema() + "s").equals(serverUri.getScheme());
+@Slf4j
+public class AcmeXroadHttpConnector extends HttpConnector {
+
+    public static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
+    private final NetworkSettings networkSettings;
+
+    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
+        super(networkSettings);
+        this.networkSettings = networkSettings;
     }
 
     @Override
-    public URL resolve(URI serverUri) {
-        String protocol = AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
+    public HttpRequest.Builder createRequestBuilder(URL url) {
         try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad server URI", ex);
+            return HttpRequest.newBuilder(url.toURI())
+                    .header("User-Agent", XROAD_ACME_USER_AGENT)
+                    .timeout(networkSettings.getTimeout());
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid URL", ex);
         }
-    }
-
-    @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new DefaultConnection(createHttpConnector(networkSettings));
-    }
-
-    @Override
-    protected HttpConnector createHttpConnector(NetworkSettings settings) {
-        return new AcmeXroadHttpConnector(settings);
     }
 
 }
