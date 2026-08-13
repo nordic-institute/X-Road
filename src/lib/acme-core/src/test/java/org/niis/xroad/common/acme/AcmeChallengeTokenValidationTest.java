@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,13 +63,13 @@ class AcmeChallengeTokenValidationTest {
     }
 
     @Test
-    void validTokenResolvesUnderChallengePath() {
+    void validTokenResolvesUnderAnyChallengeBasePath() {
         String token = "xK3_-yZ9abcDEF01";
 
         assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
 
-        Path base = AcmeConfig.ACME_CHALLENGE_PATH.normalize();
-        Path resolved = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token).normalize();
+        Path base = Path.of("/etc/xroad/acme-challenge").normalize();
+        Path resolved = base.resolve(token).normalize();
         assertThat(resolved.startsWith(base)).isTrue();
     }
 

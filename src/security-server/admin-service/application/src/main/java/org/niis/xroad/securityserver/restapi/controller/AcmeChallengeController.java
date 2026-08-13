@@ -25,9 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -38,20 +39,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 import static ee.ria.xroad.common.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_URL;
 
 @RestController
+@RequiredArgsConstructor
 public class AcmeChallengeController {
+
+    private final AcmeConfig acmeConfig;
 
     @GetMapping(value = "/.well-known/acme-challenge/{token}")
     public ResponseEntity<String> getChallenge(@PathVariable("token") String token) {
         if (!AcmeConfig.isValidChallengeToken(token)) {
             throw new BadRequestException(INVALID_URL.build());
         }
-        Resource resource = new FileSystemResource(AcmeConfig.ACME_CHALLENGE_PATH.resolve(token));
+        Resource resource = new FileSystemResource(Path.of(acmeConfig.getAcmeChallengePath()).resolve(token));
         return new ResponseEntity<>(getContent(resource), HttpStatus.OK);
     }
 

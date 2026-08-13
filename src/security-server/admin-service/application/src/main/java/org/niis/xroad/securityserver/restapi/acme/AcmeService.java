@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
+import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.mail.MailNotificationProperties;
@@ -117,7 +118,7 @@ public final class AcmeService {
     public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
         try {
             Login login = getLogin(memberId, caInfo, keyUsage);
-            File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
+            File acmeKeystoreFile = Path.of(acmeConfig.getAcmeAccountKeystorePath()).toFile();
             char[] storePassword = acmeProperties.getAccountKeystorePassword();
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             String alias = getAlias(memberId, keyUsage, caInfo);
@@ -146,7 +147,7 @@ public final class AcmeService {
 
     private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
         String alias = getAlias(memberId, keyUsage, caInfo);
-        File acmeKeystoreFile = AcmeConfig.ACME_ACCOUNT_KEYSTORE_PATH.toFile();
+        File acmeKeystoreFile = Path.of(acmeConfig.getAcmeAccountKeystorePath()).toFile();
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
         if (isEmpty(storePassword)) {
@@ -305,7 +306,7 @@ public final class AcmeService {
         if (!AcmeConfig.isValidChallengeToken(token)) {
             throw new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_TOKEN_INVALID.build());
         }
-        var acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token);
+        var acmeChallenge = Path.of(acmeConfig.getAcmeChallengePath()).resolve(token);
         writeChallengeFile(acmeChallenge, httpChallenge.getAuthorization());
         triggerChallenge(httpChallenge);
         waitForTheChallengeToBeCompleted(httpChallenge);

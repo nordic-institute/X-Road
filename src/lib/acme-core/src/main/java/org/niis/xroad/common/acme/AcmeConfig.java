@@ -25,34 +25,29 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.securityserver.restapi.acme;
-
-import ee.ria.xroad.common.FilePaths;
+package org.niis.xroad.common.acme;
 
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 public interface AcmeConfig {
 
-    Path ACME_ACCOUNT_KEYSTORE_PATH =   FilePaths.BASE_CONF_PATH.resolve("ssl/acme.p12");
-    Path ACME_CHALLENGE_PATH = FilePaths.BASE_CONF_PATH.resolve("acme-challenge");
-
     Pattern ACME_CHALLENGE_TOKEN_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 
     /**
      * Validates an ACME HTTP-01 challenge token received from an (untrusted) ACME server before it is used
-     * to build a file path under {@link #ACME_CHALLENGE_PATH}.
+     * to build a file path.
      * <p>
      * Rejects anything that is not a plain RFC 8555 base64url token, and, as defense in depth, verifies that
-     * resolving the token under {@link #ACME_CHALLENGE_PATH} does not escape that directory.
+     * the token normalizes to a single path component equal to itself, i.e. it cannot escape whatever
+     * directory it is later resolved against.
      */
     static boolean isValidChallengeToken(String token) {
         if (token == null || !ACME_CHALLENGE_TOKEN_PATTERN.matcher(token).matches()) {
             return false;
         }
-        Path normalizedBase = ACME_CHALLENGE_PATH.normalize();
-        Path resolved = normalizedBase.resolve(token).normalize();
-        return resolved.startsWith(normalizedBase);
+        Path resolved = Path.of(token).normalize();
+        return resolved.getNameCount() == 1 && resolved.toString().equals(token);
     }
 
     /**
@@ -120,5 +115,13 @@ public interface AcmeConfig {
 
     int getAcmeKeyLength();
 
+    /**
+     * filesystem path of the directory ACME HTTP-01 challenge response files are written to and served from.
+     */
     String getAcmeChallengePath();
+
+    /**
+     * filesystem path of the PKCS12 keystore holding ACME account key pairs.
+     */
+    String getAcmeAccountKeystorePath();
 }
