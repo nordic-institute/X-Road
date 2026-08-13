@@ -258,6 +258,7 @@ Before opening a pull request, please review the following checklist and verify 
 * Checkstyle and lint checks pass, and new files carry the MIT licence header.
 * New and changed code is covered by tests; test coverage is not lower than before.
 * Documentation has been updated where needed.
+* If the change adds or modifies an interface, port, authentication or authorisation model, category of stored data, or major dependency, the X-Road Threat Model [\[ARC-TM\]](doc/Architecture/arc-tm_x-road_threat_model.md) has been reviewed and updated where needed.
 * The branch has no merge conflicts with the target branch.
 * If this is your first contribution, the [Contributor Licence Agreement](CLA.md) has been signed and delivered to NIIS.
 
