@@ -25,17 +25,21 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+/**
+ * Provides the password used to protect the ACME account keystore.
+ * <p>
+ * Implementations decide how a new password is created or obtained when no password is currently stored.
+ * This is the seam consumers plug their own provisioning strategy into, without acme-core needing to know
+ * anything about it.
+ */
+public interface AccountKeystorePasswordProvider {
 
-@Getter
-@RequiredArgsConstructor
-public enum AcmeCustomSchema {
-
-    XRD_ACME("xrd-acme"),
-    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
-
-    private final String schema;
+    /**
+     * Creates or fetches a new account keystore password.
+     *
+     * @return the new password
+     */
+    char[] createNewPassword();
 }

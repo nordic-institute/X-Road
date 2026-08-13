@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.acme;
 
+import org.niis.xroad.common.acme.AcmeCustomSchema;
 import org.shredzone.acme4j.connector.Connection;
 import org.shredzone.acme4j.connector.DefaultConnection;
 import org.shredzone.acme4j.connector.HttpConnector;

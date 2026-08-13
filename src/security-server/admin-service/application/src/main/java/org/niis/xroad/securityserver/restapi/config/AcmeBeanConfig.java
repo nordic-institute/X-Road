@@ -28,7 +28,10 @@ package org.niis.xroad.securityserver.restapi.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
+import org.niis.xroad.common.acme.AccountKeystorePasswordProvider;
 import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.AcmeProperties;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
@@ -50,6 +53,22 @@ import org.springframework.scheduling.TaskScheduler;
 @Slf4j
 @Configuration
 public class AcmeBeanConfig {
+
+    /**
+     * Today's account keystore password provisioning: create-or-fetch always throws, exactly as
+     * {@link AcmeProperties#createNewAccountKeystorePassword()} does. When XRDDEV-3070 (DB-backed provisioning)
+     * lands, only this bean needs to change.
+     */
+    @Bean
+    public AccountKeystorePasswordProvider accountKeystorePasswordProvider(AcmeProperties acmeProperties) {
+        return acmeProperties::createNewAccountKeystorePassword;
+    }
+
+    @Bean
+    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig,
+                                   AccountKeystorePasswordProvider accountKeystorePasswordProvider) {
+        return new AcmeService(acmeProperties, acmeConfig, accountKeystorePasswordProvider);
+    }
 
     @Profile("nontest")
     @Bean

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -33,11 +33,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
-import org.niis.xroad.common.acme.AcmeConfig;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.securityserver.restapi.mail.MailNotificationProperties;
-import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.AcmeJsonResource;
@@ -53,7 +50,6 @@ import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.connector.Resource;
 import org.shredzone.acme4j.exception.AcmeException;
-import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -76,22 +72,20 @@ import java.time.Instant;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
 import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public final class AcmeService {
 
     public static final int ORDER_NOT_AFTER_DAYS = 365;
 
     private final AcmeProperties acmeProperties;
-    private final MailNotificationProperties mailNotificationProperties;
     private final AcmeConfig acmeConfig;
+    private final AccountKeystorePasswordProvider accountKeystorePasswordProvider;
 
     public boolean isExternalAccountBindingRequired(String acmeServerDirectoryUrl) {
         Session session = new Session(acmeServerDirectoryUrl);
@@ -100,12 +94,13 @@ public final class AcmeService {
 
     public List<X509Certificate> orderCertificateFromACMEServer(String commonName,
                                                                 String subjectAltName,
-                                                                KeyUsageInfo keyUsage,
+                                                                AcmeKeyPurpose keyUsage,
                                                                 ApprovedCAInfo caInfo,
                                                                 String memberId,
-                                                                byte[] certRequest) {
+                                                                byte[] certRequest,
+                                                                List<String> contacts) {
         KeyPair keyPair = getAccountKeyPair(memberId, keyUsage, caInfo);
-        Account account = startSession(keyUsage, caInfo, keyPair, memberId);
+        Account account = startSession(keyUsage, caInfo, keyPair, memberId, contacts);
         Order order = createOrder(commonName, subjectAltName, account);
         doAuthorizationAndFinalizeOrder(certRequest, order);
 
@@ -115,9 +110,10 @@ public final class AcmeService {
 
     }
 
-    public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
+    public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, AcmeKeyPurpose keyUsage,
+                                                        List<String> contacts) {
         try {
-            Login login = getLogin(memberId, caInfo, keyUsage);
+            Login login = getLogin(memberId, caInfo, keyUsage, contacts);
             File acmeKeystoreFile = Path.of(acmeConfig.getAcmeAccountKeystorePath()).toFile();
             char[] storePassword = acmeProperties.getAccountKeystorePassword();
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
@@ -145,7 +141,7 @@ public final class AcmeService {
         }
     }
 
-    private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
+    private KeyPair getAccountKeyPair(String memberId, AcmeKeyPurpose keyUsage, ApprovedCAInfo caInfo) {
         String alias = getAlias(memberId, keyUsage, caInfo);
         File acmeKeystoreFile = Path.of(acmeConfig.getAcmeAccountKeystorePath()).toFile();
         KeyStore keyStore;
@@ -154,7 +150,7 @@ public final class AcmeService {
             if (acmeKeystoreFile.exists()) {
                 throw new AcmeServiceException(AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
             } else {
-                storePassword = acmeProperties.createNewAccountKeystorePassword();
+                storePassword = accountKeystorePasswordProvider.createNewPassword();
             }
         }
         try {
@@ -196,18 +192,19 @@ public final class AcmeService {
         }
     }
 
-    private String getAlias(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo) {
+    private String getAlias(String memberId, AcmeKeyPurpose keyUsage, ApprovedCAInfo caInfo) {
         AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberId);
         String alias = memberId;
-        if (credential.getAuthKid() != null && keyUsage == KeyUsageInfo.AUTHENTICATION) {
+        if (credential.getAuthKid() != null && keyUsage == AcmeKeyPurpose.AUTHENTICATION) {
             alias = "auth_" + alias;
-        } else if (credential.getSignKid() != null && keyUsage == KeyUsageInfo.SIGNING) {
+        } else if (credential.getSignKid() != null && keyUsage == AcmeKeyPurpose.SIGNING) {
             alias = "sign_" + alias;
         }
         return alias;
     }
 
-    private Account startSession(KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberId) {
+    private Account startSession(AcmeKeyPurpose keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberId,
+                                 List<String> contacts) {
         try {
             log.info("Creating session with directory url: {}", caInfo.getAcmeServerDirectoryUrl());
             String acmeUri;
@@ -223,9 +220,7 @@ public final class AcmeService {
             AccountBuilder accountBuilder = new AccountBuilder()
                     .agreeToTermsOfService()
                     .useKeyPair(keyPair);
-            Optional.ofNullable(mailNotificationProperties.getContacts())
-                    .map(contacts -> contacts.get(memberId))
-                    .ifPresent(accountBuilder::addContact);
+            addContacts(accountBuilder, contacts);
             if (metadata.isExternalAccountRequired()) {
                 accountWithEabCredentials(accountBuilder, keyUsage, caInfo, memberId);
             }
@@ -235,13 +230,20 @@ public final class AcmeService {
         }
     }
 
-    private void accountWithEabCredentials(AccountBuilder accountBuilder, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, String memberId) {
+    private static void addContacts(AccountBuilder accountBuilder, List<String> contacts) {
+        if (contacts != null) {
+            contacts.forEach(accountBuilder::addContact);
+        }
+    }
+
+    private void accountWithEabCredentials(AccountBuilder accountBuilder, AcmeKeyPurpose keyUsage, ApprovedCAInfo caInfo,
+                                           String memberId) {
         AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberId);
         String kid, secret;
-        if (credential.getAuthKid() != null && keyUsage == KeyUsageInfo.AUTHENTICATION) {
+        if (credential.getAuthKid() != null && keyUsage == AcmeKeyPurpose.AUTHENTICATION) {
             kid = credential.getAuthKid();
             secret = credential.getAuthMacKey();
-        } else if (credential.getSignKid() != null && keyUsage == KeyUsageInfo.SIGNING) {
+        } else if (credential.getSignKid() != null && keyUsage == AcmeKeyPurpose.SIGNING) {
             kid = credential.getSignKid();
             secret = credential.getSignMacKey();
         } else {
@@ -395,15 +397,13 @@ public final class AcmeService {
         return order.getCertificate();
     }
 
-    private Login getLogin(String memberId, ApprovedCAInfo approvedCA, KeyUsageInfo keyUsage) {
+    private Login getLogin(String memberId, ApprovedCAInfo approvedCA, AcmeKeyPurpose keyUsage, List<String> contacts) {
         KeyPair accountKeyPair = getAccountKeyPair(memberId, keyUsage, approvedCA);
         Session session = new Session(approvedCA.getAcmeServerDirectoryUrl());
         try {
             AccountBuilder accountBuilder = new AccountBuilder()
                     .useKeyPair(accountKeyPair);
-            Optional.ofNullable(mailNotificationProperties.getContacts())
-                    .map(contacts -> contacts.get(memberId))
-                    .ifPresent(accountBuilder::addContact);
+            addContacts(accountBuilder, contacts);
             accountWithEabCredentials(accountBuilder, keyUsage, approvedCA, memberId);
             return accountBuilder.createLogin(session);
         } catch (AcmeException e) {
@@ -411,8 +411,9 @@ public final class AcmeService {
         }
     }
 
-    public RenewalInfo getRenewalInfo(String memberId, ApprovedCAInfo approvedCA, X509Certificate certificate, KeyUsageInfo keyUsage) {
-        Login login = getLogin(memberId, approvedCA, keyUsage);
+    public RenewalInfo getRenewalInfo(String memberId, ApprovedCAInfo approvedCA, X509Certificate certificate,
+                                      AcmeKeyPurpose keyUsage, List<String> contacts) {
+        Login login = getLogin(memberId, approvedCA, keyUsage, contacts);
         RenewalInfo renewalInfo;
         try {
             renewalInfo = login.bindRenewalInfo(certificate);
@@ -423,21 +424,24 @@ public final class AcmeService {
         return renewalInfo;
     }
 
-    public boolean isRenewalRequired(String memberId, ApprovedCAInfo approvedCA, X509Certificate certificate, KeyUsageInfo keyUsage) {
-        return !getRenewalInfo(memberId, approvedCA, certificate, keyUsage).renewalIsNotRequired(Instant.now());
+    public boolean isRenewalRequired(String memberId, ApprovedCAInfo approvedCA, X509Certificate certificate,
+                                     AcmeKeyPurpose keyUsage, List<String> contacts) {
+        return !getRenewalInfo(memberId, approvedCA, certificate, keyUsage, contacts).renewalIsNotRequired(Instant.now());
     }
 
     public Instant getSuggestedRenewalStartTime(String memberId,
                                                 ApprovedCAInfo approvedCA,
                                                 X509Certificate certificate,
-                                                KeyUsageInfo keyUsage) {
-        return getRenewalInfo(memberId, approvedCA, certificate, keyUsage).getSuggestedWindowStart();
+                                                AcmeKeyPurpose keyUsage,
+                                                List<String> contacts) {
+        return getRenewalInfo(memberId, approvedCA, certificate, keyUsage, contacts).getSuggestedWindowStart();
     }
 
-    public Instant getNextRenewalTime(String memberId, ApprovedCAInfo approvedCA, X509Certificate x509Certificate, KeyUsageInfo keyUsage) {
+    public Instant getNextRenewalTime(String memberId, ApprovedCAInfo approvedCA, X509Certificate x509Certificate,
+                                      AcmeKeyPurpose keyUsage, List<String> contacts) {
         try {
-            if (hasRenewalInfo(memberId, approvedCA, keyUsage)) {
-                return getSuggestedRenewalStartTime(memberId, approvedCA, x509Certificate, keyUsage);
+            if (hasRenewalInfo(memberId, approvedCA, keyUsage, contacts)) {
+                return getSuggestedRenewalStartTime(memberId, approvedCA, x509Certificate, keyUsage, contacts);
             }
         } catch (Exception ex) {
             log.error(
@@ -448,18 +452,18 @@ public final class AcmeService {
         return x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS);
     }
 
-    public boolean hasRenewalInfo(String memberId, ApprovedCAInfo approvedCA, KeyUsageInfo keyUsage) {
+    public boolean hasRenewalInfo(String memberId, ApprovedCAInfo approvedCA, AcmeKeyPurpose keyUsage, List<String> contacts) {
         try {
-            return getLogin(memberId, approvedCA, keyUsage).getSession().resourceUrlOptional(Resource.RENEWAL_INFO).isPresent();
+            return getLogin(memberId, approvedCA, keyUsage, contacts).getSession().resourceUrlOptional(Resource.RENEWAL_INFO).isPresent();
         } catch (AcmeException e) {
             throw new AcmeServiceException(e, AcmeDeviationMessage.FETCHING_RENEWAL_INFO_FAILURE.build());
         }
     }
 
     public List<X509Certificate> renew(String memberId, String subjectAltName, ApprovedCAInfo approvedCA,
-                                       KeyUsageInfo keyUsage,
-                                       X509Certificate oldCertificate, byte[] newCsr) {
-        Login login = getLogin(memberId, approvedCA, keyUsage);
+                                       AcmeKeyPurpose keyUsage,
+                                       X509Certificate oldCertificate, byte[] newCsr, List<String> contacts) {
+        Login login = getLogin(memberId, approvedCA, keyUsage, contacts);
         Order order;
         try {
             order = login.newOrder()

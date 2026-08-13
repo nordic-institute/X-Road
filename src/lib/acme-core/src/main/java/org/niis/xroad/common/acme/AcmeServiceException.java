@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.common.acme;
 
 import lombok.NonNull;
 import org.niis.xroad.common.core.exception.ErrorDeviation;

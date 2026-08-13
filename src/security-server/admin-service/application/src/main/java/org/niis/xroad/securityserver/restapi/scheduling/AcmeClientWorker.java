@@ -35,13 +35,15 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.AcmeKeyPurpose;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.securityserver.restapi.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.converter.AcmeKeyPurposeMapping;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -168,7 +170,8 @@ public class AcmeClientWorker {
             return false;
         }
 
-        acmeService.checkAccountKeyPairAndRenewIfNecessary(clientId.asEncodedId(), approvedCA, keyUsage);
+        acmeService.checkAccountKeyPairAndRenewIfNecessary(clientId.asEncodedId(), approvedCA,
+                AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage), mailNotificationHelper.getAcmeContacts(clientId.asEncodedId()));
 
         boolean isRenewalRequired;
         try {
@@ -260,8 +263,10 @@ public class AcmeClientWorker {
 
     private boolean isRenewalRequired(String memberId, ApprovedCAInfo approvedCA, X509Certificate x509Certificate, KeyUsageInfo keyUsage) {
         try {
-            if (acmeService.hasRenewalInfo(memberId, approvedCA, keyUsage)) {
-                return acmeService.isRenewalRequired(memberId, approvedCA, x509Certificate, keyUsage);
+            AcmeKeyPurpose keyPurpose = AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage);
+            List<String> contacts = mailNotificationHelper.getAcmeContacts(memberId);
+            if (acmeService.hasRenewalInfo(memberId, approvedCA, keyPurpose, contacts)) {
+                return acmeService.isRenewalRequired(memberId, approvedCA, x509Certificate, keyPurpose, contacts);
             }
         } catch (Exception ex) {
             log.error(
@@ -278,7 +283,8 @@ public class AcmeClientWorker {
                                        X509Certificate newX509Certificate,
                                        KeyUsageInfo keyUsage) {
         try {
-            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId, approvedCA, newX509Certificate, keyUsage);
+            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId, approvedCA, newX509Certificate,
+                    AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage), mailNotificationHelper.getAcmeContacts(memberId));
             CertificateInfo newCertInfo = signerRpcClient.getCertForHash(calculateCertHexHashOrThrow(newX509Certificate));
             signerRpcClient.setNextPlannedRenewal(newCertInfo.getId(), nextRenewalTime);
         } catch (Exception ex) {
@@ -312,9 +318,10 @@ public class AcmeClientWorker {
                     acmeService.renew(memberId.asEncodedId(),
                             subjectAltName,
                             approvedCA,
-                            keyUsage,
+                            AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage),
                             oldX509Certificate,
-                            generatedCertRequestInfo.certRequest()
+                            generatedCertRequestInfo.certRequest(),
+                            mailNotificationHelper.getAcmeContacts(memberId.asEncodedId())
                     );
             if (newCert == null || newCert.isEmpty()) {
                 return null;

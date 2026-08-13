@@ -24,38 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.acme;
+package org.niis.xroad.securityserver.restapi.converter;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeCustomSchema;
-import org.shredzone.acme4j.connector.Connection;
-import org.shredzone.acme4j.connector.NetworkSettings;
+import org.niis.xroad.common.acme.AcmeKeyPurpose;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-@Slf4j
-public class AcmeProfileIdProvider extends AcmeXroadProvider {
+/**
+ * Maps signer's {@link KeyUsageInfo} to acme-core's {@link AcmeKeyPurpose} at the boundary between SS admin-service
+ * and the shared ACME client, which must not depend on signer types.
+ */
+public final class AcmeKeyPurposeMapping {
 
-    @Override
-    public boolean accepts(URI serverUri) {
-        return AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme())
-                || (AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema() + "s").equals(serverUri.getScheme());
+    private AcmeKeyPurposeMapping() {
     }
 
-    @Override
-    public URL resolve(URI serverUri) {
-        String protocol = AcmeCustomSchema.XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
-        try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad server URI", ex);
-        }
+    public static AcmeKeyPurpose toAcmeKeyPurpose(KeyUsageInfo keyUsageInfo) {
+        return switch (keyUsageInfo) {
+            case SIGNING -> AcmeKeyPurpose.SIGNING;
+            case AUTHENTICATION -> AcmeKeyPurpose.AUTHENTICATION;
+            default -> throw XrdRuntimeException.systemInternalError("Unsupported key usage for ACME: " + keyUsageInfo);
+        };
     }
-
-    @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new AcmeProfileIdConnection(createHttpConnector(networkSettings));
-    }
-
 }

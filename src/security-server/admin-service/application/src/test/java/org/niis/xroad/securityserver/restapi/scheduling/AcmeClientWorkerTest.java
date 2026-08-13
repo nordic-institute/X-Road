@@ -40,8 +40,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.AcmeKeyPurpose;
+import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
-import org.niis.xroad.securityserver.restapi.acme.AcmeServiceException;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -81,7 +82,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockSignCsrBytes;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
@@ -142,8 +143,8 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         when(signerRpcClient.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new SignerRpcClient.GeneratedCertRequestInfo(null, getMockSignCsrBytes(), null, null, null));
 
-        when(acmeService.hasRenewalInfo(any(), any(), any())).thenReturn(true);
-        when(acmeService.isRenewalRequired(any(), any(), any(), any())).thenReturn(true);
+        when(acmeService.hasRenewalInfo(any(), any(), any(), any())).thenReturn(true);
+        when(acmeService.isRenewalRequired(any(), any(), any(), any(), any())).thenReturn(true);
 
         CertificateInfo newSignCertInfo = createCertificateInfo("new_sign_cert_id", "M1", new KeyUsage(KeyUsage.nonRepudiation),
                 Date.from(TimeUtils.now()), Date.from(TimeUtils.now().plus(365, ChronoUnit.DAYS)), null);
@@ -157,14 +158,16 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         when(acmeService.renew(any(),
                 any(),
                 any(),
-                eq(KeyUsageInfo.SIGNING),
+                eq(AcmeKeyPurpose.SIGNING),
+                any(),
                 any(),
                 any())).thenReturn(List.of(readCertificate(newSignCertInfo.getCertificateBytes())));
 
         when(acmeService.renew(any(),
                 any(),
                 any(),
-                eq(KeyUsageInfo.AUTHENTICATION),
+                eq(AcmeKeyPurpose.AUTHENTICATION),
+                any(),
                 any(),
                 any())).thenReturn(List.of(readCertificate(newAuthCertInfo.getCertificateBytes())));
 
@@ -236,7 +239,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     public void failureAuthAndSignCertRollback() {
-        when(acmeService.renew(any(), any(), any(), any(), any(), any()))
+        when(acmeService.renew(any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE.build()));
 
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, acmeConfig, new NoOpTaskScheduler());
