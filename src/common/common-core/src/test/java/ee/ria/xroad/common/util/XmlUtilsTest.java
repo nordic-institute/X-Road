@@ -72,8 +72,7 @@ public class XmlUtilsTest {
     }
 
     @Test(expected = SAXParseException.class)
-    public void parseDocumentRejectsDoctype() throws
-            IOException, ParserConfigurationException, SAXException {
+    public void parseDocumentRejectsDoctype() throws Exception {
         XmlUtils.parseDocument(getXXEFileInjectionDocument());
     }
 
