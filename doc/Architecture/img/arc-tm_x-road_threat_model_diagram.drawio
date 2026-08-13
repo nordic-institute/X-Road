@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" modified="2026-08-13T07:46:29.172Z" version="21.5.1" etag="2xYH7QbXg8d8JR0gasup" type="device">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" modified="2026-08-13T12:33:44.082Z" version="21.5.1" etag="FwDwsT_FaQqBDbXEHGop" type="device">
   <diagram id="6XxPmeYir-KdUFz_AkcW" name="Page-1">
-    <mxGraphModel dx="2025" dy="1398" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="768" dy="530" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -342,12 +342,12 @@
           <mxGeometry x="55" y="927" width="38" height="16" as="geometry" />
         </mxCell>
         <mxCell id="legend-text-TB-06" value="Member Security Server to Central Server registration web service" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
-          <mxGeometry x="108" y="926" width="332" height="18" as="geometry" />
+          <mxGeometry x="101" y="926" width="332" height="18" as="geometry" />
         </mxCell>
         <mxCell id="legend-badge-TB-07" value="TB-07" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
           <mxGeometry x="437" y="823" width="38" height="16" as="geometry" />
         </mxCell>
-        <mxCell id="legend-text-TB-07" value="Member Security Server to Central Server member management&lt;br&gt;web service (via the management Security Server)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+        <mxCell id="legend-text-TB-07" value="Management Security Server to Central Server&lt;br&gt;member management web service" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
           <mxGeometry x="483" y="823" width="291" height="18" as="geometry" />
         </mxCell>
         <mxCell id="legend-badge-TB-08" value="TB-08" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
@@ -378,7 +378,7 @@
           <mxGeometry x="60" y="950" width="710" height="26" as="geometry" />
         </mxCell>
         <mxCell id="badge-TB-07" value="TB-07" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
-          <mxGeometry x="471" y="362" width="38" height="16" as="geometry" />
+          <mxGeometry x="531" y="281" width="38" height="16" as="geometry" />
         </mxCell>
         <mxCell id="Vz3PPqXRlPlC4M2KNL2j-3" value="TB-03" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="510" y="192" width="38" height="16" as="geometry" />
@@ -400,6 +400,15 @@
         </mxCell>
         <mxCell id="Vz3PPqXRlPlC4M2KNL2j-14" value="TB-08" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="81" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#663CDC;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="VIbD7kYxOJ4_p_2dQ8vP-12" target="VIbD7kYxOJ4_p_2dQ8vP-9">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="210" as="sourcePoint" />
+            <mxPoint x="740" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="badge-TB-01-mgmt" value="TB-01" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="471" y="362" width="38" height="16" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
