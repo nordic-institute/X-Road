@@ -27,7 +27,7 @@ package org.niis.xroad.common.acme.spring.scheduling;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;

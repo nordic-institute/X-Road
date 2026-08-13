@@ -24,53 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme;
+package org.niis.xroad.common.acme.provider;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
+import lombok.extern.slf4j.Slf4j;
+import org.shredzone.acme4j.connector.HttpConnector;
+import org.shredzone.acme4j.connector.NetworkSettings;
 
-import java.nio.file.Path;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpRequest;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static ee.ria.xroad.common.Version.XROAD_VERSION;
 
-class AcmeChallengeTokenValidationTest {
+@Slf4j
+public class AcmeXroadHttpConnector extends HttpConnector {
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {
-            "..",
-            "../evil",
-            "../../etc/xroad/conf.d/local.ini",
-            "/tmp/evil",
-            "foo/bar",
-            "foo\\bar",
-            "foo.bar"
-    })
-    void rejectsUnsafeTokens(String token) {
-        assertThat(AcmeConfig.isValidChallengeToken(token)).isFalse();
+    public static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
+    private final NetworkSettings networkSettings;
+
+    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
+        super(networkSettings);
+        this.networkSettings = networkSettings;
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "xK3_-yZ9abcDEF01",
-            "AbCd1234_-efGH",
-            "a"
-    })
-    void acceptsRealisticBase64UrlTokens(String token) {
-        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
-    }
-
-    @Test
-    void validTokenResolvesUnderAnyChallengeBasePath() {
-        String token = "xK3_-yZ9abcDEF01";
-
-        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
-
-        Path base = Path.of("/etc/xroad/acme-challenge").normalize();
-        Path resolved = base.resolve(token).normalize();
-        assertThat(resolved.startsWith(base)).isTrue();
+    @Override
+    public HttpRequest.Builder createRequestBuilder(URL url) {
+        try {
+            return HttpRequest.newBuilder(url.toURI())
+                    .header("User-Agent", XROAD_ACME_USER_AGENT)
+                    .timeout(networkSettings.getTimeout());
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid URL", ex);
+        }
     }
 
 }

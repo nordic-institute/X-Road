@@ -24,10 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme;
+package org.niis.xroad.common.acme.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.acme.AcmeDeviationMessage;
+import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.exception.NotFoundException;
 
 import java.util.Map;

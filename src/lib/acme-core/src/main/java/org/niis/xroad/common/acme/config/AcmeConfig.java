@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.acme;
+package org.niis.xroad.common.acme.config;
 
 import java.nio.file.Path;
 import java.util.regex.Pattern;

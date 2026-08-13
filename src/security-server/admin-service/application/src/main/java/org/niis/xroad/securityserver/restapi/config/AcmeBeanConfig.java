@@ -26,9 +26,9 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import org.niis.xroad.common.acme.AccountKeystorePasswordProvider;
-import org.niis.xroad.common.acme.AcmeConfig;
-import org.niis.xroad.common.acme.AcmeProperties;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.acme.config.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

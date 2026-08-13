@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
-import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;

@@ -24,44 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme;
+package org.niis.xroad.common.acme.config;
 
-import org.shredzone.acme4j.connector.Connection;
-import org.shredzone.acme4j.connector.DefaultConnection;
-import org.shredzone.acme4j.connector.HttpConnector;
-import org.shredzone.acme4j.connector.NetworkSettings;
-import org.shredzone.acme4j.provider.AbstractAcmeProvider;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
+import java.nio.file.Path;
 
-public class AcmeXroadProvider extends AbstractAcmeProvider {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Override
-    public boolean accepts(URI serverUri) {
-        return AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme())
-                || (AcmeCustomSchema.XRD_ACME.getSchema() + "s").equals(serverUri.getScheme());
+class AcmeChallengeTokenValidationTest {
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {
+            "..",
+            "../evil",
+            "../../etc/xroad/conf.d/local.ini",
+            "/tmp/evil",
+            "foo/bar",
+            "foo\\bar",
+            "foo.bar"
+    })
+    void rejectsUnsafeTokens(String token) {
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isFalse();
     }
 
-    @Override
-    public URL resolve(URI serverUri) {
-        String protocol = AcmeCustomSchema.XRD_ACME.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
-        try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad server URI", ex);
-        }
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "xK3_-yZ9abcDEF01",
+            "AbCd1234_-efGH",
+            "a"
+    })
+    void acceptsRealisticBase64UrlTokens(String token) {
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
     }
 
-    @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new DefaultConnection(createHttpConnector(networkSettings));
-    }
+    @Test
+    void validTokenResolvesUnderAnyChallengeBasePath() {
+        String token = "xK3_-yZ9abcDEF01";
 
-    @Override
-    protected HttpConnector createHttpConnector(NetworkSettings settings) {
-        return new AcmeXroadHttpConnector(settings);
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
+
+        Path base = Path.of("/etc/xroad/acme-challenge").normalize();
+        Path resolved = base.resolve(token).normalize();
+        assertThat(resolved.startsWith(base)).isTrue();
     }
 
 }

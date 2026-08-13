@@ -29,7 +29,7 @@ package org.niis.xroad.common.acme.spring.provider;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.niis.xroad.common.acme.AcmeXroadHttpConnector;
+import org.niis.xroad.common.acme.provider.AcmeXroadHttpConnector;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanLookup;

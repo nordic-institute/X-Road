@@ -28,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.acme;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.acme.AcmeConfig;
-import org.niis.xroad.common.acme.AcmeProperties;
+import org.niis.xroad.common.acme.config.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeProperties;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.springframework.context.annotation.Bean;

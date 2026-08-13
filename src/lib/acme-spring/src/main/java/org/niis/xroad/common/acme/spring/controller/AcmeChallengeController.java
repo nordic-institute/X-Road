@@ -26,7 +26,7 @@
 package org.niis.xroad.common.acme.spring.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.core.io.FileSystemResource;

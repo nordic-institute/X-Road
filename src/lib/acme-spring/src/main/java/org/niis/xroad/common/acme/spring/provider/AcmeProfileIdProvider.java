@@ -27,8 +27,8 @@
 package org.niis.xroad.common.acme.spring.provider;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.AcmeCustomSchema;
-import org.niis.xroad.common.acme.AcmeXroadProvider;
+import org.niis.xroad.common.acme.provider.AcmeCustomSchema;
+import org.niis.xroad.common.acme.provider.AcmeXroadProvider;
 import org.shredzone.acme4j.connector.Connection;
 import org.shredzone.acme4j.connector.NetworkSettings;
 

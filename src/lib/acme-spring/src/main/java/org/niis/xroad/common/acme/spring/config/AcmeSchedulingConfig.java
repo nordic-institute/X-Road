@@ -28,7 +28,7 @@ package org.niis.xroad.common.acme.spring.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
-import org.niis.xroad.common.acme.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.properties.NodeProperties;

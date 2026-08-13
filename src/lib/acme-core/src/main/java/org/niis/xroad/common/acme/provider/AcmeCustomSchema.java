@@ -24,38 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme;
 
-import lombok.extern.slf4j.Slf4j;
-import org.shredzone.acme4j.connector.HttpConnector;
-import org.shredzone.acme4j.connector.NetworkSettings;
+package org.niis.xroad.common.acme.provider;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.http.HttpRequest;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import static ee.ria.xroad.common.Version.XROAD_VERSION;
+@Getter
+@RequiredArgsConstructor
+public enum AcmeCustomSchema {
 
-@Slf4j
-public class AcmeXroadHttpConnector extends HttpConnector {
+    XRD_ACME("xrd-acme"),
+    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
 
-    public static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
-    private final NetworkSettings networkSettings;
-
-    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
-        super(networkSettings);
-        this.networkSettings = networkSettings;
-    }
-
-    @Override
-    public HttpRequest.Builder createRequestBuilder(URL url) {
-        try {
-            return HttpRequest.newBuilder(url.toURI())
-                    .header("User-Agent", XROAD_ACME_USER_AGENT)
-                    .timeout(networkSettings.getTimeout());
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException("Invalid URL", ex);
-        }
-    }
-
+    private final String schema;
 }
