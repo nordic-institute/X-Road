@@ -87,9 +87,14 @@ Figure 1 X-Road Security Architecture depicts the X-Road environment and its act
 
 Figure 1. X-Road security architecture.
 
-The trust boundaries and entry points visible on Figure 1, the assets that need protection, the prioritised threat scenarios that cross those boundaries and the automated tests that verify the corresponding controls are documented in the X-Road Threat Model \[[ARC-TM](#Ref_ARC-TM)\].
-
 The identity of each organization (X-Road Service Provider or Service Consumer) and technical entry point (Security Server) is verified using certificates that are issued by a trusted Certification Authority (CA) when an organization joins an X-Road ecosystem. The identities are maintained centrally, but all the data is exchanged directly between a consumer and provider. Message routing is based on organization and service level identifiers that are mapped to physical network locations of the services by X-Road. All the evidence regarding data exchange is stored locally by the data exchange parties, and no third parties have access to the data. Time-stamping and digital signature together guarantee non-repudiation of the data sent via X-Road.
+
+Please see the X-Road Threat Model \[[ARC-TM](#Ref_ARC-TM)\] for more detailed information on:
+
+  * Trust boundaries and entry points.
+  * Assets that need protection.
+  * Prioritised threat scenarios that cross those boundaries.
+  * Automated tests that verify the corresponding controls.
 
 ### 1.1 Terms and Abbreviations
 
