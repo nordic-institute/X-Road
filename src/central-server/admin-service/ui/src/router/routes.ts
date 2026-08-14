@@ -80,6 +80,12 @@ import IntermediateCaDetails from '@/views/TrustServices/CertificationServices/C
 import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaOcspResponders.vue';
 import IntermediateCaView from '@/views/TrustServices/CertificationServices/CertificationService/IntermediateCa/IntermediateCaView.vue';
 import OcspResponderCertificate from '@/views/TrustServices/CertificationServices/CertificationService/OcspResponders/OcspResponderCertificate.vue';
+import DsTlsCertificationAuthorityCertificate from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthority/DsTlsCertificationAuthorityCertificate.vue';
+import DsTlsCertificationAuthorityDetails from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthority/DsTlsCertificationAuthorityDetails.vue';
+import DsTlsCertificationAuthorityIntermediateCas from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthority/DsTlsCertificationAuthorityIntermediateCas.vue';
+import DsTlsCertificationAuthoritySettings from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthority/DsTlsCertificationAuthoritySettings.vue';
+import DsTlsCertificationAuthorityView from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthority/DsTlsCertificationAuthorityView.vue';
+import DsTlsIntermediateCaCertificate from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthority/IntermediateCa/DsTlsIntermediateCaCertificate.vue';
 import TimestampingServiceCertificate from '@/views/TrustServices/TimestampingServices/TimestampingServiceCertificate.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 import TrustServicesView from '@/views/TrustServices/TrustServicesView.vue';
@@ -336,7 +342,7 @@ const routes = [
             path: '',
             component: TrustServicesView,
             meta: {
-              permissions: [Permissions.VIEW_APPROVED_CAS],
+              permissions: [Permissions.VIEW_APPROVED_CAS, Permissions.VIEW_APPROVED_TSAS, Permissions.VIEW_APPROVED_DS_TLS_CAS],
             },
           },
           {
@@ -399,6 +405,37 @@ const routes = [
               },
             ],
           },
+          {
+            path: '/ds-tls-certification-authorities/:dsTlsCertificationAuthorityId',
+            component: DsTlsCertificationAuthorityView,
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS],
+            },
+            props: (route: RouteLocationNormalized) => ({
+              dsTlsCertificationAuthorityId: route.params.dsTlsCertificationAuthorityId,
+            }),
+            redirect: '/ds-tls-certification-authorities/:dsTlsCertificationAuthorityId/details',
+            children: [
+              {
+                name: RouteName.DsTlsCertificationAuthorityDetails,
+                path: 'details',
+                component: DsTlsCertificationAuthorityDetails,
+                meta: { permissions: [Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS] },
+              },
+              {
+                name: RouteName.DsTlsCertificationAuthoritySettings,
+                path: 'settings',
+                component: DsTlsCertificationAuthoritySettings,
+                meta: { permissions: [Permissions.EDIT_APPROVED_DS_TLS_CA] },
+              },
+              {
+                name: RouteName.DsTlsCertificationAuthorityIntermediateCas,
+                path: 'intermediate-cas',
+                component: DsTlsCertificationAuthorityIntermediateCas,
+                meta: { permissions: [Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS] },
+              },
+            ],
+          },
         ],
       },
       {
@@ -452,6 +489,34 @@ const routes = [
         },
         meta: {
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+        },
+        props: {
+          default: true,
+        },
+      },
+      {
+        name: RouteName.DsTlsCertificationAuthorityCertificateDetails,
+        path: '/ds-tls-certification-authorities/:dsTlsCertificationAuthorityId/certificate-details',
+        components: {
+          default: DsTlsCertificationAuthorityCertificate,
+          ...elevatedParts,
+        },
+        meta: {
+          permissions: [Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS],
+        },
+        props: {
+          default: true,
+        },
+      },
+      {
+        name: RouteName.DsTlsIntermediateCaCertificateDetails,
+        path: '/ds-tls-intermediate-cas/:dsTlsIntermediateCaId/certificate-details',
+        components: {
+          default: DsTlsIntermediateCaCertificate,
+          ...elevatedParts,
+        },
+        meta: {
+          permissions: [Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS],
         },
         props: {
           default: true,
