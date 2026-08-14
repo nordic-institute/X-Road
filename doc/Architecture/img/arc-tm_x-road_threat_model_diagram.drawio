@@ -1,4 +1,4 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" modified="2026-08-14T08:19:00.878Z" version="21.5.1" etag="yHcMp6Da4wFgC2UVbidr" type="device">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" modified="2026-08-14T08:01:42.340Z" version="21.5.1" etag="qO1rGr0jZU8RAD7yXWGW" type="device">
   <diagram id="6XxPmeYir-KdUFz_AkcW" name="Page-1">
     <mxGraphModel dx="796" dy="549" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
       <root>
@@ -25,6 +25,9 @@
         <mxCell id="VIbD7kYxOJ4_p_2dQ8vP-7" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=data:image/svg+xml,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIxOHB4IiB2aWV3Qm94PSIwIDAgMjAgMTgiIHZlcnNpb249IjEuMSI+JiN4YTsgICAgPCEtLSBHZW5lcmF0b3I6IFNrZXRjaCA1OCAoODQ2NjMpIC0gaHR0cHM6Ly9za2V0Y2guY29tIC0tPiYjeGE7ICAgIDx0aXRsZT5Db21iaW5lZCBTaGFwZTwvdGl0bGU+JiN4YTsgICAgPGRlc2M+Q3JlYXRlZCB3aXRoIFNrZXRjaC48L2Rlc2M+JiN4YTsgICAgPGcgaWQ9IlN0eWxlZ3VpZGUtJmFtcDstVHlwZXBhZ2VzIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4mI3hhOyAgICAgICAgPGcgaWQ9Ikljb25zIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtODg4LjAwMDAwMCwgLTQ3Ny4wMDAwMDApIiBmaWxsPSIjNjYzQ0RDIj4mI3hhOyAgICAgICAgICAgIDxwYXRoIGQ9Ik04OTIsNDgzIEw4OTQsNDgzIEw4OTQsNDkxIEw4OTcsNDkxIEw4OTcsNDgzIEw4OTksNDgzIEw4OTksNDkxIEw5MDIsNDkxIEw5MDIsNDgzIEw5MDQsNDgzIEw5MDQsNDkxIEw5MDYsNDkxIEw5MDYsNDkzIEw5MDgsNDkzIEw5MDgsNDk1IEw4ODgsNDk1IEw4ODgsNDkzIEw4OTAsNDkzIEw4OTAsNDkxIEw4OTIsNDkxIEw4OTIsNDgzIFogTTg5OCw0NzcgQzkwMS44MjQzMzQsNDc3IDkwNS4wNTg3NzcsNDc5LjUyNTYyMyA5MDYuMTI2Mzc1LDQ4Mi45OTk5MTQgTDg4OS44NzM2MjUsNDgyLjk5OTkxNCBDODkwLjk0MTIyMyw0NzkuNTI1NjIzIDg5NC4xNzU2NjYsNDc3IDg5OCw0NzcgWiIgaWQ9IkNvbWJpbmVkLVNoYXBlIi8+JiN4YTsgICAgICAgIDwvZz4mI3hhOyAgICA8L2c+JiN4YTs8L3N2Zz4=;" parent="VIbD7kYxOJ4_p_2dQ8vP-5" vertex="1">
           <mxGeometry x="30" y="13.079214843749924" width="20" height="18" as="geometry" />
         </mxCell>
+        <mxCell id="badge-TB-09" value="TB-09" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="VIbD7kYxOJ4_p_2dQ8vP-5" vertex="1">
+          <mxGeometry x="21" y="61.00000000000023" width="38" height="16" as="geometry" />
+        </mxCell>
         <mxCell id="VIbD7kYxOJ4_p_2dQ8vP-8" value="" style="group" parent="1" vertex="1" connectable="0">
           <mxGeometry x="570" y="260" width="80" height="79.24374999999998" as="geometry" />
         </mxCell>
@@ -33,6 +36,9 @@
         </mxCell>
         <mxCell id="VIbD7kYxOJ4_p_2dQ8vP-10" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;aspect=fixed;imageAspect=0;image=data:image/svg+xml,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDE4IDE4IiBmaWxsPSJub25lIj4mI3hhOzxwYXRoIGQ9Ik0xNyAxMEgxQzAuNDUgMTAgMCAxMC40NSAwIDExVjE3QzAgMTcuNTUgMC40NSAxOCAxIDE4SDE3QzE3LjU1IDE4IDE4IDE3LjU1IDE4IDE3VjExQzE4IDEwLjQ1IDE3LjU1IDEwIDE3IDEwWk00IDE2QzIuOSAxNiAyIDE1LjEgMiAxNEMyIDEyLjkgMi45IDEyIDQgMTJDNS4xIDEyIDYgMTIuOSA2IDE0QzYgMTUuMSA1LjEgMTYgNCAxNlpNMTcgMEgxQzAuNDUgMCAwIDAuNDUgMCAxVjdDMCA3LjU1IDAuNDUgOCAxIDhIMTdDMTcuNTUgOCAxOCA3LjU1IDE4IDdWMUMxOCAwLjQ1IDE3LjU1IDAgMTcgMFpNNCA2QzIuOSA2IDIgNS4xIDIgNEMyIDIuOSAyLjkgMiA0IDJDNS4xIDIgNiAyLjkgNiA0QzYgNS4xIDUuMSA2IDQgNloiIGZpbGw9IiM2NjNDREMiLz4mI3hhOzwvc3ZnPg==;strokeColor=#663CDC;fillColor=none;" parent="VIbD7kYxOJ4_p_2dQ8vP-8" vertex="1">
           <mxGeometry x="32" y="13.594221152633054" width="17.927321668909826" height="17.927321668909826" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-19" value="TB-09" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="VIbD7kYxOJ4_p_2dQ8vP-8">
+          <mxGeometry x="21.960000000000036" y="61.24000000000001" width="38" height="16" as="geometry" />
         </mxCell>
         <mxCell id="VIbD7kYxOJ4_p_2dQ8vP-11" value="" style="group" parent="1" vertex="1" connectable="0">
           <mxGeometry x="450" y="259.9999999999998" width="80" height="79.24374999999998" as="geometry" />
@@ -255,8 +261,154 @@
             <mxPoint x="-10" y="-2" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="6LTisqrtYf7ues6PPrP6-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#663CDC;" edge="1" parent="1" source="VIbD7kYxOJ4_p_2dQ8vP-12" target="VIbD7kYxOJ4_p_2dQ8vP-9">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="tb-fed-node" value="Federation Partner Central Server&lt;br&gt;(external configuration source)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#B20000;fillColor=#FFF5F5;fontSize=10;fontFamily=Helvetica;verticalAlign=middle;arcSize=50;" parent="1" vertex="1">
+          <mxGeometry x="518" y="50" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tb-dist-node" value="NIIS package repository&lt;br&gt;and container registry" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#B20000;fillColor=#FFF5F5;fontSize=10;fontFamily=Helvetica;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="265" y="700" width="190" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="tb-fed-edge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#B20000;endArrow=none;endFill=0;startArrow=classic;startFill=1;exitX=0.541;exitY=1.001;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tb-fed-node" edge="1" target="VIbD7kYxOJ4_p_2dQ8vP-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="610" y="130" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tb-dist-edge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#B20000;endArrow=none;endFill=0;startArrow=classic;startFill=1;" parent="1" source="tb-dist-node" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="badge-TB-02" value="TB-02" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="282" y="512" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-03" value="TB-03" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="340" y="530" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-04" value="TB-04" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="616" y="242" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-05" value="TB-05" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="570" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-06" value="TB-06" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="612" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-08" value="TB-08" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="140" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-10" value="TB-10" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="618" y="117" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-11" value="TB-11" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="340" y="667" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="tb-legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="50" y="790" width="730" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="tb-legend-title" value="Trust boundaries" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="62" y="798" width="708" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-01" value="TB-01" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="55" y="822" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-01" value="Internet to Security Server message interface" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="101" y="821" width="332" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-02" value="TB-02" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="55" y="843" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-02" value="Member local network to Security Server service interface" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="101" y="842" width="332" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-03" value="TB-03" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="55" y="864" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-03" value="Member management network to Security Server administrative interface" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="101" y="863" width="332" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-04" value="TB-04" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="55" y="885" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-04" value="Governing authority network to Central Server administrative interface" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="101" y="884" width="332" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-05" value="TB-05" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="55" y="906" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-05" value="Configuration source to configuration client" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="101" y="905" width="332" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-06" value="TB-06" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="55" y="927" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-06" value="Member Security Server to Central Server registration web service" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="101" y="926" width="332" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-07" value="TB-07" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="437" y="823" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-07" value="Management Security Server to Central Server&lt;br&gt;member management web service" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="483" y="823" width="291" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-08" value="TB-08" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="437" y="844" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-08" value="Trust services to X-Road components" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="483" y="843" width="291" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-09" value="TB-09" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="437" y="865" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-09" value="Host-local processes to signer, credential storage and key&lt;br&gt;material on disk" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="483" y="864" width="291" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-10" value="TB-10" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="437" y="886" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-10" value="Federation partner instance to local instance" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="483" y="885" width="291" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-badge-TB-11" value="TB-11" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="437" y="907" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-text-TB-11" value="Distribution channels and dependency suppliers to X-Road host" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="483" y="906" width="291" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="tb-legend-note" value="Red marks a privileged path:&amp;nbsp;crossing it can change something that the security of the system later depends on. Grey marks a non-privileged path." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=9;fontStyle=2;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="60" y="950" width="710" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-07" value="TB-07" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="531" y="281" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-3" value="TB-03" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="510" y="192" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-4" value="TB-03" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="670" y="191" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="badge-TB-01" value="TB-01" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">
+          <mxGeometry x="340" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-6" value="TB-02" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="400" y="512" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-9" value="TB-01" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="711" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-13" value="TB-08" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="200" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-14" value="TB-08" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="81" y="362" width="38" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="Vz3PPqXRlPlC4M2KNL2j-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#663CDC;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="VIbD7kYxOJ4_p_2dQ8vP-12" target="VIbD7kYxOJ4_p_2dQ8vP-9">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="210" as="sourcePoint" />
+            <mxPoint x="740" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="badge-TB-01-mgmt" value="TB-01" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4D4D4D;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="471" y="362" width="38" height="16" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
