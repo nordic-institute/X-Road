@@ -1,5 +1,22 @@
 # Change Log
 
+## 7.8.3 - 2026-08-14
+- XRDDEV-3262: Fix an issue with signature MIME part remaining unbounded.
+- XRDDEV-3263: Fix a hash chain verification-related security vulnerability affecting local/offline signature verification.
+- XRDDEV-3264: Fix an issue where cached certificate was trusted without checking configuration source.
+- XRDDEV-3265: Fix an issue where revoked or rotated configuration-signing certificates remained trusted in the Security/Central Server.
+- XRDDEV-3266: Fix an issue where paired registration requests could be auto-approved in the Central Server even when auto-approve flags are disabled.
+- XRDDEV-3267: Removed unnecessary permissions for XROAD_MANAGEMENT_SERVICE role.
+- XRDDEV-3268: Fix an issue where DTDs in SAAJ-based SOAP parsing were not rejected.
+- XRDDEV-3269: Fix an issue with Signature-XML DOM parser allowing DOCTYPE.
+- XRDDEV-3271: Fix a global configuration-related security vulnerability in the Configuration Client and Configuration Proxy.
+- XRDDEV-3272: Fix a global configuration-related security vulnerability in the Configuration Client and Configuration Proxy.
+- XRDDEV-3276: Fix an access control issue with the send-test-mail function in the Central Server.
+- XRDDEV-3277: Fix an issue with subsystem registration status resolution in the Central Server.
+- XRDDEV-3278: Fix a configuration client-related security vulnerability in the Security Server.
+- XRDDEV-3281: Fix an ACME HTTP-01 challenge handling-related security vulnerability in the Security Server.
+- XRDDEV-3301: Fix an issue with PKCS11Exception handling during hardware token worker refresh in the Security Server.
+
 ## 7.8.2 - 2026-07-03
 - XRDDEV-3236: Fix an issue with timestamping service cost type handling in Security Server version 7.8.1. The issue caused a backward compatibility issue between Security Server version 7.8.1 and Central Server versions earlier than 7.8.0.
 - XRDDEV-3237: Fix a vulnerability in the Apache CXF library by updating it to version 4.2.2. X-Road was not affected because the vulnerable classes are not used in its implementation.
