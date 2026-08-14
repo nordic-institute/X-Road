@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" modified="2026-08-13T12:46:54.265Z" version="21.5.1" etag="L7WnC5ZazzY33gBXTFMs" type="device">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" modified="2026-08-14T08:01:42.340Z" version="21.5.1" etag="qO1rGr0jZU8RAD7yXWGW" type="device">
   <diagram id="6XxPmeYir-KdUFz_AkcW" name="Page-1">
-    <mxGraphModel dx="223" dy="154" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="796" dy="549" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -374,7 +374,7 @@
         <mxCell id="legend-text-TB-11" value="Distribution channels and dependency suppliers to X-Road host" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=10;fontFamily=Helvetica;" parent="1" vertex="1">
           <mxGeometry x="483" y="906" width="291" height="18" as="geometry" />
         </mxCell>
-        <mxCell id="tb-legend-note" value="Red marks a privileged path: authentication, key management, software updates or administrative actions. Grey marks a non-privileged path." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=9;fontStyle=2;fontFamily=Helvetica;" parent="1" vertex="1">
+        <mxCell id="tb-legend-note" value="Red marks a privileged path:&amp;nbsp;crossing it can change something that the security of the system later depends on. Grey marks a non-privileged path." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=9;fontStyle=2;fontFamily=Helvetica;" parent="1" vertex="1">
           <mxGeometry x="60" y="950" width="710" height="26" as="geometry" />
         </mxCell>
         <mxCell id="badge-TB-07" value="TB-07" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#B20000;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Helvetica;" parent="1" vertex="1">

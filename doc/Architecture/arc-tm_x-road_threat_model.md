@@ -140,9 +140,24 @@ The components that make up the system are described in \[[ARC-G](#Ref_ARC-G)\] 
 
 ## 3 Trust Boundaries and Entry Points
 
+Trust boundaries are recorded in two registers: section 3.1 lists the boundaries themselves and section 3.2 the network entry points at which traffic reaches a component. Both registers distinguish privileged from non-privileged boundaries, and that distinction is explained first.
+
+The *Privileged* column answers one question about the traffic that crosses a boundary: **can it change how the system behaves afterwards, or does it only use the system as it is already configured?**
+
+A boundary is **privileged** when crossing it can change something that the security of the system later depends on:
+
+  * the configuration of a component — TB-03 and TB-04, the two administrative interfaces;
+  * key material — TB-08, where ACME issues and installs certificates, and TB-09, where the signer holds the private keys;
+  * the registry and trust data that other parties rely on — TB-05 distributes the security policy, TB-06 registers authentication certificates, TB-07 writes to the member registry, and TB-10 adds a federation partner as a trust root;
+  * the code that runs — TB-11, the software distribution channel.
+
+A boundary is **not privileged** when crossing it only uses the system under the rules already in force. TB-01 carries messages between Security Servers, and TB-02 carries them between an information system and its own Security Server. Both move business data, and neither changes a configuration setting, a key, a registry entry or an installed component.
+
+A boundary is marked privileged if even one flow across it meets the test, even when most of its traffic does not. TB-08 is marked on account of ACME certificate issuance alone; its OCSP and time-stamping traffic changes nothing.
+
 ### 3.1 Trust Boundary Register
 
-A trust boundary is a point at which data, an identity or an execution context crosses from a less trusted domain into a more trusted one, or the reverse. The *Privileged* column marks the boundaries that carry high-privilege flows — authentication, key management, software updates or administrative actions. The identifiers correspond to the markers on Figure 1.
+A trust boundary is a point at which data, an identity or an execution context crosses from a less trusted domain into a more trusted one, or the reverse. The identifiers correspond to the markers on Figure 1.
 
  ID    | Boundary | Lower-trust side | Higher-trust side | Crossing mechanism | Privileged | Reference
  ----- | -------- | ---------------- | ----------------- | ------------------ | ---------- | ---------
