@@ -35,6 +35,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -46,8 +48,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
-import org.niis.xroad.securityserver.restapi.acme.AcmeService;
+import org.niis.xroad.securityserver.restapi.converter.AcmeKeyPurposeMapping;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -237,7 +238,8 @@ public class TokenCertificateService {
                 ? CertUtils.convertPemCsrToDer(generatedCertRequestInfo.certRequest())
                 : generatedCertRequestInfo.certRequest();
         List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
-                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberEncodedId, derCsr);
+                subjectFieldValues.get("CN"), subjectAltName, AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage), caInfo, memberEncodedId,
+                derCsr, mailNotificationHelper.getAcmeContacts(memberEncodedId));
         if (chain != null) {
             log.info("Acme order was successful, importing certificate");
             try {
@@ -461,7 +463,9 @@ public class TokenCertificateService {
         X509Certificate caX509Certificate = globalConfProvider.getCaCert(memberId.getXRoadInstance(), x509Certificate);
         ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {
-            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId.asEncodedId(), approvedCA, x509Certificate, keyUsageInfo);
+            String memberEncodedId = memberId.asEncodedId();
+            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberEncodedId, approvedCA, x509Certificate,
+                    AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsageInfo), mailNotificationHelper.getAcmeContacts(memberEncodedId));
             signerRpcClient.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
         }
     }
@@ -1101,10 +1105,11 @@ public class TokenCertificateService {
             List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
                     commonName,
                     subjectAltName,
-                    keyUsage,
+                    AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage),
                     caInfo,
                     memberId,
-                    generatedCertRequestInfo.certRequest());
+                    generatedCertRequestInfo.certRequest(),
+                    mailNotificationHelper.getAcmeContacts(memberId));
             if (chain != null) {
                 try {
                     importCertificate(chain.get(0).getEncoded(), false, true);

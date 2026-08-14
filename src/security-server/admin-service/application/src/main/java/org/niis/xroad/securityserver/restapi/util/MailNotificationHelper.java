@@ -39,6 +39,7 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CertUtils.isSigningCert;
@@ -173,6 +174,16 @@ public class MailNotificationHelper {
                     .map(contacts -> contacts.get(memberId))
                     .ifPresent(address -> mailService.sendMailAsync(address, title, content));
         }
+    }
+
+    /**
+     * Resolves the ACME account contact email configured for the given member, if any.
+     */
+    public List<String> getAcmeContacts(String memberId) {
+        return Optional.ofNullable(mailNotificationProperties.getContacts())
+                .map(contacts -> contacts.get(memberId))
+                .map(List::of)
+                .orElse(List.of());
     }
 
     public void sendTestMail(String recipientAddress, String securityServerId) {

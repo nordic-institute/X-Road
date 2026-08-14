@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -40,7 +41,6 @@ import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.mail.NotificationConfig;
 import org.springframework.util.unit.DataSize;
 
@@ -267,6 +267,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         return config.value(AdminServiceConfigKeys.ACME_KEY_LENGTH);
     }
 
+    @Override
     public String getAcmeAccountKeystorePath() {
         return config.value(AdminServiceConfigKeys.ACME_ACCOUNT_KEYSTORE_PATH);
     }
