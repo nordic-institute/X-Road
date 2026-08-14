@@ -223,7 +223,7 @@ The table lists what an attacker would target: key material and the certificates
 
 ## 5 Threat Scenarios
 
-The scenarios below are the prioritised top threats for the X-Road core software, rated using the method in section 1.3. The owner of every scenario is NIIS, as the software steward of the X-Road core software. Controls and their verification are in section 6.
+The scenarios below are the prioritised top threats for the X-Road core software, rated using the method in section 1.3. The owner of every scenario is NIIS, as the open-source software steward of the X-Road core software. Controls and their verification are in section 6.
 
  ID    | Threat scenario | Boundary | Assets | Impact | Likelihood | Priority | Owner
  ----- | --------------- | -------- | ------ | ------ | ---------- | -------- | -----
