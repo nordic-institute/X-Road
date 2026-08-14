@@ -623,6 +623,7 @@
     "noPermission": "See turvaserver pole hetkel lähtestatud, algkonfigureerimiseks võtke ühendust administraatoriga",
     "pin": {
       "confirmPin": "Kinnita PIN",
+      "enableAutologin": "Luba krüptomooduli automaatne sisselogimine",
       "info1": "Tarkvaraline krüptomoodul on koht, kuhu on salvestatud turvaserveri AUTH võtmed. Tarkvaralisse krüptomoodulisse sisselogimiseks määrake PIN.",
       "info2": "Kõik vajalik teave on kogutud, turvaserveri lähtestamiseks vajutage esitamise nuppu.",
       "info3": "Pärast lähtestamist tuleb turvaserveri konfigureerimine lõpule viia – klõpsake lihtsalt konfigureerimise nuppu hüpikteates, mis ilmub mõne hetke jooksul.",

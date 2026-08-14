@@ -38,4 +38,5 @@ public class InitializationStatus {
     private boolean isServerOwnerInitialized;
     private TokenInitStatusInfo softwareTokenInitStatusInfo = TokenInitStatusInfo.UNKNOWN;
     private Boolean tokenPinPolicyEnforced;
+    private Boolean softwareTokenAutologinEnabled;
 }

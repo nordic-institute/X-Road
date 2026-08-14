@@ -91,7 +91,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     public void initSecurityServerFail() throws Exception {
         InitialServerConfDto initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
         Mockito.doThrow(new InitializationService.AnchorNotFoundException("err"))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -100,7 +100,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InitializationService.ServerAlreadyFullyInitializedException(""))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -109,7 +109,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InitializationService.InvalidInitParamsException("", Collections.emptyList()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -118,7 +118,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new UnhandledWarningsException(Collections.emptyList()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -127,7 +127,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InvalidCharactersException(""))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -136,7 +136,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new WeakPinException("", Collections.emptyList()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -145,7 +145,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InitializationService.SoftwareTokenInitException("", new Exception()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");

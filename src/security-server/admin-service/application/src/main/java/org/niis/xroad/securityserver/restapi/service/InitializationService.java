@@ -50,6 +50,7 @@ import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +61,9 @@ import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
@@ -98,6 +102,7 @@ public class InitializationService {
     private final SecurityServerBackupService securityServerBackupService;
     private final EncryptionInitializationService encryptionInitializationService;
     private final DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
+    private final ConfigurablePropertiesService configurablePropertiesService;
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
@@ -121,6 +126,7 @@ public class InitializationService {
         initializationStatus.setServerOwnerInitialized(isServerOwnerInitialized);
         initializationStatus.setSoftwareTokenInitStatusInfo(tokenInitStatus);
         initializationStatus.setTokenPinPolicyEnforced(isTokenPinPolicyEnforced());
+        initializationStatus.setSoftwareTokenAutologinEnabled(isSoftwareTokenAutologinEnabled());
         return initializationStatus;
     }
 
@@ -133,6 +139,12 @@ public class InitializationService {
         return null;
     }
 
+    private Boolean isSoftwareTokenAutologinEnabled() {
+        return configurablePropertiesService.getEffectiveValue(SignerConfigKeys.AUTOLOGIN_ENABLED.key())
+                .map(Boolean::parseBoolean)
+                .orElse(null);
+    }
+
     /**
      * Initialize a new Security Server with the provided parameters. Supports partial initialization which means
      * that if e.g. software token has already been initialized, it will not get initialized again, therefore the
@@ -143,6 +155,8 @@ public class InitializationService {
      * @param ownerMemberCode    member code of the new owner member
      * @param softwareTokenPin   pin code for the initial software token (softToken-0)
      * @param ignoreWarnings     whether to skip initialization warnings all in all
+     * @param enableSoftwareTokenAutologin whether to enable software token autologin. {@code null} leaves the
+     *                           current autologin setting unchanged (skip)
      * @throws AnchorFileNotFoundException            if an anchor has not been imported
      * @throws UnhandledWarningsException             if a server code already initialized
      *                                                OR server owner already initialized
@@ -159,7 +173,8 @@ public class InitializationService {
      * @throws ServerAlreadyFullyInitializedException if the server has already been fully initialized
      */
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
-                           String softwareTokenPin, boolean ignoreWarnings) throws UnhandledWarningsException {
+                           String softwareTokenPin, boolean ignoreWarnings,
+                           Boolean enableSoftwareTokenAutologin) throws UnhandledWarningsException {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
@@ -191,6 +206,9 @@ public class InitializationService {
         ServerConfEntity serverConf = createInitialServerConf(ownerClientId, securityServerCode);
         if (!isSoftwareTokenInitialized) {
             initializeSoftwareToken(softwareTokenPin);
+        }
+        if (enableSoftwareTokenAutologin != null) {
+            updateSoftwareTokenAutologin(enableSoftwareTokenAutologin);
         }
 
         // the same algorithm is used in get_security_server_id.sh script
@@ -306,6 +324,21 @@ public class InitializationService {
             // not good
             throw new SoftwareTokenInitException("Error initializing software token", e);
         }
+    }
+
+    /**
+     * Helper to enable or disable software token autologin via the same configurable-properties mechanism
+     * used by Settings -&gt; System Parameters. Takes effect once the signer service is next restarted.
+     *
+     * @param enableSoftwareTokenAutologin whether autologin should be enabled
+     */
+    private void updateSoftwareTokenAutologin(boolean enableSoftwareTokenAutologin) {
+        String autologinKey = SignerConfigKeys.AUTOLOGIN_ENABLED.key();
+        auditDataHelper.put(SYSTEM_PROPERTY_NAME, autologinKey);
+        auditDataHelper.put(SYSTEM_PROPERTY_NEW_VALUE, String.valueOf(enableSoftwareTokenAutologin));
+        configurablePropertiesService.updateConfigurableProperty(
+                autologinKey, String.valueOf(enableSoftwareTokenAutologin),
+                oldValue -> auditDataHelper.put(SYSTEM_PROPERTY_OLD_VALUE, oldValue));
     }
 
     /**

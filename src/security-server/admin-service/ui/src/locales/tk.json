@@ -551,6 +551,7 @@
     "noPermission": "Bu Howpsuzlyk Serweri häzirki wagtda işe girizilmedi, başlangyç konfigurasiýany ýerine ýetirmek üçin administrator bilen habarlaşmagyňyzy haýyş edýäris",
     "pin": {
       "confirmPin": "PIN tassykla",
+      "enableAutologin": "Tokeniniň awtomatiki ulgama girişini işjeňleştir",
       "info1": "Programma tokeni bu Howpsuzlyk serweriň AUTH açarlarynyň saklanylýan ýeri. Programma tokene girmek üçin PIN kesgitlemegiňizi haýyş edýäris.",
       "info2": "Ähli zerur maglumat jemlendi, Howpsuzlyk serweri işe girizmek üçin Ugrat düwmüni bas.",
       "info3": "Işe girizilmek bilen bagly işler tamamalansoň, Howpsuzlyk serweriň konfigurasiýasynyň sazlamalaryny gutarmaly - onjuň üçin, birnäçe sekuntdan soň çykan bildirişde ýerleşýän \"Sazlama\" düwmesine bassyň.",

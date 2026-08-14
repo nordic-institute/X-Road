@@ -133,12 +133,13 @@ export default defineComponent({
     ...mapActions(useAlerts, ['checkAlertStatus']),
     ...mapActions(useUser, ['setInitializationStatus', 'fetchInitializationStatus', 'fetchCurrentSecurityServer']),
     ...mapActions(useInitializeServer, ['initializeServer']),
-    tokenPinReady(pin: string): void {
+    tokenPinReady(payload: { pin: string; enableAutologin: boolean }): void {
       this.pinSaveBusy = true;
 
       this.requestPayload = {
-        software_token_pin: pin,
+        software_token_pin: payload.pin,
         ignore_warnings: false,
+        enable_software_token_autologin: payload.enableAutologin,
       };
 
       // If owner member is not already set up add it

@@ -120,6 +120,20 @@ public class ConfigurablePropertiesService {
     }
 
     /**
+     * Returns the effective value of a single configurable property: the stored override if one
+     * exists, otherwise the registry's declared default.
+     *
+     * @param propertyKey unique key of the system property
+     * @return the effective value, or empty if the property is not defined/exposed in this catalogue
+     */
+    public Optional<String> getEffectiveValue(String propertyKey) {
+        return findExposedKey(propertyKey)
+                .map(key -> repository.findConfigurationPropertyByPropertyKey(propertyKey)
+                        .map(ConfigurationPropertyEntity::getPropertyValue)
+                        .orElseGet(key::defaultValue));
+    }
+
+    /**
      * Updates the value of an existing system parameter or creates a new one
      * if the property does not yet exist in the repository.
      * <p>
