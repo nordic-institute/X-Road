@@ -26,40 +26,47 @@
  */
 
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
-import { saveResponseAsFile, multipartFormDataConfig } from '@niis/shared-ui';
-
-// A DS TLS certificate that has never been uploaded or enrolled - a normal, expected state
-// rather than an error - since manual upload (this slice) and ACME enrollment (a later one)
-// are both opt-in.
-const NOT_CONFIGURED: CertificateDetails = { hash: '' } as CertificateDetails;
+import {
+  CertificateDetails,
+  DistinguishedName,
+  DsTlsCertificateStatus,
+  buildFileFormData,
+  multipartFormDataConfig,
+  saveResponseAsFile,
+} from '@niis/shared-ui';
 
 export const useDsTlsCertificate = defineStore('ds-tls-certificate', {
   state: () => ({}),
   getters: {},
 
   actions: {
-    async fetchDsTlsCertificate() {
-      return api
-        .get<CertificateDetails>('/ds-tls-certificate')
-        .then((res) => res.data)
-        .catch((error) => {
-          if (axios.isAxiosError(error) && error.response?.status === 404) {
-            return NOT_CONFIGURED;
-          }
-          throw error;
-        });
+    async fetchDsTlsCertificateStatus() {
+      return api.get<DsTlsCertificateStatus>('/ds-tls-certificate').then((res) => res.data);
     },
-    async uploadCertificate(certificate: File, key?: File) {
-      const formData = new FormData();
-      formData.set('key', key as File, (key as File).name);
-      formData.set('certificate', certificate, certificate.name);
-      return api.post('/ds-tls-certificate/import', formData, multipartFormDataConfig());
+    async fetchDsTlsCertificate() {
+      return this.fetchDsTlsCertificateStatus().then((status) => status.certificate ?? ({ hash: '' } as CertificateDetails));
+    },
+    async generateKey() {
+      return api.post('/ds-tls-certificate/key', undefined);
+    },
+    async generateCsr(distinguishedName: string) {
+      const body: DistinguishedName = { name: distinguishedName };
+      return api.post('/ds-tls-certificate/csr', body, { responseType: 'blob' }).then((res) => {
+        saveResponseAsFile(res, 'ds-tls-cert-request.p10');
+      });
+    },
+    async uploadCertificate(certificate: File) {
+      return api.post<CertificateDetails>(
+        '/ds-tls-certificate/certificate',
+        buildFileFormData('certificate', certificate),
+        multipartFormDataConfig(),
+      );
     },
     async downloadCertificate() {
-      return api.get('/ds-tls-certificate/export', { responseType: 'blob' }).then((res) => saveResponseAsFile(res, 'ds-tls-certs.tar.gz'));
+      return api
+        .get('/ds-tls-certificate/certificate', { responseType: 'blob' })
+        .then((res) => saveResponseAsFile(res, 'ds-tls-certificate.tar.gz'));
     },
   },
 });

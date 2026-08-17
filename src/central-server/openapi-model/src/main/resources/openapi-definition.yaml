@@ -18,8 +18,6 @@ tags:
     description: resources related to Backups and Backup Restoration
   - name: certification-services
     description: resources related to Certification Services
-  - name: ds-tls-certificate
-    description: resources related to the manually or automatically provisioned DataSpace TLS certificate
   - name: ds-tls-certification-authorities
     description: resources related to approved DataSpace TLS certification authorities
   - name: ds-tls-intermediate-cas
@@ -561,87 +559,6 @@ paths:
       summary: add an ocsp responder to a certification service
       tags:
         - certification-services
-  /ds-tls-certificate:
-    get:
-      description: <h3>Administrator views the DataSpace TLS certificate's details and status.</h3>
-      operationId: getDsTlsCertificate
-      responses:
-        '200':
-          description: certificate information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CertificateDetails'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          description: no DataSpace TLS certificate has been provisioned yet
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: view the DataSpace TLS certificate information
-      tags:
-        - ds-tls-certificate
-  /ds-tls-certificate/download-certificate:
-    get:
-      description: <h3>Administrator downloads the DataSpace TLS certificate.</h3>
-      operationId: downloadDsTlsCertificate
-      responses:
-        '200':
-          description: information fetched successfully
-          content:
-            application/gzip:
-              schema:
-                type: string
-                format: binary
-                description: certificate file
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          description: no DataSpace TLS certificate has been provisioned yet
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: download the DataSpace TLS certificate as gzip compressed tar archive
-      tags:
-        - ds-tls-certificate
-  /ds-tls-certificate/upload-certificate:
-    post:
-      description:
-        <h3>Administrator uploads an operator-provided DataSpace TLS private key and certificate chain.</h3>
-      operationId: uploadDsTlsCertificate
-      requestBody:
-        description: private key and certificate chain
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TlsKeyAndCertificateFile'
-      responses:
-        '200':
-          description: DataSpace TLS key and certificate stored
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CertificateDetails'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: upload a new DataSpace TLS private key and certificate chain
-      tags:
-        - ds-tls-certificate
   /ds-tls-certification-authorities:
     get:
       description: <h3>CS administrator views the list of approved DataSpace TLS certification authorities.</h3>
@@ -4004,21 +3921,6 @@ components:
           format: binary
           type: string
       required:
-        - certificate
-      type: object
-    TlsKeyAndCertificateFile:
-      description: private key and certificate chain file pair
-      properties:
-        key:
-          description: the private key file (PEM, PKCS#1 or PKCS#8, RSA or EC)
-          format: binary
-          type: string
-        certificate:
-          description: the certificate or certificate chain file (PEM, leaf certificate first)
-          format: binary
-          type: string
-      required:
-        - key
         - certificate
       type: object
     CertificationServiceFileAndSettings:

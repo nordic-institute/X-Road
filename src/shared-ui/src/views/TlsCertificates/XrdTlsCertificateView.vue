@@ -126,7 +126,6 @@
       <UploadCertificateDialog
         v-if="showUploadCertificateDialog"
         :handler="handler"
-        :require-key-file="requireKeyUpload"
         @upload="closeUploadCertificateDialog"
         @cancel="showUploadCertificateDialog = false"
       />
@@ -190,12 +189,6 @@ export default defineComponent({
     certDetailsViewName: {
       type: String,
       required: true,
-    },
-    // When true, the upload dialog also collects a private key file alongside the certificate,
-    // for views where the operator brings their own key rather than one generated on this server.
-    requireKeyUpload: {
-      type: Boolean,
-      default: false,
     },
   },
   setup() {

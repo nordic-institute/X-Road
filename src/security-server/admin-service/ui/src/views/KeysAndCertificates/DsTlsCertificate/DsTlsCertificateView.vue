@@ -29,13 +29,17 @@
     title="tab.keys.dsTlsCertificate"
     :can-view-certificate="true"
     :can-upload="uploadCertificateVisible"
-    :can-generate-csr="false"
+    :can-generate-csr="generateCsrVisible"
     :can-download="downloadCertificateVisible"
-    :can-generate-key="false"
-    require-key-upload
+    :can-generate-key="generateKeyVisible"
     :handler="handler"
     :cert-details-view-name="certDetailsView"
   >
+    <template #append-header>
+      <v-chip v-if="keyGeneratedPending" color="warning" variant="outlined" class="ml-2">
+        {{ $t('dsTlsCertificate.keyGeneratedPending') }}
+      </v-chip>
+    </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
     </template>
@@ -43,30 +47,44 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate } from '@niis/shared-ui';
+import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate, DsTlsCertificateStatus } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 
 const { hasPermission } = useUser();
-const { fetchDsTlsCertificate, downloadCertificate, uploadCertificate } = useDsTlsCertificate();
+const { fetchDsTlsCertificateStatus, downloadCertificate, uploadCertificate, generateCsr, generateKey } = useDsTlsCertificate();
 
 const certDetailsView = RouteName.DsTlsCertificateDetails;
 
 const uploadCertificateVisible = computed(() => hasPermission(Permissions.UPLOAD_DS_TLS_CERT));
 const downloadCertificateVisible = computed(() => hasPermission(Permissions.DOWNLOAD_DS_TLS_CERT));
+const generateKeyVisible = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_KEY));
+const generateCsrVisible = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_CSR));
+
+const status = ref<DsTlsCertificateStatus | null>(null);
+const keyGeneratedPending = computed(() => status.value?.key_generated === true && !status.value?.certificate);
 
 const handler = computed<TlsCertificatesHandler>(() => ({
   downloadCertificate(): Promise<unknown> {
     return downloadCertificate();
   },
   fetchTlsCertificate(): Promise<TlsCertificate> {
-    return fetchDsTlsCertificate();
+    return fetchDsTlsCertificateStatus().then((current) => {
+      status.value = current;
+      return current.certificate ?? { hash: '' };
+    });
   },
-  uploadCertificate(file: File, keyFile?: File): Promise<unknown> {
-    return uploadCertificate(file, keyFile);
+  generateKey(): Promise<unknown> {
+    return generateKey();
+  },
+  generateCsr(distinguishedName: string): Promise<unknown> {
+    return generateCsr(distinguishedName);
+  },
+  uploadCertificate(file: File): Promise<unknown> {
+    return uploadCertificate(file);
   },
 }));
 </script>

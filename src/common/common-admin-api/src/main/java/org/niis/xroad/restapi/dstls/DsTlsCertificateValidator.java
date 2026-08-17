@@ -28,21 +28,10 @@ package org.niis.xroad.restapi.dstls;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Signature;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
@@ -52,12 +41,14 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_NOT_YET_VALID;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_PARSE_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_CERTIFICATE_MISMATCH;
-import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_PARSE_FAILED;
 
 /**
- * Shared validator for a manually uploaded DS TLS private key and certificate chain, used by both Security
- * Server and Central Server admin services. Checks that the material parses, that the leaf certificate's
- * validity window covers the current time, and that the key matches the leaf certificate's public key.
+ * Shared validator for a manually uploaded DS TLS certificate chain, used by both Security Server and Central
+ * Server admin services. The private key never crosses the admin API: the key is generated and kept server-side,
+ * and an upload only ever carries a certificate chain whose leaf public key must match the stored key.
+ * <p>
+ * Checks that the chain parses, that the leaf certificate's validity window covers the current time, and that
+ * the leaf certificate's public key equals the expected (stored) public key.
  * <p>
  * Deliberately does not verify that the chain is signed by a designated {@code approvedDsTlsCa} entry -
  * peers enforce that trust, the upload only needs to be internally consistent.
@@ -65,44 +56,25 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_PARSE_FA
 @Component
 public class DsTlsCertificateValidator {
 
-    private static final byte[] KEY_MATCH_CHALLENGE = "x-road-ds-tls-key-certificate-match".getBytes(StandardCharsets.UTF_8);
-
     /**
-     * Parses and validates an uploaded private key and certificate chain.
+     * Parses and validates an uploaded certificate chain against the expected public key.
      *
-     * @param keyBytes              PEM encoded private key (PKCS#1 or PKCS#8, RSA or EC)
+     * @param expectedPublicKey     the public key the leaf certificate must carry, i.e. the stored DS TLS key's
+     *                              public key
      * @param certificateChainBytes PEM encoded certificate or certificate chain, leaf certificate first
-     * @return the parsed key and certificate chain
+     * @return the parsed certificate chain, leaf certificate first
      * @throws BadRequestException with an actionable {@link org.niis.xroad.common.core.exception.ErrorCode}
-     *                              if the material is malformed, expired/not yet valid, or the key and
-     *                              certificate do not match
+     *                              if the material is malformed, expired/not yet valid, or the leaf certificate's
+     *                              public key does not match the expected key
      */
-    public DsTlsUploadMaterial validate(byte[] keyBytes, byte[] certificateChainBytes) {
-        PrivateKey key = parsePrivateKey(keyBytes);
+    public X509Certificate[] validate(PublicKey expectedPublicKey, byte[] certificateChainBytes) {
         X509Certificate[] chain = parseCertificateChain(certificateChainBytes);
         X509Certificate leaf = chain[0];
 
         checkValidityWindow(leaf);
-        checkKeyMatchesCertificate(key, leaf.getPublicKey());
+        checkKeyMatches(expectedPublicKey, leaf.getPublicKey());
 
-        return new DsTlsUploadMaterial(key, chain);
-    }
-
-    private PrivateKey parsePrivateKey(byte[] keyBytes) {
-        try (PEMParser pemParser = new PEMParser(
-                new InputStreamReader(new ByteArrayInputStream(keyBytes), StandardCharsets.UTF_8))) {
-            Object parsed = pemParser.readObject();
-            var converter = new JcaPEMKeyConverter();
-            if (parsed instanceof PEMKeyPair pemKeyPair) {
-                return converter.getKeyPair(pemKeyPair).getPrivate();
-            }
-            if (parsed instanceof PrivateKeyInfo privateKeyInfo) {
-                return converter.getPrivateKey(privateKeyInfo);
-            }
-            throw new BadRequestException(DS_TLS_KEY_PARSE_FAILED.build());
-        } catch (IOException e) {
-            throw new BadRequestException(e, DS_TLS_KEY_PARSE_FAILED.build());
-        }
+        return chain;
     }
 
     private X509Certificate[] parseCertificateChain(byte[] certificateChainBytes) {
@@ -128,32 +100,9 @@ public class DsTlsCertificateValidator {
         }
     }
 
-    private void checkKeyMatchesCertificate(PrivateKey key, PublicKey certificatePublicKey) {
-        try {
-            String signatureAlgorithm = signatureAlgorithmFor(key.getAlgorithm());
-
-            Signature signer = Signature.getInstance(signatureAlgorithm);
-            signer.initSign(key);
-            signer.update(KEY_MATCH_CHALLENGE);
-            byte[] signature = signer.sign();
-
-            Signature verifier = Signature.getInstance(signatureAlgorithm);
-            verifier.initVerify(certificatePublicKey);
-            verifier.update(KEY_MATCH_CHALLENGE);
-
-            if (!verifier.verify(signature)) {
-                throw new BadRequestException(DS_TLS_KEY_CERTIFICATE_MISMATCH.build());
-            }
-        } catch (GeneralSecurityException e) {
-            throw new BadRequestException(e, DS_TLS_KEY_CERTIFICATE_MISMATCH.build());
+    private void checkKeyMatches(PublicKey expectedPublicKey, PublicKey leafPublicKey) {
+        if (!expectedPublicKey.equals(leafPublicKey)) {
+            throw new BadRequestException(DS_TLS_KEY_CERTIFICATE_MISMATCH.build());
         }
-    }
-
-    private String signatureAlgorithmFor(String keyAlgorithm) {
-        return switch (keyAlgorithm) {
-            case "RSA" -> "SHA256withRSA";
-            case "EC" -> "SHA256withECDSA";
-            default -> throw new BadRequestException(DS_TLS_KEY_PARSE_FAILED.build());
-        };
     }
 }

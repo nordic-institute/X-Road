@@ -33,9 +33,8 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 
-import { useRunning, XrdCertificate, XrdElevatedViewFixedWidth } from '@niis/shared-ui';
+import { useRunning, XrdCertificate, XrdElevatedViewFixedWidth, CertificateDetails as CertificateDetailsType } from '@niis/shared-ui';
 
-import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 import { RouteName } from '@/global';
 import { useI18n } from 'vue-i18n';

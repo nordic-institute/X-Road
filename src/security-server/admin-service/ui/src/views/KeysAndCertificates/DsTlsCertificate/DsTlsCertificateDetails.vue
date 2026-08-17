@@ -32,8 +32,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { CertificateDetails } from '@/openapi-types';
-import { XrdElevatedViewFixedWidth, XrdCertificate, useNotifications } from '@niis/shared-ui';
+import { CertificateDetails, XrdElevatedViewFixedWidth, XrdCertificate, useNotifications } from '@niis/shared-ui';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 import { useRouter } from 'vue-router';
 import { RouteName } from '@/global';

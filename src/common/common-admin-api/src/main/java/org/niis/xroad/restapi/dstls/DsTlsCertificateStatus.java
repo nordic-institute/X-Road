@@ -24,31 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.restapi.dstls;
 
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import java.security.cert.X509Certificate;
 
 /**
- * Manages the manually uploaded DataSpace TLS certificate stored in OpenBao at {@code tls/ds-https}.
+ * The DS TLS certificate slot's current state: whether a key has been generated (manually or, in a later slice,
+ * by ACME enrollment) and, once a certificate chain has been acquired for it, the leaf certificate.
+ *
+ * @param keyGenerated whether the {@code tls/ds-https} vault slot holds a private key
+ * @param certificate  the leaf certificate, or {@code null} if none has been acquired yet
  */
-public interface DsTlsCertificateService {
+public record DsTlsCertificateStatus(boolean keyGenerated, X509Certificate certificate) {
 
-    /**
-     * @return the current DS TLS certificate's details, or {@code null} if none has been provisioned yet
-     */
-    CertificateDetails getTlsCertificateDetails();
-
-    /**
-     * @return the current DS TLS certificate packaged as a gzip compressed tar archive
-     */
-    byte[] getTlsCertificateTar();
-
-    /**
-     * Validates and stores an operator-provided private key and certificate chain.
-     *
-     * @param keyBytes              PEM encoded private key
-     * @param certificateChainBytes PEM encoded certificate chain, leaf certificate first
-     * @return the stored certificate's details
-     */
-    CertificateDetails uploadCertificate(byte[] keyBytes, byte[] certificateChainBytes);
+    public boolean certificateAcquired() {
+        return certificate != null;
+    }
 }

@@ -25,43 +25,48 @@
  * THE SOFTWARE.
  */
 
-import axios from 'axios';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { saveResponseAsFile, multipartFormDataConfig } from '@niis/shared-ui';
-
-// A DS TLS certificate that has never been uploaded or enrolled - a normal, expected state
-// rather than an error - since manual upload (this slice) and ACME enrollment (a later one)
-// are both opt-in.
-const NOT_CONFIGURED: CertificateDetails = { hash: '' } as CertificateDetails;
+import {
+  CertificateDetails,
+  DistinguishedName,
+  DsTlsCertificateStatus,
+  buildFileFormData,
+  multipartFormDataConfig,
+  saveResponseAsFile,
+} from '@niis/shared-ui';
 
 export const useDsTlsCertificate = defineStore('dsTlsCertificate', {
   state: () => ({}),
   getters: {},
 
   actions: {
+    getStatus() {
+      return api.get<DsTlsCertificateStatus>('/ds-tls-certificate').then((res) => res.data);
+    },
     getCertificate() {
-      return api
-        .get<CertificateDetails>('/ds-tls-certificate')
-        .then((res) => res.data)
-        .catch((error) => {
-          if (axios.isAxiosError(error) && error.response?.status === 404) {
-            return NOT_CONFIGURED;
-          }
-          throw error;
-        });
+      return this.getStatus().then((status) => status.certificate ?? ({ hash: '' } as CertificateDetails));
+    },
+    generateKey() {
+      return api.post('/ds-tls-certificate/key', undefined);
+    },
+    generateCsr(distinguishedName: string) {
+      const body: DistinguishedName = { name: distinguishedName };
+      return api.post('/ds-tls-certificate/csr', body, { responseType: 'blob' }).then((res) => {
+        saveResponseAsFile(res, 'ds-tls-cert-request.p10');
+      });
     },
     downloadCertificate() {
-      return api.get('/ds-tls-certificate/download-certificate', { responseType: 'blob' }).then((res) => {
+      return api.get('/ds-tls-certificate/certificate', { responseType: 'blob' }).then((res) => {
         saveResponseAsFile(res, 'ds-tls-certificate.tar.gz');
       });
     },
-    uploadCertificate(certificate: File, key?: File) {
-      const formData = new FormData();
-      formData.set('key', key as File, (key as File).name);
-      formData.set('certificate', certificate, certificate.name);
-      return api.post('/ds-tls-certificate/upload-certificate', formData, multipartFormDataConfig());
+    uploadCertificate(certificate: File) {
+      return api.post<CertificateDetails>(
+        '/ds-tls-certificate/certificate',
+        buildFileFormData('certificate', certificate),
+        multipartFormDataConfig(),
+      );
     },
   },
 });

@@ -183,6 +183,9 @@
     "requiredIf": "The {fieldName} field is required",
     "description": "Use valid description characters only"
   },
+  "dsTlsCertificate": {
+    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending"
+  },
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"

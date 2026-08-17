@@ -328,7 +328,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED("dsp_participant_scheme_version_unsupported"),
 
     // ===== DS TLS CERTIFICATE ERRORS =====
-    DS_TLS_KEY_PARSE_FAILED("ds_tls_key_parse_failed"),
+    DS_TLS_KEY_NOT_GENERATED("ds_tls_key_not_generated"),
     DS_TLS_CERTIFICATE_PARSE_FAILED("ds_tls_certificate_parse_failed"),
     DS_TLS_CERTIFICATE_NOT_YET_VALID("ds_tls_certificate_not_yet_valid"),
     DS_TLS_CERTIFICATE_EXPIRED("ds_tls_certificate_expired"),

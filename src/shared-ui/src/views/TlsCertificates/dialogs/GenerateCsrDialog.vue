@@ -91,7 +91,8 @@ const { loading } = useBasicForm();
 function submit(evt: Event, handler: DialogSaveHandler) {
   handleSubmit((values) => {
     loading.value = true;
-    props.handler.generateCsr!(values.distinguishedName)
+    props.handler
+      .generateCsr(values.distinguishedName)
       .then(() => emit('generate'))
       .catch((error) => {
         handler.addError(error);

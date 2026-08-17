@@ -16,6 +16,9 @@
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
     "description": "Use valid description characters only"
   },
+  "dsTlsCertificate": {
+    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending"
+  },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",

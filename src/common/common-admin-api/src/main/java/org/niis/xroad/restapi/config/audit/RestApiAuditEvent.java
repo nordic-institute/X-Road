@@ -195,7 +195,9 @@ public enum RestApiAuditEvent {
     GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT("Generate management service TLS key and self-sign certificate"),
     UPLOAD_MANAGEMENT_SERVICE_TLS_CERT("Upload management service TLS certificate"),
 
-    UPLOAD_DS_TLS_CERT("Upload data space TLS key and certificate");
+    GENERATE_DS_TLS_KEY("Generate data space TLS key"),
+    GENERATE_DS_TLS_CSR("Generate data space TLS certificate signing request"),
+    UPLOAD_DS_TLS_CERT("Upload data space TLS certificate");
     private final String eventName;
 
     RestApiAuditEvent(String eventName) {

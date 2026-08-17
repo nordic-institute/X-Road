@@ -72,7 +72,8 @@ export default defineComponent({
   },
   methods: {
     generate() {
-      this.handler.generateKey!()
+      this.handler
+        .generateKey()
         .then(() => {
           this.addSuccessMessage('tlsCertificates.generateKey.success');
           this.$emit('accept');

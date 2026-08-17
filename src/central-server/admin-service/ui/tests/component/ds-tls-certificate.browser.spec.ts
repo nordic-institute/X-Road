@@ -33,34 +33,81 @@ import { Permissions } from '@/global';
 
 const DS_TLS_CERTIFICATE_PATH = '/settings/ds-tls-certificate';
 
-const allPermissions = [Permissions.VIEW_DS_TLS_CERT, Permissions.DOWNLOAD_DS_TLS_CERT, Permissions.UPLOAD_DS_TLS_CERT];
+const allPermissions = [
+  Permissions.VIEW_DS_TLS_CERT,
+  Permissions.DOWNLOAD_DS_TLS_CERT,
+  Permissions.GENERATE_DS_TLS_KEY,
+  Permissions.GENERATE_DS_TLS_CSR,
+  Permissions.UPLOAD_DS_TLS_CERT,
+];
 
-describe('0870 — CS DS TLS Certificate — not yet configured (Browser Mode)', () => {
-  it('shows the upload button when no certificate has been provisioned yet', async () => {
+describe('CS DS TLS Certificate — no key generated yet (Browser Mode)', () => {
+  it('shows the generate key button', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false }))],
+    });
+
+    await expect.element(page.getByTestId('management-service-certificate-generateKey')).toBeVisible();
+  });
+
+  it('generates a key', async () => {
+    const generateSpy = vi.fn();
+
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () =>
-          HttpResponse.json({ status: 404, error: { code: 'ds_tls_certificate_not_configured' } }, { status: 404 }),
-        ),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false })),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/key', () => {
+          generateSpy();
+          return new HttpResponse(null, { status: 201 });
+        }),
       ],
     });
 
-    await expect.element(page.getByTestId('upload-management-service-certificate')).toBeVisible();
+    await page.getByTestId('management-service-certificate-generateKey').click();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.poll(() => generateSpy.mock.calls.length).toBeGreaterThan(0);
   });
 });
 
-describe('0870 — CS DS TLS Certificate — upload requires both a key and a certificate (Browser Mode)', () => {
-  it('disables save until both a private key and a certificate are selected, then uploads both files', async () => {
+describe('CS DS TLS Certificate — key generated, certificate pending (Browser Mode)', () => {
+  it('shows the pending badge and offers CSR generation', async () => {
+    const csrSpy = vi.fn();
+
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/csr', async ({ request }) => {
+          csrSpy(await request.json());
+          return HttpResponse.arrayBuffer(new ArrayBuffer(0), { status: 200 });
+        }),
+      ],
+    });
+
+    await expect.element(page.getByText('DataSpace TLS key generated')).toBeVisible();
+    await expect.element(page.getByTestId('management-service-certificate-generateCsr')).toBeVisible();
+
+    await page.getByTestId('management-service-certificate-generateCsr').click();
+    await page.getByTestId('enter-distinguished-name').getByRole('textbox').fill('CN=ds.example.org');
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.poll(() => csrSpy.mock.calls.length).toBeGreaterThan(0);
+    expect(csrSpy).toHaveBeenCalledWith({ name: 'CN=ds.example.org' });
+  });
+});
+
+describe('CS DS TLS Certificate — certificate-only upload (Browser Mode)', () => {
+  it('uploads a certificate without ever collecting a private key', async () => {
     const uploadSpy = vi.fn();
 
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () =>
-          HttpResponse.json({ status: 404, error: { code: 'ds_tls_certificate_not_configured' } }, { status: 404 }),
-        ),
-        specHttp.untyped.post('/api/v1/ds-tls-certificate/upload-certificate', async ({ request }) => {
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', async ({ request }) => {
           const body = await request.formData();
           uploadSpy(Array.from(body.keys()).sort());
           return HttpResponse.json(
@@ -92,25 +139,17 @@ describe('0870 — CS DS TLS Certificate — upload requires both a key and a ce
     await page.getByTestId('upload-management-service-certificate').click();
 
     const fileInputs = document.querySelectorAll('input[type="file"]');
-    expect(fileInputs.length).toBe(2);
-    const keyInput = fileInputs[0] as HTMLInputElement;
-    const certInput = fileInputs[1] as HTMLInputElement;
+    expect(fileInputs.length).toBe(1);
 
     const certFile = new File(['-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----'], 'ds-https.crt', {
       type: 'application/x-pem-file',
     });
-    await page.elementLocator(certInput).upload(certFile);
-    await expect.element(page.getByTestId('dialog-save-button')).toBeDisabled();
-
-    const keyFile = new File(['-----BEGIN PRIVATE KEY-----\nkey\n-----END PRIVATE KEY-----'], 'ds-https.key', {
-      type: 'application/x-pem-file',
-    });
-    await page.elementLocator(keyInput).upload(keyFile);
+    await page.elementLocator(fileInputs[0] as HTMLInputElement).upload(certFile);
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
 
     await page.getByTestId('dialog-save-button').click();
 
     await expect.poll(() => uploadSpy.mock.calls.length).toBeGreaterThan(0);
-    expect(uploadSpy).toHaveBeenCalledWith(['certificate', 'key']);
+    expect(uploadSpy).toHaveBeenCalledWith(['certificate']);
   });
 });
