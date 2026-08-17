@@ -14,7 +14,7 @@ Doc. ID: UG-SEC
 | 07.01.2025 | 0.5     | Update references                                      | Petteri Kivimäki  |
 | 09.01.2025 | 0.6     | Restructure heading levels                             | Raido Kaju        |
 | 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support                  | Eneli Reimets     |
-| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy | Petteri Kivimäki  |
+| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy and backup encryption | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -37,6 +37,8 @@ Doc. ID: UG-SEC
         * [2.2.1 Host header injection mitigation](#221-host-header-injection-mitigation)
     * [2.3 Enforcing the software token PIN policy](#23-enforcing-the-software-token-pin-policy)
         * [2.3.1 Considerations and risks](#231-considerations-and-risks)
+    * [2.4 Encrypting backups](#24-encrypting-backups)
+        * [2.4.1 Considerations and risks](#241-considerations-and-risks)
 * [3. Security Server administrator controls](#3-security-server-administrator-controls)
     * [3.1 Access control](#31-access-control)
         * [3.1.1 Minimum supported client Security Server version](#311-minimum-supported-client-security-server-version)
@@ -72,11 +74,11 @@ Some controls belong to both roles, some to only one, and the controls available
 
 The hardening measures are grouped into three main sections:
 
-* Section [2](#2-x-road-operator-and-security-server-administrator-controls) — operating system, Admin UI and token PIN hardening addressed to both roles.
+* Section [2](#2-x-road-operator-and-security-server-administrator-controls) — hardening addressed to both roles: operating system accounts, the Admin UI, the token PIN policy and backups.
 * Section [3](#3-security-server-administrator-controls) — controls available to the administrator of an individual Security Server.
 * Section [4](#4-x-road-operator-controls) — controls available to the governing authority operating the Central Server and the Configuration Proxy.
 
-The section titles name the **role** the controls are addressed to, so that an administrator can tell at a glance which sections are theirs to read. Each main section then opens with an **Applies to** line naming the **components** those controls apply to, and a subsection repeats the line only where its scope is narrower than that of the section containing it.
+The section titles name the **role** the controls are addressed to, so that an administrator can tell at a glance which sections are theirs to read. Each section and subsection then states an **Applies to** line naming the **components** its controls apply to. The line is repeated on every subsection rather than left to be inferred from the section above it, so that a reader arriving at a subsection directly — from the table of contents, from a search, or from a link in another document — sees its scope without having to look elsewhere. The innermost subsections, which only elaborate on the control they sit under, carry the line only where their scope is narrower than that control's.
 
 The two are stated separately because they do not coincide: the X-Road operator administers two components that differ in what can be hardened. The Configuration Proxy has no Admin UI and no web application users, so the user management and Admin UI controls of section [2](#2-x-road-operator-and-security-server-administrator-controls) are addressed to the operator but apply only to the Central Server, while the token PIN policy in the same section applies to the Configuration Proxy too. Read the sections that name your role, and within them apply only what the **Applies to** line names for the components you run.
 
@@ -101,9 +103,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 2. X-Road operator and Security Server administrator controls
 
+**Applies to:** Central Server, Security Server, Configuration Proxy
+
 The controls in this section are addressed to both roles. They are configured on the host and are the responsibility of whoever administers it — the X-Road operator for a Central Server or a Configuration Proxy, the Security Server administrator for a Security Server.
 
-Not every control reaches every component. Sections [2.1](#21-user-management) and [2.2](#22-admin-ui) harden the Admin UI and the operating system accounts that authenticate to it, so they do not apply to the Configuration Proxy, which has neither; it is administered from the command line as described in the Configuration Proxy Manual \[[UG-CP](#Ref_UG-CP)\]. Section [2.3](#23-enforcing-the-software-token-pin-policy) protects key material held by the signer and applies to all three components.
+Not every control reaches every component. Sections [2.1](#21-user-management) and [2.2](#22-admin-ui) harden the Admin UI and the operating system accounts that authenticate to it, and section [2.4](#24-encrypting-backups) covers backups; none of the three applies to the Configuration Proxy, which has no Admin UI, no web application users and no backup mechanism, and which is administered from the command line as described in the Configuration Proxy Manual \[[UG-CP](#Ref_UG-CP)\]. Section [2.3](#23-enforcing-the-software-token-pin-policy) protects key material held by the signer and applies to all three components.
 
 <a id="ug-sec-user-management" class="anchor"></a>
 
@@ -277,6 +281,32 @@ The policy governs software tokens only. Where keys are held on an SSCD or a har
 
 A longer PIN is harder to type, and the token PIN is not stored on disk by default: it is held in memory only while the token is logged in and is cleared when the server restarts, so the token has to be logged in again by hand after every restart. Where that is automated with the autologin add-on, the PIN is read at start-up from a file or from a source of the administrator's choosing. In that case the protection of the PIN depends on how that source is secured, and a strong PIN in a world-readable file is no stronger than the file.
 
+<a id="ug-sec-backup-encryption" class="anchor"></a>
+
+### 2.4 Encrypting backups
+
+**Applies to:** Central Server, Security Server
+
+A backup contains the contents of `/etc/xroad` together with a database dump. That includes the software token private keys, the internal TLS key material and the OpenPGP keyring, so a single backup file is enough to reconstruct the server's identity and to use its keys. A backup that leaves the host, or that can be read by anyone with access to the backup storage, is worth as much to an attacker as the key material it contains.
+
+Backups are always signed and the signature is verified on restore, so their integrity is protected out of the box. Encryption is a separate setting and is **off** by default: `backup-encryption-enabled` defaults to `false`. It is recommended to enable it on both the Central Server and the Security Server, and to set at least one additional recipient in `backup-encryption-keyids` — without one, a backup is encrypted only to the server's own key and cannot be recovered if that key is lost.
+
+The procedure is documented in full elsewhere and is not repeated here. For where the parameters are set, how to generate an additional key pair, how to import and trust it in the `/etc/xroad/gpghome` keyring, and how to decrypt a backup, see:
+
+* Security Server — \[[UG-SS](#Ref_UG-SS)\] section "Backup Encryption Configuration";
+* Central Server — \[[UG-CS](#Ref_UG-CS)\] section "Backup Encryption Configuration";
+* parameter reference — \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
+
+#### 2.4.1 Considerations and risks
+
+`backup-encryption-keyids` is security-relevant in both directions. It is normally thought of as a recovery measure, but every key listed on it can decrypt every backup taken afterwards. An unauthorised recipient added to the list turns each later backup into a readable copy of the server's key material, and the backup process itself will not report anything unusual. Treat the list as a privileged setting: keep it under change control and review it whenever administrator access changes.
+
+X-Road applies no strength or validity checks to the keys named in the list. Confirming that each key is strong enough, that its fingerprint is the expected one, and that its private key is held securely away from the server is the administrator's responsibility.
+
+Encryption protects the backup file, not the place it is kept. Backups downloaded through the Admin UI or copied to external or long-term storage leave the protection of the host behind, so the storage location, the transfer channel, and who may retrieve a backup all need to be controlled to the same standard as the server itself.
+
+Enabling encryption changes the restore path. Confirm that a backup taken after the change can actually be decrypted and restored before relying on it, and repeat that check periodically. An encrypted backup that cannot be decrypted is a loss of availability, which for backups is as damaging as a loss of confidentiality.
+
 <a id="ug-sec-ss-controls" class="anchor"></a>
 
 ## 3. Security Server administrator controls
@@ -288,6 +318,8 @@ The controls in this section are configured on an individual Security Server by 
 <a id="ug-sec-access-control" class="anchor"></a>
 
 ### 3.1 Access control
+
+**Applies to:** Security Server
 
 <a id="ug-sec-min-client-version" class="anchor"></a>
 
@@ -307,6 +339,8 @@ server-min-supported-client-version = 7.3.1
 <a id="ug-sec-globalconf-truststore" class="anchor"></a>
 
 ### 3.2 Trusting the global configuration endpoint certificate
+
+**Applies to:** Security Server
 
 Where the X-Road operator publishes the global configuration over HTTPS, as described in section [4.1](#41-publishing-global-configuration-over-https), the TLS certificate used by the global configuration endpoint must be signed by a trusted CA (one trusted by the JAVA installation).
 
@@ -340,6 +374,8 @@ The Central Server and the Configuration Proxy are supported on Ubuntu only, so 
 
 ### 4.1 Publishing global configuration over HTTPS
 
+**Applies to:** Central Server, Configuration Proxy
+
 Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation. See the Central Server User Guide [UG-CS](#Ref_UG-CS) for details.
 
 The corresponding step on the Security Server side, adding the CA to the Security Server's truststore, is described in section [3.2](#32-trusting-the-global-configuration-endpoint-certificate) and is the responsibility of each Security Server administrator.
@@ -348,10 +384,14 @@ The corresponding step on the Security Server side, adding the CA to the Securit
 
 #### 4.1.1 Central Server TLS configuration
 
+**Applies to:** Central Server
+
 To configure the Central Server to use a certificate issued by a trusted CA for serving global configurations over HTTPS follow "Central Server Installation Guide" [IG-CS](#Ref_IG-CS) section "Configuring TLS Certificates".
 
 <a id="ug-sec-confproxy-tls" class="anchor"></a>
 
 #### 4.1.2 Configuration Proxy TLS configuration
+
+**Applies to:** Configuration Proxy
 
 To configure the Configuration Proxy to use a certificate issued by a trusted CA follow "Configuration Proxy Manual" [UG-CP](#Ref_UG-CP) section "Configuring TLS Certificates".
