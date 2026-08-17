@@ -59,11 +59,14 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 ## 1. Introduction
 
 You may want to harden the security of your X-Road instance by configuring additional security policies within your X-Road infrastructure.
-The security measures that are introduced in this guide are common security policies that can be configured on operating system level.
+
+The measures in this guide are of three kinds: security policies configured at the operating system level, X-Road system parameters whose default is permissive or whose secure value depends on the deployment, and operational practices — such as key custody, retention and periodic verification — that no single setting can enforce.
+
+For each measure the guide states the decision to be made and why it matters. Where the procedure for carrying it out is already documented in an installation or user guide, that guide is referenced rather than repeated here, so that there is one authoritative description of each procedure and this document does not diverge from it.
 
 ### 1.1 Target audience
 
-The intended audience of this User Guide are X-Road administrators (Central or Security server) who are responsible for X-Road instance set-up and/or everyday management of the X-Road infrastructure.
+The intended audience of this User Guide are X-Road administrators (Central or Security Server) who are responsible for X-Road instance set-up and/or everyday management of the X-Road infrastructure.
 
 The guide addresses two distinct roles, whose responsibilities and available controls differ:
 
@@ -110,7 +113,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 The controls in this section are addressed to both roles. They are configured on the host and are the responsibility of whoever administers it — the X-Road operator for a Central Server or a Configuration Proxy, the Security Server administrator for a Security Server.
 
-Not every control reaches every component. Sections [2.1](#21-user-management) and [2.2](#22-admin-ui) harden the Admin UI and the operating system accounts that authenticate to it, and section [2.4](#24-encrypting-backups) covers backups; none of the three applies to the Configuration Proxy, which has no Admin UI, no web application users and no backup mechanism, and which is administered from the command line as described in the Configuration Proxy Manual \[[UG-CP](#Ref_UG-CP)\]. Section [2.3](#23-enforcing-the-software-token-pin-policy) protects key material held by the signer and applies to all three components.
+Not every control reaches every component. For example, sections [2.1](#21-user-management) and [2.2](#22-admin-ui) harden the Admin UI and the operating system accounts that authenticate to it, and section [2.4](#24-encrypting-backups) covers backups; none of the three applies to the Configuration Proxy, which has no Admin UI, no web application users and no backup mechanism, and which is administered from the command line as described in the Configuration Proxy Manual \[[UG-CP](#Ref_UG-CP)\]. Section [2.3](#23-enforcing-the-software-token-pin-policy) protects key material held by the signer and applies to all three components.
 
 <a id="ug-sec-user-management" class="anchor"></a>
 
