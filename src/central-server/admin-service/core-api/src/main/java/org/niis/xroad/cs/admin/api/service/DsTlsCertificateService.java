@@ -24,60 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.cs.admin.api.service;
 
-const tabs = [
-  {
-    key: 'sign-and-auth-keys-tab-button',
-    name: 'tab.keys.signAndAuthKeys',
-    icon: 'editor_choice',
-    to: {
-      name: RouteName.SignAndAuthKeys,
-    },
-    permissions: [Permissions.VIEW_KEYS],
-  },
-  {
-    key: 'api-key-tab-button',
-    name: 'tab.keys.apiKey',
-    icon: 'key_vertical',
-    to: {
-      name: RouteName.ApiKey,
-    },
-    permissions: [Permissions.CREATE_API_KEY, Permissions.VIEW_API_KEYS, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
-  },
-  {
-    key: 'ss-tls-certificate-tab-button',
-    name: 'tab.keys.ssTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.SSTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-  },
-  {
-    key: 'ds-tls-certificate-tab-button',
-    name: 'tab.keys.dsTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.DsTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_DS_TLS_CERT],
-  },
-] as Tab[];
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 
-export const useKeysTabs = defineStore('keys-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+/**
+ * Manages the manually uploaded DataSpace TLS certificate stored in OpenBao at {@code tls/ds-https}.
+ */
+public interface DsTlsCertificateService {
+
+    /**
+     * @return the current DS TLS certificate's details, or {@code null} if none has been provisioned yet
+     */
+    CertificateDetails getTlsCertificateDetails();
+
+    /**
+     * @return the current DS TLS certificate packaged as a gzip compressed tar archive
+     */
+    byte[] getTlsCertificateTar();
+
+    /**
+     * Validates and stores an operator-provided private key and certificate chain.
+     *
+     * @param keyBytes              PEM encoded private key
+     * @param certificateChainBytes PEM encoded certificate chain, leaf certificate first
+     * @return the stored certificate's details
+     */
+    CertificateDetails uploadCertificate(byte[] keyBytes, byte[] certificateChainBytes);
+}

@@ -24,60 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.restapi.dstls;
 
-const tabs = [
-  {
-    key: 'sign-and-auth-keys-tab-button',
-    name: 'tab.keys.signAndAuthKeys',
-    icon: 'editor_choice',
-    to: {
-      name: RouteName.SignAndAuthKeys,
-    },
-    permissions: [Permissions.VIEW_KEYS],
-  },
-  {
-    key: 'api-key-tab-button',
-    name: 'tab.keys.apiKey',
-    icon: 'key_vertical',
-    to: {
-      name: RouteName.ApiKey,
-    },
-    permissions: [Permissions.CREATE_API_KEY, Permissions.VIEW_API_KEYS, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
-  },
-  {
-    key: 'ss-tls-certificate-tab-button',
-    name: 'tab.keys.ssTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.SSTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-  },
-  {
-    key: 'ds-tls-certificate-tab-button',
-    name: 'tab.keys.dsTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.DsTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_DS_TLS_CERT],
-  },
-] as Tab[];
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
-export const useKeysTabs = defineStore('keys-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+/**
+ * A private key and certificate chain that has passed {@link DsTlsCertificateValidator} checks and is ready
+ * to be stored in the {@code tls/ds-https} vault slot.
+ *
+ * @param key              the private key
+ * @param certificateChain the certificate chain, leaf certificate first
+ */
+public record DsTlsUploadMaterial(PrivateKey key, X509Certificate[] certificateChain) {
+
+    public X509Certificate leaf() {
+        return certificateChain[0];
+    }
+}

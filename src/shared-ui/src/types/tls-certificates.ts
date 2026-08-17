@@ -34,9 +34,12 @@ export interface TlsCertificatesHandler {
 
   downloadCertificate(): Promise<unknown>;
 
-  generateCsr(distinguishedName: string): Promise<unknown>;
+  generateCsr?(distinguishedName: string): Promise<unknown>;
 
-  generateKey(): Promise<unknown>;
+  generateKey?(): Promise<unknown>;
 
-  uploadCertificate(file: File): Promise<unknown>;
+  // keyFile is only provided (and only read by the handler) when the view is used with
+  // requireKeyUpload - the two pre-existing instances upload a certificate for a key that
+  // already exists and never receive it.
+  uploadCertificate(file: File, keyFile?: File): Promise<unknown>;
 }

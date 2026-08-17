@@ -24,60 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+import axios from 'axios';
+import * as api from '@/util/api';
+import { CertificateDetails } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+import { saveResponseAsFile, multipartFormDataConfig } from '@niis/shared-ui';
 
-const tabs = [
-  {
-    key: 'sign-and-auth-keys-tab-button',
-    name: 'tab.keys.signAndAuthKeys',
-    icon: 'editor_choice',
-    to: {
-      name: RouteName.SignAndAuthKeys,
-    },
-    permissions: [Permissions.VIEW_KEYS],
-  },
-  {
-    key: 'api-key-tab-button',
-    name: 'tab.keys.apiKey',
-    icon: 'key_vertical',
-    to: {
-      name: RouteName.ApiKey,
-    },
-    permissions: [Permissions.CREATE_API_KEY, Permissions.VIEW_API_KEYS, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
-  },
-  {
-    key: 'ss-tls-certificate-tab-button',
-    name: 'tab.keys.ssTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.SSTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-  },
-  {
-    key: 'ds-tls-certificate-tab-button',
-    name: 'tab.keys.dsTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.DsTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_DS_TLS_CERT],
-  },
-] as Tab[];
+// A DS TLS certificate that has never been uploaded or enrolled - a normal, expected state
+// rather than an error - since manual upload (this slice) and ACME enrollment (a later one)
+// are both opt-in.
+const NOT_CONFIGURED: CertificateDetails = { hash: '' } as CertificateDetails;
 
-export const useKeysTabs = defineStore('keys-tabs', {
+export const useDsTlsCertificate = defineStore('dsTlsCertificate', {
   state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
+  getters: {},
+
+  actions: {
+    getCertificate() {
+      return api
+        .get<CertificateDetails>('/ds-tls-certificate')
+        .then((res) => res.data)
+        .catch((error) => {
+          if (axios.isAxiosError(error) && error.response?.status === 404) {
+            return NOT_CONFIGURED;
+          }
+          throw error;
+        });
     },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
+    downloadCertificate() {
+      return api.get('/ds-tls-certificate/download-certificate', { responseType: 'blob' }).then((res) => {
+        saveResponseAsFile(res, 'ds-tls-certificate.tar.gz');
+      });
+    },
+    uploadCertificate(certificate: File, key?: File) {
+      const formData = new FormData();
+      formData.set('key', key as File, (key as File).name);
+      formData.set('certificate', certificate, certificate.name);
+      return api.post('/ds-tls-certificate/upload-certificate', formData, multipartFormDataConfig());
     },
   },
-  actions: {},
 });

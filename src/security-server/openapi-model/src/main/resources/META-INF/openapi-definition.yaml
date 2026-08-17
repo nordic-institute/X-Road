@@ -23,6 +23,8 @@ tags:
     description: clients endpoints
   - name: dataspace
     description: data space provisioning endpoints
+  - name: ds-tls-certificate
+    description: DataSpace TLS certificate endpoints
   - name: diagnostics
     description: diagnostics endpoints
   - name: endpoints
@@ -2575,6 +2577,94 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '500':
+          description: internal server error
+  /ds-tls-certificate:
+    get:
+      tags:
+        - ds-tls-certificate
+      summary: view the DataSpace TLS certificate information
+      operationId: getDsTlsCertificate
+      description: <h3>Administrator views the DataSpace TLS certificate's details and status.</h3>
+      responses:
+        '200':
+          description: certificate information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: no DataSpace TLS certificate has been provisioned yet
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /ds-tls-certificate/export:
+    get:
+      tags:
+        - ds-tls-certificate
+      summary: download the DataSpace TLS certificate as gzip compressed tar archive
+      operationId: downloadDsTlsCertificate
+      description: <h3>Administrator downloads the DataSpace TLS certificate.</h3>
+      responses:
+        '200':
+          description: information fetched successfully
+          content:
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+                description: certificate file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: no DataSpace TLS certificate has been provisioned yet
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /ds-tls-certificate/import:
+    post:
+      tags:
+        - ds-tls-certificate
+      summary: upload a new DataSpace TLS private key and certificate chain
+      operationId: uploadDsTlsCertificate
+      description: <h3>Administrator uploads an operator-provided DataSpace TLS private key and certificate chain</h3>
+      requestBody:
+        description: private key and certificate chain to add
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TlsKeyAndCertificateFile'
+      responses:
+        '200':
+          description: DataSpace TLS key and certificate stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
         '500':
           description: internal server error
   /diagnostics/operational-monitoring:
@@ -6567,6 +6657,21 @@ components:
           format: binary
           type: string
       required:
+        - certificate
+    TlsKeyAndCertificateFile:
+      type: object
+      description: private key and certificate chain file pair
+      properties:
+        key:
+          description: the private key file (PEM, PKCS#1 or PKCS#8, RSA or EC)
+          format: binary
+          type: string
+        certificate:
+          description: the certificate or certificate chain file (PEM, leaf certificate first)
+          format: binary
+          type: string
+      required:
+        - key
         - certificate
     AnchorFile:
       type: object

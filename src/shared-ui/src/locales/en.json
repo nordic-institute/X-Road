@@ -366,7 +366,8 @@
     "keyText": "Internal TLS Key",
     "uploadCertificate": {
       "button": "Upload certificate",
-      "label": "Upload the certificate file from your computer"
+      "label": "Upload the certificate file from your computer",
+      "keyLabel": "Upload the private key file from your computer"
     }
   },
   "type": "Type",

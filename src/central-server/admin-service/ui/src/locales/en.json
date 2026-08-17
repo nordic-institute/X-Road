@@ -585,7 +585,8 @@
       "backupAndRestore": "Backup And Restore",
       "globalResources": "Global Resources",
       "systemSettings": "System Settings",
-      "tlsCertificates": "TLS Certificates"
+      "tlsCertificates": "TLS Certificates",
+      "dsTlsCertificate": "DS TLS Certificate"
     }
   },
   "tlsCertificates": {

@@ -1495,7 +1495,8 @@
     "keys": {
       "apiKey": "API Keys",
       "signAndAuthKeys": "SIGN and AUTH Keys",
-      "ssTlsCertificate": "Security Server TLS Key"
+      "ssTlsCertificate": "Security Server TLS Key",
+      "dsTlsCertificate": "DataSpace TLS Certificate"
     },
     "main": {
       "clients": "Clients",

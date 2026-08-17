@@ -32,14 +32,17 @@
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
-    :disable-save="!certFile"
+    :disable-save="!certFile || (requireKeyFile && !keyFile)"
     @save="upload"
     @cancel="emit('cancel')"
   >
     <template #content>
       <XrdFormBlock>
+        <XrdFormBlockRow v-if="requireKeyFile" full-length>
+          <XrdCertificateFileUpload v-model:file="keyFile" autofocus label="tlsCertificates.uploadCertificate.keyLabel" />
+        </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
-          <XrdCertificateFileUpload v-model:file="certFile" autofocus label="tlsCertificates.uploadCertificate.label" />
+          <XrdCertificateFileUpload v-model:file="certFile" :autofocus="!requireKeyFile" label="tlsCertificates.uploadCertificate.label" />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
@@ -58,20 +61,27 @@ const props = defineProps({
     type: Object as PropType<TlsCertificatesHandler>,
     required: true,
   },
+  // When true, also collects a private key file and passes it to the handler alongside
+  // the certificate - used for views where the operator brings their own key.
+  requireKeyFile: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['cancel', 'upload']);
 
 const { loading, addSuccessMessage } = useBasicForm();
 const certFile = useFileRef();
+const keyFile = useFileRef();
 
 function upload(evt: Event, handler: DialogSaveHandler): void {
-  if (!certFile.value) {
+  if (!certFile.value || (props.requireKeyFile && !keyFile.value)) {
     return;
   }
   loading.value = true;
   props.handler
-    .uploadCertificate(certFile.value)
+    .uploadCertificate(certFile.value, props.requireKeyFile ? keyFile.value : undefined)
     .then(() => {
       addSuccessMessage('tlsCertificates.uploadCertificate.success');
       emit('upload');

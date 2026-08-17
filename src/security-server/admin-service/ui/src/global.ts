@@ -59,6 +59,8 @@ export enum RouteName {
   ApiKey = 'api-key',
   CreateApiKey = 'create-api-key',
   SSTlsCertificate = 'ss-tls-certificate',
+  DsTlsCertificate = 'ds-tls-certificate',
+  DsTlsCertificateDetails = 'ds-tls-certificate-details',
   Token = 'token',
   Key = 'key',
   Settings = 'settings',
@@ -136,6 +138,7 @@ export enum Permissions {
   GENERATE_SIGN_CERT_REQ = 'GENERATE_SIGN_CERT_REQ',
   IMPORT_AUTH_CERT = 'IMPORT_AUTH_CERT',
   IMPORT_INTERNAL_TLS_CERT = 'IMPORT_INTERNAL_TLS_CERT', // Import security server TLS certificate
+  UPLOAD_DS_TLS_CERT = 'UPLOAD_DS_TLS_CERT', // Upload the DataSpace TLS key and certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
   IMPORT_UNKNOWN_CERT = 'IMPORT_UNKNOWN_CERT', // Import hardware token certificate from token
   INIT_CONFIG = 'INIT_CONFIG', // can initialise security server
@@ -168,6 +171,8 @@ export enum Permissions {
   VIEW_CLIENT_SERVICES = 'VIEW_CLIENT_SERVICES', // subsystem "services" tab
   VIEW_ENDPOINT_ACL = 'VIEW_ENDPOINT_ACL', // client > services > rest > endpoint > acces rights
   VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
+  VIEW_DS_TLS_CERT = 'VIEW_DS_TLS_CERT', // view the DataSpace TLS certificate details and status
+  DOWNLOAD_DS_TLS_CERT = 'DOWNLOAD_DS_TLS_CERT', // download the DataSpace TLS certificate
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab

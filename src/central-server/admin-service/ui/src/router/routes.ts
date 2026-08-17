@@ -67,6 +67,8 @@ import GlobalGroupsList from '@/views/Settings/GlobalResources/GlobalGroupsList.
 import GlobalResourcesView from '@/views/Settings/GlobalResources/GlobalResourcesView.vue';
 import SettingsView from '@/views/Settings/SettingsView.vue';
 import SystemSettingsView from '@/views/Settings/SystemSettings/SystemSettingsView.vue';
+import DsTlsCertificate from '@/views/Settings/TlsCertificates/DsTlsCertificate.vue';
+import DsTlsCertificateView from '@/views/Settings/TlsCertificates/DsTlsCertificateView.vue';
 import ManagementServiceCertificate from '@/views/Settings/TlsCertificates/ManagementServiceCertificate.vue';
 import ManagementServiceTlsCertificateView from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificateView.vue';
 import CertificationServiceCertificate from '@/views/TrustServices/CertificationServices/CertificationService/CertificationServiceCertificate.vue';
@@ -184,6 +186,15 @@ const routes = [
               permissions: [Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT],
             },
           },
+          {
+            name: RouteName.DsTlsCertificate,
+            path: 'ds-tls-certificate',
+            component: DsTlsCertificateView,
+            props: true,
+            meta: {
+              permissions: [Permissions.VIEW_DS_TLS_CERT],
+            },
+          },
         ],
       },
       {
@@ -194,6 +205,15 @@ const routes = [
           default: ManagementServiceCertificate,
         },
         meta: { permissions: [Permissions.VIEW_TLS_CERTIFICATES] },
+      },
+      {
+        name: RouteName.DsTlsCertificateDetails,
+        path: '/ds-tls-certificate-details',
+        components: {
+          ...elevatedParts,
+          default: DsTlsCertificate,
+        },
+        meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
       },
 
       {
