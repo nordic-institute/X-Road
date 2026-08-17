@@ -29,7 +29,6 @@ package org.niis.xroad.common.acme.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.acme.AcmeDeviationMessage;
-import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.exception.NotFoundException;
 
 import java.util.Map;
@@ -103,48 +102,4 @@ public class AcmeProperties {
                 .orElse(null);
     }
 
-    //TODO this will be re-implemented in XRDDEV-3070 so that the new value will be written to database instead.
-    public char[] createNewAccountKeystorePassword() {
-
-        throw new AcmeServiceException(AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
-
-        /*String newAccountKeystorePassword = CryptoUtils.generateRandomPassword(ACCOUNT_KEYSTORE_PASSWORD_LENGTH);
-
-        Path acmeYaml = Paths.get(SystemProperties.getConfPath(), "conf.d/acme.yml");
-
-        if (!Files.exists(acmeYaml)) {
-            throw new AcmeServiceException(ACME_YAML_MISSING.build());
-
-        }
-
-        try {
-            updateAccountKeystorePasswordInAcmeYaml(acmeYaml, newAccountKeystorePassword);
-        } catch (IOException e) {
-            throw new AcmeServiceException(e, ACME_YAML_ACCOUNT_KEYSTORE_PASSWORD_UPDATE_ERROR.build());
-        }
-
-        setAccountKeystorePassword(newAccountKeystorePassword);
-
-        return accountKeystorePassword.toCharArray();*/
-    }
-
-    /*private void updateAccountKeystorePasswordInAcmeYaml(Path acmeYaml, String newAccountKeystorePassword) throws IOException {
-        List<String> lines = Files.readAllLines(acmeYaml, StandardCharsets.UTF_8);
-        boolean updated = false;
-
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.startsWith("account-keystore-password:")) {
-                lines.set(i, "account-keystore-password: " + newAccountKeystorePassword);
-                updated = true;
-                break;
-            }
-        }
-
-        if (!updated) {
-            lines.add("account-keystore-password: " + newAccountKeystorePassword);
-        }
-
-        Files.write(acmeYaml, lines, StandardCharsets.UTF_8);
-    }*/
 }

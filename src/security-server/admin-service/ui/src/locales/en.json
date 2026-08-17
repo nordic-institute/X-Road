@@ -387,6 +387,7 @@
     "acme": {
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
+      "account_keystore_password_generation_failure": "Generating or persisting the ACME account keystore password failed",
       "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",

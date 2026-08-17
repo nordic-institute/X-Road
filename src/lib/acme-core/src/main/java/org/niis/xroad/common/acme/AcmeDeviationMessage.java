@@ -36,6 +36,7 @@ public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuild
     EAB_SECRET_LENGTH("acme.eab_secret_length"),
     ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
     ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing"),
+    ACCOUNT_KEYSTORE_PASSWORD_GENERATION_FAILURE("acme.account_keystore_password_generation_failure"),
     FETCHING_METADATA_ERROR("acme.fetching_metadata_error"),
     ACCOUNT_CREATION_FAILURE("acme.account_creation_failure"),
     ORDER_CREATION_FAILURE("acme.order_creation_failure"),
