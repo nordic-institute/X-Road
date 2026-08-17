@@ -673,7 +673,7 @@ If an approved CA supports ACME, then an alternative to creating the CSR, sendin
 
 2. In step 4.ii.d choose a **Certification Service** that supports ACME.
 
-3. Some Certification Services require their ACME Server account to be bound to an external account for added security. If that is the case, the chosen **Client** in step 4.ii.b needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml` (more info on how to configure ACME can be found in section [24. Configuring ACME](#24-configuring-acme)).
+3. Some Certification Services require their ACME Server account to be bound to an external account for added security. If that is the case, the chosen **Client** in step 4.ii.b needs to have external account binding credentials configured as part of the Security Server's ACME configuration (see section [24. Configuring ACME](#24-configuring-acme) for how this configuration works and its current limitations).
 
 4. In step 4.iii make sure the **SAN** field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
 
@@ -796,7 +796,7 @@ If an approved CA supports ACME, then an alternative to creating the CSR, sendin
 
 2. Choose a **Certification Service** that supports ACME.
 
-3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the Security Server owner needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml` (more info on how to configure ACME can be found in section [24. Configuring ACME](#24-configuring-acme)).
+3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the Security Server owner needs to have external account binding credentials configured as part of the Security Server's ACME configuration (see section [24. Configuring ACME](#24-configuring-acme) for how this configuration works and its current limitations).
 
 4. On the CSR fields page make sure the **CN** field (and **SAN** if present) field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
 
@@ -3672,12 +3672,12 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. The configurations to be added are:
 
-1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA. These credentials go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`).
+1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA. Like the `account-keystore-password` below, these credentials are part of the Security Server's ACME configuration held in the database, not in a configuration file. On a Security Server that has been through the version 7 to version 8 upgrade migration, they are seeded from the `acme.yml` file (see the example below). Currently there is no documented way to configure these credentials on a Security Server that has not gone through that upgrade migration.
 2. `account-keystore-password` - the password for the ACME Server account PKCS #12 keystore. This password is stored as part of the Security Server's ACME configuration held in the database, not in a configuration file. The first time ACME is used, if the keystore does not exist yet and no password has been configured, the Security Server generates a random password automatically and saves it to the database. If an administrator has already set their own value ahead of time, that value is used as-is instead of generating one.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
-There are currently two ways to let the ACME server know which type of certificate (authentication or sign certificate) to return. The way that should be used depends on the ACME Server and the options it supports. The first one, which sends profile ids for authentication and signing certificates in http header, does not require any certificate type-specific configuration on the Security Server side. Instead, the second one uses certificate type-specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**". If you are not sure which configuration option should be used, please contact your X-Road Operator or CA for assistance.
+There are currently two ways to let the ACME server know which type of certificate (authentication or sign certificate) to return. The way that should be used depends on the ACME Server and the options it supports. The first one, which sends profile ids for authentication and signing certificates in http header, does not require any certificate type-specific configuration on the Security Server side. Instead, the second one uses certificate type-specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names. For the signing certificate add the prefix "**sign-**". If you are not sure which configuration option should be used, please contact your X-Road Operator or CA for assistance.
 
 Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`). Note that this file is only used by the version 7 to version 8 upgrade migration tool to seed the database-backed ACME configuration; the account-keystore-password shown below is not read from this file by the running Security Server (see item 2 above):
 
