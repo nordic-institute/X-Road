@@ -153,3 +153,31 @@ describe('SS DS TLS Certificate — certificate-only upload (Browser Mode)', () 
     expect(uploadSpy).toHaveBeenCalledWith(['certificate']);
   });
 });
+
+describe('SS DS TLS Certificate — uploading mismatched cert shows error (Browser Mode)', () => {
+  it('uploading a certificate that does not match the DS TLS key renders an error message', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', () =>
+          HttpResponse.json({ status: 400, error: { code: 'ds_tls_key_certificate_mismatch' } }, { status: 400 }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('upload-management-service-certificate')).toBeVisible();
+    await page.getByTestId('upload-management-service-certificate').click();
+
+    const certFile = new File(['-----BEGIN CERTIFICATE-----\nbadcert\n-----END CERTIFICATE-----'], 'ds-https.crt', {
+      type: 'application/x-pem-file',
+    });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await page.elementLocator(fileInput).upload(certFile);
+
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.element(page.getByText('The uploaded certificate does not match the DataSpace TLS key')).toBeVisible();
+  });
+});
