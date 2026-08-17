@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.109
+Version: 2.110
 Doc. ID: UG-SS
 
 ---
@@ -138,6 +138,7 @@ Doc. ID: UG-SS
 | 02.03.2026 | 2.107   | Fix broken link                                                                                                                                                                                                                                                                                                                                                                                             | Petteri Kivimäki     |
 | 13.05.2026 | 2.108   | Correct tab placement for managing services                                                                                                                                                                                                                                                                                                                                                                 | Urmet Jänes          |
 | 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
+| 17.08.2026 | 2.110   | Updated ACME account keystore password documentation for database-backed storage                                                                                                                                                                                                                                                                                                                           | Stefan Cvetkovski    |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -3669,16 +3670,16 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 
 **Member-specific configuration**
 
-Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
+Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. The configurations to be added are:
 
-1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  the password for the ACME Server account PKCS #12 keystore. The password is populated automatically by the Security Server when communicating with the ACME Server. When ACME is used for the first time, the keystore is generated automatically using this password. If the value of this property is left empty, the Security Server generates a random password and stores it in the acme.yml file. If the value of this property is not empty, the provided value is used as the password for the generated keystore file.
+1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA. These credentials go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`).
+2. `account-keystore-password` - the password for the ACME Server account PKCS #12 keystore. This password is stored as part of the Security Server's ACME configuration held in the database, not in a configuration file. The first time ACME is used, if the keystore does not exist yet and no password has been configured, the Security Server generates a random password automatically and saves it to the database. If an administrator has already set their own value ahead of time, that value is used as-is instead of generating one.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
 There are currently two ways to let the ACME server know which type of certificate (authentication or sign certificate) to return. The way that should be used depends on the ACME Server and the options it supports. The first one, which sends profile ids for authentication and signing certificates in http header, does not require any certificate type-specific configuration on the Security Server side. Instead, the second one uses certificate type-specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**". If you are not sure which configuration option should be used, please contact your X-Road Operator or CA for assistance.
 
-Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`):
+Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`). Note that this file is only used by the version 7 to version 8 upgrade migration tool to seed the database-backed ACME configuration; the account-keystore-password shown below is not read from this file by the running Security Server (see item 2 above):
 
 ```yaml
 # Example acme.yml file that has properties related to Automatic Certificate Management Environment (ACME)
@@ -3710,8 +3711,8 @@ eab-credentials:
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
 
-# This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
-# Keystore is at /etc/xroad/ssl/acme.p12
+# This is the password for the PKCS #12 keystore of the ACME Server account, migrated into the database
+# by the version 7 to version 8 upgrade. Keystore is at /etc/xroad/ssl/acme.p12
 account-keystore-password:
 
 ```

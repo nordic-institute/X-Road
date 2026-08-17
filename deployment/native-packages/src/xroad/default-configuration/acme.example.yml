@@ -1,6 +1,10 @@
 # Example acme.yml file that has properties related to Automatic Certificate Management Environment (ACME)
 # that is used to automate acquiring certificates from Certificate Authorities.
 # To configure ACME, set the properties in the local.yaml file
+#
+# NOTE: this file (and its non-.example counterpart, /etc/xroad/conf.d/acme.yml) is referenced only by the
+# version 7 to version 8 upgrade migration tool, which seeds the database-backed ACME configuration from it.
+# It is not read by the running Security Server.
 
 # ACME external account binding credentials grouped by Certification Authorities(CA-s) and Members,
 # where CAs have their name as key and should be surrounded by quotation marks to allow spaces.
@@ -29,6 +33,6 @@ xroad:
               kid: kid123
               mac-key: goodlongsecretwordthatisnotshort
     
-    # This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
-    # Keystore is at /etc/xroad/ssl/acme.p12
+    # This is the password for the PKCS #12 keystore of the ACME Server account, migrated into the
+    # database-backed ACME configuration by the version 7 to version 8 upgrade. Keystore is at /etc/xroad/ssl/acme.p12
     account-keystore-password:

@@ -377,7 +377,7 @@
       "account_creation_failure": "Falha ao criar conta no servidor ACME. Se for necessário vincular conta externa, verifique se as credenciais estão corretas no acme.yml",
       "account_key_pair_error": "Falha ao obter o par de chaves da conta ACME",
       "account_keystore_password_generation_failure": "Falha ao gerar ou salvar a senha do keystore da conta ACME",
-      "account_keystore_password_missing": "Senha do keystore da conta ACME ausente no arquivo de configuração acme.yml",
+      "account_keystore_password_missing": "A senha do keystore da conta ACME não está configurada, mas o keystore já existe",
       "authorization_failure": "Falha na autorização. Normalmente está relacionado à validação de propriedade do domínio",
       "authorization_wait_failure": "Falha ao aguardar a conclusão da autorização",
       "certificate_failure": "Falha ao obter certificado do servidor ACME",
