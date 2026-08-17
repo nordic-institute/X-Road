@@ -82,7 +82,7 @@ public class AcmeCommonConfig {
                 AcmeProperties.EabCredentials.class,
                 "getEabCredentials",
                 "setEabCredentials");
-        acmePropertiesDescriptor.substituteProperty("account-keystore-password",
+        acmePropertiesDescriptor.substituteProperty(AcmeConfigDocumentCodec.ACCOUNT_KEYSTORE_PASSWORD_FIELD,
                 String.class,
                 "getAccountKeystorePassword",
                 "setAccountKeystorePassword");
