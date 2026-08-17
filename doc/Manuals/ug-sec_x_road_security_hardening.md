@@ -5,16 +5,16 @@ Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                            | Author            |
-|------------|---------|--------------------------------------------------------|-------------------|
-| 02.06.2023 | 0.1     | Initial version                                        | Ričardas Bučiūnas |
-| 24.08.2023 | 0.2     | Minimum supported client Security Server version       | Eneli Reimets     |
-| 14.11.2023 | 0.3     | Publish global configuration over HTTPS                | Eneli Reimets     |
-| 15.12.2023 | 0.4     | Minor updates                                          | Eneli Reimets     |
-| 07.01.2025 | 0.5     | Update references                                      | Petteri Kivimäki  |
-| 09.01.2025 | 0.6     | Restructure heading levels                             | Raido Kaju        |
-| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support                  | Eneli Reimets     |
-| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy and backup encryption | Petteri Kivimäki  |
+| Date       | Version | Description                                                                                | Author            |
+|------------|---------|--------------------------------------------------------------------------------------------|-------------------|
+| 02.06.2023 | 0.1     | Initial version                                                                            | Ričardas Bučiūnas |
+| 24.08.2023 | 0.2     | Minimum supported client Security Server version                                           | Eneli Reimets     |
+| 14.11.2023 | 0.3     | Publish global configuration over HTTPS                                                    | Eneli Reimets     |
+| 15.12.2023 | 0.4     | Minor updates                                                                              | Eneli Reimets     |
+| 07.01.2025 | 0.5     | Update references                                                                          | Petteri Kivimäki  |
+| 09.01.2025 | 0.6     | Restructure heading levels                                                                 | Raido Kaju        |
+| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support                                                      | Eneli Reimets     |
+| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy, backup encryption and message log  | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -43,6 +43,8 @@ Doc. ID: UG-SEC
     * [3.1 Access control](#31-access-control)
         * [3.1.1 Minimum supported client Security Server version](#311-minimum-supported-client-security-server-version)
     * [3.2 Trusting the global configuration endpoint certificate](#32-trusting-the-global-configuration-endpoint-certificate)
+    * [3.3 Message log and data protection](#33-message-log-and-data-protection)
+        * [3.3.1 Considerations and risks](#331-considerations-and-risks)
 * [4. X-Road operator controls](#4-x-road-operator-controls)
     * [4.1 Publishing global configuration over HTTPS](#41-publishing-global-configuration-over-https)
         * [4.1.1 Central Server TLS configuration](#411-central-server-tls-configuration)
@@ -98,6 +100,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 6. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 7. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual. Document ID: [UG-CP](ug-cp_x-road_v6_configuration_proxy_manual.md).
 8. <a id="Ref_ARC-TM" class="anchor"></a>\[ARC-TM\] X-Road Threat Model. Document ID: [ARC-TM](../Architecture/arc-tm_x-road_threat_model.md).
+9. <a id="Ref_MLAV" class="anchor"></a>\[MLAV\] X-Road: Messagelog Archive Verifier. [MLAV](../../src/tool/messagelog-archive-verifier/README.md).
 
 <a id="ug-sec-common-controls" class="anchor"></a>
 
@@ -359,6 +362,43 @@ Copy the `.crt` file (PEM or DER) into the `/etc/pki/ca-trust/source/anchors` fo
 Run `sudo update-ca-trust extract`.
 
 It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. The verification may be disabled in test and development environments. Instead, the verification must always be enabled in production environments. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Configuration Client parameters: [configuration-client]".
+
+<a id="ug-sec-message-log" class="anchor"></a>
+
+### 3.3 Message log and data protection
+
+**Applies to:** Security Server
+
+By default the Security Server logs the messages it exchanges in full, bodies included, first to its database and then to archive files on disk. Where those messages carry personal data or other confidential content, the message log becomes the largest concentration of that data on the server, held at rest and retained after the exchange itself has finished. How much exposure that creates, and how much the records are worth as evidence, comes down to four decisions: how much is logged, whether what is logged is encrypted, how long and where it is kept, and whether its integrity is checked.
+
+**Log no more than is needed.** Message logging has three modes — full logging, metadata-only logging, and no logging — and only full logging produces records with evidential value. Full and metadata logging can be set for the Security Server as a whole or per subsystem; disabling logging altogether is a Security Server-level setting. Where a service does not need evidential value, logging metadata only keeps the message bodies out of the database and the archives entirely, which protects them more effectively than any encryption setting can. Make this choice per subsystem rather than once for the whole server, and revisit it when services are added. The modes and their configuration are described in \[[UG-SS](#Ref_UG-SS)\] section "Message Log".
+
+**Encrypt what is logged.** Where bodies are logged, two independent encryption settings apply and both are off by default:
+
+* `messagelog-encryption-enabled` encrypts message bodies in the database;
+* `archive-encryption-enabled` encrypts the archive files, optionally under per-member keys when `archive-grouping` is used.
+
+Enabling both is recommended wherever message bodies are logged. The keystore, key identifiers, GnuPG keyring and per-member key mapping are described in \[[UG-SS](#Ref_UG-SS)\] sections "Message Log Encryption" and "Archive Encryption and Grouping", and the parameters in \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
+
+**Keep it no longer than is needed, and not on the Security Server.** Records stay in the database for the period set by `keep-records-for`, after which they are archived to the local file system. That local storage is working space, not an archive: the Security Server should not be used for long-term retention, and archive files should be moved to external storage that is managed for it. Retention is a data protection control as much as a storage one, because a record that no longer exists cannot be disclosed.
+
+Retention requirements follow the data in the records, not the server that happens to hold them. Where several information systems share one Security Server, their records may be subject to different retention periods and different rules about what may be kept at all, so a single retention decision taken for the whole server will be wrong for some of them. Establish the requirement per information system, and where the requirements differ, use `archive-grouping` by member or subsystem so that each group can be moved, retained and deleted on its own schedule. Grouping has to be in place before the archives accumulate; separating them afterwards is considerably harder.
+
+**Check that what is kept is intact.** Each archive carries a linking information file whose hash chain covers the containers inside it and continues the chain from the preceding archive, so tampering with an archive is detectable. Verify archives on a schedule, and after each transfer to external storage, where the Security Server no longer protects them. The verifier and its usage are described in \[[MLAV](#Ref_MLAV)\].
+
+#### 3.3.1 Considerations and risks
+
+Enabling encryption does not change records that already exist. Message bodies logged before the change remain in the database in plaintext and archives written before it remain unencrypted, so switching encryption on protects future traffic only. Earlier records have to be addressed through retention instead.
+
+Message log encryption depends on a keystore whose password is given by `messagelog-keystore-password`, in plaintext, in a configuration file. The protection of the message bodies is therefore no stronger than the protection of that file and of the keystore it points to, and neither of those is protected by the encryption itself.
+
+Per-member archive keys change who can read an archive. Where grouping is used with per-member keys, an archive encrypted to a member's key cannot be read without that key, including by the Security Server administrator. Arrange key custody and confirm that an archive can actually be decrypted before enabling it, or the archives will be written in a form nobody at hand can open.
+
+Archive verification runs across archives, not within one. Each archive's hash chain continues from the last hash step of the one before it, so archives have to be verified in order and that last hash step retained for the next verification. An archive that is deleted, or a gap left by one that was never transferred, breaks the chain for every archive after it — which is a reason to verify before deleting anything, not after.
+
+Moving archives to external storage moves the data, not the duty to protect it. An archive carries the same message content as the database it came from, so unless archive encryption is enabled that content leaves the host in the clear. The transfer channel, the destination and access to it need to be controlled to the same standard as the Security Server itself, and the retention rules that apply to the records continue to apply once they are there — including the eventual deletion, which now has to happen somewhere the Security Server no longer reaches. See \[[UG-SS](#Ref_UG-SS)\] section "Transferring the Archive Files from the Security Server".
+
+By default, every processed message is time-stamped, and `acceptable-timestamp-failure-period` sets how long the Security Server keeps exchanging messages while asynchronous time-stamping is failing. Lowering it favours evidential value over availability by stopping message exchange sooner; raising it does the reverse. Setting it to `0` removes the check altogether, so messages continue to be exchanged and logged indefinitely without being time-stamped. That is a deliberate weakening of the evidential value of the log and should not be done in production.
 
 <a id="ug-sec-operator-controls" class="anchor"></a>
 
