@@ -82,6 +82,7 @@ dependencies {
   testImplementation(libs.hsqldb)
   testImplementation(libs.jsonUnit.assertj)
   testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
+  testImplementation(libs.wiremock.standalone)
   testImplementation(testFixtures(project(":common:common-api-throttling")))
   testImplementation(libs.systemStubs)
   testRuntimeOnly(libs.junit.vintageEngine)
