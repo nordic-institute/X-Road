@@ -663,6 +663,7 @@ services:
 
 messageLogArchiver:
   ttlSecondsAfterFinished: 172800 # 48 hours
+  activeDeadlineSeconds: 21600 # 6 hours
   imageName: ss-message-log-archiver
   env:
     JAVA_OPTS: "-XX:MaxMetaspaceSize=160m -XX:+ExitOnOutOfMemoryError"

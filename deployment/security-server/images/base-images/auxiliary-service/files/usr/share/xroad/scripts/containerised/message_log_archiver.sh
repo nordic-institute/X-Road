@@ -58,30 +58,36 @@ fi
 
 echo "Job '${jobname}' created successfully. Waiting for completion..."
 
-# Poll the Job's status instead of a single "kubectl wait --for=condition=complete",
-# so a failing Job is reported as soon as its failed condition appears rather than
-# only after a long complete-condition timeout has elapsed.
-poll_interval_seconds=5
-max_wait_seconds=$((6 * 60 * 60))
+poll_interval_seconds="${XROAD_ARCHIVER_POLL_INTERVAL_SECONDS:-5}"
+max_wait_seconds="${XROAD_ARCHIVER_MAX_WAIT_SECONDS:-21900}"
 waited_seconds=0
+poll_failures=0
 
 while true; do
-  job_status=$(kubectl get "job/${jobname}" -o jsonpath='{.status.succeeded}:{.status.failed}' 2>/dev/null)
-  succeeded_count="${job_status%%:*}"
-  failed_count="${job_status##*:}"
-
-  if [[ "${succeeded_count:-0}" -gt 0 ]]; then
-    echo "Job '${jobname}' completed successfully."
-    exit 0
-  fi
-
-  if [[ "${failed_count:-0}" -gt 0 ]]; then
-    echo "Job '${jobname}' failed." >&2
-    kubectl logs "job/${jobname}" --tail=50 >&2 2>/dev/null
-    exit 1
+  # Terminal Job conditions are retry-agnostic, unlike pod success/failure counts.
+  if conditions=$(kubectl get "job/${jobname}" \
+      -o jsonpath='{range .status.conditions[?(@.status=="True")]}{.type}{"\n"}{end}' 2>&1); then
+    poll_failures=0
+    if grep -q '^Complete$' <<<"$conditions"; then
+      echo "Job '${jobname}' completed successfully."
+      exit 0
+    fi
+    if grep -q '^Failed$' <<<"$conditions"; then
+      echo "Job '${jobname}' failed." >&2
+      kubectl logs "job/${jobname}" --tail=50 >&2 2>/dev/null \
+        || kubectl describe "job/${jobname}" >&2 2>/dev/null
+      exit 1
+    fi
+  else
+    case "$conditions" in *NotFound*) abort "Job '${jobname}' no longer exists." ;; esac
+    poll_failures=$((poll_failures + 1))
+    if [[ "$poll_failures" -ge 12 ]]; then
+      abort "Cannot query Job '${jobname}': ${conditions}"
+    fi
   fi
 
   if [[ "$waited_seconds" -ge "$max_wait_seconds" ]]; then
+    kubectl delete "job/${jobname}" >&2 2>/dev/null
     abort "Job '${jobname}' did not reach a terminal state within ${max_wait_seconds}s."
   fi
 
