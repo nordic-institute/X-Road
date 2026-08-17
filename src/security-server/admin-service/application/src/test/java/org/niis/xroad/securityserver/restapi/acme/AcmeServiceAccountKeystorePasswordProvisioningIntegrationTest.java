@@ -68,7 +68,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Exercises the seam this PRD closes: {@link AcmeService} detecting a missing keystore and empty password,
+ * {@link AcmeService} detecting a missing keystore and empty password,
  * delegating to the real {@link DatabaseAccountKeystorePasswordProvider} backed by the real test database, and
  * then actually writing the account keystore file to disk with the password that provider generated and
  * persisted.
