@@ -5,16 +5,16 @@ Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                      | Author            |
-|------------|---------|--------------------------------------------------|-------------------|
-| 02.06.2023 | 0.1     | Initial version                                  | Ričardas Bučiūnas |
-| 24.08.2023 | 0.2     | Minimum supported client Security Server version | Eneli Reimets     |
-| 14.11.2023 | 0.3     | Publish global configuration over HTTPS          | Eneli Reimets     |
-| 15.12.2023 | 0.4     | Minor updates                                    | Eneli Reimets     |
-| 07.01.2025 | 0.5     | Update references                                | Petteri Kivimäki  |
-| 09.01.2025 | 0.6     | Restructure heading levels                       | Raido Kaju        |
-| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support            | Eneli Reimets     |
-| 17.08.2026 | 0.8     | Restructure by audience                          | Petteri Kivimäki  |
+| Date       | Version | Description                                            | Author            |
+|------------|---------|--------------------------------------------------------|-------------------|
+| 02.06.2023 | 0.1     | Initial version                                        | Ričardas Bučiūnas |
+| 24.08.2023 | 0.2     | Minimum supported client Security Server version       | Eneli Reimets     |
+| 14.11.2023 | 0.3     | Publish global configuration over HTTPS                | Eneli Reimets     |
+| 15.12.2023 | 0.4     | Minor updates                                          | Eneli Reimets     |
+| 07.01.2025 | 0.5     | Update references                                      | Petteri Kivimäki  |
+| 09.01.2025 | 0.6     | Restructure heading levels                             | Raido Kaju        |
+| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support                  | Eneli Reimets     |
+| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -35,6 +35,8 @@ Doc. ID: UG-SEC
         * [2.1.3 Ensuring user account security](#213-ensuring-user-account-security)
     * [2.2 Admin UI](#22-admin-ui)
         * [2.2.1 Host header injection mitigation](#221-host-header-injection-mitigation)
+    * [2.3 Enforcing the software token PIN policy](#23-enforcing-the-software-token-pin-policy)
+        * [2.3.1 Considerations and risks](#231-considerations-and-risks)
 * [3. Security Server administrator controls](#3-security-server-administrator-controls)
     * [3.1 Access control](#31-access-control)
         * [3.1.1 Minimum supported client Security Server version](#311-minimum-supported-client-security-server-version)
@@ -70,13 +72,13 @@ Some controls belong to both roles, some to only one, and the controls available
 
 The hardening measures are grouped into three main sections:
 
-* Section [2](#2-x-road-operator-and-security-server-administrator-controls) — operating system and Admin UI hardening addressed to both roles.
+* Section [2](#2-x-road-operator-and-security-server-administrator-controls) — operating system, Admin UI and token PIN hardening addressed to both roles.
 * Section [3](#3-security-server-administrator-controls) — controls available to the administrator of an individual Security Server.
 * Section [4](#4-x-road-operator-controls) — controls available to the governing authority operating the Central Server and the Configuration Proxy.
 
 The section titles name the **role** the controls are addressed to, so that an administrator can tell at a glance which sections are theirs to read. Each main section then opens with an **Applies to** line naming the **components** those controls apply to, and a subsection repeats the line only where its scope is narrower than that of the section containing it.
 
-The two are stated separately because they do not coincide: the X-Road operator administers two components that differ in what can be hardened. The Configuration Proxy has no Admin UI and no web application users, so the user management and Admin UI controls of section [2](#2-x-road-operator-and-security-server-administrator-controls) are addressed to the operator but apply only to the Central Server. Read the sections that name your role, and within them apply only what the **Applies to** line names for the components you run.
+The two are stated separately because they do not coincide: the X-Road operator administers two components that differ in what can be hardened. The Configuration Proxy has no Admin UI and no web application users, so the user management and Admin UI controls of section [2](#2-x-road-operator-and-security-server-administrator-controls) are addressed to the operator but apply only to the Central Server, while the token PIN policy in the same section applies to the Configuration Proxy too. Read the sections that name your role, and within them apply only what the **Applies to** line names for the components you run.
 
 Every section also carries a stable anchor that does not change when sections are renumbered, so that other documents — in particular the X-Road threat model \[[ARC-TM](#Ref_ARC-TM)\] — can cite a control without the citation breaking at the next revision.
 
@@ -99,15 +101,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 2. X-Road operator and Security Server administrator controls
 
-**Applies to:** Central Server, Security Server
+The controls in this section are addressed to both roles. They are configured on the host and are the responsibility of whoever administers it — the X-Road operator for a Central Server or a Configuration Proxy, the Security Server administrator for a Security Server.
 
-The controls in this section harden the Admin UI and the operating system accounts that authenticate to it. They are configured on the host and are the responsibility of whoever administers that host — the X-Road operator for a Central Server, the Security Server administrator for a Security Server.
-
-They do not apply to the Configuration Proxy, which has no Admin UI and no web application users; it is administered from the command line as described in the Configuration Proxy Manual \[[UG-CP](#Ref_UG-CP)\]. The only control in this guide that applies to the Configuration Proxy is section [4.1.2](#412-configuration-proxy-tls-configuration).
+Not every control reaches every component. Sections [2.1](#21-user-management) and [2.2](#22-admin-ui) harden the Admin UI and the operating system accounts that authenticate to it, so they do not apply to the Configuration Proxy, which has neither; it is administered from the command line as described in the Configuration Proxy Manual \[[UG-CP](#Ref_UG-CP)\]. Section [2.3](#23-enforcing-the-software-token-pin-policy) protects key material held by the signer and applies to all three components.
 
 <a id="ug-sec-user-management" class="anchor"></a>
 
 ### 2.1 User management
+
+**Applies to:** Central Server, Security Server
 
 X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. 
 The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. 
@@ -228,6 +230,8 @@ The system administrator should also implement a monitoring and alerting system 
 
 ### 2.2 Admin UI
 
+**Applies to:** Central Server, Security Server
+
 Both the Central Server and the Security Server expose an Admin UI, and the control below applies to both.
 
 <a id="ug-sec-host-header" class="anchor"></a>
@@ -238,6 +242,40 @@ The host header specifies which website or web application should process an inc
 
 By default, this header allows any value which would be a security risk if Admin UI could be accessed by bad actors. To mitigate this issue it suggested to configure `allowed-hostnames` as described in [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md). 
 For Security server refer to [proxy-ui-api](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api), for Central server refer to [admin-service](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service)
+
+<a id="ug-sec-token-pin-policy" class="anchor"></a>
+
+### 2.3 Enforcing the software token PIN policy
+
+**Applies to:** Central Server, Security Server, Configuration Proxy
+
+The software token PIN protects the private keys that the signer holds on a software token: the authentication and signing keys on a Security Server, and the global configuration signing keys on a Central Server and a Configuration Proxy.
+
+X-Road ships with the PIN policy switched off. The system parameter `enforce-token-pin-policy` defaults to `false` in the `[signer]` section on all three components, so a software token PIN of any length and composition is accepted. This is a deliberate exception to the deny-by-default principle that X-Road otherwise follows \[[ARC-TM](#Ref_ARC-TM)\], and it is recommended to enable the policy.
+
+To enable it, add the following to `/etc/xroad/conf.d/local.ini` and then restart signer:
+
+```ini
+[signer]
+enforce-token-pin-policy = true
+```
+
+When the policy is enforced, a software token PIN must be
+
+* at least 10 characters long, and
+* composed of characters from at least three of the four character classes: lower-case letters, upper-case letters, digits, and special characters.
+
+Only printable ASCII characters are accepted. A PIN containing any character outside that range is rejected regardless of its length.
+
+Some country-specific meta-packages set the parameter already. The Finnish and Estonian Security Server packages both ship `enforce-token-pin-policy = true`, so on those installations the policy is in force without further configuration. Check the effective value before assuming it is unset. The parameter is described for each component in [UG-SYSPAR](#Ref_UG-SYSPAR) sections "Signer parameters: [signer]".
+
+#### 2.3.1 Considerations and risks
+
+The policy is applied when a PIN is set or changed. It is not applied to a PIN that already exists, so enabling the parameter on a running system does not strengthen the PIN currently in use — the PIN has to be changed for the policy to take effect. Changing it is part of enabling this control, not an optional follow-up.
+
+The policy governs software tokens only. Where keys are held on an SSCD or a hardware security module, the PIN or passphrase rules are those of the device, and `enforce-token-pin-policy` has no effect on them. Note that Security Server authentication keys are supported on a software token only, so they are always protected by the software token PIN.
+
+A longer PIN is harder to type, and the token PIN is not stored on disk by default: it is held in memory only while the token is logged in and is cleared when the server restarts, so the token has to be logged in again by hand after every restart. Where that is automated with the autologin add-on, the PIN is read at start-up from a file or from a source of the administrator's choosing. In that case the protection of the PIN depends on how that source is secured, and a strong PIN in a world-readable file is no stronger than the file.
 
 <a id="ug-sec-ss-controls" class="anchor"></a>
 
