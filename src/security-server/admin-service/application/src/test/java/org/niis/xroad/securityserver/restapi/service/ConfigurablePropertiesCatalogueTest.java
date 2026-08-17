@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 
@@ -120,11 +121,14 @@ class ConfigurablePropertiesCatalogueTest {
     @Mock
     private ConfigurationPropertyRepository repository;
 
+    @Mock
+    private AuditDataHelper auditDataHelper;
+
     private ConfigurablePropertiesService service;
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(repository);
+        service = new ConfigurablePropertiesService(repository, auditDataHelper);
         when(repository.findAll()).thenReturn(List.of());
     }
 

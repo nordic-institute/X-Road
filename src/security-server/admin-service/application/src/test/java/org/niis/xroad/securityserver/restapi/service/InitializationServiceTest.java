@@ -224,7 +224,7 @@ public class InitializationServiceTest {
             fail("should not have failed");
         }
         verify(configurablePropertiesService, never())
-                .updateConfigurableProperty(eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), any(), any());
+                .updateConfigurableProperty(eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), any());
     }
 
     @Test
@@ -237,7 +237,7 @@ public class InitializationServiceTest {
                 SOFTWARE_TOKEN_PIN, true, true);
 
         verify(configurablePropertiesService).updateConfigurableProperty(
-                eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), eq("true"), any());
+                eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), eq("true"));
     }
 
     @Test
@@ -250,7 +250,7 @@ public class InitializationServiceTest {
                 SOFTWARE_TOKEN_PIN, true, false);
 
         verify(configurablePropertiesService).updateConfigurableProperty(
-                eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), eq("false"), any());
+                eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), eq("false"));
     }
 
     @Test
@@ -263,7 +263,7 @@ public class InitializationServiceTest {
                 SOFTWARE_TOKEN_PIN, true, null);
 
         verify(configurablePropertiesService, never())
-                .updateConfigurableProperty(eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), any(), any());
+                .updateConfigurableProperty(eq(SignerConfigKeys.AUTOLOGIN_ENABLED.key()), any());
     }
 
     @Test

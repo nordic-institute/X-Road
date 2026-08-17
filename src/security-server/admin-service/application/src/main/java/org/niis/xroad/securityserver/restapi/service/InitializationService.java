@@ -61,9 +61,6 @@ import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_NAME;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
@@ -334,11 +331,8 @@ public class InitializationService {
      */
     private void updateSoftwareTokenAutologin(boolean enableSoftwareTokenAutologin) {
         String autologinKey = SignerConfigKeys.AUTOLOGIN_ENABLED.key();
-        auditDataHelper.put(SYSTEM_PROPERTY_NAME, autologinKey);
-        auditDataHelper.put(SYSTEM_PROPERTY_NEW_VALUE, String.valueOf(enableSoftwareTokenAutologin));
         configurablePropertiesService.updateConfigurableProperty(
-                autologinKey, String.valueOf(enableSoftwareTokenAutologin),
-                oldValue -> auditDataHelper.put(SYSTEM_PROPERTY_OLD_VALUE, oldValue));
+                autologinKey, String.valueOf(enableSoftwareTokenAutologin));
     }
 
     /**
