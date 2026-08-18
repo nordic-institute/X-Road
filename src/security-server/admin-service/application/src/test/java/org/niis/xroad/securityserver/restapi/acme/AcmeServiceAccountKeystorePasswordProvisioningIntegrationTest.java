@@ -85,6 +85,9 @@ public class AcmeServiceAccountKeystorePasswordProvisioningIntegrationTest exten
     @Autowired
     ConfigurationPropertyRepository configurationPropertyRepository;
 
+    @Autowired
+    TestConfigurationPropertyCleaner testConfigurationPropertyCleaner;
+
     private WireMockServer wireMockServer;
 
     @Before
@@ -98,6 +101,7 @@ public class AcmeServiceAccountKeystorePasswordProvisioningIntegrationTest exten
     @After
     public void tearDown() {
         wireMockServer.stop();
+        testConfigurationPropertyCleaner.delete(PROPERTY_KEY);
     }
 
     @Test

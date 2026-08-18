@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.acme;
 
+import org.junit.After;
 import org.junit.Test;
 import org.niis.xroad.common.acme.AccountKeystorePasswordProvider;
 import org.niis.xroad.common.acme.config.AcmeProperties;
@@ -34,6 +35,7 @@ import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestCon
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.Map;
@@ -67,6 +69,14 @@ public class DatabaseAccountKeystorePasswordProviderIntegrationTest extends Abst
     @Autowired
     AcmeProperties acmeProperties;
 
+    @Autowired
+    TestConfigurationPropertyCleaner testConfigurationPropertyCleaner;
+
+    @After
+    public void tearDown() {
+        testConfigurationPropertyCleaner.delete(PROPERTY_KEY);
+    }
+
     @Test
     public void generatesAndPersistsPasswordWhenNoRowExists() {
         assertTrue(configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_KEY).isEmpty());
@@ -93,6 +103,23 @@ public class DatabaseAccountKeystorePasswordProviderIntegrationTest extends Abst
         assertEquals(new String(password), document.get("account-keystore-password"));
         assertEquals(loadDocument(EAB_CREDENTIALS_DOCUMENT).get("eab-credentials"), document.get("eab-credentials"));
         assertArrayEquals(password, acmeProperties.getAccountKeystorePassword());
+    }
+
+    @Test
+    public void persistedPasswordSurvivesCallersTransactionRollingBackAfterwards() {
+        assertTrue(configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_KEY).isEmpty());
+
+        char[] password = accountKeystorePasswordProvider.createNewPassword();
+
+        // Ends and rolls back the ambient (outer) test transaction right now, simulating a caller whose own
+        // transaction fails and rolls back after createNewPassword() already ran and returned.
+        TestTransaction.end();
+
+        // A fresh transaction/connection: proves the write above committed independently of the one just
+        // rolled back, rather than merely reading back an uncommitted change from the same connection.
+        ConfigurationPropertyEntity persisted = getPersistedProperty();
+        Map<String, Object> document = loadDocument(persisted.getPropertyValue());
+        assertEquals(new String(password), document.get("account-keystore-password"));
     }
 
     private ConfigurationPropertyEntity getPersistedProperty() {

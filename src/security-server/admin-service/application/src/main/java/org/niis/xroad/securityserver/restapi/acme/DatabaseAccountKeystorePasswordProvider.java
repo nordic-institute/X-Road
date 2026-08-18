@@ -36,6 +36,8 @@ import org.niis.xroad.common.acme.config.AcmeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Generates a new ACME account keystore password and persists it into the same database-stored ACME
@@ -51,7 +53,13 @@ public class DatabaseAccountKeystorePasswordProvider implements AccountKeystoreP
     private final ConfigurationPropertyRepository configurationPropertyRepository;
     private final AcmeProperties acmeProperties;
 
+    /**
+     * Runs in its own transaction, committed independently of whatever transaction the caller is running in.
+     * Callers of this method (e.g. certificate ordering) can fail later in their own transaction without
+     * rolling back the password that was already generated and persisted here.
+     */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public char[] createNewPassword() {
         try {
             String propertyKey = AdminServiceConfigKeys.ACME.key();
