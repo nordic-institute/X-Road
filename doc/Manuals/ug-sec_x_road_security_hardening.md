@@ -100,8 +100,8 @@ This guide is the baseline for all of them. The controls it describes are proper
 
 A container deployment adds a platform that also has to be secured, and this guide does not cover it. Two further guides do, and both are additions to this one rather than alternatives to it:
 
-* \[[UG-SS-SEC-SIDECAR](#Ref_UG-SS-SEC-SIDECAR)\] covers the Docker host, the Docker daemon and the container runtime;
-* \[[UG-K-SS-SEC-SIDECAR](#Ref_UG-K-SS-SEC-SIDECAR)\] covers the Kubernetes cluster — secrets, cluster access, network policies and pod security. A Kubernetes deployment still runs containers, so the Docker guide applies there as well.
+* The Security Server Sidecar Security Guide \[[UG-SS-SEC-SIDECAR](#Ref_UG-SS-SEC-SIDECAR)\] covers the Docker host, the Docker daemon and the container runtime;
+* The Kubernetes Security Server Sidecar Security User Guide \[[UG-K-SS-SEC-SIDECAR](#Ref_UG-K-SS-SEC-SIDECAR)\] covers the Kubernetes cluster — secrets, cluster access, network policies and pod security. A Kubernetes deployment still runs containers, so the Docker guide applies there as well.
 
 Two consequences are worth stating plainly. Applying a platform guide alone leaves the X-Road controls in this document unapplied, because nothing in either platform guide sets a token PIN policy, enables backup encryption or forwards an audit log. And section [2.1](#21-user-management) assumes a Linux host that administrators log in to; where a Security Server runs as a container, the equivalent concerns — how administrator credentials are supplied to the container, and who may reach the container runtime or the cluster — are addressed in the platform guides instead.
 
@@ -356,7 +356,7 @@ Kept only on the host, that record is no more trustworthy than the host. Anyone 
 
 The audit log records configuration changes, not data access. It will show that a service or an access right was added, but not which messages were subsequently exchanged under it; that is what the message log holds. Neither log answers the other's questions, and an investigation usually needs both.
 
-The audit log contains personal data. User names, X-Road identifiers and API URLs are all present in the records, so the protection and retention requirements that apply follow from that content and continue to apply to the forwarded copy. Sending the log to a SIEM does not transfer the obligation to the SIEM's operator; it extends it to a second system.
+The audit log is not a record of personal data, but it is sensitive in its own right. The user names in it are technical accounts rather than the names of individuals, and the identifiers and URLs describe members, subsystems and administrative operations rather than people. What it does expose is the administrative surface of the deployment: which accounts exist, what they do, and which of their actions succeed and fail. That is useful to anyone preparing an attack, and its integrity is what its value as evidence rests on. Forwarding the log to a SIEM does not hand that responsibility to the SIEM's operator; it extends it to a second system that now holds the same record.
 
 Correlating events across hosts depends on their clocks. The correlation identifier links records belonging to the same request on one server, but reconstructing a sequence that spans a Security Server, a Central Server and the SIEM relies on those systems agreeing about the time. Keep the hosts synchronised to a trusted time source and monitor for drift, or the order of events in an investigation cannot be trusted.
 
