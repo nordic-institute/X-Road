@@ -22,6 +22,9 @@ if [[ "$command" == "archive" ]]; then
     echo "Usage: $0 archive <instanceId>" >&2
     exit 1
   fi
+  if [[ ! "$instance_identifier" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    abort "Invalid instance identifier '${instance_identifier}': only letters, digits, '.', '_' and '-' are allowed."
+  fi
   cli_args="archive ${instance_identifier}"
 else
   cli_args="cleanup"
