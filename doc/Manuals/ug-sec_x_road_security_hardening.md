@@ -314,9 +314,11 @@ A longer PIN is harder to type, and the token PIN is not stored on disk by defau
 
 **Applies to:** Central Server, Security Server
 
-A backup contains the contents of `/etc/xroad` together with a database dump. That includes the software token private keys, the internal TLS key material and the OpenPGP keyring, so a single backup file is enough to reconstruct the server's identity and to use its keys. A backup that leaves the host, or that can be read by anyone with access to the backup storage, is worth as much to an attacker as the key material it contains.
+A backup contains most of `/etc/xroad` together with a database dump. That includes the software token private keys and the internal TLS key material, so a single backup file is enough to reconstruct the server's identity and to use its keys. A backup that leaves the host, or that can be read by anyone with access to the backup storage, is worth as much to an attacker as the key material it contains.
 
-Backups are always signed and the signature is verified on restore, so their integrity is protected out of the box. Encryption is a separate setting and is **off** by default: `backup-encryption-enabled` defaults to `false`. It is recommended to enable it on both the Central Server and the Security Server, and to set at least one additional recipient in `backup-encryption-keyids` — without one, a backup is encrypted only to the server's own key and cannot be recovered if that key is lost.
+Some paths are deliberately excluded, among them the OpenPGP keyring in `/etc/xroad/gpghome` — the keyring holding the keys used to sign and encrypt the backup in the first place. It is therefore not enough to keep backups: the keyring has to be preserved separately, or a backup cannot be decrypted after the server it came from is rebuilt or replaced.
+
+Backups are always signed and the signature is verified on restore, so their integrity is protected out of the box. Encryption is a separate setting and is **off** by default: `backup-encryption-enabled` defaults to `false`. It is recommended to enable it on both the Central Server and the Security Server, and to set at least one additional recipient in `backup-encryption-keyids`. Without one, a backup is encrypted only to the server's own key, which lives in the keyring that the backup does not contain — so an additional recipient whose private key is held off the server is what makes an encrypted backup recoverable once that server is gone.
 
 The procedure is documented in full elsewhere and is not repeated here. For where the parameters are set, how to generate an additional key pair, how to import and trust it in the `/etc/xroad/gpghome` keyring, and how to decrypt a backup, see:
 
