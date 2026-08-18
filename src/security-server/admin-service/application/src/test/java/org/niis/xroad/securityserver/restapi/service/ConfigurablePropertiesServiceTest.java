@@ -34,6 +34,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -41,13 +43,14 @@ import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -73,11 +76,14 @@ class ConfigurablePropertiesServiceTest {
     @Mock
     private ConfigurationPropertyRepository repository;
 
+    @Mock
+    private AuditDataHelper auditDataHelper;
+
     private ConfigurablePropertiesService service;
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(repository);
+        service = new ConfigurablePropertiesService(repository, auditDataHelper);
     }
 
     @Test
@@ -231,14 +237,13 @@ class ConfigurablePropertiesServiceTest {
     }
 
     @Test
-    void updateConfigurablePropertyFoundInDatabaseWithAuditListener() {
+    void updateConfigurablePropertyFoundInDatabaseAuditsOldAndNewValueAndDerivedScope() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(PROPERTY_NAME);
         entity.setPropertyValue(PROPERTY_VALUE);
-        Consumer<String> existingValueConsumer = mock(Consumer.class);
         when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, existingValueConsumer);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -248,15 +253,18 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_VALUE_2, capturedEntity.getPropertyValue());
 
-        verify(existingValueConsumer).accept(PROPERTY_VALUE);
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_NAME, PROPERTY_NAME);
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE, PROPERTY_VALUE_2);
+        // scope is derived from the key's own category, not supplied by the caller
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, SCOPE);
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE, PROPERTY_VALUE);
     }
 
     @Test
-    void updateConfigurablePropertyNotFoundInDatabaseWithAuditListener() {
-        Consumer<String> existingValueConsumer = mock(Consumer.class);
+    void updateConfigurablePropertyNotFoundInDatabaseDoesNotAuditOldValue() {
         when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, existingValueConsumer);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -267,7 +275,16 @@ class ConfigurablePropertiesServiceTest {
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
         assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
 
-        verifyNoInteractions(existingValueConsumer);
+        verify(auditDataHelper, never()).put(eq(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE), any());
+    }
+
+    @Test
+    void updateConfigurablePropertyForScopelessKeyAuditsEmptyScope() {
+        when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME)).thenReturn(Optional.empty());
+
+        service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, "");
     }
 
     private static SecurityServerConfigurablePropertyDto findProperty(

@@ -568,6 +568,7 @@
     "noPermission": "Este servidor de seguridad no está inicializado actualmente, comunícate con un administrador para hacer la configuración inicial",
     "pin": {
       "confirmPin": "Confirmar PIN",
+      "enableAutologin": "Habilitar inicio de sesión automático del token",
       "info1": "El token de software es el lugar donde se almacenan las claves de autenticación del servidor de seguridad. Define un PIN para iniciar sesión en el token de software.",
       "info2": "Se recopila toda la información requerida, presiona el botón Enviar para inicializar el servidor de seguridad.",
       "info3": "Una vez que se realiza la inicialización, debes completar la configuración del servidor de seguridad; simplemente haz clic en el botón Configurar en la notificación que aparecerá en unos momentos.",

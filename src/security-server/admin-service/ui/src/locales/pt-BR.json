@@ -623,6 +623,7 @@
     "noPermission": "Este Servidor Seguro ainda não foi inicializado. Contate um administrador para realizar a configuração inicial.",
     "pin": {
       "confirmPin": "Confirmar PIN",
+      "enableAutologin": "Ativar login automático do token",
       "info1": "O token de software armazena a chave AUTH do Servidor Seguro. Defina um PIN para acessá-lo.",
       "info2": "Todas as informações necessárias foram fornecidas. Pressione Enviar para inicializar o servidor.",
       "info3": "Após a inicialização, conclua a configuração clicando em 'Configurar' na notificação exibida.",

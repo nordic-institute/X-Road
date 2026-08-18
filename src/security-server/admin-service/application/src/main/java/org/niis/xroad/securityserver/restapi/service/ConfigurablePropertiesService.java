@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -49,6 +50,7 @@ import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -61,10 +63,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.niis.xroad.common.core.exception.ErrorCode.NOT_FOUND;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_PROPERTY_VALUE;
 
 /**
@@ -76,8 +82,6 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVA
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ConfigurablePropertiesService {
-
-    private static final Consumer<String> NOOP_VALUE_CONSUMER = _ -> { };
 
     /**
      * Providers whose exposed keys make up the Security Server's system-parameters catalogue — the only
@@ -103,6 +107,7 @@ public class ConfigurablePropertiesService {
             MessageLogEncryptionConfigKeys.instance());
 
     private final ConfigurationPropertyRepository repository;
+    private final AuditDataHelper auditDataHelper;
 
     /**
      * Returns every configurable system parameter the registry declares as exposed, combined with the
@@ -120,45 +125,48 @@ public class ConfigurablePropertiesService {
     }
 
     /**
-     * Updates the value of an existing system parameter or creates a new one
-     * if the property does not yet exist in the repository.
-     * <p>
-     * If a configuration property with the given key is found, its value is updated.
-     * Otherwise, a new {@link ConfigurationPropertyEntity} is created and persisted.
+     * Returns the effective value of a single configurable property: the stored override if one
+     * exists, otherwise the registry's declared default.
      *
-     * @param propertyKey   unique key of the system property
-     * @param propertyValue new value for the system property
+     * @param propertyKey unique key of the system property
+     * @return the effective value, or empty if the property is not defined/exposed in this catalogue
      */
-    public void updateConfigurableProperty(String propertyKey, String propertyValue) {
-        updateConfigurableProperty(propertyKey, propertyValue, NOOP_VALUE_CONSUMER);
+    public Optional<String> getEffectiveValue(String propertyKey) {
+        return findExposedKey(propertyKey)
+                .map(key -> repository.findConfigurationPropertyByPropertyKey(propertyKey)
+                        .map(ConfigurationPropertyEntity::getPropertyValue)
+                        .orElseGet(key::defaultValue));
     }
 
     /**
      * Updates the value of an existing system parameter or creates a new one
-     * if the property does not yet exist in the repository.
+     * if the property does not yet exist in the repository, audit logging the change.
      * <p>
      * If a configuration property with the given key is found, its value is updated. Otherwise, a new
      * {@link ConfigurationPropertyEntity} is created and persisted.
      * </p>
      * <p>
-     * This variant allows the caller to provide a consumer for the existing value before the update.
+     * The scope audit logged alongside the change is derived from the key's own {@link Category} —
+     * never a caller-supplied value — so it can't drift out of sync with the catalogue.
      * </p>
      *
-     * @param propertyKey           unique key of the system property
-     * @param propertyValue         new value for the system property
-     * @param existingValueConsumer callback that consumes the existing persisted property value
-     *                              before the update, not invoked if the property does not exist
-     *                              or has a {@code null} value
+     * @param propertyKey   unique key of the system property
+     * @param propertyValue new value for the system property
      */
-    public void updateConfigurableProperty(String propertyKey, String propertyValue, Consumer<String> existingValueConsumer) {
+    public void updateConfigurableProperty(String propertyKey, String propertyValue) {
         var key = findExposedKey(propertyKey)
                 .orElseThrow(() -> new NotFoundException(
                         "Configurable property '%s' is not defined".formatted(propertyKey),
                         NOT_FOUND.build()));
         validateValue(key, propertyValue);
 
+        auditDataHelper.put(SYSTEM_PROPERTY_NAME, propertyKey);
+        auditDataHelper.put(SYSTEM_PROPERTY_NEW_VALUE, propertyValue);
+        auditDataHelper.put(SYSTEM_PROPERTY_SCOPE, getIfNull(categoryToScope(key.category()), StringUtils.EMPTY));
+
         var existing = repository.findConfigurationPropertyByPropertyKey(propertyKey);
-        existing.map(ConfigurationPropertyEntity::getPropertyValue).ifPresent(existingValueConsumer);
+        existing.map(ConfigurationPropertyEntity::getPropertyValue)
+                .ifPresent(oldValue -> auditDataHelper.put(SYSTEM_PROPERTY_OLD_VALUE, oldValue));
 
         var entity = existing.orElseGet(() -> createEmptyConfigurationProperty(propertyKey));
         entity.setPropertyValue(propertyValue);
@@ -180,9 +188,7 @@ public class ConfigurablePropertiesService {
     }
 
     /**
-     * A property is configurable when the registry declares it exposed. A {@code scope} supplied by the
-     * caller is still checked against the registry's own target scope — the REST contract carries it, and a
-     * mismatch means the caller is aiming at something else — but it no longer takes part in storage.
+     * A property is configurable when the registry declares it exposed.
      */
     private Optional<ConfigKey<?>> findExposedKey(String propertyKey) {
         return SS_PROVIDERS.stream()
