@@ -373,7 +373,7 @@ services:
       extraRules:
         - apiGroups: ["batch"]
           resources: ["jobs"]
-          verbs: ["create", "get", "list", "watch"]
+          verbs: ["create", "get", "list", "watch", "delete"]
         - apiGroups: [ "apps" ]
           resources: [ "deployments","deployments/scale" ]
           verbs: [ "get", "list", "update", "watch", "patch" ]
