@@ -5,16 +5,16 @@ Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                                                | Author            |
-|------------|---------|--------------------------------------------------------------------------------------------|-------------------|
-| 02.06.2023 | 0.1     | Initial version                                                                            | Ričardas Bučiūnas |
-| 24.08.2023 | 0.2     | Minimum supported client Security Server version                                           | Eneli Reimets     |
-| 14.11.2023 | 0.3     | Publish global configuration over HTTPS                                                    | Eneli Reimets     |
-| 15.12.2023 | 0.4     | Minor updates                                                                              | Eneli Reimets     |
-| 07.01.2025 | 0.5     | Update references                                                                          | Petteri Kivimäki  |
-| 09.01.2025 | 0.6     | Restructure heading levels                                                                 | Raido Kaju        |
-| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support                                                      | Eneli Reimets     |
-| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy, backup encryption and message log  | Petteri Kivimäki  |
+| Date       | Version | Description                                                                                                                        | Author            |
+|------------|---------|------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| 02.06.2023 | 0.1     | Initial version                                                                                                                    | Ričardas Bučiūnas |
+| 24.08.2023 | 0.2     | Minimum supported client Security Server version                                                                                   | Eneli Reimets     |
+| 14.11.2023 | 0.3     | Publish global configuration over HTTPS                                                                                            | Eneli Reimets     |
+| 15.12.2023 | 0.4     | Minor updates                                                                                                                      | Eneli Reimets     |
+| 07.01.2025 | 0.5     | Update references                                                                                                                  | Petteri Kivimäki  |
+| 09.01.2025 | 0.6     | Restructure heading levels                                                                                                         | Raido Kaju        |
+| 22.04.2026 | 0.7     | Remove RHEL 8 and add RHEL 10 support                                                                                              | Eneli Reimets     |
+| 17.08.2026 | 0.8     | Restructure by audience, add software token PIN policy, backup encryption, message log, audit log forwarding and deployment models | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -23,8 +23,9 @@ Doc. ID: UG-SEC
 * [1. Introduction](#1-introduction)
     * [1.1 Target audience](#11-target-audience)
     * [1.2 How this guide is organised](#12-how-this-guide-is-organised)
-    * [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
-    * [1.4 References](#14-references)
+    * [1.3 Deployment models](#13-deployment-models)
+    * [1.4 Terms and abbreviations](#14-terms-and-abbreviations)
+    * [1.5 References](#15-references)
 * [2. X-Road operator and Security Server administrator controls](#2-x-road-operator-and-security-server-administrator-controls)
     * [2.1 User management](#21-user-management)
         * [2.1.1 Configuring account lockout](#211-configuring-account-lockout)
@@ -39,6 +40,8 @@ Doc. ID: UG-SEC
         * [2.3.1 Considerations and risks](#231-considerations-and-risks)
     * [2.4 Encrypting backups](#24-encrypting-backups)
         * [2.4.1 Considerations and risks](#241-considerations-and-risks)
+    * [2.5 Forwarding the audit log](#25-forwarding-the-audit-log)
+        * [2.5.1 Considerations and risks](#251-considerations-and-risks)
 * [3. Security Server administrator controls](#3-security-server-administrator-controls)
     * [3.1 Access control](#31-access-control)
         * [3.1.1 Minimum supported client Security Server version](#311-minimum-supported-client-security-server-version)
@@ -79,7 +82,7 @@ Some controls belong to both roles, some to only one, and the controls available
 
 The hardening measures are grouped into three main sections:
 
-* Section [2](#2-x-road-operator-and-security-server-administrator-controls) — hardening addressed to both roles: operating system accounts, the Admin UI, the token PIN policy and backups.
+* Section [2](#2-x-road-operator-and-security-server-administrator-controls) — hardening addressed to both roles: operating system accounts, the Admin UI, the token PIN policy, backups and the audit log.
 * Section [3](#3-security-server-administrator-controls) — controls available to the administrator of an individual Security Server.
 * Section [4](#4-x-road-operator-controls) — controls available to the governing authority operating the Central Server and the Configuration Proxy.
 
@@ -89,11 +92,24 @@ The two are stated separately because they do not coincide: the X-Road operator 
 
 Every section also carries a stable anchor that does not change when sections are renumbered, so that other documents — in particular the X-Road threat model \[[ARC-TM](#Ref_ARC-TM)\] — can cite a control without the citation breaking at the next revision.
 
-### 1.3 Terms and abbreviations
+### 1.3 Deployment models
+
+A Security Server can be installed on a Linux host from native packages, or run as a container using the Security Server Sidecar, either directly on Docker or in a Kubernetes cluster. The Central Server and the Configuration Proxy are available as native packages only.
+
+This guide is the baseline for all of them. The controls it describes are properties of the X-Road software rather than of the platform underneath it, so the token PIN policy, backup encryption, message log protection, audit log forwarding and the controls in sections [3](#3-security-server-administrator-controls) and [4](#4-x-road-operator-controls) apply to a Security Server whatever it runs on.
+
+A container deployment adds a platform that also has to be secured, and this guide does not cover it. Two further guides do, and both are additions to this one rather than alternatives to it:
+
+* \[[UG-SS-SEC-SIDECAR](#Ref_UG-SS-SEC-SIDECAR)\] covers the Docker host, the Docker daemon and the container runtime;
+* \[[UG-K-SS-SEC-SIDECAR](#Ref_UG-K-SS-SEC-SIDECAR)\] covers the Kubernetes cluster — secrets, cluster access, network policies and pod security. A Kubernetes deployment still runs containers, so the Docker guide applies there as well.
+
+Two consequences are worth stating plainly. Applying a platform guide alone leaves the X-Road controls in this document unapplied, because nothing in either platform guide sets a token PIN policy, enables backup encryption or forwards an audit log. And section [2.1](#21-user-management) assumes a Linux host that administrators log in to; where a Security Server runs as a container, the equivalent concerns — how administrator credentials are supplied to the container, and who may reach the container runtime or the cluster — are addressed in the platform guides instead.
+
+### 1.4 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
-### 1.4 References
+### 1.5 References
 
 1. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road: Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md).
 2. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] X-Road: Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md).
@@ -104,6 +120,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 7. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual. Document ID: [UG-CP](ug-cp_x-road_v6_configuration_proxy_manual.md).
 8. <a id="Ref_ARC-TM" class="anchor"></a>\[ARC-TM\] X-Road Threat Model. Document ID: [ARC-TM](../Architecture/arc-tm_x-road_threat_model.md).
 9. <a id="Ref_MLAV" class="anchor"></a>\[MLAV\] X-Road: Messagelog Archive Verifier. [MLAV](../../src/tool/messagelog-archive-verifier/README.md).
+10. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events. Document ID: [SPEC-AL](../Architecture/spec-al_x-road_audit_log_events.md).
+11. <a id="Ref_UG-SS-SEC-SIDECAR" class="anchor"></a>\[UG-SS-SEC-SIDECAR\] X-Road: Security Server Sidecar Security Guide. Document ID: [UG-SS-SEC-SIDECAR](../Sidecar/security_server_sidecar_security_guide.md).
+12. <a id="Ref_UG-K-SS-SEC-SIDECAR" class="anchor"></a>\[UG-K-SS-SEC-SIDECAR\] X-Road: Kubernetes Security Server Sidecar Security User Guide. Document ID: [UG-K-SS-SEC-SIDECAR](../Sidecar/kubernetes_security_guide.md).
 
 <a id="ug-sec-common-controls" class="anchor"></a>
 
@@ -120,6 +139,8 @@ Not every control reaches every component. For example, sections [2.1](#21-user-
 ### 2.1 User management
 
 **Applies to:** Central Server, Security Server
+
+This section assumes a component installed on a Linux host whose administrators have operating system accounts on it. Where a Security Server runs as a container instead, the accounts described here belong to the host or to the cluster rather than to the Security Server; see section [1.3](#13-deployment-models).
 
 X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. 
 The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. 
@@ -312,6 +333,32 @@ X-Road applies no strength or validity checks to the keys named in the list. Con
 Encryption protects the backup file, not the place it is kept. Backups downloaded through the Admin UI or copied to external or long-term storage leave the protection of the host behind, so the storage location, the transfer channel, and who may retrieve a backup all need to be controlled to the same standard as the server itself.
 
 Enabling encryption changes the restore path. Confirm that a backup taken after the change can actually be decrypted and restored before relying on it, and repeat that check periodically. An encrypted backup that cannot be decrypted is a loss of availability, which for backups is as damaging as a loss of confidentiality.
+
+<a id="ug-sec-audit-log" class="anchor"></a>
+
+### 2.5 Forwarding the audit log
+
+**Applies to:** Central Server, Security Server
+
+The audit log records every change an administrator makes to the system state or configuration through the Admin UI or the management REST API, whether the attempt succeeded or failed, together with the user name, the authentication type used and a correlation identifier. The events are enumerated in \[[SPEC-AL](#Ref_SPEC-AL)\]. It is the record of who changed what, and on a Central Server it covers the registry and trust decisions that the whole ecosystem relies on.
+
+Kept only on the host, that record is no more trustworthy than the host. Anyone who obtains administrative access — an intruder, or an administrator acting outside their remit — can alter or delete the local file, and the actions that led to the access disappear with it. Forwarding the audit log to an independent system such as a SIEM or a central log server places the record beyond the reach of whoever controls the X-Road host, which is what makes it dependable as evidence.
+
+**Forward continuously rather than archiving periodically.** \[[UG-SS](#Ref_UG-SS)\] and \[[UG-CS](#Ref_UG-CS)\] recommend archiving the audit log to external storage or a log server to save disk space and to survive a crash. For security purposes the timing is what matters: anything not yet sent can still be altered on the host, and that gap is exactly when an attacker is active. Relay records as they are written instead of copying files on a schedule.
+
+**Protect the forwarding channel.** The audit log carries user names, X-Road identifiers, API URLs and the reasons actions failed. Forward it over an authenticated and encrypted transport, and prefer a reliable one, so that records are neither disclosed nor silently dropped on the way and the receiving system can rely on their origin. X-Road writes the audit log through syslog, so this is rsyslog configuration; where that configuration lives is described in \[[UG-SS](#Ref_UG-SS)\] and \[[UG-CS](#Ref_UG-CS)\] section "Changing the Configuration of the Audit Log".
+
+**Alert on the events that matter, do not only collect them.** A log nobody reads detects nothing. At a minimum, alert on failed authentication and failed token log-ins, on the creation, modification and deletion of API keys, on changes to user roles and permissions, and on key and certificate operations. On a Central Server, add changes to the member and Security Server registry, to approved certification and time-stamping authorities, and to trusted anchors, since those alter the security policy of the entire instance. \[[SPEC-AL](#Ref_SPEC-AL)\] lists the complete set of events to select from.
+
+**Forward the host's own audit trail as well.** Changes made outside the Admin UI and the management REST API are not in the X-Road audit log at all — installing and upgrading the software, creating operating system users and granting them permissions, and editing configuration files directly. Those are precisely the actions of someone who already has access to the host. Operating system level auditing has to be collected and forwarded alongside the X-Road audit log for the record to be complete.
+
+#### 2.5.1 Considerations and risks
+
+The audit log records configuration changes, not data access. It will show that a service or an access right was added, but not which messages were subsequently exchanged under it; that is what the message log holds. Neither log answers the other's questions, and an investigation usually needs both.
+
+The audit log contains personal data. User names, X-Road identifiers and API URLs are all present in the records, so the protection and retention requirements that apply follow from that content and continue to apply to the forwarded copy. Sending the log to a SIEM does not transfer the obligation to the SIEM's operator; it extends it to a second system.
+
+Correlating events across hosts depends on their clocks. The correlation identifier links records belonging to the same request on one server, but reconstructing a sequence that spans a Security Server, a Central Server and the SIEM relies on those systems agreeing about the time. Keep the hosts synchronised to a trusted time source and monitor for drift, or the order of events in an investigation cannot be trusted.
 
 <a id="ug-sec-ss-controls" class="anchor"></a>
 
