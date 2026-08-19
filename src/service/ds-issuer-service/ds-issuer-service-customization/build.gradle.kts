@@ -16,8 +16,8 @@ dependencies {
   implementation(libs.edc.crypto.verifiablecredentials.jwt)
   implementation(project(":common:common-domain"))
   implementation(project(":lib:globalconf-impl"))
+  implementation(project(":lib:edc-jetty-tls"))
   implementation(libs.nimbus.jose.jwt)
-  implementation(libs.edc.core.jetty)
   implementation(libs.jetty.server)
 
   constraints {

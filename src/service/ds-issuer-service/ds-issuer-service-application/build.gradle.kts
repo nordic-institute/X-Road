@@ -2,6 +2,7 @@ plugins {
   id("xroad.java-conventions")
   id("xroad.java-exec-conventions")
   id("xroad.quarkus-application-conventions")
+  id("xroad.edc-owned-jetty-conventions")
 }
 
 dependencies {
@@ -11,6 +12,7 @@ dependencies {
   implementation(project(":lib:properties-quarkus"))
   implementation(project(":lib:properties-core"))
   implementation(project(":lib:rpc-core"))
+  implementation(project(":lib:vault-quarkus"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
 
@@ -69,6 +71,7 @@ dependencies {
   runtimeOnly(libs.postgresql)
 
   runtimeOnly(libs.edc.vault.hashicorp)
+  runtimeOnly(project(":lib:edc-jetty-tls"))
 
   runtimeOnly(project(":lib:rpc-quarkus"))
   implementation(project(":lib:globalconf-core"))

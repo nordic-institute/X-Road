@@ -47,6 +47,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
@@ -54,6 +55,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 @Slf4j
 @RequiredArgsConstructor
 public class QuarkusVaultClient implements VaultClient {
+
+    private static final int HTTP_NOT_FOUND = 404;
 
     private final VaultKVSecretEngine kvSecretEngine;
 
@@ -182,6 +185,13 @@ public class QuarkusVaultClient implements VaultClient {
         kvSecretEngine.deleteSecret(path);
     }
 
+    /**
+     * A 404 means the path genuinely has no secret and maps to {@link Optional#empty()}, matching
+     * {@link org.niis.xroad.common.vault.spring.SpringVaultClient}'s contract where the underlying client
+     * itself returns {@code null} for a missing secret. Every other status (auth failure, vault sealed,
+     * network/5xx errors) is an infrastructure failure, not a missing secret, and must propagate so callers
+     * can tell "not provisioned yet" apart from "could not reach vault".
+     */
     private Optional<Map<String, String>> readSecret(String path) {
         if (kvSecretEngine == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
@@ -193,10 +203,13 @@ public class QuarkusVaultClient implements VaultClient {
                 return Optional.empty();
             }
             return Optional.of(vaultResponse);
-        } catch (VaultClientException vaultResponse) {
-            log.warn("Failed to read secret from Vault at path {}: {} status {}",
-                    path, vaultResponse.getMessage(), vaultResponse.getStatus());
-            return Optional.empty();
+        } catch (VaultClientException e) {
+            if (Objects.equals(e.getStatus(), HTTP_NOT_FOUND)) {
+                log.debug("No secret found in Vault at path {}", path);
+                return Optional.empty();
+            }
+            log.warn("Failed to read secret from Vault at path {}: {} status {}", path, e.getMessage(), e.getStatus());
+            throw e;
         }
     }
 

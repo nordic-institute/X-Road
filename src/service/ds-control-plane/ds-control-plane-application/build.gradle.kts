@@ -2,6 +2,7 @@ plugins {
   id("xroad.java-conventions")
   id("xroad.java-exec-conventions")
   id("xroad.quarkus-application-conventions")
+  id("xroad.edc-owned-jetty-conventions")
 }
 
 dependencies {
@@ -53,7 +54,7 @@ dependencies {
   runtimeOnly(libs.edc.core.runtime)
   runtimeOnly(libs.edc.core.token)
   runtimeOnly(libs.edc.core.jersey)
-  runtimeOnly(libs.edc.core.jetty)
+  runtimeOnly(project(":lib:edc-jetty-tls"))
   runtimeOnly(libs.edc.core.policy.monitor)
   runtimeOnly(libs.edc.api.observability)
   runtimeOnly(libs.edc.core.dataplane.selector)
