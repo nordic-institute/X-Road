@@ -373,7 +373,7 @@ services:
       extraRules:
         - apiGroups: ["batch"]
           resources: ["jobs"]
-          verbs: ["create", "get", "list", "watch"]
+          verbs: ["create", "get", "list", "watch", "delete"]
         - apiGroups: [ "apps" ]
           resources: [ "deployments","deployments/scale" ]
           verbs: [ "get", "list", "update", "watch", "patch" ]
@@ -663,9 +663,10 @@ services:
 
 messageLogArchiver:
   ttlSecondsAfterFinished: 172800 # 48 hours
+  activeDeadlineSeconds: 21600 # 6 hours
   imageName: ss-message-log-archiver
   env:
-    JAVA_OPTS: "-XX:MaxMetaspaceSize=90m -XX:+ExitOnOutOfMemoryError"
+    JAVA_OPTS: "-XX:MaxMetaspaceSize=160m -XX:+ExitOnOutOfMemoryError"
     XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
     XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
     XROAD_SECRET_STORE_HOST: "openbao"

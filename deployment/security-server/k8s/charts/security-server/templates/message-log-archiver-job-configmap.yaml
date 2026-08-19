@@ -14,7 +14,13 @@ data:
       name: "__JOBNAME__"
     spec:
       ttlSecondsAfterFinished: {{ $archiver.ttlSecondsAfterFinished }}
-      backoffLimit: 1
+      activeDeadlineSeconds: {{ $archiver.activeDeadlineSeconds }}
+      backoffLimit: 0
+      podFailurePolicy:
+        rules:
+          - action: Ignore
+            onPodConditions:
+              - type: DisruptionTarget
       template:
         spec:
           restartPolicy: Never
