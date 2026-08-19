@@ -521,6 +521,7 @@ const routes: RouteRecordRaw[] = [
           navigation: XrdMainNavigationContainer,
         },
         props: { default: true },
+        meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
       },
       {
         path: '/not-found',

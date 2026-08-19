@@ -43,7 +43,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateValidator;
@@ -66,6 +68,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_CERTIFICATE_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_NOT_GENERATED;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 @ExtendWith(MockitoExtension.class)
 class DsTlsCertificateServiceTest {
@@ -86,12 +89,20 @@ class DsTlsCertificateServiceTest {
 
     @Test
     void statusShouldReportNotGeneratedWhenVaultHasNoSlot() throws Exception {
-        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("no secret"));
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
 
         var status = service().getStatus();
 
         assertThat(status.keyGenerated()).isFalse();
         assertThat(status.certificateAcquired()).isFalse();
+    }
+
+    @Test
+    void statusShouldPropagateAnInternalErrorWhenVaultFailsForAnUnrelatedReason() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("vault connection refused"));
+
+        assertThatThrownBy(() -> service().getStatus())
+                .isInstanceOf(InternalServerErrorException.class);
     }
 
     @Test
@@ -132,11 +143,19 @@ class DsTlsCertificateServiceTest {
 
     @Test
     void generateCsrShouldFailWhenNoKeyGenerated() throws Exception {
-        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("no secret"));
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
 
         assertThatThrownBy(() -> service().generateCsr("CN=ds.example.org"))
                 .isInstanceOf(NotFoundException.class)
                 .satisfies(e -> assertThat(((NotFoundException) e).getErrorDeviation().code()).isEqualTo(DS_TLS_KEY_NOT_GENERATED.code()));
+    }
+
+    @Test
+    void generateCsrShouldPropagateAnInternalErrorWhenVaultFailsForAnUnrelatedReason() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("vault connection refused"));
+
+        assertThatThrownBy(() -> service().generateCsr("CN=ds.example.org"))
+                .isInstanceOf(InternalServerErrorException.class);
     }
 
     @Test
@@ -154,11 +173,19 @@ class DsTlsCertificateServiceTest {
 
     @Test
     void uploadCertificateShouldFailWhenNoKeyGenerated() throws Exception {
-        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("no secret"));
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
 
         assertThatThrownBy(() -> service().uploadCertificate(new byte[0]))
                 .isInstanceOf(NotFoundException.class)
                 .satisfies(e -> assertThat(((NotFoundException) e).getErrorDeviation().code()).isEqualTo(DS_TLS_KEY_NOT_GENERATED.code()));
+    }
+
+    @Test
+    void uploadCertificateShouldPropagateAnInternalErrorWhenVaultFailsForAnUnrelatedReason() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(new IllegalStateException("vault connection refused"));
+
+        assertThatThrownBy(() -> service().uploadCertificate(new byte[0]))
+                .isInstanceOf(InternalServerErrorException.class);
     }
 
     @Test
@@ -205,6 +232,12 @@ class DsTlsCertificateServiceTest {
         byte[] tar = service().downloadCertificateTar();
 
         assertThat(tar).isNotEmpty();
+    }
+
+    private static XrdRuntimeException missingSecretException() {
+        return XrdRuntimeException.systemException(MISSING_SECRET)
+                .details("Failed to get secret from Vault. Secret not found at path: tls/ds-https")
+                .build();
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

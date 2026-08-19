@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -63,6 +64,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_NOT_GENERATED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 
 /**
  * Manages the DataSpace TLS certificate slot at OpenBao {@code tls/ds-https}, shared between Security Server and
@@ -155,9 +157,16 @@ public class DsTlsCertificateService {
                 return Optional.empty();
             }
             return Optional.of(credentials);
+        } catch (XrdRuntimeException e) {
+            if (e.isCausedBy(MISSING_SECRET)) {
+                log.debug("DataSpace TLS key not yet generated", e);
+                return Optional.empty();
+            }
+            log.error("Failed to read DataSpace TLS credentials from vault", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         } catch (Exception e) {
-            log.debug("DataSpace TLS key not yet generated", e);
-            return Optional.empty();
+            log.error("Failed to read DataSpace TLS credentials from vault", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
     }
 
