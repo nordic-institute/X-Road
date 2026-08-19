@@ -71,11 +71,12 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * the resource is backed by the OpenBao {@code tls/ds-https} KV slot, stood in for by the stack's MockServer
  * instance (see {@code ManagementServicesApiTest} for the same pattern against {@code tls/management-service}).
  *
- * <p>All tests but {@link #statusReportsNothingProvisionedWhenVaultSlotIsEmpty} share one canonical
- * "key generated" vault fixture (same RSA keypair, generated once per JVM) so that concurrently running tests
- * registering/clearing the identical MockServer expectation never observe a behavioural difference from the
- * race - only the "nothing provisioned" test needs a genuinely different (404) response, so it alone takes the
- * {@code ds-tls-vault-slot} write lock while every other test holds a read lock.
+ * <p>{@code seeder.clearMockExpectations(path)} matches by path only, not HTTP method, so it clears both the
+ * GET and POST expectations at {@code tls/ds-https} in one call - any two tests touching that path at all can
+ * race through each other's register/clear. Tests sharing the canonical "key generated" GET/POST fixtures all
+ * hold a {@code ds-tls-vault-slot} read lock, so they may run concurrently with each other (their content is
+ * interchangeable, so a race between them never changes an outcome); the tests that need a genuinely different
+ * 404 response instead take the write lock, guaranteeing exclusivity against every other test in the class.
  */
 @SuppressWarnings("checkstyle:magicnumber")
 class DsTlsCertificateApiTest extends CsApiTest {
@@ -125,6 +126,7 @@ class DsTlsCertificateApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ)
     void keyIsGeneratedForPrivilegedUser(CsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
 
@@ -189,6 +191,7 @@ class DsTlsCertificateApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ_WRITE)
     void csrGenerationFailsWhenNoKeyGenerated(CsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
 
@@ -244,6 +247,7 @@ class DsTlsCertificateApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ_WRITE)
     void certificateUploadFailsWhenNoKeyGenerated(CsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
 
@@ -298,6 +302,7 @@ class DsTlsCertificateApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ_WRITE)
     void certificateDownloadFailsWhenNoCertificateAcquired(CsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
 
