@@ -325,7 +325,15 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_ACQUISITION_FAILED("dsp_acquisition_failed"),
     DSP_PROVISIONING_FAILED("dsp_provisioning_failed"),
     DSP_PARTICIPANT_IDENTIFIER_MISMATCH("dsp_participant_identifier_mismatch"),
-    DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED("dsp_participant_scheme_version_unsupported");
+    DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED("dsp_participant_scheme_version_unsupported"),
+
+    // ===== DS TLS CERTIFICATE ERRORS =====
+    DS_TLS_KEY_NOT_GENERATED("ds_tls_key_not_generated"),
+    DS_TLS_CERTIFICATE_PARSE_FAILED("ds_tls_certificate_parse_failed"),
+    DS_TLS_CERTIFICATE_NOT_YET_VALID("ds_tls_certificate_not_yet_valid"),
+    DS_TLS_CERTIFICATE_EXPIRED("ds_tls_certificate_expired"),
+    DS_TLS_KEY_CERTIFICATE_MISMATCH("ds_tls_key_certificate_mismatch"),
+    DS_TLS_CERTIFICATE_NOT_CONFIGURED("ds_tls_certificate_not_configured");
 
     private final String code;
 

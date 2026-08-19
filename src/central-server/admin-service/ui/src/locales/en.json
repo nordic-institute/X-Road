@@ -16,6 +16,9 @@
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
     "description": "Use valid description characters only"
   },
+  "dsTlsCertificate": {
+    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending"
+  },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",
@@ -38,6 +41,12 @@
     "configuration_part_validator_not_found": "Configuration part validator not found",
     "csr_generation_failed": "CSR generation failed",
     "double_file_extension": "Double file extension is not allowed",
+    "ds_tls_certificate_expired": "The DataSpace TLS certificate has expired",
+    "ds_tls_certificate_not_configured": "No DataSpace TLS certificate has been provisioned yet",
+    "ds_tls_certificate_not_yet_valid": "The DataSpace TLS certificate is not yet valid",
+    "ds_tls_certificate_parse_failed": "Cannot read the DataSpace TLS certificate",
+    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the DataSpace TLS key",
+    "ds_tls_key_not_generated": "Generate a DataSpace TLS key before requesting a CSR or uploading a certificate",
     "error_activating_signing_key": "Error activating signing key",
     "error_deleting_signing_key": "Error deleting signing key",
     "error_recreating_anchor": "Error re-creating anchor file",
@@ -585,7 +594,8 @@
       "backupAndRestore": "Backup And Restore",
       "globalResources": "Global Resources",
       "systemSettings": "System Settings",
-      "tlsCertificates": "TLS Certificates"
+      "tlsCertificates": "TLS Certificates",
+      "dsTlsCertificate": "DS TLS Certificate"
     }
   },
   "tlsCertificates": {

@@ -24,60 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { defineStore } from 'pinia';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@niis/shared-ui';
-import { useUser } from '@/store/modules/user';
+package org.niis.xroad.restapi.dstls;
 
-const tabs = [
-  {
-    key: 'sign-and-auth-keys-tab-button',
-    name: 'tab.keys.signAndAuthKeys',
-    icon: 'editor_choice',
-    to: {
-      name: RouteName.SignAndAuthKeys,
-    },
-    permissions: [Permissions.VIEW_KEYS],
-  },
-  {
-    key: 'api-key-tab-button',
-    name: 'tab.keys.apiKey',
-    icon: 'key_vertical',
-    to: {
-      name: RouteName.ApiKey,
-    },
-    permissions: [Permissions.CREATE_API_KEY, Permissions.VIEW_API_KEYS, Permissions.UPDATE_API_KEY, Permissions.REVOKE_API_KEY],
-  },
-  {
-    key: 'ss-tls-certificate-tab-button',
-    name: 'tab.keys.ssTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.SSTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-  },
-  {
-    key: 'ds-tls-certificate-tab-button',
-    name: 'tab.keys.dsTlsCertificate',
-    icon: 'shield_lock',
-    to: {
-      name: RouteName.DsTlsCertificate,
-    },
-    permissions: [Permissions.VIEW_DS_TLS_CERT],
-  },
-] as Tab[];
+import java.security.cert.X509Certificate;
 
-export const useKeysTabs = defineStore('keys-tabs', {
-  state: () => ({}),
-  persist: false,
-  getters: {
-    availableTabs(): Tab[] {
-      return useUser().getAllowedTabs(tabs);
-    },
-    firstAllowedTab(): Tab {
-      return this.availableTabs[0];
-    },
-  },
-  actions: {},
-});
+/**
+ * The DS TLS certificate slot's current state: whether a key has been generated (manually or, in a later slice,
+ * by ACME enrollment) and, once a certificate chain has been acquired for it, the leaf certificate.
+ *
+ * @param keyGenerated whether the {@code tls/ds-https} vault slot holds a private key
+ * @param certificate  the leaf certificate, or {@code null} if none has been acquired yet
+ */
+public record DsTlsCertificateStatus(boolean keyGenerated, X509Certificate certificate) {
+
+    public boolean certificateAcquired() {
+        return certificate != null;
+    }
+}
