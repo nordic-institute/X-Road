@@ -294,7 +294,7 @@ Only printable ASCII characters are accepted. A PIN containing any character out
 
 #### 2.3.1 Considerations and risks
 
-The policy is applied when a PIN is set or changed. It is not applied to a PIN that already exists, so enabling the parameter on a running system does not strengthen the PIN currently in use — the PIN has to be changed for the policy to take effect. Changing it is part of enabling this control, not an optional follow-up.
+The PIN policy is enforced only when a PIN is set or changed. Enabling the policy on a running system does not affect an existing PIN. To apply the policy to the PIN currently in use, the PIN must be changed after the policy is enabled. Changing the existing PIN is therefore a required part of enabling this control.
 
 The policy governs software tokens only. Where keys are held on an SSCD or a hardware security module, the PIN or passphrase rules are those of the device, and `enforce-token-pin-policy` has no effect on them. Note that Security Server authentication keys are supported on a software token only, so they are always protected by the software token PIN.
 
@@ -304,7 +304,7 @@ The policy governs software tokens only. Where keys are held on an SSCD or a har
 
 **Applies to:** Central Server, Security Server
 
-A backup contains most of `/etc/xroad` together with a database dump. That includes the software token private keys and the internal TLS key material, so a single backup file is enough to reconstruct the server's identity and to use its keys. A backup that leaves the host, or that can be read by anyone with access to the backup storage, is worth as much to an attacker as the key material it contains.
+A backup contains most of `/etc/xroad` together with a database dump. This includes software token private keys and internal TLS key material. A single backup therefore contains enough information to reconstruct the server's identity and use its keys. A backup that is moved outside the host or stored in a location accessible to unauthorised users can expose this key material. Backups must therefore be protected to the same level as the sensitive keys and configuration they contain.
 
 Some paths are deliberately excluded, among them the OpenPGP keyring in `/etc/xroad/gpghome` — the keyring holding the keys used to sign and encrypt the backup in the first place. It is therefore not enough to keep backups: the keyring has to be preserved separately, or a backup cannot be decrypted after the server it came from is rebuilt or replaced.
 
