@@ -73,8 +73,8 @@ The intended audience of this User Guide are X-Road administrators (Central or S
 
 The guide addresses two distinct roles, whose responsibilities and available controls differ:
 
-* the **X-Road operator**, the governing authority responsible for the Central Server and, where deployed, the Configuration Proxy — that is, for the security policy of the whole X-Road instance;
-* the **Security Server administrator**, responsible for a single member's Security Server.
+* the **X-Road operator**, the governing authority responsible for the operation of the Central Server and, where deployed, the Configuration Proxy;
+* the **Security Server administrator**, responsible for the maintenance and operation of the Security Server.
 
 Some controls belong to both roles, some to only one, and the controls available to the operator differ between the two components they administer. Each section states the components it applies to.
 
@@ -83,14 +83,10 @@ Some controls belong to both roles, some to only one, and the controls available
 The hardening measures are grouped into three main sections:
 
 * Section [2](#2-x-road-operator-and-security-server-administrator-controls) — hardening addressed to both roles: operating system accounts, the Admin UI, the token PIN policy, backups and the audit log.
-* Section [3](#3-security-server-administrator-controls) — controls available to the administrator of an individual Security Server.
+* Section [3](#3-security-server-administrator-controls) — controls available to the administrator operating a Security Server.
 * Section [4](#4-x-road-operator-controls) — controls available to the governing authority operating the Central Server and the Configuration Proxy.
 
-The section titles name the **role** the controls are addressed to, so that an administrator can tell at a glance which sections are theirs to read. Each section and subsection then states an **Applies to** line naming the **components** its controls apply to. The line is repeated on every subsection rather than left to be inferred from the section above it, so that a reader arriving at a subsection directly — from the table of contents, from a search, or from a link in another document — sees its scope without having to look elsewhere. The innermost subsections, which only elaborate on the control they sit under, carry the line only where their scope is narrower than that control's.
-
-The two are stated separately because they do not coincide: the X-Road operator administers two components that differ in what can be hardened. The Configuration Proxy has no Admin UI and no web application users, so the user management and Admin UI controls of section [2](#2-x-road-operator-and-security-server-administrator-controls) are addressed to the operator but apply only to the Central Server, while the token PIN policy in the same section applies to the Configuration Proxy too. Read the sections that name your role, and within them apply only what the **Applies to** line names for the components you run.
-
-Every section also carries a stable anchor that does not change when sections are renumbered, so that other documents — in particular the X-Road threat model \[[ARC-TM](#Ref_ARC-TM)\] — can cite a control without the citation breaking at the next revision.
+The section titles name the **role** the controls are addressed to. Each section and subsection then states an **Applies to** line naming the **components** its controls apply to.
 
 ### 1.3 Deployment models
 
@@ -103,7 +99,7 @@ A container deployment adds a platform that also has to be secured, and this gui
 * The Security Server Sidecar Security Guide \[[UG-SS-SEC-SIDECAR](#Ref_UG-SS-SEC-SIDECAR)\] covers the Docker host, the Docker daemon and the container runtime;
 * The Kubernetes Security Server Sidecar Security User Guide \[[UG-K-SS-SEC-SIDECAR](#Ref_UG-K-SS-SEC-SIDECAR)\] covers the Kubernetes cluster — secrets, cluster access, network policies and pod security. A Kubernetes deployment still runs containers, so the Docker guide applies there as well.
 
-Two consequences are worth stating plainly. Applying a platform guide alone leaves the X-Road controls in this document unapplied, because nothing in either platform guide sets a token PIN policy, enables backup encryption or forwards an audit log. And section [2.1](#21-user-management) assumes a Linux host that administrators log in to; where a Security Server runs as a container, the equivalent concerns — how administrator credentials are supplied to the container, and who may reach the container runtime or the cluster — are addressed in the platform guides instead.
+Please note that following either the platform guide or this document alone does not provide comprehensive security guidance. To properly secure the software, both the applicable platform guide and this security hardening document should be reviewed.
 
 ### 1.4 Terms and abbreviations
 
@@ -284,6 +280,8 @@ The software token PIN protects the private keys that the signer holds on a soft
 
 X-Road ships with the PIN policy switched off. The system parameter `enforce-token-pin-policy` defaults to `false` in the `[signer]` section on all three components, so a software token PIN of any length and composition is accepted. This is a deliberate exception to the deny-by-default principle that X-Road otherwise follows \[[ARC-TM](#Ref_ARC-TM)\], and it is recommended to enable the policy.
 
+Some country-specific meta-packages set the parameter already. For example, the Finnish and Estonian Security Server packages both ship `enforce-token-pin-policy = true`, so on those installations the policy is in force without further configuration. Check the effective value before assuming it is unset. The parameter is described for each component in [UG-SYSPAR](#Ref_UG-SYSPAR) sections "Signer parameters: [signer]".
+
 To enable it, add the following to `/etc/xroad/conf.d/local.ini` and then restart signer:
 
 ```ini
@@ -297,8 +295,6 @@ When the policy is enforced, a software token PIN must be
 * composed of characters from at least three of the four character classes: lower-case letters, upper-case letters, digits, and special characters.
 
 Only printable ASCII characters are accepted. A PIN containing any character outside that range is rejected regardless of its length.
-
-Some country-specific meta-packages set the parameter already. The Finnish and Estonian Security Server packages both ship `enforce-token-pin-policy = true`, so on those installations the policy is in force without further configuration. Check the effective value before assuming it is unset. The parameter is described for each component in [UG-SYSPAR](#Ref_UG-SYSPAR) sections "Signer parameters: [signer]".
 
 #### 2.3.1 Considerations and risks
 
@@ -320,7 +316,7 @@ Some paths are deliberately excluded, among them the OpenPGP keyring in `/etc/xr
 
 Backups are always signed and the signature is verified on restore, so their integrity is protected out of the box. Encryption is a separate setting and is **off** by default: `backup-encryption-enabled` defaults to `false`. It is recommended to enable it on both the Central Server and the Security Server, and to set at least one additional recipient in `backup-encryption-keyids`. Without one, a backup is encrypted only to the server's own key, which lives in the keyring that the backup does not contain — so an additional recipient whose private key is held off the server is what makes an encrypted backup recoverable once that server is gone.
 
-The procedure is documented in full elsewhere and is not repeated here. For where the parameters are set, how to generate an additional key pair, how to import and trust it in the `/etc/xroad/gpghome` keyring, and how to decrypt a backup, see:
+For where the parameters are set, how to generate an additional key pair, how to import and trust it in the `/etc/xroad/gpghome` keyring, and how to decrypt a backup, see:
 
 * Security Server — \[[UG-SS](#Ref_UG-SS)\] section "Backup Encryption Configuration";
 * Central Server — \[[UG-CS](#Ref_UG-CS)\] section "Backup Encryption Configuration";
@@ -334,7 +330,7 @@ X-Road applies no strength or validity checks to the keys named in the list. Con
 
 Encryption protects the backup file, not the place it is kept. Backups downloaded through the Admin UI or copied to external or long-term storage leave the protection of the host behind, so the storage location, the transfer channel, and who may retrieve a backup all need to be controlled to the same standard as the server itself.
 
-Enabling encryption changes the restore path. Confirm that a backup taken after the change can actually be decrypted and restored before relying on it, and repeat that check periodically. An encrypted backup that cannot be decrypted is a loss of availability, which for backups is as damaging as a loss of confidentiality.
+Enabling encryption changes the restore path. Confirm that a backup taken after the change can actually be decrypted and restored before relying on it, and repeat that check periodically.
 
 <a id="ug-sec-audit-log" class="anchor"></a>
 
@@ -342,9 +338,9 @@ Enabling encryption changes the restore path. Confirm that a backup taken after 
 
 **Applies to:** Central Server, Security Server
 
-The audit log records every change an administrator makes to the system state or configuration through the Admin UI or the management REST API, whether the attempt succeeded or failed, together with the user name, the authentication type used and a correlation identifier. The events are enumerated in \[[SPEC-AL](#Ref_SPEC-AL)\]. It is the record of who changed what, and on a Central Server it covers the registry and trust decisions that the whole ecosystem relies on.
+The audit log records every change an administrator makes to the system state or configuration through the Admin UI or the management REST API, whether the attempt succeeds or fails, together with the user name, authentication type used, and a correlation identifier. The events are enumerated in \[[SPEC-AL](#Ref_SPEC-AL)\]. The audit log provides a record of who changed what and when.
 
-Kept only on the host, that record is no more trustworthy than the host. Anyone who obtains administrative access — an intruder, or an administrator acting outside their remit — can alter or delete the local file, and the actions that led to the access disappear with it. Forwarding the audit log to an independent system such as a SIEM or a central log server places the record beyond the reach of whoever controls the X-Road host, which is what makes it dependable as evidence.
+Kept only on the host, that record is no more trustworthy than the host. Anyone who obtains administrative access — an intruder, or an administrator acting outside their expected role — can alter or delete the local file, and the actions that led to the access disappear with it. Forwarding the audit log to an independent system such as a SIEM or a central log server places the record beyond the reach of whoever controls the X-Road host, which is what makes it dependable as evidence.
 
 **Forward continuously rather than archiving periodically.** \[[UG-SS](#Ref_UG-SS)\] and \[[UG-CS](#Ref_UG-CS)\] recommend archiving the audit log to external storage or a log server to save disk space and to survive a crash. For security purposes the timing is what matters: anything not yet sent can still be altered on the host, and that gap is exactly when an attacker is active. Relay records as they are written instead of copying files on a schedule.
 
@@ -356,11 +352,11 @@ Kept only on the host, that record is no more trustworthy than the host. Anyone 
 
 #### 2.5.1 Considerations and risks
 
-The audit log records configuration changes, not data access. It will show that a service or an access right was added, but not which messages were subsequently exchanged under it; that is what the message log holds. Neither log answers the other's questions, and an investigation usually needs both.
+The audit log records configuration changes, not data access. For example, it shows when a service or access right was added, but it does not show which messages were later exchanged using that service or access right. That information is stored in the message log. The two logs serve different purposes, and an investigation usually requires both.
 
-The audit log is not a record of personal data, but it is sensitive in its own right. The user names in it are technical accounts rather than the names of individuals, and the identifiers and URLs describe members, subsystems and administrative operations rather than people. What it does expose is the administrative surface of the deployment: which accounts exist, what they do, and which of their actions succeed and fail. That is useful to anyone preparing an attack, and its integrity is what its value as evidence rests on. Forwarding the log to a SIEM does not hand that responsibility to the SIEM's operator; it extends it to a second system that now holds the same record.
+The audit log is not a record of personal data, but it is still sensitive. The user names are technical account names rather than the names of individuals. The identifiers and URLs describe members, subsystems, and administrative operations rather than people.
 
-Correlating events across hosts depends on their clocks. The correlation identifier links records belonging to the same request on one server, but reconstructing a sequence that spans a Security Server, a Central Server and the SIEM relies on those systems agreeing about the time. Keep the hosts synchronised to a trusted time source and monitor for drift, or the order of events in an investigation cannot be trusted.
+However, the audit log reveals important information about the administrative surface of the deployment. It shows which accounts exist, what they do, and which actions succeed or fail. This information can be useful to an attacker. The integrity of the audit log is also essential because its value as evidence depends on it being trustworthy.
 
 <a id="ug-sec-ss-controls" class="anchor"></a>
 
