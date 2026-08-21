@@ -137,4 +137,14 @@ public class NoopVaultClient implements VaultClient {
     public void deleteTokenPin(String tokenId) {
         throw new UnsupportedOperationException("Not supported");
     }
+
+    @Override
+    public void createAcmeAccountKey(String alias, AcmeAccountKey acmeAccountKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public Optional<AcmeAccountKey> getAcmeAccountKey(String alias) {
+        return Optional.empty();
+    }
 }
