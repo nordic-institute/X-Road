@@ -272,14 +272,29 @@ main() {
     log_info "xroad-autologin not installed — skipping signer-token-pins migration"
   fi
 
-  # file-to-db (acme): stores the entire contents of acme.yml under property
-  # key xroad.acme. Distinct sentinel id so it doesn't collide with the mail
-  # file-to-db sentinel below.
+  # file-to-db (acme): stores the contents of acme.yml under property key
+  # xroad.acme. account-keystore-password is stripped into a scratch copy
+  # first — X-Road 8 has no code path left that reads that value back out of
+  # the database, so copying it over would just persist a dead secret. Only
+  # the scratch copy is filtered; the live acme.yml on disk is untouched, and
+  # acme-account-keys below still reads the real password straight from it.
+  # Distinct sentinel id so it doesn't collide with the mail file-to-db
+  # sentinel below.
   local acme_yml="/etc/xroad/conf.d/acme.yml"
   if [[ -f "$acme_yml" ]]; then
+    local acme_yml_for_db="$acme_yml"
+    local acme_yml_scrubbed=""
+    local acme_description="Migrate ACME configuration (full file contents)\n  from: $acme_yml\n  into: configuration database\n  key:  xroad.acme"
+    if grep -qE '^account-keystore-password:' "$acme_yml" 2>/dev/null; then
+      acme_yml_scrubbed=$(mktemp)
+      grep -vE '^account-keystore-password:' "$acme_yml" > "$acme_yml_scrubbed" || true
+      acme_yml_for_db="$acme_yml_scrubbed"
+      acme_description="Migrate ACME configuration (full file contents, account-keystore-password stripped)\n  from: $acme_yml\n  into: configuration database\n  key:  xroad.acme"
+    fi
     run_migration_step "file-to-db" --id "file-to-db-acme" \
-      --description "Migrate ACME configuration (full file contents)\n  from: $acme_yml\n  into: configuration database\n  key:  xroad.acme" \
-      "$acme_yml" "/etc/xroad/db.properties" "xroad.acme"
+      --description "$acme_description" \
+      "$acme_yml_for_db" "/etc/xroad/db.properties" "xroad.acme"
+    [[ -n "$acme_yml_scrubbed" ]] && rm -f "$acme_yml_scrubbed"
   else
     log_info "ACME configuration file not found at $acme_yml — skipping file-to-db (acme) migration"
   fi
