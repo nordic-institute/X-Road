@@ -284,6 +284,36 @@ main() {
     log_info "ACME configuration file not found at $acme_yml — skipping file-to-db (acme) migration"
   fi
 
+  # acme-account-keys: migrate every alias in the X-Road 7 ACME account
+  # keystore into the OpenBao secret store, carrying each alias's existing
+  # certificate expiry forward as the rotation-due timestamp. The keystore
+  # path is the X-Road 7 default (AdminServiceConfigKeys.ACME_ACCOUNT_KEYSTORE_PATH,
+  # removed once this migration made it obsolete). The password is read from
+  # acme.yml's account-keystore-password field — a single flat top-level key,
+  # so a targeted grep/sed extraction is used rather than a YAML parser.
+  local acme_p12="/etc/xroad/ssl/acme.p12"
+  if [[ -f "$acme_p12" ]]; then
+    local acme_keystore_password=""
+    if [[ -f "$acme_yml" ]]; then
+      acme_keystore_password=$(grep -E '^account-keystore-password:' "$acme_yml" 2>/dev/null \
+        | sed -E 's/^account-keystore-password:[[:space:]]*//' \
+        | sed -E "s/^[\"']//; s/[\"']\$//") || acme_keystore_password=""
+    fi
+    # Pass the keystore password via env var (mirrors
+    # XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD used for the
+    # messagelog-db-encryption-keys step further below) so it does not land
+    # in the migration log line nor in `ps` output. Unset immediately after
+    # the step. If the field above was absent, the acme-account-keys
+    # subcommand's own env-var-required check reports that clearly.
+    export XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD="$acme_keystore_password"
+    run_migration_step "acme-account-keys" \
+      --description "Migrate ACME account key pairs (all aliases)\n  from: $acme_p12\n  into: OpenBao secret store" \
+      "$acme_p12"
+    unset XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD
+  else
+    log_info "ACME account keystore not found at $acme_p12 — skipping acme-account-keys migration"
+  fi
+
   # file-to-db (mail): stores the entire contents of mail.yml under property
   # key xroad.mail-notification.
   local mail_yml="/etc/xroad/conf.d/mail.yml"

@@ -277,7 +277,7 @@ public class LegacyConfigMigrationCLI {
                     migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 key1
                   migration-cli messagelog-key-mappings /etc/xroad/messagelog/archive-encryption-mapping.ini /etc/xroad/db.properties
                   XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD=secret \\
-                    migration-cli acme-account-keys /etc/xroad/acme.p12
+                    migration-cli acme-account-keys /etc/xroad/ssl/acme.p12
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties

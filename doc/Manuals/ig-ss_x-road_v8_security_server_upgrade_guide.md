@@ -268,7 +268,7 @@ Two migration sub-steps require credentials. The wizard does not prescribe how t
 |------------------------------------------------|---------------------------------------------------------------------------------|------------------------------------------|
 | `XROAD_MIGRATION_SOFTTOKEN_PIN`                | A soft token keystore exists at `/etc/xroad/signer/softtoken/.softtoken.p12`    | `keyconf` sub-step                       |
 | `XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD` | `message-log.messagelog-keystore` in `local.ini` points to an existing keystore | `messagelog-db-encryption-keys` sub-step |
-| `XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD`       | `/etc/xroad/acme.p12` exists (value comes from the old `acme.yml`)              | `acme-account-keys` sub-step             |
+| `XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD`       | `/etc/xroad/ssl/acme.p12` exists (value comes from the old `acme.yml`)          | `acme-account-keys` sub-step             |
 
 Common delivery options:
 
@@ -439,7 +439,7 @@ java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/mail.yml /etc/
 
 # Only if an ACME account keystore exists
 XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD='<pw>' \
-  java -jar /var/tmp/migration-cli.jar acme-account-keys /etc/xroad/acme.p12
+  java -jar /var/tmp/migration-cli.jar acme-account-keys /etc/xroad/ssl/acme.p12
 
 java -jar /var/tmp/migration-cli.jar pgp-keys                /etc/xroad/conf.d/local.ini
 java -jar /var/tmp/migration-cli.jar messagelog-key-mappings <mapping-file>  /etc/xroad/db.properties
