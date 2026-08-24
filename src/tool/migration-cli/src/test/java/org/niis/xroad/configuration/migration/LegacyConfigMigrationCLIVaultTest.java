@@ -68,6 +68,7 @@ class LegacyConfigMigrationCLIVaultTest {
         envVars.remove("XROAD_SECRET_STORE_SCHEME");
         envVars.remove("XROAD_SECRET_STORE_TOKEN");
         envVars.remove("XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD");
+        envVars.remove("XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD");
     }
 
     // ----- vault-using subcommands fail loudly when env vars are missing -----
@@ -111,6 +112,26 @@ class LegacyConfigMigrationCLIVaultTest {
                         "messagelog-db-encryption-keys",
                         stubKeystore.toString(),
                         "test-key-id"
+                }))
+                .isInstanceOf(MigrationException.class)
+                .hasMessageContaining("Migration failed")
+                .hasRootCauseInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void testAcmeAccountKeysWithMissingEnvVarsPropagatesMigrationException() throws IOException {
+        Path stubKeystore = tempDir.resolve("stub-acme.p12");
+        Files.writeString(stubKeystore, "stub bytes");
+
+        // Keystore password is sourced from an env var (mirrors the messagelog-db-encryption-keys
+        // pattern). Set it so the test exercises the Vault preflight failure path — the
+        // assertion below is about Vault env vars being absent, not the password env var.
+        envVars.set("XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD", "test-password");
+
+        assertThatThrownBy(() ->
+                LegacyConfigMigrationCLI.main(new String[]{
+                        "acme-account-keys",
+                        stubKeystore.toString()
                 }))
                 .isInstanceOf(MigrationException.class)
                 .hasMessageContaining("Migration failed")
