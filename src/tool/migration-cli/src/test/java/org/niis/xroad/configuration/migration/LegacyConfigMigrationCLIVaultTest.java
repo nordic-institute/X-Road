@@ -138,6 +138,27 @@ class LegacyConfigMigrationCLIVaultTest {
                 .hasRootCauseInstanceOf(XrdRuntimeException.class);
     }
 
+    @Test
+    void testAcmeAccountKeysWithBlankPasswordFailsBeforeTouchingVault() throws IOException {
+        Path stubKeystore = tempDir.resolve("stub-acme.p12");
+        Files.writeString(stubKeystore, "stub bytes");
+
+        // An explicitly empty password must be rejected the same as a missing one — X-Road 7
+        // never considered a blank password valid once the keystore already exists. This fails
+        // before the Vault preflight check, so unlike the missing-env-var test above, the cause
+        // is the password check itself, not an XrdRuntimeException from Vault.
+        envVars.set("XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD", "");
+
+        assertThatThrownBy(() ->
+                LegacyConfigMigrationCLI.main(new String[]{
+                        "acme-account-keys",
+                        stubKeystore.toString()
+                }))
+                .isInstanceOf(MigrationException.class)
+                .hasMessageContaining("Migration failed")
+                .hasCauseInstanceOf(IllegalStateException.class);
+    }
+
     // ----- migrateSignerTokenPins fail-loud on PARTIAL_SUCCESS / FAILED -----
 
     @Test

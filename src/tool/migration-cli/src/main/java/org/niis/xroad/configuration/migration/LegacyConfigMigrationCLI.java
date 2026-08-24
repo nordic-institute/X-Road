@@ -218,7 +218,7 @@ public class LegacyConfigMigrationCLI {
                     Arguments:
                       <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)
                     Env vars:
-                      XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required; may be empty)
+                      XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required)
 
                 Signer Devices Migration:
                   migration-cli signer-devices <devices.ini> <db.properties path>
@@ -366,14 +366,14 @@ public class LegacyConfigMigrationCLI {
             log.error("Usage: migration-cli acme-account-keys <acme.p12>");
             log.error("  <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)");
             log.error("Env vars:");
-            log.error("  {}  Keystore password (required; may be empty)", ACME_KEYSTORE_PASSWORD_ENV);
+            log.error("  {}  Keystore password (required)", ACME_KEYSTORE_PASSWORD_ENV);
             System.exit(1);
         }
 
         String keystorePath = args[0];
 
         String password = System.getenv(ACME_KEYSTORE_PASSWORD_ENV);
-        if (password == null) {
+        if (password == null || password.isBlank()) {
             throw new IllegalStateException(
                     "Keystore password not provided. Export " + ACME_KEYSTORE_PASSWORD_ENV
                             + " before running the acme-account-keys migration step.");

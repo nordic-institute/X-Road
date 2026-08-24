@@ -272,14 +272,10 @@ main() {
     log_info "xroad-autologin not installed — skipping signer-token-pins migration"
   fi
 
-  # file-to-db (acme): stores the contents of acme.yml under property key
-  # xroad.acme. account-keystore-password is stripped into a scratch copy
-  # first — X-Road 8 has no code path left that reads that value back out of
-  # the database, so copying it over would just persist a dead secret. Only
-  # the scratch copy is filtered; the live acme.yml on disk is untouched, and
-  # acme-account-keys below still reads the real password straight from it.
-  # Distinct sentinel id so it doesn't collide with the mail file-to-db
-  # sentinel below.
+  # file-to-db (acme): copies acme.yml into the database under xroad.acme,
+  # with account-keystore-password stripped — X-Road 8 never reads that
+  # field back out, so keeping it would just persist a dead secret. Distinct
+  # sentinel id so it doesn't collide with the mail file-to-db sentinel below.
   local acme_yml="/etc/xroad/conf.d/acme.yml"
   if [[ -f "$acme_yml" ]]; then
     local acme_yml_for_db="$acme_yml"
@@ -299,16 +295,11 @@ main() {
     log_info "ACME configuration file not found at $acme_yml — skipping file-to-db (acme) migration"
   fi
 
-  # acme-account-keys: migrate every alias in the X-Road 7 ACME account
-  # keystore into the OpenBao secret store, carrying each alias's existing
-  # certificate expiry forward as the rotation-due timestamp. The keystore
-  # path is the X-Road 7 default (AdminServiceConfigKeys.ACME_ACCOUNT_KEYSTORE_PATH,
-  # removed once this migration made it obsolete). The password is read from
-  # acme.yml's account-keystore-password field, falling back to the
-  # ACCOUNT_KEYSTORE_PASSWORD env var — the same two sources and order
-  # X-Road 7's AcmeProperties.getAccountKeystorePassword() used. A single
-  # flat YAML key, so a targeted grep/sed extraction is used rather than
-  # a YAML parser.
+  # acme-account-keys: migrates every alias in the X-Road 7 ACME account
+  # keystore (X-Road 7 default path) into OpenBao, carrying each alias's
+  # certificate expiry forward as its rotation-due timestamp. Password comes
+  # from acme.yml, falling back to ACCOUNT_KEYSTORE_PASSWORD — same order
+  # X-Road 7 used.
   local acme_p12="/etc/xroad/ssl/acme.p12"
   if [[ -f "$acme_p12" ]]; then
     local acme_keystore_password=""
@@ -320,12 +311,11 @@ main() {
     if [[ -z "$acme_keystore_password" && -n "${ACCOUNT_KEYSTORE_PASSWORD:-}" ]]; then
       acme_keystore_password="$ACCOUNT_KEYSTORE_PASSWORD"
     fi
-    # Pass the keystore password via env var (mirrors
-    # XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD used for the
-    # messagelog-db-encryption-keys step further below) so it does not land
-    # in the migration log line nor in `ps` output. Unset immediately after
-    # the step. If the field above was absent, the acme-account-keys
-    # subcommand's own env-var-required check reports that clearly.
+    if [[ -z "$acme_keystore_password" ]]; then
+      log_die "No ACME account keystore password found in acme.yml's account-keystore-password field or in ACCOUNT_KEYSTORE_PASSWORD — export ACCOUNT_KEYSTORE_PASSWORD or restore the field in acme.yml, then re-run."
+    fi
+    # Pass the password via env var, not a CLI argument, so it doesn't land
+    # in the log line or `ps` output. Unset immediately after the step.
     export XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD="$acme_keystore_password"
     run_migration_step "acme-account-keys" \
       --description "Migrate ACME account key pairs (all aliases)\n  from: $acme_p12\n  into: OpenBao secret store" \
