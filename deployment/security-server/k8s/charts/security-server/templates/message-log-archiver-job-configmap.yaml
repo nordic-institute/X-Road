@@ -43,6 +43,12 @@ data:
       template:
         spec:
           restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- range . }}
+            - name: {{ . }}
+            {{- end }}
+          {{- end }}
           containers:
             - name: message-log-archiver
               image: {{ $image.registry }}/{{ $archiver.imageName }}:{{ $image.tag }}
