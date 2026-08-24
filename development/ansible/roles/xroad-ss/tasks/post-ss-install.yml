@@ -1,32 +1,5 @@
 ---
-# Stopgap (XRDDEV-3294 retires this): the owned Jetty module reads the DS TLS
-# certificate from OpenBao, not from the file ds-https-keystore.yml generates —
-# seed the same key/cert into tls/ds-https so ds-* services don't fail closed.
-# Must run post-install: ds-https-keystore.yml runs pre-install (see
-# pre-ss-install.yml), before xroad-secret-store-local's own package install has
-# necessarily finished producing a client token.
-- name: wait for secret store client token
-  wait_for:
-    path: /etc/xroad/secret-store-client-token
-    state: present
-    timeout: 180
-
-# curl instead of the uri module: ansible-core >= 2.19 loads its own CA trust
-# data even for plain-http uri calls, and that load fails on RHEL 9 targets
-# (see ds-https-keystore.yml for the same issue on the xrd-ca wait task).
-- name: write ds-https certificate and key to OpenBao
-  shell: |
-    set -euo pipefail
-    TOKEN=$(cat /etc/xroad/secret-store-client-token)
-    PAYLOAD=$(jq -n --rawfile cert /etc/xroad/ssl/ds-https-cert.pem --rawfile key /etc/xroad/ssl/ds-https-key.pem \
-      '{certificate: $cert, privateKey: $key}')
-    curl -fsSk -X POST \
-      -H "X-Vault-Token: ${TOKEN}" \
-      -H "Content-Type: application/json" \
-      --data "$PAYLOAD" \
-      "https://127.0.0.1:8200/v1/xrd-secret/tls/ds-https" >/dev/null
-  args:
-    executable: /bin/bash
+- include_tasks: seed-ds-https-vault.yml
 
 # TEMPORARY (dataspaces dev): post-install safety net. The pre-install preseed
 # ensures DS services boot cleanly on a fresh install, but if an earlier run

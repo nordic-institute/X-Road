@@ -197,6 +197,12 @@
     # task above; unconditional like it.
     - name: Park messagelog archive/clean crons and import PGP keys
       include_tasks: roles/xroad-ss/tasks/msglog-archive-encryption.yml
+    # This play never runs post-ss-install.yml (it uses xroad-ss-installer, not
+    # the xroad-ss role, so post-ss-install.yml's own include of this same file
+    # never fires) — without this, ds-* here would crash-loop on missing_secret
+    # forever, the unconditional restart below notwithstanding.
+    - name: Seed the DS TLS certificate into OpenBao
+      include_tasks: roles/xroad-ss/tasks/seed-ds-https-vault.yml
     - name: Discover installed DS units
       ansible.builtin.shell: >-
         systemctl list-unit-files 'xroad-ds-*.service' --no-legend | awk '{print $1}'
