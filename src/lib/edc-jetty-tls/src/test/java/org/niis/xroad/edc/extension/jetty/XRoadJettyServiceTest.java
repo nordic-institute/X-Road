@@ -204,10 +204,12 @@ class XRoadJettyServiceTest {
         var trustAll = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                // trust-all test client: every certificate is accepted
             }
 
             @Override
             public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                // trust-all test client: every certificate is accepted
             }
 
             @Override
