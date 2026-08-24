@@ -304,8 +304,11 @@ main() {
   # certificate expiry forward as the rotation-due timestamp. The keystore
   # path is the X-Road 7 default (AdminServiceConfigKeys.ACME_ACCOUNT_KEYSTORE_PATH,
   # removed once this migration made it obsolete). The password is read from
-  # acme.yml's account-keystore-password field — a single flat top-level key,
-  # so a targeted grep/sed extraction is used rather than a YAML parser.
+  # acme.yml's account-keystore-password field, falling back to the
+  # ACCOUNT_KEYSTORE_PASSWORD env var — the same two sources and order
+  # X-Road 7's AcmeProperties.getAccountKeystorePassword() used. A single
+  # flat YAML key, so a targeted grep/sed extraction is used rather than
+  # a YAML parser.
   local acme_p12="/etc/xroad/ssl/acme.p12"
   if [[ -f "$acme_p12" ]]; then
     local acme_keystore_password=""
@@ -313,6 +316,9 @@ main() {
       acme_keystore_password=$(grep -E '^account-keystore-password:' "$acme_yml" 2>/dev/null \
         | sed -E 's/^account-keystore-password:[[:space:]]*//' \
         | sed -E "s/^[\"']//; s/[\"']\$//") || acme_keystore_password=""
+    fi
+    if [[ -z "$acme_keystore_password" && -n "${ACCOUNT_KEYSTORE_PASSWORD:-}" ]]; then
+      acme_keystore_password="$ACCOUNT_KEYSTORE_PASSWORD"
     fi
     # Pass the keystore password via env var (mirrors
     # XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD used for the

@@ -272,6 +272,8 @@ Two migration sub-steps require credentials. The wizard does not prescribe how t
 | `XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD` | `message-log.messagelog-keystore` in `local.ini` points to an existing keystore | `messagelog-db-encryption-keys` sub-step |
 | `XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD`       | `/etc/xroad/ssl/acme.p12` exists (value comes from the old `acme.yml`)          | `acme-account-keys` sub-step             |
 
+If your X-Road 7 keystore password was supplied via the `ACCOUNT_KEYSTORE_PASSWORD` environment variable rather than `acme.yml`'s `account-keystore-password` field, export `ACCOUNT_KEYSTORE_PASSWORD` in the shell running the wizard — the wizard falls back to it when `acme.yml` doesn't have the field, matching X-Road 7's own lookup order.
+
 Common delivery options:
 
 - Place the values in a sibling env file with `chmod 600` and `source` it from your Ansible / shell wrapper just before invoking the wizard.
