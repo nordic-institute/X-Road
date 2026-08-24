@@ -224,6 +224,10 @@ public class DataspaceProvisioningService {
      */
     @Transactional(readOnly = true)
     public List<ParticipantContext> participantContexts(boolean managementRegistered) {
+        return enumerateParticipantContexts(managementRegistered);
+    }
+
+    private List<ParticipantContext> enumerateParticipantContexts(boolean managementRegistered) {
         var ds = adminServiceProperties.getDataspace();
         var hostParticipantId = ds.getParticipantId();
 
@@ -256,7 +260,7 @@ public class DataspaceProvisioningService {
      */
     @Transactional(readOnly = true)
     public List<ParticipantContextStatus> readParticipantContextStatuses(boolean managementRegistered) {
-        return participantContexts(managementRegistered).stream()
+        return enumerateParticipantContexts(managementRegistered).stream()
                 .map(ctx -> readContextStatus(ctx.participantId(), ctx.kind()))
                 .toList();
     }
