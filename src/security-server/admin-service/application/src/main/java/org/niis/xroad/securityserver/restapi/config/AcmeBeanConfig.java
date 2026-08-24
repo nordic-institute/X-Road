@@ -25,10 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import org.niis.xroad.common.acme.AccountKeystorePasswordProvider;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.acme.config.AcmeProperties;
+import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -40,20 +40,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AcmeBeanConfig {
 
-    /**
-     * Today's account keystore password provisioning: create-or-fetch always throws, exactly as
-     * {@link AcmeProperties#createNewAccountKeystorePassword()} does. When XRDDEV-3070 (DB-backed provisioning)
-     * lands, only this bean needs to change.
-     */
     @Bean
-    public AccountKeystorePasswordProvider accountKeystorePasswordProvider(AcmeProperties acmeProperties) {
-        return acmeProperties::createNewAccountKeystorePassword;
-    }
-
-    @Bean
-    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig,
-                                   AccountKeystorePasswordProvider accountKeystorePasswordProvider) {
-        return new AcmeService(acmeProperties, acmeConfig, accountKeystorePasswordProvider);
+    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig, VaultClient vaultClient) {
+        return new AcmeService(acmeProperties, acmeConfig, vaultClient);
     }
 
 }
