@@ -7,6 +7,7 @@
          <trust group="com.gradle" name="common-custom-user-data-gradle-plugin" version="2.1" reason="Loaded by GitHub Actions init script for Develocity CCUD collection."/>
          <trust group="com.gradle" name="develocity-gradle-plugin" version="4.3.2" reason="Loaded by GitHub Actions init script for Develocity build scanning."/>
          <trust group="org.gradle" name="github-dependency-graph-gradle-plugin" version="1.4.0" reason="Loaded by GitHub Actions init script for dependency graph generation."/>
+         <trust group="org.jetbrains.kotlinx" name="kotlinx-coroutines-bom" version="1.6.4" reason="Transitive dependency of github-dependency-graph-gradle-plugin, injected by gradle/actions/setup-gradle's dependency-graph init script; never resolved during local metadata regeneration."/>
       </trusted-artifacts>
    </configuration>
    <components>
