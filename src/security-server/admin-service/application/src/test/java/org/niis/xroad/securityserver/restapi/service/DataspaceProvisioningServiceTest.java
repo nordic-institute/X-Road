@@ -259,9 +259,9 @@ class DataspaceProvisioningServiceTest {
         var contexts = service.participantContexts(false);
 
         assertThat(contexts).containsExactly(
-                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, slashForm(OWNER)),
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, OWNER),
                 new DataspaceProvisioningService.ParticipantContext(ParticipantIdentifierScheme.memberCtxId(OWNER),
-                        ParticipantKind.MEMBER, slashForm(OWNER)));
+                        ParticipantKind.MEMBER, OWNER));
     }
 
     @Test
@@ -376,7 +376,7 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextCreatesIhAndCpForHostParticipant() {
-        service.ensureParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, slashForm(OWNER));
+        service.ensureParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, OWNER);
 
         verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), eq(slashForm(OWNER)), any(), any(), any());
         verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
@@ -388,7 +388,7 @@ class DataspaceProvisioningServiceTest {
     void ensureParticipantContextUsesMgmtDidSuffixForManagementParticipant() {
         var mgmtId = PARTICIPANT_ID + "-mgmt";
 
-        service.ensureParticipantContext(mgmtId, ParticipantKind.MANAGEMENT, slashForm(OWNER));
+        service.ensureParticipantContext(mgmtId, ParticipantKind.MANAGEMENT, OWNER);
 
         verify(identityHubClient).createParticipantContext(eq(mgmtId), argThatEndsWith(":mgmt"), eq(slashForm(OWNER)), any(), any(), any());
     }
@@ -400,7 +400,7 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
-        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER));
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
         verify(dsParticipantRepository).pinMemberParticipant(MEMBER, ParticipantIdentifierScheme.memberCtxId(MEMBER), expectedDid);
         verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
@@ -411,7 +411,7 @@ class DataspaceProvisioningServiceTest {
         when(dataspace.getIdentityHubUrl()).thenReturn("identity-hub-placeholder");
 
         assertThatThrownBy(() -> service.ensureParticipantContext(
-                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER)))
+                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.VALIDATION_ERROR.code()));
@@ -427,7 +427,7 @@ class DataspaceProvisioningServiceTest {
         var ctxId = ParticipantIdentifierScheme.memberCtxId(memberWithPlus);
         assertThat(ctxId).isEqualTo("TEST:ORG:222%2BA");
 
-        service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, slashForm(memberWithPlus));
+        service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, memberWithPlus);
 
         verify(identityHubClient).createParticipantContext(eq(ctxId), any(), any(),
                 argThat(url -> url.endsWith("/api/credentials/v1/participants/TEST:ORG:222%252BA")), any(), any());
@@ -442,7 +442,7 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
                 .thenThrow(new IllegalStateException("duplicate key value violates unique constraint"));
 
-        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER));
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
         verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
     }
@@ -454,7 +454,7 @@ class DataspaceProvisioningServiceTest {
                 .thenThrow(new IllegalStateException("connection lost"));
 
         assertThatThrownBy(() -> service.ensureParticipantContext(
-                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER)))
+                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("connection lost");
 
@@ -466,7 +466,7 @@ class DataspaceProvisioningServiceTest {
         var pinned = pinnedParticipant(MEMBER, SS_HOST);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
 
-        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER));
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
         verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
         verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
@@ -479,7 +479,7 @@ class DataspaceProvisioningServiceTest {
 
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         assertThatThrownBy(() ->
-                service.ensureParticipantContext(memberCtxId, ParticipantKind.MEMBER, slashForm(MEMBER)))
+                service.ensureParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER))
                 .isInstanceOf(XrdRuntimeException.class);
 
         verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());

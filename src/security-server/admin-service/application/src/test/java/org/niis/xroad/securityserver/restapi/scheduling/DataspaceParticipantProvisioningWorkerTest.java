@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,15 +60,15 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DataspaceParticipantProvisioningWorkerTest {
 
-    private static final String OWNER_SLASH_FORM = "TEST/GOV/1234";
-    private static final String MEMBER_SLASH_FORM = "TEST/COM/5678";
+    private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "1234");
+    private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "5678");
     private static final String HOST_ID = "xrd-ss0";
     private static final String MGMT_ID = "xrd-ss0-mgmt";
     private static final String MEMBER_ID = "TEST:COM:5678";
 
-    private static final ParticipantContext HOST_CONTEXT = new ParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER_SLASH_FORM);
-    private static final ParticipantContext MGMT_CONTEXT = new ParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER_SLASH_FORM);
-    private static final ParticipantContext MEMBER_CONTEXT = new ParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER_SLASH_FORM);
+    private static final ParticipantContext HOST_CONTEXT = new ParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+    private static final ParticipantContext MGMT_CONTEXT = new ParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+    private static final ParticipantContext MEMBER_CONTEXT = new ParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
 
     @Mock
     private DataspaceProvisioningService dataspaceProvisioningService;
@@ -91,7 +93,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), anyString());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), any());
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
     }
 
@@ -103,9 +105,9 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER_SLASH_FORM);
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
     }
 
@@ -131,8 +133,8 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER_SLASH_FORM);
+        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService, times(1)).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
     }
 
     @Test
@@ -158,12 +160,12 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT, MGMT_CONTEXT));
         doThrow(new IllegalStateException("pinned row mismatch"))
-                .when(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER_SLASH_FORM);
+                .when(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
 
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
-        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER_SLASH_FORM);
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
         verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID);
         verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID);
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_ID);
@@ -189,7 +191,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), anyString());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), any());
         verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
     }
 

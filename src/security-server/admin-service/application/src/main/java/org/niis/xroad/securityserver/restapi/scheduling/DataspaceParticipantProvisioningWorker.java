@@ -106,7 +106,7 @@ public class DataspaceParticipantProvisioningWorker {
             }
             try {
                 dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
-                        context.memberIdSlashForm());
+                        context.memberId());
                 ensuredParticipantIds.add(context.participantId());
                 ensuredContexts.add(context);
             } catch (Exception e) {

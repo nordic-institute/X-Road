@@ -64,7 +64,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *   <li>{@link #participantContexts(boolean)} — enumerates the host, management (when registered)
  *       and per-member contexts to provision, member-level identity from the registered clients in
  *       {@link ClientRepository#getAllLocalClients()} plus the SS owner unconditionally.</li>
- *   <li>{@link #ensureParticipantContext(String, ParticipantKind, String)} — idempotent context
+ *   <li>{@link #ensureParticipantContext(String, ParticipantKind, ClientId)} — idempotent context
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context this
  *       pins the member's ctx-id/DID into {@code ds_participant} on first call and verifies the
  *       pinned row against a fresh derivation on every later call.</li>
@@ -97,13 +97,19 @@ public class DataspaceProvisioningService {
     /**
      * One participant context to provision or report on.
      *
-     * @param participantId     the participant context id
-     * @param kind              HOST, MANAGEMENT or MEMBER
-     * @param memberIdSlashForm the X-Road member id this context's credential is issued to, formatted as
-     *                          {@code instance/memberClass/memberCode}; {@code null} when the SS owner is
-     *                          not yet known (HOST/MANAGEMENT only — MEMBER contexts never appear in that case)
+     * @param participantId the participant context id
+     * @param kind          HOST, MANAGEMENT or MEMBER
+     * @param memberId      the X-Road member this context's credential is issued to; {@code null} only
+     *                      when the SS owner is not yet known (HOST/MANAGEMENT — a MEMBER context always
+     *                      carries its member)
      */
-    public record ParticipantContext(String participantId, ParticipantKind kind, @Nullable String memberIdSlashForm) {
+    public record ParticipantContext(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
+        public ParticipantContext {
+            if (kind == ParticipantKind.MEMBER && memberId == null) {
+                throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                        "MEMBER participant context %s requires a member id", participantId);
+            }
+        }
     }
 
     /**
@@ -129,7 +135,6 @@ public class DataspaceProvisioningService {
     private static final int DID_PORT = 7183;
     private static final int STS_PORT = 7184;
     private static final int CREDENTIAL_PORT = 7185;
-    private static final int MEMBER_ID_SLASH_FORM_SEGMENT_COUNT = 3;
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
@@ -145,18 +150,17 @@ public class DataspaceProvisioningService {
      * {@code ds_participant} on the first call and re-verified against a fresh derivation on every
      * later call — the pinned row is never overwritten.
      *
-     * @param participantId      the participant context id
-     * @param kind                HOST, MANAGEMENT or MEMBER
-     * @param memberIdSlashForm  the member id this context's credential is issued to, formatted as
-     *                           {@code instance/memberClass/memberCode}
+     * @param participantId the participant context id
+     * @param kind          HOST, MANAGEMENT or MEMBER
+     * @param memberId      the X-Road member this context's credential is issued to
      */
-    public void ensureParticipantContext(String participantId, ParticipantKind kind, String memberIdSlashForm) {
+    public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
-        var did = didFor(identityHubHost, kind, memberIdSlashForm);
+        var did = didFor(identityHubHost, kind, memberId);
 
-        createIdentityHubContext(participantId, did, identityHubHost, memberIdSlashForm);
+        createIdentityHubContext(participantId, did, identityHubHost, memberId);
         controlPlaneClient.createParticipantContext(participantId, did);
         controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
@@ -244,17 +248,16 @@ public class DataspaceProvisioningService {
         var hostParticipantId = ds.getParticipantId();
 
         var ownerId = ownerId();
-        var ownerSlashForm = ownerId.map(DataspaceProvisioningService::slashForm).orElse(null);
+        var owner = ownerId.orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
-        contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, ownerSlashForm));
+        contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, owner));
         if (managementRegistered) {
-            contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, ownerSlashForm));
+            contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
         }
 
-        ownerId.ifPresent(owner -> hostedMembers(owner).forEach(member ->
-                contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER,
-                        slashForm(member)))));
+        ownerId.ifPresent(id -> hostedMembers(id).forEach(member ->
+                contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member))));
 
         return contexts;
     }
@@ -314,10 +317,10 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(participantId)).orElse(STATUS_ABSENT);
     }
 
-    private String didFor(String identityHubHost, ParticipantKind kind, String memberIdSlashForm) {
+    private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
         if (kind == ParticipantKind.MEMBER) {
             var ssHost = identityHubHost + ":" + DID_PORT;
-            return pinnedMemberDid(parseSlashForm(memberIdSlashForm), ssHost);
+            return pinnedMemberDid(memberId, ssHost);
         }
         var did = "did:web:" + identityHubHost + "%3A" + DID_PORT;
         return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
@@ -346,13 +349,13 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private void createIdentityHubContext(String participantId, String did, String identityHubHost, String memberId) {
+    private void createIdentityHubContext(String participantId, String did, String identityHubHost, ClientId memberId) {
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s"
                 .formatted(identityHubHost, CREDENTIAL_PORT, UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
-        identityHubClient.createParticipantContext(participantId, did, memberId, credentialServiceUrl, keyId,
-                privateKeyAlias);
+        identityHubClient.createParticipantContext(participantId, did, memberId == null ? null : slashForm(memberId),
+                credentialServiceUrl, keyId, privateKeyAlias);
     }
 
     private String stsTokenUrl(String identityHubHost) {
@@ -375,16 +378,6 @@ public class DataspaceProvisioningService {
 
     private static String slashForm(ClientId id) {
         return "%s/%s/%s".formatted(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
-    }
-
-    private static ClientId parseSlashForm(String memberIdSlashForm) {
-        var parts = memberIdSlashForm.split("/", -1);
-        if (parts.length != MEMBER_ID_SLASH_FORM_SEGMENT_COUNT) {
-            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
-                    "member id '%s' must have exactly %d slash-separated segments",
-                    memberIdSlashForm, MEMBER_ID_SLASH_FORM_SEGMENT_COUNT);
-        }
-        return ClientId.Conf.create(parts[0], parts[1], parts[2]);
     }
 
 }
