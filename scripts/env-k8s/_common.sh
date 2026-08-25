@@ -117,7 +117,26 @@ ensure_k8s_deps() {
       # ansible-galaxy compares that SHA against the installed version as a
       # semver ("Non integer values in LooseVersion") as soon as the collection
       # is already present, i.e. on every re-install after the first.
-      ansible-galaxy collection install -r "${req_yml}" --force
+      #
+      # Retry: galaxy.ansible.com occasionally returns a malformed response
+      # that crashes ansible-galaxy outright (raw KeyError: 'results') instead
+      # of a retriable warning. This is a known transient upstream flake, not
+      # a real dependency problem, so retry a few times before giving up.
+      local galaxy_attempt galaxy_max_attempts=3 galaxy_ok=false
+      for ((galaxy_attempt = 1; galaxy_attempt <= galaxy_max_attempts; galaxy_attempt++)); do
+        if ansible-galaxy collection install -r "${req_yml}" --force; then
+          galaxy_ok=true
+          break
+        fi
+        if [[ "${galaxy_attempt}" -lt "${galaxy_max_attempts}" ]]; then
+          log_warn "ansible-galaxy collection install failed (attempt ${galaxy_attempt}/${galaxy_max_attempts}); retrying in 10s"
+          sleep 10
+        fi
+      done
+      if [[ "${galaxy_ok}" != true ]]; then
+        log_error "ansible-galaxy collection install failed after ${galaxy_max_attempts} attempts"
+        return 1
+      fi
       echo "${gal_cur}" > "${STATE_DIR}/galaxy.sha"
     else
       log_kv "  ansible collections" "up to date" 4 2
