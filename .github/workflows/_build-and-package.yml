@@ -137,10 +137,13 @@ jobs:
           echo "  Build Number: ${BUILD_NUMBER}"
           echo "  Commit SHA: ${{ inputs.sha }}"
 
-      - name: Build and test source
+      # Test execution is deferred to the job tail (see "Run tests") so the package
+      # and image artifacts the e2e legs wait on land as early as possible. Packages
+      # and images need only assembled artifacts, never test results.
+      - name: Build source
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel -Dorg.gradle.workers.max=6 \
           -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
           -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
 
@@ -280,18 +283,6 @@ jobs:
           label: 'Storage After Build'
           show-build-dirs: 'true'
 
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
-        if: success() || failure()
-        with:
-          name: Unit and integration tests
-          path: src/**/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-          list-suites: 'failed'
-          list-tests: 'failed'
-
       - name: Build, test and package code execution measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
@@ -345,9 +336,32 @@ jobs:
           path: ci-markers/images-ready.env
           compression-level: '0'
 
+      # Deferred from the build step (see "Build source") so the artifacts the e2e
+      # legs wait on are published first; everything is already compiled, so this
+      # runs only the test tasks.
+      - name: Run tests
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g test --parallel -Dorg.gradle.workers.max=6 \
+          -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
+          -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        if: success() || failure()
+        with:
+          name: Unit and integration tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
+
       # Moved to the job tail so it no longer sits between the package uploads and
       # the image pushes -- Sonar's own runtime was the biggest single delay between
-      # the artifacts-ready marker and the image pushes the k8s leg waits on.
+      # the artifacts-ready marker and the image pushes the k8s leg waits on. It also
+      # stays after "Run tests": jacocoAggregatedReport consumes their coverage output.
       - name: Sonar analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
