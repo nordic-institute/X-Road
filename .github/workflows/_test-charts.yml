@@ -43,12 +43,14 @@ jobs:
       # It is a version-independent lint limitation with this multi-document,
       # per-service range template, not a regression. Kept non-blocking for
       # visibility; `helm template` below is the real correctness gate.
+      # `|| true` per command instead of continue-on-error: the latter keeps
+      # the step green but still emits the failing command as an error
+      # annotation on the run, which reads like a real failure.
       - name: Helm lint (informational — see comment above)
-        continue-on-error: true
         run: |
-          helm lint deployment/security-server/k8s/charts/central-server
-          helm lint deployment/security-server/k8s/charts/e2e-fixtures
-          helm lint deployment/security-server/k8s/charts/ds-https-keystore
+          helm lint deployment/security-server/k8s/charts/central-server || true
+          helm lint deployment/security-server/k8s/charts/e2e-fixtures || true
+          helm lint deployment/security-server/k8s/charts/ds-https-keystore || true
 
       - name: Helm template render assertions
         run: ./scripts/charts/render-assert.sh
