@@ -27,16 +27,16 @@
 package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.util.AtomicSave;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.acme.config.AcmeProperties;
 import org.niis.xroad.common.acme.provider.AcmeCustomSchema;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
@@ -56,29 +56,21 @@ import org.shredzone.acme4j.exception.AcmeException;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
-
-import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
-import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -88,7 +80,7 @@ public final class AcmeService {
 
     private final AcmeProperties acmeProperties;
     private final AcmeConfig acmeConfig;
-    private final AccountKeystorePasswordProvider accountKeystorePasswordProvider;
+    private final VaultClient vaultClient;
 
     public boolean isExternalAccountBindingRequired(String acmeServerDirectoryUrl) {
         Session session = new Session(acmeServerDirectoryUrl);
@@ -116,27 +108,13 @@ public final class AcmeService {
     public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, AcmeKeyPurpose keyUsage,
                                                         List<String> contacts) {
         try {
-            Login login = getLogin(memberId, caInfo, keyUsage, contacts);
-            File acmeKeystoreFile = Path.of(acmeConfig.getAcmeAccountKeystorePath()).toFile();
-            char[] storePassword = acmeProperties.getAccountKeystorePassword();
-            KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             String alias = getAlias(memberId, keyUsage, caInfo);
-            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-            int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeKeypairRenewalTimeBeforeExpirationDate();
-            if (certificate != null && Instant.now()
-                    .isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
-                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-                keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
-                KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            Optional<AcmeAccountKey> accountKey = vaultClient.getAcmeAccountKey(alias);
+            if (accountKey.isPresent() && isRenewalDue(accountKey.get())) {
+                Login login = getLogin(memberId, caInfo, keyUsage, contacts);
+                KeyPair keyPair = generateAccountKeyPair();
                 login.getAccount().changeKey(keyPair);
-
-                long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
-                X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
-                keyStore.setKeyEntry(
-                        alias,
-                        keyPair.getPrivate(),
-                        alias.toCharArray(),
-                        certificateChain);
+                vaultClient.createAcmeAccountKey(alias, newAccountKey(keyPair));
                 log.info("Renewed acme account keypair for {}", memberId);
             }
         } catch (Exception e) {
@@ -144,55 +122,36 @@ public final class AcmeService {
         }
     }
 
+    private boolean isRenewalDue(AcmeAccountKey accountKey) {
+        int renewalTimeBeforeExpirationDate = acmeConfig.getAcmeKeypairRenewalTimeBeforeExpirationDate();
+        return Instant.now().isAfter(accountKey.expiresAt().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS));
+    }
+
     private KeyPair getAccountKeyPair(String memberId, AcmeKeyPurpose keyUsage, ApprovedCAInfo caInfo) {
         String alias = getAlias(memberId, keyUsage, caInfo);
-        File acmeKeystoreFile = Path.of(acmeConfig.getAcmeAccountKeystorePath()).toFile();
-        KeyStore keyStore;
-        char[] storePassword = acmeProperties.getAccountKeystorePassword();
-        if (isEmpty(storePassword)) {
-            if (acmeKeystoreFile.exists()) {
-                throw new AcmeServiceException(AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING.build());
-            } else {
-                storePassword = accountKeystorePasswordProvider.createNewPassword();
-            }
-        }
+        return vaultClient.getAcmeAccountKey(alias)
+                .map(accountKey -> new KeyPair(accountKey.publicKey(), accountKey.privateKey()))
+                .orElseGet(() -> {
+                    log.debug("Creating keypair for {}", alias);
+                    KeyPair keyPair = generateAccountKeyPair();
+                    vaultClient.createAcmeAccountKey(alias, newAccountKey(keyPair));
+                    return keyPair;
+                });
+    }
+
+    private KeyPair generateAccountKeyPair() {
         try {
-            if (acmeKeystoreFile.exists()) {
-                keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
-            } else {
-                keyStore = KeyStore.getInstance("PKCS12");
-                keyStore.load(null, storePassword);
-            }
-            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-            KeyPair keyPair;
-            if (certificate != null) {
-                log.debug("Loading keypair");
-                PublicKey publicKey = certificate.getPublicKey();
-                PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, alias.toCharArray());
-                keyPair = new KeyPair(publicKey, privateKey);
-            } else {
-                log.debug("Creating keypair");
-                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-                keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
-                keyPair = keyPairGenerator.generateKeyPair();
-
-                long expirationInDays = acmeConfig.getAcmeCertificateAccountKeyPairExpiration();
-                X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
-
-                keyStore.setKeyEntry(
-                        alias,
-                        keyPair.getPrivate(),
-                        alias.toCharArray(),
-                        certificateChain);
-                try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
-                    keyStore.store(outputStream, storePassword);
-                    outputStream.flush();
-                }
-            }
-            return keyPair;
-        } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(acmeConfig.getAcmeKeyLength(), new SecureRandom());
+            return keyPairGenerator.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
             throw new AcmeServiceException(e, AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR.build());
         }
+    }
+
+    private AcmeAccountKey newAccountKey(KeyPair keyPair) {
+        Instant expiresAt = Instant.now().plus(acmeConfig.getAcmeCertificateAccountKeyPairExpiration(), ChronoUnit.DAYS);
+        return new AcmeAccountKey(keyPair.getPrivate(), keyPair.getPublic(), expiresAt);
     }
 
     private String getAlias(String memberId, AcmeKeyPurpose keyUsage, ApprovedCAInfo caInfo) {

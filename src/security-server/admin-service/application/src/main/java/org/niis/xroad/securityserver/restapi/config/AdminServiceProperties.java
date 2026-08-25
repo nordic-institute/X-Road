@@ -268,11 +268,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     }
 
     @Override
-    public String getAcmeAccountKeystorePath() {
-        return config.value(AdminServiceConfigKeys.ACME_ACCOUNT_KEYSTORE_PATH);
-    }
-
-    @Override
     public String getAcmeChallengePath() {
         return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PATH);
     }

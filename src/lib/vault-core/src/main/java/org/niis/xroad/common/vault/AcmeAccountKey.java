@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.vault;
 
-import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.acme.config.AcmeConfig;
-import org.niis.xroad.common.acme.config.AcmeProperties;
-import org.niis.xroad.common.vault.VaultClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.time.Instant;
 
 /**
- * Wires the ACME client beans that are specific to the Security Server admin-service: they depend on this
- * admin-service's own {@link AcmeProperties} and {@link AcmeConfig} bean instances (bound from
- * {@code AdminServiceConfigKeys}), so they stay here rather than in acme-spring.
+ * An ACME account key pair together with the absolute timestamp at which it is due for rotation.
  */
-@Configuration
-public class AcmeBeanConfig {
-
-    @Bean
-    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig, VaultClient vaultClient) {
-        return new AcmeService(acmeProperties, acmeConfig, vaultClient);
-    }
-
+public record AcmeAccountKey(PrivateKey privateKey, PublicKey publicKey, Instant expiresAt) {
 }

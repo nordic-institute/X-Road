@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.vault;
 
-import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.acme.config.AcmeConfig;
-import org.niis.xroad.common.acme.config.AcmeProperties;
-import org.niis.xroad.common.vault.VaultClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.junit.jupiter.api.Test;
 
-/**
- * Wires the ACME client beans that are specific to the Security Server admin-service: they depend on this
- * admin-service's own {@link AcmeProperties} and {@link AcmeConfig} bean instances (bound from
- * {@code AdminServiceConfigKeys}), so they stay here rather than in acme-spring.
- */
-@Configuration
-public class AcmeBeanConfig {
+import java.time.Instant;
 
-    @Bean
-    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig, VaultClient vaultClient) {
-        return new AcmeService(acmeProperties, acmeConfig, vaultClient);
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+class NoopVaultClientTest {
+
+    private final NoopVaultClient vaultClient = new NoopVaultClient();
+
+    @Test
+    void getAcmeAccountKeyShouldReturnEmpty() {
+        var result = vaultClient.getAcmeAccountKey("some-alias");
+
+        assertThat(result).isEmpty();
     }
 
+    @Test
+    void createAcmeAccountKeyShouldThrow() {
+        var acmeAccountKey = new AcmeAccountKey(null, null, Instant.now());
+
+        assertThatThrownBy(() -> vaultClient.createAcmeAccountKey("some-alias", acmeAccountKey))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void acmeAccountKeyPathShouldBeSanitizedAndCollisionFreePerAlias() {
+        var pathOne = vaultClient.getAcmeAccountKeyPath("auth_CS:ORG:MEMBER1");
+        var pathTwo = vaultClient.getAcmeAccountKeyPath("sign_CS:ORG:MEMBER1");
+
+        assertThat(pathOne).startsWith(VaultClient.ACME_ACCOUNT_KEYS_BASE_PATH + "/");
+        assertThat(pathOne).doesNotContain(":");
+        assertThat(pathOne).isNotEqualTo(pathTwo);
+    }
 }

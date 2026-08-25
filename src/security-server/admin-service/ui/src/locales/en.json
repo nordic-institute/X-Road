@@ -390,9 +390,6 @@
     "acme": {
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
-      "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
-      "acme_yaml_missing": "ACME configuration file acme.yml is missing",
-      "acme_yaml_account_keystore_password_update_error": "Updating ACME account keystore password in acme.yml configuration file failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
@@ -1125,7 +1122,6 @@
             "acme-challenge-port-enabled": "If enabled, the API will listen on acme challenge port (default 80) for incoming ACME challenge requests",
             "acme-challenge-port": "Custom port number for ACME challenges. When set, the Security Server host's port 80 needs to redirect to this port, because ACME Servers always use port 80 for the challenge.",
             "acme-key-length": "RSA key length in bits used for ACME certificate requests.",
-            "acme-account-keystore-path": "File system path to the keystore holding the ACME account key pair.",
             "acme-challenge-path": "File system path where ACME HTTP-01 challenge tokens are served.",
             "allow-csr-for-key-with-certificate": "Controls if generating the new CSR is allowed for a key that has an existing certificate.",
             "auth-cert-reg-signature-digest-algorithm-id": "Signature digest algorithm used for generating authentication certificate registration request. Possible values are - SHA-256, SHA-384, SHA-512.",

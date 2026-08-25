@@ -24,15 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.vault.quarkus;
+package org.niis.xroad.common.vault.spring;
 
-import io.quarkus.vault.VaultKVSecretEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.springframework.vault.core.VaultKeyValueOperations;
+import org.springframework.vault.support.VaultResponse;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -46,29 +47,36 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
-class QuarkusVaultClientTest {
+class SpringVaultClientTest {
 
     @Mock
-    private VaultKVSecretEngine kvSecretEngine;
+    private VaultKeyValueOperations vaultKeyValueOperations;
 
-    private final Map<String, Map<String, String>> secretsByPath = new HashMap<>();
+    private final Map<String, Map<String, Object>> secretsByPath = new HashMap<>();
 
-    private QuarkusVaultClient vaultClient;
+    private SpringVaultClient vaultClient;
 
     @BeforeEach
     void setUp() {
-        vaultClient = new QuarkusVaultClient(kvSecretEngine);
+        vaultClient = new SpringVaultClient(vaultKeyValueOperations);
 
         lenient().doAnswer(invocation -> {
             String path = invocation.getArgument(0);
-            Map<String, String> secret = invocation.getArgument(1);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> secret = (Map<String, Object>) invocation.getArgument(1);
             secretsByPath.put(path, new HashMap<>(secret));
             return null;
-        }).when(kvSecretEngine).writeSecret(any(), any());
+        }).when(vaultKeyValueOperations).put(any(), any());
 
-        lenient().when(kvSecretEngine.readSecret(any())).thenAnswer(invocation -> {
+        lenient().when(vaultKeyValueOperations.get(any())).thenAnswer(invocation -> {
             String path = invocation.getArgument(0);
-            return secretsByPath.get(path);
+            Map<String, Object> data = secretsByPath.get(path);
+            if (data == null) {
+                return null;
+            }
+            var response = new VaultResponse();
+            response.setData(data);
+            return response;
         });
     }
 
