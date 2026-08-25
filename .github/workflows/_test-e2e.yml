@@ -7,7 +7,16 @@ name: E2E Tests
 # classes -- and `test-framework.env-mode` selects the substrate. What differs is the
 # setup each substrate needs before the jar can attach, which is expressed as
 # variant-guarded steps. Everything from "Setup Java" onward is shared.
-
+#
+# The caller has no `needs: build-and-package` edge, so every leg starts with the
+# pipeline instead of waiting on that job to finish. Each leg runs its
+# package-independent prep (variant-guarded, see below) immediately -- this is what
+# overlaps with build-and-package -- then a uniform wait step polls for a readiness
+# marker artifact before downloading anything build-and-package produced. lxd and
+# compose wait on `artifacts-ready` (packages + e2e-test-jar); k8s waits on
+# `images-ready` (all image pushes), since it deploys images that land later in that
+# job. The marker also carries the image registry/tag: without the `needs` edge,
+# `needs.build-and-package.outputs.*` is not available to read them from.
 on:
   workflow_call:
     inputs:
@@ -22,16 +31,6 @@ on:
       variant:
         description: 'E2E substrate: compose | lxd | k8s'
         required: true
-        type: string
-      image_registry:
-        description: 'Registry holding the dev images (k8s lane only)'
-        required: false
-        default: ''
-        type: string
-      service_image_tag:
-        description: 'Tag of the dev images to deploy (k8s lane only)'
-        required: false
-        default: ''
         type: string
       runs_on:
         description: 'Runner label for this lane'
@@ -137,6 +136,125 @@ jobs:
           sg lxd -c "ansible-playbook -i config/ci-localhost.txt ../../development/ansible/xroad_cache_images.yml --forks 2 -e onMacOs=no -e cache_targets=xroad-is,xroad-ca,xroad-repo"
           echo "CACHE_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      # ---------------------------------------------------------------- k8s setup
+
+      # Helm is pinned to the same version the chart-lint job uses; helm 4 cannot parse
+      # templates/services/all.yaml (see _test-charts.yml).
+      - name: Setup Helm
+        if: inputs.variant == 'k8s'
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.21.3
+
+      # Ansible deliberately is not installed here: start-env.sh's bootstrap builds a venv
+      # from development/k8s/requirements.txt (ansible-core, kubernetes, the pinned
+      # kubernetes.core collection) and activates it, so an apt-installed ansible would only
+      # shadow the versions the roles are pinned against. Only kind is missing on the runner.
+      - name: Install kind
+        if: inputs.variant == 'k8s'
+        run: |
+          set -euo pipefail
+          sudo curl -fsSL -o /usr/local/bin/kind \
+            https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64
+          sudo chmod +x /usr/local/bin/kind
+          sudo apt-get update
+          sudo apt-get install -y python3-venv
+          kind --version
+          kubectl version --client
+          helm version --short
+
+      - name: Login to GHCR (k8s)
+        if: inputs.variant == 'k8s'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ------------------------------------------------------------ compose setup
+
+      - name: Login to GHCR
+        if: inputs.variant == 'compose'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create compose network
+        if: inputs.variant == 'compose'
+        run: docker network create xroad-network
+
+      # --------------------------------------------------------- wait for build
+
+      # Everything above this point is package-independent prep and runs immediately,
+      # overlapping build-and-package. lxd and compose need only the packages +
+      # e2e-test-jar, ready at the `artifacts-ready` marker; k8s deploys images that
+      # land later in that job, at the `images-ready` marker.
+      - name: Determine readiness marker
+        id: marker
+        run: |
+          if [[ "${{ inputs.variant }}" == "k8s" ]]; then
+            echo "name=images-ready" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=artifacts-ready" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Polls the run's own artifact list for the marker AND build-and-package's job
+      # status each cycle via `gh api`, so a failed or cancelled build fails this leg
+      # within minutes instead of idling to the deadline. The deadline is a backstop
+      # only, set above build-and-package's 60-min job timeout. The artifact-list
+      # query paginates and matches a name line rather than counting results, so a
+      # multi-page list cannot break the check.
+      - name: Wait for build-and-package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          marker="${{ steps.marker.outputs.name }}"
+          start=$(date +%s)
+          deadline=$(( start + 70 * 60 ))
+          while true; do
+            if gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+                 --paginate -X GET -f per_page=100 \
+                 --jq ".artifacts[] | select(.name == \"$marker\") | .name" \
+                 | grep -qx "$marker"; then
+              break
+            fi
+
+            # The reusable build-and-package job appears as "<caller job name> / <its
+            # own job name>" in the run's job list; match on the caller name's prefix
+            # so a rename of the inner job name cannot silently break this check.
+            conclusion=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+              --paginate -X GET -f per_page=100 \
+              --jq '[.jobs[] | select(.name | startswith("build & package"))][0].conclusion // ""')
+            case "$conclusion" in
+              failure|cancelled|skipped|timed_out)
+                echo "::error::build-and-package ${conclusion}; giving up waiting for marker '$marker'." >&2
+                exit 1
+                ;;
+            esac
+
+            now=$(date +%s)
+            if (( now >= deadline )); then
+              echo "::error::Timed out after 70m waiting for marker artifact '$marker' from build-and-package." >&2
+              exit 1
+            fi
+            sleep 25
+          done
+          echo "WAIT_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+
+      - name: Download readiness marker
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ${{ steps.marker.outputs.name }}
+          path: ci-markers
+
+      - name: Load image registry/tag from marker
+        run: cat "ci-markers/${{ steps.marker.outputs.name }}.env" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------- lxd provisioning
+
       - name: Download resolute (Ubuntu 26.04) packages
         if: inputs.variant == 'lxd'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -175,40 +293,7 @@ jobs:
           sg lxd -c "./wait-xroad-ready.sh"
           echo "HURL_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
-      # ---------------------------------------------------------------- k8s setup
-
-      # Helm is pinned to the same version the chart-lint job uses; helm 4 cannot parse
-      # templates/services/all.yaml (see _test-charts.yml).
-      - name: Setup Helm
-        if: inputs.variant == 'k8s'
-        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
-        with:
-          version: v3.21.3
-
-      # Ansible deliberately is not installed here: start-env.sh's bootstrap builds a venv
-      # from development/k8s/requirements.txt (ansible-core, kubernetes, the pinned
-      # kubernetes.core collection) and activates it, so an apt-installed ansible would only
-      # shadow the versions the roles are pinned against. Only kind is missing on the runner.
-      - name: Install kind
-        if: inputs.variant == 'k8s'
-        run: |
-          set -euo pipefail
-          sudo curl -fsSL -o /usr/local/bin/kind \
-            https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64
-          sudo chmod +x /usr/local/bin/kind
-          sudo apt-get update
-          sudo apt-get install -y python3-venv
-          kind --version
-          kubectl version --client
-          helm version --short
-
-      - name: Login to GHCR (k8s)
-        if: inputs.variant == 'k8s'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # ------------------------------------------------------- k8s provisioning
 
       # Provisioning is the same path a developer runs locally -- same charts, same roles,
       # same playbook -- differing only in where the images come from. --skip-images is
@@ -224,29 +309,15 @@ jobs:
           set -euo pipefail
           start=$(date +%s)
           ./scripts/env-k8s/start-env.sh --env=e2e --recreate --skip-images \
-            -e "xroad_image_registry=${{ inputs.image_registry }}" \
-            -e "xroad_image_tag=${{ inputs.service_image_tag }}" \
-            -e "serverconf_init_image=${{ inputs.image_registry }}/ss-db-init:${{ inputs.service_image_tag }}" \
+            -e "xroad_image_registry=${{ env.IMAGE_REGISTRY }}" \
+            -e "xroad_image_tag=${{ env.SERVICE_IMAGE_TAG }}" \
+            -e "serverconf_init_image=${{ env.IMAGE_REGISTRY }}/ss-db-init:${{ env.SERVICE_IMAGE_TAG }}" \
             -e "xroad_image_pull_secret=ghcr-pull-secret" \
             -e "xroad_image_pull_registry=ghcr.io" \
             -e "xroad_image_pull_username=${GHCR_USERNAME}" \
             -e "xroad_image_pull_password=${GHCR_PASSWORD}" \
             -e '{"xroad_image_pull_secret_namespaces": ["cs", "ss0", "ss1"]}'
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
-
-      # ------------------------------------------------------------ compose setup
-
-      - name: Login to GHCR
-        if: inputs.variant == 'compose'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create compose network
-        if: inputs.variant == 'compose'
-        run: docker network create xroad-network
 
       # ------------------------------------------------------------------- shared
 
@@ -364,6 +435,7 @@ jobs:
             echo ""
             echo "| Phase | Duration |"
             echo "|-------|----------|"
+            echo "| Wait for build-and-package | ${WAIT_SECS:-n/a}s |"
             echo "| Provision (kind + charts + hurl) | ${PROVISION_SECS:-n/a}s |"
             echo "| e2e suite (k8s mode) | ${E2E_SECS:-n/a}s |"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -384,10 +456,11 @@ jobs:
             echo "|-------|----------|"
             echo "| LXD init | ${INIT_SECS:-n/a}s |"
             echo "| Pre-provision supporting containers | ${CACHE_SECS:-n/a}s |"
+            echo "| Wait for build-and-package | ${WAIT_SECS:-n/a}s |"
             echo "| Provision containers | ${PROVISION_SECS:-n/a}s |"
             echo "| Federation init (hurl) | ${HURL_SECS:-n/a}s |"
             echo "| e2e suite (LXD mode) | ${E2E_SECS:-n/a}s |"
-            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} + ${E2E_SECS:-0} ))
+            total=$(( ${INIT_SECS:-0} + ${CACHE_SECS:-0} + ${WAIT_SECS:-0} + ${PROVISION_SECS:-0} + ${HURL_SECS:-0} + ${E2E_SECS:-0} ))
             echo "| **Total** | **${total}s** |"
           } >> "$GITHUB_STEP_SUMMARY"
 

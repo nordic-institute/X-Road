@@ -199,13 +199,21 @@ jobs:
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
-      - name: Sonar analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./src
+      # Everything the lxd and compose e2e legs consume (packages + e2e-test-jar) is
+      # uploaded above this point. The marker carries the registry/tag too, since
+      # those legs no longer have a `needs` edge to read job outputs from.
+      - name: Write artifacts-ready marker
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
-          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/artifacts-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/artifacts-ready.env
+
+      - name: Upload artifacts-ready marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifacts-ready
+          path: ci-markers/artifacts-ready.env
+          compression-level: '0'
 
       - name: Build Security Server images
         working-directory: ./scripts/images
@@ -321,6 +329,32 @@ jobs:
           IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-infra.sh --push
+
+      # Every image push the k8s e2e leg pulls from (SS, signer-hsm, CS dev image,
+      # dev-infra) has landed by this point.
+      - name: Write images-ready marker
+        run: |
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/images-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/images-ready.env
+
+      - name: Upload images-ready marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: images-ready
+          path: ci-markers/images-ready.env
+          compression-level: '0'
+
+      # Moved to the job tail so it no longer sits between the package uploads and
+      # the image pushes -- Sonar's own runtime was the biggest single delay between
+      # the artifacts-ready marker and the image pushes the k8s leg waits on.
+      - name: Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
+          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
 
       - name: Log storage after all packaging
         if: always()
