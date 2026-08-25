@@ -138,6 +138,22 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
+    void provisionParticipantRunsFullReconcileEveryNthTick() {
+        givenInitializedServer();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+        when(dataspaceProvisioningService.ensureMembershipCredential(HOST_ID))
+                .thenReturn(DataspaceProvisioningService.STATUS_ISSUED);
+
+        for (int tick = 0; tick <= DataspaceParticipantProvisioningWorker.FULL_RECONCILE_EVERY_N_TICKS; tick++) {
+            worker.provisionParticipant();
+        }
+
+        verify(dataspaceProvisioningService, times(2)).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService, times(2)).ensureMembershipCredential(HOST_ID);
+    }
+
+    @Test
     void provisionParticipantStopsCheckingCredentialOnceIssuedButKeepsCheckingPending() {
         givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);

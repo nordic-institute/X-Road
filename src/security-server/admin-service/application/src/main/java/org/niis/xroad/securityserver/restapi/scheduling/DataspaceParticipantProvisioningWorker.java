@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Level-triggered provisioning worker that drives data space participant context provisioning
@@ -51,10 +52,13 @@ public class DataspaceParticipantProvisioningWorker {
 
     static final int JOB_REPEAT_INTERVAL_MS = 30000;
     static final int INITIAL_DELAY_MS = 30000;
+    static final int FULL_RECONCILE_EVERY_N_TICKS = 20;
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final ScheduledJobHelper scheduledJobHelper;
     private final DataspaceReadinessPredicates readinessPredicates;
+
+    private final AtomicInteger tickCount = new AtomicInteger();
 
     /**
      * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
@@ -79,11 +83,17 @@ public class DataspaceParticipantProvisioningWorker {
      * pass of the same tick.
      *
      * <p>Contexts fully created and credentials in terminal ISSUED state are remembered in-process,
-     * so a steady-state tick makes no remote calls for them. The caches reset on restart, which
-     * re-runs the idempotent creation once and re-verifies each member's pinned identity against
-     * the current configuration.
+     * so a steady-state tick makes no remote calls for them. The caches reset on restart and every
+     * {@link #FULL_RECONCILE_EVERY_N_TICKS} ticks, so out-of-band backend state loss (e.g. an
+     * identity-hub redeployed with an empty store) is reconciled within a bounded window by the
+     * idempotent creation, which also re-verifies each member's pinned identity.
      */
     public void provisionParticipant() {
+        if (tickCount.getAndIncrement() % FULL_RECONCILE_EVERY_N_TICKS == 0) {
+            ensuredParticipantIds.clear();
+            issuedCredentialParticipantIds.clear();
+        }
+
         ServerConfEntity serverConf = loadServerConf();
         if (serverConf == null) {
             log.debug("Data space provisioning: SS not yet initialized, skipping");
