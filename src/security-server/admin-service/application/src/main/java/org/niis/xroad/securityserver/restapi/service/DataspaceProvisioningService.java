@@ -279,16 +279,10 @@ public class DataspaceProvisioningService {
         members.add(owner);
         for (var client : clientRepository.getAllLocalClients()) {
             if (Client.STATUS_REGISTERED.equals(client.getClientStatus())) {
-                members.add(memberLevelId(client.getIdentifier()));
+                members.add(client.getIdentifier().getMemberId());
             }
         }
         return members;
-    }
-
-    private static ClientId memberLevelId(ClientId id) {
-        return id.getSubsystemCode() == null
-                ? id
-                : ClientId.Conf.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
     }
 
     /**
