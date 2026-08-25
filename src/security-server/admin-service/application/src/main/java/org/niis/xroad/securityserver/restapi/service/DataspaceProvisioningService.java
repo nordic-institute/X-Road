@@ -41,8 +41,10 @@ import org.niis.xroad.serverconf.impl.participant.ParticipantPinningCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriUtils;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -344,7 +346,7 @@ public class DataspaceProvisioningService {
 
     private void createIdentityHubContext(String participantId, String did, String identityHubHost, String memberId) {
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s"
-                .formatted(identityHubHost, CREDENTIAL_PORT, participantId);
+                .formatted(identityHubHost, CREDENTIAL_PORT, UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         identityHubClient.createParticipantContext(participantId, did, memberId, credentialServiceUrl, keyId,

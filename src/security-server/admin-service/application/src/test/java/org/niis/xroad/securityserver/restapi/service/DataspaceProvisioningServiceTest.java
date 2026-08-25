@@ -421,6 +421,19 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void ensureParticipantContextReencodesPercentEscapedCtxIdInCredentialServiceUrl() {
+        var memberWithPlus = ClientId.Conf.create("TEST", "ORG", "222+A");
+        when(dsParticipantRepository.findByMemberIdentifier(memberWithPlus)).thenReturn(Optional.empty());
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(memberWithPlus);
+        assertThat(ctxId).isEqualTo("TEST:ORG:222%2BA");
+
+        service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, slashForm(memberWithPlus));
+
+        verify(identityHubClient).createParticipantContext(eq(ctxId), any(), any(),
+                argThat(url -> url.endsWith("/api/credentials/v1/participants/TEST:ORG:222%252BA")), any(), any());
+    }
+
+    @Test
     void ensureParticipantContextUsesConcurrentlyPinnedRowWhenPinLosesTheRace() {
         var pinned = pinnedParticipant(MEMBER, SS_HOST);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
