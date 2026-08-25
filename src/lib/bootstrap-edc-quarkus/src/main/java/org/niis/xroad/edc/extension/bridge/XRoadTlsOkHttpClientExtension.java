@@ -31,39 +31,54 @@ import okhttp3.OkHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
+import org.niis.xroad.edc.trust.DelegatingTrustManager;
+import org.niis.xroad.edc.trust.DsTlsCaTrustManagerLoader;
+import org.niis.xroad.edc.trust.DsTlsCompositeTrustManager;
+import org.niis.xroad.edc.trust.RejectAllTrustManager;
+import org.niis.xroad.edc.trust.VaultEndpointTrust;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.cert.CertificateFactory;
+import java.time.Duration;
 
 /**
- * Replaces the default EDC {@link OkHttpClient} with a TLS-aware version that trusts the
- * certificate(s) specified by {@code QUARKUS_VAULT_TLS_CA_CERT} (the same env var used by the
- * Quarkus vault client) in addition to the JVM default trust anchors. Required when EDC services
- * communicate with OpenBao over HTTPS using a self-signed certificate that is not in the JVM
- * default trust store — while still being able to reach other TLS peers (DID documents, issuer
- * services) whose certificates chain to regular trust anchors.
+ * Replaces the default EDC {@link OkHttpClient} with one whose outbound TLS trust is entirely X-Road's own:
+ * exactly the certificate authorities globalconf's {@code approvedDsTlsCa} list designates, fail-closed. This is
+ * the one place in the X-Road EDC distribution that builds the singleton OkHttp client every DataSpace outbound
+ * connection — DID resolution, STS/OAuth2, DSP dispatch, credential and status-list fetches, and EDC's own
+ * OpenBao vault client — shares, so it is also the only place trust needs replacing. The JVM default trust store
+ * is never merged in, and the member {@code approvedCA} list is never consulted.
  *
- * <p>The {@code @Inject RetryPolicy} field forces EDC's dependency resolver to run this extension
- * after {@code RuntimeDefaultCoreServicesExtension}, whose {@code @Provider OkHttpClient} would
- * otherwise be the last registered instance.
+ * <p>The {@code @Inject RetryPolicy} field forces EDC's dependency resolver to run this extension after
+ * {@code RuntimeDefaultCoreServicesExtension}, whose {@code @Provider OkHttpClient} would otherwise be the last
+ * registered instance.
  */
 @Extension(XRoadTlsOkHttpClientExtension.NAME)
 public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
 
     static final String NAME = "X-Road TLS OkHttpClient";
 
+    private static final String VAULT_URL_SETTING = "edc.vault.hashicorp.url";
+    private static final String VAULT_CA_CERT_ENV = "QUARKUS_VAULT_TLS_CA_CERT";
+
+    private static final Duration RELOAD_INTERVAL = Duration.ofSeconds(60);
+    private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
+    private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
+
     @Inject
     @SuppressWarnings("unused")
     private RetryPolicy<?> retryPolicy;
+
+    private PeriodicMaterialReloader<?> reloader;
 
     @Override
     public String name() {
@@ -72,50 +87,58 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
 
     @Provider
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
-        var certPath = System.getenv("QUARKUS_VAULT_TLS_CA_CERT");
-        if (certPath == null || certPath.isBlank()) {
-            return new OkHttpClient.Builder().build();
-        }
-        try {
-            var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init(combinedTrustStore(certPath));
+        var monitor = context.getMonitor();
+        var globalConfProvider = context.getService(GlobalConfProvider.class);
+        var loader = new DsTlsCaTrustManagerLoader(globalConfProvider);
+        var initial = loadOrRejectAll(loader, monitor);
 
-            var sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, tmf.getTrustManagers(), null);
+        var listTrustManager = new DelegatingTrustManager(initial.material());
+        var vaultTrust = VaultEndpointTrust.from(
+                context.getSetting(VAULT_URL_SETTING, null),
+                System.getenv(VAULT_CA_CERT_ENV),
+                monitor);
+        var trustManager = new DsTlsCompositeTrustManager(vaultTrust.orElse(null), listTrustManager);
 
-            return new OkHttpClient.Builder()
-                    .sslSocketFactory(sslContext.getSocketFactory(),
-                            (X509TrustManager) tmf.getTrustManagers()[0])
-                    .build();
-        } catch (Exception e) {
-            context.getMonitor().warning(
-                    "Failed to load OpenBao TLS cert from %s — using default TLS trust: %s"
-                            .formatted(certPath, e.getMessage()));
-            return new OkHttpClient.Builder().build();
+        reloader = PeriodicMaterialReloader.schedule("ds-tls-ca-trust", initial, RELOAD_INTERVAL,
+                RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor);
+
+        return buildClient(trustManager);
+    }
+
+    @Override
+    public void shutdown() {
+        if (reloader != null) {
+            reloader.close();
         }
     }
 
-    private static KeyStore combinedTrustStore(String certPath) throws GeneralSecurityException, IOException {
-        var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(null, null);
-
-        var index = 0;
-        var cf = CertificateFactory.getInstance("X.509");
-        try (var in = new FileInputStream(certPath)) {
-            for (var cert : cf.generateCertificates(in)) {
-                keyStore.setCertificateEntry("vault-ca-" + index++, cert);
-            }
+    /**
+     * Globalconf answering successfully with an empty list and globalconf being unreadable are deliberately
+     * different outcomes everywhere else in this class's collaborators — but at boot, before any reload cycle
+     * has had a chance to run, both must leave the DataSpace TLS surface in the same safe place: rejecting every
+     * connection rather than aborting startup (unlike the serving keystore, an empty or unreachable trust list is
+     * a valid running state). The periodic reloader takes over from here and keeps retrying on its own schedule.
+     */
+    private static PeriodicMaterialReloader.Loaded<X509ExtendedTrustManager> loadOrRejectAll(
+            DsTlsCaTrustManagerLoader loader, Monitor monitor) {
+        try {
+            return loader.load();
+        } catch (RuntimeException e) {
+            monitor.severe("Failed to load the DataSpace TLS CA list from globalconf at startup; rejecting all "
+                    + "DataSpace TLS connections until a scheduled refresh succeeds", e);
+            return new PeriodicMaterialReloader.Loaded<>(RejectAllTrustManager.INSTANCE, DsTlsCaTrustManagerLoader.REJECT_ALL_FINGERPRINT);
         }
+    }
 
-        var defaultTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        defaultTmf.init((KeyStore) null);
-        for (var trustManager : defaultTmf.getTrustManagers()) {
-            if (trustManager instanceof X509TrustManager x509) {
-                for (var issuer : x509.getAcceptedIssuers()) {
-                    keyStore.setCertificateEntry("default-" + index++, issuer);
-                }
-            }
+    private static OkHttpClient buildClient(X509ExtendedTrustManager trustManager) {
+        try {
+            var sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[] {trustManager}, null);
+            return new OkHttpClient.Builder()
+                    .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
+                    .build();
+        } catch (GeneralSecurityException e) {
+            throw new EdcException("Failed to initialize the DataSpace outbound TLS trust context", e);
         }
-        return keyStore;
     }
 }
