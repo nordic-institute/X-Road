@@ -130,8 +130,15 @@ spec:
                   key: {{ .key }}
             {{- end }}
           {{- end }}
-          {{- if or .config.volumeMounts .config.extraVolumeMounts }}
+          {{- if or .config.volumeMounts .config.extraVolumeMounts (eq .service "central-server") }}
           volumeMounts:
+            {{- if eq .service "central-server" }}
+            {{- /* subPath mount: a directory mount would shadow the image's baked
+                   10-central-server.properties — see db-config-seed-configmap.yaml. */}}
+            - mountPath: /etc/xroad/db-config-seed/90-k8s.properties
+              subPath: 90-k8s.properties
+              name: db-config-seed
+            {{- end }}
             {{- if .config.volumeMounts }}
             {{- toYaml .config.volumeMounts | nindent 12 }}
             {{- end }}
@@ -161,9 +168,16 @@ spec:
             successThreshold: 1
             failureThreshold: {{ .config.livenessProbe.failureThreshold | default 3 }}
           {{- end }}
-      {{- if .config.volumes }}
+      {{- if or .config.volumes (eq .service "central-server") }}
       volumes:
+        {{- if eq .service "central-server" }}
+        - name: db-config-seed
+          configMap:
+            name: {{ .root.Release.Name }}-central-server-db-config-seed
+        {{- end }}
+        {{- if .config.volumes }}
         {{- toYaml .config.volumes | nindent 8 }}
+        {{- end }}
       {{- end }}
 {{- end }}
 

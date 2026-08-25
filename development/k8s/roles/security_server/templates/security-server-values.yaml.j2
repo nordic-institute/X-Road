@@ -124,6 +124,27 @@ configSeed:
     - key: xroad.message-log-archiver.clean-keep-records-for
       value: "{{ messagelog_archiver_clean_keep_records_for }}"
 {% endif %}
+{% if messagelog_encryption_enabled %}
+{# The encryption/grouping fixture used to be a projected application.yaml on the
+   proxy and the archiver Job; the config layer no longer reads that file, so the
+   same values become DB rows. grouping-keys is a map keyed by member ids — the
+   DB row carries it as JSON, values as key-id arrays. #}
+{% set _enc = (messagelog_encryption_config | from_yaml)['xroad']['message-log-encryption'] %}
+{% set _gk = {} %}
+{% for _member, _keys in (_enc['archive']['grouping-keys'] | default({})).items() %}
+{% set _ = _gk.update({_member: (_keys | string).split(',')}) %}
+{% endfor %}
+    - key: xroad.message-log-encryption.db.encryption-enabled
+      value: "{{ _enc['db']['encryption-enabled'] | string | lower }}"
+    - key: xroad.message-log-encryption.archive.encryption-enabled
+      value: "{{ _enc['archive']['encryption-enabled'] | string | lower }}"
+    - key: xroad.message-log-encryption.archive.default-key-id
+      value: "{{ _enc['archive']['default-key-id'] }}"
+    - key: xroad.message-log-encryption.archive.grouping-strategy
+      value: "{{ _enc['archive']['grouping-strategy'] }}"
+    - key: xroad.message-log-encryption.archive.grouping-keys
+      value: '{{ _gk | to_json }}'
+{% endif %}
 {% if ds_tls %}
     # Dataspace provisioning via the proxy-ui-api reconciler (replaces the manual
     # IH/CP seed). identity-hub-url is the release's own namespace-qualified
@@ -146,7 +167,7 @@ services:
   ('proxy', proxy_env),
   ('monitor', {}),
 ] %}
-{% set has_extra_volumes = (ds_tls and svc == 'proxy') or (messagelog_encryption_enabled and svc == 'proxy') %}
+{% set has_extra_volumes = ds_tls and svc == 'proxy' %}
 {% if extra_env or has_extra_volumes %}
   {{ svc }}:
 {% if extra_env %}
@@ -157,30 +178,13 @@ services:
 {% endif %}
 {% if has_extra_volumes %}
     extraVolumes:
-{% if ds_tls and svc == 'proxy' %}
       - name: {{ svc }}-ds-https
         secret:
           secretName: ds-https-keystore
-{% endif %}
-{% if messagelog_encryption_enabled and svc == 'proxy' %}
-      - name: message-log-encryption-config
-        configMap:
-          name: message-log-encryption-config
-{% endif %}
     extraVolumeMounts:
-{% if ds_tls and svc == 'proxy' %}
       - mountPath: /etc/xroad/ssl/{{ ds_truststore_file }}
         subPath: {{ ds_truststore_file }}
         name: {{ svc }}-ds-https
-{% endif %}
-{% if messagelog_encryption_enabled and svc == 'proxy' %}
-      # Projected as a single file (not a directory mount over /opt/app/config)
-      # since the image ships nothing there today but future packaged config
-      # would otherwise be shadowed wholesale by a directory volume.
-      - mountPath: /opt/app/config/application.yaml
-        subPath: application.yaml
-        name: message-log-encryption-config
-{% endif %}
 {% endif %}
 {% endif %}
 {% endfor %}
@@ -252,27 +256,6 @@ services:
   auxiliary-service:
     env:
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
-{% endif %}
-
-{% if messagelog_encryption_enabled %}
-messageLogArchiver:
-  extraVolumes:
-    - name: message-log-encryption-config
-      configMap:
-        name: message-log-encryption-config
-  extraVolumeMounts:
-    # Same Job template serves both the archive and cleanup CLI invocations, so
-    # one mount covers both — see MessageLogEncryptionProperties.
-    - mountPath: /opt/app/config/application.yaml
-      subPath: application.yaml
-      name: message-log-encryption-config
-{% endif %}
-
-{% if messagelog_encryption_enabled %}
-messageLogEncryption:
-  enabled: true
-  applicationYaml: |
-{{ messagelog_encryption_config | indent(4, true) }}
 {% endif %}
 
 {% if jvm_metrics_enabled %}

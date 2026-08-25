@@ -1,0 +1,36 @@
+{{- /*
+xroad.* values the k8s topology needs at non-default values. The XRoadConfig
+DSL resolves DB overrides and packaged defaults only — pod env carrying
+xroad.* keys is ignored — so these ride the CS dev image's db-config-seed
+mechanism instead: cs-entrypoint.sh upserts every /etc/xroad/db-config-seed/
+*.properties file into the configuration_properties table at startup, later
+files winning over the image's baked 10-central-server.properties. The file
+is mounted with subPath so the baked file is not shadowed by a directory
+mount.
+
+- alt-names: the shared management-service TLS cert is issued with
+  common-name XROAD_HOST (the bare in-namespace service name). Callers in
+  other namespaces reach this Service by its namespace-qualified DNS name,
+  which the bare-CN SAN list doesn't cover, so Jetty's SNI check rejects the
+  handshake with an empty 400.
+- issuer.host: the base of the stored issuer DID and did.json document name
+  the Security Servers' identity hubs fetch; the "localhost" default breaks
+  credential issuance for any out-of-pod caller.
+*/}}
+{{- $cs := index .Values.services "central-server" }}
+{{- $replicas := 1 }}
+{{- if hasKey $cs "replicas" }}{{ $replicas = $cs.replicas | int }}{{ end }}
+{{- if gt $replicas 0 }}
+{{- $svcFqdn := printf "central-server.%s" .Release.Namespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-central-server-db-config-seed
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+    app: xroad-central-server
+data:
+  90-k8s.properties: |
+    xroad.management-service.tls.certificate-provisioning.alt-names={{ $svcFqdn }},{{ $svcFqdn }}.svc.cluster.local
+    xroad.dataspace.issuer.host={{ $svcFqdn }}
+{{- end }}

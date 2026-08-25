@@ -86,6 +86,19 @@ spec:
                 VALUES ('{{ .key | replace "'" "''" }}', '{{ $value | replace "'" "''" }}', now(), now())
                 ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
               {{- end }}
+              {{- /*
+              Consumer side of the softtoken-signer split (see values.yaml's
+              services.softtoken-signer comment). Only the proxy's sign() path
+              consults it, and the enabled flag is a DSL key that cannot ride
+              env, so the chart appends the row whenever the workload is on;
+              the channel host falls back to the "softtoken-signer" container
+              default.
+              */}}
+              {{- if include "xroad.softtokenSigner.enabled" $ }}
+              INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
+                VALUES ('xroad.common-rpc.channel.softtoken-signer.enabled', 'true', now(), now())
+                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
+              {{- end }}
               SQL
           resources:
             {{- toYaml .Values.waitGate.resources | nindent 12 }}

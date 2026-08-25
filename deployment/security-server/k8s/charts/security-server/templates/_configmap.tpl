@@ -23,20 +23,12 @@ data:
   {{- end }}
   {{- end }}
   {{- /*
-  Consumer side of the softtoken-signer split (see values.yaml's services.softtoken-signer
-  comment). Only `proxy` gets the channel — it is the only chart workload whose sign() path
-  is wired through the Quarkus SignerSignClientConfig producer that reads
-  SoftwareTokenSignerRpcChannelProperties; proxy-ui-api's signing (Spring) never consults it,
-  and auxiliary-service doesn't depend on signer-client at all.
+  The consumer side of the softtoken-signer split is no longer wired here:
+  xroad.common-rpc.channel.softtoken-signer.enabled is a DSL key the config
+  layer does not read from env — the config-seed Job appends it as a DB row
+  when softtoken-signer is enabled, and the channel host falls back to the
+  "softtoken-signer" container default.
   */}}
-  {{- if eq .service "proxy" }}
-  {{- if include "xroad.softtokenSigner.enabled" .root }}
-  {{- $env = merge (dict
-        "XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_ENABLED" "true"
-        "XROAD_COMMON_RPC_CHANNEL_SOFTTOKEN_SIGNER_HOST" "softtoken-signer"
-      ) $env }}
-  {{- end }}
-  {{- end }}
   {{- $env = merge $env (dict "JAVA_MAX_RAM_PERCENTAGE" (printf "%v" .root.Values.jvmHeap.maxRAMPercentage)) }}
   {{- if .root.Values.jvmHeap.mallocArenaMax }}
   {{- $env = merge $env (dict "MALLOC_ARENA_MAX" (printf "%v" .root.Values.jvmHeap.mallocArenaMax)) }}
