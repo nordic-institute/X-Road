@@ -38,6 +38,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.participant.ParticipantPinningCheck;
+import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
  * <ul>
  *   <li>{@link #participantContexts(boolean)} — enumerates the host, management (when registered)
- *       and per-member contexts to provision, member-level identity from
+ *       and per-member contexts to provision, member-level identity from the registered clients in
  *       {@link ClientRepository#getAllLocalClients()} plus the SS owner unconditionally.</li>
  *   <li>{@link #ensureParticipantContext(String, ParticipantKind, String)} — idempotent context
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context this
@@ -217,7 +218,7 @@ public class DataspaceProvisioningService {
      * Enumerates the participant contexts to provision or report on: the host context, the management
      * context when {@code managementRegistered}, and one member context per distinct X-Road member
      * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
-     * members as soon as they have a local client. Member ctx-ids follow the v1 scheme
+     * members as soon as they have a registered local client. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant} —
      * pinning happens as a side effect of {@link #ensureParticipantContext(String, ParticipantKind, String)}.
      *
@@ -278,7 +279,9 @@ public class DataspaceProvisioningService {
         Set<ClientId> members = new LinkedHashSet<>();
         members.add(owner);
         for (var client : clientRepository.getAllLocalClients()) {
-            members.add(memberLevelId(client.getIdentifier()));
+            if (Client.STATUS_REGISTERED.equals(client.getClientStatus())) {
+                members.add(memberLevelId(client.getIdentifier()));
+            }
         }
         return members;
     }

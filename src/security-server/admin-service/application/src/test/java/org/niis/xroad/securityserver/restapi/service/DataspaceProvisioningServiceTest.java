@@ -46,6 +46,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
@@ -78,6 +79,7 @@ class DataspaceProvisioningServiceTest {
 
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "ORG", "OWNER");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
+    private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "ORG", "OTHER");
     private static final String SS_HOST = "ih.example.test:7183";
 
     @Mock
@@ -306,6 +308,37 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void participantContextsSkipsMembersWithoutAnyRegisteredClient() {
+        givenServerConfWithOwner(OWNER);
+        var savedClient = clientWith(MEMBER, Client.STATUS_SAVED);
+        var registeredOther = clientWith(OTHER_MEMBER, Client.STATUS_REGISTERED);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(savedClient, registeredOther));
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
+                .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
+                .containsExactlyInAnyOrder(
+                        ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER));
+    }
+
+    @Test
+    void participantContextsIncludesMemberOnceAnyOfItsClientsIsRegistered() {
+        givenServerConfWithOwner(OWNER);
+        var subsystem = ClientId.Conf.create(MEMBER.getXRoadInstance(), MEMBER.getMemberClass(), MEMBER.getMemberCode(), "SUB");
+        var savedMemberClient = clientWith(MEMBER, Client.STATUS_SAVED);
+        var registeredSubsystemClient = clientWith(subsystem, Client.STATUS_REGISTERED);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(savedMemberClient, registeredSubsystemClient));
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
+                .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
+                .containsExactlyInAnyOrder(
+                        ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
+    }
+
+    @Test
     void participantContextsReturnsOnlyHostWhenOwnerNotYetSet() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
@@ -420,8 +453,13 @@ class DataspaceProvisioningServiceTest {
     }
 
     private ClientEntity clientWith(ClientId id) {
+        return clientWith(id, Client.STATUS_REGISTERED);
+    }
+
+    private ClientEntity clientWith(ClientId id, String clientStatus) {
         var entity = mock(ClientEntity.class);
-        when(entity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(id));
+        lenient().when(entity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(id));
+        lenient().when(entity.getClientStatus()).thenReturn(clientStatus);
         return entity;
     }
 
