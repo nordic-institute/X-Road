@@ -1,9 +1,8 @@
 ---
-# Full base topology for E2E `k8s` env-mode (PRD .workbench/20260730-k8s-e2e-variant/PRD.md,
-# slice 06: two-ss-message-flow): kind cluster + Central Server chart + two Security Server chart
-# releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao) +
-# e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap). DSP is on
-# (slice 09) — see the proxy_dsp_enabled block below for what that does and why.
+# Full base topology for E2E `k8s` env-mode: kind cluster + Central Server chart + two
+# Security Server chart releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor
+# Postgres + OpenBao) + e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore,
+# hurl bootstrap). DSP is on — see the proxy_dsp_enabled block below for what that does and why.
 
 cluster_provider: kind
 kind_cluster_name: xroad-e2e-cluster
@@ -60,7 +59,7 @@ external_service_host: host.docker.internal
 # No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
 
-# DSP on (issue 09). This is not an extra scenario: dsp-enabled is a global gate on the client
+# DSP on. This is not an extra scenario: dsp-enabled is a global gate on the client
 # proxy's send path (ClientSoapMessageProcessor / ClientRestMessageProcessor ask
 # consumerSideDspProcessor for asset access on every request, or get null), so with it off the
 # k8s lane was running the same suite over a different transport than compose. Turning it on
@@ -104,13 +103,13 @@ trusted_issuer_host: central-server.cs
 # it's left at the role's default (false).
 #
 # ss1 additionally enables messagelog DB + archive encryption with per-member
-# key grouping (issue 16), mirroring compose's
+# key grouping, mirroring compose's
 # msglog_encryption_config/application.yaml mount and the LXD role's
 # msglog-encryption.yml/msglog-archive-encryption.yml exactly — the deliberately
 # bogus member identifiers and non-existent key id are reproduced verbatim, not
 # cleaned up, since SsMessagelogArchiveTest's negative scenario depends on the
-# archiver tolerating them. No archive-cron/clean-cron key here: issue 17
-# already parks both crons off (messagelog_archive_cron/messagelog_clean_cron
+# archiver tolerating them. No archive-cron/clean-cron key here: both crons are
+# already parked off (messagelog_archive_cron/messagelog_clean_cron
 # above) and re-adding one would re-arm a scheduled run that races the test.
 # ss0 gets neither var and keeps producing plaintext, ungrouped archives.
 # messagelog_encryption_pgp_public_keyring_file points the openbao role's
@@ -148,7 +147,7 @@ security_server_instances:
 # override (compose.ss-opmonitor.e2e.yaml).
 op_monitor_records_available_offset_seconds: "1"
 
-# Compose parity (compose.e2e.yaml, compose.ss-msglog.e2e.yaml — see issue 17's audit):
+# Compose parity (compose.e2e.yaml, compose.ss-msglog.e2e.yaml):
 # the proxy batches timestamping on a ~60s cadence by default, and LogArchiver only picks up
 # records that already have a timestamp record — so triggering an archive right after the
 # traffic test can silently miss the last wave. Force every record to get a timestamp

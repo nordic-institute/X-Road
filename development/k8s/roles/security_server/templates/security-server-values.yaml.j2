@@ -35,17 +35,12 @@ init:
   opmonitor:
     dbUsername: {{ opmonitor_db.username }}
 
-# Single knob (chart's values.yaml secretStore.tls) replacing what used to be
-# per-workload QUARKUS_VAULT_TLS_CA_CERT / SPRING_CLOUD_VAULT_SSL_TRUST_STORE
-# env plus an openbao-tls-certificate volume+mount hand-wired onto every
-# service that reaches OpenBao. The chart now fans this out itself to every
-# workload whose env carries XROAD_SECRET_STORE_HOST (services/all.yaml,
-# message-log-archiver-job-configmap.yaml) — including the archiver/cleanup
-# Job, which is the workload this used to get missed on. Set unconditionally:
-# the openbao role's listener config always carries tls_cert_file/tls_key_file
-# from the self-signed secret, so OpenBao serves TLS in every inventory —
-# openbao_global_tls_disable only tunes the OpenBao helm chart's
-# global.tlsDisable, not the listener, and must not gate this.
+# Single knob (chart's secretStore.tls) replacing per-workload QUARKUS_VAULT_TLS_CA_CERT /
+# SPRING_CLOUD_VAULT_SSL_TRUST_STORE env + manual volume mounts; the chart fans it out to
+# every workload with an XROAD_SECRET_STORE_HOST env, including the archiver Job. Set
+# unconditionally: the openbao role's listener always carries TLS cert/key, so OpenBao
+# serves TLS in every inventory regardless of openbao_global_tls_disable, which only tunes
+# the Helm chart's global.tlsDisable, not the listener.
 secretStore:
   tls:
     caSecretName: {{ openbao_tls_secret_name }}

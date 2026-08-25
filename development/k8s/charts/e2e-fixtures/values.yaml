@@ -104,20 +104,13 @@ services:
 
   # Mock plain-REST information system (WireMock). Public image.
   #
-  # compose bind-mounts ./wiremock_mappings (security-server/e2e-test/src/
-  # intTest/resources/wiremock_mappings) at /home/wiremock/mappings, where
-  # WireMock auto-loads every *.json stub mapping at startup. Real file
-  # content, injected at render/install time — never forked into the chart,
-  # same mechanism as hurl.files below. Populate via (paths relative to the
-  # chart dir; adjust for your cwd):
-  #   helm template . \
-  #     --set-file services.isrest.mappings.is_rest_1=../../../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_1.json \
-  #     --set-file services.isrest.mappings.is_rest_2=../../../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_2.json \
-  #     --set-file services.isrest.mappings.is_rest_3=../../../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings/is_rest_3.json
-  # or point straight at core/src/security-server/e2e-test/src/intTest/
-  # resources/wiremock_mappings/*.json. Left unset, WireMock starts with no
-  # stub mappings and serves 404s for every request (see
-  # isrest-mappings-configmap.yaml).
+  # compose bind-mounts wiremock_mappings (security-server/e2e-test/src/
+  # intTest/resources/wiremock_mappings) for WireMock's auto-loaded *.json
+  # stubs. Real file content is injected at render/install time via
+  # --set-file services.isrest.mappings.<name>=<path> (name = filename minus
+  # .json; repeat per stub — see README section 4 for the full command).
+  # Left unset, WireMock starts with no stub mappings and serves 404s for
+  # every request (see isrest-mappings-configmap.yaml).
   isrest:
     otelServiceName: xroad-e2e-isrest
     image: "wiremock/wiremock:latest"
@@ -217,8 +210,7 @@ hurl:
   # Overrides layered on top of vars.env, pointing setup.hurl at in-cluster
   # Service DNS names instead of compose's mapped host ports. ss0/ss1 here
   # are the actual namespace names the two Security Server chart releases
-  # are deployed into (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice
-  # 06: two-ss-message-flow).
+  # are deployed into.
   #
   # cs_host is namespace-qualified (`central-server.cs`, not bare) because it
   # is also stored as the Central Server's address at init (setup.hurl's
@@ -264,6 +256,6 @@ hurl:
   # security-server chart's XROAD_PROXY_UI_API_DATASPACE_ENABLED unset). The
   # Job computes the file's total entry count at runtime and passes
   # `--to-entry (total - 2)` when this is true, so the two DSP entries never
-  # run; set false once the two-SS topology enables DSP (slice 09) to run
-  # setup.hurl through to its actual end.
+  # run; set false once the two-SS topology enables DSP to run setup.hurl
+  # through to its actual end.
   skipDspReadinessGates: false

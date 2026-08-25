@@ -6,7 +6,7 @@ description: >-
   by the co-located Central Server Issuer Service and (when DSP is enabled) the
   Security Server ds_tls mode. Deployed early — before the Central Server and
   Security Server charts — because those consume the keystore at boot. Explicit
-  XRDADR-42 stop-gap (file-based keystore until ACME-from-OpenBao lands).
+  stop-gap (file-based keystore until ACME-from-OpenBao lands).
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

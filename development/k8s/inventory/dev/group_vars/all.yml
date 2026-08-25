@@ -1,10 +1,9 @@
 ---
-# Full base topology (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, issue 11:
-# dev-env-convergence): kind cluster + Central Server chart + two Security Server chart
-# releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao) +
-# e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap) — the same
-# playbooks/site.yml, roles and charts as inventory/e2e, differing only in the values below.
-# DSP is on. No LXD dependency: everything this environment needs runs in-cluster.
+# Full base topology: kind cluster + Central Server chart + two Security Server chart
+# releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao)
+# + e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap) —
+# same playbooks/site.yml, roles and charts as inventory/e2e, differing only in the values
+# below. DSP is on. No LXD dependency: everything runs in-cluster.
 
 cluster_provider: kind
 kind_cluster_name: xroad-dev-cluster
@@ -84,7 +83,7 @@ trusted_issuer_host: central-server.cs
 # ss0 enables the softtoken-signer split (security_server role's softtoken_signer_enabled var)
 # and ss1 enables the signer.hsm stop-gap toggle: the shared hurl bootstrap (e2e_fixtures role)
 # needs ss1 to expose a pkcs11 HARDWARE token regardless of which inventory runs it. Mirrors
-# e2e's split so dev and e2e stay converged (issue 11).
+# e2e's split so dev and e2e stay converged.
 security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0

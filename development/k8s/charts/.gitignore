@@ -1,7 +1,3 @@
-# deployment/charts/.gitignore (Helm - Dev)
-# Chart dependencies can be included for dev
-# **/charts/*.tgz
-
 # Local packages
 *.tgz
 

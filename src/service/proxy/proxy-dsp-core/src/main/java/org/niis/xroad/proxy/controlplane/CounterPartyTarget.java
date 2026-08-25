@@ -100,9 +100,8 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
                         "https://ds-control-plane:8183/api/dsp/ss0/" + DSP_PROFILE_ID)),
                 Map.entry("ss1", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
                         "https://ds-control-plane:8183/api/dsp/ss1/" + DSP_PROFILE_ID)),
-                //For k8s (Helm/kind), where each Security Server release is its own namespace and
-                //services are reached on namespace-qualified names. The host-address keys are the
-                //proxy Service names the releases register in globalconf, not the SS hostnames.
+                //For k8s: keys are the namespace-qualified proxy Service names each release
+                //registers in globalconf, not the SS hostnames.
                 Map.entry("proxy.ss0", new CounterPartyTarget("did:web:ds-identity-hub.ss0%3A7183",
                         "https://ds-control-plane.ss0:8183/api/dsp/xrd-ss0/" + DSP_PROFILE_ID)),
                 Map.entry("proxy.ss1", new CounterPartyTarget("did:web:ds-identity-hub.ss1%3A7183",

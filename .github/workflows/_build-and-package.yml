@@ -336,12 +336,10 @@ jobs:
           path: ci-markers/images-ready.env
           compression-level: '0'
 
-      # Deferred from the build step (see "Build source") so the artifacts the e2e
-      # legs wait on are published first; everything except the deferred test tasks
-      # is UP-TO-DATE, so this runs only them. Deliberately `build`, not bare `test`:
-      # a bare `test` also runs every task merely *named* test across subprojects,
-      # pulling in frontend suites (e.g. :shared-ui:test) that build/check never
-      # wired in and that already run in their dedicated workflow jobs.
+      # `build`, not bare `test`: only the deferred test tasks are out of date at this
+      # point. A bare `test` also runs every task merely *named* test across
+      # subprojects (e.g. :shared-ui:test), which build/check never wired in and which
+      # already run in their own dedicated workflow jobs.
       - name: Run tests
         working-directory: ./src
         run: |

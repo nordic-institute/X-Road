@@ -2,7 +2,7 @@
 
 > **NOT production-ready / dev+E2E-only.** Every rendered resource carries the
 > label `xroad.niis.org/production-ready: "false"`, matching the `Chart.yaml`
-> annotation. Explicit XRDADR-42 stop-gap (self-signed, file-based keystore)
+> annotation. Explicit stop-gap (self-signed, file-based keystore)
 > until ACME-from-OpenBao lands.
 
 ## 1. Why this is its own chart

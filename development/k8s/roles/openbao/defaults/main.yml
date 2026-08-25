@@ -31,7 +31,7 @@ openbao_tls_validity_days: 1825
 
 openbao_helm_wait_timeout: 10m
 
-# Recipient PGP public keyring for messagelog archive encryption (issue 16),
+# Recipient PGP public keyring for messagelog archive encryption,
 # seeded via the openbao-init chart's optional kvSeed mechanism at
 # xrd-secret/message-log/archival/pgp/public-keys (KV v1, field "payload" —
 # see lib/vault-core VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH). A file

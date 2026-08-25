@@ -74,18 +74,9 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
-  # All E2E lanes share one workflow definition, invoked once per substrate, so the
-  # Actions UI shows a single "e2e" group with one leg each. The lxd leg is limited to
-  # pull_request and workflow_dispatch by a guard inside the reusable workflow.
-  #
-  # Deliberately no `needs: build-and-package` here: each leg's package-independent
-  # prep (lxd tooling/init, k8s kind/helm install, ...) starts with the pipeline and
-  # overlaps the build, then waits inside _test-e2e.yml for a readiness marker
-  # artifact before downloading anything build produced. That marker also carries
-  # the image registry/tag, since the `needs.*.outputs` route is unavailable without
-  # the edge. Losing the edge also loses the implicit skip when build-and-package
-  # is skipped, so its Dependabot guard is repeated here -- otherwise the legs
-  # would poll for a marker no job will ever upload.
+  # See _test-e2e.yml for the no-needs-edge/marker design. Losing that edge also loses
+  # the implicit skip when build-and-package is skipped, so its Dependabot guard is
+  # repeated here.
   test-e2e:
     name: e2e
     if: >
@@ -129,9 +120,8 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
-  # Cheap chart-regression gate: helm lint/template/smoke on the k8s charts.
-  # Runs in parallel with build-and-package (no dependency on its outputs),
-  # so chart breakage fails fast without waiting on the full build or E2E lanes.
+  # Parallel with build-and-package (see _test-charts.yml) — chart breakage fails fast
+  # independent of the full build.
   chart-lint-smoke:
     name: chart-lint-smoke
     uses: ./.github/workflows/_test-charts.yml

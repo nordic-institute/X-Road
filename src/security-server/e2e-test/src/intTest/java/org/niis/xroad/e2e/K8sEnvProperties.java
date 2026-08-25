@@ -30,8 +30,7 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 /**
- * Two-SS k8s topology configuration (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice 06:
- * two-ss-message-flow). ss0 and ss1 are two Security Server chart releases in separate namespaces
+ * Two-SS k8s topology configuration. ss0 and ss1 are two Security Server chart releases in separate namespaces
  * ({@code ss0}/{@code ss1}), reachable from the harness through the {@code kubectl port-forward}
  * listeners started by {@code core/scripts/env-k8s} — hence the {@code localhost} host defaults.
  * Both SS's forward to localhost, so each needs its own local port; ss1's default ports are ss0's

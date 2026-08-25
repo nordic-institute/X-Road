@@ -47,8 +47,7 @@ import java.util.regex.Pattern;
 
 /**
  * Kubernetes-based implementation of the e2e environment: two Security Server chart releases
- * (ss0/ss1) in separate namespaces (PRD .workbench/20260730-k8s-e2e-variant/PRD.md, slice 06:
- * two-ss-message-flow). Assumes the environment is already provisioned by
+ * (ss0/ss1) in separate namespaces. Assumes the environment is already provisioned by
  * {@code core/scripts/env-k8s} and reachable via its {@code kubectl port-forward} listeners, so
  * bring-up and teardown are no-ops. Extends {@link BaseComposeSetup} only to satisfy the
  * api-test-core session-listener/extension lifecycle; the inherited compose accessors are
@@ -162,11 +161,10 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         }
         var jobName = jobNameMatcher.group(1);
 
-        // As with the LXD CLI, the archiver Job's container always exits 0 regardless of outcome
-        // (MessageLogArchiverService catches and logs internally) — message_log_archiver.sh's own
-        // "Job completed successfully" only reflects Job-controller completion, so the real outcome
-        // is read from the Job pod's own log output (the containerized Quarkus profile logs to
-        // stdout, unlike %native which redirects to a file).
+        // The script already exits non-zero when the Job fails; the success marker in the Job
+        // pod's log is an independent check that the requested operation actually completed
+        // (the containerized Quarkus profile logs to stdout, unlike %native which redirects
+        // to a file).
         var successMarker = command.startsWith("archive") ? ARCHIVE_SUCCESS_MARKER : CLEANUP_SUCCESS_MARKER;
         var jobLog = tailJobLog(namespace, jobName);
         if (!jobLog.contains(successMarker)) {

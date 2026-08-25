@@ -54,9 +54,8 @@ mount the resulting `ds-https-keystore` Secret **at boot** — so it must be
 provisioned before those charts, not alongside these fixtures. It now has its
 own `development/k8s/charts/ds-https-keystore` chart, deployed
 as an early ansible step (`ds_https_keystore` role, before `security_server`
-and `central_server`). See that chart's README for the self-signed recipe,
-the SAN set, and the truststore-key-naming reconciliation still owed to the
-DSP slice.
+and `central_server`). See that chart's README for the self-signed recipe
+and the SAN set.
 
 ## 4. hurl bootstrap Job
 
@@ -73,11 +72,9 @@ helm template . \
 ```
 
 No chart-tracked copy of either file ever exists; whoever installs the chart
-(the E2E bring-up script, in a later slice) points `--set-file` at the real
-files. Left unset, the ConfigMap renders with empty `data` and the Job would
-fail fast on a missing `/hurl-src/setup.hurl` — acceptable here since this
-slice's contract is "the chart renders correctly," not "the scenario passes"
-(that's slice 06+).
+(the `core/scripts/env-k8s` bring-up) points `--set-file` at the real files.
+Left unset, the ConfigMap renders with empty `data` and the Job fails fast on
+a missing `/hurl-src/setup.hurl`.
 
 Host variables (`values.yaml`'s `hurl.vars`) override `vars.env`'s
 compose-mapped-port defaults (`ss0_proxy=localhost` etc.) with in-cluster
@@ -96,16 +93,14 @@ dev stack — not a new pattern invented for k8s.
 This topology is fully in-cluster — there is no external CS/CA to bootstrap
 against, so `setup.hurl` is the only scenario this chart runs.
 
-## 5. Out of scope (this slice)
+## 5. Out of scope
 
-- Wiring this chart into the ansible `inventory/e2e` topology, namespace
-  layout, or the `core/scripts/env-k8s` bring-up pipeline.
-- The second Security Server, enabling DSP, or reconciling the DS-HTTPS
-  Secret's truststore key naming with the security-server chart's existing
-  `ds_tls` mount (now owned by the `ds-https-keystore` chart).
-- Asserting any hurl scenario green, or validating did:web/DSP against the
-  generated keystore (slice 09).
-- Replacing the DS-HTTPS stop-gap with ACME-from-OpenBao (XRDADR-42).
+- Topology wiring (ansible `inventory/e2e`, namespaces, the
+  `core/scripts/env-k8s` bring-up pipeline) — owned by `development/k8s`.
+- The DS-HTTPS keystore Secret — owned by the `ds-https-keystore` chart.
+- Scenario health — this chart's contract is a correct render and a bootstrap
+  Job that runs; the E2E suite owns the assertions.
+- Replacing the DS-HTTPS stop-gap with ACME-from-OpenBao.
 
 ## 6. Rendering
 

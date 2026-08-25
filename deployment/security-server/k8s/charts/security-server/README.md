@@ -179,7 +179,7 @@ the secret store — gets the CA cert mounted at
 - The same `QUARKUS_VAULT_TLS_CA_CERT` env and cert mount for the
   message-log archiver/cleanup `Job` template
   (`messageLogArchiver` — shares one template for both invocations),
-  which issue 16 found gets missed precisely because it is not a
+  which is easy to miss precisely because it is not a
   long-running Pod: its own env named the CA cert path but nothing ever
   mounted it there, and messagelog encryption made that access mandatory.
 

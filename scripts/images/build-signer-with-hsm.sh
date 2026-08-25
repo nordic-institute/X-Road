@@ -2,17 +2,14 @@
 
 set -e
 
-# Source base script for common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
-# Paths
 SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
 HSM_CONTEXT="${ROOT_DIR}/development/docker/security-server/signer-with-hsm"
 
-# Show help
 show_help() {
   cat <<EOF
 Signer-with-HSM Image Build Script

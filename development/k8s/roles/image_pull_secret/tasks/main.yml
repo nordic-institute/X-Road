@@ -1,10 +1,6 @@
 ---
-# Registry credentials for pulling the X-Road dev images. Needed when the images live in
-# a private registry (CI pulls them from GHCR, where anonymous pull is denied); a no-op
-# locally, where kind pulls from the unauthenticated localhost:5555 mirror.
-#
-# The Secret is created per namespace rather than once, because Secrets are namespace-scoped
-# and each chart release references it by bare name from its own namespace.
+# Needed when images live in a private registry (CI pulls from GHCR, denied anonymously);
+# a no-op locally, where kind pulls from unauthenticated localhost:5555.
 
 - name: Assert pull-secret credentials are complete
   ansible.builtin.assert:

@@ -82,7 +82,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Always build all charts (paths relative to the repo root)
+# Paths relative to the repo root
 CHARTS=(
     "deployment/security-server/k8s/charts/security-server"
     "deployment/security-server/k8s/charts/openbao-init"

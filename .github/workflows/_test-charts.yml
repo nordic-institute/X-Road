@@ -36,16 +36,13 @@ jobs:
         with:
           version: 'v3.21.3'
 
-      # `helm lint` cannot parse templates/services/all.yaml ("invalid Yaml
-      # document separator: apiVersion: v1") on both new charts *and* on the
-      # pre-existing, unmodified security-server chart they mirror — verified
-      # across every Helm release from 3.12 through 4.2.3 (current latest).
-      # It is a version-independent lint limitation with this multi-document,
-      # per-service range template, not a regression. Kept non-blocking for
-      # visibility; `helm template` below is the real correctness gate.
-      # `|| true` per command instead of continue-on-error: the latter keeps
-      # the step green but still emits the failing command as an error
-      # annotation on the run, which reads like a real failure.
+      # helm lint can't parse templates/services/all.yaml ("invalid Yaml document
+      # separator") on this multi-document per-service template — also seen on the
+      # pre-existing, unmodified security-server chart it mirrors, so not a
+      # regression here. Verified across Helm 3.12-4.2.3 (current latest).
+      # Non-blocking for visibility; `helm template` below is the real gate.
+      # `|| true` avoids continue-on-error's failure annotation on an expected
+      # failure.
       - name: Helm lint (informational — see comment above)
         run: |
           helm lint deployment/central-server/k8s/charts/central-server || true

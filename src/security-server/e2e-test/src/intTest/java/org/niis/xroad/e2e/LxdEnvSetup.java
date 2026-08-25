@@ -136,11 +136,11 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         var stderr = stderrFuture.get();
         var exitCode = process.waitFor();
 
-        // An operation-level failure keeps exit code 0 (MessageLogArchiverService catches and logs
-        // internally), so the real outcome is read from the CLI's own log file — the %native Quarkus
-        // profile disables console logging in favor of /var/log/xroad/message-log-archiver.log. A
-        // startup-level failure (JVM/config/connection) exits non-zero without reaching that file,
-        // so its cause is only visible on the process streams.
+        // The CLI exits non-zero on an operation failure, but its output goes to the log file —
+        // the %native Quarkus profile disables console logging in favor of
+        // /var/log/xroad/message-log-archiver.log — so the success marker is verified there and
+        // the log tail carries an operation failure's cause. Only a startup-level failure
+        // (JVM/config/connection) surfaces on the process streams.
         var successMarker = command.startsWith("archive") ? ARCHIVE_SUCCESS_MARKER : CLEANUP_SUCCESS_MARKER;
         var logTail = tailArchiverLog(env);
         if (exitCode != 0 || !logTail.contains(successMarker)) {

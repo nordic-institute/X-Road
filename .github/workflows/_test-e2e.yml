@@ -188,11 +188,8 @@ jobs:
 
       # --------------------------------------------------------- wait for build
 
-      # Everything above this point is package-independent prep and runs immediately,
-      # overlapping build-and-package. lxd installs from the native packages, ready at
-      # the `artifacts-ready` marker. compose and k8s both deploy the run-tagged dev
-      # images (the e2e jar bakes their refs into its .env at build time), which land
-      # later in that job, at the `images-ready` marker.
+      # Package-independent prep ends here; from this point each leg waits for its
+      # build marker (see the header comment).
       - name: Determine readiness marker
         id: marker
         run: |

@@ -1,5 +1,6 @@
-# Dev-only DS-HTTPS keystore provisioner. NOT production-ready — an XRDADR-42
-# stop-gap (self-signed, file-based keystore) until ACME-from-OpenBao lands.
+# Dev-only DS-HTTPS keystore provisioner. NOT production-ready — a stop-gap
+# (self-signed, file-based keystore) pending ACME-based certificate issuance
+# from the secret store.
 
 dsHttpsKeystore:
   image: eclipse-temurin:21-jre-alpine

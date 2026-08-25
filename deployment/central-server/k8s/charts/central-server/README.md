@@ -68,14 +68,13 @@ helm template . --set imagePullSecrets[0]=ghcr-pull-secret
 The chart does not create that Secret; provisioning it (e.g. via the kind
 cluster bring-up) is out of scope for this chart.
 
-## 5. Out of scope (this slice)
+## 5. Out of scope
 
 - A production-grade, decomposed Central Server chart (separate
   admin/management/registration workloads).
-- The `e2e-fixtures` chart and hurl bootstrap.
-- Wiring this chart into the running E2E topology (ansible inventory,
-  port-forwards, etc.) — deferred to a later slice of
-  `.workbench/20260730-k8s-e2e-variant/PRD.md`.
+- E2E fixtures and hurl bootstrap — the `e2e-fixtures` chart.
+- Topology wiring (ansible inventory, port-forwards) — owned by
+  `development/k8s` and `core/scripts/env-k8s`.
 
 ## 6. Rendering
 
