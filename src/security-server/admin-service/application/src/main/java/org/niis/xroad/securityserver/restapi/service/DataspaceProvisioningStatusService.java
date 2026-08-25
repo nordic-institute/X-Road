@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -48,13 +47,16 @@ public class DataspaceProvisioningStatusService {
     private final DataspaceReadinessPredicates readinessPredicates;
 
     /**
-     * Returns a snapshot of the current provisioning status.
+     * Returns a snapshot of the current provisioning status. Deliberately not transactional:
+     * only the context enumeration touches the database (in its own read-only transaction),
+     * while the per-context status reads are blocking gRPC calls that must not hold a pooled
+     * DB connection.
      */
-    @Transactional(readOnly = true)
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        List<ParticipantContextStatus> contextStatuses =
-                dataspaceProvisioningService.readParticipantContextStatuses(true);
+        List<ParticipantContextStatus> contextStatuses = dataspaceProvisioningService.participantContexts(true).stream()
+                .map(ctx -> dataspaceProvisioningService.readContextStatus(ctx.participantId(), ctx.kind()))
+                .toList();
 
         return new DataspaceStatus(true, authCertRegistered, contextStatuses);
     }

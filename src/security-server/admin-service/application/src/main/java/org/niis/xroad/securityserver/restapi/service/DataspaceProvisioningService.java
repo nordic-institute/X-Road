@@ -251,20 +251,6 @@ public class DataspaceProvisioningService {
         return contexts;
     }
 
-    /**
-     * Returns a read-only snapshot of the provisioning status for each participant context.
-     * Does not trigger provisioning, poll, or sleep.
-     * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
-     *
-     * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
-     */
-    @Transactional(readOnly = true)
-    public List<ParticipantContextStatus> readParticipantContextStatuses(boolean managementRegistered) {
-        return enumerateParticipantContexts(managementRegistered).stream()
-                .map(ctx -> readContextStatus(ctx.participantId(), ctx.kind()))
-                .toList();
-    }
-
     private Optional<ClientId> ownerId() {
         try {
             return Optional.ofNullable(serverConfRepository.getServerConf().getOwner())
@@ -294,7 +280,15 @@ public class DataspaceProvisioningService {
                 : ClientId.Conf.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
     }
 
-    private ParticipantContextStatus readContextStatus(String participantId, ParticipantKind kind) {
+    /**
+     * Returns a read-only snapshot of one participant context's provisioning status, read over gRPC
+     * without touching the database. Does not trigger provisioning, poll, or sleep.
+     * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
+     *
+     * @param participantId the participant context id
+     * @param kind          HOST, MANAGEMENT or MEMBER
+     */
+    public ParticipantContextStatus readContextStatus(String participantId, ParticipantKind kind) {
         try {
             var contextCreated = identityHubClient.contextExists(participantId);
             var credentialStatus = resolveCredentialStatus(participantId, contextCreated);
