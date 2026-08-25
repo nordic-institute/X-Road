@@ -47,7 +47,12 @@ xroad:
       # Upstream DataPlaneSignalingApiExtension also mounts a data-plane registration REST controller;
       # XRoadDataPlaneSignalingApiExtension replaces it with the transfer API only, since the in-process
       # registrar (XRoadDataPlaneRegistrarExtension) is the sole DataPlaneInstanceStore writer.
-      excluded-service-extensions: org.eclipse.edc.signaling.DataPlaneSignalingApiExtension
+      # JettyExtension is also excluded: its jetty-core artifact is excluded from the runtime classpath
+      # entirely (see xroad.edc-owned-jetty-conventions), so this setting is defense in depth, not the
+      # only thing standing between it and boot.
+      excluded-service-extensions: >-
+        org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
+        org.eclipse.edc.web.jetty.JettyExtension
   ds:
     rpc:
       host: "0.0.0.0"

@@ -26,70 +26,131 @@
  */
 package org.niis.xroad.ss.test.api.keys;
 
+import lombok.SneakyThrows;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.ss.test.api.SsApiTest;
 import org.niis.xroad.ss.test.api.admin.DsTlsCertificateAdminClient;
 import org.niis.xroad.ss.test.api.seeding.SsBaselineSeeder;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.niis.xroad.test.apitest.core.junit.Step.and;
+import static org.niis.xroad.test.apitest.core.junit.Step.given;
+import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
  * API tests for the shared {@code /ds-tls-certificate} admin resource (common-admin-api, XRDDEV-3289 CSR-only
- * rework), limited to what is safe to assert before the DS TLS vault slot has ever been touched. Unlike the
- * server-wide internal TLS certificate (see {@code TlsKeyTest}), the DS TLS slot starts genuinely empty on a
- * fresh stack and stays that way until {@code DsTlsCertificateLifecycleDestructiveTest} generates a key in the
- * destructive phase - so the "nothing provisioned yet" assertions here only hold before that phase runs.
- * The phased suite ({@code SsApiPhasedSuite}) guarantees that ordering: all non-destructive tests (this class
- * included) complete before any destructive test starts.
+ * rework), limited to read-only operations that are safe on the warm substrate. This stack's
+ * {@code ds-https-keystore-init} container seeds a real key and self-signed certificate into the
+ * {@code tls/ds-https} vault slot before any service starts (ds-* components read their serving certificate
+ * from that same slot and fail closed otherwise), so — unlike the server-wide internal TLS certificate,
+ * which starts with packaging defaults — the DS TLS slot is never empty on this stack. The empty-slot
+ * negative paths (no key generated, no certificate acquired yet) are exercised instead by the Central
+ * Server api-test suite (which stands OpenBao in with MockServer and controls the slot's content
+ * precisely) and by common-admin-api's unit tests, so that coverage is relocated, not lost. Mutating
+ * operations (generating a new key, uploading a certificate) live in
+ * {@code DsTlsCertificateLifecycleDestructiveTest} on the disposable destructive stack, including the
+ * key/certificate-mismatch negative case.
  */
-@DisplayName("DS TLS certificate — before any key has been generated")
+@DisplayName("DS TLS certificate — read-only, on the pre-seeded stack")
 @SuppressWarnings("checkstyle:magicnumber")
 class DsTlsCertificateTest extends SsApiTest {
 
     @Test
-    @DisplayName("status reports nothing provisioned on a stack where the DS TLS slot was never touched")
-    void statusReportsNothingProvisioned(SsBaselineSeeder seeder) {
+    @DisplayName("status reports the seeded key and certificate")
+    void statusReportsTheSeededCertificate(SsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
 
         client.getStatus()
                 .statusCode(200)
-                .body("key_generated", equalTo(false))
-                .body("certificate", nullValue());
+                .body("key_generated", equalTo(true))
+                .body("certificate", notNullValue())
+                .body("certificate.subject_distinguished_name", notNullValue());
     }
 
     @Test
-    @DisplayName("generating a CSR without a stored key fails with an actionable error")
-    void csrGenerationFailsWhenNoKeyGenerated(SsBaselineSeeder seeder) {
+    @DisplayName("a CSR generated for the seeded key is a well-formed PKCS#10 request for the requested subject")
+    @SneakyThrows
+    void csrGenerationSucceedsForTheSeededKey(SsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
 
-        client.generateCsrRaw("CN=ds.example.org")
-                .statusCode(404)
-                .body("error.code", equalTo("ds_tls_key_not_generated"));
+        var csrBytes = given("a CSR is generated for CN=ds.example.org", () ->
+                client.generateCsr("CN=ds.example.org"));
+
+        then("the response is a PEM certificate request", () -> {
+            var pem = new String(csrBytes, StandardCharsets.US_ASCII).trim();
+            assertThat(pem).startsWith("-----BEGIN CERTIFICATE REQUEST-----");
+        });
+
+        and("it parses as a PKCS#10 request", () -> parsePkcs10(csrBytes));
     }
 
     @Test
-    @DisplayName("uploading a certificate without a stored key fails with an actionable error")
-    void certificateUploadFailsWhenNoKeyGenerated(SsBaselineSeeder seeder) {
+    @DisplayName("the seeded certificate downloads as a gzip archive containing a parseable X.509 entry")
+    @SneakyThrows
+    void certificateDownloadSucceedsForTheSeededCertificate(SsBaselineSeeder seeder) {
         var client = new DsTlsCertificateAdminClient(seeder.newSession());
-        var certBytes = "-----BEGIN CERTIFICATE-----\nirrelevant-no-key-stored-yet\n-----END CERTIFICATE-----\n"
-                .getBytes(StandardCharsets.UTF_8);
 
-        client.uploadCertificate(certBytes)
-                .statusCode(404)
-                .body("error.code", equalTo("ds_tls_key_not_generated"));
+        var downloaded = given("the DS TLS certificate is downloaded", () ->
+                client.downloadCertificate()
+                        .statusCode(200)
+                        .extract().asByteArray());
+
+        var entries = and("the tar.gz archive is decompressed and its entries are extracted", () ->
+                extractTarEntries(downloaded));
+
+        then("the archive contains a parseable X.509 certificate entry", () -> {
+            assertThat(entries).isNotEmpty();
+            entries.values().forEach(DsTlsCertificateTest::parseX509Certificate);
+        });
     }
 
-    @Test
-    @DisplayName("downloading the certificate without one acquired fails with an actionable error")
-    void certificateDownloadFailsWhenNoCertificateAcquired(SsBaselineSeeder seeder) {
-        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+    @SneakyThrows
+    private void parsePkcs10(byte[] pemCsrBytes) {
+        var pem = new String(pemCsrBytes, StandardCharsets.US_ASCII).trim();
+        var body = pem
+                .replace("-----BEGIN CERTIFICATE REQUEST-----", "")
+                .replace("-----END CERTIFICATE REQUEST-----", "")
+                .replaceAll("\\s+", "");
+        var der = Base64.getDecoder().decode(body);
+        var csr = new PKCS10CertificationRequest(der);
+        assertThat(csr.getSubject()).isNotNull();
+    }
 
-        client.downloadCertificate()
-                .statusCode(404)
-                .body("error.code", equalTo("ds_tls_certificate_not_configured"));
+    private static void parseX509Certificate(byte[] certBytes) {
+        try {
+            var factory = CertificateFactory.getInstance("X.509");
+            factory.generateCertificate(new ByteArrayInputStream(certBytes));
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to parse downloaded DS TLS certificate entry as X.509", e);
+        }
+    }
+
+    @SneakyThrows
+    private Map<String, byte[]> extractTarEntries(byte[] tarGzBytes) {
+        var result = new HashMap<String, byte[]>();
+        try (var gzipStream = new GZIPInputStream(new ByteArrayInputStream(tarGzBytes));
+                var tarStream = new TarArchiveInputStream(gzipStream)) {
+            var entry = tarStream.getNextEntry();
+            while (entry != null) {
+                if (!entry.isDirectory()) {
+                    result.put(entry.getName(), tarStream.readAllBytes());
+                }
+                entry = tarStream.getNextEntry();
+            }
+        }
+        return result;
     }
 }

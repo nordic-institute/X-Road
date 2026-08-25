@@ -1,11 +1,14 @@
 ---
+- include_tasks: seed-ds-https-vault.yml
+
 # TEMPORARY (dataspaces dev): post-install safety net. The pre-install preseed
 # ensures DS services boot cleanly on a fresh install, but if an earlier run
 # left a unit in `inactive (dead)` state (e.g., from a prior StartLimitBurst
-# before the preseed was in place), the package install does NOT restart it.
-# `state: started` is idempotent — no-op when the service is already active,
-# brings it up otherwise. NOT `state: restarted` (which would churn working
-# services). Remove once the env is stable and re-runs always start from clean.
+# before the preseed was in place, or before tls/ds-https existed in OpenBao),
+# the package install does NOT restart it. `state: started` is idempotent —
+# no-op when the service is already active, brings it up otherwise. NOT
+# `state: restarted` (which would churn working services). Remove once the env
+# is stable and re-runs always start from clean.
 - name: ensure DS units are running after install (idempotent — no restart)
   systemd:
     name: "{{ item }}"

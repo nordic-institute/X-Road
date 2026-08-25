@@ -33,6 +33,11 @@ quarkus:
         path: /var/log/xroad/ds-identity-hub.log
 
 xroad:
+  edc:
+    boot:
+      # jetty-core is also excluded from the runtime classpath entirely (see
+      # xroad.edc-owned-jetty-conventions); this setting is defense in depth.
+      excluded-service-extensions: org.eclipse.edc.web.jetty.JettyExtension
   ds:
     rpc:
       host: "0.0.0.0"

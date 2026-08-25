@@ -8,10 +8,39 @@
     path: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
     state: absent
 
+# Stopgap (XRDDEV-3294 retires this): the owned Jetty module reads the DS TLS
+# certificate from OpenBao, not from the file ds-https-keystore.yml generates —
+# seed the same key/cert into tls/ds-https so the co-located Issuer Service
+# doesn't fail closed. Must run post-install: ds-https-keystore.yml runs
+# pre-install (see pre-cs-install.yml), before xroad-secret-store-local's own
+# package install has necessarily finished producing a client token.
+- name: wait for secret store client token
+  wait_for:
+    path: /etc/xroad/secret-store-client-token
+    state: present
+    timeout: 180
+
+# curl instead of the uri module: see the note on the xrd-ca wait task in
+# ds-https-keystore.yml — the same ansible-core CA-trust-loading bug applies.
+- name: write ds-https certificate and key to OpenBao
+  shell: |
+    set -euo pipefail
+    TOKEN=$(cat /etc/xroad/secret-store-client-token)
+    PAYLOAD=$(jq -n --rawfile cert /etc/xroad/ssl/ds-https-cert.pem --rawfile key /etc/xroad/ssl/ds-https-key.pem \
+      '{certificate: $cert, privateKey: $key}')
+    curl -fsSk -X POST \
+      -H "X-Vault-Token: ${TOKEN}" \
+      -H "Content-Type: application/json" \
+      --data "$PAYLOAD" \
+      "https://127.0.0.1:8200/v1/xrd-secret/tls/ds-https" >/dev/null
+  args:
+    executable: /bin/bash
+
 # TEMPORARY (dataspaces dev): post-install safety net. Same reasoning as
 # xroad-ss/tasks/post-ss-install.yml — `state: started` recovers any DS unit
-# left `inactive` by a prior StartLimitBurst from before the preseed existed.
-# Idempotent; not `restarted`. Remove once the env is stable.
+# left `inactive` by a prior StartLimitBurst from before the preseed existed
+# (or before tls/ds-https existed in OpenBao). Idempotent; not `restarted`.
+# Remove once the env is stable.
 - name: ensure DS units are running after install (idempotent — no restart)
   systemd:
     name: xroad-ds-issuer-service
