@@ -27,10 +27,10 @@ CA-anchored) with a SAN set covering the in-cluster CS/SS/DS service names,
 exports it as `ds-https.p12`, and imports it into a copy of the JRE's own
 `cacerts` — the same two-artifact recipe compose uses (`openssl` PKCS12
 export + `keytool -import` into a copied `cacerts`), publishing the result as
-a `ds-https-keystore` Secret (keys `ds-https.p12`, `cacerts`) via the
-Kubernetes API instead of a shared docker volume. The container
-idempotency-checks for an existing Secret before regenerating, mirroring
-compose's `[ -f ds-https.p12 ] && [ -f cacerts ] && exit 0` guard.
+a `ds-https-keystore` Secret (keys `ds-https.p12`, `cacerts`, `ds-https-cert.pem`,
+`ds-https-key.pem`) via the Kubernetes API instead of a shared docker volume.
+The container idempotency-checks for an existing Secret before regenerating,
+mirroring compose's `[ -f ds-https.p12 ] && [ -f cacerts ] && exit 0` guard.
 
 This chart's fully in-cluster topology has no external CA to anchor to, so it
 mirrors compose's self-signed recipe rather than a CA-anchored one.
@@ -39,6 +39,17 @@ The `security_server` role reads the truststore under the key this Job
 publishes (`cacerts`, a JRE-copy JKS, matching compose), and the
 `ds_https_keystore` role replicates the Secret into every Security Server
 namespace listed in `security_server_instances`.
+
+The owned Jetty TLS module (develop #3746) reads DS-HTTPS material
+exclusively from OpenBao at `tls/ds-https`, not from this Secret — the
+`ds_https_keystore` role additionally seeds the same cert/key into every
+Security Server namespace's OpenBao (a one-shot Job per namespace, using that
+namespace's own `xroad-token`) after replicating the Secret. The Central
+Server needs no such seeding step: it runs its own private in-pod OpenBao,
+self-seeded by the dev image's own supervisord entry
+(`seed-ds-https-vault-secret.sh`) from this Secret's `-cert.pem`/`-key.pem`
+files — which is why both PEM files, not just the PKCS12/JKS artifacts, ride
+along in the Secret.
 
 ## 3. SAN set
 

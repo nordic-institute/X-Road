@@ -22,3 +22,8 @@ ds_https_keystore_extra_namespaces: >-
 
 ds_https_keystore_wait_retries: 30
 ds_https_keystore_wait_delay: 5
+
+# Image for the per-namespace ds-https-vault-seed Job — same curl+jq image the openbao-init
+# chart already uses for its own kvSeed step, so no new image needs pulling into the cluster.
+ds_https_keystore_vault_seed_image: "dwdraju/alpine-curl-jq"
+ds_https_keystore_vault_seed_backoff_limit: 3

@@ -55,3 +55,112 @@
   loop_control:
     loop_var: ds_keystore_target_ns
   when: ds_keystore_target_ns != ds_https_keystore_namespace
+
+# The owned Jetty TLS module (develop #3746) reads DS-HTTPS material exclusively from OpenBao at
+# tls/ds-https — it has no fallback to the keystore file above. The Central Server needs no
+# seeding here: it runs its own private in-pod OpenBao, self-seeded by the dev image's own
+# supervisord entry (seed-ds-https-vault-secret.sh) from this Secret's -cert.pem/-key.pem files.
+# Each Security Server release runs its own separate OpenBao instead (the `openbao` role, one per
+# namespace) — same cert/key, written into every one of those.
+#
+# This can't reuse the openbao role's own kvSeed mechanism: kvSeed values are baked into the
+# openbao-init Job, which runs (per security_server_instances loop) before this role does — the
+# keystore doesn't exist yet at that point. A one-shot Job per namespace instead, deleted and
+# recreated on every run since Jobs are immutable; the KV v1 write itself is a plain overwrite,
+# safe to repeat.
+- name: Remove stale ds-https-vault-seed Job before reseeding
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: batch/v1
+    kind: Job
+    name: ds-https-vault-seed
+    namespace: "{{ ds_keystore_target_ns }}"
+    state: absent
+    wait: true
+    wait_timeout: 60
+  loop: "{{ ds_https_keystore_extra_namespaces }}"
+  loop_control:
+    loop_var: ds_keystore_target_ns
+  when: ds_keystore_target_ns != ds_https_keystore_namespace
+
+- name: Seed DS-HTTPS TLS material into each Security Server namespace's OpenBao
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: ds-https-vault-seed
+        namespace: "{{ ds_keystore_target_ns }}"
+      spec:
+        backoffLimit: "{{ ds_https_keystore_vault_seed_backoff_limit }}"
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: seed
+                image: "{{ ds_https_keystore_vault_seed_image }}"
+                command: ["sh", "-c"]
+                args:
+                  - |
+                    set -eu
+                    PAYLOAD=$(jq -n --rawfile cert /etc/xroad/ds-ssl/ds-https-cert.pem \
+                      --rawfile key /etc/xroad/ds-ssl/ds-https-key.pem \
+                      '{certificate: $cert, privateKey: $key}')
+                    curl -fsSk -X POST \
+                      -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
+                      -H "Content-Type: application/json" \
+                      --data "$PAYLOAD" \
+                      "https://openbao:8200/v1/xrd-secret/tls/ds-https" >/dev/null
+                    echo "Wrote ds-https certificate to OpenBao at tls/ds-https"
+                env:
+                  - name: XROAD_SECRET_STORE_TOKEN
+                    valueFrom:
+                      secretKeyRef:
+                        name: xroad-token
+                        key: XROAD_SECRET_STORE_TOKEN
+                volumeMounts:
+                  - name: ds-https-keystore
+                    mountPath: /etc/xroad/ds-ssl
+                    readOnly: true
+            volumes:
+              - name: ds-https-keystore
+                secret:
+                  secretName: "{{ ds_https_keystore_secret_name }}"
+  loop: "{{ ds_https_keystore_extra_namespaces }}"
+  loop_control:
+    loop_var: ds_keystore_target_ns
+  when: ds_keystore_target_ns != ds_https_keystore_namespace
+
+- name: Wait for ds-https-vault-seed Job to complete in each namespace
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: batch/v1
+    kind: Job
+    name: ds-https-vault-seed
+    namespace: "{{ ds_keystore_target_ns }}"
+  register: ds_https_keystore_vault_seed_job
+  until: >-
+    (ds_https_keystore_vault_seed_job.resources | length > 0) and
+    ((ds_https_keystore_vault_seed_job.resources[0].status.succeeded | default(0)) >= 1 or
+     (ds_https_keystore_vault_seed_job.resources[0].status.failed | default(0)) >= 1)
+  retries: "{{ ds_https_keystore_wait_retries }}"
+  delay: "{{ ds_https_keystore_wait_delay }}"
+  loop: "{{ ds_https_keystore_extra_namespaces }}"
+  loop_control:
+    loop_var: ds_keystore_target_ns
+    label: "{{ ds_keystore_target_ns }}"
+  when: ds_keystore_target_ns != ds_https_keystore_namespace
+
+- name: Fail fast if DS-HTTPS vault seeding failed in any namespace
+  ansible.builtin.fail:
+    msg: >-
+      ds-https-vault-seed Job failed in namespace '{{ item.ds_keystore_target_ns }}' — check
+      `kubectl logs -n {{ item.ds_keystore_target_ns }} job/ds-https-vault-seed`
+  loop: "{{ ds_https_keystore_vault_seed_job.results }}"
+  loop_control:
+    label: "{{ item.ds_keystore_target_ns }}"
+  when:
+    - item.skipped is not defined
+    - (item.resources[0].status.failed | default(0)) >= 1
