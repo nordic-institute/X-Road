@@ -103,8 +103,11 @@ jobs:
           - variant: lxd
             runs_on: xrd-runner-8c
             timeout_minutes: 120
+          # Self-hosted 8c rather than hosted ubuntu-24.04: the leg's chart
+          # rollout is dominated by JVM cold starts across ~15 pods, which is
+          # CPU-bound and the pipeline's critical path.
           - variant: k8s
-            runs_on: ubuntu-24.04
+            runs_on: xrd-runner-8c
             timeout_minutes: 90
     uses: ./.github/workflows/_test-e2e.yml
     secrets: inherit
