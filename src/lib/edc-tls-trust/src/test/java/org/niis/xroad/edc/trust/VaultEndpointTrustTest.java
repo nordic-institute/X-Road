@@ -116,6 +116,43 @@ class VaultEndpointTrustTest {
         assertThat(vaultTrust.matchesVaultEndpoint("vault.example", 8200)).isTrue();
     }
 
+    /**
+     * {@code URI.getHost()} keeps an IPv6 literal's brackets ({@code "[::1]"}), but a real handshake against a
+     * peer dialled as {@code https://[::1]:port/} shows OkHttp passes the socket factory the unbracketed form
+     * ({@code "::1"}) — that is what {@code SSLSession.getPeerHost()} then reports to the trust manager
+     * (confirmed with a real client/server handshake in
+     * {@link DsTlsCompositeTrustManagerTest#aVaultCaAddressedByAnIpv6LiteralAcceptsTheUnbracketedPeerHost()}).
+     * The unbracketed form is therefore the one that must match; the bracketed form is also accepted, in case
+     * some other caller passes one.
+     */
+    @Test
+    void resolvesAnIpv6LiteralHostAndMatchesItUnbracketed() throws Exception {
+        var caCertPath = writeCaCert(TestCa.selfSigned("Vault CA"));
+
+        var vaultTrust = VaultEndpointTrust.from("https://[::1]:8200", caCertPath, monitor).orElseThrow();
+
+        assertThat(vaultTrust.matchesVaultEndpoint("::1", 8200)).isTrue();
+        assertThat(vaultTrust.matchesVaultEndpoint("[::1]", 8200)).isTrue();
+        assertThat(vaultTrust.matchesVaultEndpoint("::2", 8200)).isFalse();
+    }
+
+    /**
+     * The match is a plain string comparison, not an IP-address-semantic one: neither {@code URI.getHost()} nor
+     * OkHttp's own host canonicalization expands or compresses an IPv6 literal, so both sides read the same
+     * compressed text an operator wrote into {@code edc.vault.hashicorp.url} — the fully-expanded form is a
+     * different string and, correctly, does not match.
+     */
+    @Test
+    void resolvesAFullIpv6LiteralHostWithTheDefaultPort() throws Exception {
+        var caCertPath = writeCaCert(TestCa.selfSigned("Vault CA"));
+
+        var vaultTrust = VaultEndpointTrust.from("https://[2001:db8::1]", caCertPath, monitor).orElseThrow();
+
+        assertThat(vaultTrust.matchesVaultEndpoint("2001:db8::1", 443)).isTrue();
+        assertThat(vaultTrust.matchesVaultEndpoint("[2001:db8::1]", 443)).isTrue();
+        assertThat(vaultTrust.matchesVaultEndpoint("2001:db8:0:0:0:0:0:1", 443)).isFalse();
+    }
+
     @Test
     void checkServerTrustedAcceptsAChainFromTheConfiguredCa() throws Exception {
         var ca = TestCa.selfSigned("Vault CA");

@@ -164,6 +164,45 @@ class DsTlsCompositeTrustManagerTest {
     }
 
     @Test
+    void aVaultCaConfiguredRejectsTheSameLoopbackDialledByADifferentPeerHostString() throws Exception {
+        var vaultCa = TestCa.selfSigned("Vault CA");
+        var vaultLeaf = vaultCa.issueLeaf("vault");
+
+        // One server, reachable through either loopback name — "localhost" and "127.0.0.1" are different peer
+        // host STRINGS for the identical certificate, CA and port. Pinning the vault URL to "localhost" must
+        // reject "127.0.0.1" even though nothing about the served certificate or the port differs, proving the
+        // match is on the exact string JSSE reports, not on the resolved address.
+        try (var server = TestTlsServer.start(vaultLeaf)) {
+            var vaultTrust = VaultEndpointTrust.from("https://localhost:" + server.port(), writeCaCert(vaultCa), monitor)
+                    .orElseThrow();
+            var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+
+            assertThat(TestTlsClient.handshakeSucceeds("localhost", server.port(), trustManager)).isTrue();
+            assertThat(TestTlsClient.handshakeSucceeds("127.0.0.1", server.port(), trustManager)).isFalse();
+        }
+    }
+
+    /**
+     * {@code URI.getHost()} on {@code https://[::1]:port} keeps the brackets ("[::1]"), but the peer host JSSE
+     * actually reports for a real handshake dialled that way is unbracketed ("::1") — {@link VaultEndpointTrust}
+     * normalizes for this (see {@link VaultEndpointTrustTest#resolvesAnIpv6LiteralHostAndMatchesItUnbracketed()}
+     * for the unit-level detail); this test is the real-handshake proof the fix actually closes the loop.
+     */
+    @Test
+    void aVaultCaAddressedByAnIpv6LiteralAcceptsTheUnbracketedPeerHost() throws Exception {
+        var vaultCa = TestCa.selfSigned("Vault CA");
+        var vaultLeaf = vaultCa.issueLeaf("vault");
+
+        try (var server = TestTlsServer.start(vaultLeaf)) {
+            var vaultTrust = VaultEndpointTrust.from("https://[::1]:" + server.port(), writeCaCert(vaultCa), monitor)
+                    .orElseThrow();
+            var trustManager = new DsTlsCompositeTrustManager(vaultTrust, RejectAllTrustManager.INSTANCE);
+
+            assertThat(TestTlsClient.handshakeSucceeds("::1", server.port(), trustManager)).isTrue();
+        }
+    }
+
+    @Test
     void withoutAVaultCaTheCompositeIsPureListOnly() throws Exception {
         var listedCa = TestCa.selfSigned("Listed DS TLS CA");
         var leaf = listedCa.issueLeaf("ds.example");

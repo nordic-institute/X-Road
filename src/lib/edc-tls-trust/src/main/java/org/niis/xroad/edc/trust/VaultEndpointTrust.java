@@ -102,7 +102,7 @@ public final class VaultEndpointTrust {
     }
 
     public boolean matchesVaultEndpoint(String peerHost, int peerPort) {
-        return peerPort == port && peerHost != null && host.equalsIgnoreCase(peerHost);
+        return peerPort == port && peerHost != null && host.equalsIgnoreCase(stripIpv6Brackets(peerHost));
     }
 
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
@@ -127,7 +127,19 @@ public final class VaultEndpointTrust {
         if (port == -1) {
             port = defaultPortFor(uri.getScheme());
         }
-        return new HostPort(host, port);
+        // URI.getHost() keeps an IPv6 literal's brackets ("[::1]"), but the peer host JSSE actually
+        // reports at handshake time is whatever OkHttp passed to the socket factory, and OkHttp's own
+        // canonical host form for IPv6 is unbracketed ("::1") — verified against a real handshake, not
+        // just read from documentation. Stored unbracketed so matchesVaultEndpoint's real-world case
+        // (an unbracketed peer host) compares equal without per-call normalization on that side.
+        return new HostPort(stripIpv6Brackets(host), port);
+    }
+
+    private static String stripIpv6Brackets(String host) {
+        if (host.length() > 1 && host.charAt(0) == '[' && host.charAt(host.length() - 1) == ']') {
+            return host.substring(1, host.length() - 1);
+        }
+        return host;
     }
 
     private static int defaultPortFor(String scheme) {
