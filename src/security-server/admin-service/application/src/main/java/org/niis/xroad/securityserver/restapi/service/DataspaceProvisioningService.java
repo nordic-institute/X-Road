@@ -232,8 +232,8 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         var hostParticipantId = ds.getParticipantId();
 
-        var ownerId = ownerIdOrNull();
-        var ownerSlashForm = ownerId == null ? null : slashForm(ownerId);
+        var ownerId = ownerId();
+        var ownerSlashForm = ownerId.map(DataspaceProvisioningService::slashForm).orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, ownerSlashForm));
@@ -241,12 +241,9 @@ public class DataspaceProvisioningService {
             contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, ownerSlashForm));
         }
 
-        if (ownerId != null) {
-            for (var member : hostedMembers(ownerId)) {
+        ownerId.ifPresent(owner -> hostedMembers(owner).forEach(member ->
                 contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER,
-                        slashForm(member)));
-            }
-        }
+                        slashForm(member)))));
 
         return contexts;
     }
@@ -265,14 +262,13 @@ public class DataspaceProvisioningService {
                 .toList();
     }
 
-    @Nullable
-    private ClientId ownerIdOrNull() {
+    private Optional<ClientId> ownerId() {
         try {
-            var owner = serverConfRepository.getServerConf().getOwner();
-            return owner == null ? null : owner.getIdentifier();
+            return Optional.ofNullable(serverConfRepository.getServerConf().getOwner())
+                    .map(owner -> (ClientId) owner.getIdentifier());
         } catch (XrdRuntimeException e) {
             if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
-                return null;
+                return Optional.empty();
             }
             throw e;
         }
