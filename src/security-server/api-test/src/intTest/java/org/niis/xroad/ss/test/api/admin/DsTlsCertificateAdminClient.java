@@ -76,17 +76,6 @@ public class DsTlsCertificateAdminClient {
     }
 
     /**
-     * Generates a certificate signing request without asserting the response status, for negative-path tests.
-     */
-    public ValidatableResponse generateCsrRaw(String distinguishedName) {
-        return session.given()
-                .contentType(ContentType.JSON)
-                .body("{\"name\":\"" + distinguishedName + "\"}")
-                .post("/ds-tls-certificate/csr")
-                .then();
-    }
-
-    /**
      * Uploads a certificate chain (leaf first) obtained for the DS TLS key.
      */
     public ValidatableResponse uploadCertificate(byte[] certificateBytes) {

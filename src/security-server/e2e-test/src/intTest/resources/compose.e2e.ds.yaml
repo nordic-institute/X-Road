@@ -1,21 +1,44 @@
 services:
-  ds-https-keystore-wait:
-    image: alpine:3.20
+  # Waits for the aux project's ds-https-keystore-init to populate the shared
+  # external volume, then seeds the same key/cert into THIS SS instance
+  # project's own openbao (bare hostname resolves per-project — ss0 and ss1
+  # each run a separate openbao container, so the aux project's seed alone
+  # does not reach them). Stopgap (XRDDEV-3294 retires this): the owned Jetty
+  # module reads the DS TLS certificate from OpenBao, not from these files.
+  ds-https-keystore-seed:
+    image: eclipse-temurin:21-jre-alpine
     entrypoint: [ "sh", "-c" ]
     command:
       - |
-        set -u
-        until [ -f /etc/xroad/ssl/ds-https.p12 ] && [ -f /etc/xroad/ssl/cacerts ]; do
+        set -euo pipefail
+        cd /etc/xroad/ssl
+        until [ -f ds-https.p12 ] && [ -f cacerts ] && [ -f ds-https-cert.pem ] && [ -f ds-https-key.pem ]; do
           sleep 1
         done
+        apk add --no-cache curl jq
+        PAYLOAD=$$(jq -n --rawfile cert ds-https-cert.pem --rawfile key ds-https-key.pem \
+          '{certificate: $$cert, privateKey: $$key}')
+        curl -fsS -X POST \
+          -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
+          -H "Content-Type: application/json" \
+          --data "$$PAYLOAD" \
+          "http://openbao:8200/v1/xrd-secret/tls/ds-https" >/dev/null
+        echo "Wrote ds-https certificate to OpenBao at tls/ds-https"
+    environment:
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+    networks:
+      - xrd-ss-network
     volumes:
       - ds-https-keystore:/etc/xroad/ssl:ro
+    depends_on:
+      openbao:
+        condition: service_healthy
     deploy:
       resources:
         reservations:
-          memory: 8M
+          memory: 64M
         limits:
-          memory: 32M
+          memory: 256M
 
 
   db-ds-control-plane:
@@ -125,7 +148,7 @@ services:
         condition: service_healthy
       configuration-client:
         condition: service_healthy
-      ds-https-keystore-wait:
+      ds-https-keystore-seed:
         condition: service_completed_successfully
 
   ds-identity-hub:
@@ -172,7 +195,7 @@ services:
     depends_on:
       db-ds-identity-hub:
         condition: service_healthy
-      ds-https-keystore-wait:
+      ds-https-keystore-seed:
         condition: service_completed_successfully
 
 volumes:

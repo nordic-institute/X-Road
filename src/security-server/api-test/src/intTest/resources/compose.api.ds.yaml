@@ -6,21 +6,43 @@ services:
       - |
         set -euo pipefail
         cd /keystore
-        [ -f ds-https.p12 ] && [ -f cacerts ] && exit 0
-        apk add --no-cache openssl
-        openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-          -keyout ds-https-key.pem -out ds-https-cert.pem \
-          -subj "/CN=xrd-ds" \
-          -addext "subjectAltName=DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:localhost"
-        openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
-          -name ds-https -password pass:changeit
-        cp /opt/java/openjdk/lib/security/cacerts cacerts
-        chmod u+w cacerts
-        keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
-          -keystore cacerts -storepass changeit
-        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem
+        if [ -f ds-https.p12 ] && [ -f cacerts ]; then
+          echo "ds-https keystore files already present"
+        else
+          apk add --no-cache openssl
+          openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+            -keyout ds-https-key.pem -out ds-https-cert.pem \
+            -subj "/CN=xrd-ds" \
+            -addext "subjectAltName=DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:localhost"
+          openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
+            -name ds-https -password pass:changeit
+          cp /opt/java/openjdk/lib/security/cacerts cacerts
+          chmod u+w cacerts
+          keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
+            -keystore cacerts -storepass changeit
+          chmod 0644 ds-https.p12 cacerts ds-https-cert.pem ds-https-key.pem
+        fi
+        # Stopgap (XRDDEV-3294 retires this): the owned Jetty module reads the DS TLS
+        # certificate from OpenBao, not from these files — seed the same key/cert
+        # generated above into tls/ds-https so ds-* services don't fail closed.
+        apk add --no-cache curl jq
+        PAYLOAD=$$(jq -n --rawfile cert ds-https-cert.pem --rawfile key ds-https-key.pem \
+          '{certificate: $$cert, privateKey: $$key}')
+        curl -fsS -X POST \
+          -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
+          -H "Content-Type: application/json" \
+          --data "$$PAYLOAD" \
+          "http://openbao:8200/v1/xrd-secret/tls/ds-https" >/dev/null
+        echo "Wrote ds-https certificate to OpenBao at tls/ds-https"
+    environment:
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+    networks:
+      - xrd-ss-network
     volumes:
       - ds-https-keystore:/keystore
+    depends_on:
+      openbao:
+        condition: service_healthy
     deploy:
       resources:
         reservations:

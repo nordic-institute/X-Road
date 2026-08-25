@@ -60,7 +60,10 @@ services:
         chmod u+w cacerts
         keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
           -keystore cacerts -storepass changeit
-        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem
+        # Also world-readable: cs-admin-service reads this file, over a read-only mount,
+        # as the "xroad" user to seed the same key into OpenBao (see
+        # development/docker/central-server/files/seed-ds-https-vault-secret.sh).
+        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem ds-https-key.pem
     volumes:
       - ds-https-keystore:/keystore
     deploy:
