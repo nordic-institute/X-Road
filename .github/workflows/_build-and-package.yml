@@ -199,9 +199,9 @@ jobs:
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
-      # Everything the lxd and compose e2e legs consume (packages + e2e-test-jar) is
+      # Everything the lxd e2e leg consumes (native packages + e2e-test-jar) is
       # uploaded above this point. The marker carries the registry/tag too, since
-      # those legs no longer have a `needs` edge to read job outputs from.
+      # the legs no longer have a `needs` edge to read job outputs from.
       - name: Write artifacts-ready marker
         run: |
           mkdir -p ci-markers

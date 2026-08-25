@@ -12,11 +12,12 @@ name: E2E Tests
 # pipeline instead of waiting on that job to finish. Each leg runs its
 # package-independent prep (variant-guarded, see below) immediately -- this is what
 # overlaps with build-and-package -- then a uniform wait step polls for a readiness
-# marker artifact before downloading anything build-and-package produced. lxd and
-# compose wait on `artifacts-ready` (packages + e2e-test-jar); k8s waits on
-# `images-ready` (all image pushes), since it deploys images that land later in that
-# job. The marker also carries the image registry/tag: without the `needs` edge,
-# `needs.build-and-package.outputs.*` is not available to read them from.
+# marker artifact before downloading anything build-and-package produced. lxd waits
+# on `artifacts-ready` (native packages + e2e-test-jar); compose and k8s wait on
+# `images-ready` (all image pushes), since both deploy run-tagged images that land
+# later in that job. The marker also carries the image registry/tag: without the
+# `needs` edge, `needs.build-and-package.outputs.*` is not available to read them
+# from.
 on:
   workflow_call:
     inputs:
@@ -188,16 +189,17 @@ jobs:
       # --------------------------------------------------------- wait for build
 
       # Everything above this point is package-independent prep and runs immediately,
-      # overlapping build-and-package. lxd and compose need only the packages +
-      # e2e-test-jar, ready at the `artifacts-ready` marker; k8s deploys images that
-      # land later in that job, at the `images-ready` marker.
+      # overlapping build-and-package. lxd installs from the native packages, ready at
+      # the `artifacts-ready` marker. compose and k8s both deploy the run-tagged dev
+      # images (the e2e jar bakes their refs into its .env at build time), which land
+      # later in that job, at the `images-ready` marker.
       - name: Determine readiness marker
         id: marker
         run: |
-          if [[ "${{ inputs.variant }}" == "k8s" ]]; then
-            echo "name=images-ready" >> "$GITHUB_OUTPUT"
-          else
+          if [[ "${{ inputs.variant }}" == "lxd" ]]; then
             echo "name=artifacts-ready" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=images-ready" >> "$GITHUB_OUTPUT"
           fi
 
       # Polls the run's own artifact list for the marker AND build-and-package's job

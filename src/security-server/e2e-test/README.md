@@ -97,10 +97,12 @@ The matrix has no `needs: build-and-package` edge. Each leg starts with the
 pipeline and runs its package-independent prep immediately — lxd tooling
 install/init/networking, k8s kind/helm install — so that work overlaps the
 build instead of waiting for it. Only once that prep is done does the leg poll
-for a readiness marker artifact uploaded by `build-and-package`: lxd and
-compose wait for `artifacts-ready` (native packages + the e2e-test fat jar);
-k8s waits for `images-ready` (all image pushes, since it deploys images that
-land later in that job). The marker also carries the image registry and tag,
+for a readiness marker artifact uploaded by `build-and-package`: lxd waits
+for `artifacts-ready` (native packages + the e2e-test fat jar); compose and
+k8s wait for `images-ready` (all image pushes, since both deploy run-tagged
+images that land later in that job — the compose stack's image refs are baked
+into the jar's `.env` at build time). The marker also carries the image
+registry and tag,
 which the lanes would otherwise get from `needs.build-and-package.outputs.*` —
 unavailable without the `needs` edge. Provisioning reuses the DEB/RPM package
 artifacts (lxd) or pushed images (k8s) produced by the build job — nothing is
