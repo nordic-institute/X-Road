@@ -95,9 +95,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Leg timeouts include the in-job wait for the readiness marker (up
+          # to its 70-min backstop), not just the leg's own setup + suite.
           - variant: compose
             runs_on: ubuntu-24.04
-            timeout_minutes: 40
+            timeout_minutes: 90
           - variant: lxd
             runs_on: xrd-runner-8c
             timeout_minutes: 120
