@@ -305,9 +305,6 @@
     "acme": {
       "account_creation_failure": "ACME serwerinde hasap döredip bolmady. Eger-de daşky hasaby baglamak zerur bolsa, onda acme.yml-da dogry ulanyjy ady we açar sözi görkezilendigini barlaň",
       "account_key_pair_error": "ACME serweriň ulanyjy ady we açar sözi üçin jübüt açary alyp bolmady",
-      "account_keystore_password_missing": "acme.yml konfigurasiýa faýlynda ACME hasap açarynyň ammarynyň paroly ýok",
-      "acme_yaml_missing": "ACME konfigurasiýa faýly acme.yml ýok",
-      "acme_yaml_account_keystore_password_update_error": "ACME hasap açarynyň ammarynyň parolyny acme.yml konfigurasiýa faýlynda täzeläp bolmady",
       "authorization_failure": "Awtorizasiýa bolmady. Adatça, domeniň eýeçiligini tassyklamak üçin zerur bolan talaby barlamakda ýüze çykýan ýalňyşlyşlyk bilen baglydyr.",
       "authorization_wait_failure": "Awtorizasiýanyň tamamlanmagyna garaşyp bomady",
       "certificate_failure": "ACME serweriň şahadatnamasyny alyp bolmady",
@@ -960,7 +957,6 @@
             "acme-challenge-port-enabled": "Işe girizilende, API gelen ACME challenge soraglary üçin acme challenge portunda (deslapky 80) diňleýär.",
             "acme-challenge-port": "ACME challengeleri üçin özel port belgisi. Kesgitlenende, ACME Serwerleri challenge üçin hemişe 80 portyny ulanýandygy sebäpli Howpsuzlyk Serweriniň 80-nji porty bu porta gönükdirilmeli.",
             "acme-key-length": "ACME şahadatnama soraglary üçin ulanylýan RSA açar uzynlygy bitlerde.",
-            "acme-account-keystore-path": "ACME hasap açar jübüti saklaýan açar dükanynyň faýl ulgamy ýoly.",
             "acme-challenge-path": "ACME HTTP-01 challenge tokenleriniň hödürlenýän faýl ulgamy ýoly.",
             "allow-csr-for-key-with-certificate": "Bar bolan şahadatnamasy bolan açar üçin täze CSR döredilmegine rugsat edilip edilmeýändigini dolandyrýar.",
             "auth-cert-reg-signature-digest-algorithm-id": "Tassyklama şahadatnamasy hasaba alyş talaby döretmek üçin ulanylýan gol şifrlemesi algoritmi. Mümkin bahalar: SHA-256, SHA-384, SHA-512.",

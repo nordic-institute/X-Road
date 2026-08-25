@@ -24,22 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.migration.acme;
 
-package org.niis.xroad.common.acme;
+import java.util.List;
 
 /**
- * Provides the password used to protect the ACME account keystore.
- * <p>
- * Implementations decide how a new password is created or obtained when no password is currently stored.
- * This is the seam consumers plug their own provisioning strategy into, without acme-core needing to know
- * anything about it.
+ * Result of an ACME account key migration operation.
  */
-public interface AccountKeystorePasswordProvider {
+public record AcmeAccountKeyMigrationResult(boolean success, boolean skipped, String message, List<String> migratedAliases) {
 
-    /**
-     * Creates or fetches a new account keystore password.
-     *
-     * @return the new password
-     */
-    char[] createNewPassword();
+    public static AcmeAccountKeyMigrationResult success(List<String> migratedAliases) {
+        return new AcmeAccountKeyMigrationResult(true, false, "Migration completed successfully", migratedAliases);
+    }
+
+    public static AcmeAccountKeyMigrationResult skipped(String reason) {
+        return new AcmeAccountKeyMigrationResult(false, true, reason, List.of());
+    }
+
+    public static AcmeAccountKeyMigrationResult failure(String message) {
+        return new AcmeAccountKeyMigrationResult(false, false, message, List.of());
+    }
+
+    public int keyCount() {
+        return migratedAliases.size();
+    }
+
+    @Override
+    public String toString() {
+        if (success) {
+            return String.format("Success: MigratedAliases=%s, KeyCount=%d", migratedAliases, keyCount());
+        } else if (skipped) {
+            return "Skipped: " + message;
+        } else {
+            return "Failed: " + message;
+        }
+    }
 }

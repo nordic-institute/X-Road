@@ -82,10 +82,6 @@ public class AcmeCommonConfig {
                 AcmeProperties.EabCredentials.class,
                 "getEabCredentials",
                 "setEabCredentials");
-        acmePropertiesDescriptor.substituteProperty("account-keystore-password",
-                String.class,
-                "getAccountKeystorePassword",
-                "setAccountKeystorePassword");
         constructor.addTypeDescription(acmePropertiesDescriptor);
 
         TypeDescription eabCredentialsDescriptor = new TypeDescription(AcmeProperties.EabCredentials.class);

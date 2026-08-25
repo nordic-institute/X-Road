@@ -41,6 +41,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.acme.config.AcmeProperties;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 
 import java.math.BigInteger;
@@ -56,31 +58,37 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Exercises {@link AcmeService} end to end (order placement, EAB account creation, ARI renewal decisions) against
- * a WireMock-stubbed ACME server, and the account-keystore-password provider seam.
+ * Exercises {@link AcmeService} end to end (order placement, EAB account creation, ARI renewal decisions,
+ * account key pair generation/rotation) against a WireMock-stubbed ACME server and a fake {@link VaultClient}.
  */
 class AcmeServiceTest {
 
     private static final String CA_NAME = "testca";
     private static final String MEMBER_ID = "MEMBER1";
     private static final String CHALLENGE_TOKEN = "test-challenge-token";
-    private static final String KEYSTORE_PASSWORD = "test-keystore-password";
 
     @RegisterExtension
     static WireMockExtension wm = WireMockExtension.newInstance()
@@ -92,7 +100,8 @@ class AcmeServiceTest {
 
     private AcmeConfig acmeConfig;
     private AcmeProperties acmeProperties;
-    private AtomicInteger passwordProviderCalls;
+    private VaultClient vaultClient;
+    private Map<String, AcmeAccountKey> vaultStore;
     private AcmeService acmeService;
     private ApprovedCAInfo caInfo;
     private X509Certificate certificate;
@@ -100,23 +109,27 @@ class AcmeServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         acmeConfig = mock(AcmeConfig.class);
-        when(acmeConfig.getAcmeAccountKeystorePath()).thenReturn(tempDir.resolve("acme-accounts.p12").toString());
         when(acmeConfig.getAcmeChallengePath()).thenReturn(tempDir.toString());
         when(acmeConfig.getAcmeKeyLength()).thenReturn(2048);
         when(acmeConfig.getAcmeCertificateAccountKeyPairExpiration()).thenReturn(30);
+        when(acmeConfig.getAcmeKeypairRenewalTimeBeforeExpirationDate()).thenReturn(7);
         when(acmeConfig.getAcmeAuthorizationWaitAttempts()).thenReturn(3);
         when(acmeConfig.getAcmeAuthorizationWaitInterval()).thenReturn(1);
         when(acmeConfig.getAcmeCertificateWaitAttempts()).thenReturn(3);
         when(acmeConfig.getAcmeCertificateWaitInterval()).thenReturn(1);
 
         acmeProperties = eabConfiguredProperties();
-        acmeProperties.setAccountKeystorePassword(KEYSTORE_PASSWORD);
 
-        passwordProviderCalls = new AtomicInteger();
-        acmeService = new AcmeService(acmeProperties, acmeConfig, () -> {
-            passwordProviderCalls.incrementAndGet();
-            return KEYSTORE_PASSWORD.toCharArray();
-        });
+        vaultStore = new HashMap<>();
+        vaultClient = mock(VaultClient.class);
+        lenient().when(vaultClient.getAcmeAccountKey(any())).thenAnswer(invocation ->
+                Optional.ofNullable(vaultStore.get(invocation.getArgument(0, String.class))));
+        lenient().doAnswer(invocation -> {
+            vaultStore.put(invocation.getArgument(0, String.class), invocation.getArgument(1, AcmeAccountKey.class));
+            return null;
+        }).when(vaultClient).createAcmeAccountKey(any(), any());
+
+        acmeService = new AcmeService(acmeProperties, acmeConfig, vaultClient);
 
         caInfo = new ApprovedCAInfo(CA_NAME, false, null, null,
                 wm.getRuntimeInfo().getHttpBaseUrl() + "/directory", null, null, null);
@@ -128,9 +141,74 @@ class AcmeServiceTest {
     }
 
     @Test
-    void ordersCertificateThroughFullAcmeFlowUsingEabAccountAndProvisionedPassword() throws Exception {
-        acmeProperties.setAccountKeystorePassword(null);
+    void firstUseGeneratesAndStoresAccountKeyPairForAlias() {
+        stubDirectory(true);
+        stubNewAccount();
 
+        acmeService.hasRenewalInfo(MEMBER_ID, caInfo, AcmeKeyPurpose.SIGNING, List.of());
+
+        verify(vaultClient).createAcmeAccountKey(eq(MEMBER_ID), any(AcmeAccountKey.class));
+        AcmeAccountKey stored = vaultStore.get(MEMBER_ID);
+        assertThat(stored).isNotNull();
+        assertThat(stored.privateKey()).isNotNull();
+        assertThat(stored.publicKey()).isNotNull();
+        assertThat(stored.expiresAt()).isAfter(Instant.now().plus(29, ChronoUnit.DAYS));
+        assertThat(stored.expiresAt()).isBefore(Instant.now().plus(31, ChronoUnit.DAYS));
+    }
+
+    @Test
+    void rotatesAccountKeyPairAndCallsChangeKeyWhenStoredExpiryIsWithinRenewalWindow() throws Exception {
+        KeyPair oldKeyPair = generateKeyPair();
+        Instant dueExpiry = Instant.now().plus(3, ChronoUnit.DAYS);
+        vaultStore.put(MEMBER_ID, new AcmeAccountKey(oldKeyPair.getPrivate(), oldKeyPair.getPublic(), dueExpiry));
+
+        stubDirectory(true);
+        stubNewAccount();
+        stubKeyChange();
+
+        acmeService.checkAccountKeyPairAndRenewIfNecessary(MEMBER_ID, caInfo, AcmeKeyPurpose.SIGNING, List.of());
+
+        wm.verify(postRequestedFor(urlEqualTo("/key-change")));
+        verify(vaultClient).createAcmeAccountKey(eq(MEMBER_ID), any(AcmeAccountKey.class));
+        AcmeAccountKey renewed = vaultStore.get(MEMBER_ID);
+        assertThat(renewed.privateKey()).isNotEqualTo(oldKeyPair.getPrivate());
+        assertThat(renewed.expiresAt()).isAfter(dueExpiry);
+    }
+
+    @Test
+    void doesNotRotateAccountKeyPairWhenStoredExpiryIsNotYetDue() {
+        KeyPair existingKeyPair = generateKeyPair();
+        Instant farExpiry = Instant.now().plus(60, ChronoUnit.DAYS);
+        vaultStore.put(MEMBER_ID, new AcmeAccountKey(existingKeyPair.getPrivate(), existingKeyPair.getPublic(), farExpiry));
+
+        acmeService.checkAccountKeyPairAndRenewIfNecessary(MEMBER_ID, caInfo, AcmeKeyPurpose.SIGNING, List.of());
+
+        verify(vaultClient, never()).createAcmeAccountKey(any(), any());
+        wm.verify(0, getRequestedFor(urlEqualTo("/directory")));
+        wm.verify(0, postRequestedFor(urlEqualTo("/new-account")));
+        AcmeAccountKey unchanged = vaultStore.get(MEMBER_ID);
+        assertThat(unchanged.privateKey()).isEqualTo(existingKeyPair.getPrivate());
+        assertThat(unchanged.expiresAt()).isEqualTo(farExpiry);
+    }
+
+    @Test
+    void splitAuthAndSignAliasesForTheSameMemberHaveIndependentAccountKeyPairs() {
+        acmeProperties = eabConfiguredPropertiesWithSplitCredentials();
+        acmeService = new AcmeService(acmeProperties, acmeConfig, vaultClient);
+        stubDirectory(true);
+        stubNewAccount();
+
+        acmeService.hasRenewalInfo(MEMBER_ID, caInfo, AcmeKeyPurpose.AUTHENTICATION, List.of());
+        acmeService.hasRenewalInfo(MEMBER_ID, caInfo, AcmeKeyPurpose.SIGNING, List.of());
+
+        assertThat(vaultStore).containsKeys("auth_" + MEMBER_ID, "sign_" + MEMBER_ID);
+        AcmeAccountKey authKey = vaultStore.get("auth_" + MEMBER_ID);
+        AcmeAccountKey signKey = vaultStore.get("sign_" + MEMBER_ID);
+        assertThat(authKey.privateKey()).isNotEqualTo(signKey.privateKey());
+    }
+
+    @Test
+    void ordersCertificateThroughFullAcmeFlowUsingEabAccount() throws Exception {
         stubDirectory(true);
         stubNewAccount();
         stubOrderLifecycle();
@@ -140,8 +218,7 @@ class AcmeServiceTest {
 
         assertThat(chain).hasSize(1);
         assertThat(chain.getFirst().getEncoded()).isEqualTo(certificate.getEncoded());
-        assertThat(passwordProviderCalls.get()).isEqualTo(1);
-        assertThat(tempDir.resolve("acme-accounts.p12")).exists();
+        assertThat(vaultStore).containsKey(MEMBER_ID);
     }
 
     @Test
@@ -210,6 +287,7 @@ class AcmeServiceTest {
                 + "\"newNonce\":\"" + base + "/new-nonce\","
                 + "\"newAccount\":\"" + base + "/new-account\","
                 + "\"newOrder\":\"" + base + "/new-order\","
+                + "\"keyChange\":\"" + base + "/key-change\","
                 + renewalInfo
                 + "\"meta\":{\"externalAccountRequired\":true}"
                 + "}";
@@ -225,6 +303,12 @@ class AcmeServiceTest {
                 .withHeader("Location", base + "/account/1")
                 .withHeader("Replay-Nonce", "acct-nonce")
                 .withBody("{\"status\":\"valid\"}")));
+    }
+
+    private void stubKeyChange() {
+        wm.stubFor(post(urlEqualTo("/key-change")).willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Replay-Nonce", "key-change-nonce")));
     }
 
     private void stubOrderLifecycle() throws Exception {
@@ -274,6 +358,20 @@ class AcmeServiceTest {
         // 32 raw bytes, base64url-encoded without padding, to also exercise base64 padding
         credentials.setMacKey("QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE");
 
+        return propertiesWithCredentials(credentials);
+    }
+
+    private static AcmeProperties eabConfiguredPropertiesWithSplitCredentials() {
+        AcmeProperties.Credentials credentials = new AcmeProperties.Credentials();
+        credentials.setAuthKid("auth-kid");
+        credentials.setAuthMacKey("QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE");
+        credentials.setSignKid("sign-kid");
+        credentials.setSignMacKey("QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE");
+
+        return propertiesWithCredentials(credentials);
+    }
+
+    private static AcmeProperties propertiesWithCredentials(AcmeProperties.Credentials credentials) {
         AcmeProperties.CA ca = new AcmeProperties.CA();
         ca.setMacKeyBase64Encoded(true);
         Map<String, AcmeProperties.Credentials> members = new HashMap<>();
@@ -290,10 +388,14 @@ class AcmeServiceTest {
         return properties;
     }
 
-    private static KeyPair generateKeyPair() throws Exception {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048);
-        return generator.generateKeyPair();
+    private static KeyPair generateKeyPair() {
+        try {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            return generator.generateKeyPair();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static X509Certificate selfSignedCertificateWithAuthorityKeyIdentifier(KeyPair keyPair) throws Exception {

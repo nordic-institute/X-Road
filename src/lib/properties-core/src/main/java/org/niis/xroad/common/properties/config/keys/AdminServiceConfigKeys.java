@@ -315,13 +315,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(2048)
             .exposedInUi()
             .build();
-    /** {@code xroad.proxy-ui-api.acme-account-keystore-path}. */
-    public static final ConfigKey<String> ACME_ACCOUNT_KEYSTORE_PATH = ADMIN
-            .string("acme-account-keystore-path")
-            .withValidator(nonEmpty())
-            .withDefaultValue("/etc/xroad/ssl/acme.p12")
-            .exposedInUi()
-            .build();
     /** {@code xroad.proxy-ui-api.acme-challenge-path}. */
     public static final ConfigKey<String> ACME_CHALLENGE_PATH = ADMIN
             .string("acme-challenge-path")

@@ -188,6 +188,9 @@ path "xrd-secret/message-log/database-encryption/keys/*" {
 path "xrd-secret/signer/token-pins/*" {
   capabilities = ["read", "list", "create", "update", "delete"]
 }
+path "xrd-secret/acme/account-keys/*" {
+  capabilities = ["read", "list", "create", "update"]
+}
 
 path "xrd-secret" {
   capabilities = ["list"]

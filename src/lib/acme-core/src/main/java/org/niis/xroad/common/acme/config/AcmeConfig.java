@@ -119,9 +119,4 @@ public interface AcmeConfig {
      * filesystem path of the directory ACME HTTP-01 challenge response files are written to and served from.
      */
     String getAcmeChallengePath();
-
-    /**
-     * filesystem path of the PKCS12 keystore holding ACME account key pairs.
-     */
-    String getAcmeAccountKeystorePath();
 }

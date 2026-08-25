@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.migration.acme.AcmeAccountKeyMigrator;
 import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
 import org.niis.xroad.migration.pgp.PgpKeyMigrator;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
@@ -61,6 +62,7 @@ public class LegacyConfigMigrationCLI {
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
         MESSAGELOG_KEY_MAPPINGS("messagelog-key-mappings", "Migrate message log key-mapping INI file to DB"),
+        ACME_ACCOUNT_KEYS("acme-account-keys", "Migrate ACME account key pairs from P12 keystore to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
         SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
@@ -86,6 +88,7 @@ public class LegacyConfigMigrationCLI {
                 case "pgp-keys" -> PGP_KEYS;
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
                 case "messagelog-key-mappings" -> MESSAGELOG_KEY_MAPPINGS;
+                case "acme-account-keys" -> ACME_ACCOUNT_KEYS;
                 case "keyconf" -> KEYCONF;
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
                 case "signer-devices" -> SIGNER_DEVICES;
@@ -120,6 +123,7 @@ public class LegacyConfigMigrationCLI {
                 case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
                 case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(shiftArgs(args));
+                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(shiftArgs(args));
                 case KEYCONF -> migrateKeyConf(shiftArgs(args));
                 case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
                 case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
@@ -157,6 +161,7 @@ public class LegacyConfigMigrationCLI {
                   pgp-keys                       Migrate PGP keys from GPG to Vault
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
                   messagelog-key-mappings        Migrate message log key-mapping INI file to DB
+                  acme-account-keys              Migrate ACME account key pairs from P12 keystore to Vault
                   keyconf                        Migrate signer key configuration to DB
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
                   signer-devices                 Migrate signer devices.ini to DB
@@ -204,6 +209,16 @@ public class LegacyConfigMigrationCLI {
                     Arguments:
                       <anchor-file>        Path to configuration anchor XML file
                       <db.properties path> Path to database properties file
+
+                ACME Account Key Migration:
+                  migration-cli acme-account-keys <acme.p12>
+                    Migrates every ACME account key pair alias from a PKCS12 keystore to Vault,
+                    carrying each alias's certificate expiry forward as its rotation-due timestamp.
+                    The certificate itself is discarded; only its expiry date is migrated.
+                    Arguments:
+                      <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)
+                    Env vars:
+                      XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required)
 
                 Signer Devices Migration:
                   migration-cli signer-devices <devices.ini> <db.properties path>
@@ -261,6 +276,8 @@ public class LegacyConfigMigrationCLI {
                   XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD=secret \\
                     migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 key1
                   migration-cli messagelog-key-mappings /etc/xroad/messagelog/archive-encryption-mapping.ini /etc/xroad/db.properties
+                  XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD=secret \\
+                    migration-cli acme-account-keys /etc/xroad/ssl/acme.p12
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
@@ -339,6 +356,40 @@ public class LegacyConfigMigrationCLI {
                 keyId
         );
         log.info("Message log encryption key migration result: {}", result);
+    }
+
+    private static final String ACME_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD";
+
+    private static void migrateAcmeAccountKeys(String[] args) throws IOException {
+        if (args.length != 1) {
+            log.error("ACME account key migration requires 1 argument");
+            log.error("Usage: migration-cli acme-account-keys <acme.p12>");
+            log.error("  <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)");
+            log.error("Env vars:");
+            log.error("  {}  Keystore password (required)", ACME_KEYSTORE_PASSWORD_ENV);
+            System.exit(1);
+        }
+
+        String keystorePath = args[0];
+
+        String password = System.getenv(ACME_KEYSTORE_PASSWORD_ENV);
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException(
+                    "Keystore password not provided. Export " + ACME_KEYSTORE_PASSWORD_ENV
+                            + " before running the acme-account-keys migration step.");
+        }
+
+        validateFilePath(keystorePath, "keystore");
+
+        if (!new File(keystorePath).exists()) {
+            throw new IllegalArgumentException("Keystore file does not exist: " + keystorePath);
+        }
+
+        log.info("Starting ACME account key migration");
+        var vaultClient = MigrationVaultClient.createAndPreflight();
+        var migrator = new AcmeAccountKeyMigrator(vaultClient);
+        var result = migrator.migrateFromKeystore(Paths.get(keystorePath), password.toCharArray());
+        log.info("ACME account key migration result: {}", result);
     }
 
     private static void migrateMessageLogKeyMappings(String[] args) {

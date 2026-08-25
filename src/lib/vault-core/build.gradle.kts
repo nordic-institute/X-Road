@@ -5,4 +5,6 @@ plugins {
 
 dependencies {
   api(project(":common:common-core"))
+
+  testImplementation(libs.assertj.core)
 }
