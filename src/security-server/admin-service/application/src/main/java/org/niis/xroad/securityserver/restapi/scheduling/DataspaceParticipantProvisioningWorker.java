@@ -108,29 +108,39 @@ public class DataspaceParticipantProvisioningWorker {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        List<DataspaceProvisioningService.ParticipantContext> ensuredContexts = new ArrayList<>();
-        for (var context : dataspaceProvisioningService.participantContexts(true)) {
-            if (ensuredParticipantIds.contains(context.participantId())) {
-                ensuredContexts.add(context);
-                continue;
-            }
-            try {
-                dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
-                        context.memberId());
-                ensuredParticipantIds.add(context.participantId());
-                ensuredContexts.add(context);
-            } catch (Exception e) {
-                log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
-                        context.participantId(), e);
-            }
-        }
+        var ensuredContexts = ensureContexts(dataspaceProvisioningService.participantContexts(true));
 
         if (!authCertRegistered) {
             log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");
             return;
         }
 
-        for (var context : ensuredContexts) {
+        ensureCredentials(ensuredContexts);
+    }
+
+    private List<DataspaceProvisioningService.ParticipantContext> ensureContexts(
+            List<DataspaceProvisioningService.ParticipantContext> contexts) {
+        List<DataspaceProvisioningService.ParticipantContext> ensured = new ArrayList<>();
+        for (var context : contexts) {
+            if (ensuredParticipantIds.contains(context.participantId())) {
+                ensured.add(context);
+                continue;
+            }
+            try {
+                dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
+                        context.memberId());
+                ensuredParticipantIds.add(context.participantId());
+                ensured.add(context);
+            } catch (Exception e) {
+                log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
+                        context.participantId(), e);
+            }
+        }
+        return ensured;
+    }
+
+    private void ensureCredentials(List<DataspaceProvisioningService.ParticipantContext> contexts) {
+        for (var context : contexts) {
             var participantId = context.participantId();
             if (issuedCredentialParticipantIds.contains(participantId)) {
                 continue;
