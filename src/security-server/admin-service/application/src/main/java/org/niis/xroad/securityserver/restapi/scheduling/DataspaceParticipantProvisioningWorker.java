@@ -35,6 +35,9 @@ import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Level-triggered provisioning worker that drives data space participant context provisioning
  * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
@@ -66,7 +69,9 @@ public class DataspaceParticipantProvisioningWorker {
 
     /**
      * Executes one idempotent provisioning step. Safe to call directly for an eager first
-     * provisioning run at SS init; in that context a failure propagates to the caller.
+     * provisioning run at SS init. A failure in one participant context is logged and does not
+     * block the remaining contexts; a context whose creation failed is skipped in the credential
+     * pass of the same tick.
      */
     public void provisionParticipant() {
         ServerConfEntity serverConf = loadServerConf();
@@ -83,9 +88,16 @@ public class DataspaceParticipantProvisioningWorker {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        var contexts = dataspaceProvisioningService.participantContexts(true);
-        for (var context : contexts) {
-            dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(), context.memberIdSlashForm());
+        List<DataspaceProvisioningService.ParticipantContext> ensuredContexts = new ArrayList<>();
+        for (var context : dataspaceProvisioningService.participantContexts(true)) {
+            try {
+                dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
+                        context.memberIdSlashForm());
+                ensuredContexts.add(context);
+            } catch (Exception e) {
+                log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
+                        context.participantId(), e);
+            }
         }
 
         if (!authCertRegistered) {
@@ -93,17 +105,26 @@ public class DataspaceParticipantProvisioningWorker {
             return;
         }
 
-        for (var context : contexts) {
+        for (var context : ensuredContexts) {
             var participantId = context.participantId();
-            var status = dataspaceProvisioningService.readCredentialStatus(participantId);
-            if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
-                log.debug("Data space provisioning: participant {} credential already ISSUED", participantId);
-            } else if (DataspaceProvisioningService.STATUS_PENDING.equals(status)) {
-                log.debug("Data space provisioning: participant {} credential PENDING, waiting for next tick", participantId);
-            } else {
-                log.info("Data space provisioning: submitting credential request for participant {}", participantId);
-                dataspaceProvisioningService.submitCredentialRequest(participantId);
+            try {
+                provisionCredential(participantId);
+            } catch (Exception e) {
+                log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
+                        participantId, e);
             }
+        }
+    }
+
+    private void provisionCredential(String participantId) {
+        var status = dataspaceProvisioningService.readCredentialStatus(participantId);
+        if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
+            log.debug("Data space provisioning: participant {} credential already ISSUED", participantId);
+        } else if (DataspaceProvisioningService.STATUS_PENDING.equals(status)) {
+            log.debug("Data space provisioning: participant {} credential PENDING, waiting for next tick", participantId);
+        } else {
+            log.info("Data space provisioning: submitting credential request for participant {}", participantId);
+            dataspaceProvisioningService.submitCredentialRequest(participantId);
         }
     }
 

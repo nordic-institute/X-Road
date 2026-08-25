@@ -47,6 +47,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -138,6 +139,37 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
+    }
+
+    @Test
+    void provisionParticipantContinuesWithRemainingContextsWhenOneFails() {
+        givenInitializedServer();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT, MGMT_CONTEXT));
+        doThrow(new IllegalStateException("pinned row mismatch"))
+                .when(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER_SLASH_FORM);
+        when(dataspaceProvisioningService.readCredentialStatus(anyString())).thenReturn(null);
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER_SLASH_FORM);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER_SLASH_FORM);
+        verify(dataspaceProvisioningService).submitCredentialRequest(HOST_ID);
+        verify(dataspaceProvisioningService).submitCredentialRequest(MGMT_ID);
+        verify(dataspaceProvisioningService, never()).submitCredentialRequest(MEMBER_ID);
+    }
+
+    @Test
+    void provisionParticipantContinuesWithRemainingCredentialsWhenOneCredentialStepFails() {
+        givenInitializedServer();
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readCredentialStatus(HOST_ID)).thenThrow(new IllegalStateException("ih down"));
+        when(dataspaceProvisioningService.readCredentialStatus(MEMBER_ID)).thenReturn(null);
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        verify(dataspaceProvisioningService).submitCredentialRequest(MEMBER_ID);
     }
 
     @Test

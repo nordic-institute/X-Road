@@ -374,6 +374,20 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void ensureParticipantContextRefusesToPinWhenIdentityHubUrlHasNoHost() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("identity-hub-placeholder");
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(
+                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR.code()));
+
+        verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
+        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void ensureParticipantContextVerifiesAlreadyPinnedMemberAndDoesNotRepin() {
         var pinned = pinnedParticipant(MEMBER, SS_HOST);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));

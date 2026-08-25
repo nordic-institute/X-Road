@@ -343,7 +343,12 @@ public class DataspaceProvisioningService {
     }
 
     private String hostOf(String url) {
-        return URI.create(url).getHost();
+        var host = URI.create(url).getHost();
+        if (host == null || host.isBlank()) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
+                    "dataspace identity-hub URL '%s' has no resolvable host", url);
+        }
+        return host;
     }
 
     private String holderPid(String participantId, int slot) {
