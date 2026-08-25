@@ -18,23 +18,13 @@ xroad:
     messagelog:
       hibernate:
         hikari.dataSource.ApplicationName: ${quarkus.application.name}
-  health-check:
-    memory:
-      threshold-percent: ${xroad.proxy.memory-usage-threshold:}
-  proxy:
-    tls:
-      certificate-provisioning:
-        common-name: ${XROAD_HOST:localhost}
-        ip-subject-alt-names:
-          - 127.0.0.1
 
 "%containerized":
   xroad:
     proxy:
+      # Framework-side counterpart of the key's DSL container default: quarkus.http.*
+      # interpolates this through SmallRye, which never sees DSL container defaults.
       health-check-enabled: true
-      memory-usage-threshold: 95
-      rpc:
-        listen-address: 0.0.0.0
   quarkus:
     http:
       host: ${xroad.proxy.health-check-interface}

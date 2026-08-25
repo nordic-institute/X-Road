@@ -5,6 +5,6 @@ plugins {
 
 dependencies {
   api(project(":service:monitor:monitor-api"))
-
-  implementation(libs.smallrye.config.core)
+  api(project(":lib:properties-core"))
+  api(project(":lib:rpc-core"))
 }

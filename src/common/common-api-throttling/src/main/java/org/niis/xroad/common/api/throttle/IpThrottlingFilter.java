@@ -95,6 +95,11 @@ public class IpThrottlingFilter implements Filter {
                          ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
 
+        if (!ipThrottlingFilterConfig.isRateLimitEnabled()) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         final var ip = servletRequest.getRemoteAddr();
         final Bucket bucket;
 

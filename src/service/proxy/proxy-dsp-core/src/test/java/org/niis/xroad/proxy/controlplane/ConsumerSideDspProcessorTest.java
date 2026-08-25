@@ -231,9 +231,13 @@ class ConsumerSideDspProcessorTest {
         // last — either A or B.
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()))
-                .hasMessageContaining("candidate security servers failed")
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.IO_ERROR.code());
+                    assertThat(xrd.getDetails())
+                            .doesNotContain("candidate security servers failed")
+                            .doesNotContain(serviceId.asEncodedId());
+                })
                 .satisfies(ex -> assertThat(ex.getCause()).isIn(failureA, failureB));
     }
 
@@ -260,9 +264,14 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()))
-                .hasMessageContaining("candidate security servers failed");
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.IO_ERROR.code());
+                    assertThat(xrd.getDetails())
+                            .doesNotContain("candidate security servers failed")
+                            .doesNotContainIgnoringCase("dsp_")
+                            .doesNotContain(UNKNOWN_HOST);
+                });
 
         verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any());
     }
@@ -315,8 +324,13 @@ class ConsumerSideDspProcessorTest {
 
         assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
                 .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.NETWORK_ERROR.code()));
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.NETWORK_ERROR.code());
+                    // Non-DSP (legacy) exceptions are out of scope for ClientFacingErrorPolicy and must
+                    // pass through completely untouched, details included.
+                    assertThat(xrd.getDetails()).isEqualTo("catalog fetch failed");
+                });
     }
 
     @Test
@@ -537,6 +551,10 @@ class ConsumerSideDspProcessorTest {
                     assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
                     assertThat(xrd.getErrorCodeMetadata().getFirst())
                             .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
+                    assertThat(xrd.getDetails())
+                            .isNotBlank()
+                            .doesNotContain(serviceId.asEncodedId())
+                            .doesNotContainIgnoringCase("dsp_");
                 });
     }
     @Test
@@ -551,6 +569,11 @@ class ConsumerSideDspProcessorTest {
                     assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
                     assertThat(xrd.getErrorCodeMetadata().getFirst())
                             .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(xrd.getDetails())
+                            .isNotBlank()
+                            .doesNotContain(UNKNOWN_HOST)
+                            .doesNotContain(serviceId.asEncodedId())
+                            .doesNotContainIgnoringCase("dsp_");
                 });
     }
     @Test
@@ -571,6 +594,10 @@ class ConsumerSideDspProcessorTest {
                     assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
                     assertThat(xrd.getErrorCodeMetadata().getFirst())
                             .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
+                    assertThat(xrd.getDetails())
+                            .isNotBlank()
+                            .doesNotContain("candidate security servers failed")
+                            .doesNotContain(serviceId.asEncodedId());
                 });
     }
     @Test
@@ -590,6 +617,56 @@ class ConsumerSideDspProcessorTest {
                     assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
                     assertThat(xrd.getErrorCodeMetadata().getFirst())
                             .isEqualTo("originalCode=" + ErrorCode.DSP_CATALOG_FETCH_FAILED.code());
+                });
+    }
+
+    @Test
+    void anchorCatalogFetchFailedSurfacesGenericDetailsWithNoDspOrEdcLeak() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var dspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace." + ErrorCode.DSP_CATALOG_FETCH_FAILED.code()))
+                .details("EDC catalog request to " + URL_A + " failed after 3 candidate hosts")
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(dspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
+                    assertThat(xrd.getDetails())
+                            .isNotBlank()
+                            .doesNotContain(URL_A)
+                            .doesNotContain("3 candidate hosts")
+                            .doesNotContainIgnoringCase("dsp_")
+                            .doesNotContainIgnoringCase("edc");
+                });
+    }
+
+    @Test
+    void fastPathUnrecognizedDspCodeIsCollapsedToGenericInsteadOfLeaking() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        var futureDspException = XrdRuntimeException.systemException(
+                        ErrorCode.withCode("proxy.dataspace.dsp_unknown_future_code"))
+                .details("host=" + HOST_A + " candidate acquisition failed via edc negotiation API")
+                .build();
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), eq(DID_A), eq(URL_A)))
+                .thenThrow(futureDspException);
+
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, null, false)))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var xrd = (XrdRuntimeException) ex;
+                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.IO_ERROR.code());
+                    assertThat(xrd.getDetails())
+                            .isNotBlank()
+                            .doesNotContain(HOST_A)
+                            .doesNotContainIgnoringCase("dsp_")
+                            .doesNotContainIgnoringCase("edc");
+                    assertThat(xrd.getErrorCodeMetadata()).containsExactly("originalCode=dsp_unknown_future_code");
                 });
     }
 

@@ -51,46 +51,97 @@ secretStore:
     caSecretName: {{ openbao_tls_secret_name }}
     caSecretKey: tls.crt
 
-{% set proxy_env = {
-  'XROAD_PROXY_ADDON_OP_MONITOR_ENABLED': 'true',
-  'XROAD_PROXY_DSP_ENABLED': proxy_dsp_enabled | string | lower,
-} %}
-{% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
-{% set _ = proxy_env.update({
-  'XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS': op_monitor_records_available_offset_seconds,
-}) %}
-{% endif %}
-{% if proxy_timestamp_immediately | default(false) | bool %}
-{% set _ = proxy_env.update({
-  'XROAD_PROXY_MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY': 'true',
-}) %}
-{% endif %}
-{% if (common_global_conf_refresh_rate | default('')) | length > 0 %}
-{% set _ = proxy_env.update({
-  'XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE': common_global_conf_refresh_rate,
-}) %}
-{% endif %}
-{% if proxy_batch_signing_enabled | default(false) | bool %}
-{% set _ = proxy_env.update({
-  'XROAD_PROXY_BATCH_SIGNING_ENABLED': 'true',
-}) %}
-{% endif %}
+{# xroad.* runtime values no longer travel as env — see the configSeed block below.
+   What remains here is env other layers actually read (JVM options, EDC/SmallRye keys). #}
+{% set proxy_env = {} %}
 {% if ds_tls %}
 {% set _ = proxy_env.update({
   'JAVA_TOOL_OPTIONS': ds_truststore_opts,
 }) %}
 {% endif %}
-{# Where this Security Server advertises its own server proxy for the DSP data plane. The product
-   default is https://localhost:5500, which only holds when consumer and provider share a host;
-   compose overrides it per stack and a multi-release k8s topology needs the same per release. #}
+
+# xroad.* runtime config goes through the configuration_properties DB layer
+# (the XRoadConfig DSL ignores pod env) — seeded by the chart's config-seed
+# hook Job. This list REPLACES the chart default, so it carries the chart's
+# entries plus this environment's values. OpenBao TLS trust is NOT wired here
+# per service — the chart's secretStore.tls knob (set once, above) fans it out
+# to every secret-store workload, ephemeral Jobs included.
+configSeed:
+  properties:
+    - key: xroad.proxy-ui-api.proxy-server-url
+      value: https://proxy:8443
+    - key: xroad.proxy.addon.op-monitor.connection.scheme
+      value: https
+    - key: xroad.op-monitor.scheme
+      value: https
+    - key: xroad.proxy.addon.op-monitor.enabled
+      value: "true"
+    - key: xroad.proxy.dsp-enabled
+      value: "{{ proxy_dsp_enabled | string | lower }}"
+    - key: xroad.configuration-client.update-interval
+      value: "{{ configuration_client_update_interval }}"
+    - key: xroad.signer.ocsp-response-retrieval-active
+      value: "true"
+    # proxy and ds-identity-hub gate their startup on these two rows (chart
+    # waits), so they must be seeded regardless of ds_tls or the pods deadlock.
+    - key: xroad.proxy.dsp.participant-context-id
+      value: "{{ ds_participant_id }}"
+    - key: xroad.proxy-ui-api.dataspace.participant-id
+      value: "{{ ds_participant_id }}"
 {% if proxy_dsp_enabled %}
-{% set _ = proxy_env.update({
-  'XROAD_PROXY_DSP_SERVERPROXY_ENDPOINT': 'https://' ~ ds_serverproxy_host ~ ':5500',
-}) %}
+    # Where this Security Server advertises its own server proxy for the DSP data
+    # plane. The product default is https://localhost:5500, which only holds when
+    # consumer and provider share a host; a multi-release k8s topology needs it
+    # per release.
+    - key: xroad.proxy.dsp.serverproxy-endpoint
+      value: "https://{{ ds_serverproxy_host }}:5500"
 {% endif %}
+{% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
+    - key: xroad.op-monitor.records-available-timestamp-offset-seconds
+      value: "{{ op_monitor_records_available_offset_seconds }}"
+{% endif %}
+{% if proxy_timestamp_immediately | default(false) | bool %}
+    - key: xroad.proxy.message-log.timestamper.timestamp-immediately
+      value: "true"
+{% endif %}
+{% if (common_global_conf_refresh_rate | default('')) | length > 0 %}
+    - key: xroad.common-global-conf.refresh-rate
+      value: "{{ common_global_conf_refresh_rate }}"
+{% endif %}
+{% if proxy_batch_signing_enabled | default(false) | bool %}
+    - key: xroad.proxy.batch-signing-enabled
+      value: "true"
+{% endif %}
+{% if (messagelog_archive_cron | default('')) | length > 0 %}
+    - key: xroad.auxiliary-service.message-log.archive-cron
+      value: "{{ messagelog_archive_cron }}"
+{% endif %}
+{% if (messagelog_clean_cron | default('')) | length > 0 %}
+    - key: xroad.auxiliary-service.message-log.clean-cron
+      value: "{{ messagelog_clean_cron }}"
+{% endif %}
+{% if (messagelog_archiver_clean_keep_records_for | default('')) | length > 0 %}
+    - key: xroad.message-log-archiver.clean-keep-records-for
+      value: "{{ messagelog_archiver_clean_keep_records_for }}"
+{% endif %}
+{% if ds_tls %}
+    # Dataspace provisioning via the proxy-ui-api reconciler (replaces the manual
+    # IH/CP seed). identity-hub-url is the release's own namespace-qualified
+    # identity-hub Service, so the derived holder DID / credentialService / STS
+    # URL resolve for whoever issues credentials.
+    - key: xroad.proxy-ui-api.dataspace.enabled
+      value: "true"
+    - key: xroad.proxy-ui-api.dataspace.identity-hub-url
+      value: "https://{{ ds_ih_host }}:7182"
+    - key: xroad.proxy-ui-api.dataspace.management-context-enabled
+      value: "{{ (ds_mgmt_context_enabled | default(false) | bool) | ternary('true', 'false') }}"
+    - key: xroad.proxy-ui-api.dataspace.issuer-did
+      value: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
+{% endif %}
+
 services:
 {% for svc, extra_env in [
-  ('configuration-client', {'XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL': configuration_client_update_interval}),
+  ('configuration-client', {}),
   ('signer', {}),
   ('proxy', proxy_env),
   ('monitor', {}),
@@ -134,26 +185,8 @@ services:
 {% endif %}
 {% endfor %}
 
-{% if ds_tls %}
-  proxy-ui-api:
-    env:
-      # Dataspace provisioning via the proxy-ui-api endpoint (replaces the manual IH/CP seed).
-      # identity-hub-url is the advertised identity-hub host, so the derived holder DID /
-      # credentialService / STS URL resolve for whoever issues credentials — each release's own
-      # namespace-qualified Service.
-      XROAD_PROXY_UI_API_DATASPACE_ENABLED: "true"
-      XROAD_PROXY_UI_API_DATASPACE_IDENTITY_HUB_URL: "https://{{ ds_ih_host }}:7182"
-      XROAD_PROXY_UI_API_DATASPACE_PARTICIPANT_ID: "{{ ds_participant_id }}"
-      XROAD_PROXY_UI_API_DATASPACE_MANAGEMENT_CONTEXT_ENABLED: "{{ (ds_mgmt_context_enabled | default(false) | bool) | ternary('true', 'false') }}"
-      XROAD_PROXY_UI_API_DATASPACE_ISSUER_DID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
-{% endif %}
-
   op-monitor:
     enabled: true
-{% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
-    env:
-      XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS: "{{ op_monitor_records_available_offset_seconds }}"
-{% endif %}
 
 {% if proxy_dsp_enabled %}
   # DSP services — bump replicas from chart default of 0. DB clusters are
@@ -186,6 +219,10 @@ services:
       EDC_WEB_HTTPS_KEYMANAGER_PASSWORD: "changeit"
       JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }}"
 {% if svc == 'ds-control-plane' %}
+      # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged
+      # application.yaml. The participant context id itself rides the chart's
+      # dsp.participantContextId knob (set below), not a per-service env entry here.
+      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
       EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_cp_host }}:8183/api/dsp/%s"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
@@ -211,27 +248,14 @@ services:
   softtoken-signer:
     replicas: 1
 {% endif %}
-{% if (serverconf_init_image | length > 0) or (messagelog_archive_cron | default('') | length > 0) or (messagelog_clean_cron | default('') | length > 0) %}
+{% if serverconf_init_image | length > 0 %}
   auxiliary-service:
     env:
-{% if serverconf_init_image | length > 0 %}
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
 {% endif %}
-{% if (messagelog_archive_cron | default('')) | length > 0 %}
-      XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_ARCHIVE_CRON: "{{ messagelog_archive_cron }}"
-{% endif %}
-{% if (messagelog_clean_cron | default('')) | length > 0 %}
-      XROAD_AUXILIARY_SERVICE_MESSAGE_LOG_CLEAN_CRON: "{{ messagelog_clean_cron }}"
-{% endif %}
-{% endif %}
 
-{% if messagelog_encryption_enabled or ((messagelog_archiver_clean_keep_records_for | default('')) | length > 0) %}
-messageLogArchiver:
-{% if (messagelog_archiver_clean_keep_records_for | default('')) | length > 0 %}
-  env:
-    XROAD_MESSAGE_LOG_ARCHIVER_CLEAN_KEEP_RECORDS_FOR: "{{ messagelog_archiver_clean_keep_records_for }}"
-{% endif %}
 {% if messagelog_encryption_enabled %}
+messageLogArchiver:
   extraVolumes:
     - name: message-log-encryption-config
       configMap:
@@ -242,7 +266,6 @@ messageLogArchiver:
     - mountPath: /opt/app/config/application.yaml
       subPath: application.yaml
       name: message-log-encryption-config
-{% endif %}
 {% endif %}
 
 {% if messagelog_encryption_enabled %}
@@ -276,15 +299,9 @@ signer:
 {% endif %}
 
 {% set dsp_participant_context_id = dsp_participant_context_id | default('') %}
-{% if ds_tls or (dsp_participant_context_id | length > 0) %}
-dsp:
-{% if ds_tls %}
-  seed:
-    trustedIssuerDid: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
-{% endif %}
 {% if dsp_participant_context_id | length > 0 %}
+dsp:
   participantContextId: "{{ dsp_participant_context_id }}"
-{% endif %}
 {% endif %}
 
 # Postgres image used by DSP wait-gate initContainers. The DB clusters

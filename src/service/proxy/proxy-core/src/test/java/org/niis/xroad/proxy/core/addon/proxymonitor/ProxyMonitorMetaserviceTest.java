@@ -34,8 +34,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
@@ -63,9 +66,11 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ProxyMonitorMetaserviceTest {
 
-    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = ConfigUtils.initConfiguration(
-            EnvMonitorRpcChannelProperties.class,
-            Map.of(EnvMonitorRpcChannelProperties.PREFIX + ".port", String.valueOf(findRandomPort())));
+    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = new EnvMonitorRpcChannelProperties(
+            XRoadConfigBuilder.create()
+                    .register(CommonRpcConfigKeys.instance())
+                    .overrides(Map.of("xroad.common-rpc.channel.env-monitor.port", String.valueOf(findRandomPort())))
+                    .build());
 
     private static final ProxyTestSuiteHelper PROXY_TEST_SUITE_HELPER = new ProxyTestSuiteHelper();
 
@@ -84,10 +89,14 @@ public class ProxyMonitorMetaserviceTest {
 
         PROXY_TEST_SUITE_HELPER.setPropsIfNotSet(proxyProps);
 
-        PROXY_TEST_SUITE_HELPER.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
-        PROXY_TEST_SUITE_HELPER.commonProperties = ConfigUtils.initConfiguration(CommonProperties.class, Map.of(
-                "xroad.common.temp-files-path", "build/"
-        ));
+        PROXY_TEST_SUITE_HELPER.proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+                .register(ProxyConfigKeys.instance())
+                .overrides(proxyProps)
+                .build());
+        PROXY_TEST_SUITE_HELPER.commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .overrides(Map.of("xroad.common.temp-files-path", "build/"))
+                .build());
 
         PROXY_TEST_SUITE_HELPER.startTestServices();
         monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),

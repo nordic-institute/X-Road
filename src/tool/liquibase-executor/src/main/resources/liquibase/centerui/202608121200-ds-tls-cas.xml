@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202608121200-ds-tls-cas.xml">
+
+    <changeSet author="niis" id="202608121200-ds-tls-cas">
+        <comment>Approved DS TLS certification authorities (globalconf approvedDsTlsCa), kept fully separate from approved_cas/ca_infos.</comment>
+
+        <createTable tableName="ds_tls_cas">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cert" type="BYTEA">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid_from" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid_to" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="acme_server_directory_url" type="VARCHAR(255)"/>
+            <column name="ds_tls_certificate_profile_id" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="ds_tls_intermediate_cas">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="ds_tls_ca_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cert" type="BYTEA">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="ds_tls_ca_id" baseTableName="ds_tls_intermediate_cas"
+                                 constraintName="ds_tls_intermediate_cas_ds_tls_ca_id_fk" deferrable="false" initiallyDeferred="false"
+                                 onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ds_tls_cas"/>
+
+        <createIndex indexName="index_ds_tls_intermediate_cas_on_ds_tls_ca_id" tableName="ds_tls_intermediate_cas">
+            <column name="ds_tls_ca_id"/>
+        </createIndex>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON ds_tls_cas;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON ds_tls_cas
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+
+            DROP TRIGGER IF EXISTS update_history ON ds_tls_intermediate_cas;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON ds_tls_intermediate_cas
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

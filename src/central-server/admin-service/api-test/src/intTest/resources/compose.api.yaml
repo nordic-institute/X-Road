@@ -8,7 +8,6 @@ services:
     pull_policy: always
     environment:
       - XROAD_HOST=localhost
-      - XROAD_COMMON_RPC_USE_TLS=false
     ports:
       - "0:4000"
       - "0:5432"

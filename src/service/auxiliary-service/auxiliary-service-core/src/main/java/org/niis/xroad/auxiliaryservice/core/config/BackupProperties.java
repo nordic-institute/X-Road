@@ -27,70 +27,87 @@
 
 package org.niis.xroad.auxiliaryservice.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
-@ConfigMapping(prefix = "xroad.auxiliary-service.backup")
-public interface BackupProperties {
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_CRON_EXPRESSION;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_DELETE_OLD_BACKUPS_CRON;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_KEEP_FOR;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_AUTOBACKUP_SCRIPT_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_CREATE_BACKUP_METADATA_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_ENCRYPTION_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_ENCRYPTION_KEYIDS;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_FORMAT_VERSION_FILE_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_GENERATE_GPG_KEYPAIR_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_GPGKEYS_HOME;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_LOCATION;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_RESTORE_SCRIPT_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_SCRIPT_PATH;
+import static org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys.BACKUP_VALID_FILENAME_PATTERN;
 
-    @WithName("location")
-    @WithDefault("/var/lib/xroad/backup")
-    String location();
+@RequiredArgsConstructor
+public class BackupProperties {
 
-    @WithName("valid-filename-pattern")
-    @WithDefault("^(?!\\.)[\\w\\.\\-]+\\.gpg$")
-    String validFilenamePattern();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("autobackup-cron-expression")
-    @WithDefault("0 15 3 * * ?")
-    String autoBackupCronExpression();
+    public String location() {
+        return xRoadConfig.value(BACKUP_LOCATION);
+    }
 
-    @WithName("autobackup-script-path")
-    @WithDefault("/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh")
-    String autoBackupScriptPath();
+    public String validFilenamePattern() {
+        return xRoadConfig.value(BACKUP_VALID_FILENAME_PATTERN);
+    }
 
-    @WithName("autobackup-delete-old-backups-cron")
-    @WithDefault("0 0 4 * * ?")
-    String autoBackupDeleteOldBackupsCron();
+    public String autoBackupCronExpression() {
+        return xRoadConfig.value(BACKUP_AUTOBACKUP_CRON_EXPRESSION);
+    }
 
-    @WithName("autobackup-keep-for")
-    @WithDefault("30d")
-    Duration autoBackupKeepFor();
+    public String autoBackupScriptPath() {
+        return xRoadConfig.value(BACKUP_AUTOBACKUP_SCRIPT_PATH);
+    }
 
-    @WithName("script-path")
-    @WithDefault("/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh")
-    String scriptPath();
+    public String autoBackupDeleteOldBackupsCron() {
+        return xRoadConfig.value(BACKUP_AUTOBACKUP_DELETE_OLD_BACKUPS_CRON);
+    }
 
-    @WithName("restore-script-path")
-    @WithDefault("/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh")
-    String restoreScriptPath();
+    public Duration autoBackupKeepFor() {
+        return xRoadConfig.value(BACKUP_AUTOBACKUP_KEEP_FOR);
+    }
 
-    @WithName("generate-gpg-keypair-path")
-    @WithDefault("/usr/share/xroad/scripts/generate_gpg_keypair.sh")
-    String generateGpgKeypairScriptPath();
+    public String scriptPath() {
+        return xRoadConfig.value(BACKUP_SCRIPT_PATH);
+    }
 
-    @WithName("create-backup-metadata-path")
-    @WithDefault("/usr/share/xroad/scripts/_create_backup_metadata.sh")
-    String createBackupMetadataPath();
+    public String restoreScriptPath() {
+        return xRoadConfig.value(BACKUP_RESTORE_SCRIPT_PATH);
+    }
 
-    @WithName("backup-format-version-file-path")
-    @WithDefault("/usr/share/xroad/scripts/_backup_format_version")
-    String backupFormatVersionFilePath();
+    public String createBackupMetadataPath() {
+        return xRoadConfig.value(BACKUP_CREATE_BACKUP_METADATA_PATH);
+    }
 
-    @WithName("gpgkeys-home")
-    @WithDefault("/etc/xroad/gpghome")
-    String gpgKeysHomePath();
+    public String backupFormatVersionFilePath() {
+        return xRoadConfig.value(BACKUP_FORMAT_VERSION_FILE_PATH);
+    }
 
-    @WithName("encryption-enabled")
-    @WithDefault("false")
-    boolean encryptionEnabled();
+    public String generateGpgKeypairScriptPath() {
+        return xRoadConfig.value(BACKUP_GENERATE_GPG_KEYPAIR_PATH);
+    }
 
-    @WithName("encryption-keyids")
-    Optional<List<String>> encryptionKeyids();
+    public String gpgKeysHomePath() {
+        return xRoadConfig.value(BACKUP_GPGKEYS_HOME);
+    }
+
+    public boolean encryptionEnabled() {
+        return xRoadConfig.value(BACKUP_ENCRYPTION_ENABLED);
+    }
+
+    public Optional<List<String>> encryptionKeyids() {
+        return xRoadConfig.valueOpt(BACKUP_ENCRYPTION_KEYIDS).map(List::of);
+    }
 
 }

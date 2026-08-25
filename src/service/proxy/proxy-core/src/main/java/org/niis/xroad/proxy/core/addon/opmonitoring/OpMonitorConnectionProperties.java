@@ -27,71 +27,81 @@
 
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.util.Optional;
 
-import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_CLIENT_TLS_CERTIFICATE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_CONNECTION_TIMEOUT_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_HOST;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_PORT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_SCHEME;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_SOCKET_TIMEOUT_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_TLS_CERTIFICATE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_CONNECTION_XROAD_TLS_CIPHERS;
 
-public interface OpMonitorConnectionProperties {
+@RequiredArgsConstructor
+public class OpMonitorConnectionProperties {
+
+    private final XRoadConfig xroadConfig;
 
     /**
      * Address of operational monitoring daemon.
-     *
      * @return host address
      */
-    @WithName("host")
-    @WithDefault("localhost")
-    String host();
+    public String host() {
+        return xroadConfig.value(ADDON_OP_MONITOR_CONNECTION_HOST);
+    }
 
     /**
      * Listen port of operational monitoring daemon.
-     *
      * @return port number
      */
-    @WithName("port")
-    @WithDefault("2080")
-    int port();
+    public int port() {
+        return xroadConfig.value(ADDON_OP_MONITOR_CONNECTION_PORT);
+    }
 
     /**
      * URI scheme name determining the used connection type.
-     *
      * @return http or https
      */
-    @WithName("scheme")
-    @WithDefault("http")
-    String scheme();
+    public String scheme() {
+        return xroadConfig.value(ADDON_OP_MONITOR_CONNECTION_SCHEME);
+    }
 
     /**
      * Property name of the path to the location of the TLS certificate used by the HTTP client sending requests to the
      * operational data daemon.
      */
-    @WithName("client-tls-certificate")
     @Deprecated
     //TODO In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
-    Optional<String> clientTlsCertificate();
+    public Optional<String> clientTlsCertificate() {
+        return xroadConfig.valueOpt(ADDON_OP_MONITOR_CONNECTION_CLIENT_TLS_CERTIFICATE);
+    }
 
     /**
      * @return the path to the location of the operational monitoring daemon TLS certificate,
      * If not explicitly specified, certificate from Vault will be used.
      *
      */
-    @WithName("tls-certificate")
     @Deprecated
     //TODO In X-Road 8 we store TLS certificates in OpenBao - only needed for 7 -> 8 migration, can be removed otherwise
-    Optional<String> tlsCertificate();
+    public Optional<String> tlsCertificate() {
+        return xroadConfig.valueOpt(ADDON_OP_MONITOR_CONNECTION_TLS_CERTIFICATE);
+    }
 
-    @WithName("socket-timeout-seconds")
-    @WithDefault("60")
-    int socketTimeoutSeconds();
 
-    @WithName("connection-timeout-seconds")
-    @WithDefault("30")
-    int connectionTimeoutSeconds();
+    public int socketTimeoutSeconds() {
+        return xroadConfig.value(ADDON_OP_MONITOR_CONNECTION_SOCKET_TIMEOUT_SECONDS);
+    }
 
-    @WithName("xroad-tls-ciphers")
-    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
-    String[] xroadTlsCiphers();
+    public int connectionTimeoutSeconds() {
+        return xroadConfig.value(ADDON_OP_MONITOR_CONNECTION_CONNECTION_TIMEOUT_SECONDS);
+    }
+
+    public String[] xroadTlsCiphers() {
+        return xroadConfig.value(ADDON_OP_MONITOR_CONNECTION_XROAD_TLS_CIPHERS);
+    }
 
 }

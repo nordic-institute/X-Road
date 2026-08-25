@@ -26,31 +26,32 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
 
 /**
  * Environment-specific configuration for data space issuer provisioning. The X-Road membership
  * credential shape itself is fixed and lives as constants in the provisioning service.
  */
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "xroad.dataspace.issuer")
+@RequiredArgsConstructor
 public class DataspaceIssuerProperties {
 
-    private static final int DEFAULT_DID_PORT = 6183;
-    private static final int DEFAULT_ISSUANCE_PORT = 6185;
+    private final XRoadConfig config;
 
-    /** Public hostname of the issuer (the {@code did:web} host) used to build the issuer DID and service URL. */
-    private String host = "localhost";
+    public String getHost() {
+        return config.value(DataspaceConfigKeys.ISSUER_HOST);
+    }
 
-    /** DID document port of the issuer. */
-    private int didPort = DEFAULT_DID_PORT;
+    public int getDidPort() {
+        return config.value(DataspaceConfigKeys.ISSUER_DID_PORT);
+    }
 
-    /** Issuance API port of the issuer. */
-    private int issuancePort = DEFAULT_ISSUANCE_PORT;
+    public int getIssuancePort() {
+        return config.value(DataspaceConfigKeys.ISSUER_ISSUANCE_PORT);
+    }
 
-    /** URL of the published X-Road membership credential JSON schema. */
-    private String credentialJsonSchemaUrl = "https://example.com/schema/XRoadMembershipCredential.json";
+    public String getCredentialJsonSchemaUrl() {
+        return config.value(DataspaceConfigKeys.ISSUER_CREDENTIAL_JSON_SCHEMA_URL);
+    }
 }

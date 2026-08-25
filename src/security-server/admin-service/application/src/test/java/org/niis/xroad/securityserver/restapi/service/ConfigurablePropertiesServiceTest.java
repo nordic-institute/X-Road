@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,8 +32,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.securityserver.restapi.config.ConfigurableSystemPropertiesConfiguration.ConfigurablePropertiesDefinition;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
@@ -40,12 +43,14 @@ import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -53,98 +58,113 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ConfigurablePropertiesServiceTest {
 
-    private static final String PROPERTY_NAME = "xroad.proxy-ui-api.client-timeout";
+    // an exposed key of AdminServiceConfigKeys — the catalogue is the only definition source
+    private static final String PROPERTY_NAME = "xroad.proxy-ui-api.acme-renewal-retry-delay";
     private static final String PROPERTY_VALUE = "10000";
     private static final String PROPERTY_VALUE_2 = "11000";
-    private static final String DEFAULT_VALUE = "5000";
+    private static final String DEFAULT_VALUE = "60";
     private static final String SCOPE = "proxy-ui-api";
 
-    @Mock
-    private ConfigurablePropertiesDefinition configurableProperties;
+    // a shared-scope key: its Category maps to a null scope, as the scope-less yaml entries used to
+    private static final String SCOPELESS_PROPERTY_NAME = "xroad.common.temp-files-path";
+    private static final String SCOPELESS_PROPERTY_VALUE = "/var/tmp/xroad-test/";
+
+    private static final String CATALOGUE_PROPERTY_NAME = "xroad.proxy.admin-port";
+    private static final String CATALOGUE_DEFAULT_VALUE = "5566";
+    private static final String CATALOGUE_SCOPE = "proxy";
+
     @Mock
     private ConfigurationPropertyRepository repository;
+
+    @Mock
+    private AuditDataHelper auditDataHelper;
 
     private ConfigurablePropertiesService service;
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(configurableProperties, repository);
+        service = new ConfigurablePropertiesService(repository, auditDataHelper);
     }
 
     @Test
-    void getConfigurationPropertiesNotConfigured() {
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of());
+    void getConfigurationPropertiesOmitsKeysThatAreNotDeclaredExposed() {
+        when(repository.findAll()).thenReturn(List.of());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(0, systemParameters.size());
+
+        assertTrue(systemParameters.stream()
+                .noneMatch(p -> "xroad.signer.modules".equals(p.getPropertyName())));
+    }
+
+    @Test
+    void getConfigurationPropertiesIncludesDslCatalogueDerivedProperty() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, CATALOGUE_PROPERTY_NAME);
+        assertEquals(CATALOGUE_DEFAULT_VALUE, parameter.getDefaultValue());
+        assertEquals(CATALOGUE_SCOPE, parameter.getScope());
+        assertNull(parameter.getCurrentValue());
     }
 
     @Test
     void getConfigurationPropertiesNotInDatabase() {
-        var systemParameter = new ConfigurablePropertiesDefinition.ConfigurableProperty();
-        systemParameter.setPropertyName(PROPERTY_NAME);
-        systemParameter.setDefaultValue(DEFAULT_VALUE);
-        systemParameter.setScope(SCOPE);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
         when(repository.findAll()).thenReturn(List.of());
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(1, systemParameters.size());
-        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
-        assertCommonConfigurablePropertyDtoFields(parameter);
+
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
     }
 
     @Test
     void getConfigurationPropertiesFoundInDatabase() {
-        var systemParameter = new ConfigurablePropertiesDefinition.ConfigurableProperty();
-        systemParameter.setPropertyName(PROPERTY_NAME);
-        systemParameter.setDefaultValue(DEFAULT_VALUE);
-        systemParameter.setScope(SCOPE);
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(PROPERTY_NAME);
-        entity.setScope(SCOPE);
         entity.setPropertyValue(PROPERTY_VALUE_2);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
         when(repository.findAll()).thenReturn(List.of(entity));
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(1, systemParameters.size());
-        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
-        assertCommonConfigurablePropertyDtoFields(parameter);
+
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(SCOPE, parameter.getScope());
         assertEquals(PROPERTY_VALUE_2, parameter.getCurrentValue());
     }
 
     @Test
-    void getConfigurationPropertiesFoundInDatabaseScopeIsDifferent() {
-        var systemParameter = new ConfigurablePropertiesDefinition.ConfigurableProperty();
-        systemParameter.setPropertyName(PROPERTY_NAME);
-        systemParameter.setDefaultValue(DEFAULT_VALUE);
-        systemParameter.setScope(SCOPE);
+    void getConfigurationPropertiesIgnoresStoredRowsForOtherKeys() {
         var entity = new ConfigurationPropertyEntity();
-        entity.setPropertyKey(PROPERTY_NAME);
+        entity.setPropertyKey("xroad.proxy-ui-api.acme-renewal-interval");
         entity.setPropertyValue(PROPERTY_VALUE_2);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(systemParameter));
         when(repository.findAll()).thenReturn(List.of(entity));
 
         Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
-        assertEquals(1, systemParameters.size());
-        SecurityServerConfigurablePropertyDto parameter = systemParameters.iterator().next();
-        assertCommonConfigurablePropertyDtoFields(parameter);
+
+        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
+    }
+
+    @Test
+    void getConfigurationPropertiesGroupsSharedKeysWithoutScope() {
+        when(repository.findAll()).thenReturn(List.of());
+
+        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+
+        assertNull(findProperty(systemParameters, SCOPELESS_PROPERTY_NAME).getScope());
     }
 
     @Test
     void updateConfigurablePropertyFoundInDatabase() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyValue(PROPERTY_VALUE);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -157,28 +177,9 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabase() {
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE);
-
-        ArgumentCaptor<ConfigurationPropertyEntity> captor =
-                ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
-
-        verify(repository).saveOrUpdate(captor.capture());
-
-        ConfigurationPropertyEntity capturedEntity = captor.getValue();
-        assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
-        assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
-        assertEquals(SCOPE, capturedEntity.getScope());
-    }
-
-    @Test
-    void updateConfigurablePropertyNotFoundInDatabaseScopeIsNull() {
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedProperty()));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, null)).thenReturn(Optional.empty());
-
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, null);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -188,36 +189,61 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
         assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
-        assertNull(capturedEntity.getScope());
     }
 
     @Test
-    void updateConfigurablePropertyThrowsWhenScopeNotInDefinition() {
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope("other-scope")));
+    void updateConfigurablePropertyNotFoundInDatabaseForScopelessKey() {
+        when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME))
+                .thenReturn(Optional.empty());
 
+        service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
+
+        ArgumentCaptor<ConfigurationPropertyEntity> captor =
+                ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
+
+        verify(repository).saveOrUpdate(captor.capture());
+
+        ConfigurationPropertyEntity capturedEntity = captor.getValue();
+        assertEquals(SCOPELESS_PROPERTY_NAME, capturedEntity.getPropertyKey());
+        assertEquals(SCOPELESS_PROPERTY_VALUE, capturedEntity.getPropertyValue());
+    }
+
+    @Test
+    void updateConfigurablePropertyThrowsWhenKeyIsNotInTheCatalogue() {
         assertThrows(NotFoundException.class,
-                () -> service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE));
+                () -> service.updateConfigurableProperty("unknown.property.key", PROPERTY_VALUE));
     }
 
     @Test
-    void updateConfigurablePropertyThrowsWhenKeyNotInDefinition() {
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
-
+    void updateConfigurablePropertyThrowsWhenKeyIsDeclaredButNotExposed() {
         assertThrows(NotFoundException.class,
-                () -> service.updateConfigurableProperty("unknown.property.key", PROPERTY_VALUE, SCOPE));
+                () -> service.updateConfigurableProperty("xroad.signer.modules", PROPERTY_VALUE));
     }
 
     @Test
-    void updateConfigurablePropertyFoundInDatabaseWithAuditListener() {
+    void updateConfigurablePropertyRejectsValueTheKeyConverterCannotParse() {
+        assertThrows(BadRequestException.class,
+                () -> service.updateConfigurableProperty(PROPERTY_NAME, "not-a-number"));
+
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void updateConfigurablePropertyRejectsValueTheKeyValidatorRefuses() {
+        assertThrows(BadRequestException.class,
+                () -> service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, ""));
+
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void updateConfigurablePropertyFoundInDatabaseAuditsOldAndNewValueAndDerivedScope() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(PROPERTY_NAME);
         entity.setPropertyValue(PROPERTY_VALUE);
-        entity.setScope(SCOPE);
-        Consumer<String> existingValueConsumer = mock(Consumer.class);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.of(entity));
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2, SCOPE, existingValueConsumer);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -227,16 +253,18 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_VALUE_2, capturedEntity.getPropertyValue());
 
-        verify(existingValueConsumer).accept(PROPERTY_VALUE);
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_NAME, PROPERTY_NAME);
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_NEW_VALUE, PROPERTY_VALUE_2);
+        // scope is derived from the key's own category, not supplied by the caller
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, SCOPE);
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE, PROPERTY_VALUE);
     }
 
     @Test
-    void updateConfigurablePropertyNotFoundInDatabaseWithAuditListener() {
-        Consumer<String> existingValueConsumer = mock(Consumer.class);
-        when(configurableProperties.getConfigurableProperties()).thenReturn(List.of(definedPropertyWithScope(SCOPE)));
-        when(repository.findConfigurationPropertyByPropertyKeyAndScope(PROPERTY_NAME, SCOPE)).thenReturn(Optional.empty());
+    void updateConfigurablePropertyNotFoundInDatabaseDoesNotAuditOldValue() {
+        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
-        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE, SCOPE, existingValueConsumer);
+        service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
@@ -246,27 +274,24 @@ class ConfigurablePropertiesServiceTest {
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
         assertEquals(PROPERTY_VALUE, capturedEntity.getPropertyValue());
-        assertEquals(SCOPE, capturedEntity.getScope());
 
-        verifyNoInteractions(existingValueConsumer);
+        verify(auditDataHelper, never()).put(eq(RestApiAuditProperty.SYSTEM_PROPERTY_OLD_VALUE), any());
     }
 
-    private static void assertCommonConfigurablePropertyDtoFields(SecurityServerConfigurablePropertyDto parameter) {
-        assertEquals(PROPERTY_NAME, parameter.getPropertyName());
-        assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
+    @Test
+    void updateConfigurablePropertyForScopelessKeyAuditsEmptyScope() {
+        when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME)).thenReturn(Optional.empty());
+
+        service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, "");
     }
 
-    private static ConfigurablePropertiesDefinition.ConfigurableProperty definedProperty() {
-        var property = new ConfigurablePropertiesDefinition.ConfigurableProperty();
-        property.setPropertyName(PROPERTY_NAME);
-        property.setDefaultValue(DEFAULT_VALUE);
-        return property;
+    private static SecurityServerConfigurablePropertyDto findProperty(
+            Set<SecurityServerConfigurablePropertyDto> properties, String propertyName) {
+        return properties.stream()
+                .filter(p -> propertyName.equals(p.getPropertyName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Property not found: " + propertyName));
     }
-
-    private static ConfigurablePropertiesDefinition.ConfigurableProperty definedPropertyWithScope(String scope) {
-        var property = definedProperty();
-        property.setScope(scope);
-        return property;
-    }
-
 }

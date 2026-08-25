@@ -1,0 +1,77 @@
+---
+# The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
+# and conf.d yaml are ignored — so per-host runtime config must be rows in the
+# serverconf configuration_properties table. Written with the packaged
+# db_property.sh helper (same mechanism as postinstall.yml), which resolves the
+# database from db.properties and upserts the row. Runs post-install: the table
+# is created by the package's liquibase run.
+#
+# xroad.acme and xroad.mail-notification are single YAML-document values parsed
+# by the consuming beans; they are passed as one argument each so the document
+# indentation survives verbatim.
+#
+# TEMPORARY (dataspaces dev): remove once packaging seeds these via debconf
+#   answerable questions / real STS-issued tokens.
+- name: seed xroad runtime config into serverconf configuration_properties
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop:
+    - key: xroad.proxy.dsp.participant-context-id
+      value: "{{ inventory_hostname }}.lxd"
+    - key: xroad.proxy.dsp.cache.enabled
+      value: "false"
+    - key: xroad.proxy-ui-api.dataspace.identity-hub-url
+      value: "https://{{ inventory_hostname }}.lxd:7182"
+    - key: xroad.proxy-ui-api.dataspace.participant-id
+      value: "{{ inventory_hostname }}.lxd"
+    - key: xroad.proxy-ui-api.dataspace.issuer-did
+      value: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+    # The ds services are co-located on this host and the DSL host defaults are
+    # the docker compose service names, which do not resolve here. Ports are left
+    # alone: ds-control-plane ships on 5461 and ds-identity-hub on 5460.
+    - key: xroad.dataspace.control-plane-provisioning.rpc.host
+      value: "127.0.0.1"
+    - key: xroad.dataspace.identity-hub-provisioning.rpc.host
+      value: "127.0.0.1"
+    - key: xroad.common-global-conf.source
+      value: REMOTE
+    - key: xroad.proxy-ui-api.acme-challenge-port-enabled
+      value: "true"
+    - key: xroad.acme
+      value: |-
+        eab-credentials:
+          certificate-authorities:
+            'Test CA':
+              mac-key-base64-encoded: true
+              members:
+                'DEV:COM:1234':
+                  auth-kid: keyid_2
+                  auth-mac-key: addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625
+                  sign-kid: keyid_3
+                  sign-mac-key: 96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde
+    - key: xroad.mail-notification
+      value: |-
+        host: {{ groups['cs_servers'] | first }}
+        port: 1025
+        username: testusername
+        password: testpassword
+        contacts:
+          'DEV:COM:1234': member1@example.org
+  loop_control:
+    label: "{{ item.key }}"
+
+# Package postinst starts proxy and proxy-ui-api before the seed exists, and the
+# DSL caches its resolution at startup — restart so they pick up the seeded rows.
+- name: restart proxy and proxy-ui-api to resolve the seeded configuration
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - xroad-proxy
+    - xroad-proxy-ui-api

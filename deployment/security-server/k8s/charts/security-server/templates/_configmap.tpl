@@ -10,14 +10,14 @@ data:
   {{- $env := .config.env }}
   {{- /*
   Per-release DSP participant-context-id override (see values.yaml's
-  dsp.participantContextId comment). dict-as-dst wins over $env-as-src in
-  `merge`, so this only takes effect when the value is actually set —
-  otherwise $env's own literal ("security-server" below) passes through unchanged.
+  dsp.participantContextId comment). Only ds-control-plane still reads the
+  identifier from env (an EDC/SmallRye read); the proxy's copy travels as a
+  configSeed row, overridden in init/config-seed-job.yaml. dict-as-dst wins
+  over $env-as-src in `merge`, so this only takes effect when the value is
+  actually set — otherwise $env's own literal ("security-server" below)
+  passes through unchanged.
   */}}
   {{- if .root.Values.dsp.participantContextId }}
-  {{- if eq .service "proxy" }}
-  {{- $env = merge (dict "XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID" .root.Values.dsp.participantContextId) $env }}
-  {{- end }}
   {{- if eq .service "ds-control-plane" }}
   {{- $env = merge (dict "XROAD_DSP_PARTICIPANT_CONTEXT_ID" .root.Values.dsp.participantContextId) $env }}
   {{- end }}

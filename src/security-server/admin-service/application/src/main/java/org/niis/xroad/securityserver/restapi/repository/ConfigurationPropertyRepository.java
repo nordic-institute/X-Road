@@ -63,16 +63,14 @@ public class ConfigurationPropertyRepository extends AbstractRepository<Configur
     }
 
     /**
-     *
-     * Find a configuration property by its key and scope.
+     * Find a configuration property by its key.
      *
      * @param propertyKey the property key
-     * @param scope the property scope
      * @return Optional containing the property if found
      */
-    public Optional<ConfigurationPropertyEntity> findConfigurationPropertyByPropertyKeyAndScope(String propertyKey, String scope) {
+    public Optional<ConfigurationPropertyEntity> findConfigurationPropertyByPropertyKey(String propertyKey) {
         return Optional.ofNullable(configurationPropertyDAO.getConfigurationProperty(
-                persistenceUtils.getCurrentSession(), propertyKey, scope));
+                persistenceUtils.getCurrentSession(), propertyKey));
     }
 
     /**

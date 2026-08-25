@@ -44,11 +44,15 @@ public class CachedDbConfigSource {
     private final Map<String, String> cache;
 
     public CachedDbConfigSource(DbSourceConfig config) {
-        DbSourceRepository repository = initRepository(config);
-        this.cache = new ConcurrentHashMap<>(repository.getProperties());
+        // The values are read once into the cache at construction; the connection pool is only needed for that
+        // single read, so it is closed immediately afterwards (callers build a fresh source per resolution).
+        try (HikariDataSource dataSource = createDataSource(config)) {
+            var repository = new DbSourceRepository(dataSource, config);
+            this.cache = new ConcurrentHashMap<>(repository.getProperties());
+        }
     }
 
-    private DbSourceRepository initRepository(DbSourceConfig config) {
+    private static HikariDataSource createDataSource(DbSourceConfig config) {
         var hikariConfig = new HikariConfig();
         hikariConfig.setMaximumPoolSize(1);
         hikariConfig.setJdbcUrl(config.getUrl());
@@ -59,7 +63,7 @@ public class CachedDbConfigSource {
         ofNullable(config.getAppName()).ifPresent(app ->
                 hikariConfig.addDataSourceProperty("ApplicationName", "%s-db-props".formatted(app)));
 
-        return new DbSourceRepository(new HikariDataSource(hikariConfig), config);
+        return new HikariDataSource(hikariConfig);
     }
 
     public Set<String> getPropertyNames() {

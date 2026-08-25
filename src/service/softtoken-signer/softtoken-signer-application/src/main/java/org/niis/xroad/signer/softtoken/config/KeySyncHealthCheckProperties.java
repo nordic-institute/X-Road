@@ -26,30 +26,27 @@
  */
 package org.niis.xroad.signer.softtoken.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
-/**
- * Configuration properties for softtoken-signer key sync health check thresholds.
- */
-@ConfigMapping(prefix = "xroad.softtoken-signer.health-check.key-sync")
-public interface KeySyncHealthCheckProperties {
+import static org.niis.xroad.signer.softtoken.config.SoftTokenSignerConfigKeys.KEY_SYNC_MAX_CONSECUTIVE_FAILURES;
+import static org.niis.xroad.signer.softtoken.config.SoftTokenSignerConfigKeys.KEY_SYNC_MAX_SYNC_AGE;
 
-    /**
-     * Maximum consecutive sync failures before liveness probe reports DOWN. Default: 3.
-     */
-    @WithName("max-consecutive-failures")
-    @WithDefault("3")
-    int maxConsecutiveFailures();
+/** Configuration properties for softtoken-signer key sync health check thresholds. */
+@RequiredArgsConstructor
+public class KeySyncHealthCheckProperties {
 
-    /**
-     * Maximum duration since last successful sync before readiness probe reports DOWN. Default: 5 minutes.
-     */
-    @WithName("max-sync-age")
-    @WithDefault("5m")
-    Duration maxSyncAge();
+    private final XRoadConfig xRoadConfig;
 
+    /** @return maximum consecutive sync failures before liveness probe reports DOWN */
+    public int maxConsecutiveFailures() {
+        return xRoadConfig.value(KEY_SYNC_MAX_CONSECUTIVE_FAILURES);
+    }
+
+    /** @return maximum duration since last successful sync before readiness probe reports DOWN */
+    public Duration maxSyncAge() {
+        return xRoadConfig.value(KEY_SYNC_MAX_SYNC_AGE);
+    }
 }

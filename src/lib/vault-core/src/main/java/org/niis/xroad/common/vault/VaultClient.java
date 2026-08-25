@@ -29,24 +29,37 @@ package org.niis.xroad.common.vault;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.bouncycastle.openssl.PEMParser.TYPE_CERTIFICATE;
 import static org.bouncycastle.openssl.PEMParser.TYPE_PRIVATE_KEY;
+import static org.bouncycastle.openssl.PEMParser.TYPE_PUBLIC_KEY;
 
 public interface VaultClient {
     String PAYLOAD_KEY = "payload";
     String PRIVATEKEY_KEY = "privateKey";
+    String PUBLICKEY_KEY = "publicKey";
+    String EXPIRES_AT_KEY = "expiresAt";
     String CERTIFICATE_KEY = "certificate";
     String PIN_KEY = "pin";
 
@@ -55,6 +68,7 @@ public interface VaultClient {
     String ADMIN_SERVICE_TLS_CREDENTIALS_PATH = "tls/admin-service";
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
     String CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH = "tls/configuration-proxy";
+    String DS_HTTPS_TLS_CREDENTIALS_PATH = "tls/ds-https";
 
     String MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH = "message-log/archival/pgp/secret-key";
     String MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH = "message-log/archival/pgp/public-keys";
@@ -62,6 +76,8 @@ public interface VaultClient {
     String MLOG_DB_ENCRYPTION_SECRET_KEYS_BASE_PATH = "message-log/database-encryption/keys";
 
     String SIGNER_TOKEN_PINS_BASE_PATH = "signer/token-pins";
+
+    String ACME_ACCOUNT_KEYS_BASE_PATH = "acme/account-keys";
 
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
@@ -82,6 +98,10 @@ public interface VaultClient {
     InternalSSLKey getConfigurationProxyTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
+
+    InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
+
+    void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
 
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
@@ -131,11 +151,39 @@ public interface VaultClient {
      */
     void deleteTokenPin(String tokenId);
 
+    /**
+     * Stores an ACME account key pair and its rotation-expiry timestamp for the given alias.
+     * Aliases are dynamic, derived from an X-Road member ID, so each alias is stored under its own path.
+     *
+     * @param alias alias identifying the account key pair, distinct per member and key purpose
+     * @param acmeAccountKey the key pair and its rotation-expiry timestamp to store
+     */
+    void createAcmeAccountKey(String alias, AcmeAccountKey acmeAccountKey);
+
+    /**
+     * Retrieves the ACME account key pair and its rotation-expiry timestamp for the given alias.
+     *
+     * @param alias alias identifying the account key pair, distinct per member and key purpose
+     * @return the stored key pair and its rotation-expiry timestamp, or empty if none exists yet for this alias
+     */
+    Optional<AcmeAccountKey> getAcmeAccountKey(String alias);
+
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {
             PemObject pemObject = new PemObject(TYPE_PRIVATE_KEY, privateKey.getEncoded());
             pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
+    }
+
+    default String toPem(PublicKey publicKey) {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject(TYPE_PUBLIC_KEY, publicKey.getEncoded());
+            pemWriter.writeObject(pemObject);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
         }
         return stringWriter.toString();
     }
@@ -147,5 +195,53 @@ public interface VaultClient {
             pemWriter.writeObject(pemObject);
         }
         return stringWriter.toString();
+    }
+
+    default PublicKey toPublicKey(String pem) {
+        byte[] derBytes;
+        try (PemReader pemReader = new PemReader(new StringReader(pem))) {
+            PemObject pemObject = pemReader.readPemObject();
+            if (pemObject == null) {
+                throw XrdRuntimeException.systemException(ErrorCode.CRYPTO_ERROR)
+                        .details("Failed to parse PEM-encoded public key")
+                        .build();
+            }
+            derBytes = pemObject.getContent();
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+
+        var keySpec = new X509EncodedKeySpec(derBytes);
+        try {
+            return KeyFactory.getInstance("RSA").generatePublic(keySpec);
+        } catch (GeneralSecurityException rsaFailure) {
+            try {
+                return KeyFactory.getInstance("EC").generatePublic(keySpec);
+            } catch (GeneralSecurityException ecFailure) {
+                throw XrdRuntimeException.systemException(ErrorCode.CRYPTO_ERROR)
+                        .details("Neither RSA nor EC worked for PEM-encoded public key")
+                        .build();
+            }
+        }
+    }
+
+    /**
+     * Builds the KV path for an alias's ACME account key pair, sanitizing the alias into a single,
+     * unambiguous path segment so that no two aliases can collide.
+     *
+     * @param alias alias identifying the account key pair
+     * @return the KV path for the alias
+     */
+    default String getAcmeAccountKeyPath(String alias) {
+        return ACME_ACCOUNT_KEYS_BASE_PATH + "/" + encodeAliasAsPathSegment(alias);
+    }
+
+    private String encodeAliasAsPathSegment(String alias) {
+        if (alias == null || alias.isBlank()) {
+            throw XrdRuntimeException.systemException(ErrorCode.INVALID_CHARACTERS)
+                    .details("ACME account key pair alias must not be blank")
+                    .build();
+        }
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(alias.getBytes(StandardCharsets.UTF_8));
     }
 }

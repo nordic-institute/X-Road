@@ -149,7 +149,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         when(systemService.isAnchorImported()).thenReturn(false);
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         doThrow(new InitializationService.AnchorNotFoundException("err"))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
     }
 
     @Test

@@ -220,22 +220,25 @@ On success the wizard prints `X-Road 8.0 upgrade completed successfully!` and th
 
 Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-step is gated by a sentinel file under `/var/lib/xroad-upgrade/step-<id>.done`, so re-running the wizard after a fix skips already-completed sub-steps automatically. Sub-steps whose source file is absent are skipped with an info log.
 
-| Sub-step                                  | What it migrates                                                                                                                                                                                                                |
-|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `validate`                                | Read-only sanity check: prerequisites and configuration database connectivity. Nothing is written.                                                                                                                              |
-| `configuration-anchor`                    | The configuration anchor XML (path from `local.ini` `proxy.configuration-anchor-file`, default `/etc/xroad/configuration-anchor.xml`) into the configuration database.                                                          |
-| `signer-devices`                          | HSM / signer module declarations from `devices.ini` (path from `local.ini` `signer.device-configuration-file`, default `/etc/xroad/devices.ini`) into the configuration database under the signer scope.                        |
-| `ini-to-db` (per file)                    | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database.                                                                                                                               |
-| `properties-to-db` (ssl)                  | The SSL properties file (path from `local.ini` `proxy-ui-api.ssl-properties`, default `/etc/xroad/ssl.properties`) under the proxy-ui-api scope.                                                                                |
-| `keyconf`                                 | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set.       |
-| `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed.                                                                                          |
-| `file-to-db` (acme)                       | The contents of `/etc/xroad/conf.d/acme.yml` into the configuration database under key `xroad.acme` (proxy-ui-api scope).                                                                                                       |
-| `file-to-db` (mail)                       | The contents of `/etc/xroad/conf.d/mail.yml` into the configuration database under key `xroad.mail-notification` (proxy-ui-api scope).                                                                                          |
-| `pgp-keys`                                | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store.                                             |
-| `messagelog-key-mappings`                 | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database.                                                           |
-| `messagelog-db-encryption-keys`           | The X-Road 7 message-log database encryption key from a PKCS#12 keystore (settings from `local.ini` `[message-log]`: `messagelog-keystore`, `messagelog-keystore-password`, `messagelog-key-id`) into the OpenBao secret store. |
-| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                          |
-| `set-property` (strict identifier checks) | Sets `xroad.proxy.strict-identifier-checks=false` if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                           |
+| Sub-step                                  | What it migrates                                                                                                                                                                                                                             |
+|-------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `validate`                                | Read-only sanity check: prerequisites and configuration database connectivity. Nothing is written.                                                                                                                                           |
+| `configuration-anchor`                    | The configuration anchor XML (path from `local.ini` `proxy.configuration-anchor-file`, default `/etc/xroad/configuration-anchor.xml`) into the configuration database.                                                                       |
+| `signer-devices`                          | HSM / signer module declarations from `devices.ini` (path from `local.ini` `signer.device-configuration-file`, default `/etc/xroad/devices.ini`) into the configuration database under the signer scope.                                     |
+| `ini-to-db` (per file)                    | Each `override-*.ini` then `local.ini` from `/etc/xroad/conf.d/` into the configuration database.                                                                                                                                            |
+| `properties-to-db` (ssl)                  | The SSL properties file (path from `local.ini` `proxy-ui-api.ssl-properties`, default `/etc/xroad/ssl.properties`) under the proxy-ui-api scope.                                                                                             |
+| `keyconf`                                 | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set.                    |
+| `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed.                                                                                                       |
+| `file-to-db` (acme)                       | The contents of `/etc/xroad/conf.d/acme.yml` into the configuration database under key `xroad.acme` (proxy-ui-api scope), with the `account-keystore-password` line stripped first.                                                         |
+| `acme-account-keys`                       | Every alias in the X-Road 7 ACME account keystore (`acme.p12`) into the OpenBao secret store: the key pair plus the alias's existing certificate expiry, carried forward as the rotation-due timestamp. The certificate itself is discarded. |
+| `file-to-db` (mail)                       | The contents of `/etc/xroad/conf.d/mail.yml` into the configuration database under key `xroad.mail-notification` (proxy-ui-api scope).                                                                                                       |
+| `pgp-keys`                                | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store.                                                          |
+| `messagelog-key-mappings`                 | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database.                                                                        |
+| `messagelog-db-encryption-keys`           | The X-Road 7 message-log database encryption key from a PKCS#12 keystore (settings from `local.ini` `[message-log]`: `messagelog-keystore`, `messagelog-keystore-password`, `messagelog-key-id`) into the OpenBao secret store.              |
+| `set-property` (batch signing)            | Sets `xroad.proxy.batch-signing-enabled=true` only if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                                       |
+| `set-property` (strict identifier checks) | Sets `xroad.proxy.strict-identifier-checks=false` if the operator chose to preserve the X-Road 7 behavior. See [Operator choices](#operator-choices).                                                                                        |
+
+`account-keystore-password` is not carried into the `xroad.acme` database value: X-Road 8 has no code path that reads it back out, so the wizard writes a scrubbed copy of `acme.yml` to the database and leaves the file on disk unchanged. If you inspect `xroad.acme` after migration and expect to see that field, this is why it's missing.
 
 Inspect the wizard log for any Java stack traces. Migration-CLI sub-commands sometimes return exit 0 even after an internal exception; the wizard scans the output and treats any line matching `Error `, `Caused by:`, `Exception in `, or `<Class>Exception:` as a failure.
 
@@ -267,6 +270,9 @@ Two migration sub-steps require credentials. The wizard does not prescribe how t
 |------------------------------------------------|---------------------------------------------------------------------------------|------------------------------------------|
 | `XROAD_MIGRATION_SOFTTOKEN_PIN`                | A soft token keystore exists at `/etc/xroad/signer/softtoken/.softtoken.p12`    | `keyconf` sub-step                       |
 | `XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD` | `message-log.messagelog-keystore` in `local.ini` points to an existing keystore | `messagelog-db-encryption-keys` sub-step |
+| `XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD`       | `/etc/xroad/ssl/acme.p12` exists (value comes from the old `acme.yml`)          | `acme-account-keys` sub-step             |
+
+If your X-Road 7 keystore password was supplied via the `ACCOUNT_KEYSTORE_PASSWORD` environment variable rather than `acme.yml`'s `account-keystore-password` field, export `ACCOUNT_KEYSTORE_PASSWORD` in the shell running the wizard — the wizard falls back to it when `acme.yml` doesn't have the field, matching X-Road 7's own lookup order.
 
 Common delivery options:
 
@@ -434,6 +440,11 @@ java -jar /var/tmp/migration-cli.jar signer-token-pins
 
 java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/acme.yml /etc/xroad/db.properties xroad.acme              proxy-ui-api
 java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/mail.yml /etc/xroad/db.properties xroad.mail-notification proxy-ui-api
+
+# Only if an ACME account keystore exists
+XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD='<pw>' \
+  java -jar /var/tmp/migration-cli.jar acme-account-keys /etc/xroad/ssl/acme.p12
+
 java -jar /var/tmp/migration-cli.jar pgp-keys                /etc/xroad/conf.d/local.ini
 java -jar /var/tmp/migration-cli.jar messagelog-key-mappings <mapping-file>  /etc/xroad/db.properties
 XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD='<pw>' \

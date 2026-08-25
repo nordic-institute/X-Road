@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.6
+Version: 1.7
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -14,6 +14,7 @@ Doc. ID: UG-K-SS-SEC-SIDECAR
 | 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets             |
 | 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
 | 26.03.2025 | 1.6     | Syntax and styling                           | Pauline Dimmek            |
+| 18.08.2026 | 1.7     | Add relationship to other security guides    | Petteri Kivimäki          |
 
 ## License
 
@@ -26,6 +27,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 - [Table of contents](#table-of-contents)
 - [1 Introduction](#1-introduction)
   - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Relationship to other security guides](#12-relationship-to-other-security-guides)
 - [2 Reference Data](#2-reference-data)
 - [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
   - [3.1 Secrets as volume](#31-secrets-as-volume)
@@ -55,6 +57,20 @@ This User Guide is meant for X-Road Security Server system administrators respon
 
 This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md).
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes (including it's cloud provider's specialties (Amazon EKS or Azure AKS)) and X-Road.
+
+### 1.2 Relationship to other security guides
+
+Securing a Security Server Sidecar running in Kubernetes involves three layers, each with its own guide. All three apply; none replaces another.
+
+| Layer     | What it covers                                                                                                                                                                                                                            | Guide |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ----- |
+| X-Road    | The Security Server software itself: software token PIN policy, backup encryption, message log and archive protection, audit log forwarding, minimum supported client Security Server version, trust in the global configuration endpoint | [X-Road: Security hardening guidelines](../Manuals/ug-sec_x_road_security_hardening.md) |
+| Container | The container runtime and, where present, the Docker host and daemon                                                                                                                                                                      | [Security Server Sidecar Security Guide](security_server_sidecar_security_guide.md) |
+| Cluster   | Kubernetes secrets, cluster and namespace access, network policies, pod security, resource limits — this document                                                                                                                         | This guide |
+
+The X-Road controls are properties of the Security Server rather than of the platform, so they apply to a Sidecar in a cluster exactly as they do to a Security Server installed from native packages. **Applying only this guide leaves the Security Server itself unhardened**: nothing here enables a token PIN policy, encrypts a backup or forwards an audit log.
+
+Where this guide and the container guide overlap — handling passwords and secrets, user accounts, network restrictions, resource limits — this document gives the Kubernetes-native mechanism and takes precedence for a cluster deployment.
 
 ## 2 Reference Data
 

@@ -39,6 +39,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.auxiliaryservice.core.config.MessageLogEnabledProperties;
 import org.niis.xroad.auxiliaryservice.core.config.MessageLogJobsProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
@@ -50,14 +51,14 @@ public class MessageLogArchiveJob {
 
     private final Scheduler scheduler;
     private final MessageLogJobsProperties properties;
+    private final MessageLogEnabledProperties messageLogEnabledProperties;
     private final BlockingProcessRunner blockingProcessRunner;
     private final GlobalConfProvider globalConfProvider;
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
-        if (StringUtils.isNotBlank(properties.archiveCron())
-                && !SchedulerUtils.isOff(properties.archiveCron())) {
+        if (isEnabled()) {
             log.info("Scheduling message log archival with cron expression: '{}'", properties.archiveCron());
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(properties.archiveCron())
@@ -70,7 +71,25 @@ public class MessageLogArchiveJob {
         }
     }
 
+    void executeOnShutdown() {
+        if (isEnabled()) {
+            execute();
+        } else {
+            log.info("Message log archival job is disabled, skipping cleanup on shutdown.");
+        }
+    }
+
+    private boolean isEnabled() {
+        return messageLogEnabledProperties.isEnabled()
+                && StringUtils.isNotBlank(properties.archiveCron())
+                && !SchedulerUtils.isOff(properties.archiveCron());
+    }
+
     private void execute(ScheduledExecution execution) {
+        execute();
+    }
+
+    private void execute() {
         try {
             log.info("Executing message log archival");
             var result = blockingProcessRunner

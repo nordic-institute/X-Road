@@ -70,6 +70,8 @@ include("common:common-pgp")
 
 // Lib projects
 include("lib")
+include("lib:acme-core")
+include("lib:acme-spring")
 include("lib:asic-core")
 include("lib:bootstrap-edc-quarkus")
 include("lib:edc-rpc")
@@ -92,6 +94,7 @@ include("lib:vault-core")
 include("lib:vault-spring")
 include("lib:vault-quarkus")
 include("lib:health-check-core")
+include("lib:ds-identity-core")
 
 // Service projects
 include("service")

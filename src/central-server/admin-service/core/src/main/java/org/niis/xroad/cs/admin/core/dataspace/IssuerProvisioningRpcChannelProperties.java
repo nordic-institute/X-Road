@@ -31,11 +31,5 @@ import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 /**
  * Channel properties for the gRPC client to the (CS-collocated) issuer provisioning service.
  */
-@SuppressWarnings("checkstyle:InterfaceIsType")
 public interface IssuerProvisioningRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.dataspace.issuer-provisioning.rpc";
-
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "5460";
-    String DEFAULT_DEADLINE_AFTER = "60000";
 }

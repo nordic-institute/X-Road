@@ -29,9 +29,10 @@ package org.niis.xroad.securityserver.restapi.config;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
-import org.niis.xroad.common.properties.DefaultTlsProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.restapi.auth.AllowListConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -40,17 +41,14 @@ import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.securityserver.restapi.acme.AcmeConfig;
 import org.niis.xroad.securityserver.restapi.mail.NotificationConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
 
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.domain.Role.XROAD_REGISTRATION_OFFICER;
 import static org.niis.xroad.restapi.domain.Role.XROAD_SECURITYSERVER_OBSERVER;
 import static org.niis.xroad.restapi.domain.Role.XROAD_SECURITY_OFFICER;
@@ -58,13 +56,9 @@ import static org.niis.xroad.restapi.domain.Role.XROAD_SERVICE_ADMINISTRATOR;
 import static org.niis.xroad.restapi.domain.Role.XROAD_SYSTEM_ADMINISTRATOR;
 
 /**
- * Admin service configuration properties.
+ * Admin service configuration properties, resolved through {@link XRoadConfig}
+ * (DB overrides + packaged DSL defaults) via {@link AdminServiceConfigKeys}.
  */
-@Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "xroad.proxy-ui-api")
-@Getter
-@Setter
-@SuppressWarnings("checkstyle:MagicNumber")
 public class AdminServiceProperties implements IpThrottlingFilterConfig,
         AllowedHostnamesConfig,
         ApiCachingConfiguration.Config,
@@ -77,141 +71,248 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         AllowListConfig,
         UserAuthenticationConfig {
 
-    /**
-     * Controls how many requests from an IP address are allowed per minute.
-     * Normally security servers should have a unique address and send second
-     * one management request, so this value can be low.
-     * To disable this feature, set this value to -1.
-     */
-    private int rateLimitRequestsPerSecond;
+    private final XRoadConfig config;
 
-    /**
-     * Controls how many requests from an IP address are allowed per minute.
-     * Normally security servers should have a unique address and send just
-     * one management request, so this value can be low.
-     * To disable this feature, set this value to -1.
-     */
-    private int rateLimitRequestsPerMinute;
+    @Getter
+    private Dataspace dataspace = new Dataspace();
 
-    /**
-     * Controls how many IP addresses can be remembered in the rate-limit cache
-     * Tradeoff between memory usage and protection from a large attack.
-     */
-    private int rateLimitCacheSize;
+    public AdminServiceProperties(XRoadConfig config) {
+        this.config = config;
+    }
 
-    /**
-     * Controls how long the rate-limit cache entries are valid.
-     */
-    private int rateLimitExpireAfterAccessMinutes;
+    @Override
+    public boolean isRateLimitEnabled() {
+        return config.value(AdminServiceConfigKeys.RATE_LIMIT_ENABLED);
+    }
 
-    /**
-     * Determines which hostnames are allowed. Any hostname is allowed when left unspecified.
-     */
-    private List<String> allowedHostnames;
+    @Override
+    public int getRateLimitRequestsPerSecond() {
+        return config.value(AdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND);
+    }
 
-    /**
-     * Configures default cache expiration in seconds. Can be used by various api services.
-     * Setting the value to -1 disables the cache.
-     */
-    private int cacheDefaultTtl;
+    @Override
+    public int getRateLimitRequestsPerMinute() {
+        return config.value(AdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE);
+    }
 
-    /**
-     * Configures Api key cache expiration in seconds. Cache is hit during authentication requests.
-     * Setting the value to -1 disables the cache.
-     */
-    private int cacheApiKeyTtl;
+    @Override
+    public int getRateLimitCacheSize() {
+        return config.value(AdminServiceConfigKeys.RATE_LIMIT_CACHE_SIZE);
+    }
 
-    /**
-     * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
-     * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
-     * incompatible identifier.
-     */
-    private boolean strictIdentifierChecks;
-    /**
-     * Configures Api regular request size limit.
-     */
-    private DataSize requestSizeLimitRegular;
+    @Override
+    public int getRateLimitExpireAfterAccessMinutes() {
+        return config.value(AdminServiceConfigKeys.RATE_LIMIT_EXPIRE_AFTER_ACCESS_MINUTES);
+    }
 
-    /**
-     * Configures Api file upload request size limit.
-     */
-    private DataSize requestSizeLimitBinaryUpload;
+    @Override
+    public List<String> getAllowedHostnames() {
+        return optionalList(config.value(AdminServiceConfigKeys.ALLOWED_HOSTNAMES));
+    }
 
-    /**
-     * Configures additional UNIX groups mapped to X-Road user roles.
-     */
-    private EnumMap<Role, List<String>> complementaryUserRoleMappings;
+    public List<String> getReservedServiceCodes() {
+        return optionalList(config.value(AdminServiceConfigKeys.RESERVED_SERVICE_CODES));
+    }
 
-    /**
-     * Algorithm that will be used when creating authentication certificate.
-     */
-    private KeyAlgorithm authenticationKeyAlgorithm;
-    /**
-     * Algorithm that will be used when creating signing certificate.
-     */
-    private KeyAlgorithm signingKeyAlgorithm;
+    @Override
+    public int getCacheDefaultTtl() {
+        return config.value(AdminServiceConfigKeys.CACHE_DEFAULT_TTL);
+    }
 
-    private AuthenticationProviderType authenticationProvider;
+    @Override
+    public int getCacheApiKeyTtl() {
+        return config.value(AdminServiceConfigKeys.CACHE_API_KEY_TTL);
+    }
 
-    private boolean enforceUserPasswordPolicy;
+    @Override
+    public boolean isStrictIdentifierChecks() {
+        return config.value(AdminServiceConfigKeys.STRICT_IDENTIFIER_CHECKS);
+    }
 
-    /**
-     * whether automatic update of timestamp service URLs is enabled, 'false' by default.
-     */
-    private boolean autoUpdateTimestampServiceUrl;
+    @Override
+    public DataSize getRequestSizeLimitRegular() {
+        return DataSize.parse(config.value(AdminServiceConfigKeys.REQUEST_SIZE_LIMIT_REGULAR));
+    }
 
-    /**
-     * whether to automatically activate new authentication certificates after they have been registered on the Central Server.
-     */
-    private boolean automaticActivateAuthCertificate;
+    @Override
+    public DataSize getRequestSizeLimitBinaryUpload() {
+        return DataSize.parse(config.value(AdminServiceConfigKeys.REQUEST_SIZE_LIMIT_BINARY_UPLOAD));
+    }
 
-    private boolean acmeRenewalSuccessNotificationEnabled;
-    private boolean acmeRenewalFailureNotificationEnabled;
-    private boolean authCertRegisteredNotificationEnabled;
-    private boolean certAutoActivationNotificationEnabled;
-    private boolean certAutoActivationFailureNotificationEnabled;
+    @Override
+    public KeyAlgorithm getAuthenticationKeyAlgorithm() {
+        return KeyAlgorithm.valueOf(config.value(AdminServiceConfigKeys.AUTHENTICATION_KEY_ALGORITHM));
+    }
 
-    /** Locale for mail notifications, which determines the language of the notifications.
-     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
-    private String mailNotificationLocale;
+    @Override
+    public KeyAlgorithm getSigningKeyAlgorithm() {
+        return KeyAlgorithm.valueOf(config.value(AdminServiceConfigKeys.SIGNING_KEY_ALGORITHM));
+    }
 
-    private boolean acmeRenewalActive;
-    private int acmeRenewalRetryDelay;
-    private int acmeRenewalInterval;
-    private int acmeRenewalTimeBeforeExpirationDate;
-    private int acmeKeypairRenewalTimeBeforeExpirationDate;
-    private boolean automaticActivateAcmeSignCertificate;
-    private int acmeAuthorizationWaitAttempts;
-    private int acmeAuthorizationWaitInterval;
-    private int acmeCertificateWaitAttempts;
-    private int acmeCertificateWaitInterval;
-    private int acmeCertificateAccountKeyPairExpiration;
-    private boolean acmeChallengePortEnabled;
-    private int acmeChallengePort;
-    private int acmeKeyLength;
-    private String acmeAccountKeystorePath;
-    private String acmeChallengePath;
+    @Override
+    public AuthenticationProviderType getAuthenticationProvider() {
+        return AuthenticationProviderType.valueOf(config.value(AdminServiceConfigKeys.AUTHENTICATION_PROVIDER));
+    }
 
-    // whether generating CSR is allowed for with existing certificate, 'false' by default
-    private boolean allowCsrForKeyWithCertificate;
+    @Override
+    public boolean isEnforceUserPasswordPolicy() {
+        return config.value(AdminServiceConfigKeys.ENFORCE_USER_PASSWORD_POLICY);
+    }
 
-    // signature digest algorithm ID used for generating authentication certificate registration request
-    private String authCertRegSignatureDigestAlgorithmId;
+    public boolean isAutoUpdateTimestampServiceUrl() {
+        return config.value(AdminServiceConfigKeys.AUTO_UPDATE_TIMESTAMP_SERVICE_URL);
+    }
 
-    private String proxyServerUrl;
-    private int proxyServerConnectTimeout;
-    private int proxyServerSocketTimeout;
-    private boolean proxyServerEnableConnectionReuse;
-    private String[] proxyTlsProtocols = DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS;
-    private String[] proxyTlsCipherSuites = DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
+    public boolean isAutomaticActivateAuthCertificate() {
+        return config.value(AdminServiceConfigKeys.AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE);
+    }
 
-    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
-    private String keyManagementApiWhitelist;
-    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
-    private String regularApiWhitelist;
+    @Override
+    public boolean isAcmeRenewalSuccessNotificationEnabled() {
+        return config.value(AdminServiceConfigKeys.ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED);
+    }
 
-    /** Path to configurable properties yaml file */
-    private String configurablePropertiesPath;
+    @Override
+    public boolean isAcmeRenewalFailureNotificationEnabled() {
+        return config.value(AdminServiceConfigKeys.ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED);
+    }
+
+    @Override
+    public boolean isAuthCertRegisteredNotificationEnabled() {
+        return config.value(AdminServiceConfigKeys.AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED);
+    }
+
+    @Override
+    public boolean isCertAutoActivationNotificationEnabled() {
+        return config.value(AdminServiceConfigKeys.CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED);
+    }
+
+    @Override
+    public boolean isCertAutoActivationFailureNotificationEnabled() {
+        return config.value(AdminServiceConfigKeys.CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED);
+    }
+
+    @Override
+    public String getMailNotificationLocale() {
+        return config.value(AdminServiceConfigKeys.MAIL_NOTIFICATION_LOCALE);
+    }
+
+    @Override
+    public boolean isAcmeRenewalActive() {
+        return config.value(AdminServiceConfigKeys.ACME_RENEWAL_ACTIVE);
+    }
+
+    @Override
+    public int getAcmeRenewalRetryDelay() {
+        return config.value(AdminServiceConfigKeys.ACME_RENEWAL_RETRY_DELAY);
+    }
+
+    @Override
+    public int getAcmeRenewalInterval() {
+        return config.value(AdminServiceConfigKeys.ACME_RENEWAL_INTERVAL);
+    }
+
+    @Override
+    public int getAcmeRenewalTimeBeforeExpirationDate() {
+        return config.value(AdminServiceConfigKeys.ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE);
+    }
+
+    @Override
+    public int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
+        return config.value(AdminServiceConfigKeys.ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE);
+    }
+
+    @Override
+    public boolean isAutomaticActivateAcmeSignCertificate() {
+        return config.value(AdminServiceConfigKeys.AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE);
+    }
+
+    @Override
+    public int getAcmeAuthorizationWaitAttempts() {
+        return config.value(AdminServiceConfigKeys.ACME_AUTHORIZATION_WAIT_ATTEMPTS);
+    }
+
+    @Override
+    public int getAcmeAuthorizationWaitInterval() {
+        return config.value(AdminServiceConfigKeys.ACME_AUTHORIZATION_WAIT_INTERVAL);
+    }
+
+    @Override
+    public int getAcmeCertificateWaitAttempts() {
+        return config.value(AdminServiceConfigKeys.ACME_CERTIFICATE_WAIT_ATTEMPTS);
+    }
+
+    @Override
+    public int getAcmeCertificateWaitInterval() {
+        return config.value(AdminServiceConfigKeys.ACME_CERTIFICATE_WAIT_INTERVAL);
+    }
+
+    @Override
+    public int getAcmeCertificateAccountKeyPairExpiration() {
+        return config.value(AdminServiceConfigKeys.ACME_CERTIFICATE_ACCOUNT_KEY_PAIR_EXPIRATION);
+    }
+
+    @Override
+    public boolean isAcmeChallengePortEnabled() {
+        return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PORT_ENABLED);
+    }
+
+    @Override
+    public int getAcmeChallengePort() {
+        return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PORT);
+    }
+
+    @Override
+    public int getAcmeKeyLength() {
+        return config.value(AdminServiceConfigKeys.ACME_KEY_LENGTH);
+    }
+
+    @Override
+    public String getAcmeChallengePath() {
+        return config.value(AdminServiceConfigKeys.ACME_CHALLENGE_PATH);
+    }
+
+    public boolean isAllowCsrForKeyWithCertificate() {
+        return config.value(AdminServiceConfigKeys.ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE);
+    }
+
+    public String getAuthCertRegSignatureDigestAlgorithmId() {
+        return config.value(AdminServiceConfigKeys.AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID);
+    }
+
+    public String getProxyServerUrl() {
+        return config.value(AdminServiceConfigKeys.PROXY_SERVER_URL);
+    }
+
+    public int getProxyServerConnectTimeout() {
+        return config.value(AdminServiceConfigKeys.PROXY_SERVER_CONNECT_TIMEOUT);
+    }
+
+    public int getProxyServerSocketTimeout() {
+        return config.value(AdminServiceConfigKeys.PROXY_SERVER_SOCKET_TIMEOUT);
+    }
+
+    public boolean isProxyServerEnableConnectionReuse() {
+        return config.value(AdminServiceConfigKeys.PROXY_SERVER_ENABLE_CONNECTION_REUSE);
+    }
+
+    public String[] getProxyTlsProtocols() {
+        return config.value(AdminServiceConfigKeys.PROXY_TLS_PROTOCOLS);
+    }
+
+    public String[] getProxyTlsCipherSuites() {
+        return config.value(AdminServiceConfigKeys.PROXY_TLS_CIPHER_SUITES);
+    }
+
+    @Override
+    public String getKeyManagementApiWhitelist() {
+        return config.value(AdminServiceConfigKeys.KEY_MANAGEMENT_API_WHITELIST);
+    }
+
+    @Override
+    public String getRegularApiWhitelist() {
+        return config.value(AdminServiceConfigKeys.REGULAR_API_WHITELIST);
+    }
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
@@ -222,28 +323,62 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         userRoleMappings.put(XROAD_SYSTEM_ADMINISTRATOR, List.of("xroad-system-administrator"));
         userRoleMappings.put(XROAD_SECURITYSERVER_OBSERVER, List.of("xroad-securityserver-observer"));
 
-        if (complementaryUserRoleMappings != null) {
-            complementaryUserRoleMappings.forEach((role, groups) -> userRoleMappings.merge(role, groups,
-                    (a, b) -> Stream.concat(a.stream(), b.stream()).collect(toList())));
-        }
+        complementaryMappings(config).forEach((role, groups) -> userRoleMappings.merge(role, groups,
+                (a, b) -> Stream.concat(a.stream(), b.stream()).toList()));
 
         return userRoleMappings;
     }
 
-    private Dataspace dataspace = new Dataspace();
+    private static EnumMap<Role, List<String>> complementaryMappings(XRoadConfig config) {
+        EnumMap<Role, List<String>> mappings = new EnumMap<>(Role.class);
+        putIfNotEmpty(mappings, XROAD_SECURITY_OFFICER, config.value(AdminServiceConfigKeys.COMPLEMENTARY_ROLE_SECURITY_OFFICER));
+        putIfNotEmpty(mappings, XROAD_REGISTRATION_OFFICER, config.value(AdminServiceConfigKeys.COMPLEMENTARY_ROLE_REGISTRATION_OFFICER));
+        putIfNotEmpty(mappings, XROAD_SERVICE_ADMINISTRATOR, config.value(AdminServiceConfigKeys.COMPLEMENTARY_ROLE_SERVICE_ADMINISTRATOR));
+        putIfNotEmpty(mappings, XROAD_SYSTEM_ADMINISTRATOR, config.value(AdminServiceConfigKeys.COMPLEMENTARY_ROLE_SYSTEM_ADMINISTRATOR));
+        putIfNotEmpty(mappings, XROAD_SECURITYSERVER_OBSERVER,
+                config.value(AdminServiceConfigKeys.COMPLEMENTARY_ROLE_SECURITYSERVER_OBSERVER));
+        putIfNotEmpty(mappings, Role.XROAD_MANAGEMENT_SERVICE, config.value(AdminServiceConfigKeys.COMPLEMENTARY_ROLE_MANAGEMENT_SERVICE));
+        return mappings;
+    }
+
+    private static void putIfNotEmpty(EnumMap<Role, List<String>> mappings, Role role, String[] groups) {
+        List<String> values = Arrays.stream(groups).filter(group -> !group.isBlank()).toList();
+        if (!values.isEmpty()) {
+            mappings.put(role, values);
+        }
+    }
+
+    private static List<String> optionalList(String[] values) {
+        return values == null ? null : Arrays.stream(values).filter(value -> !value.isBlank()).toList();
+    }
 
     /**
      * Data space (EDC) membership credential provisioning configuration.
      */
-    @Getter
-    @Setter
-    public static class Dataspace {
-        private String identityHubUrl;
-        private String participantId;
-        private String issuerDid;
-        private String credentialDefinitionId = "xroad-membership-credential-definition";
-        private int maxHolderPidSlots = 20;
+    public class Dataspace {
+        public boolean isEnabled() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_ENABLED);
+        }
+
+        public String getIdentityHubUrl() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_URL);
+        }
+
+        public String getParticipantId() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_ID);
+        }
+
+        public String getIssuerDid() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_ISSUER_DID);
+        }
+
+        public String getCredentialDefinitionId() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_CREDENTIAL_DEFINITION_ID);
+        }
+
+        public int getMaxHolderPidSlots() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_MAX_HOLDER_PID_SLOTS);
+        }
     }
 
 }
-

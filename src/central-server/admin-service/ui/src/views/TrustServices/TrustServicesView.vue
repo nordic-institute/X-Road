@@ -29,6 +29,8 @@
     <CertificationServicesList />
 
     <TimestampingServicesList v-if="showTsaList" class="mt-4" />
+
+    <DsTlsCertificationAuthoritiesList v-if="showDsTlsCertificationAuthoritiesList" class="mt-4" />
   </XrdView>
 </template>
 
@@ -39,8 +41,10 @@ import { Permissions } from '@/global';
 import { XrdView } from '@niis/shared-ui';
 import TimestampingServicesList from './TimestampingServices/TimestampingServicesList.vue';
 import CertificationServicesList from '@/views/TrustServices/CertificationServices/CertificationServicesList.vue';
+import DsTlsCertificationAuthoritiesList from '@/views/TrustServices/DsTlsCertificationAuthorities/DsTlsCertificationAuthoritiesList.vue';
 
 const { hasPermission } = useUser();
 const showTsaList = computed(() => hasPermission(Permissions.VIEW_APPROVED_TSAS));
+const showDsTlsCertificationAuthoritiesList = computed(() => hasPermission(Permissions.VIEW_APPROVED_DS_TLS_CAS));
 </script>
 <style lang="scss" scoped></style>

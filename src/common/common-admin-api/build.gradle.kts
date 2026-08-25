@@ -35,6 +35,7 @@ dependencies {
 
     implementation(libs.jakarta.validationApi)
     implementation(libs.apache.tikaCore)
+    implementation(libs.apache.commonsCompress)
 
     api("com.github.ben-manes.caffeine:caffeine")
 

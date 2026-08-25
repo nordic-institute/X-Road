@@ -27,19 +27,10 @@
 
 package org.niis.xroad.globalconf.impl.ocsp;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-
-import static org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties.MAPPING_PREFIX;
-
-@ConfigMapping(prefix = MAPPING_PREFIX)
 public interface OcspVerifierProperties {
     String MAPPING_PREFIX = "xroad.common-ocsp-verifier";
     String DEFAULT_OCSP_VERIFIER_CACHE_PERIOD = "60";
 
-    @WithName("cache-period")
-    @WithDefault(DEFAULT_OCSP_VERIFIER_CACHE_PERIOD)
     int cachePeriod();
 
 }

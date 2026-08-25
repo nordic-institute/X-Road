@@ -26,7 +26,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-ansible-galaxy collection install -r requirements.yml
+ansible-galaxy collection install -r requirements.yml --force
 ```
 
 Keep the venv activated when running ansible-playbook directly. `scripts/env-k8s/_common.sh` auto-activates `.venv/` if present, so new shells don't need the manual `source`.

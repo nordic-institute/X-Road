@@ -9,4 +9,6 @@ dependencies {
   api(project(":lib:vault-core"))
   api("org.springframework.cloud:spring-cloud-starter-vault-config")
   implementation(libs.microprofile.config.api)
+
+  testImplementation(libs.assertj.core)
 }

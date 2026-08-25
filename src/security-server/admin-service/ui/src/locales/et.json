@@ -376,9 +376,6 @@
     "acme": {
       "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
       "account_key_pair_error": "Võtmepaari hankimine ACME serveri kontole ebaõnnestus",
-      "account_keystore_password_missing": "ACME konto võtmehoidla parool puudub acme.yml konfiguratsioonifailis",
-      "acme_yaml_missing": "ACME konfiguratsioonifail acme.yml puudub",
-      "acme_yaml_account_keystore_password_update_error": "ACME konto võtmehoidla parooli uuendamine acme.yml konfiguratsioonifailis ebaõnnestus",
       "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
       "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",
       "certificate_failure": "Sertifikaadi hankimine ACME serverilt ebaõnnestus",
@@ -623,6 +620,7 @@
     "noPermission": "See turvaserver pole hetkel lähtestatud, algkonfigureerimiseks võtke ühendust administraatoriga",
     "pin": {
       "confirmPin": "Kinnita PIN",
+      "enableAutologin": "Luba krüptomooduli automaatne sisselogimine",
       "info1": "Tarkvaraline krüptomoodul on koht, kuhu on salvestatud turvaserveri AUTH võtmed. Tarkvaralisse krüptomoodulisse sisselogimiseks määrake PIN.",
       "info2": "Kõik vajalik teave on kogutud, turvaserveri lähtestamiseks vajutage esitamise nuppu.",
       "info3": "Pärast lähtestamist tuleb turvaserveri konfigureerimine lõpule viia – klõpsake lihtsalt konfigureerimise nuppu hüpikteates, mis ilmub mõne hetke jooksul.",
@@ -1032,13 +1030,12 @@
             "automatic-activate-acme-sign-certificate": "Kui lubatud, aktiveeritakse allkirjastamissertifikaadid automaatselt, kui need on ACME kaudu tellitud (uus või uuendamine).",
             "acme-authorization-wait-attempts": "Katsete arv, et kontrollida, kas ACME autoriseeringud on lõpetatud, enne loobumist.",
             "acme-authorization-wait-interval": "Ooteaeg millisekundites ACME autoriseeringu lõpuleviimise kontrollkatsete vahel.",
-            "acme-certification-wait-attempts": "Katsete arv ACME sertifikaadi väljastamise küsitlemiseks.",
-            "acme-certification-wait-interval": "Sekundid ACME sertifikaadi väljastamise küsitlemiskatsete vahel.",
+            "acme-certificate-wait-attempts": "Katsete arv ACME sertifikaadi väljastamise küsitlemiseks.",
+            "acme-certificate-wait-interval": "Sekundid ACME sertifikaadi väljastamise küsitlemiskatsete vahel.",
             "acme-certificate-account-key-pair-expiration": "Päevade arv, mille jooksul ACME serveri konto iseallkirjastatud sertifikaat kehtib.",
             "acme-challenge-port-enabled": "Kui lubatud, kuulab API ACME väljakutse pordil (vaikimisi 80) sissetulevaid ACME väljakutse päringuid.",
             "acme-challenge-port": "Kohandatud pordi number ACME väljakutsetele. Kui seadistatud, peab turvaserveri hosti port 80 suunama sellele pordile, kuna ACME serverid kasutavad alati port 80 väljakutse jaoks.",
             "acme-key-length": "RSA võtme pikkus bittides, mida kasutatakse ACME sertifikaadi taotlustes.",
-            "acme-account-keystore-path": "Faili süsteemi tee võtmehoidlasse, mis hoiab ACME konto võtmepaari.",
             "acme-challenge-path": "Faili süsteemi tee, kust ACME HTTP-01 väljakutse tokeneid teenindatakse.",
             "allow-csr-for-key-with-certificate": "Määrab, kas uue CSR genereerimine on lubatud võtme jaoks, millel on olemasolev sertifikaat.",
             "auth-cert-reg-signature-digest-algorithm-id": "Allkirja räsialgoritm, mida kasutatakse autentimissertifikaadi registreerimistaotluse genereerimisel. Võimalikud väärtused on – SHA-256, SHA-384, SHA-512.",
@@ -1050,7 +1047,6 @@
             "proxy-tls-cipher-suites": "TLS šifreeringupaketid, mida aktsepteeritakse Admin API puhverserveri ühendusel.",
             "key-management-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda võtmehalduse lõpp-punkte põhiautentimisega.",
             "regular-api-whitelist": "Komaga eraldatud loend lihtsatest IP-aadressidest või aadressivahemikest CIDR tähistuses, millel on lubatud kutsuda tavalisi lõpp-punkte API võtme autentimisega.",
-            "configurable-properties-path": "Klassirada või failitee konfigureeritavate omaduste YAML-failini.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Vault PKI rolli nimi, mida kasutatakse Admin API TLS sertifikaadi ettevalmistamisel.",
@@ -1068,7 +1064,6 @@
             "health-check-port": "TCP port, kus tervisekontrolli teenus kuulab päringuid. Pordi seadistamine väärtusele 0 keelab tervisekontrolli teenuse täielikult.",
             "health-check-interface": "Võrguliides, kus tervisekontrolli teenus kuulab päringuid. Vaikimisi kõik saadaolevad liidesed.",
             "hsm-health-check-enabled": "Kui lubatud, kontrollib tervisekontrolli lõpp-punkt ka HSM kättesaadavust.",
-            "memory-usage-threshold": "Maksimaalne lubatud protsent (0-100) puhverserveri mälukasutusest enne tervisekontrolli ebaõnnestumist. Keelamiseks jäta tühjaks.",
             "message-sign-digest-name": "Räsialgoritm, mida kasutatakse X-Road sõnumite allkirjastamiseks.",
             "verify-client-cert": "Kui lubatud, kontrollib serveri puhverserver kliendi puhverserveri TLS sertifikaati.",
             "log-client-cert": "Kas logida kliendi sertifikaadi teema teavet.",
@@ -1390,6 +1385,11 @@
             "db": {
               "encryption-enabled": "Kui lubatud, salvestatakse sõnumite kehad andmebaasi krüptitud kujul.",
               "key-id": "Andmebaasitasemel sõnumilogi krüptimiseks kasutatava krüptimisvõtme identifikaator."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Maksimaalne lubatud protsent (0-100) mälukasutusest enne tervisekontrolli ebaõnnestumist. Kui väärtus puudub, ei ebaõnnestu kontroll kunagi; konteinerites on vaikeväärtus 95."
             }
           },
           "common": {

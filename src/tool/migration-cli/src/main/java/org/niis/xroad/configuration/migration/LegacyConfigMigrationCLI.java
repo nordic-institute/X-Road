@@ -30,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.migration.acme.AcmeAccountKeyMigrator;
 import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
 import org.niis.xroad.migration.pgp.PgpKeyMigrator;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
@@ -61,6 +62,7 @@ public class LegacyConfigMigrationCLI {
         PGP_KEYS("pgp-keys", "Migrate PGP keys from GPG to Vault"),
         MESSAGELOG_DB_ENCRYPTION_KEYS("messagelog-db-encryption-keys", "Migrate message log database encryption keys from P12 to Vault"),
         MESSAGELOG_KEY_MAPPINGS("messagelog-key-mappings", "Migrate message log key-mapping INI file to DB"),
+        ACME_ACCOUNT_KEYS("acme-account-keys", "Migrate ACME account key pairs from P12 keystore to Vault"),
         KEYCONF("keyconf", "Migrate signer key configuration to DB"),
         SIGNER_TOKEN_PINS("signer-token-pins", "Migrate signer token PINs from autologin scripts to Vault"),
         SIGNER_DEVICES("signer-devices", "Migrate signer devices.ini to DB"),
@@ -86,6 +88,7 @@ public class LegacyConfigMigrationCLI {
                 case "pgp-keys" -> PGP_KEYS;
                 case "messagelog-db-encryption-keys" -> MESSAGELOG_DB_ENCRYPTION_KEYS;
                 case "messagelog-key-mappings" -> MESSAGELOG_KEY_MAPPINGS;
+                case "acme-account-keys" -> ACME_ACCOUNT_KEYS;
                 case "keyconf" -> KEYCONF;
                 case "signer-token-pins" -> SIGNER_TOKEN_PINS;
                 case "signer-devices" -> SIGNER_DEVICES;
@@ -120,6 +123,7 @@ public class LegacyConfigMigrationCLI {
                 case PGP_KEYS -> migratePgpKeys(shiftArgs(args));
                 case MESSAGELOG_DB_ENCRYPTION_KEYS -> migrateMessageLogKeys(shiftArgs(args));
                 case MESSAGELOG_KEY_MAPPINGS -> migrateMessageLogKeyMappings(shiftArgs(args));
+                case ACME_ACCOUNT_KEYS -> migrateAcmeAccountKeys(shiftArgs(args));
                 case KEYCONF -> migrateKeyConf(shiftArgs(args));
                 case SIGNER_TOKEN_PINS -> migrateSignerTokenPins(shiftArgs(args));
                 case SIGNER_DEVICES -> migrateSignerDevices(shiftArgs(args));
@@ -157,6 +161,7 @@ public class LegacyConfigMigrationCLI {
                   pgp-keys                       Migrate PGP keys from GPG to Vault
                   messagelog-db-encryption-keys  Migrate message log database encryption keys from P12 to Vault
                   messagelog-key-mappings        Migrate message log key-mapping INI file to DB
+                  acme-account-keys              Migrate ACME account key pairs from P12 keystore to Vault
                   keyconf                        Migrate signer key configuration to DB
                   signer-token-pins              Migrate signer token PINs from autologin scripts to Vault
                   signer-devices                 Migrate signer devices.ini to DB
@@ -205,6 +210,16 @@ public class LegacyConfigMigrationCLI {
                       <anchor-file>        Path to configuration anchor XML file
                       <db.properties path> Path to database properties file
 
+                ACME Account Key Migration:
+                  migration-cli acme-account-keys <acme.p12>
+                    Migrates every ACME account key pair alias from a PKCS12 keystore to Vault,
+                    carrying each alias's certificate expiry forward as its rotation-due timestamp.
+                    The certificate itself is discarded; only its expiry date is migrated.
+                    Arguments:
+                      <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)
+                    Env vars:
+                      XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required)
+
                 Signer Devices Migration:
                   migration-cli signer-devices <devices.ini> <db.properties path>
                     Migrates signer devices configuration from devices.ini to the database.
@@ -213,13 +228,12 @@ public class LegacyConfigMigrationCLI {
                       <db.properties path> Path to database properties file (signer)
 
                 File-to-DB Migration:
-                  migration-cli file-to-db <input-file> <db.properties path> <property key> [scope]
+                  migration-cli file-to-db <input-file> <db.properties path> <property key>
                     Migrates the entire contents of a file as a single property value into the DB.
                     Arguments:
                       <input-file>         Path to file whose contents will be stored as a property value
                       <db.properties path> Path to database properties file
                       <property key>       Property key under which the file contents will be stored
-                      [scope]              Optional scope for the property
 
                 INI to DB Migration:
                   migration-cli ini-to-db <input.ini> <db.properties path>
@@ -229,21 +243,19 @@ public class LegacyConfigMigrationCLI {
                       <db.properties path> Path to database properties file
 
                 Properties to DB Migration:
-                  migration-cli properties-to-db <input.properties> <db.properties path> [scope]
+                  migration-cli properties-to-db <input.properties> <db.properties path>
                     Migrates a properties file into the configuration database.
                     Arguments:
                       <input.properties>   Path to properties input file
                       <db.properties path> Path to database properties file
-                      [scope]              Optional scope for the properties
 
                 Set Property:
-                  migration-cli set-property <db.properties path> <property key> <property value> [scope]
+                  migration-cli set-property <db.properties path> <property key> <property value>
                     Sets a single property value in the configuration database.
                     Arguments:
                       <db.properties path> Path to database properties file
                       <property key>       Property key to set
                       <property value>     Property value to store
-                      [scope]              Optional scope for the property
 
                 Signer Token PINs Migration:
                   migration-cli signer-token-pins [<script-path>]
@@ -264,6 +276,8 @@ public class LegacyConfigMigrationCLI {
                   XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD=secret \\
                     migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 key1
                   migration-cli messagelog-key-mappings /etc/xroad/messagelog/archive-encryption-mapping.ini /etc/xroad/db.properties
+                  XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD=secret \\
+                    migration-cli acme-account-keys /etc/xroad/ssl/acme.p12
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
@@ -303,6 +317,8 @@ public class LegacyConfigMigrationCLI {
     }
 
     private static final String MESSAGELOG_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_MESSAGELOG_KEYSTORE_PASSWORD";
+    private static final String NO_SCOPE_ARGUMENT =
+            " (rows are keyed by property_key alone; a scope argument is no longer accepted)";
 
     private static void migrateMessageLogKeys(String[] args) throws IOException {
         if (args.length != 2) {
@@ -342,6 +358,40 @@ public class LegacyConfigMigrationCLI {
         log.info("Message log encryption key migration result: {}", result);
     }
 
+    private static final String ACME_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD";
+
+    private static void migrateAcmeAccountKeys(String[] args) throws IOException {
+        if (args.length != 1) {
+            log.error("ACME account key migration requires 1 argument");
+            log.error("Usage: migration-cli acme-account-keys <acme.p12>");
+            log.error("  <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)");
+            log.error("Env vars:");
+            log.error("  {}  Keystore password (required)", ACME_KEYSTORE_PASSWORD_ENV);
+            System.exit(1);
+        }
+
+        String keystorePath = args[0];
+
+        String password = System.getenv(ACME_KEYSTORE_PASSWORD_ENV);
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException(
+                    "Keystore password not provided. Export " + ACME_KEYSTORE_PASSWORD_ENV
+                            + " before running the acme-account-keys migration step.");
+        }
+
+        validateFilePath(keystorePath, "keystore");
+
+        if (!new File(keystorePath).exists()) {
+            throw new IllegalArgumentException("Keystore file does not exist: " + keystorePath);
+        }
+
+        log.info("Starting ACME account key migration");
+        var vaultClient = MigrationVaultClient.createAndPreflight();
+        var migrator = new AcmeAccountKeyMigrator(vaultClient);
+        var result = migrator.migrateFromKeystore(Paths.get(keystorePath), password.toCharArray());
+        log.info("ACME account key migration result: {}", result);
+    }
+
     private static void migrateMessageLogKeyMappings(String[] args) {
         if (args.length != 2) {
             log.error("Message log key mappings migration requires 2 arguments");
@@ -363,7 +413,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting message log key mappings migration from: {}", mappingIniPath);
-        new MessageLogIniToDbMigrator().migrate(mappingIniPath, dbPropertiesPath, null);
+        new MessageLogIniToDbMigrator().migrate(mappingIniPath, dbPropertiesPath);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -416,7 +466,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         log.info("Starting signer devices migration from: {}", devicesIniPath);
-        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath, "signer");
+        new DevicesIniToDbMigrator().migrate(devicesIniPath, dbPropertiesPath);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -446,20 +496,18 @@ public class LegacyConfigMigrationCLI {
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void migrateFileToDb(String[] args) {
-        if (args.length != 3 && args.length != 4) {
-            log.error("File-to-DB migration requires 3 or 4 arguments");
-            log.error("Usage: migration-cli file-to-db <input-file> <db.properties path> <property key> [scope]");
+        if (args.length != 3) {
+            log.error("File-to-DB migration requires 3 arguments" + NO_SCOPE_ARGUMENT);
+            log.error("Usage: migration-cli file-to-db <input-file> <db.properties path> <property key>");
             log.error("  <input-file>         Path to file whose contents will be stored as a property value");
             log.error("  <db.properties path> Path to database properties file");
             log.error("  <property key>       Property key under which the file contents will be stored");
-            log.error("  [scope]              Optional scope for the property");
             System.exit(1);
         }
 
         String inputFilePath = args[0];
         String dbPropertiesPath = args[1];
         String propertyKey = args[2];
-        String scope = args.length == 4 ? args[3] : null;
 
         validateFilePath(inputFilePath, "input");
         validateFilePath(dbPropertiesPath, "database properties");
@@ -474,27 +522,24 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Starting file-to-db migration from: {} (property key={}, scope={})",
-                inputFilePath, propertyKey, scope == null ? "" : scope);
-        new FileToDbPropertyMigrator(propertyKey).migrate(inputFilePath, dbPropertiesPath, scope);
+        log.info("Starting file-to-db migration from: {} (property key={})", inputFilePath, propertyKey);
+        new FileToDbPropertyMigrator(propertyKey).migrate(inputFilePath, dbPropertiesPath);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void setProperty(String[] args) {
-        if (args.length != 3 && args.length != 4) {
-            log.error("set-property requires 3 or 4 arguments");
-            log.error("Usage: migration-cli set-property <db.properties path> <property key> <property value> [scope]");
+        if (args.length != 3) {
+            log.error("set-property requires 3 arguments" + NO_SCOPE_ARGUMENT);
+            log.error("Usage: migration-cli set-property <db.properties path> <property key> <property value>");
             log.error("  <db.properties path> Path to database properties file");
             log.error("  <property key>       Property key to set");
             log.error("  <property value>     Property value to store");
-            log.error("  [scope]              Optional scope for the property");
             System.exit(1);
         }
 
         String dbPropertiesPath = args[0];
         String propertyKey = args[1];
         String propertyValue = args[2];
-        String scope = args.length == 4 ? args[3] : null;
 
         validateFilePath(dbPropertiesPath, "database properties");
 
@@ -503,8 +548,8 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Setting property {} in DB (scope={})", propertyKey, scope == null ? "" : scope);
-        new SinglePropertySetter(propertyKey, propertyValue).migrate("cmdline", dbPropertiesPath, scope);
+        log.info("Setting property {} in DB", propertyKey);
+        new SinglePropertySetter(propertyKey, propertyValue).migrate("cmdline", dbPropertiesPath);
     }
 
     private static void migrateIniToDb(String[] args) {
@@ -531,20 +576,17 @@ public class LegacyConfigMigrationCLI {
         new IniToDbMigrator().migrate(iniInputPath, dbPropertiesPath);
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private static void migratePropertiesToDb(String[] args) {
-        if (args.length != 2 && args.length != 3) {
-            log.error("Properties to DB migration requires 2 or 3 arguments");
-            log.error("Usage: migration-cli properties-to-db <input.properties> <db.properties path> [scope]");
+        if (args.length != 2) {
+            log.error("Properties to DB migration requires 2 arguments" + NO_SCOPE_ARGUMENT);
+            log.error("Usage: migration-cli properties-to-db <input.properties> <db.properties path>");
             log.error("  <input.properties>   Path to properties input file");
             log.error("  <db.properties path> Path to database properties file");
-            log.error("  [scope]              Optional scope for the properties");
             System.exit(1);
         }
 
         String inputFilePath = args[0];
         String dbPropertiesPath = args[1];
-        String scope = args.length == 3 ? args[2] : null;
 
         validateFilePath(inputFilePath, "properties input");
         validateFilePath(dbPropertiesPath, "database properties");
@@ -554,8 +596,8 @@ public class LegacyConfigMigrationCLI {
             System.exit(1);
         }
 
-        log.info("Starting properties to DB migration from: {} (scope={})", inputFilePath, scope == null ? "" : scope);
-        new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath, scope);
+        log.info("Starting properties to DB migration from: {}", inputFilePath);
+        new PropertiesToDbMigrator().migrate(inputFilePath, dbPropertiesPath);
     }
 
     private static void migrateSignerTokenPins(String[] args) throws IOException {

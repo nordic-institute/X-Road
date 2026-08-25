@@ -7289,6 +7289,10 @@ components:
           default: false
           description: if true, any ignorable warnings are ignored. if false (or missing),
             any warnings cause request to fail
+        enable_software_token_autologin:
+          type: boolean
+          description: if true, enables software token autologin; if false, disables it.
+            If omitted, the autologin setting is left unchanged.
     LocalGroup:
       type: object
       description: group
@@ -7487,6 +7491,9 @@ components:
         enforce_token_pin_policy:
           type: boolean
           description: whether the token pin policy is enforced or not
+        software_token_autologin_enabled:
+          type: boolean
+          description: whether software token autologin is currently enabled
     InitialAdminUser:
       type: object
       description: Credentials for the initial admin user created during Security Server initialization

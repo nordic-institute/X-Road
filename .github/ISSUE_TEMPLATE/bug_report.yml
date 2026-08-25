@@ -1,0 +1,97 @@
+name: Bug report
+description: Report an error in X-Road Core or in an official X-Road extension
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! ❤️
+
+        **Do not use this form to report security vulnerabilities.** Security issues are handled
+        privately — see the [security policy](https://github.com/nordic-institute/X-Road/blob/develop/SECURITY.md).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: This is not a security vulnerability. I understand that security issues are reported privately as described in [SECURITY.md](https://github.com/nordic-institute/X-Road/blob/develop/SECURITY.md).
+          required: true
+        - label: I am using a [supported version](https://github.com/nordic-institute/X-Road/blob/develop/SECURITY.md#supported-versions) of the software.
+          required: true
+        - label: I searched the [Knowledge Base](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB), the [X-Road backlog](https://nordic-institute.atlassian.net/browse/XRDDEV) and the [existing GitHub issues](https://github.com/nordic-institute/X-Road/issues), and did not find this problem already reported.
+          required: true
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary of the problem
+      description: A clear and concise description of what goes wrong.
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Affected component
+      description: For example Security Server, Central Server, Configuration Proxy.
+      placeholder: Security Server
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Software version
+      description: The exact version you are running, for example 7.8.0.
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Host OS and version
+      placeholder: Ubuntu 24.04
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reliably reproduce the problem.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Related log files
+      description: |
+        Relevant excerpts from the X-Road logs. Please remove any sensitive data, such as personal data,
+        message content, keys or credentials, before submitting.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that helps us understand the problem — configuration details, screenshots, a suggested fix.

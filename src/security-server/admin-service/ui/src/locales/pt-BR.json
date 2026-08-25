@@ -376,9 +376,6 @@
     "acme": {
       "account_creation_failure": "Falha ao criar conta no servidor ACME. Se for necessário vincular conta externa, verifique se as credenciais estão corretas no acme.yml",
       "account_key_pair_error": "Falha ao obter o par de chaves da conta ACME",
-      "account_keystore_password_missing": "Senha do keystore da conta ACME ausente no arquivo de configuração acme.yml",
-      "acme_yaml_missing": "Arquivo de configuração ACME acme.yml está ausente",
-      "acme_yaml_account_keystore_password_update_error": "Falha ao atualizar a senha do keystore da conta ACME no arquivo de configuração acme.yml",
       "authorization_failure": "Falha na autorização. Normalmente está relacionado à validação de propriedade do domínio",
       "authorization_wait_failure": "Falha ao aguardar a conclusão da autorização",
       "certificate_failure": "Falha ao obter certificado do servidor ACME",
@@ -623,6 +620,7 @@
     "noPermission": "Este Servidor Seguro ainda não foi inicializado. Contate um administrador para realizar a configuração inicial.",
     "pin": {
       "confirmPin": "Confirmar PIN",
+      "enableAutologin": "Ativar login automático do token",
       "info1": "O token de software armazena a chave AUTH do Servidor Seguro. Defina um PIN para acessá-lo.",
       "info2": "Todas as informações necessárias foram fornecidas. Pressione Enviar para inicializar o servidor.",
       "info3": "Após a inicialização, conclua a configuração clicando em 'Configurar' na notificação exibida.",
@@ -1032,13 +1030,12 @@
             "automatic-activate-acme-sign-certificate": "Se habilitado, os certificados de assinatura são ativados automaticamente quando solicitados via ACME (novo ou renovação).",
             "acme-authorization-wait-attempts": "Número de tentativas para verificar se as autorizações ACME foram concluídas antes de desistir.",
             "acme-authorization-wait-interval": "Tempo em milissegundos a aguardar entre tentativas de verificação de conclusão de autorização ACME.",
-            "acme-certification-wait-attempts": "Número de tentativas para consultar a emissão de certificado ACME.",
-            "acme-certification-wait-interval": "Segundos entre tentativas de consulta de emissão de certificado ACME.",
+            "acme-certificate-wait-attempts": "Número de tentativas para consultar a emissão de certificado ACME.",
+            "acme-certificate-wait-interval": "Segundos entre tentativas de consulta de emissão de certificado ACME.",
             "acme-certificate-account-key-pair-expiration": "Número de dias durante os quais o certificado autoassinado da conta do servidor ACME é válido.",
             "acme-challenge-port-enabled": "Se habilitado, a API escutará na porta de desafio ACME (padrão 80) para requisições de desafio ACME recebidas.",
             "acme-challenge-port": "Número de porta personalizado para desafios ACME. Quando definido, a porta 80 do host do Servidor de Segurança precisa redirecionar para esta porta, pois os servidores ACME sempre utilizam a porta 80 para o desafio.",
             "acme-key-length": "Comprimento da chave RSA em bits utilizado para solicitações de certificado ACME.",
-            "acme-account-keystore-path": "Caminho no sistema de arquivos para o keystore que armazena o par de chaves da conta ACME.",
             "acme-challenge-path": "Caminho no sistema de arquivos onde os tokens de desafio ACME HTTP-01 são servidos.",
             "allow-csr-for-key-with-certificate": "Controla se a geração de um novo CSR é permitida para uma chave que já possui um certificado existente.",
             "auth-cert-reg-signature-digest-algorithm-id": "Algoritmo de resumo de assinatura utilizado para gerar a solicitação de registro de certificado de autenticação. Os valores possíveis são - SHA-256, SHA-384, SHA-512.",
@@ -1050,7 +1047,6 @@
             "proxy-tls-cipher-suites": "Conjuntos de cifras TLS aceitos na conexão proxy da API de administração.",
             "key-management-api-whitelist": "Lista separada por vírgulas de endereços IP simples ou intervalos de endereços em notação CIDR com permissão para chamar endpoints de gerenciamento de chaves usando autenticação básica.",
             "regular-api-whitelist": "Lista separada por vírgulas de endereços IP simples ou intervalos de endereços em notação CIDR com permissão para chamar endpoints regulares usando autenticação por chave de API.",
-            "configurable-properties-path": "Caminho de classpath ou sistema de arquivos para o arquivo YAML de propriedades configuráveis.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Nome da role PKI do Vault utilizado ao provisionar o certificado TLS da API de administração.",
@@ -1068,7 +1064,6 @@
             "health-check-port": "A porta TCP onde o serviço de verificação de integridade escuta as requisições. Definir a porta como 0 desativa completamente o serviço de verificação de integridade.",
             "health-check-interface": "A interface de rede onde o serviço de verificação de integridade escuta as requisições. O padrão são todas as interfaces disponíveis.",
             "hsm-health-check-enabled": "Quando habilitado, o endpoint de verificação de integridade também verifica a disponibilidade do HSM.",
-            "memory-usage-threshold": "Percentual máximo permitido (0-100) de uso de memória do proxy antes de o serviço de verificação de integridade começar a falhar. Deixe vazio para desabilitar.",
             "message-sign-digest-name": "Algoritmo de resumo utilizado para assinar mensagens X-Road.",
             "verify-client-cert": "Quando habilitado, o proxy do servidor verifica o certificado TLS do proxy do cliente.",
             "log-client-cert": "Se deve registrar informações do sujeito do certificado do cliente.",
@@ -1390,6 +1385,11 @@
             "db": {
               "encryption-enabled": "Quando habilitado, os corpos das mensagens são armazenados no banco de dados em forma criptografada.",
               "key-id": "Identificador da chave de criptografia utilizada para a criptografia do log de mensagens em nível de banco de dados."
+            }
+          },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Percentual máximo permitido (0-100) de uso de memória antes de o serviço de verificação de integridade começar a falhar. Sem valor definido a verificação nunca falha; em contêineres o padrão é 95."
             }
           },
           "common": {

@@ -7,4 +7,6 @@ dependencies {
 
   api(project(":lib:properties-core"))
   implementation(libs.springBoot.starter)
+
+  testImplementation(libs.springBoot.starterTest)
 }

@@ -75,6 +75,20 @@ class CertificationServicesApiTest extends CsApiTest {
     }
 
     @Test
+    void managementServiceRoleCannotViewCertificationServices(CsBaselineSeeder seeder) {
+        var session = Step.given("management service only session opened", seeder::newManagementServiceOnlySession);
+        var cs = new CertificationServicesAdminClient(session);
+
+        Step.then("listing certification services is forbidden", () ->
+                cs.listCertificationServices()
+                        .statusCode(403));
+
+        Step.then("viewing certification service details is forbidden", () ->
+                cs.getCertificationService(1)
+                        .statusCode(403));
+    }
+
+    @Test
     void certificationServiceIsCreatedAndRetrieved(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var cs = new CertificationServicesAdminClient(session);

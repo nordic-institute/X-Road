@@ -42,7 +42,8 @@ import org.niis.xroad.auxiliaryservice.core.backup.job.repository.BackupReposito
 import org.niis.xroad.auxiliaryservice.core.backup.job.repository.FileSystemBackupRepository;
 import org.niis.xroad.auxiliaryservice.core.config.BackupProperties;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AuxiliaryServiceConfigKeys;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,8 +73,10 @@ class FileSystemBackupRepositoryTest {
 
     @BeforeEach
     void beforeEach() {
-        backupProperties = ConfigUtils.initConfiguration(BackupProperties.class,
-                Map.of("xroad.auxiliary-service.backup.location", backupDir.toString()));
+        backupProperties = new BackupProperties(XRoadConfigBuilder.create()
+                .register(AuxiliaryServiceConfigKeys.instance())
+                .overrides(Map.of("xroad.auxiliary-service.backup.location", backupDir.toString()))
+                .build());
         BackupValidator backupValidator = new BackupValidator(backupProperties);
         backupValidator.init();
         backupRepository = new FileSystemBackupRepository(backupProperties, backupValidator, backupMetadataService);

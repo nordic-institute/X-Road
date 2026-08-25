@@ -19,6 +19,8 @@ quarkus:
       format: "%-5p [X-Road Configuration Proxy CLI] %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} - %m"
 
 xroad:
+  config:
+    defaults-scopes: xroad.common,xroad.configuration-proxy
   db:
     confproxy:
       hibernate:

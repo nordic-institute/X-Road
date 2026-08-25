@@ -27,11 +27,16 @@
 import {
   ApprovedCertificationService,
   ApprovedCertificationServiceListItem,
+  ApprovedDsTlsCertificationAuthority,
+  ApprovedDsTlsCertificationAuthorityListItem,
   CertificateAuthority,
   CertificateDetails,
   CertificationServiceFileAndSettings,
   CertificationServiceSettings,
   CostType,
+  DsTlsCertificationAuthorityFileAndSettings,
+  DsTlsCertificationAuthoritySettings,
+  DsTlsIntermediateCertificateAuthority,
   OcspResponder,
   TimestampingService,
   OcspResponderCertificateDetails,
@@ -213,6 +218,118 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
     },
     deleteIntermediateCa(id: number) {
       return axios.delete(`/intermediate-cas/${id}`);
+    },
+  },
+});
+
+export interface DsTlsCertificationAuthorityStoreState extends WithCurrentItem<ApprovedDsTlsCertificationAuthority> {
+  dsTlsCertificationAuthorities: ApprovedDsTlsCertificationAuthorityListItem[];
+}
+
+export const useDsTlsCertificationAuthorityService = defineStore('dsTlsCertificationAuthorityService', {
+  state: (): DsTlsCertificationAuthorityStoreState => ({
+    current: undefined,
+    dsTlsCertificationAuthorities: [],
+  }),
+  persist: true,
+  actions: {
+    async fetchAll() {
+      return axios
+        .get<ApprovedDsTlsCertificationAuthorityListItem[]>('/ds-tls-certification-authorities')
+        .then((resp) => (this.dsTlsCertificationAuthorities = resp.data));
+    },
+    async loadById(dsTlsCertificationAuthorityId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
+      return axios
+        .get<ApprovedDsTlsCertificationAuthority>(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}`)
+        .then((resp) => {
+          this.current = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        })
+        .finally(() => (this.loadingCurrent = false));
+    },
+    async deleteById(dsTlsCertificationAuthorityId: number) {
+      return axios.delete(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}`);
+    },
+    async add(newCa: DsTlsCertificationAuthorityFileAndSettings) {
+      const formData = new FormData();
+      formData.append('name', newCa.name || '');
+      formData.append('certificate', newCa.certificate);
+      formData.append('acme_server_directory_url', newCa.acme_server_directory_url || '');
+      formData.append('ds_tls_certificate_profile_id', newCa.ds_tls_certificate_profile_id || '');
+      return axios.post('/ds-tls-certification-authorities', formData).finally(() => this.fetchAll());
+    },
+    async update(dsTlsCertificationAuthorityId: number, settings: DsTlsCertificationAuthoritySettings) {
+      return axios
+        .patch<ApprovedDsTlsCertificationAuthority>(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}`, settings)
+        .then((resp) => {
+          this.current = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    async getCertificate(dsTlsCertificationAuthorityId: number) {
+      return axios.get<CertificateDetails>(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}/certificate`);
+    },
+  },
+});
+
+export interface DsTlsIntermediateCasStoreState extends WithCurrentItem<DsTlsIntermediateCertificateAuthority> {
+  currentCa: ApprovedDsTlsCertificationAuthority | null;
+  currentIntermediateCas: DsTlsIntermediateCertificateAuthority[];
+}
+
+export const useDsTlsIntermediateCasService = defineStore('dsTlsIntermediateCasService', {
+  state: (): DsTlsIntermediateCasStoreState => ({
+    current: undefined,
+    currentCa: null,
+    currentIntermediateCas: [],
+  }),
+  persist: true,
+  actions: {
+    async loadByCa(ca: ApprovedDsTlsCertificationAuthority) {
+      this.currentCa = ca;
+      return this.fetchIntermediateCas();
+    },
+    async loadById(dsTlsIntermediateCaId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
+      return this.getIntermediateCa(dsTlsIntermediateCaId)
+        .then((resp) => {
+          this.current = resp.data;
+          return this.current;
+        })
+        .catch((error) => {
+          throw error;
+        })
+        .finally(() => (this.loadingCurrent = false));
+    },
+    async fetchIntermediateCas() {
+      if (!this.currentCa) return;
+
+      return axios
+        .get<DsTlsIntermediateCertificateAuthority[]>(`/ds-tls-certification-authorities/${this.currentCa.id}/intermediate-cas`)
+        .then((resp) => (this.currentIntermediateCas = resp.data));
+    },
+    async getIntermediateCa(dsTlsIntermediateCaId: number) {
+      return axios.get<DsTlsIntermediateCertificateAuthority>(`/ds-tls-intermediate-cas/${dsTlsIntermediateCaId}`);
+    },
+    async addIntermediateCa(certificate: File) {
+      if (!this.currentCa) {
+        throw new Error('DS TLS certification authority not selected');
+      }
+      const formData = new FormData();
+      formData.append('certificate', certificate);
+      return axios
+        .post(`/ds-tls-certification-authorities/${this.currentCa.id}/intermediate-cas`, formData)
+        .finally(() => this.fetchIntermediateCas());
+    },
+    deleteIntermediateCa(dsTlsIntermediateCaId: number) {
+      return axios.delete(`/ds-tls-intermediate-cas/${dsTlsIntermediateCaId}`);
     },
   },
 });

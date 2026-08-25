@@ -21,25 +21,34 @@ services:
   configuration-client:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     volumes:
       - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
+    depends_on:
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
 
   signer:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
-      - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
       - QUARKUS_LOG_LEVEL=INFO
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     volumes:
       - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+    depends_on:
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
 
   proxy:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml -Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
-      - DB_CONFIG_SOURCE_ENABLED=true
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - DB_CONFIG_SOURCE_USERNAME=serverconf
       - DB_CONFIG_SOURCE_PASSWORD=secret
-      - XROAD_PROXY_DSP_PARTICIPANT_CONTEXT_ID=ss0
     healthcheck:
       interval: 5s
       retries: 40
@@ -58,17 +67,84 @@ services:
         condition: service_healthy
       ssl-keystore-init:
         condition: service_completed_successfully
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
+
+  # Single place for all configuration_properties seeds. Rows are keyed by property_key alone (the consuming
+  # app's quarkus/spring.application.name, or NULL for global); apps resolve these via the DB-override
+  # layer (XRoadConfig.dbOverrides / DB ConfigSource), not local.yaml/env.
+  db-serverconf-config-seed:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.proxy.ssl-enabled', 'false', now(), now()),
+        ('xroad.proxy.health-check-port', '5558', now(), now()),
+        ('xroad.proxy.memory-usage-threshold', '77', now(), now()),
+        ('xroad.health-check.memory.threshold-percent', '77', now(), now()),
+        ('xroad.proxy.message-log.timestamping-prioritization-strategy', 'PAID_FIRST', now(), now()),
+        ('xroad.proxy.addon.op-monitor.enabled', 'true', now(), now()),
+        ('xroad.proxy.addon.op-monitor.buffer.socket-timeout-seconds', '1', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.host', 'op-monitor', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.scheme', 'https', now(), now()),
+        ('xroad.proxy.addon.op-monitor.connection.socket-timeout-seconds', '1', now(), now()),
+        ('xroad.proxy.dsp.participant-context-id', 'ss0', now(), now()),
+        ('xroad.configuration-client.update-interval', '3', now(), now()),
+        ('xroad.configuration-client.global-conf-tls-cert-verification', 'false', now(), now()),
+        ('xroad.configuration-client.global-conf-hostname-verification', 'false', now(), now()),
+        ('xroad.signer.enforce-token-pin-policy', 'true', now(), now()),
+        ('xroad.signer.addon.hwtoken.enabled', 'true', now(), now()),
+        ('xroad.signer.ocsp-prioritization-strategy', 'ONLY_FREE', now(), now()),
+        ('xroad.signer.ocsp-response-retrieval-active', 'true', now(), now()),
+        ('xroad.proxy-ui-api.rate-limit-requests-per-second', '10000', now(), now()),
+        ('xroad.proxy-ui-api.rate-limit-requests-per-minute', '30000', now(), now()),
+        ('xroad.proxy-ui-api.acme-challenge-port-enabled', 'true', now(), now()),
+        ('xroad.proxy-ui-api.automatic-activate-acme-sign-certificate', 'true', now(), now()),
+        ('xroad.proxy-ui-api.key-management-api-whitelist', '0.0.0.0/0, ::/0', now(), now()),
+        ('xroad.proxy-ui-api.proxy-server-url', 'https://proxy:8443', now(), now()),
+
+        ('xroad.proxy-ui-api.dataspace.enabled', 'true', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://ds-identity-hub:7182', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.control-plane-url', 'https://ds-control-plane:8182', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.participant-id', 'ss0', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.management-context-enabled', 'true', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:ds-issuer-service%3A6183:issuer', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-token', 'eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiI3NDcyYmExN2ExMjE0MGI3YWVhNjNlNDM2ZWI1OTMxMSIsInNjb3BlIjoiaWRlbnRpdHktYXBpOmFkbWluIn0.LTjYT366IgFiI12rkxBatvzoIbtTzoYYVXRE9ytAJ23thT_cVid6Gv3m7XKe6bEphARXodhJqTwxeLYMtHAI_XIIC50xZ76e2mo9qLF9LX3JR2_Y5prMDb1BjmYpzedLupnu8SwB2W9n7POYeaMMTTXDlCZsqR2zffwZaCliXGWuj9VLdp0SUvNc8Xz9LMR1C0NNwL-HSH0oBHzMTn0E7kFSJ5HU0AZNa-h9ZNpYu6e4S_Yx7Lo4xRFtVMFRCW8sqfWfqjE861DVGTaQKgmBerbA0jfgaOWB4IU_8EwPBse68N2w8rCUJ4NU6MgRpd8uKEAbSBwNCmSpBvOOriqqAw', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.control-plane-token', 'eyJraWQiOiI3NGYzNDIyYjM3ZmM4Njg4ZTdmNWE3NDE2MjdmODg4OSIsInR5cCI6ImF0K2p3dCIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJ0ZXN0LWlzc3VlciIsImV4cCI6MjAwNDI2ODkwMCwiaWF0IjoxNzgzNTE2OTAwLCJqdGkiOiJjZWI1MjYzM2M1YjU0MDU3OWM3OTIxZTRmN2QyOWM3NSIsInNjb3BlIjoibWFuYWdlbWVudC1hcGk6YWRtaW4ifQ.iNTzn9fdrEkO5SChx8d9aZI34kKW7HV6EfUauPHUs_HC7OpGXMra9qLaEUwcNVmaPdIp7qypBG-wgIEn9znZ6inhDI7V4hoGVTEE7bZS2jar5LTcnr_tt-7Y-frV7GX-qW-b-C9y7hDWpTE_D4mPCLXvhSPjKYAS3_ZP2uCryQ6wGyFUToyf39YDnMOys2vpkI9knnCDfdFFoPsLmVWAz7CWjtV5J_IpTwRP2c63trsPVuPn85tQqXIDI8-geiXmxUVGWFGQQSkCyHX3xSbFE0vC23HFFxkmV0EUr8qFS6wDNiSFw2UYmYfWgfMk64xRY3d07HFbAWwgYa4tZixT6Q', now(), now()),
+
+        ('xroad.acme', '{"eab-credentials":{"certificate-authorities":{"Test CA":{"mac-key-base64-encoded":true,"members":{"DEV:COM:1234":{"auth-kid":"keyid_2","auth-mac-key":"addfdbb19965e85623c124a88d085eae50a7f7f4f570989e3a320a81c3119625","sign-kid":"keyid_3","sign-mac-key":"96d7380f5ea8de06912a4520d0adca616848b5e70cb3d0bd748af5b33507ddde"}}}}}}', now(), now()),
+        ('xroad.mail-notification', '{"host":"testmailserver","port":587,"username":"testuser","password":"passw0rd","use-ssl-tls":true,"contacts":{"DEV:COM:1234":"member1@example.org"}}', now(), now()),
+        ('xroad.common-rpc.certificate-provisioning.ttl', 'PT120S', now(), now()),
+        ('xroad.common-rpc.certificate-provisioning.refresh-interval', 'PT60S', now(), now()),
+        ('xroad.auxiliary-service.backup.encryption-enabled', 'true', now(), now()),
+        ('xroad.auxiliary-service.backup.encryption-keyids', 'backup.key1@example.org,backup.key2@example.org,backup.key3@example.org', now(), now()),
+        ('xroad.message-log-encryption.db.encryption-enabled', 'true', now(), now()),
+        ('xroad.message-log-encryption.db.key-id', 'default', now(), now()),
+        ('xroad.message-log-encryption.archive.encryption-enabled', 'true', now(), now()),
+        ('xroad.op-monitor.listen-address', '0.0.0.0', now(), now()),
+        ('xroad.op-monitor.scheme', 'https', now(), now()),
+        ('xroad.op-monitor.tls.client-certificate-refresh-interval', 'PT60S', now(), now()),
+        ('xroad.op-monitor.records-available-timestamp-offset-seconds', '1', now(), now()),
+        ('xroad.op-monitor.rpc.listen-address', '0.0.0.0', now(), now()),
+        ('xroad.op-monitor.tls.certificate-provisioning.common-name', 'op-monitor', now(), now()),
+        ('xroad.op-monitor.tls.certificate-provisioning.ip-subject-alt-names', '127.0.0.1', now(), now())
+
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
 
   ui:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
-      - XROAD_COMMON_RPC_CHANNEL_OP_MONITOR_HOST=op-monitor
-      - XROAD_PROXY_UI_API_DATASPACE_ENABLED=true
-      - XROAD_PROXY_UI_API_DATASPACE_IDENTITY_HUB_URL=https://ds-identity-hub:7182
-      - XROAD_PROXY_UI_API_DATASPACE_PARTICIPANT_ID=ss0
-      - XROAD_PROXY_UI_API_DATASPACE_MANAGEMENT_CONTEXT_ENABLED=true
-      - XROAD_PROXY_UI_API_DATASPACE_ISSUER_DID=did:web:ds-issuer-service%3A6183:issuer
     ports:
       - "0:9999"
     volumes:
@@ -76,15 +152,23 @@ services:
     depends_on:
       testca:
         condition: service_healthy
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
 
   auxiliary-service:
     environment:
       - JAVA_TOOL_OPTIONS=-Dquarkus.config.locations=/etc/xroad/conf.d/local.yaml
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     ports:
       - "0:9999"
     volumes:
       - ./container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
       - ./container-files/etc/xroad/backup-keys:/etc/xroad/backup-keys
+    depends_on:
+      db-serverconf-config-seed:
+        condition: service_completed_successfully
 
   db-opmonitor:
     image: ${POSTGRES_DEV_IMG}
@@ -135,18 +219,18 @@ services:
     environment:
       - QUARKUS_LOG_LEVEL=INFO
       - XROAD_HOST=op-monitor
-      - XROAD_OP_MONITOR_LISTEN_ADDRESS=0.0.0.0
-      - XROAD_OP_MONITOR_SCHEME=https
-      - XROAD_OP_MONITOR_TLS_CLIENT_CERTIFICATE_REFRESH_INTERVAL=60S
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-opmonitor:5432/op-monitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME=opmonitor
       - XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_OP_MONITOR_RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS=1
+      # op-monitor overrides (listen-address, scheme, tls cert-refresh, records offset) moved to the
+      # configuration_properties DB-override layer - see seed service below.
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     healthcheck:
       interval: 5s
       retries: 40
@@ -155,6 +239,8 @@ services:
       - xrd-ss-network
     depends_on:
       db-opmonitor-init:
+        condition: service_completed_successfully
+      db-serverconf-config-seed:
         condition: service_completed_successfully
 
   testca:

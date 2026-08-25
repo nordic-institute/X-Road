@@ -120,7 +120,7 @@ render_and_assert "ds-https-keystore" Job ServiceAccount Role RoleBinding || STA
 echo ""
 
 render_and_assert_snapshot "security-server" \
-    ConfigMap=7 Deployment=6 Job=2 PersistentVolumeClaim=3 \
+    ConfigMap=7 Deployment=6 Job=3 PersistentVolumeClaim=3 \
     Role=7 RoleBinding=7 Service=6 ServiceAccount=7 || STATUS=1
 echo ""
 

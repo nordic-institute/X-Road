@@ -113,7 +113,11 @@ ensure_k8s_deps() {
     gal_prev="$(cat "${STATE_DIR}/galaxy.sha" 2>/dev/null || echo "")"
     if [[ "${gal_cur}" != "${gal_prev}" ]]; then
       log_info "Installing Ansible collections (requirements.yml)"
-      ansible-galaxy collection install -r "${req_yml}"
+      # --force: kubernetes.core is pinned to a git commit SHA, and without it
+      # ansible-galaxy compares that SHA against the installed version as a
+      # semver ("Non integer values in LooseVersion") as soon as the collection
+      # is already present, i.e. on every re-install after the first.
+      ansible-galaxy collection install -r "${req_yml}" --force
       echo "${gal_cur}" > "${STATE_DIR}/galaxy.sha"
     else
       log_kv "  ansible collections" "up to date" 4 2

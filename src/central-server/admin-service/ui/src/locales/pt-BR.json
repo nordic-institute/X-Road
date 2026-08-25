@@ -126,6 +126,7 @@
     "certFile": "Arquivo do certificado",
     "certProfile": "Informações do perfil de certificado",
     "distinguishedName": "Nome distinto (DN)",
+    "dsTlsCertificateProfileId": "Id. de perfil de certificado DS TLS",
     "init": {
       "address": "Endereço do Servidor Central",
       "confirmPin": "Confirmar PIN",
@@ -140,6 +141,7 @@
     "keyLabel": "Nome amigável da chave",
     "memberCode": "Código do Membro",
     "memberName": "Nome do Membro",
+    "name": "Nome",
     "securityServerAddress": "Endereço do Servidor Seguro",
     "serverCode": "Código do Servidor",
     "serviceAddress": "Endereço do Servidor Central",
@@ -635,6 +637,23 @@
      "certProfileInputExplanation":"Nome completo da classe que implementa a interface ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider",
      "certificationServices":"Serviços de Certificação",
     "defaultCsrFormat": "Formato CSR padrão",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "Adicionar autoridade de certificação DS TLS",
+      "delete": {
+        "confirmationDialog": {
+          "message": "Tem certeza de que deseja excluir a autoridade de certificação DS TLS \"{name}\"?",
+          "title": "Tem certeza?"
+        },
+        "success": "Autoridade de certificação DS TLS excluída com sucesso"
+      },
+      "dsTlsCertificateProfileIdExplanation": "Id. de perfil usado por alguns servidores ACME para saber o tipo de uso do certificado ao solicitar um certificado DS TLS.",
+      "dsTlsCertificationAuthorities": "Autoridades de Certificação DS TLS",
+      "dsTlsCertificationAuthority": "Autoridade de Certificação DS TLS",
+      "nameExplanation": "Um nome livre que identifica esta autoridade de certificação, por exemplo \"Let's Encrypt\".",
+      "settings": {
+        "title": "Configurações da AC DS TLS"
+      }
+    },
     "timestampingService":{
         "addedSuccessfully":"Serviço de carimbo do tempo adicionado com sucesso",
         "dialog":{

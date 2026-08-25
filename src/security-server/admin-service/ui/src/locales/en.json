@@ -183,6 +183,9 @@
     "requiredIf": "The {fieldName} field is required",
     "description": "Use valid description characters only"
   },
+  "dsTlsCertificate": {
+    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending"
+  },
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
@@ -387,9 +390,6 @@
     "acme": {
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
-      "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
-      "acme_yaml_missing": "ACME configuration file acme.yml is missing",
-      "acme_yaml_account_keystore_password_update_error": "Updating ACME account keystore password in acme.yml configuration file failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
@@ -452,6 +452,12 @@
     "csr_not_found": "CSR not found",
     "database_error": "Database error",
     "diagnostic_request_failed": "Diagnostic request failed",
+    "ds_tls_certificate_expired": "The DataSpace TLS certificate has expired",
+    "ds_tls_certificate_not_configured": "No DataSpace TLS certificate has been provisioned yet",
+    "ds_tls_certificate_not_yet_valid": "The DataSpace TLS certificate is not yet valid",
+    "ds_tls_certificate_parse_failed": "Cannot read the DataSpace TLS certificate",
+    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the DataSpace TLS key",
+    "ds_tls_key_not_generated": "Generate a DataSpace TLS key before requesting a CSR or uploading a certificate",
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
@@ -691,6 +697,7 @@
     "noPermission": "This Security Server is currently not initialised, please contact an administrator to do the initial configuration",
     "pin": {
       "confirmPin": "Confirm PIN",
+      "enableAutologin": "Enable token autologin",
       "info1": "The software token is the place where the Security Server’s AUTH keys is stored. Please define a PIN to log-in into the software token.",
       "info2": "All required information is collected, press the Submit button to to initialise the Security Server.",
       "info3": "Once the initialisation is done, you must complete the Security Server configuration - simply click the Configure button in the toast notification that will appear in a few moments.",
@@ -1109,13 +1116,12 @@
             "automatic-activate-acme-sign-certificate": "If enabled, signing certificates are activated automatically when they have been ordered from via ACME (new or renew)",
             "acme-authorization-wait-attempts": "Number of attempts to check whether the ACME authorizations have completed before giving up",
             "acme-authorization-wait-interval": "Amount of time in milliseconds to wait between ACME authorization completion check attempts",
-            "acme-certification-wait-attempts": "Number of attempts to poll for ACME certificate issuance.",
-            "acme-certification-wait-interval": "Seconds between ACME certificate issuance polling attempts.",
+            "acme-certificate-wait-attempts": "Number of attempts to poll for ACME certificate issuance.",
+            "acme-certificate-wait-interval": "Seconds between ACME certificate issuance polling attempts.",
             "acme-certificate-account-key-pair-expiration": "Amount of days the ACME server account's self-signed certificate is valid",
             "acme-challenge-port-enabled": "If enabled, the API will listen on acme challenge port (default 80) for incoming ACME challenge requests",
             "acme-challenge-port": "Custom port number for ACME challenges. When set, the Security Server host's port 80 needs to redirect to this port, because ACME Servers always use port 80 for the challenge.",
             "acme-key-length": "RSA key length in bits used for ACME certificate requests.",
-            "acme-account-keystore-path": "File system path to the keystore holding the ACME account key pair.",
             "acme-challenge-path": "File system path where ACME HTTP-01 challenge tokens are served.",
             "allow-csr-for-key-with-certificate": "Controls if generating the new CSR is allowed for a key that has an existing certificate.",
             "auth-cert-reg-signature-digest-algorithm-id": "Signature digest algorithm used for generating authentication certificate registration request. Possible values are - SHA-256, SHA-384, SHA-512.",
@@ -1127,7 +1133,6 @@
             "proxy-tls-cipher-suites": "TLS cipher suites accepted by the Admin API proxy connection.",
             "key-management-api-whitelist": "Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management endpoints using basic authentication",
             "regular-api-whitelist": "Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular endpoints using api key authentication",
-            "configurable-properties-path": "Classpath or file path to the configurable-properties YAML file.",
             "tls": {
               "certificate-provisioning": {
                 "issuance-role-name": "Vault PKI role name used when provisioning the Admin API TLS certificate.",
@@ -1145,7 +1150,6 @@
             "health-check-port": "The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.",
             "health-check-interface": "The network interface where the health check service listens to requests. Default is all available interfaces.",
             "hsm-health-check-enabled": "When enabled, the health-check endpoint also verifies HSM availability.",
-            "memory-usage-threshold": "Maximum allowed percentage (0-100) of proxy memory usage before the health check starts failing. Leave empty to disable.",
             "message-sign-digest-name": "Digest algorithm used to sign X-Road messages.",
             "verify-client-cert": "When enabled, the server proxy verifies the client proxy's TLS certificate.",
             "log-client-cert": "Whether to log client certificate subject information.",
@@ -1469,6 +1473,11 @@
               "key-id": "Identifier of the encryption key used for database-level message log encryption."
             }
           },
+          "health-check": {
+            "memory": {
+              "threshold-percent": "Maximum allowed percentage (0-100) of heap memory usage before the liveness health check reports DOWN. Unset means the check never fails; containers default to 95."
+            }
+          },
           "common": {
             "temp-files-path": "Absolute path to the directory where temporary files are stored."
           }
@@ -1492,7 +1501,8 @@
     "keys": {
       "apiKey": "API Keys",
       "signAndAuthKeys": "SIGN and AUTH Keys",
-      "ssTlsCertificate": "Security Server TLS Key"
+      "ssTlsCertificate": "Security Server TLS Key",
+      "dsTlsCertificate": "DataSpace TLS Certificate"
     },
     "main": {
       "clients": "Clients",

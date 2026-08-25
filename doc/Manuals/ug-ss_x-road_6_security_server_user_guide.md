@@ -138,6 +138,7 @@ Doc. ID: UG-SS
 | 02.03.2026 | 2.107   | Fix broken link                                                                                                                                                                                                                                                                                                                                                                                             | Petteri Kivimäki     |
 | 13.05.2026 | 2.108   | Correct tab placement for managing services                                                                                                                                                                                                                                                                                                                                                                 | Urmet Jänes          |
 | 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
+| 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -3672,7 +3673,8 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  the password for the ACME Server account PKCS #12 keystore. The password is populated automatically by the Security Server when communicating with the ACME Server. When ACME is used for the first time, the keystore is generated automatically using this password. If the value of this property is left empty, the Security Server generates a random password and stores it in the acme.yml file. If the value of this property is not empty, the provided value is used as the password for the generated keystore file.
+
+The ACME account key pair itself is generated automatically by the Security Server the first time ACME is used for a given member, and is stored in OpenBao together with a rotation timestamp; no keystore or password needs to be configured or managed by the administrator.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
@@ -3709,11 +3711,6 @@ eab-credentials:
         'EU:GOV:9090909-1':
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
-
-# This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
-# Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password:
-
 ```
 
 ## 25 Migrating to EC Based Authentication and Signing Certificates

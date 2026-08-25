@@ -92,6 +92,7 @@ public class InitializationApiController implements InitializationApi {
         initializationStatusDto.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
         initializationStatusDto.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
         initializationStatusDto.setEnforceTokenPinPolicy(initStatus.getTokenPinPolicyEnforced());
+        initializationStatusDto.setSoftwareTokenAutologinEnabled(initStatus.getSoftwareTokenAutologinEnabled());
         return new ResponseEntity<>(initializationStatusDto, HttpStatus.OK);
     }
 
@@ -104,9 +105,10 @@ public class InitializationApiController implements InitializationApi {
         String ownerMemberCode = initialServerConfDto.getOwnerMemberCode();
         String softwareTokenPin = initialServerConfDto.getSoftwareTokenPin();
         boolean ignoreWarnings = Boolean.TRUE.equals(initialServerConfDto.getIgnoreWarnings());
+        Boolean enableSoftwareTokenAutologin = initialServerConfDto.getEnableSoftwareTokenAutologin();
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
-                    ignoreWarnings);
+                    ignoreWarnings, enableSoftwareTokenAutologin);
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
         }

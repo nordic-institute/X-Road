@@ -43,8 +43,10 @@
     <include file="centerui/202511271200-ca-csr-nullable.xml" relativeToChangelogFile="true"/>
     <!-- TODO: Uncomment after the fix script is added in XRDDEV-3187 -->
     <!-- <include file="centerui/202603301200-identifier-unique-constraint-and-column-fixes.xml" relativeToChangelogFile="true"/> -->
+    <include file="centerui/202608121200-ds-tls-cas.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
     <include file="configuration-properties/001-configuration-properties.xml" relativeToChangelogFile="true"/>
+    <include file="configuration-properties/002-drop-scope.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
