@@ -68,8 +68,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context this
  *       pins the member's ctx-id/DID into {@code ds_participant} on first call and verifies the
  *       pinned row against a fresh derivation on every later call.</li>
- *   <li>{@link #submitCredentialRequest(String)} — submits a credential request into the next available
- *       slot only when no active request (PENDING or ISSUED) exists; advances past slots in terminal ERROR.</li>
+ *   <li>{@link #ensureMembershipCredential(String)} — leaves an active (PENDING or ISSUED) request
+ *       alone or submits a new one into the next available slot, in a single slot scan; advances
+ *       past slots in terminal ERROR.</li>
  *   <li>{@link #readCredentialStatus(String)} — returns the current credential status
  *       ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active) without polling.</li>
  * </ul>
@@ -161,30 +162,37 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Submits a membership credential request into the next available holder-pid slot for the given
-     * participant context, unless an active (PENDING or ISSUED) request already exists.
-     * Advances past slots that are in terminal ERROR state.
-     * Returns immediately — does not poll for the outcome.
+     * Ensures an active membership credential request exists for the given participant context,
+     * in a single holder-pid slot scan: an existing ISSUED or PENDING request is left alone, a new
+     * request is submitted into the first free slot otherwise. Advances past slots in terminal
+     * ERROR state. Returns immediately — does not poll for the outcome.
      *
      * @param participantId the participant context id
+     * @return {@code "ISSUED"} for a terminally issued credential, {@code "PENDING"} when a request
+     *         is active or was just submitted, {@code "ERROR"} when all slots are exhausted
      */
-    public void submitCredentialRequest(String participantId) {
+    public String ensureMembershipCredential(String participantId) {
         var ds = adminServiceProperties.getDataspace();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
+                log.info("Data space provisioning: submitting credential request for participant {}", participantId);
                 identityHubClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
                         ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
-                return;
+                return STATUS_PENDING;
             }
-            if (STATUS_ISSUED.equals(state) || STATUS_PENDING.equals(state)) {
-                return;
+            if (STATUS_ISSUED.equals(state)) {
+                return STATUS_ISSUED;
+            }
+            if (STATUS_PENDING.equals(state)) {
+                return STATUS_PENDING;
             }
             // ERROR — advance to next slot
         }
         log.warn("Data space credential for participant {} exhausted {} holder-pid slots (all in ERROR); no request submitted",
                 participantId, ds.getMaxHolderPidSlots());
+        return STATUS_ERROR;
     }
 
     /**

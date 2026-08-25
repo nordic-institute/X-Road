@@ -111,66 +111,66 @@ class DataspaceProvisioningServiceTest {
                 clientRepository, serverConfRepository, dsParticipantRepository);
     }
 
-    // --- submitCredentialRequest ---
+    // --- ensureMembershipCredential ---
 
     @Test
-    void submitCredentialRequestSubmitsIntoSlot0WhenNoExistingRequest() {
+    void ensureMembershipCredentialSubmitsIntoSlot0WhenNoExistingRequest() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
 
-        service.submitCredentialRequest(PARTICIPANT_ID);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_PENDING);
 
         verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT0),
                 anyString(), anyString(), anyString());
     }
 
     @Test
-    void submitCredentialRequestNoOpWhenSlot0IsPending() {
+    void ensureMembershipCredentialNoOpWhenSlot0IsPending() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
 
-        service.submitCredentialRequest(PARTICIPANT_ID);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_PENDING);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     @Test
-    void submitCredentialRequestNoOpWhenSlot0IsIssued() {
+    void ensureMembershipCredentialNoOpWhenSlot0IsIssued() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
-        service.submitCredentialRequest(PARTICIPANT_ID);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_ISSUED);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     @Test
-    void submitCredentialRequestAdvancesPastErrorSlot() {
+    void ensureMembershipCredentialAdvancesPastErrorSlot() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
-        service.submitCredentialRequest(PARTICIPANT_ID);
+        service.ensureMembershipCredential(PARTICIPANT_ID);
 
         verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT1),
                 anyString(), anyString(), anyString());
     }
 
     @Test
-    void submitCredentialRequestAdvancesPastMultipleErrorSlots() {
+    void ensureMembershipCredentialAdvancesPastMultipleErrorSlots() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT2)).thenReturn(null);
 
-        service.submitCredentialRequest(PARTICIPANT_ID);
+        service.ensureMembershipCredential(PARTICIPANT_ID);
 
         verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT2),
                 anyString(), anyString(), anyString());
     }
 
     @Test
-    void submitCredentialRequestNoSubmitWhenAllSlotsExhausted() {
+    void ensureMembershipCredentialNoSubmitWhenAllSlotsExhausted() {
         when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
 
-        service.submitCredentialRequest(PARTICIPANT_ID);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_ERROR);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }

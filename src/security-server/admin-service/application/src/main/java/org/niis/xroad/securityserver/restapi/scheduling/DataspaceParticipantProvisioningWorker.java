@@ -37,6 +37,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Level-triggered provisioning worker that drives data space participant context provisioning
@@ -67,11 +69,19 @@ public class DataspaceParticipantProvisioningWorker {
         }
     }
 
+    private final Set<String> ensuredParticipantIds = ConcurrentHashMap.newKeySet();
+    private final Set<String> issuedCredentialParticipantIds = ConcurrentHashMap.newKeySet();
+
     /**
      * Executes one idempotent provisioning step. Safe to call directly for an eager first
      * provisioning run at SS init. A failure in one participant context is logged and does not
      * block the remaining contexts; a context whose creation failed is skipped in the credential
      * pass of the same tick.
+     *
+     * <p>Contexts fully created and credentials in terminal ISSUED state are remembered in-process,
+     * so a steady-state tick makes no remote calls for them. The caches reset on restart, which
+     * re-runs the idempotent creation once and re-verifies each member's pinned identity against
+     * the current configuration.
      */
     public void provisionParticipant() {
         ServerConfEntity serverConf = loadServerConf();
@@ -90,9 +100,14 @@ public class DataspaceParticipantProvisioningWorker {
 
         List<DataspaceProvisioningService.ParticipantContext> ensuredContexts = new ArrayList<>();
         for (var context : dataspaceProvisioningService.participantContexts(true)) {
+            if (ensuredParticipantIds.contains(context.participantId())) {
+                ensuredContexts.add(context);
+                continue;
+            }
             try {
                 dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
                         context.memberIdSlashForm());
+                ensuredParticipantIds.add(context.participantId());
                 ensuredContexts.add(context);
             } catch (Exception e) {
                 log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
@@ -107,24 +122,18 @@ public class DataspaceParticipantProvisioningWorker {
 
         for (var context : ensuredContexts) {
             var participantId = context.participantId();
+            if (issuedCredentialParticipantIds.contains(participantId)) {
+                continue;
+            }
             try {
-                provisionCredential(participantId);
+                var status = dataspaceProvisioningService.ensureMembershipCredential(participantId);
+                if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
+                    issuedCredentialParticipantIds.add(participantId);
+                }
             } catch (Exception e) {
                 log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
                         participantId, e);
             }
-        }
-    }
-
-    private void provisionCredential(String participantId) {
-        var status = dataspaceProvisioningService.readCredentialStatus(participantId);
-        if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
-            log.debug("Data space provisioning: participant {} credential already ISSUED", participantId);
-        } else if (DataspaceProvisioningService.STATUS_PENDING.equals(status)) {
-            log.debug("Data space provisioning: participant {} credential PENDING, waiting for next tick", participantId);
-        } else {
-            log.info("Data space provisioning: submitting credential request for participant {}", participantId);
-            dataspaceProvisioningService.submitCredentialRequest(participantId);
         }
     }
 
