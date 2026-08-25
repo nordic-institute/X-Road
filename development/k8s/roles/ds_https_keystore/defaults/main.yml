@@ -6,7 +6,7 @@ ds_https_keystore_namespace: cs
 kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
 
 ds_https_keystore_chart_repo: ""
-ds_https_keystore_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/ds-https-keystore"
+ds_https_keystore_chart: "{{ playbook_dir }}/../charts/ds-https-keystore"
 ds_https_keystore_chart_version: ""
 ds_https_keystore_helm_wait_timeout: 5m
 

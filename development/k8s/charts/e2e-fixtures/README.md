@@ -11,7 +11,7 @@
 
 ## 1. Overview
 
-Kept as a separate chart from `central-server` (`k8s/charts/central-server`)
+Kept as a separate chart from `central-server` (`deployment/central-server/k8s/charts/central-server`)
 so the CS chart stays on a clean production track while these fixtures stay
 unambiguously dev/E2E-only. Structure mirrors the central-server chart: a
 values-driven `services` map for the four simple test-double workloads
@@ -52,7 +52,7 @@ The DS-HTTPS keystore init Job used to live here, but the Central Server
 Issuer Service and (when DSP is enabled) the Security Server ds_tls mode
 mount the resulting `ds-https-keystore` Secret **at boot** — so it must be
 provisioned before those charts, not alongside these fixtures. It now has its
-own `deployment/security-server/k8s/charts/ds-https-keystore` chart, deployed
+own `development/k8s/charts/ds-https-keystore` chart, deployed
 as an early ansible step (`ds_https_keystore` role, before `security_server`
 and `central_server`). See that chart's README for the self-signed recipe,
 the SAN set, and the truststore-key-naming reconciliation still owed to the

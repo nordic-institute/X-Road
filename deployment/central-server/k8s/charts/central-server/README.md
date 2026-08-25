@@ -10,7 +10,7 @@
 
 ## 1. Overview
 
-The chart mirrors the Security Server chart's structure (`k8s/charts/security-server`):
+The chart mirrors the Security Server chart's structure (`deployment/security-server/k8s/charts/security-server`):
 a values-driven `services` map, the same `xroad.labels` / `xroad.service` /
 `xroad.deployment` / `xroad.serviceaccount` helper templates, and
 `global.image.registry` / `global.image.tag` for image coordinates. Today the

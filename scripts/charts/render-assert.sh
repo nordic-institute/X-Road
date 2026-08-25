@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Helm template render assertions for the k8s/charts tree.
+# Helm template render assertions for the k8s charts (deployment/ and development/ trees).
 #
 # Fast, offline sanity gate: fails if `helm template` cannot render a chart,
 # or if a chart's default-values output stops containing resource kinds it
@@ -15,7 +15,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../" && pwd)"
 source "${ROOT_DIR}/scripts/lib/base-script.sh"
 
-CHARTS_DIR="${ROOT_DIR}/deployment/security-server/k8s/charts"
+# Charts live in three trees: prod/future-prod under deployment/, dev-only
+# (test fixtures, stop-gaps) under development/k8s/charts.
+chart_dir() {
+    case "$1" in
+        central-server) echo "${ROOT_DIR}/deployment/central-server/k8s/charts/central-server" ;;
+        e2e-fixtures|ds-https-keystore|external-service-bridge) echo "${ROOT_DIR}/development/k8s/charts/$1" ;;
+        *) echo "${ROOT_DIR}/deployment/security-server/k8s/charts/$1" ;;
+    esac
+}
 
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "${WORK_DIR}"' EXIT
@@ -46,7 +54,8 @@ assert_kind_count() {
 
 render_chart() {
     local chart="$1"
-    local chart_path="${CHARTS_DIR}/${chart}"
+    local chart_path
+    chart_path="$(chart_dir "${chart}")"
     local out_file="${WORK_DIR}/${chart}.yaml"
     local err_file="${WORK_DIR}/${chart}.err"
 

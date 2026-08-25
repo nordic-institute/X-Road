@@ -38,11 +38,11 @@ security_server_chart: "{{ charts_root }}/security-server"
 security_server_chart_version: ""
 
 central_server_chart_repo: ""
-central_server_chart: "{{ charts_root }}/central-server"
+central_server_chart: "{{ playbook_dir }}/../../../deployment/central-server/k8s/charts/central-server"
 central_server_chart_version: ""
 
 e2e_fixtures_chart_repo: ""
-e2e_fixtures_chart: "{{ charts_root }}/e2e-fixtures"
+e2e_fixtures_chart: "{{ playbook_dir }}/../charts/e2e-fixtures"
 e2e_fixtures_chart_version: ""
 
 postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"

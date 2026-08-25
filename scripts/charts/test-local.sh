@@ -81,16 +81,20 @@ done
 log_info "Step 4: Packaging and pushing dev-only charts..."
 echo ""
 
-DEV_CHARTS_BASE_DIR="${ROOT_DIR}/deployment/security-server/k8s/charts"
-DEV_CHARTS=("central-server" "e2e-fixtures" "ds-https-keystore")
+DEV_CHARTS=(
+    "deployment/central-server/k8s/charts/central-server"
+    "development/k8s/charts/e2e-fixtures"
+    "development/k8s/charts/ds-https-keystore"
+)
 DEV_SMOKE_VERSION="0.0.0-smoke"
 DEV_OCI_URL="oci://${REGISTRY}/helm-dev"
 
 DEV_PACKAGE_DIR=$(mktemp -d)
 trap 'rm -rf "${DEV_PACKAGE_DIR}"' EXIT
 
-for chart in "${DEV_CHARTS[@]}"; do
-    CHART_PATH="${DEV_CHARTS_BASE_DIR}/${chart}"
+for chart_rel_path in "${DEV_CHARTS[@]}"; do
+    CHART_PATH="${ROOT_DIR}/${chart_rel_path}"
+    chart="$(basename "${chart_rel_path}")"
 
     log_info "Packaging: ${chart}"
     helm package "${CHART_PATH}" \
@@ -112,7 +116,8 @@ echo ""
 log_info "Step 5: Verifying dev-only charts in registry..."
 echo ""
 
-for chart in "${DEV_CHARTS[@]}"; do
+for chart_rel_path in "${DEV_CHARTS[@]}"; do
+    chart="$(basename "${chart_rel_path}")"
     log_info "Checking: helm-dev/${chart}"
 
     RESPONSE=$(curl -sf "${REGISTRY_URL}/v2/helm-dev/${chart}/tags/list" 2>/dev/null || echo '{"tags":[]}')

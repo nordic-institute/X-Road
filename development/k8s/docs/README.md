@@ -98,8 +98,8 @@ scripts/env-k8s/lint.sh                      # ansible-lint + yamllint
 
 | Environment | Cluster | Charts | Registry |
 |---|---|---|---|
-| `dev` | KinD `xroad-dev-cluster` | Local `deployment/security-server/k8s/charts/...` | `localhost:5555` (via containerd mirror) |
-| `e2e` | KinD `xroad-e2e-cluster` | Local `deployment/security-server/k8s/charts/...` | `localhost:5555` (via containerd mirror) |
+| `dev` | KinD `xroad-dev-cluster` | Local charts (`deployment/*/k8s/charts/...`, `development/k8s/charts/...`) | `localhost:5555` (via containerd mirror) |
+| `e2e` | KinD `xroad-e2e-cluster` | Local charts (`deployment/*/k8s/charts/...`, `development/k8s/charts/...`) | `localhost:5555` (via containerd mirror) |
 | `test` | KinD `xroad-test-cluster` | Artifactory `oci://artifactory.niis.org/xroad8-snapshot-helm` | `artifactory.niis.org/xroad8-snapshot-image` |
 | `eks` | Pre-provisioned EKS | Artifactory release OCI repo | ECR |
 

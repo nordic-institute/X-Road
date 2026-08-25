@@ -53,6 +53,6 @@ root cause of an earlier hybrid k8s-SS-to-LXD-CS PKIX failure. Override via
 ## 4. Rendering
 
 ```bash
-helm lint deployment/security-server/k8s/charts/ds-https-keystore
-helm template kt deployment/security-server/k8s/charts/ds-https-keystore
+helm lint development/k8s/charts/ds-https-keystore
+helm template kt development/k8s/charts/ds-https-keystore
 ```

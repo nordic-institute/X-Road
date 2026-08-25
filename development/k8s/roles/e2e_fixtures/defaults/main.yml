@@ -5,7 +5,7 @@ e2e_fixtures_namespace: cs
 kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
 
 e2e_fixtures_chart_repo: ""
-e2e_fixtures_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts/e2e-fixtures"
+e2e_fixtures_chart: "{{ playbook_dir }}/../charts/e2e-fixtures"
 e2e_fixtures_chart_version: ""
 e2e_fixtures_helm_wait_timeout: 10m
 
@@ -14,7 +14,7 @@ xroad_image_tag: ""
 
 # setup.hurl/vars.env are read from disk and injected as literal chart values (the ansible
 # equivalent of the chart README's `helm template --set-file` recipe) — hurl is repointed, not
-# forked; see deployment/security-server/k8s/charts/e2e-fixtures/README.md section 4.
+# forked; see development/k8s/charts/e2e-fixtures/README.md section 4.
 hurl_setup_file: "{{ playbook_dir }}/../../hurl/scenarios/setup.hurl"
 hurl_vars_file: "{{ playbook_dir }}/../../hurl/scenarios/vars.env"
 

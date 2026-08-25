@@ -10,7 +10,7 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 # Additional paths
 SRC_DIR="${ROOT_DIR}/src"
 GRADLE_PROPERTIES="${SRC_DIR}/gradle.properties"
-CHARTS_BASE_DIR="${ROOT_DIR}/deployment"
+CHARTS_BASE_DIR="${ROOT_DIR}"
 
 # Show help
 show_help() {
@@ -82,13 +82,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Always build all charts
+# Always build all charts (paths relative to the repo root)
 CHARTS=(
-    "security-server/k8s/charts/security-server"
-    "security-server/k8s/charts/openbao-init"
-    "security-server/k8s/charts/external-service-bridge"
-    "k8s/charts/xroad-common"
-    "k8s/charts/configuration-proxy"
+    "deployment/security-server/k8s/charts/security-server"
+    "deployment/security-server/k8s/charts/openbao-init"
+    "development/k8s/charts/external-service-bridge"
+    "deployment/k8s/charts/xroad-common"
+    "deployment/k8s/charts/configuration-proxy"
 )
 
 # Determine registry and defaults
