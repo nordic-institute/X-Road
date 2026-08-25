@@ -421,6 +421,34 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void ensureParticipantContextUsesConcurrentlyPinnedRowWhenPinLosesTheRace() {
+        var pinned = pinnedParticipant(MEMBER, SS_HOST);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(pinned));
+        when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
+                .thenThrow(new IllegalStateException("duplicate key value violates unique constraint"));
+
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER));
+
+        verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextRethrowsPinFailureWhenNoConcurrentRowAppeared() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
+                .thenThrow(new IllegalStateException("connection lost"));
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(
+                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, slashForm(MEMBER)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("connection lost");
+
+        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void ensureParticipantContextVerifiesAlreadyPinnedMemberAndDoesNotRepin() {
         var pinned = pinnedParticipant(MEMBER, SS_HOST);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));

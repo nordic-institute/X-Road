@@ -66,7 +66,9 @@ public class DsParticipantRepository {
 
     /**
      * Pins a new MEMBER participant row. Never call this for a member that is already pinned —
-     * the pinned row is authoritative and must never be overwritten.
+     * the pinned row is authoritative and must never be overwritten. The insert is flushed
+     * immediately, so a concurrent pin of the same member surfaces here as a constraint
+     * violation rather than at the surrounding transaction's commit.
      *
      * @param member the member identifier
      * @param ctxId  the derived ctx-id
@@ -85,6 +87,8 @@ public class DsParticipantRepository {
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
 
-        return new DsParticipantDAOImpl().save(session, participant);
+        var saved = new DsParticipantDAOImpl().save(session, participant);
+        session.flush();
+        return saved;
     }
 }

@@ -54,6 +54,8 @@ import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -217,6 +219,19 @@ public class InitializationService {
     }
 
     private void eagerProvisionDataspaceParticipant() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    provisionDataspaceParticipantBestEffort();
+                }
+            });
+        } else {
+            provisionDataspaceParticipantBestEffort();
+        }
+    }
+
+    private void provisionDataspaceParticipantBestEffort() {
         try {
             dataspaceParticipantProvisioningWorker.provisionParticipant();
         } catch (Exception e) {

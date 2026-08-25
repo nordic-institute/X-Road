@@ -328,8 +328,18 @@ public class DataspaceProvisioningService {
 
         var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
         var did = ParticipantIdentifierScheme.memberDid(member, ssHost);
-        dsParticipantRepository.pinMemberParticipant(member, ctxId, did);
-        return did;
+        try {
+            dsParticipantRepository.pinMemberParticipant(member, ctxId, did);
+            return did;
+        } catch (RuntimeException e) {
+            var raced = dsParticipantRepository.findByMemberIdentifier(member);
+            if (raced.isEmpty()) {
+                throw e;
+            }
+            log.info("Data space: member {} was pinned concurrently, using the existing row", member);
+            ParticipantPinningCheck.verify(raced.get(), ssHost);
+            return raced.get().getDid();
+        }
     }
 
     private void createIdentityHubContext(String participantId, String did, String identityHubHost, String memberId) {
