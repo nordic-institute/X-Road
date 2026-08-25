@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
@@ -231,8 +232,7 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         var hostParticipantId = ds.getParticipantId();
 
-        var owner = serverConfRepository.getServerConf().getOwner();
-        var ownerId = owner == null ? null : owner.getIdentifier();
+        var ownerId = ownerIdOrNull();
         var ownerSlashForm = ownerId == null ? null : slashForm(ownerId);
 
         List<ParticipantContext> contexts = new ArrayList<>();
@@ -263,6 +263,19 @@ public class DataspaceProvisioningService {
         return enumerateParticipantContexts(managementRegistered).stream()
                 .map(ctx -> readContextStatus(ctx.participantId(), ctx.kind()))
                 .toList();
+    }
+
+    @Nullable
+    private ClientId ownerIdOrNull() {
+        try {
+            var owner = serverConfRepository.getServerConf().getOwner();
+            return owner == null ? null : owner.getIdentifier();
+        } catch (XrdRuntimeException e) {
+            if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
+                return null;
+            }
+            throw e;
+        }
     }
 
     private Set<ClientId> hostedMembers(ClientId owner) {

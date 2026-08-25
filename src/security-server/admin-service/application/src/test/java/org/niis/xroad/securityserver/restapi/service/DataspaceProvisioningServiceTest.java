@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -314,6 +315,28 @@ class DataspaceProvisioningServiceTest {
 
         assertThat(contexts).containsExactly(
                 new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null));
+    }
+
+    @Test
+    void participantContextsReturnsOnlyHostWhenServerConfNotInitialized() {
+        when(serverConfRepository.getServerConf())
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).containsExactly(
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null));
+    }
+
+    @Test
+    void participantContextsRethrowsServerConfErrorsOtherThanUninitialized() {
+        when(serverConfRepository.getServerConf())
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR).build());
+
+        assertThatThrownBy(() -> service.participantContexts(false))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.INTERNAL_ERROR.code()));
     }
 
     // --- ensureParticipantContext (HOST / MANAGEMENT) ---

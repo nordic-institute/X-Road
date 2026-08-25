@@ -178,15 +178,33 @@ class DataspaceProvisioningStatusServiceTest {
 
     @Test
     void readStatusSsNotInitializedReportsAllContextsAbsent() {
+        when(serverConfRepository.getServerConf())
+                .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+
+        DataspaceStatus status = statusService.readStatus();
+
+        assertThat(status.participantContexts()).hasSize(2);
+        assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT);
+        assertThat(status.participantContexts())
+                .allSatisfy(ctx -> {
+                    assertThat(ctx.contextCreated()).isFalse();
+                    assertThat(ctx.credentialStatus()).isEqualTo(STATUS_ABSENT);
+                });
+    }
+
+    @Test
+    void readStatusProvisionedContextsReportedWithAllKinds() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextExists(anyString())).thenReturn(false);
 
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.participantContexts()).hasSize(3);
-        assertThat(status.participantContexts().get(0).kind()).isEqualTo(ParticipantKind.HOST);
-        assertThat(status.participantContexts().get(1).kind()).isEqualTo(ParticipantKind.MANAGEMENT);
-        assertThat(status.participantContexts().get(2).kind()).isEqualTo(ParticipantKind.MEMBER);
+        assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
