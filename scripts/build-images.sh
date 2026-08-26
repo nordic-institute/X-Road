@@ -176,8 +176,8 @@ fi
 
 # --- Signer-with-HSM stop-gap image ------------------------------------------
 # Layers SoftHSM2 onto the ss-signer image the tier above just pushed — needed
-# whenever a Security Server release enables the chart's signer.hsm.enabled
-# toggle (e.g. the k8s E2E topology's ss1). Requires ss-signer to already be
+# whenever a Security Server release overrides services.signer.imageName to it
+# (e.g. the k8s E2E topology's ss1). Requires ss-signer to already be
 # in the registry, so it only runs when the SS tier ran too.
 if [[ "$SKIP_SIGNER_HSM" != "true" && "$SKIP_SS" != "true" ]]; then
   log_info "--- Building signer-with-hsm image (build-signer-with-hsm.sh --push) ---"

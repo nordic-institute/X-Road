@@ -14,10 +14,10 @@ show_help() {
   cat <<EOF
 Signer-with-HSM Image Build Script
 
-TEMPORARY stop-gap image: layers SoftHSM2 + a PKCS#11 signer-devices.yaml
-onto the already-built ss-signer image, so a Security Server release can
-expose a pkcs11 HARDWARE token (see security-server chart's
-signer.hsm.enabled toggle) instead of a plain softToken. Reused as-is from
+TEMPORARY stop-gap image: layers SoftHSM2 onto the already-built ss-signer
+image, so a Security Server release can expose a pkcs11 HARDWARE token
+(selected by overriding the chart's services.signer.imageName, e.g. via the
+ansible signer_hsm_enabled var) instead of a plain softToken. Reused as-is from
 the compose e2e-test HSM variant (src/security-server/e2e-test/.../
 compose.ss-hsm.e2e.yaml) until SoftHSM provisioning is built natively into
 the chart.

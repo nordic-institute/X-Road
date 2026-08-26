@@ -133,7 +133,7 @@ handleBuild() {
   IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" "${target}" --push
   log_success "Image built: localhost:5555/$(service_to_image):latest"
 
-  # Releases with signer.hsm.enabled run ss-signer-with-hsm, layered on ss-signer.
+  # Releases overriding services.signer.imageName run ss-signer-with-hsm, layered on ss-signer.
   # Rebuild it alongside so both variants stay on the same code.
   if [[ "${SERVICE}" == "signer" ]]; then
     log_info "Building SoftHSM signer variant"
@@ -159,7 +159,7 @@ handleDeploy() {
   fi
   cluster_name="${context#kind-}"
 
-  # A namespace whose release sets signer.hsm.enabled runs ss-signer-with-hsm, so
+  # A release may override services.signer.imageName to ss-signer-with-hsm, so
   # the image name cannot be derived from the service name alone. Take it from the
   # live Deployment.
   if [[ "${SERVICE}" == "signer" ]]; then
