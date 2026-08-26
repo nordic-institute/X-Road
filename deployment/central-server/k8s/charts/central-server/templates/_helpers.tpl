@@ -1,6 +1,5 @@
 {{/*
-Common labels — includes a fixed marker label so every rendered resource
-self-identifies as non-production (mirrors the Chart.yaml annotation).
+Common labels
 */}}
 {{- define "xroad.labels" -}}
 app.kubernetes.io/name: {{ .Chart.Name }}
@@ -39,13 +38,8 @@ spec:
 {{- end }}
 
 {{/*
-Deployment template.
-
-Unlike the Security Server chart's version, this does not project a rootless/
-read-only-rootfs securityContext or per-path emptyDir mounts onto the
-container: the all-in-one dev image runs postgres/supervisord/nginx as root
-and writes across its own filesystem, so faking that hardening posture here
-would just be wrong. See values.yaml's securityContext comment.
+Deployment template. No rootless/read-only-rootfs hardening: the all-in-one
+image runs postgres/supervisord/nginx as root (see values.yaml securityContext).
 */}}
 {{- define "xroad.deployment" -}}
 {{- $replicas := 1 -}}
@@ -133,8 +127,7 @@ spec:
           {{- if or .config.volumeMounts .config.extraVolumeMounts (eq .service "central-server") }}
           volumeMounts:
             {{- if eq .service "central-server" }}
-            {{- /* subPath mount: a directory mount would shadow the image's baked
-                   10-central-server.properties — see db-config-seed-configmap.yaml. */}}
+            {{- /* subPath: a directory mount would shadow the image's baked properties */}}
             - mountPath: /etc/xroad/db-config-seed/90-k8s.properties
               subPath: 90-k8s.properties
               name: db-config-seed
@@ -182,9 +175,7 @@ spec:
 {{- end }}
 
 {{/*
-ServiceAccount + Role + RoleBinding for a service. Scoped to reading its own
-env ConfigMap plus configmaps/pods generally, matching the Security Server
-chart's convention.
+ServiceAccount + Role + RoleBinding for a service
 */}}
 {{- define "xroad.serviceaccount" -}}
 apiVersion: v1

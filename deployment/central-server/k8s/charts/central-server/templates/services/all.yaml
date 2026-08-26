@@ -1,11 +1,6 @@
 {{- range $service, $config := .Values.services }}
 
-{{- /*
-Skip services with replicas: 0 — same "off" switch convention as the
-Security Server chart. There's only one entry today (central-server); this
-loop shape is what lets a future decomposed CS add more entries without
-touching the templates.
-*/}}
+{{- /* replicas: 0 switches a service off, as in the Security Server chart */}}
 {{- $replicas := 1 -}}
 {{- if hasKey $config "replicas" }}{{ $replicas = $config.replicas | int }}{{ end }}
 {{- if gt $replicas 0 }}

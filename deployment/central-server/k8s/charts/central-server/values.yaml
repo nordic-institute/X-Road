@@ -1,15 +1,6 @@
-# NOT production-ready. See README.md.
-#
-# This chart wraps the single all-in-one `central-server-dev` image (the same
-# image docker-compose uses for e2e/dev): one container running the packaged
-# xroad-centralserver install (admin/frontend, management-service,
-# registration-service, embedded PostgreSQL, co-located Issuer Service, signer)
-# under supervisord, not a decomposed set of per-component workloads.
-#
-# The `services` map follows the Security Server chart's shape (imageName,
-# ports, resources, env, probes) precisely so that decomposing the monolith
-# into per-component services later is a matter of adding more map entries —
-# not a rewrite of the templates.
+# NOT production-ready — wraps the all-in-one `central-server-dev` image. See README.md.
+# The `services` map follows the Security Server chart's shape so a later
+# decomposition only adds map entries, not a templates rewrite.
 
 global:
   image:
@@ -21,11 +12,8 @@ global:
 
 imagePullSecrets: []
 
-# The dev image runs postgres + supervisord + nginx as root (see
-# development/docker/central-server/Dockerfile and files/cs-entrypoint.sh) —
-# it cannot honor the Security Server chart's rootless/read-only-rootfs
-# securityContext. Left empty (all defaults) rather than faked strict, so the
-# chart doesn't claim a hardening posture it can't deliver.
+# Empty on purpose: the dev image runs postgres/supervisord/nginx as root and
+# cannot honor the Security Server chart's rootless/read-only-rootfs posture.
 securityContext:
   pod: {}
   container: {}
@@ -39,26 +27,15 @@ services:
         memory: 512Mi
       limits:
         memory: 3Gi
-    # Ports verified against development/docker/.../compose.aux.yaml's `cs` service.
-    # Port 80 is not in compose's published-ports list (compose reaches it over
-    # the shared docker network without publishing), but the packaged
-    # xroad-center nginx serves the global configuration distribution
-    # (/internalconf) on it — the Security Servers download and verify global
-    # conf from the anchor's http://<cs>/internalconf URL, so it must be an
-    # exposed Service port for cross-namespace reachability.
     ports:
+      # 80 serves global conf distribution (/internalconf) to the Security Servers
       - port: 80
         name: gconf-http
       - port: 443
         name: gconf-https
       - port: 4000
         name: https
-      # Management-request endpoints the Security Servers call cross-namespace:
-      # 4001 = registration-service (auth-cert registration,
-      # https://<cs>:4001/managementservice/), 4002 = management-service
-      # (client/subsystem registration + WSDL, https://<cs>:4002/
-      # managementservice/manage/). Like port 80, compose reaches these over
-      # the shared docker network; in k8s they must be exposed Service ports.
+      # 4001/4002: management-request endpoints Security Servers call cross-namespace
       - port: 4001
         name: reg-service
       - port: 4002
@@ -74,10 +51,7 @@ services:
       - port: 9994
         name: signer-debug
     readinessProbe:
-      # Same empty-path placeholder as the Security Server chart's
-      # proxy-ui-api entry: no lightweight unauthenticated health endpoint
-      # confirmed yet on the admin UI port. Replace with a real path once
-      # one's identified.
+      # empty-path placeholder: no unauthenticated health endpoint identified yet
       path: ""
       port: 4000
       scheme: HTTPS
@@ -85,12 +59,8 @@ services:
       annotations: {}
     env:
       XROAD_HOST: "central-server"
-    # The co-located Issuer Service reads its HTTPS keystore from
-    # /etc/xroad/ds-ssl/ds-https.p12 (local-ds-issuer-service.yaml in the CS
-    # dev image); without it the Issuer Service crash-loops and CS
-    # initialization fails with a gRPC timeout. Provisioned by the
-    # ds-https-keystore chart (deployed earlier, same namespace) — the k8s
-    # analogue of compose's `ds-https-keystore:/etc/xroad/ds-ssl` mount.
+    # Issuer Service HTTPS keystore (provisioned by the ds-https-keystore chart);
+    # without it the Issuer Service crash-loops and CS init fails.
     volumeMounts:
       - name: ds-https-keystore
         mountPath: /etc/xroad/ds-ssl

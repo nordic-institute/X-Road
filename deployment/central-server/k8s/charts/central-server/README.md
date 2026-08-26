@@ -44,11 +44,15 @@ Verified against the `cs` service in
 
 | Port | Name | Purpose |
 |---|---|---|
+| 80 | `gconf-http` | Global configuration distribution (`/internalconf`) |
+| 443 | `gconf-https` | Global configuration distribution (TLS) |
 | 4000 | `https` | Admin UI / frontend |
+| 4001 | `reg-service` | Registration service (auth-cert registration) |
+| 4002 | `mgmt-service` | Management service (client/subsystem registration) |
 | 5432 | `postgres` | Embedded database |
 | 6183 | `issuer-did` | Co-located Issuer Service — DID resolution |
 | 6185 | `issuer-issuance` | Co-located Issuer Service — issuance API |
-| 6187 | `issuer-statuslist` | Co-located Issuer Service — status list API |
+| 6187 | `issuer-status` | Co-located Issuer Service — status list API |
 | 9994 | `signer-debug` | Signer remote debug |
 
 ## 4. Image coordinates and `imagePullSecrets`

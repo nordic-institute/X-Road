@@ -74,9 +74,7 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
-  # See _test-e2e.yml for the no-needs-edge/marker design. Losing that edge also loses
-  # the implicit skip when build-and-package is skipped, so its Dependabot guard is
-  # repeated here.
+  # no needs edge on build-and-package (see _test-e2e.yml), so its Dependabot guard is repeated here
   test-e2e:
     name: e2e
     if: >
@@ -86,17 +84,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Leg timeouts include the in-job wait for the readiness marker (up
-          # to its 70-min backstop), not just the leg's own setup + suite.
+          # timeouts include the in-job wait for the readiness marker
           - variant: compose
             runs_on: ubuntu-24.04
             timeout_minutes: 90
           - variant: lxd
             runs_on: xrd-runner-8c
             timeout_minutes: 120
-          # Self-hosted 8c rather than hosted ubuntu-24.04: the leg's chart
-          # rollout is dominated by JVM cold starts across ~15 pods, which is
-          # CPU-bound and the pipeline's critical path.
+          # 8c runner: chart rollout is CPU-bound (~15 JVM cold starts)
           - variant: k8s
             runs_on: xrd-runner-8c
             timeout_minutes: 90
@@ -120,8 +115,6 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
-  # Parallel with build-and-package (see _test-charts.yml) — chart breakage fails fast
-  # independent of the full build.
   chart-lint-smoke:
     name: chart-lint-smoke
     uses: ./.github/workflows/_test-charts.yml
