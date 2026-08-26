@@ -137,9 +137,7 @@ jobs:
           echo "  Build Number: ${BUILD_NUMBER}"
           echo "  Commit SHA: ${{ inputs.sha }}"
 
-      # Test execution is deferred to the job tail (see "Run tests") so the package
-      # and image artifacts the e2e legs wait on land as early as possible. Packages
-      # and images need only assembled artifacts, never test results.
+      # Test execution is deferred to the job end (see "Run tests")
       - name: Build source
         working-directory: ./src
         run: |
@@ -202,9 +200,7 @@ jobs:
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
-      # Everything the lxd e2e leg consumes (native packages + e2e-test-jar) is
-      # uploaded above this point. The marker carries the registry/tag too, since
-      # the legs no longer have a `needs` edge to read job outputs from.
+      # Everything the lxd e2e leg consumes (native packages + e2e-test-jar) is uploaded above this point.
       - name: Write artifacts-ready marker
         run: |
           mkdir -p ci-markers
@@ -321,8 +317,6 @@ jobs:
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-infra.sh --push
 
-      # Every image push the k8s e2e leg pulls from (SS, signer-hsm, CS dev image,
-      # dev-infra) has landed by this point.
       - name: Write images-ready marker
         run: |
           mkdir -p ci-markers
@@ -336,10 +330,7 @@ jobs:
           path: ci-markers/images-ready.env
           compression-level: '0'
 
-      # `build`, not bare `test`: only the deferred test tasks are out of date at this
-      # point. A bare `test` also runs every task merely *named* test across
-      # subprojects (e.g. :shared-ui:test), which build/check never wired in and which
-      # already run in their own dedicated workflow jobs.
+      # `build`, not bare `test` as it triggers all the relevant tasks and previous build (w/o tests) is still cached.
       - name: Run tests
         working-directory: ./src
         run: |
@@ -359,10 +350,7 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      # Moved to the job tail so it no longer sits between the package uploads and
-      # the image pushes -- Sonar's own runtime was the biggest single delay between
-      # the artifacts-ready marker and the image pushes the k8s leg waits on. It also
-      # stays after "Run tests": jacocoAggregatedReport consumes their coverage output.
+      # Runs at the end, in parallel to e2e jobs.
       - name: Sonar analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

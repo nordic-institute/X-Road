@@ -1,11 +1,5 @@
 name: Chart lint/template/smoke
 
-# Fast, cheap gate for the dev-only k8s charts (central-server, e2e-fixtures):
-# helm lint (informational), helm template render assertions (the real
-# gate), and the existing local-OCI-registry smoke path. Runs independently
-# of build-and-package, so chart breakage surfaces without waiting on the
-# full build or the E2E lanes.
-
 on:
   workflow_call:
     inputs:
@@ -24,26 +18,18 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref }}
 
-      # Pinned to the current stable Helm 3.x line, not 4.x — the k8s dev/E2E
-      # ansible tooling's kubernetes.core collection is not yet Helm-4-ready
-      # (see development/k8s/galaxy.yml).
+      # Helm 3.x pinned: kubernetes.core ansible collection is not Helm-4-ready
       - name: Setup Helm
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           version: 'v3.21.3'
 
-      # helm lint can't parse templates/services/all.yaml ("invalid Yaml document
-      # separator") on this multi-document per-service template — also seen on the
-      # pre-existing, unmodified security-server chart it mirrors, so not a
-      # regression here. Verified across Helm 3.12-4.2.3 (current latest).
-      # Non-blocking for visibility; `helm template` below is the real gate.
-      # `|| true` avoids continue-on-error's failure annotation on an expected
-      # failure.
-      - name: Helm lint (informational — see comment above)
+      # non-blocking: helm lint chokes on multi-document templates; render assertions below are the real gate
+      - name: Helm lint (informational)
         run: |
           helm lint deployment/central-server/k8s/charts/central-server || true
           helm lint development/k8s/charts/e2e-fixtures || true
