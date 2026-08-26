@@ -113,10 +113,11 @@ trusted_issuer_host: central-server.cs
 # above) and re-adding one would re-arm a scheduled run that races the test.
 # ss0 gets neither var and keeps producing plaintext, ungrouped archives.
 # messagelog_encryption_pgp_public_keyring_file points the openbao role's
-# kvSeed at the e2e suite's own gpg_keys fixture (read from disk at render
-# time, not copied into this repo) — only the recipient *public* keyring is
-# seeded; the archive signing key and the messagelog DB master key are both
-# generated unconditionally at Security Server init and need no provisioning.
+# messagelog-pgp-keyring-vault-seed Job at the e2e suite's own gpg_keys
+# fixture (read from disk at play time, not copied into this repo) — only
+# the recipient *public* keyring is seeded; the archive signing key and the
+# messagelog DB master key are both generated unconditionally at Security
+# Server init and need no provisioning.
 security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0

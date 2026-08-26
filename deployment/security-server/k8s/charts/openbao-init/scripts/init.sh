@@ -4,7 +4,6 @@ set -e
 
 . /scripts/_openbao.sh
 . /scripts/_k8s.sh
-. /scripts/seed_kv.sh
 
 if is_initialized; then
   echo "[INIT] OpenBao is already initialized"
@@ -140,13 +139,6 @@ else
   }
 fi
 
-# Seed any optional kvSeed values (chart's values.yaml) now that xrd-secret
-# exists — a no-op when no kvSeed entries were configured.
-echo "[SEED] Seeding KV values (if any)..."
-seed_kv "$BAO_ADDR" "$ROOT_TOKEN" || {
-  echo "[SEED] Failed to seed KV values" >&2
-  exit 1
-}
 
 NEEDS_NEW_TOKEN=true
 if EXISTING_SECRET=$(k8s_api "GET" "/api/v1/namespaces/${NAMESPACE}/secrets/${XROAD_TOKEN_SECRET_NAME}" "" "Retrieving X-Road client token") && [ -n "$EXISTING_SECRET" ]; then

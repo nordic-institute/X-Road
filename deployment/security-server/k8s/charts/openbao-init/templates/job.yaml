@@ -52,19 +52,9 @@ spec:
             - name: init-script
               mountPath: /scripts
               readOnly: true
-{{- if .Values.kvSeed }}
-            - name: kvseed
-              mountPath: /kvseed
-              readOnly: true
-{{- end }}
       volumes:
         - name: init-script
           configMap:
             name: {{ .Values.serviceAccount.name }}-script
             defaultMode: 0755
-{{- if .Values.kvSeed }}
-        - name: kvseed
-          configMap:
-            name: {{ .Values.serviceAccount.name }}-kvseed
-{{- end }}
       restartPolicy: Never

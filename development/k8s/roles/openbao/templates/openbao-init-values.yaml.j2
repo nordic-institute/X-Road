@@ -4,9 +4,3 @@ openbao:
 {% for i in range(openbao_ha_replicas) %}
     - "https://openbao-{{ i }}.openbao-internal:8200"
 {% endfor %}
-{% if (messagelog_encryption_pgp_public_keyring_file | default('')) | length > 0 %}
-kvSeed:
-  - path: message-log/archival/pgp/public-keys
-    value: |
-{{ lookup('file', messagelog_encryption_pgp_public_keyring_file) | indent(6, true) }}
-{% endif %}

@@ -16,16 +16,3 @@ openbao:
     threshold: 3
     shares: 5
   xroad_token_secret_name: xroad-token # Name of the Kubernetes secret that stores the X-Road access token, created during OpenBao initialization
-
-# Optional KV v1 payloads to seed into OpenBao at xrd-secret/<path>, one
-# "payload" field each (matching every other xrd-secret writer in this
-# codebase — see common/secret-store-local's _openbao.sh and
-# lib/vault-core's VaultClient.PAYLOAD_KEY). Empty by default: no ConfigMap,
-# no seeding step. The write is a plain KV v1 overwrite, so it is safe to
-# re-run on every init (idempotent) — used e.g. for the messagelog archive
-# recipient PGP public keyring at message-log/archival/pgp/public-keys.
-kvSeed: []
-# - path: message-log/archival/pgp/public-keys
-#   value: |
-#     -----BEGIN PGP PUBLIC KEY BLOCK-----
-#     ...

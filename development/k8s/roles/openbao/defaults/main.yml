@@ -31,17 +31,25 @@ openbao_tls_validity_days: 1825
 
 openbao_helm_wait_timeout: 10m
 
-# Recipient PGP public keyring for messagelog archive encryption,
-# seeded via the openbao-init chart's optional kvSeed mechanism at
+# Recipient PGP public keyring for messagelog archive encryption, seeded by a
+# one-shot Job into this instance's OpenBao at
 # xrd-secret/message-log/archival/pgp/public-keys (KV v1, field "payload" —
-# see lib/vault-core VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH). A file
-# path, read from disk at render time by openbao-init-values.yaml.j2 — same
-# "read the real file, inject at render time" pattern as the e2e_fixtures
-# role's hurl_setup_file/isrest_mapping_files. Empty by default: the chart's
-# kvSeed list stays empty and no KV write happens, matching chart/image
-# behavior for dev/eks. Only the recipient *public* keyring needs seeding —
-# the archive signing key and the messagelog DB master key are both
-# generated unconditionally at Security Server init and already live in
-# openbao. Set per Security Server release (e.g. e2e's ss1 only, mirroring
-# compose and the LXD role's xrd-ss1-only import).
+# see lib/vault-core VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH), modeled
+# on the ds_https_keystore role's ds-https-vault-seed Job. A file path, read
+# from disk at play time — same "read the real file, inject at render time"
+# pattern as the e2e_fixtures role's hurl_setup_file/isrest_mapping_files.
+# Empty by default: no seed Job/ConfigMap is created, matching dev/eks
+# behavior. Only the recipient *public* keyring needs seeding — the archive
+# signing key and the messagelog DB master key are both generated
+# unconditionally at Security Server init and already live in openbao. Set
+# per Security Server release (e.g. e2e's ss1 only, mirroring compose and the
+# LXD role's xrd-ss1-only import).
 messagelog_encryption_pgp_public_keyring_file: ""
+
+# Image for the pgp-keyring-vault-seed Job — same curl+jq image the
+# ds_https_keystore role's ds-https-vault-seed Job uses, so no new image
+# needs pulling into the cluster.
+openbao_pgp_keyring_vault_seed_image: "dwdraju/alpine-curl-jq"
+openbao_pgp_keyring_vault_seed_backoff_limit: 3
+openbao_pgp_keyring_wait_retries: 30
+openbao_pgp_keyring_wait_delay: 5

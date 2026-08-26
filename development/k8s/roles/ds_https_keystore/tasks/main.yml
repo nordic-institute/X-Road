@@ -63,11 +63,11 @@
 # Each Security Server release runs its own separate OpenBao instead (the `openbao` role, one per
 # namespace) — same cert/key, written into every one of those.
 #
-# This can't reuse the openbao role's own kvSeed mechanism: kvSeed values are baked into the
-# openbao-init Job, which runs (per security_server_instances loop) before this role does — the
-# keystore doesn't exist yet at that point. A one-shot Job per namespace instead, deleted and
-# recreated on every run since Jobs are immutable; the KV v1 write itself is a plain overwrite,
-# safe to repeat.
+# This can't reuse the openbao role's own messagelog-pgp-keyring-vault-seed Job: that Job runs
+# (per security_server_instances loop) as part of the openbao role itself, before this role
+# does — the keystore doesn't exist yet at that point. A one-shot Job per namespace instead,
+# deleted and recreated on every run since Jobs are immutable; the KV v1 write itself is a plain
+# overwrite, safe to repeat.
 - name: Remove stale ds-https-vault-seed Job before reseeding
   kubernetes.core.k8s:
     kubeconfig: "{{ kubeconfig_path }}"
