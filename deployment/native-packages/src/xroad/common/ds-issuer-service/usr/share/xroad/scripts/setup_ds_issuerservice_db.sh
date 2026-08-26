@@ -23,9 +23,37 @@ DB_PROPS="/etc/xroad/db.properties"
 
 prepare_db_props
 
-issuer_pw=$(crudini --get "$ROOT_PROPS" '' "${DB_NAME}.database.admin_password" 2>/dev/null || true)
-if [[ -z "$issuer_pw" ]]; then
-  issuer_pw="$(gen_pw)"
+stored_pw=$(crudini --get "$ROOT_PROPS" '' "${DB_NAME}.database.admin_password" 2>/dev/null || true)
+
+# Role login is probed over TCP with the role's own credentials, not via the
+# (possibly socket-based) master connection used for provisioning.
+role_probe() {
+  PGCONNECT_TIMEOUT=5 PGPASSWORD="$stored_pw" psql -h "$db_host" -p "$db_port" -U "$ROLE_NAME" -d "$db_database" -qtA -c "\q" &>/dev/null
+}
+
+if [[ -n "$stored_pw" ]] && role_probe; then
+  log "Database role $ROLE_NAME already exists and stored credentials are valid, skipping database setup."
+  issuer_pw="$stored_pw"
+else
+  master_user=$(crudini --get "$ROOT_PROPS" '' postgres.connection.user 2>/dev/null || echo "postgres")
+  master_pw=$(crudini --get "$ROOT_PROPS" '' postgres.connection.password 2>/dev/null || true)
+
+  if [[ -n "$master_pw" ]]; then
+    psql_master() {
+      PGPASSWORD="$master_pw" psql -h "$db_host" -p "$db_port" -U "$master_user" -v ON_ERROR_STOP=1 -qtA "$@"
+    }
+  else
+    psql_master() {
+      su -l -c "psql -p $db_port -v ON_ERROR_STOP=1 -qtA $*" postgres
+    }
+  fi
+
+  issuer_pw="${stored_pw:-$(gen_pw)}"
+
+  psql_master -d postgres <<SQL || die "Failed to create role $ROLE_NAME. If the role already exists on a shared database, preseed ${DB_NAME}.database.admin_user and ${DB_NAME}.database.admin_password in $ROOT_PROPS (copy from the first node), or set XROAD_IGNORE_DATABASE_SETUP to skip database setup."
+CREATE ROLE "$ROLE_NAME" LOGIN PASSWORD '$issuer_pw';
+SQL
+
   if [[ ! -f "$ROOT_PROPS" ]]; then
     touch "$ROOT_PROPS"
     chown root:root "$ROOT_PROPS"
@@ -33,38 +61,13 @@ if [[ -z "$issuer_pw" ]]; then
   fi
   crudini --set --inplace "$ROOT_PROPS" '' "${DB_NAME}.database.admin_user" "$ROLE_NAME"
   crudini --set --inplace "$ROOT_PROPS" '' "${DB_NAME}.database.admin_password" "$issuer_pw"
-fi
 
-master_user=$(crudini --get "$ROOT_PROPS" '' postgres.connection.user 2>/dev/null || echo "postgres")
-master_pw=$(crudini --get "$ROOT_PROPS" '' postgres.connection.password 2>/dev/null || true)
-
-if [[ -n "$master_pw" ]]; then
-  psql_master() {
-    PGPASSWORD="$master_pw" psql -h "$db_host" -p "$db_port" -U "$master_user" -v ON_ERROR_STOP=1 -qtA "$@"
-  }
-else
-  psql_master() {
-    su -l -c "psql -p $db_port -v ON_ERROR_STOP=1 -qtA $*" postgres
-  }
-fi
-
-psql_master -d postgres <<SQL || die "Failed to provision role $ROLE_NAME"
-DO \$do\$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$ROLE_NAME') THEN
-    CREATE ROLE "$ROLE_NAME" LOGIN PASSWORD '$issuer_pw';
-  ELSE
-    ALTER ROLE "$ROLE_NAME" WITH LOGIN PASSWORD '$issuer_pw';
-  END IF;
-END
-\$do\$;
-SQL
-
-psql_master -d "$db_database" <<SQL || die "Failed to provision schema $SCHEMA_NAME in $db_database"
+  psql_master -d "$db_database" <<SQL || die "Failed to provision schema $SCHEMA_NAME in $db_database"
 CREATE SCHEMA IF NOT EXISTS "$SCHEMA_NAME" AUTHORIZATION "$ROLE_NAME";
 GRANT USAGE ON SCHEMA "$SCHEMA_NAME" TO "$ROLE_NAME";
 GRANT CONNECT ON DATABASE "$db_database" TO "$ROLE_NAME";
 SQL
+fi
 
 if [[ ! -f "$DB_PROPS" ]]; then
   touch "$DB_PROPS"
