@@ -85,11 +85,14 @@ ds_truststore_key: cacerts
 # a topology that sends them over DSP needs this. Off by default.
 ds_mgmt_context_enabled: false
 
-# Per-release signer-HSM stop-gap toggle (chart's signer.hsm.enabled — see
-# security-server chart values.yaml). Off by default: the chart's plain
-# signer image renders unchanged. Set true for a single Security Server
-# release (e.g. e2e's ss1) that needs a pkcs11 HARDWARE token.
+# Per-release signer image override toggle (emits services.signer.imageName — the chart
+# itself has no HSM knowledge). Off by default: the chart's plain signer image renders
+# unchanged. Set true for a single Security Server release (e.g. e2e's ss1) that needs a
+# pkcs11 HARDWARE token.
 signer_hsm_enabled: false
+
+# Dev-only image swapped in for the signer service when signer_hsm_enabled is set.
+signer_hsm_image: ss-signer-with-hsm
 
 # Per-release softtoken-signer toggle (chart's services.softtoken-signer.replicas — see
 # security-server chart values.yaml). Off by default: the chart renders no softtoken-signer

@@ -171,6 +171,18 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
+    # Token storage persists across pod restarts/redeploys so the signer's keys and
+    # certs survive instead of an empty re-init. RWO claim + singleton service ->
+    # Recreate, so a RollingUpdate can't have both pods mount it at once.
+    strategy:
+      type: Recreate
+    volumeMounts:
+      - mountPath: /var/lib/softhsm/tokens
+        name: signer-tokens
+    volumes:
+      - name: signer-tokens
+        persistentVolumeClaim:
+          claimName: signer-tokens-pvc
   proxy:
     waits:
       - type: serverconfProperty
@@ -777,6 +789,11 @@ persistentVolumeClaims:
   message-log-archives-pvc:
     accessMode: ReadWriteOnce
     storage: 1Gi
+  # Sized like gpg-keys-pvc, not the 1Gi archive claims — the token directory
+  # holds a handful of keys and certs. Mounted by the signer service below.
+  signer-tokens-pvc:
+    accessMode: ReadWriteOnce
+    storage: 128Mi
 
 jvmHeap:
   maxRAMPercentage: 60.0
@@ -829,31 +846,6 @@ postgres:
 # releases distinct identifiers instead of conflating them on the same value.
 dsp:
   participantContextId: ""
-
-# Signer PKCS#11 HSM stop-gap toggle (per-release, default off). When
-# enabled, the signer service's image is swapped for the dev-only
-# signer-with-hsm image (built from
-# development/docker/security-server/signer-with-hsm) so the release's
-# signer reports a pkcs11 HARDWARE token (SoftHSM2-backed) instead of the
-# plain signer's softToken-0 SOFTWARE token — e.g. required by e2e's ss1
-# bootstrap. TEMPORARY: reusing that compose/e2e-test dev image here is a
-# stop-gap until SoftHSM provisioning is built natively into this chart.
-# Off by default — ss0 and every existing non-E2E consumer render
-# unchanged.
-#
-# The SoftHSM token directory is backed by a PersistentVolumeClaim scoped
-# to this release, so the signer's sign key and certificate survive a pod
-# restart or redeploy instead of the entrypoint re-initializing an empty
-# token. Tearing the release down (`helm uninstall`, `--recreate`) still
-# deletes the claim, so a fresh bring-up gets a fresh token as before.
-signer:
-  hsm:
-    enabled: false
-    imageName: ss-signer-with-hsm
-    # Sized like gpg-keys-pvc, not the 1Gi archive claims — the token
-    # directory holds a handful of keys and certs.
-    tokenStorage:
-      storage: 128Mi
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).

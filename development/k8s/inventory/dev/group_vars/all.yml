@@ -81,9 +81,9 @@ trusted_issuer_host: central-server.cs
 
 # Two Security Server chart releases in separate namespaces, mirroring e2e's ss0/ss1 topology.
 # ss0 enables the softtoken-signer split (security_server role's softtoken_signer_enabled var)
-# and ss1 enables the signer.hsm stop-gap toggle: the shared hurl bootstrap (e2e_fixtures role)
-# needs ss1 to expose a pkcs11 HARDWARE token regardless of which inventory runs it. Mirrors
-# e2e's split so dev and e2e stay converged.
+# and ss1 enables the signer image override toggle (signer_hsm_enabled): the shared hurl
+# bootstrap (e2e_fixtures role) needs ss1 to expose a pkcs11 HARDWARE token regardless of
+# which inventory runs it. Mirrors e2e's split so dev and e2e stay converged.
 security_server_instances:
   - namespace: ss0
     dsp_participant_context_id: xrd-ss0

@@ -247,6 +247,10 @@ services:
   softtoken-signer:
     replicas: 1
 {% endif %}
+{% if signer_hsm_enabled | default(false) | bool %}
+  signer:
+    imageName: {{ signer_hsm_image }}
+{% endif %}
 {% if serverconf_init_image | length > 0 %}
   auxiliary-service:
     env:
@@ -268,12 +272,6 @@ otel:
   resourceAttributes:
     serviceNamespace: xroad
     deploymentEnvironment: {{ otel_deployment_environment }}
-{% endif %}
-
-{% if signer_hsm_enabled | default(false) | bool %}
-signer:
-  hsm:
-    enabled: true
 {% endif %}
 
 {% set dsp_participant_context_id = dsp_participant_context_id | default('') %}

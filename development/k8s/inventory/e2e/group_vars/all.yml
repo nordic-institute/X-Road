@@ -97,8 +97,8 @@ trusted_issuer_host: central-server.cs
 # namespace) don't clobber each other's on-disk staging files mid-run.
 # ss0 enables the softtoken-signer split (security_server role's
 # softtoken_signer_enabled var) — mirrors compose's E2eEnvSetup, which puts ss0 on the
-# split-out soft-token signing process and ss1 on SoftHSM. ss1 also enables the signer.hsm
-# stop-gap toggle (security_server role's signer_hsm_enabled var) — setup.hurl's bootstrap
+# split-out soft-token signing process and ss1 on SoftHSM. ss1 also enables the signer image
+# override toggle (security_server role's signer_hsm_enabled var) — setup.hurl's bootstrap
 # needs ss1 to expose a pkcs11 HARDWARE token; ss0 hardcodes token id 0 and doesn't need one, so
 # it's left at the role's default (false).
 #
