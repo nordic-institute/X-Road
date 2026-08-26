@@ -70,10 +70,7 @@ tasks.register<RunPnpmTaskType>("dependencyAuditFrontend") {
   args.set("run npx-check-audit")
 }
 
-// The "test" task below runs Vitest in browser mode via @vitest/browser-playwright, which
-// needs the Playwright browser binaries on disk. pnpm's default lifecycle-script sandboxing
-// (see onlyBuiltDependencies in pnpm-workspace.yaml) blocks playwright's own postinstall
-// download, so it has to be provisioned explicitly.
+// The "test" task below runs Vitest in browser mode via @vitest/browser-playwright, which needs the Playwright browser binaries on disk.
 tasks.register<RunPnpmTaskType>("installPlaywrightBrowsers") {
   description = "Installs the Playwright browser binaries needed by Vitest browser-mode tests."
   group = "verification"
