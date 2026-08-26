@@ -28,10 +28,4 @@ INSERT INTO configuration_properties (property_key, property_value, created_at, 
  '{"softhsm2":{"library":"/usr/lib/softhsm/libsofthsm2.so","slot-ids":[$slot_id],"os-locking-ok":true,"library-cant-create-os-threads":true}}', now(), now());
 EOF
 
-# This should be consolidated with the entrypoint in the base image
-exec java \
-    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9999,server=y,suspend=n \
-    -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-    -Dquarkus.profile=containerized \
-    -Djava.library.path=/usr/share/xroad/lib \
-    -jar /opt/app/quarkus-run.jar
+exec /bin/sh /opt/app/entrypoint.sh
