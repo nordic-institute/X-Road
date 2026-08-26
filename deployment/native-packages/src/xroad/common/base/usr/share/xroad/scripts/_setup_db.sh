@@ -41,7 +41,7 @@ setup_database() {
   else
     local -r root_properties=/etc/xroad.properties
   fi
-  get_db_prop() { get_prop "$db_properties" "$db_name.hibernate.connection.$1" "$2"; }
+  get_db_prop() { get_prop "$db_properties" "xroad.db.$db_name.hibernate.connection.$1" "$2"; }
 
   local db_host="${3:-127.0.0.1:5432}"
   local db_master_conn_user="$(get_prop ${root_properties} postgres.connection.user 'postgres')"
@@ -50,7 +50,7 @@ setup_database() {
 
   local db_conn_user=$(get_db_prop 'username' "${db_default_user}${suffix}")
   local db_user="${db_conn_user%%@*}"
-  local db_schema=$(get_prop ${db_properties} "$db_name.hibernate.hikari.dataSource.currentSchema" 'public')
+  local db_schema=$(get_prop ${db_properties} "xroad.db.$db_name.hibernate.hikari.dataSource.currentSchema" 'public')
   db_schema="${db_schema%%,*}"
   local db_password=$(get_db_prop 'password' "$(gen_pw)")
   local db_url=$(get_db_prop 'url' "jdbc:postgresql://$db_host/$db_name")
