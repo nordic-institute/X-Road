@@ -23,19 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.config;
+package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.connector.Connector;
-import org.apache.coyote.http11.Http11NioProtocol;
 import org.niis.xroad.common.acme.config.AcmeConfig;
-import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
 import org.niis.xroad.common.properties.spring.SpringConditionConfig;
-import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.niis.xroad.securityserver.restapi.scheduling.AcmeCertificateRenewalWorker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -49,35 +45,15 @@ import org.springframework.scheduling.TaskScheduler;
 
 @Slf4j
 @Configuration
-public class AcmeSchedulingConfig {
+public class AcmeCertificateRenewalSchedulingConfig {
 
-    @Profile("nontest")
     @Bean
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer(AcmeConfig acmeConfig) {
-        if (acmeConfig.isAcmeChallengePortEnabled()) {
-            return factory -> {
-                var connector = new Connector(Http11NioProtocol.class.getName());
-                int acmeChallengePort = acmeConfig.getAcmeChallengePort();
-                connector.setScheme("http");
-                connector.setPort(acmeChallengePort);
-                log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
-                factory.addAdditionalConnectors(connector);
-            };
-        } else {
-            log.info("ACME challenge port is disabled");
-            return factory -> {
-                // no-op
-            };
-        }
-    }
-
-    @Order(Ordered.LOWEST_PRECEDENCE - 99)
-    @Bean
-    @Conditional(IsAcmeCertRenewalJobsActive.class)
     @Profile("!test")
-    CertificateRenewalScheduler certificateRenewalScheduler(AcmeRenewalWorker acmeRenewalWorker, TaskScheduler taskScheduler,
-                                                            AcmeConfig acmeConfig) {
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeRenewalWorker, acmeConfig, taskScheduler);
+    @Order(Ordered.LOWEST_PRECEDENCE - 99)
+    @Conditional(IsAcmeCertRenewalJobsActive.class)
+    CertificateRenewalScheduler acmeCertificateRenewalScheduler(AcmeCertificateRenewalWorker acmeCertificateRenewalWorker,
+                                                                TaskScheduler taskScheduler, AcmeConfig acmeConfig) {
+        var scheduler = new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, taskScheduler);
         scheduler.init();
         return scheduler;
     }

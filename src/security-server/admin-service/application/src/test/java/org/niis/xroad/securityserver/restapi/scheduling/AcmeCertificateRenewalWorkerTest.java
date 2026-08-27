@@ -88,11 +88,11 @@ import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.ge
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.approvedCaWithAcme;
 
 @WithAnonymousUser
-public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
+public class AcmeCertificateRenewalWorkerTest extends AbstractFacadeMockingTestContext {
 
     private static final String DNS = "ss9";
     @MockitoSpyBean
-    private AcmeClientWorker acmeClientWorker;
+    private AcmeCertificateRenewalWorker acmeCertificateRenewalWorker;
     @MockitoBean
     ManagementRequestSender managementRequestSenderMock;
     @MockitoSpyBean
@@ -172,7 +172,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
                 any(),
                 any())).thenReturn(List.of(readCertificate(newAuthCertInfo.getCertificateBytes())));
 
-        doReturn(managementRequestSenderMock).when(acmeClientWorker).createManagementRequestSender();
+        doReturn(managementRequestSenderMock).when(acmeCertificateRenewalWorker).createManagementRequestSender();
     }
 
     private CertificateInfo createCertificateInfo(String certId, String commonName, KeyUsage keyUsage, Date notBefore,
@@ -208,8 +208,9 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     public void successfulAuthAndSignCertRenewals() throws Exception {
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, acmeConfig, new NoOpTaskScheduler());
-        acmeClientWorker.execute(scheduler);
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+        acmeCertificateRenewalWorker.execute(scheduler);
         verify(signerRpcClient, times(2)).importCert(any(), any(), any(), anyBoolean());
         verify(managementRequestSenderMock, times(1)).sendAuthCertRegRequest(any(), any(), any(), anyBoolean());
         verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
@@ -220,8 +221,9 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     public void successfulAuthAndSignCertRenewalsAutoActivateCert() {
         when(acmeConfig.isAutomaticActivateAcmeSignCertificate()).thenReturn(true);
 
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, acmeConfig, new NoOpTaskScheduler());
-        acmeClientWorker.execute(scheduler);
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+        acmeCertificateRenewalWorker.execute(scheduler);
 
         verify(signerRpcClient).importCert(any(), any(), any(), eq(false));
         verify(signerRpcClient).importCert(any(), any(), any(), eq(true));
@@ -230,8 +232,9 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     public void successfulAuthAndSignCertRenewalsManualActivateCert() {
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, acmeConfig, new NoOpTaskScheduler());
-        acmeClientWorker.execute(scheduler);
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+        acmeCertificateRenewalWorker.execute(scheduler);
 
         verify(signerRpcClient, times(2)).importCert(any(), any(), any(), eq(false));
         verify(signerRpcClient, times(0)).importCert(any(), any(), any(), eq(true));
@@ -243,8 +246,9 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         when(acmeService.renew(any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE.build()));
 
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, acmeConfig, new NoOpTaskScheduler());
-        acmeClientWorker.execute(scheduler);
+        CertificateRenewalScheduler scheduler =
+                new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, new NoOpTaskScheduler());
+        acmeCertificateRenewalWorker.execute(scheduler);
 
         verify(signerRpcClient, never()).importCert(any(), any(), any(), anyBoolean());
         verify(signerRpcClient, times(4)).deleteKey(any(), anyBoolean());
