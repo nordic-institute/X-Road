@@ -120,7 +120,13 @@ services:
       - EDC_WEB_HTTPS_KEYSTORE_TYPE=PKCS12
       - EDC_WEB_HTTPS_KEYSTORE_PASSWORD=changeit
       - EDC_WEB_HTTPS_KEYMANAGER_PASSWORD=changeit
-      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+      # QuarkusConfigBridge snapshots config.getPropertyNames() once at startup; an env var
+      # alone can never introduce a hyphenated key into that snapshot (SmallRye enumerates env
+      # vars with dots in place of every underscore). A JVM system property has no such
+      # restriction and is enumerated verbatim, so xroad.dsp.catalog.cache.ttl-seconds (prod
+      # default 60) rides here instead, short so a fixture-written dataset is visible to the
+      # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
+      - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts -Djavax.net.ssl.trustStorePassword=changeit -Dxroad.dsp.catalog.cache.ttl-seconds=5
     healthcheck:
       interval: 5s
       retries: 40

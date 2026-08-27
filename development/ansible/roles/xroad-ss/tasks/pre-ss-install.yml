@@ -105,6 +105,13 @@
       xroad:
         dsp:
           participant-context-id: "{{ inventory_hostname }}.lxd"
+          # Seconds (prod default 60); short so a fixture-written dataset is visible to the
+          # suite's first DSP catalog fetch well inside the fixture-to-suite gap. This preseed
+          # file has no separate e2e layer (dev and CI e2e share it), so the short TTL applies
+          # to both.
+          catalog:
+            cache:
+              ttl-seconds: 5
         # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged application.yaml.
         # The EDC key is hyphenated, so it can only be reached through an X-Road key the yaml declares
         # (see EdcConfigKeys.TRUSTED_ISSUER_ID); the interpolation has no fallback, so this must be set.
