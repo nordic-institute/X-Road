@@ -53,6 +53,9 @@ public class DsParticipantRepository {
 
     private final PersistenceUtils persistenceUtils;
 
+    private final DsParticipantDAOImpl dsParticipantDAO = new DsParticipantDAOImpl();
+    private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
+
     /**
      * Finds the pinned participant row for the given member identifier.
      *
@@ -60,8 +63,7 @@ public class DsParticipantRepository {
      * @return the pinned MEMBER row, if one has been provisioned
      */
     public Optional<DsParticipantEntity> findByMemberIdentifier(ClientId member) {
-        DsParticipantDAOImpl dao = new DsParticipantDAOImpl();
-        return dao.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);
+        return dsParticipantDAO.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);
     }
 
     /**
@@ -77,7 +79,7 @@ public class DsParticipantRepository {
      */
     public DsParticipantEntity pinMemberParticipant(ClientId member, String ctxId, String did) {
         var session = persistenceUtils.getCurrentSession();
-        var identifier = new IdentifierDAOImpl().findOrCreateClientId(session, member);
+        var identifier = identifierDAO.findOrCreateClientId(session, member);
 
         var participant = new DsParticipantEntity();
         participant.setParticipantType(ParticipantType.MEMBER);
@@ -87,7 +89,7 @@ public class DsParticipantRepository {
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
 
-        var saved = new DsParticipantDAOImpl().save(session, participant);
+        var saved = dsParticipantDAO.save(session, participant);
         session.flush();
         return saved;
     }

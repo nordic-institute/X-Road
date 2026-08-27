@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -39,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.participant.ParticipantPinningCheck;
 import org.niis.xroad.serverconf.model.Client;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
@@ -234,16 +236,12 @@ public class DataspaceProvisioningService {
      * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
      * members as soon as they have a registered local client. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant} —
-     * pinning happens as a side effect of {@link #ensureParticipantContext(String, ParticipantKind, String)}.
+     * pinning happens as a side effect of {@link #ensureParticipantContext(String, ParticipantKind, ClientId)}.
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
     @Transactional(readOnly = true)
     public List<ParticipantContext> participantContexts(boolean managementRegistered) {
-        return enumerateParticipantContexts(managementRegistered);
-    }
-
-    private List<ParticipantContext> enumerateParticipantContexts(boolean managementRegistered) {
         var ds = adminServiceProperties.getDataspace();
         var hostParticipantId = ds.getParticipantId();
 
@@ -332,7 +330,7 @@ public class DataspaceProvisioningService {
         try {
             dsParticipantRepository.pinMemberParticipant(member, ctxId, did);
             return did;
-        } catch (RuntimeException e) {
+        } catch (DataIntegrityViolationException | ConstraintViolationException e) {
             var raced = dsParticipantRepository.findByMemberIdentifier(member);
             if (raced.isEmpty()) {
                 throw e;

@@ -49,6 +49,7 @@ import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -440,7 +441,7 @@ class DataspaceProvisioningServiceTest {
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(pinned));
         when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
-                .thenThrow(new IllegalStateException("duplicate key value violates unique constraint"));
+                .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
 
         service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
@@ -451,11 +452,11 @@ class DataspaceProvisioningServiceTest {
     void ensureParticipantContextRethrowsPinFailureWhenNoConcurrentRowAppeared() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
-                .thenThrow(new IllegalStateException("connection lost"));
+                .thenThrow(new DataIntegrityViolationException("connection lost"));
 
         assertThatThrownBy(() -> service.ensureParticipantContext(
                 ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(DataIntegrityViolationException.class)
                 .hasMessage("connection lost");
 
         verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
