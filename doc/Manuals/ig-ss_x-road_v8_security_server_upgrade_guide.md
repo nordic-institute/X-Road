@@ -230,7 +230,7 @@ Step 11 invokes `migration-cli.jar` for the sub-commands listed below. Each sub-
 | `keyconf`                                 | The signer keyconf (keys, certificates, soft token credentials) from `/etc/xroad/signer` into the configuration database. Prompts for the soft token PIN; in unattended mode `XROAD_MIGRATION_SOFTTOKEN_PIN` must be set.                    |
 | `signer-token-pins`                       | Soft token PINs from `xroad-autologin` fetch-pin scripts into the OpenBao secret store. Skipped if `xroad-autologin` is not installed.                                                                                                       |
 | `file-to-db` (acme)                       | The contents of `/etc/xroad/conf.d/acme.yml` into the configuration database under key `xroad.acme` (proxy-ui-api scope), with the `account-keystore-password` line stripped first.                                                         |
-| `acme-account-keys`                       | Every alias in the X-Road 7 ACME account keystore (`acme.p12`) into the OpenBao secret store: the key pair plus the alias's existing certificate expiry, carried forward as the rotation-due timestamp. The certificate itself is discarded. |
+| `acme-account-keys`                       | Every alias in the X-Road 7 ACME account keystore (`acme.p12`) into the OpenBao secret store: the key pair plus the alias's existing certificate expiry, carried forward as the rotation-due timestamp. The certificate itself is discarded. PKCS12 lowercases aliases at write time, so the original case is recovered by matching client identifiers configured in the configuration database; an alias with no matching client is skipped (logged), the rest of the batch still migrates. |
 | `file-to-db` (mail)                       | The contents of `/etc/xroad/conf.d/mail.yml` into the configuration database under key `xroad.mail-notification` (proxy-ui-api scope).                                                                                                       |
 | `pgp-keys`                                | Message-log archive PGP keys from the GPG home directory (per `message-log.archive-gpg-home-directory` in `local.ini`, default `/etc/xroad/gpghome`) into the OpenBao secret store.                                                          |
 | `messagelog-key-mappings`                 | The message-log archive encryption key mapping file (path from `local.ini` `message-log.archive-encryption-keys-config`; no default) into the configuration database.                                                                        |
@@ -443,7 +443,7 @@ java -jar /var/tmp/migration-cli.jar file-to-db /etc/xroad/conf.d/mail.yml /etc/
 
 # Only if an ACME account keystore exists
 XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD='<pw>' \
-  java -jar /var/tmp/migration-cli.jar acme-account-keys /etc/xroad/ssl/acme.p12
+  java -jar /var/tmp/migration-cli.jar acme-account-keys /etc/xroad/ssl/acme.p12 /etc/xroad/db.properties
 
 java -jar /var/tmp/migration-cli.jar pgp-keys                /etc/xroad/conf.d/local.ini
 java -jar /var/tmp/migration-cli.jar messagelog-key-mappings <mapping-file>  /etc/xroad/db.properties

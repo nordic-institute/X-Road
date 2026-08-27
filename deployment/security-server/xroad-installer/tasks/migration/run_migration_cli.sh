@@ -299,7 +299,9 @@ main() {
   # keystore (X-Road 7 default path) into OpenBao, carrying each alias's
   # certificate expiry forward as its rotation-due timestamp. Password comes
   # from acme.yml, falling back to ACCOUNT_KEYSTORE_PASSWORD — same order
-  # X-Road 7 used.
+  # X-Road 7 used. PKCS12 lowercases aliases at write time, so the CLI
+  # recovers the original case by matching client identifiers configured in
+  # the serverconf database — hence the trailing db.properties argument.
   local acme_p12="/etc/xroad/ssl/acme.p12"
   if [[ -f "$acme_p12" ]]; then
     local acme_keystore_password=""
@@ -319,7 +321,7 @@ main() {
     export XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD="$acme_keystore_password"
     run_migration_step "acme-account-keys" \
       --description "Migrate ACME account key pairs (all aliases)\n  from: $acme_p12\n  into: OpenBao secret store" \
-      "$acme_p12"
+      "$acme_p12" "/etc/xroad/db.properties"
     unset XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD
   else
     log_info "ACME account keystore not found at $acme_p12 — skipping acme-account-keys migration"

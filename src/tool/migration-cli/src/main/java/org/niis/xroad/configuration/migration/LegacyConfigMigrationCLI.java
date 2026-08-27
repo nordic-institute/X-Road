@@ -30,12 +30,14 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.migration.acme.AcmeAccountKeyAliasResolver;
 import org.niis.xroad.migration.acme.AcmeAccountKeyMigrator;
 import org.niis.xroad.migration.messagelog.MessageLogKeyMigrator;
 import org.niis.xroad.migration.pgp.PgpKeyMigrator;
 import org.niis.xroad.migration.signer.KeyConfMigrator;
 import org.niis.xroad.migration.tokenpin.AutoLoginScriptExecutor;
 import org.niis.xroad.migration.tokenpin.TokenPinMigrator;
+import org.niis.xroad.migration.utils.DbPropertiesReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -211,12 +213,16 @@ public class LegacyConfigMigrationCLI {
                       <db.properties path> Path to database properties file
 
                 ACME Account Key Migration:
-                  migration-cli acme-account-keys <acme.p12>
+                  migration-cli acme-account-keys <acme.p12> <db.properties path>
                     Migrates every ACME account key pair alias from a PKCS12 keystore to Vault,
                     carrying each alias's certificate expiry forward as its rotation-due timestamp.
                     The certificate itself is discarded; only its expiry date is migrated.
+                    PKCS12 lowercases aliases at write time, so the original case is recovered by
+                    matching against the client identifiers configured in the serverconf database;
+                    an alias with no matching client is skipped, not fatal to the rest of the batch.
                     Arguments:
-                      <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)
+                      <acme.p12>            Path to PKCS12 keystore holding the ACME account key pair(s)
+                      <db.properties path>  Path to database properties file (serverconf)
                     Env vars:
                       XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD  Keystore password (required)
 
@@ -277,7 +283,7 @@ public class LegacyConfigMigrationCLI {
                     migration-cli messagelog-db-encryption-keys /etc/xroad/messagelog/keystore.p12 key1
                   migration-cli messagelog-key-mappings /etc/xroad/messagelog/archive-encryption-mapping.ini /etc/xroad/db.properties
                   XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD=secret \\
-                    migration-cli acme-account-keys /etc/xroad/ssl/acme.p12
+                    migration-cli acme-account-keys /etc/xroad/ssl/acme.p12 /etc/xroad/db.properties
                   migration-cli keyconf /etc/xroad/signer /etc/xroad/db.properties
                   migration-cli configuration-anchor /etc/xroad/configuration-anchor.xml /etc/xroad/db.properties
                   migration-cli signer-devices /etc/xroad/devices.ini /etc/xroad/db.properties
@@ -361,16 +367,18 @@ public class LegacyConfigMigrationCLI {
     private static final String ACME_KEYSTORE_PASSWORD_ENV = "XROAD_MIGRATION_ACME_KEYSTORE_PASSWORD";
 
     private static void migrateAcmeAccountKeys(String[] args) throws IOException {
-        if (args.length != 1) {
-            log.error("ACME account key migration requires 1 argument");
-            log.error("Usage: migration-cli acme-account-keys <acme.p12>");
-            log.error("  <acme.p12>  Path to PKCS12 keystore holding the ACME account key pair(s)");
+        if (args.length != 2) {
+            log.error("ACME account key migration requires 2 arguments");
+            log.error("Usage: migration-cli acme-account-keys <acme.p12> <db.properties path>");
+            log.error("  <acme.p12>            Path to PKCS12 keystore holding the ACME account key pair(s)");
+            log.error("  <db.properties path>  Path to database properties file (serverconf)");
             log.error("Env vars:");
             log.error("  {}  Keystore password (required)", ACME_KEYSTORE_PASSWORD_ENV);
             System.exit(1);
         }
 
         String keystorePath = args[0];
+        String dbPropertiesPath = args[1];
 
         String password = System.getenv(ACME_KEYSTORE_PASSWORD_ENV);
         if (password == null || password.isBlank()) {
@@ -380,6 +388,7 @@ public class LegacyConfigMigrationCLI {
         }
 
         validateFilePath(keystorePath, "keystore");
+        validateFilePath(dbPropertiesPath, "database properties");
 
         if (!new File(keystorePath).exists()) {
             throw new IllegalArgumentException("Keystore file does not exist: " + keystorePath);
@@ -387,7 +396,14 @@ public class LegacyConfigMigrationCLI {
 
         log.info("Starting ACME account key migration");
         var vaultClient = MigrationVaultClient.createAndPreflight();
-        var migrator = new AcmeAccountKeyMigrator(vaultClient);
+        var dbCredentials = DbPropertiesReader.readDbCredentials(Paths.get(dbPropertiesPath), "serverconf");
+        AcmeAccountKeyAliasResolver aliasResolver;
+        try {
+            aliasResolver = AcmeAccountKeyAliasResolver.fromServerconfDatabase(dbCredentials);
+        } catch (Exception e) {
+            throw new MigrationException("Failed to load client identifiers from serverconf database", e);
+        }
+        var migrator = new AcmeAccountKeyMigrator(vaultClient, aliasResolver);
         var result = migrator.migrateFromKeystore(Paths.get(keystorePath), password.toCharArray());
         log.info("ACME account key migration result: {}", result);
     }
