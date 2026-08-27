@@ -698,7 +698,9 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
-# Get first hardware token
+# ss1's sign key is deliberately provisioned on its SoftHSM-backed token, selected explicitly
+# by type so list order never matters and a missing HARDWARE token fails this capture loudly
+# instead of silently landing the key on the wrong token.
 GET https://{{ss1_host}}:4000/api/v1/tokens
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 
