@@ -46,6 +46,7 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,7 +84,7 @@ class AcmeAccountKeyMigratorTest {
             storedKeys.put(alias, key);
             return null;
         }).when(vaultClient).createAcmeAccountKey(any(), any());
-        migrator = new AcmeAccountKeyMigrator(vaultClient);
+        migrator = new AcmeAccountKeyMigrator(vaultClient, AcmeAccountKeyAliasResolver.identity());
     }
 
     @Test
@@ -147,6 +148,68 @@ class AcmeAccountKeyMigratorTest {
         assertThatThrownBy(() -> migrator.migrateFromKeystore(missing, password))
                 .isInstanceOf(IOException.class)
                 .hasMessageContaining("not found");
+    }
+
+    @Test
+    void shouldMigrateMixedCaseAliasUnderItsOriginalCase() throws Exception {
+        String originalCaseAlias = "sign_DEV:COM:1234";
+        Path keystorePath = buildKeystore(originalCaseAlias);
+
+        AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
+        migrator = new AcmeAccountKeyMigrator(vaultClient, resolver);
+
+        AcmeAccountKeyMigrationResult result = migrator.migrateFromKeystore(keystorePath, KEYSTORE_PASSWORD.clone());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.migratedAliases()).containsExactly(originalCaseAlias);
+        assertThat(storedKeys).containsOnlyKeys(originalCaseAlias);
+        assertThat(storedKeys.get(originalCaseAlias).privateKey())
+                .isEqualTo(generatedKeyPairs.get(originalCaseAlias).getPrivate());
+    }
+
+    @Test
+    void shouldMigrateAliasWithMixedCaseWithinASingleSegment() throws Exception {
+        String originalCaseAlias = "sign_DeV:com:1234";
+        Path keystorePath = buildKeystore(originalCaseAlias);
+
+        AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DeV:com:1234"));
+        migrator = new AcmeAccountKeyMigrator(vaultClient, resolver);
+
+        AcmeAccountKeyMigrationResult result = migrator.migrateFromKeystore(keystorePath, KEYSTORE_PASSWORD.clone());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.migratedAliases()).containsExactly(originalCaseAlias);
+        assertThat(storedKeys).containsOnlyKeys(originalCaseAlias);
+    }
+
+    @Test
+    void shouldSkipUnresolvableAliasWithoutAbortingTheRestOfTheBatch() throws Exception {
+        String resolvableAlias = "sign_DEV:COM:1234";
+        String unresolvableAlias = "sign_XYZ:ORG:9999";
+        Path keystorePath = buildKeystore(resolvableAlias, unresolvableAlias);
+
+        AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
+        migrator = new AcmeAccountKeyMigrator(vaultClient, resolver);
+
+        AcmeAccountKeyMigrationResult result = migrator.migrateFromKeystore(keystorePath, KEYSTORE_PASSWORD.clone());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.migratedAliases()).containsExactly(resolvableAlias);
+        assertThat(storedKeys).containsOnlyKeys(resolvableAlias);
+    }
+
+    @Test
+    void shouldReportNoMigratableAliasesWhenTheOnlyAliasIsUnresolvable() throws Exception {
+        String originalCaseAlias = "sign_DEV:COM:1234";
+        Path keystorePath = buildKeystore(originalCaseAlias);
+
+        migrator = new AcmeAccountKeyMigrator(vaultClient, AcmeAccountKeyAliasResolver.identity());
+
+        AcmeAccountKeyMigrationResult result = migrator.migrateFromKeystore(keystorePath, KEYSTORE_PASSWORD.clone());
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.skipped()).isTrue();
+        verifyNoInteractions(vaultClient);
     }
 
     @Test

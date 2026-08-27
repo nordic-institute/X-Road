@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import java.util.Optional;
 public final class AcmeAccountKeyMigrator {
 
     private final VaultClient vaultClient;
+    private final AcmeAccountKeyAliasResolver aliasResolver;
 
     /**
      * Migrates every alias found in the given PKCS12 keystore into its own Vault entry.
@@ -99,18 +101,27 @@ public final class AcmeAccountKeyMigrator {
         return migratedAliases;
     }
 
-    private Optional<String> migrateAlias(KeyStore keyStore, String alias) throws GeneralSecurityException {
-        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
-        PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, alias.toCharArray());
+    private Optional<String> migrateAlias(KeyStore keyStore, String enumeratedAlias) throws GeneralSecurityException {
+        String resolvedAlias = aliasResolver.resolveOriginalCaseAlias(enumeratedAlias).orElse(enumeratedAlias);
+
+        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(enumeratedAlias);
+        PrivateKey privateKey;
+        try {
+            privateKey = (PrivateKey) keyStore.getKey(enumeratedAlias, resolvedAlias.toCharArray());
+        } catch (UnrecoverableKeyException e) {
+            log.warn("Skipping alias '{}': could not recover the private key using the resolved alias '{}' "
+                    + "as password (no matching client identifier in serverconf, or a stale entry)", enumeratedAlias, resolvedAlias);
+            return Optional.empty();
+        }
 
         if (certificate == null || privateKey == null) {
-            log.warn("Skipping alias '{}': keystore entry is missing a certificate or private key", alias);
+            log.warn("Skipping alias '{}': keystore entry is missing a certificate or private key", enumeratedAlias);
             return Optional.empty();
         }
 
         Instant expiresAt = certificate.getNotAfter().toInstant();
-        vaultClient.createAcmeAccountKey(alias, new AcmeAccountKey(privateKey, certificate.getPublicKey(), expiresAt));
-        log.info("Migrated ACME account key for alias '{}', rotation due {}", alias, expiresAt);
-        return Optional.of(alias);
+        vaultClient.createAcmeAccountKey(resolvedAlias, new AcmeAccountKey(privateKey, certificate.getPublicKey(), expiresAt));
+        log.info("Migrated ACME account key for alias '{}', rotation due {}", resolvedAlias, expiresAt);
+        return Optional.of(resolvedAlias);
     }
 }
