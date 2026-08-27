@@ -102,26 +102,50 @@ public final class AcmeAccountKeyMigrator {
     }
 
     private Optional<String> migrateAlias(KeyStore keyStore, String enumeratedAlias) throws GeneralSecurityException {
-        String resolvedAlias = aliasResolver.resolveOriginalCaseAlias(enumeratedAlias).orElse(enumeratedAlias);
-
         X509Certificate certificate = (X509Certificate) keyStore.getCertificate(enumeratedAlias);
-        PrivateKey privateKey;
+        if (certificate == null) {
+            log.warn("Skipping alias '{}': keystore entry is missing a certificate", enumeratedAlias);
+            return Optional.empty();
+        }
+
+        List<String> passwordCandidates = passwordCandidatesFor(enumeratedAlias);
+        for (String candidate : passwordCandidates) {
+            Optional<PrivateKey> privateKey = tryDecrypt(keyStore, enumeratedAlias, candidate);
+            if (privateKey.isPresent()) {
+                storeInVault(candidate, privateKey.get(), certificate);
+                return Optional.of(candidate);
+            }
+        }
+
+        log.warn("Skipping alias '{}': none of the {} candidate password(s) tried could recover the private key "
+                + "(no matching client identifier in serverconf, or a stale entry)", enumeratedAlias, passwordCandidates.size());
+        return Optional.empty();
+    }
+
+    /**
+     * Every original-case client identifier the resolver considers plausible for this enumerated alias,
+     * plus the enumerated alias itself as a fallback - the real password whenever it was already lowercase.
+     */
+    private List<String> passwordCandidatesFor(String enumeratedAlias) {
+        List<String> candidates = new ArrayList<>(aliasResolver.resolveOriginalCaseAliasCandidates(enumeratedAlias));
+        if (!candidates.contains(enumeratedAlias)) {
+            candidates.add(enumeratedAlias);
+        }
+        return candidates;
+    }
+
+    private Optional<PrivateKey> tryDecrypt(KeyStore keyStore, String enumeratedAlias, String passwordCandidate)
+            throws GeneralSecurityException {
         try {
-            privateKey = (PrivateKey) keyStore.getKey(enumeratedAlias, resolvedAlias.toCharArray());
-        } catch (UnrecoverableKeyException e) {
-            log.warn("Skipping alias '{}': could not recover the private key using the resolved alias '{}' "
-                    + "as password (no matching client identifier in serverconf, or a stale entry)", enumeratedAlias, resolvedAlias);
+            return Optional.ofNullable((PrivateKey) keyStore.getKey(enumeratedAlias, passwordCandidate.toCharArray()));
+        } catch (UnrecoverableKeyException _) {
             return Optional.empty();
         }
+    }
 
-        if (certificate == null || privateKey == null) {
-            log.warn("Skipping alias '{}': keystore entry is missing a certificate or private key", enumeratedAlias);
-            return Optional.empty();
-        }
-
+    private void storeInVault(String alias, PrivateKey privateKey, X509Certificate certificate) {
         Instant expiresAt = certificate.getNotAfter().toInstant();
-        vaultClient.createAcmeAccountKey(resolvedAlias, new AcmeAccountKey(privateKey, certificate.getPublicKey(), expiresAt));
-        log.info("Migrated ACME account key for alias '{}', rotation due {}", resolvedAlias, expiresAt);
-        return Optional.of(resolvedAlias);
+        vaultClient.createAcmeAccountKey(alias, new AcmeAccountKey(privateKey, certificate.getPublicKey(), expiresAt));
+        log.info("Migrated ACME account key for alias '{}', rotation due {}", alias, expiresAt);
     }
 }

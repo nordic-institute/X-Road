@@ -29,7 +29,6 @@ package org.niis.xroad.migration.acme;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,68 +38,68 @@ class AcmeAccountKeyAliasResolverTest {
     void identityResolverNeverResolvesAnything() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.identity();
 
-        assertThat(resolver.resolveOriginalCaseAlias("dev:com:1234")).isEmpty();
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:1234")).isEmpty();
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("dev:com:1234")).isEmpty();
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234")).isEmpty();
     }
 
     @Test
     void resolvesBareMemberIdAlias() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("dev:com:1234")).contains("DEV:COM:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("dev:com:1234")).containsExactly("DEV:COM:1234");
     }
 
     @Test
     void resolvesAuthPrefixedAlias() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("auth_dev:com:1234")).contains("auth_DEV:COM:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("auth_dev:com:1234")).containsExactly("auth_DEV:COM:1234");
     }
 
     @Test
     void resolvesSignPrefixedAlias() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:1234")).contains("sign_DEV:COM:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234")).containsExactly("sign_DEV:COM:1234");
     }
 
     @Test
     void resolvesAliasWithMixedCaseWithinASingleSegment() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DeV:com:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:1234")).contains("sign_DeV:com:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234")).containsExactly("sign_DeV:com:1234");
     }
 
     @Test
     void resolvesSubsystemAlias() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234:SUB"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:1234:sub")).contains("sign_DEV:COM:1234:SUB");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234:sub")).containsExactly("sign_DEV:COM:1234:SUB");
     }
 
     @Test
     void returnsEmptyWhenNoClientMatches() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
 
-        Optional<String> resolved = resolver.resolveOriginalCaseAlias("sign_dev:com:9999");
-
-        assertThat(resolved).isEmpty();
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:9999")).isEmpty();
     }
 
     @Test
     void doesNotMatchAnUnknownPrefix() {
         AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("other_dev:com:1234")).isEmpty();
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("other_dev:com:1234")).isEmpty();
     }
 
     @Test
-    void neverResolvesClientIdentifiersThatDifferOnlyByCase() {
+    void returnsEveryCandidateWhenClientIdentifiersDifferOnlyByCase() {
         AcmeAccountKeyAliasResolver resolver =
                 AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234", "dev:com:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("dev:com:1234")).isEmpty();
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:1234")).isEmpty();
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("dev:com:1234"))
+                .containsExactlyInAnyOrder("DEV:COM:1234", "dev:com:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234"))
+                .containsExactlyInAnyOrder("sign_DEV:COM:1234", "sign_dev:com:1234");
     }
 
     @Test
@@ -108,8 +107,9 @@ class AcmeAccountKeyAliasResolverTest {
         AcmeAccountKeyAliasResolver resolver =
                 AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234", "dev:com:1234", "DEV:COM:5678"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("dev:com:1234")).isEmpty();
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:5678")).contains("sign_DEV:COM:5678");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("dev:com:1234"))
+                .containsExactlyInAnyOrder("DEV:COM:1234", "dev:com:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:5678")).containsExactly("sign_DEV:COM:5678");
     }
 
     @Test
@@ -117,6 +117,6 @@ class AcmeAccountKeyAliasResolverTest {
         AcmeAccountKeyAliasResolver resolver =
                 AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234", "DEV:COM:1234"));
 
-        assertThat(resolver.resolveOriginalCaseAlias("sign_dev:com:1234")).contains("sign_DEV:COM:1234");
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234")).containsExactly("sign_DEV:COM:1234");
     }
 }

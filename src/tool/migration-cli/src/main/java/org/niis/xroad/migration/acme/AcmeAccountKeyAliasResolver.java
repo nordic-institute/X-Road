@@ -40,17 +40,18 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
- * Recovers the original-case form of a PKCS12 keystore alias that Java's {@link java.security.KeyStore}
- * has irreversibly lowercased at write time, by matching it against the case-sensitive client identifiers
- * configured in the serverconf database.
+ * Recovers the candidate original-case form(s) of a PKCS12 keystore alias that Java's
+ * {@link java.security.KeyStore} has irreversibly lowercased at write time, by matching it against the
+ * case-sensitive client identifiers configured in the serverconf database. Case-insensitive matching means
+ * more than one client identifier can plausibly explain the same enumerated alias; this resolver surfaces
+ * every such candidate rather than guessing, leaving disambiguation to the caller.
  */
 @Slf4j
 public final class AcmeAccountKeyAliasResolver {
@@ -61,10 +62,10 @@ public final class AcmeAccountKeyAliasResolver {
             "SELECT i.xroad_instance, i.member_class, i.member_code, i.subsystem_code "
                     + "FROM client c JOIN identifier i ON c.identifier = i.id";
 
-    private final Map<String, String> lowercaseToOriginalCase;
+    private final Map<String, Set<String>> candidatesByLowercaseId;
 
-    private AcmeAccountKeyAliasResolver(Map<String, String> lowercaseToOriginalCase) {
-        this.lowercaseToOriginalCase = lowercaseToOriginalCase;
+    private AcmeAccountKeyAliasResolver(Map<String, Set<String>> candidatesByLowercaseId) {
+        this.candidatesByLowercaseId = candidatesByLowercaseId;
     }
 
     /**
@@ -84,51 +85,61 @@ public final class AcmeAccountKeyAliasResolver {
     /**
      * Builds a resolver directly from a collection of encoded client IDs, bypassing the database.
      *
-     * <p>Two distinct client identifiers that differ only by case fold to the same PKCS12 alias and
-     * cannot be told apart from an enumerated (lowercased) alias alone. Rather than picking an
-     * arbitrary winner between them - which would silently misattribute a decrypted key to the wrong
-     * client's Vault entry - any such colliding identifier is excluded so it resolves to
-     * {@link Optional#empty()} for every client sharing that lowercase form.
+     * <p>Two distinct client identifiers that differ only by case fold to the same PKCS12 alias, so an
+     * enumerated (lowercased) alias alone cannot tell them apart - both are kept as candidates and left
+     * for {@link #resolveOriginalCaseAliasCandidates(String)}'s caller to disambiguate, e.g. by testing
+     * each one as a PKCS12 entry password: password matching is exact-byte, so at most one candidate can
+     * ever actually decrypt a given entry.
      */
     static AcmeAccountKeyAliasResolver fromKnownClientIds(Collection<String> encodedClientIds) {
-        Map<String, String> lowercaseToOriginalCase = new HashMap<>();
-        Set<String> ambiguousLowercaseIds = new HashSet<>();
+        return new AcmeAccountKeyAliasResolver(groupByLowercaseId(encodedClientIds));
+    }
+
+    private static Map<String, Set<String>> groupByLowercaseId(Collection<String> encodedClientIds) {
+        Map<String, Set<String>> candidatesByLowercaseId = new HashMap<>();
         for (String encodedClientId : encodedClientIds) {
-            String lowercaseId = encodedClientId.toLowerCase(Locale.ROOT);
-            String existing = lowercaseToOriginalCase.putIfAbsent(lowercaseId, encodedClientId);
-            if (existing != null && !existing.equals(encodedClientId)) {
-                ambiguousLowercaseIds.add(lowercaseId);
-            }
+            candidatesByLowercaseId
+                    .computeIfAbsent(encodedClientId.toLowerCase(Locale.ROOT), id -> new LinkedHashSet<>())
+                    .add(encodedClientId);
         }
-        for (String ambiguousLowercaseId : ambiguousLowercaseIds) {
-            log.warn("Multiple client identifiers in serverconf differ only by case and both fold to '{}' - "
-                    + "their ACME account key aliases cannot be told apart from an enumerated PKCS12 alias, so "
-                    + "none of them will be resolved and their keys will be skipped during migration",
-                    ambiguousLowercaseId);
-            lowercaseToOriginalCase.remove(ambiguousLowercaseId);
-        }
-        return new AcmeAccountKeyAliasResolver(lowercaseToOriginalCase);
+        return candidatesByLowercaseId;
     }
 
     /**
-     * Recovers the original-case alias for a lowercased alias enumerated from a PKCS12 keystore.
+     * Returns every original-case client identifier that could plausibly be the enumerated (lowercased)
+     * PKCS12 alias, given both its bare and its auth_/sign_-prefixed encodings.
+     *
+     * <p>Usually zero or one candidate. More than one means the enumerated alias is genuinely ambiguous
+     * between multiple case-colliding clients; the caller must disambiguate rather than assume any one
+     * candidate is correct (e.g. only one can be the real PKCS12 entry password).
      *
      * @param enumeratedAlias the lowercased alias as returned by {@link java.security.KeyStore#aliases()}
-     * @return the original-case alias, or {@link Optional#empty()} if no matching client identifier was found
+     * @return every matching original-case candidate, possibly empty
      */
-    public Optional<String> resolveOriginalCaseAlias(String enumeratedAlias) {
-        return lookup(enumeratedAlias).or(() -> resolvePrefixedAlias(enumeratedAlias));
+    public List<String> resolveOriginalCaseAliasCandidates(String enumeratedAlias) {
+        Set<String> candidates = new LinkedHashSet<>(lookup(enumeratedAlias));
+        candidates.addAll(prefixedCandidates(enumeratedAlias));
+        return List.copyOf(candidates);
     }
 
-    private Optional<String> resolvePrefixedAlias(String enumeratedAlias) {
+    private Set<String> prefixedCandidates(String enumeratedAlias) {
         return ALIAS_PREFIXES.stream()
                 .filter(enumeratedAlias::startsWith)
                 .findFirst()
-                .flatMap(prefix -> lookup(enumeratedAlias.substring(prefix.length())).map(prefix::concat));
+                .map(prefix -> withPrefix(prefix, lookup(enumeratedAlias.substring(prefix.length()))))
+                .orElse(Set.of());
     }
 
-    private Optional<String> lookup(String alias) {
-        return Optional.ofNullable(lowercaseToOriginalCase.get(alias.toLowerCase(Locale.ROOT)));
+    private static Set<String> withPrefix(String prefix, Set<String> memberIds) {
+        Set<String> prefixed = new LinkedHashSet<>();
+        for (String memberId : memberIds) {
+            prefixed.add(prefix + memberId);
+        }
+        return prefixed;
+    }
+
+    private Set<String> lookup(String alias) {
+        return candidatesByLowercaseId.getOrDefault(alias.toLowerCase(Locale.ROOT), Set.of());
     }
 
     private static Collection<String> loadClientIdentifiers(DbCredentials dbCredentials) throws SQLException {

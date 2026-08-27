@@ -183,6 +183,24 @@ class AcmeAccountKeyMigratorTest {
     }
 
     @Test
+    void shouldDisambiguateACaseCollisionByTestingEachCandidateAsTheDecryptPassword() throws Exception {
+        String realAlias = "sign_DEV:COM:1234";
+        Path keystorePath = buildKeystore(realAlias);
+
+        // "dev:COM:1234" only differs by case from the real client, and neither client's
+        // identifier alone can be preferred - only the real one will actually decrypt the entry.
+        AcmeAccountKeyAliasResolver resolver =
+                AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234", "dev:COM:1234"));
+        migrator = new AcmeAccountKeyMigrator(vaultClient, resolver);
+
+        AcmeAccountKeyMigrationResult result = migrator.migrateFromKeystore(keystorePath, KEYSTORE_PASSWORD.clone());
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.migratedAliases()).containsExactly(realAlias);
+        assertThat(storedKeys).containsOnlyKeys(realAlias);
+    }
+
+    @Test
     void shouldSkipUnresolvableAliasWithoutAbortingTheRestOfTheBatch() throws Exception {
         String resolvableAlias = "sign_DEV:COM:1234";
         String unresolvableAlias = "sign_XYZ:ORG:9999";
@@ -196,6 +214,23 @@ class AcmeAccountKeyMigratorTest {
         assertThat(result.success()).isTrue();
         assertThat(result.migratedAliases()).containsExactly(resolvableAlias);
         assertThat(storedKeys).containsOnlyKeys(resolvableAlias);
+    }
+
+    @Test
+    void shouldSkipWhenNoCaseCollisionCandidateDecryptsTheEntry() throws Exception {
+        String staleAlias = "sign_DEV:COM:1234";
+        Path keystorePath = buildKeystore(staleAlias);
+
+        // Neither known candidate matches the entry's real (stale/removed) original-case password.
+        AcmeAccountKeyAliasResolver resolver =
+                AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("Dev:COM:1234", "dEV:COM:1234"));
+        migrator = new AcmeAccountKeyMigrator(vaultClient, resolver);
+
+        AcmeAccountKeyMigrationResult result = migrator.migrateFromKeystore(keystorePath, KEYSTORE_PASSWORD.clone());
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.skipped()).isTrue();
+        verifyNoInteractions(vaultClient);
     }
 
     @Test
