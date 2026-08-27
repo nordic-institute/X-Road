@@ -59,6 +59,11 @@ configSeed:
     # containerized profile cannot know which product the signer serves.
     - key: xroad.signer.ocsp-response-retrieval-active
       value: "true"
+    # configuration-client gates its startup on this row (waits) so it never boots against
+    # the packaged 60s poll default before the seed Job commits — see its `waits:` entry
+    # below. Value matches ConfClientConfigKeys.UPDATE_INTERVAL's packaged default.
+    - key: xroad.configuration-client.update-interval
+      value: "60"
 
 imagePullSecrets: []
 
@@ -89,6 +94,9 @@ serviceAccount:
 
 services:
   configuration-client:
+    waits:
+      - type: serverconfProperty
+        key: xroad.configuration-client.update-interval
     otelServiceName: xroad-confclient
     imageName: ss-configuration-client
     resources:
