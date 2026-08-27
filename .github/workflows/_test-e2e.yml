@@ -244,7 +244,7 @@ jobs:
           echo "WAIT_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Download readiness marker
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: ./.github/actions/download-artifact-retry
         with:
           name: ${{ steps.marker.outputs.name }}
           path: ci-markers
@@ -256,21 +256,21 @@ jobs:
 
       - name: Download resolute (Ubuntu 26.04) packages
         if: inputs.variant == 'lxd'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: ./.github/actions/download-artifact-retry
         with:
           name: lxd-packages-ubuntu26.04
           path: deployment/native-packages/build/ubuntu26.04
 
       - name: Download noble (Ubuntu 24.04) packages
         if: inputs.variant == 'lxd'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: ./.github/actions/download-artifact-retry
         with:
           name: lxd-packages-ubuntu24.04
           path: deployment/native-packages/build/ubuntu24.04
 
       - name: Download RHEL 9 packages
         if: inputs.variant == 'lxd'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: ./.github/actions/download-artifact-retry
         with:
           name: lxd-packages-rhel9
           path: deployment/native-packages/build/rhel/9
@@ -321,7 +321,7 @@ jobs:
       # ------------------------------------------------------------------- shared
 
       - name: Download e2e-test JAR
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: ./.github/actions/download-artifact-retry
         with:
           name: e2e-test-jar
 
