@@ -144,6 +144,15 @@ main() {
   export XROAD_SS_PACKAGE
   export XROAD_DELETE_OBSOLETE_FILES
 
+  # Ensure whiptail is available before starting the upgrade wizard.
+  # Do this outside run_step(), since its error handler may use whiptail.
+  if bash "$SCRIPT_DIR/tasks/migration/ensure_whiptail.sh"; then
+    log_info "whiptail prerequisite satisfied"
+  else
+    log_die "Failed to install the package providing whiptail (newt on RHEL, whiptail on Debian/Ubuntu). Install it manually and re-run the wizard."
+  fi
+  log_message ""
+
   # Step 1: Version gate — fail fast if not 7.8.x.
   run_step "check_version_gate.sh" \
     "Version gate passed" \
