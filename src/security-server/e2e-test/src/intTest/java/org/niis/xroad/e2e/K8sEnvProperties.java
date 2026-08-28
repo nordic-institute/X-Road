@@ -59,11 +59,6 @@ public interface K8sEnvProperties {
     @WithName("ss0-ui-port")
     int ss0UiPort();
 
-    /** Member identifier for ss0 (TEST_FRAMEWORK_K8S_SS0_MEMBER_ID). */
-    @WithDefault("DEV:COM:1234")
-    @WithName("ss0-member-id")
-    String ss0MemberId();
-
     /** Security Server 1 namespace in the kind cluster (TEST_FRAMEWORK_K8S_SS1_NAMESPACE). */
     @WithDefault("ss1")
     @WithName("ss1-namespace")
@@ -83,11 +78,6 @@ public interface K8sEnvProperties {
     @WithDefault("4001")
     @WithName("ss1-ui-port")
     int ss1UiPort();
-
-    /** Member identifier for ss1 (TEST_FRAMEWORK_K8S_SS1_MEMBER_ID). */
-    @WithDefault("DEV:COM:4321")
-    @WithName("ss1-member-id")
-    String ss1MemberId();
 
     /** Local {@code kubectl} executable used to shell out to the kind cluster (TEST_FRAMEWORK_K8S_KUBECTL_COMMAND). */
     @WithDefault("kubectl")
