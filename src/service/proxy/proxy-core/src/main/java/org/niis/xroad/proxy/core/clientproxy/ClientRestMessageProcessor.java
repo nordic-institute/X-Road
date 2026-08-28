@@ -271,10 +271,10 @@ public class ClientRestMessageProcessor {
                              ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
 
-        // MANAGEMENT requests target the mgmt participant context; all others use the host context.
+        // MANAGEMENT requests force the mgmt participant context; context selection otherwise happens per candidate in the processor.
         final URI[] addresses;
         if (proxyProperties.dspEnabled()) {
-            var assetAccess = consumerSideDspProcessor.execute(new DspRequest(requestServiceId,
+            var assetAccess = consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getClientId(),
                     restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
             addresses = clientRequestPreparationService.prepareRequest(
                     httpSender, requestServiceId, URI.create(assetAccess.endpoint()), ctx, opMonitoringData, null);

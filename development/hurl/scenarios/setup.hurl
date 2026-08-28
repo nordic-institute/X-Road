@@ -1225,3 +1225,31 @@ retry-interval: 5000
 HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
+
+# Gate: MEMBER participant contexts are provisioned and their credentials ISSUED.
+# Outgoing DSP requests negotiate as the sender member's derived context (ctx-id
+# "instance:class:code"), so every member with a client on an SS must have a
+# provisioned member context before test traffic flows. SS0 hosts clients of
+# member 1234 only; SS1 hosts clients of members 4321 (owner, TestClient) and
+# 1234 (test-consumer). The provisioning worker batches all pending members per
+# tick, so these converge together; retry is a cap, not a wait.
+GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"
+
+GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:4321')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"

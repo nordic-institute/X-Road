@@ -26,21 +26,26 @@
  */
 package org.niis.xroad.proxy.core.dsp;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
 /**
  * DSP request. Carries the per-request context that {@link DspRequestProcessor} needs to resolve
  * asset access from the control plane. When {@code managementSubsystem} is {@code true} the request
- * is routed to the MANAGEMENT subsystem participant context instead of the default host context.
+ * is routed to the MANAGEMENT subsystem participant context instead of the sender's member context.
  *
  * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)
+ * @param sender               the consumer client that initiated the request; its member part
+ *                             determines the participant context the consumer negotiates as
  * @param targetSecurityServer optional caller-sent security-server hint; when non-null the
  *                             resolver restricts provider candidates to this exact SS
  * @param managementSubsystem  {@code true} when the request targets the MANAGEMENT subsystem
  *                             participant context
  */
-public record DspRequest(ServiceId serviceId, @Nullable SecurityServerId targetSecurityServer, boolean managementSubsystem) {
+public record DspRequest(ServiceId serviceId, @Nonnull ClientId sender, @Nullable SecurityServerId targetSecurityServer,
+                         boolean managementSubsystem) {
 }
