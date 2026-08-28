@@ -4,11 +4,8 @@
 {{- $allVolumeMounts := concat ($archiver.volumeMounts | default list) ($archiver.extraVolumeMounts | default list) }}
 {{- $allVolumes := concat ($archiver.volumes | default list) ($archiver.extraVolumes | default list) }}
 {{- /*
-Same OpenBao TLS trust rule as services/all.yaml (values.yaml's
-secretStore.tls knob) — applied here too because this ephemeral Job is
-easy to forget precisely because it isn't running when you look at the
-cluster; checking its env for XROAD_SECRET_STORE_HOST covers it by the
-same rule rather than a special case.
+Same OpenBao TLS trust rule as services/all.yaml (secretStore.tls),
+applied to this Job by the same env-key check rather than a special case.
 */}}
 {{- if and .Values.secretStore.tls.caSecretName (hasKey $archiverEnv "XROAD_SECRET_STORE_HOST") }}
 {{- $archiverEnv = merge (dict "QUARKUS_VAULT_TLS_CA_CERT" "/etc/xroad/ssl/openbao.crt") $archiverEnv }}

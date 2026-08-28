@@ -26,15 +26,11 @@ Each spec becomes one initContainer YAML string appended to
   {{- $cfg = merge (dict "initContainers" $waits) $config }}
 {{- end }}
 {{- /*
-OpenBao (secret store) TLS trust — values.yaml's secretStore.tls knob. The
-rule, not a per-service list: any workload whose own env carries
-XROAD_SECRET_STORE_HOST reaches the secret store (the same signal
-values.yaml already uses for 11 services today) and, when a CA Secret name
-is configured, gets the CA cert mounted at /etc/xroad/ssl/openbao.crt plus
-matching trust env — QUARKUS_VAULT_TLS_CA_CERT for every Quarkus service,
-the Spring pair for proxy-ui-api. Additive (concat, not replace) so it
-layers over whatever extraVolumes/extraVolumeMounts a service already
-carries (e.g. proxy's ds-https / messagelog-encryption mounts above).
+OpenBao (secret store) TLS trust (secretStore.tls). A rule, not a
+per-service list: XROAD_SECRET_STORE_HOST in a service's env marks it a
+secret-store client and injects the CA mount plus trust env (Quarkus var;
+the Spring pair for proxy-ui-api). Volumes/mounts are concatenated, not
+replaced, so the service's own extraVolumes/extraVolumeMounts survive.
 */}}
 {{- if and $.Values.secretStore.tls.caSecretName (hasKey ($cfg.env | default dict) "XROAD_SECRET_STORE_HOST") }}
 {{- $trustVolumeName := printf "%s-openbao-tls-certificate" $service }}

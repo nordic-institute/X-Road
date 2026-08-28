@@ -777,11 +777,9 @@ messageLogEncryption:
   enabled: false
   applicationYaml: ""
 
-# Top-level OpenBao (secret store) TLS trust knob. Any workload whose env carries
-# XROAD_SECRET_STORE_HOST (see services/all.yaml's fan-out rule) gets the CA cert
-# mounted at /etc/xroad/ssl/openbao.crt plus matching trust env (QUARKUS_VAULT_TLS_CA_CERT,
-# or the SPRING_CLOUD_VAULT_SSL_TRUST_STORE pair for proxy-ui-api) once caSecretName is
-# set. Empty by default: no mount, no cert.
+# OpenBao (secret store) TLS trust. When caSecretName is set, every workload
+# whose env carries XROAD_SECRET_STORE_HOST gets the CA mounted and trusted —
+# the rule lives in services/all.yaml. Empty: no mount, no trust env.
 secretStore:
   tls:
     caSecretName: ""

@@ -9,13 +9,9 @@ metadata:
 data:
   {{- $env := .config.env }}
   {{- /*
-  Per-release DSP participant-context-id override (see values.yaml's
-  dsp.participantContextId comment). Only ds-control-plane still reads the
-  identifier from env (an EDC/SmallRye read); the proxy's copy travels as a
-  configSeed row, overridden in init/config-seed-job.yaml. dict-as-dst wins
-  over $env-as-src in `merge`, so this only takes effect when the value is
-  actually set — otherwise $env's own literal ("security-server" below)
-  passes through unchanged.
+  Only ds-control-plane reads the DSP participant-context id from env; the
+  proxy's copy is seeded as a configuration row by init/config-seed-job.yaml.
+  As merge dst, the override beats any per-service literal in values.yaml.
   */}}
   {{- if .root.Values.dsp.participantContextId }}
   {{- if eq .service "ds-control-plane" }}
@@ -23,11 +19,10 @@ data:
   {{- end }}
   {{- end }}
   {{- /*
-  The consumer side of the softtoken-signer split is no longer wired here:
-  xroad.common-rpc.channel.softtoken-signer.enabled is a DSL key the config
-  layer does not read from env — the config-seed Job appends it as a DB row
-  when softtoken-signer is enabled, and the channel host falls back to the
-  "softtoken-signer" container default.
+  The softtoken-signer consumer channel is not enabled here:
+  xroad.common-rpc.channel.softtoken-signer.enabled is read from the
+  database only, never from env — the config-seed Job appends the row; the
+  channel host falls back to the "softtoken-signer" container default.
   */}}
   {{- $env = merge $env (dict "JAVA_MAX_RAM_PERCENTAGE" (printf "%v" .root.Values.jvmHeap.maxRAMPercentage)) }}
   {{- if .root.Values.jvmHeap.mallocArenaMax }}
