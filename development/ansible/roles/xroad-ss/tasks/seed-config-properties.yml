@@ -26,6 +26,10 @@
       value: "{{ inventory_hostname }}.lxd"
     - key: xroad.proxy.dsp.cache.enabled
       value: "false"
+    # Seconds (prod default 60); short so a fixture-written dataset is visible to the
+    # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "5"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ inventory_hostname }}.lxd:7182"
     - key: xroad.proxy-ui-api.dataspace.participant-id
@@ -66,12 +70,13 @@
   loop_control:
     label: "{{ item.key }}"
 
-# Package postinst starts proxy and proxy-ui-api before the seed exists, and the
-# DSL caches its resolution at startup — restart so they pick up the seeded rows.
-- name: restart proxy and proxy-ui-api to resolve the seeded configuration
+# Package postinst starts these units before the seed exists, and the DSL caches
+# its resolution at startup — restart so they pick up the seeded rows.
+- name: restart services to resolve the seeded configuration
   systemd:
     name: "{{ item }}"
     state: restarted
   loop:
     - xroad-proxy
     - xroad-proxy-ui-api
+    - xroad-ds-control-plane

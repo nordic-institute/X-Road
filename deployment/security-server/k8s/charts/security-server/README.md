@@ -147,12 +147,60 @@ in `db-serverconf` (a `post-install,post-upgrade` hook Job plus a
 Quarkus DB→SmallRye config source was registered; it was retired with
 that bridge.
 
-## 8. Chart version discipline
+## 8. OpenBao (secret store) TLS trust
+
+A single top-level knob supplies the CA cert used to trust OpenBao over
+TLS, replacing what used to be hand-wired per workload by the dev-stack
+ansible role:
+
+```yaml
+secretStore:
+  tls:
+    caSecretName: "" # Secret in the release namespace holding the OpenBao CA cert
+    caSecretKey: "tls.crt" # key within that Secret
+```
+
+**Default (`caSecretName: ""`):** no cert Secret is referenced, no volume
+or mount is added, and the render is unchanged — plaintext to OpenBao, or
+trusting a CA the container image already ships, remains the deployer's
+responsibility.
+
+**When set:** every workload whose own env carries
+`XROAD_SECRET_STORE_HOST` — the chart's existing signal that it reaches
+the secret store — gets the CA cert mounted at
+`/etc/xroad/ssl/openbao.crt` plus the trust env matching its runtime:
+
+- `QUARKUS_VAULT_TLS_CA_CERT` for every Quarkus-based service
+  (`configuration-client`, `signer`, `proxy`, `monitor`, `op-monitor`,
+  `auxiliary-service`, `softtoken-signer`, `ds-control-plane`,
+  `ds-identity-hub`, `ds-issuer-service`).
+- `SPRING_CLOUD_VAULT_SSL_TRUST_STORE` / `_TYPE: PEM` for the
+  Spring-based `proxy-ui-api`.
+- The same `QUARKUS_VAULT_TLS_CA_CERT` env and cert mount for the
+  message-log archiver/cleanup `Job` template
+  (`messageLogArchiver` — shares one template for both invocations),
+  which is easy to miss precisely because it is not a
+  long-running Pod: its own env named the CA cert path but nothing ever
+  mounted it there, and messagelog encryption made that access mandatory.
+
+This is implemented as a rule (`templates/services/all.yaml`,
+`templates/message-log-archiver-job-configmap.yaml` each check their own
+config's `env` for `XROAD_SECRET_STORE_HOST`), not a hardcoded list —
+future workloads that set that env var inherit the fan-out automatically.
+The mount/env are additive (`extraVolumes`/`extraVolumeMounts` concat,
+`env` dict merge), so they layer over whatever a workload already carries
+(the `ds-https` keystore mount, the messagelog-encryption config mount)
+rather than replacing it.
+
+## 9. Chart version discipline
 
 The `Chart.yaml` `version` key is bumped only when the chart's public
 contract changes materially:
 
-- **Current version:** `0.3.0` — bumped from `0.2.0` alongside the
-  seed Job + README rewrite.
+- **Current version:** `0.5.0` — bumped from `0.4.0` alongside the
+  `secretStore.tls` OpenBao CA trust knob (default empty, byte-identical
+  render).
+  Previously bumped to `0.4.0` from `0.3.0` alongside the
+  `softtoken-signer` service (off by default, `services.softtoken-signer.replicas: 0`).
 - `appVersion` tracks the X-Road runtime version and is independent of
   the chart version.

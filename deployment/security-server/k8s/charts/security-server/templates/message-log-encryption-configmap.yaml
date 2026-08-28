@@ -1,0 +1,11 @@
+{{- if .Values.messageLogEncryption.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-message-log-encryption-config
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+data:
+  application.yaml: |
+    {{- .Values.messageLogEncryption.applicationYaml | nindent 4 }}
+{{- end }}

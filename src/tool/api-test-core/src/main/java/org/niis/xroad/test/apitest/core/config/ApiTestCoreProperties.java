@@ -47,7 +47,8 @@ public interface ApiTestCoreProperties {
 
     /**
      * Target environment the test suite runs against: {@code compose} (harness-managed Docker
-     * Compose stack, the default) or {@code lxd} (pre-provisioned LXD containers).
+     * Compose stack, the default), {@code lxd} (pre-provisioned LXD containers), or {@code k8s}
+     * (pre-provisioned kind cluster).
      */
     @WithDefault("compose")
     @WithName("env-mode")

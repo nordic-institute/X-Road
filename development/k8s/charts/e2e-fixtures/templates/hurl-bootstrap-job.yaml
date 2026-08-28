@@ -1,0 +1,98 @@
+{{/*
+hurl bootstrap Job — runs the existing development/hurl/scenarios/setup.hurl
+against the in-cluster CS + ss0/ss1 admin endpoints. hurl is repointed, not
+forked: the ConfigMap below carries no chart-owned copy of the scenario —
+its keys are populated at render/install time via `--set-file
+hurl.files.setupHurl=<path>` / `--set-file hurl.files.varsEnv=<path>`
+pointing at the real files (see values.yaml and README section 4). Left
+unset, the ConfigMap renders with empty data and the Job would fail fast on
+a missing /hurl-src/setup.hurl — acceptable for this slice, whose contract
+is the chart rendering correctly, not asserting the scenario green.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-hurl-scenarios
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+data:
+  {{- if .Values.hurl.files.setupHurl }}
+  setup.hurl: |
+{{ .Values.hurl.files.setupHurl | indent 4 }}
+  {{- end }}
+  {{- if .Values.hurl.files.varsEnv }}
+  vars.env: |
+{{ .Values.hurl.files.varsEnv | indent 4 }}
+  {{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-hurl-bootstrap
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        {{- include "xroad.labels" . | nindent 8 }}
+        app: hurl-bootstrap
+    spec:
+      restartPolicy: Never
+      # No shared docker volume with `testca` here (k8s Jobs and the testca
+      # Deployment don't share a filesystem) — this initContainer fetches the
+      # CA/OCSP/TSA cert files straight from testca's HTTP cert endpoint
+      # instead, the same "curl http://<ca_host>:8888/testca/certs/<name>.
+      # cert.pem" mechanism the existing ansible xroad-hurl role's
+      # run-hurl.sh.j2 download_cert() already uses for the non-compose dev
+      # stack.
+      initContainers:
+        - name: fetch-ca-certs
+          image: {{ .Values.hurl.curlImage }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              mkdir -p /hurl-files/ca
+              for entry in ca:ca tsa:tsa ocsp:ocsp; do
+                cert_name="${entry%%:*}"
+                out_name="${entry##*:}"
+                curl -sf --retry 30 --retry-delay 5 --retry-connrefused --retry-all-errors \
+                  "http://{{ .Values.hurl.vars.ca_host }}:8888/testca/certs/${cert_name}.cert.pem" \
+                  -o "/hurl-files/ca/${out_name}.pem"
+              done
+          volumeMounts:
+            - name: hurl-files
+              mountPath: /hurl-files
+      containers:
+        - name: hurl
+          image: {{ .Values.hurl.image }}
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -eu
+              exec hurl --insecure \
+                --variables-file /hurl-src/vars.env \
+                {{- range $k, $v := .Values.hurl.vars }}
+                --variable "{{ $k }}={{ $v }}" \
+                {{- end }}
+                --file-root /hurl-files \
+                /hurl-src/setup.hurl \
+                --very-verbose \
+                --retry {{ .Values.hurl.retry }} \
+                --retry-interval {{ .Values.hurl.retryInterval }}
+          resources:
+            {{- toYaml .Values.hurl.resources | nindent 12 }}
+          volumeMounts:
+            - name: hurl-scenarios
+              mountPath: /hurl-src
+              readOnly: true
+            - name: hurl-files
+              mountPath: /hurl-files
+      volumes:
+        - name: hurl-scenarios
+          configMap:
+            name: {{ .Release.Name }}-hurl-scenarios
+        - name: hurl-files
+          emptyDir: {}

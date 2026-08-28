@@ -1,0 +1,60 @@
+name: Chart lint/template/smoke
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Git ref to checkout'
+        required: true
+        type: string
+      sha:
+        description: 'Git SHA for the build'
+        required: true
+        type: string
+
+jobs:
+  chart-lint-smoke:
+    name: chart-lint-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+
+      # Helm 3.x pinned: kubernetes.core ansible collection is not Helm-4-ready
+      - name: Setup Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: 'v3.21.3'
+
+      # non-blocking: helm lint chokes on multi-document templates; render assertions below are the real gate
+      - name: Helm lint (informational)
+        run: |
+          helm lint deployment/central-server/k8s/charts/central-server || true
+          helm lint development/k8s/charts/e2e-fixtures || true
+          helm lint development/k8s/charts/ds-https-keystore || true
+
+      - name: Helm template render assertions
+        run: ./scripts/charts/render-assert.sh
+
+      - name: Start local Helm OCI registry
+        run: docker run -d -p 5555:5000 --name local-registry registry:2
+
+      - name: Wait for local registry
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5555/v2/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::local Helm OCI registry did not become ready" >&2
+          exit 1
+
+      - name: Chart smoke test (package + push + verify)
+        run: ./scripts/charts/test-local.sh
+
+      - name: Stop local Helm OCI registry
+        if: always()
+        run: docker rm -f local-registry

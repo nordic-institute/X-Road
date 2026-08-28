@@ -1,0 +1,32 @@
+---
+# Shared with the central_server role — the hurl bootstrap Job and the fixtures' bare service
+# names (central-server, testca) resolve same-namespace, so the two charts must be co-located.
+e2e_fixtures_namespace: cs
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+e2e_fixtures_chart_repo: ""
+e2e_fixtures_chart: "{{ playbook_dir }}/../charts/e2e-fixtures"
+e2e_fixtures_chart_version: ""
+e2e_fixtures_helm_wait_timeout: 10m
+
+xroad_image_registry: ""
+xroad_image_tag: ""
+
+# setup.hurl/vars.env are read from disk and injected as literal chart values (the ansible
+# equivalent of the chart README's `helm template --set-file` recipe) — hurl is repointed, not
+# forked; see development/k8s/charts/e2e-fixtures/README.md section 4.
+hurl_setup_file: "{{ playbook_dir }}/../../hurl/scenarios/setup.hurl"
+hurl_vars_file: "{{ playbook_dir }}/../../hurl/scenarios/vars.env"
+
+# WireMock stub mappings for the isrest fixture — same "read the real files from disk, inject at
+# render time" mechanism as hurl_setup_file/hurl_vars_file above, mirroring compose's
+# ./wiremock_mappings bind mount (compose.aux.yaml's isrest volume) as an explicit list of named
+# files rather than a directory glob.
+isrest_mappings_dir: "{{ playbook_dir }}/../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings"
+isrest_mapping_files:
+  - is_rest_1.json
+  - is_rest_2.json
+  - is_rest_3.json
+
+hurl_wait_retries: 60
+hurl_wait_delay: 10

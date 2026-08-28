@@ -34,7 +34,8 @@ import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 /**
  * Provides the e2e environment once per JVM, via the {@code LauncherSessionListener} SPI. In
  * {@code compose} mode (the default) it boots the three-stack topology (aux, ss0, ss1); in
- * {@code lxd} mode it attaches to a pre-provisioned LXD environment.
+ * {@code lxd} mode it attaches to a pre-provisioned LXD environment; in {@code k8s} mode it
+ * attaches to a pre-provisioned kind cluster.
  */
 @Slf4j
 public class E2eStackSessionListener extends AbstractApiStackSessionListener {
@@ -48,7 +49,9 @@ public class E2eStackSessionListener extends AbstractApiStackSessionListener {
         var setup = switch (mode) {
             case "compose" -> new E2eEnvSetup(properties);
             case "lxd" -> new LxdEnvSetup(configSource.buildConfigMapping(LxdEnvProperties.class), properties);
-            default -> throw new IllegalArgumentException("Unknown env-mode: " + mode + " — expected 'compose' or 'lxd'");
+            case "k8s" -> new K8sEnvSetup(configSource.buildConfigMapping(K8sEnvProperties.class), properties);
+            default -> throw new IllegalArgumentException(
+                    "Unknown env-mode: " + mode + " — expected 'compose', 'lxd', or 'k8s'");
         };
         setup.start();
         return setup;

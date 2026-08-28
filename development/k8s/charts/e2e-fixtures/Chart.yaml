@@ -1,0 +1,10 @@
+apiVersion: v2
+name: e2e-fixtures
+description: >-
+  X-Road Kubernetes E2E test fixtures — test CA, mock information systems,
+  mail sink, DS-HTTPS keystore init, and hurl bootstrap. Dev/E2E-only; NOT
+  production-ready; see README.
+version: 0.1.0
+appVersion: 1.0.0
+annotations:
+  xroad.niis.org/production-ready: "false"

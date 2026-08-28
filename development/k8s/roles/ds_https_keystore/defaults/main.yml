@@ -1,0 +1,29 @@
+---
+# Co-located with the Central Server (central_server / e2e_fixtures roles) — the CS pod mounts
+# this Secret same-namespace at /etc/xroad/ds-ssl. When DSP is enabled the Security Server
+# releases in their own namespaces consume it too (distribution handled by the DSP slice).
+ds_https_keystore_namespace: cs
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+ds_https_keystore_chart_repo: ""
+ds_https_keystore_chart: "{{ playbook_dir }}/../charts/ds-https-keystore"
+ds_https_keystore_chart_version: ""
+ds_https_keystore_helm_wait_timeout: 5m
+
+ds_https_keystore_secret_name: ds-https-keystore
+
+# Namespaces the Secret is replicated into on top of ds_https_keystore_namespace, for the
+# Security Server releases that mount it when DSP is on. Defaults to every namespace in the
+# security_server_instances topology, so a new release needs no extra wiring here.
+ds_https_keystore_extra_namespaces: >-
+  {{ security_server_instances
+     | default([{'namespace': security_server_namespace}])
+     | map(attribute='namespace') | list }}
+
+ds_https_keystore_wait_retries: 30
+ds_https_keystore_wait_delay: 5
+
+# Image for the per-namespace ds-https-vault-seed Job — same curl+jq image the openbao role's
+# messagelog-pgp-keyring-vault-seed Job uses, so no new image needs pulling into the cluster.
+ds_https_keystore_vault_seed_image: "dwdraju/alpine-curl-jq"
+ds_https_keystore_vault_seed_backoff_limit: 3

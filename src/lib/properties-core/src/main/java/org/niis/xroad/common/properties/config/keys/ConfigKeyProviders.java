@@ -56,6 +56,7 @@ public final class ConfigKeyProviders {
                 CsManagementServiceConfigKeys.instance(),
                 CsRegistrationServiceConfigKeys.instance(),
                 EdcConfigKeys.instance(),
+                DspConfigKeys.instance(),
                 OcspVerifierConfigKeys.instance(),
                 GlobalConfConfigKeys.instance(),
                 ServerConfConfigKeys.instance(),
