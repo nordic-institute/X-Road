@@ -56,7 +56,7 @@
     loop_var: ds_keystore_target_ns
   when: ds_keystore_target_ns != ds_https_keystore_namespace
 
-# The owned Jetty TLS module (develop #3746) reads DS-HTTPS material exclusively from OpenBao at
+# The owned Jetty TLS module reads DS-HTTPS material exclusively from OpenBao at
 # tls/ds-https — it has no fallback to the keystore file above. The Central Server needs no
 # seeding here: it runs its own private in-pod OpenBao, self-seeded by the dev image's own
 # supervisord entry (seed-ds-https-vault-secret.sh) from this Secret's -cert.pem/-key.pem files.

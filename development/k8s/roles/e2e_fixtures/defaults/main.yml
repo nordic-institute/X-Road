@@ -20,8 +20,8 @@ hurl_vars_file: "{{ playbook_dir }}/../../hurl/scenarios/vars.env"
 
 # WireMock stub mappings for the isrest fixture — same "read the real files from disk, inject at
 # render time" mechanism as hurl_setup_file/hurl_vars_file above, mirroring compose's
-# ./wiremock_mappings bind mount (compose.aux.yaml's isrest volume) as a fixed named-file list
-# rather than a directory glob.
+# ./wiremock_mappings bind mount (compose.aux.yaml's isrest volume) as an explicit list of named
+# files rather than a directory glob.
 isrest_mappings_dir: "{{ playbook_dir }}/../../../src/security-server/e2e-test/src/intTest/resources/wiremock_mappings"
 isrest_mapping_files:
   - is_rest_1.json

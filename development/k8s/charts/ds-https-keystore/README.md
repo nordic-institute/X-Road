@@ -40,7 +40,7 @@ publishes (`cacerts`, a JRE-copy JKS, matching compose), and the
 `ds_https_keystore` role replicates the Secret into every Security Server
 namespace listed in `security_server_instances`.
 
-The owned Jetty TLS module (develop #3746) reads DS-HTTPS material
+The owned Jetty TLS module reads DS-HTTPS material
 exclusively from OpenBao at `tls/ds-https`, not from this Secret — the
 `ds_https_keystore` role additionally seeds the same cert/key into every
 Security Server namespace's OpenBao (a one-shot Job per namespace, using that
@@ -56,10 +56,11 @@ along in the Secret.
 `values.yaml`'s `dsHttpsKeystore.extraSanDnsNames` defaults mirror compose's
 list, substituted with this tree's k8s service names (`central-server` for the
 CS chart's service, the security-server chart's bare `ds-*` service names, and
-`ds-*.ss0`/`ds-*.ss1` for cross-namespace addressing). Getting this list wrong
-is flagged in the PRD as a known risk area — a stale/mismatched SAN was the
-root cause of an earlier hybrid k8s-SS-to-LXD-CS PKIX failure. Override via
-`--set dsHttpsKeystore.extraSanDnsNames={...}` if the namespace names change.
+`ds-*.ss0`/`ds-*.ss1` for cross-namespace addressing). This list must cover
+every hostname a client uses to reach the service — a stale or mismatched SAN
+causes PKIX failures, as it did for an earlier hybrid k8s-SS-to-LXD-CS
+topology. Override via `--set dsHttpsKeystore.extraSanDnsNames={...}` if the
+namespace names change.
 
 ## 4. Rendering
 

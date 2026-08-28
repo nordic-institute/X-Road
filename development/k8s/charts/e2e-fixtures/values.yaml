@@ -162,7 +162,7 @@ services:
       - port: 1025
         name: smtp
     readinessProbe:
-      # compose defines no healthcheck for mailpit; this one is chart-added,
+      # compose defines no healthcheck for mailpit; this one exists only here,
       # not mirrored, since the k8s Deployment template requires one.
       path: "/"
       port: 8025

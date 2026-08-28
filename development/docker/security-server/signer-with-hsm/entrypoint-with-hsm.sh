@@ -16,8 +16,8 @@ slot_id=$(softhsm2-util --show-slots | awk '
   /^Slot / { slot=$2 }
   /Label: *x-road-softhsm2/ { print slot }')
 # DB coordinates come from the same env the k8s chart injects into the signer pod
-# (DB_CONFIG_SOURCE_*); the fallbacks are the compose dev stack's fixed values, so
-# both substrates resolve without per-image wiring.
+# (DB_CONFIG_SOURCE_*); the fallbacks match the compose dev stack's own constant
+# credentials, so both substrates resolve without per-image wiring.
 db_user="${DB_CONFIG_SOURCE_USERNAME:-serverconf}"
 db_password="${DB_CONFIG_SOURCE_PASSWORD:-secret}"
 until pg_isready -q -h db-serverconf -U "$db_user"; do sleep 1; done
