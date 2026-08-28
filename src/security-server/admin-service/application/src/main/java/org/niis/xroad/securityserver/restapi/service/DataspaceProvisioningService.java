@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
@@ -99,6 +100,7 @@ public class DataspaceProvisioningService {
     public static final String IDENTITY_MISMATCH = "MISMATCH";
     public static final String IDENTITY_VERSION_UNSUPPORTED = "VERSION_UNSUPPORTED";
     public static final String IDENTITY_UNPINNED = "UNPINNED";
+    public static final String IDENTITY_DRIFTED = "DRIFTED";
     public static final String IDENTITY_UNKNOWN = "UNKNOWN";
 
     public enum ParticipantKind { HOST, MANAGEMENT, MEMBER }
@@ -128,8 +130,9 @@ public class DataspaceProvisioningService {
      * @param kind             HOST, MANAGEMENT or MEMBER
      * @param contextCreated   whether the participant context exists in IdentityHub
      * @param credentialStatus ISSUED / PENDING / ABSENT / ERROR / UNKNOWN
-     * @param identityStatus   OK / MISMATCH / VERSION_UNSUPPORTED / UNPINNED / UNKNOWN for a MEMBER
-     *                         context; {@code null} for HOST and MANAGEMENT
+     * @param identityStatus   OK / MISMATCH / VERSION_UNSUPPORTED / UNPINNED / DRIFTED / UNKNOWN for
+     *                         a MEMBER context ({@code DRIFTED}: the hub serves a different DID than
+     *                         this server intends to publish); {@code null} for HOST and MANAGEMENT
      */
     public record ParticipantContextStatus(
             String participantId,
@@ -171,10 +174,24 @@ public class DataspaceProvisioningService {
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
         var did = didFor(identityHubHost, kind, memberId);
+        requireNoHubDidDrift(participantId, did);
 
         createIdentityHubContext(participantId, did, identityHubHost, memberId);
         controlPlaneClient.createParticipantContext(participantId, did);
         controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+    }
+
+    private void requireNoHubDidDrift(String participantId, String intendedDid) {
+        identityHubClient.contextDid(participantId)
+                .filter(hubDid -> !hubDid.equals(intendedDid))
+                .ifPresent(hubDid -> {
+                    throw XrdRuntimeException.systemException(DSP_PARTICIPANT_DID_DRIFT)
+                            .metadataItems(hubDid, intendedDid)
+                            .details(("identity hub serves DID '%s' for participant context '%s', but the DID to "
+                                    + "provision is '%s'; refusing to touch the context until the drift is resolved")
+                                    .formatted(hubDid, participantId, intendedDid))
+                            .build();
+                });
     }
 
     /**
@@ -302,15 +319,29 @@ public class DataspaceProvisioningService {
      */
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
-        var identityStatus = context.kind() == ParticipantKind.MEMBER ? readIdentityStatus(context.memberId()) : null;
+        var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
         try {
-            var contextCreated = identityHubClient.contextExists(participantId);
+            var hubDid = identityHubClient.contextDid(participantId);
+            var contextCreated = hubDid.isPresent();
             var credentialStatus = resolveCredentialStatus(participantId, contextCreated);
-            return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus, identityStatus);
+            return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus,
+                    identityStatusOf(assessment, hubDid));
         } catch (Exception e) {
             log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
-            return new ParticipantContextStatus(participantId, context.kind(), false, STATUS_UNKNOWN, identityStatus);
+            return new ParticipantContextStatus(participantId, context.kind(), false, STATUS_UNKNOWN,
+                    identityStatusOf(assessment, Optional.empty()));
         }
+    }
+
+    @Nullable
+    private static String identityStatusOf(@Nullable MemberIdentity assessment, Optional<String> hubDid) {
+        if (assessment == null) {
+            return null;
+        }
+        if (assessment.intendedDid() != null && hubDid.isPresent() && !hubDid.get().equals(assessment.intendedDid())) {
+            return IDENTITY_DRIFTED;
+        }
+        return assessment.status();
     }
 
     private String resolveCredentialStatus(String participantId, boolean contextCreated) {
@@ -356,26 +387,38 @@ public class DataspaceProvisioningService {
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNPINNED} or {@code UNKNOWN}
      */
     public String readIdentityStatus(ClientId memberId) {
+        return assessMemberIdentity(memberId).status();
+    }
+
+    /**
+     * Pin assessment for one member: the status string plus the DID this server intends to publish
+     * (the pinned DID, or the fresh derivation when unpinned; {@code null} when the pin itself is in
+     * an error state and no intended DID can be stated).
+     */
+    private record MemberIdentity(String status, @Nullable String intendedDid) {
+    }
+
+    private MemberIdentity assessMemberIdentity(ClientId memberId) {
         try {
+            var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
             var pinned = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (pinned.isEmpty()) {
-                return IDENTITY_UNPINNED;
+                return new MemberIdentity(IDENTITY_UNPINNED, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
             }
-            var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
             ParticipantPinningCheck.verify(pinned.get(), ssHost);
-            return IDENTITY_OK;
+            return new MemberIdentity(IDENTITY_OK, pinned.get().getDid());
         } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
-                return IDENTITY_MISMATCH;
+                return new MemberIdentity(IDENTITY_MISMATCH, null);
             }
             if (DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code().equals(e.getErrorCode())) {
-                return IDENTITY_VERSION_UNSUPPORTED;
+                return new MemberIdentity(IDENTITY_VERSION_UNSUPPORTED, null);
             }
             log.warn("Data space: could not read identity status for member {}", memberId, e);
-            return IDENTITY_UNKNOWN;
+            return new MemberIdentity(IDENTITY_UNKNOWN, null);
         } catch (Exception e) {
             log.warn("Data space: could not read identity status for member {}", memberId, e);
-            return IDENTITY_UNKNOWN;
+            return new MemberIdentity(IDENTITY_UNKNOWN, null);
         }
     }
 

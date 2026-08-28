@@ -184,9 +184,11 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParticipantContextExistsReturnsTrueWhenFound() {
+    void getParticipantContextExistsReturnsTrueAndDidWhenFound() {
+        var context = mock(org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext.class);
+        when(context.getDid()).thenReturn("did:web:ih.example.test%3A7183");
         when(participantContextService.getParticipantContext("ctx-1"))
-                .thenReturn(ServiceResult.success(null));
+                .thenReturn(ServiceResult.success(context));
 
         StreamObserver<GetParticipantContextExistsResp> observer = mock(StreamObserver.class);
         var request = GetParticipantContextExistsReq.newBuilder()
@@ -195,7 +197,10 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         service.getParticipantContextExists(request, observer);
 
-        verify(observer).onNext(GetParticipantContextExistsResp.newBuilder().setExists(true).build());
+        verify(observer).onNext(GetParticipantContextExistsResp.newBuilder()
+                .setExists(true)
+                .setDid("did:web:ih.example.test%3A7183")
+                .build());
         verify(observer).onCompleted();
     }
 

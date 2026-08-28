@@ -8720,6 +8720,7 @@ components:
             - MISMATCH
             - VERSION_UNSUPPORTED
             - UNPINNED
+            - DRIFTED
             - UNKNOWN
     DataspaceTlsCertificateEnrollmentStatus:
       type: object

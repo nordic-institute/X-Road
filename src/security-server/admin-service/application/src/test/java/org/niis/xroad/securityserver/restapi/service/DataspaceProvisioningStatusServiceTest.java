@@ -121,8 +121,8 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusAlwaysReportsHostAndManagementContextsBothIssued() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
-        when(identityHubClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(true);
+        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host"));
+        when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host:mgmt"));
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
         when(identityHubClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
@@ -147,9 +147,9 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsManagementContextEvenWhenHostIssuedAndManagementAbsent() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(PARTICIPANT_ID)).thenReturn(true);
-        when(identityHubClient.contextExists(MGMT_PARTICIPANT_ID)).thenReturn(false);
-        when(identityHubClient.contextExists(OWNER_CTX_ID)).thenReturn(false);
+        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host"));
+        when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.empty());
+        when(identityHubClient.contextDid(OWNER_CTX_ID)).thenReturn(Optional.empty());
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
 
         DataspaceStatus status = statusService.readStatus();
@@ -168,7 +168,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusBackendUnreachableReportsUnknownInsteadOf5xx() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(anyString()))
+        when(identityHubClient.contextDid(anyString()))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.NETWORK_ERROR).build());
 
         DataspaceStatus status = statusService.readStatus();
@@ -187,7 +187,7 @@ class DataspaceProvisioningStatusServiceTest {
         when(serverConfRepository.getServerConf())
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -204,7 +204,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusProvisionedContextsReportedWithAllKinds() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -221,7 +221,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsIdentityStatusOnlyForMemberContexts() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -236,7 +236,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsIdentityMismatchForDriftedPinnedRow() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
         var pinned = new DsParticipantEntity();
         pinned.setParticipantType(ParticipantType.MEMBER);
         pinned.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
@@ -253,12 +253,25 @@ class DataspaceProvisioningStatusServiceTest {
     }
 
     @Test
+    void readStatusReportsIdentityDriftWhenHubServesDifferentDid() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        when(identityHubClient.contextDid(OWNER_CTX_ID))
+                .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183")));
+
+        DataspaceStatus status = statusService.readStatus();
+
+        assertThat(status.participantContexts().get(2).identityStatus())
+                .isEqualTo(DataspaceProvisioningService.IDENTITY_DRIFTED);
+    }
+
+    @Test
     void readStatusOmitsMemberContextWhenOwnerNotYetSet() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+        when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
 
         DataspaceStatus status = statusService.readStatus();
 

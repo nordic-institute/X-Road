@@ -147,17 +147,20 @@ class IdentityHubProvisioningRpcClientTest {
     }
 
     @Test
-    void participantContextExistsReturnsTrueWhenExists() {
-        configuredExistsResp = GetParticipantContextExistsResp.newBuilder().setExists(true).build();
+    void getParticipantContextDidReturnsDidWhenExists() {
+        configuredExistsResp = GetParticipantContextExistsResp.newBuilder()
+                .setExists(true)
+                .setDid("did:web:example")
+                .build();
 
-        assertThat(client.participantContextExists("ctx-id")).isTrue();
+        assertThat(client.getParticipantContextDid("ctx-id")).contains("did:web:example");
     }
 
     @Test
-    void participantContextExistsReturnsFalseWhenAbsent() {
+    void getParticipantContextDidReturnsEmptyWhenAbsent() {
         configuredExistsResp = GetParticipantContextExistsResp.newBuilder().setExists(false).build();
 
-        assertThat(client.participantContextExists("ctx-id")).isFalse();
+        assertThat(client.getParticipantContextDid("ctx-id")).isEmpty();
     }
 
     @Test

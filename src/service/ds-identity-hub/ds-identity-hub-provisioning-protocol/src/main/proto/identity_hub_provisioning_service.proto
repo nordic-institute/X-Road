@@ -78,4 +78,5 @@ message GetParticipantContextExistsReq {
 
 message GetParticipantContextExistsResp {
   bool exists = 1;
+  string did = 2;
 }

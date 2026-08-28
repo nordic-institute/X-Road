@@ -150,7 +150,10 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
     private GetParticipantContextExistsResp getParticipantContextExistsInternal(GetParticipantContextExistsReq request) {
         var result = participantContextService.getParticipantContext(request.getParticipantContextId());
         if (result.succeeded()) {
-            return GetParticipantContextExistsResp.newBuilder().setExists(true).build();
+            return GetParticipantContextExistsResp.newBuilder()
+                    .setExists(true)
+                    .setDid(result.getContent().getDid())
+                    .build();
         }
         if (result.reason() == ServiceFailure.Reason.NOT_FOUND) {
             return GetParticipantContextExistsResp.newBuilder().setExists(false).build();

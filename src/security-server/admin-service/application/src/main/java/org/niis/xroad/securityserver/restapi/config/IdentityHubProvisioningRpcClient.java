@@ -41,6 +41,8 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.util.Optional;
+
 /**
  * gRPC transport client for the IdentityHub provisioning service.
  */
@@ -118,10 +120,10 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
         return response.getFound() ? response.getStatus() : null;
     }
 
-    public boolean participantContextExists(String participantContextId) {
+    public Optional<String> getParticipantContextDid(String participantContextId) {
         var response = exec(() -> stub.getParticipantContextExists(GetParticipantContextExistsReq.newBuilder()
                 .setParticipantContextId(participantContextId)
                 .build()));
-        return response.getExists();
+        return response.getExists() ? Optional.of(response.getDid()) : Optional.empty();
     }
 }

@@ -108,6 +108,7 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        lenient().when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, serverConfRepository, dsParticipantRepository);
     }
@@ -453,6 +454,34 @@ class DataspaceProvisioningServiceTest {
                 .isInstanceOf(XrdRuntimeException.class);
 
         verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextThrowsOnHubDidDrift() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        when(identityHubClient.contextDid(memberCtxId))
+                .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(MEMBER, "ih.other.test:7183")));
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.DSP_PARTICIPANT_DID_DRIFT.code()));
+
+        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+        verify(controlPlaneClient, never()).createParticipantContext(any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextProceedsWhenHubDidMatchesIntended() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
+        when(identityHubClient.contextDid(memberCtxId)).thenReturn(Optional.of(expectedDid));
+
+        service.ensureParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER);
+
+        verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
     }
 
     // --- readIdentityStatus ---
