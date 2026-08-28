@@ -54,6 +54,11 @@ jobs:
       || github.event_name == 'pull_request'
     runs-on: ${{ inputs.runs_on }}
     timeout-minutes: ${{ inputs.timeout_minutes }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      packages: read
     env:
       ANSIBLE_CONFIG: config/ansible.cfg
     steps:
