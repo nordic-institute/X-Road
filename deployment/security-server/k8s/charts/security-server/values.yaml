@@ -64,6 +64,11 @@ configSeed:
     # below. Value matches ConfClientConfigKeys.UPDATE_INTERVAL's packaged default.
     - key: xroad.configuration-client.update-interval
       value: "60"
+    # ds-control-plane gates its startup on this row (waits) so it never boots against
+    # the packaged 60s default before the seed Job commits. Value matches
+    # XRoadServerConfCatalogExtension's packaged default.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "60"
 
 imagePullSecrets: []
 
@@ -610,6 +615,8 @@ services:
         host: ds-identity-hub
         port: 7185
         name: wait-identity-hub
+      - type: serverconfProperty
+        key: xroad.dsp.catalog.cache.ttl-seconds
 
   ds-identity-hub:
     imageName: ds-identity-hub

@@ -99,12 +99,6 @@ trusted_issuer_host: xrd-cs
 # of conflating them.
 dsp_participant_context_id: ""
 
-# ds-control-plane's DSP catalog cache TTL override (xroad.dsp.catalog.cache.ttl-seconds — see
-# XRoadServerConfCatalogExtension.DEFAULT_CACHE_TTL_SECONDS, default 60). Empty by default: the
-# runtime's own default applies unchanged. Set per-inventory to shrink the window in which a
-# freshly written catalog entry is still served stale.
-dsp_catalog_cache_ttl_seconds: ""
-
 serverconf_db:
   name: db-serverconf
   database: serverconf

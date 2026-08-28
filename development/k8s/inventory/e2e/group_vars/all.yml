@@ -64,11 +64,6 @@ external_service_bridges: []
 # trusted-issuer seed row. The role default (xrd-cs) is the LXD-hybrid Central Server.
 trusted_issuer_host: central-server.cs
 
-# Short DSP catalog cache TTL (prod default 60) so a fixture-written dataset is visible to the
-# suite's first DSP catalog fetch well inside the fixture-to-suite gap. Same value for both
-# Security Server releases below (both act as providers).
-dsp_catalog_cache_ttl_seconds: "5"
-
 # Two Security Server chart releases in separate namespaces — the k8s form of compose's
 # ss0-/ss1-prefixed stacks. Each gets its own distinct DSP participant-context identifier
 # (security-server chart's dsp.participantContextId, templates/_configmap.tpl) so the two

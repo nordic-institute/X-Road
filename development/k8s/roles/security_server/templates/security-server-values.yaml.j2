@@ -12,7 +12,6 @@
 {% set ds_ih_host = 'ds-identity-hub.' ~ security_server_namespace %}
 {% set ds_serverproxy_host = 'proxy.' ~ security_server_namespace %}
 {% set ds_participant_id = dsp_participant_context_id %}
-{% set ds_catalog_cache_ttl_seconds = dsp_catalog_cache_ttl_seconds | default('') %}
 {% set messagelog_encryption_enabled = (messagelog_encryption_config | default('')) | length > 0 %}
 {% if (xroad_image_registry | length > 0) or jvm_metrics_enabled %}
 global:
@@ -150,6 +149,10 @@ configSeed:
       value: "https://{{ ds_ih_host }}:7182"
     - key: xroad.proxy-ui-api.dataspace.issuer-did
       value: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
+    # Seconds (prod default 60); short so a fixture-written dataset is visible to the
+    # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "5"
 {% endif %}
 
 services:
@@ -212,17 +215,7 @@ services:
       EDC_WEB_HTTPS_KEYSTORE_TYPE: "PKCS12"
       EDC_WEB_HTTPS_KEYSTORE_PASSWORD: "changeit"
       EDC_WEB_HTTPS_KEYMANAGER_PASSWORD: "changeit"
-{% if svc == 'ds-control-plane' and ds_catalog_cache_ttl_seconds | length > 0 %}
-      # QuarkusConfigBridge snapshots config.getPropertyNames() once at startup; an env var
-      # alone can never introduce a hyphenated key into that snapshot (SmallRye enumerates env
-      # vars with dots in place of every underscore). A JVM system property has no such
-      # restriction and is enumerated verbatim, so xroad.dsp.catalog.cache.ttl-seconds (prod
-      # default 60) rides here instead, short so a fixture-written dataset is visible to the
-      # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
-      JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }} -Dxroad.dsp.catalog.cache.ttl-seconds={{ ds_catalog_cache_ttl_seconds }}"
-{% else %}
       JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }}"
-{% endif %}
 {% if svc == 'ds-control-plane' %}
       # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged
       # application.yaml. The participant context id itself rides the chart's

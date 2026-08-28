@@ -49,6 +49,17 @@ class FrameworkPublishedConfigTest {
             "xroad.proxy-ui-api.request-size-limit-binary-upload",
             "xroad.admin-service.request-size-limit-binary-upload",
             "xroad.edc.iam.trusted-issuer.issuer.id",
+            // ds-control-plane extensions read these directly via ServiceExtensionContext.getSetting();
+            // a stored override only reaches that call through the framework-published config source
+            "xroad.dsp.participant-context-id",
+            "xroad.dsp.management-participant-context-id",
+            "xroad.dsp.catalog.cache.enabled",
+            "xroad.dsp.catalog.cache.ttl-seconds",
+            "xroad.dsp.catalog.cache.find-by-id-max-size",
+            "xroad.dsp.builtin-services.proxyMonitor.enabled",
+            "xroad.dsp.builtin-services.opMonitor.enabled",
+            "xroad.dsp.builtin-services.metaservices.enabled",
+            "xroad.dsp.builtin-services.server-proxy-url",
             // Quarkus @LookupIfProperty bean gates (proxy messagelog beans + readiness check) and the
             // auxiliary-service @ConfigProperty reader resolve this from framework config
             "xroad.proxy.message-log.enabled",
