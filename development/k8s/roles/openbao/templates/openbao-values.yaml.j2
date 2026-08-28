@@ -1,8 +1,9 @@
 ---
-{% if not openbao_global_tls_disable %}
+# The server.ha.config listener below is always TLS, and the chart derives
+# probe scheme and BAO_ADDR solely from this flag — keep it false even when
+# openbao_global_tls_disable is true; that flag never reaches the listener.
 global:
   tlsDisable: false
-{% endif %}
 # The agent injector is unused — X-Road reaches OpenBao through the init Job and
 # the Quarkus vault client, not sidecar injection. It also owns cluster-scoped
 # RBAC, which collides when OpenBao is installed as more than one release
