@@ -279,7 +279,6 @@ otel:
     deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
 
-{% set dsp_participant_context_id = dsp_participant_context_id | default('') %}
 {% if dsp_participant_context_id | length > 0 %}
 dsp:
   participantContextId: "{{ dsp_participant_context_id }}"

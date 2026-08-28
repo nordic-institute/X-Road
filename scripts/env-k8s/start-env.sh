@@ -136,14 +136,6 @@ handlePortForward() {
   "${CORE_ROOT}/scripts/env-k8s/port-forward.sh" --env="${ENV_NAME}"
 }
 
-handleInitialize() {
-  case "${ENV_NAME}" in
-    dev|e2e)
-      log_info "hurl bootstrap already ran in-cluster as part of the e2e-fixtures chart (see playbooks/site.yml); nothing to do here"
-      ;;
-  esac
-}
-
 main() {
   parse_arguments "$@"
 
@@ -156,7 +148,6 @@ main() {
   handleBuildImages
   handleAnsible
   handlePortForward
-  handleInitialize
 
   local end
   end=$(date +%s)

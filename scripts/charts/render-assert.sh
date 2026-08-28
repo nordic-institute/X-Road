@@ -20,7 +20,7 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 chart_dir() {
     case "$1" in
         central-server) echo "${ROOT_DIR}/deployment/central-server/k8s/charts/central-server" ;;
-        e2e-fixtures|ds-https-keystore|external-service-bridge) echo "${ROOT_DIR}/development/k8s/charts/$1" ;;
+        e2e-fixtures|ds-https-keystore) echo "${ROOT_DIR}/development/k8s/charts/$1" ;;
         *) echo "${ROOT_DIR}/deployment/security-server/k8s/charts/$1" ;;
     esac
 }

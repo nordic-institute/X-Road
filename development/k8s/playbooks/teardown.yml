@@ -23,16 +23,14 @@
         label: "{{ item.name }}"
       ignore_errors: true
 
-    - name: Uninstall Central Server helm release + namespace (when enabled)
+    - name: Uninstall Central Server helm release (when enabled)
+      kubernetes.core.helm:
+        name: central-server
+        release_namespace: "{{ central_server_namespace }}"
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: absent
       when: central_server_enabled | default(false) | bool
-      block:
-        - name: Uninstall central-server helm release
-          kubernetes.core.helm:
-            name: central-server
-            release_namespace: "{{ central_server_namespace }}"
-            kubeconfig: "{{ kubeconfig_path }}"
-            state: absent
-          ignore_errors: true
+      ignore_errors: true
 
     - name: Uninstall e2e-fixtures helm release (when enabled)
       kubernetes.core.helm:
