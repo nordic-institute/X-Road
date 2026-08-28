@@ -203,7 +203,16 @@ fi
 
 build_cmd+=(
   --tag "${IMAGE_NAME}:${VERSION}"
-  --tag "${IMAGE_NAME}:latest"
+)
+
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${IMAGE_NAME}:latest")
+fi
+
+build_cmd+=(
   --push
   "$CS_DEV_DIR"
 )
