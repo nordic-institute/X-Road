@@ -74,11 +74,6 @@ messagelog_encryption_config: ""
 # if a different producer is ever wired in.
 ds_truststore_key: cacerts
 
-# Whether this Security Server provisions a DSP management participant context in addition to its
-# host context. Management requests are routed through the management context when DSP is on, so
-# a topology that sends them over DSP needs this. Off by default.
-ds_mgmt_context_enabled: false
-
 # Per-release signer image override toggle (emits services.signer.imageName — the chart
 # itself has no HSM knowledge). Off by default: the chart's plain signer image renders
 # unchanged. Set true for a single Security Server release (e.g. e2e's ss1) that needs a

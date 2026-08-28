@@ -149,8 +149,6 @@ configSeed:
       value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ ds_ih_host }}:7182"
-    - key: xroad.proxy-ui-api.dataspace.management-context-enabled
-      value: "{{ (ds_mgmt_context_enabled | default(false) | bool) | ternary('true', 'false') }}"
     - key: xroad.proxy-ui-api.dataspace.issuer-did
       value: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
 {% endif %}

@@ -64,8 +64,6 @@ external_service_host: host.docker.internal
 # No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
 
-ds_mgmt_context_enabled: true
-
 # The Issuer Service is co-located in the Central Server dev image (port 6183), reached
 # cross-namespace — same as e2e.
 trusted_issuer_host: central-server.cs
