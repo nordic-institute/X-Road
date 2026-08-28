@@ -20,7 +20,6 @@ openbao_init_chart: "{{ playbook_dir }}/../../../deployment/security-server/k8s/
 openbao_init_chart_version: ""
 
 openbao_ha_replicas: 2
-openbao_global_tls_disable: false
 
 # self_signed writes a P384 ECDSA cert + k8s Secret. cert_manager delegates
 # to cert-manager CRs (used on EKS; see docs/EKS.md).

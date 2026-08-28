@@ -18,7 +18,6 @@ argument_specs:
       openbao_init_chart: {type: str, required: true}
       openbao_init_chart_version: {type: str, required: false}
       openbao_ha_replicas: {type: int, default: 2}
-      openbao_global_tls_disable: {type: bool, default: false}
       openbao_tls_mode:
         type: str
         default: self_signed

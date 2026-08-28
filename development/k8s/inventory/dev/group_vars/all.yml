@@ -87,7 +87,6 @@ deploy_prometheus: true
 deploy_netdata: true
 
 openbao_ha_replicas: 2
-openbao_global_tls_disable: false
 openbao_tls_mode: self_signed
 
 # ss1 forwards to the same local host (localhost) as ss0, so it needs its own local ports —
