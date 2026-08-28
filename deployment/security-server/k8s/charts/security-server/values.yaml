@@ -179,12 +179,14 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
-    # /var/lib/softhsm/tokens is the packaged signer image's standard software-token
-    # store — production key-material persistence, not an HSM/e2e-only artifact. Token
-    # storage persists across pod restarts/redeploys so the signer's keys and certs
-    # survive instead of an empty re-init. RWO claim + singleton service -> Recreate,
-    # so a RollingUpdate can't have both pods mount it at once. Redeploy behavior over
-    # an already-populated token volume is still unverified.
+    # /var/lib/softhsm/tokens is SoftHSM2's PKCS#11 token store — used only when the
+    # dev/e2e overlay swaps this image to ss-signer-with-hsm. The plain ss-signer image
+    # has no softhsm2 and keeps software-token keys in the serverconf DB, not on disk.
+    # The mount and PVC stay unconditional only so the chart itself is HSM-agnostic.
+    # RWO claim + singleton service -> Recreate, so a RollingUpdate can't have both
+    # pods mount it at once.
+    # TODO: before production go-live, reconsider gating this mount/PVC behind a toggle;
+    # redeploy over an already-populated token volume is also still unverified.
     strategy:
       type: Recreate
     volumeMounts:
