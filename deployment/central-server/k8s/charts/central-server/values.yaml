@@ -20,7 +20,6 @@ securityContext:
 
 services:
   central-server:
-    otelServiceName: xroad-central-server
     imageName: central-server-dev
     resources:
       requests:

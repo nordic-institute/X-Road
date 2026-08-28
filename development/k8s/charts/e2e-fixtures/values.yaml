@@ -32,7 +32,6 @@ services:
   # core/scripts/images/build-dev-infra.sh (same GHCR path/pull-secret
   # mechanism as the central-server-dev image).
   testca:
-    otelServiceName: xroad-e2e-testca
     imageName: testca-dev
     resources:
       requests:
@@ -57,7 +56,6 @@ services:
   # Mock OpenAPI/REST information system. Public image — full ref, bypasses
   # global.image.registry/imagePullSecrets.
   isopenapi:
-    otelServiceName: xroad-e2e-isopenapi
     image: "ghcr.io/nordic-institute/xrddev-example-restapi:latest"
     resources:
       requests:
@@ -78,7 +76,6 @@ services:
   # Mock SOAP information system (example-adapter WAR). Public image; the
   # command override runs the WAR directly, matching compose's entrypoint.
   issoap:
-    otelServiceName: xroad-e2e-issoap
     image: "niis/example-adapter:latest"
     command:
       - java
@@ -112,7 +109,6 @@ services:
   # Left unset, WireMock starts with no stub mappings and serves 404s for
   # every request (see isrest-mappings-configmap.yaml).
   isrest:
-    otelServiceName: xroad-e2e-isrest
     image: "wiremock/wiremock:latest"
     resources:
       requests:
@@ -154,7 +150,6 @@ services:
   # `helm --wait` to pass, so it runs as a plain SMTP+HTTP sink (no STARTTLS,
   # no auth). A mail-exercising scenario would provision cert/key/auth itself.
   mailpit:
-    otelServiceName: xroad-e2e-mailpit
     image: "axllent/mailpit:latest"
     resources:
       requests:
