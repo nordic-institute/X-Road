@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -40,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.participant.ParticipantPinningCheck;
 import org.niis.xroad.serverconf.model.Client;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
@@ -53,6 +51,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -67,9 +67,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       and per-member contexts to provision, member-level identity from the registered clients in
  *       {@link ClientRepository#getAllLocalClients()} plus the SS owner unconditionally.</li>
  *   <li>{@link #ensureParticipantContext(String, ParticipantKind, ClientId)} — idempotent context
- *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context this
- *       pins the member's ctx-id/DID into {@code ds_participant} on first call and verifies the
- *       pinned row against a fresh derivation on every later call.</li>
+ *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context with a
+ *       pinned {@code ds_participant} row, the row is verified against a fresh derivation and its
+ *       DID is used; without a row the DID is derived on the fly. This service never writes pins —
+ *       pin creation belongs to an explicit, auditable action outside the reconciler.</li>
  *   <li>{@link #ensureMembershipCredential(String)} — leaves an active (PENDING or ISSUED) request
  *       alone or submits a new one into the next available slot, in a single slot scan; advances
  *       past slots in terminal ERROR.</li>
@@ -93,6 +94,12 @@ public class DataspaceProvisioningService {
     public static final String STATUS_ERROR = "ERROR";
     public static final String STATUS_ABSENT = "ABSENT";
     public static final String STATUS_UNKNOWN = "UNKNOWN";
+
+    public static final String IDENTITY_OK = "OK";
+    public static final String IDENTITY_MISMATCH = "MISMATCH";
+    public static final String IDENTITY_VERSION_UNSUPPORTED = "VERSION_UNSUPPORTED";
+    public static final String IDENTITY_UNPINNED = "UNPINNED";
+    public static final String IDENTITY_UNKNOWN = "UNKNOWN";
 
     public enum ParticipantKind { HOST, MANAGEMENT, MEMBER }
 
@@ -121,12 +128,15 @@ public class DataspaceProvisioningService {
      * @param kind             HOST, MANAGEMENT or MEMBER
      * @param contextCreated   whether the participant context exists in IdentityHub
      * @param credentialStatus ISSUED / PENDING / ABSENT / ERROR / UNKNOWN
+     * @param identityStatus   OK / MISMATCH / VERSION_UNSUPPORTED / UNPINNED / UNKNOWN for a MEMBER
+     *                         context; {@code null} for HOST and MANAGEMENT
      */
     public record ParticipantContextStatus(
             String participantId,
             ParticipantKind kind,
             boolean contextCreated,
-            String credentialStatus
+            String credentialStatus,
+            @Nullable String identityStatus
     ) {
     }
 
@@ -148,9 +158,9 @@ public class DataspaceProvisioningService {
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
      *
-     * <p>For a {@link ParticipantKind#MEMBER} context, the member's ctx-id and DID are pinned into
-     * {@code ds_participant} on the first call and re-verified against a fresh derivation on every
-     * later call — the pinned row is never overwritten.
+     * <p>For a {@link ParticipantKind#MEMBER} context with a pinned {@code ds_participant} row, the
+     * row is verified against a fresh derivation and its DID is used — the pinned row is never
+     * written or overwritten here. Without a row the DID is derived on the fly (unpinned).
      *
      * @param participantId the participant context id
      * @param kind          HOST, MANAGEMENT or MEMBER
@@ -235,8 +245,7 @@ public class DataspaceProvisioningService {
      * context when {@code managementRegistered}, and one member context per distinct X-Road member
      * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
      * members as soon as they have a registered local client. Member ctx-ids follow the v1 scheme
-     * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant} —
-     * pinning happens as a side effect of {@link #ensureParticipantContext(String, ParticipantKind, ClientId)}.
+     * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
@@ -284,21 +293,23 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Returns a read-only snapshot of one participant context's provisioning status, read over gRPC
-     * without touching the database. Does not trigger provisioning, poll, or sleep.
+     * Returns a read-only snapshot of one participant context's provisioning status. The gRPC reads
+     * hold no database connection; for a MEMBER context the identity-pinning state is read afterwards
+     * in the repository's own short transaction. Does not trigger provisioning, poll, or sleep.
      * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
      *
-     * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT or MEMBER
+     * @param context the participant context to report on
      */
-    public ParticipantContextStatus readContextStatus(String participantId, ParticipantKind kind) {
+    public ParticipantContextStatus readContextStatus(ParticipantContext context) {
+        var participantId = context.participantId();
+        var identityStatus = context.kind() == ParticipantKind.MEMBER ? readIdentityStatus(context.memberId()) : null;
         try {
             var contextCreated = identityHubClient.contextExists(participantId);
             var credentialStatus = resolveCredentialStatus(participantId, contextCreated);
-            return new ParticipantContextStatus(participantId, kind, contextCreated, credentialStatus);
+            return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus, identityStatus);
         } catch (Exception e) {
             log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
-            return new ParticipantContextStatus(participantId, kind, false, STATUS_UNKNOWN);
+            return new ParticipantContextStatus(participantId, context.kind(), false, STATUS_UNKNOWN, identityStatus);
         }
     }
 
@@ -311,33 +322,60 @@ public class DataspaceProvisioningService {
 
     private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
         if (kind == ParticipantKind.MEMBER) {
-            var ssHost = identityHubHost + ":" + DID_PORT;
-            return pinnedMemberDid(memberId, ssHost);
+            return memberDid(memberId, didAuthority(identityHubHost));
         }
-        var did = "did:web:" + identityHubHost + "%3A" + DID_PORT;
+        var did = "did:web:" + didAuthority(identityHubHost).replace(":", "%3A");
         return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
     }
 
-    private String pinnedMemberDid(ClientId member, String ssHost) {
+    /**
+     * The authority (host:port) embedded in derived DIDs. Interim source: the identity-hub host
+     * plus its DID-serving port, because that is where DID documents are actually served. Target
+     * source, once registered-address DID serving exists: the GlobalConf-registered security
+     * server address ({@code GlobalConfProvider#getSecurityServerAddress}), with no port.
+     */
+    private String didAuthority(String identityHubHost) {
+        return identityHubHost + ":" + DID_PORT;
+    }
+
+    private String memberDid(ClientId member, String ssHost) {
         var pinned = dsParticipantRepository.findByMemberIdentifier(member);
         if (pinned.isPresent()) {
             ParticipantPinningCheck.verify(pinned.get(), ssHost);
             return pinned.get().getDid();
         }
+        return ParticipantIdentifierScheme.memberDid(member, ssHost);
+    }
 
-        var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
-        var did = ParticipantIdentifierScheme.memberDid(member, ssHost);
+    /**
+     * Reports the identity-pinning state of one member's participant context without provisioning
+     * anything. Tolerates backend unavailability — errors are reported as {@link #IDENTITY_UNKNOWN}
+     * rather than thrown.
+     *
+     * @param memberId the member whose pinned identity to check
+     * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNPINNED} or {@code UNKNOWN}
+     */
+    public String readIdentityStatus(ClientId memberId) {
         try {
-            dsParticipantRepository.pinMemberParticipant(member, ctxId, did);
-            return did;
-        } catch (DataIntegrityViolationException | ConstraintViolationException e) {
-            var raced = dsParticipantRepository.findByMemberIdentifier(member);
-            if (raced.isEmpty()) {
-                throw e;
+            var pinned = dsParticipantRepository.findByMemberIdentifier(memberId);
+            if (pinned.isEmpty()) {
+                return IDENTITY_UNPINNED;
             }
-            log.info("Data space: member {} was pinned concurrently, using the existing row", member);
-            ParticipantPinningCheck.verify(raced.get(), ssHost);
-            return raced.get().getDid();
+            var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
+            ParticipantPinningCheck.verify(pinned.get(), ssHost);
+            return IDENTITY_OK;
+        } catch (XrdRuntimeException e) {
+            if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
+                return IDENTITY_MISMATCH;
+            }
+            if (DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code().equals(e.getErrorCode())) {
+                return IDENTITY_VERSION_UNSUPPORTED;
+            }
+            log.warn("Data space: could not read identity status for member {}", memberId, e);
+            return IDENTITY_UNKNOWN;
+        } catch (Exception e) {
+            log.warn("Data space: could not read identity status for member {}", memberId, e);
+            return IDENTITY_UNKNOWN;
         }
     }
 

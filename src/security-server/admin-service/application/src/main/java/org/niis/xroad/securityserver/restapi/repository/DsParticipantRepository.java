@@ -30,13 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
-import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
-import org.niis.xroad.serverconf.model.ParticipantState;
-import org.niis.xroad.serverconf.model.ParticipantType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,7 +50,6 @@ public class DsParticipantRepository {
     private final PersistenceUtils persistenceUtils;
 
     private final DsParticipantDAOImpl dsParticipantDAO = new DsParticipantDAOImpl();
-    private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
 
     /**
      * Finds the pinned participant row for the given member identifier.
@@ -64,33 +59,5 @@ public class DsParticipantRepository {
      */
     public Optional<DsParticipantEntity> findByMemberIdentifier(ClientId member) {
         return dsParticipantDAO.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);
-    }
-
-    /**
-     * Pins a new MEMBER participant row. Never call this for a member that is already pinned —
-     * the pinned row is authoritative and must never be overwritten. The insert is flushed
-     * immediately, so a concurrent pin of the same member surfaces here as a constraint
-     * violation rather than at the surrounding transaction's commit.
-     *
-     * @param member the member identifier
-     * @param ctxId  the derived ctx-id
-     * @param did    the derived DID
-     * @return the persisted row
-     */
-    public DsParticipantEntity pinMemberParticipant(ClientId member, String ctxId, String did) {
-        var session = persistenceUtils.getCurrentSession();
-        var identifier = identifierDAO.findOrCreateClientId(session, member);
-
-        var participant = new DsParticipantEntity();
-        participant.setParticipantType(ParticipantType.MEMBER);
-        participant.setMemberIdentifier(identifier);
-        participant.setCtxId(ctxId);
-        participant.setDid(did);
-        participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-        participant.setState(ParticipantState.ACTIVE);
-
-        var saved = dsParticipantDAO.save(session, participant);
-        session.flush();
-        return saved;
     }
 }

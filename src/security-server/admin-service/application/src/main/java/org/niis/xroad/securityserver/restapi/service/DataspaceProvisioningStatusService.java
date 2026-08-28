@@ -55,7 +55,7 @@ public class DataspaceProvisioningStatusService {
     public DataspaceStatus readStatus() {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         List<ParticipantContextStatus> contextStatuses = dataspaceProvisioningService.participantContexts(true).stream()
-                .map(ctx -> dataspaceProvisioningService.readContextStatus(ctx.participantId(), ctx.kind()))
+                .map(dataspaceProvisioningService::readContextStatus)
                 .toList();
 
         return new DataspaceStatus(true, authCertRegistered, contextStatuses);

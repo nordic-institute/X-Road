@@ -49,7 +49,7 @@ import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
 import java.util.Optional;
@@ -397,18 +397,17 @@ class DataspaceProvisioningServiceTest {
     // --- ensureParticipantContext (MEMBER) ---
 
     @Test
-    void ensureParticipantContextPinsNewMemberOnFirstCall() {
+    void ensureParticipantContextDerivesUnpinnedDidWhenNoRowExists() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
         service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
-        verify(dsParticipantRepository).pinMemberParticipant(MEMBER, ParticipantIdentifierScheme.memberCtxId(MEMBER), expectedDid);
         verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
     }
 
     @Test
-    void ensureParticipantContextRefusesToPinWhenIdentityHubUrlHasNoHost() {
+    void ensureParticipantContextRefusesToProvisionWhenIdentityHubUrlHasNoHost() {
         when(dataspace.getIdentityHubUrl()).thenReturn("identity-hub-placeholder");
 
         assertThatThrownBy(() -> service.ensureParticipantContext(
@@ -417,7 +416,6 @@ class DataspaceProvisioningServiceTest {
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.VALIDATION_ERROR.code()));
 
-        verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
         verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
     }
 
@@ -435,41 +433,12 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextUsesConcurrentlyPinnedRowWhenPinLosesTheRace() {
-        var pinned = pinnedParticipant(MEMBER, SS_HOST);
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.of(pinned));
-        when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
-                .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
-
-        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
-
-        verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
-    }
-
-    @Test
-    void ensureParticipantContextRethrowsPinFailureWhenNoConcurrentRowAppeared() {
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
-        when(dsParticipantRepository.pinMemberParticipant(any(), any(), any()))
-                .thenThrow(new DataIntegrityViolationException("connection lost"));
-
-        assertThatThrownBy(() -> service.ensureParticipantContext(
-                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER))
-                .isInstanceOf(DataIntegrityViolationException.class)
-                .hasMessage("connection lost");
-
-        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
-    }
-
-    @Test
-    void ensureParticipantContextVerifiesAlreadyPinnedMemberAndDoesNotRepin() {
+    void ensureParticipantContextUsesPinnedDidWhenRowExists() {
         var pinned = pinnedParticipant(MEMBER, SS_HOST);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
 
         service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
-        verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
         verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
     }
 
@@ -483,8 +452,49 @@ class DataspaceProvisioningServiceTest {
                 service.ensureParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER))
                 .isInstanceOf(XrdRuntimeException.class);
 
-        verify(dsParticipantRepository, never()).pinMemberParticipant(any(), any(), any());
         verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+    }
+
+    // --- readIdentityStatus ---
+
+    @Test
+    void readIdentityStatusReportsUnpinnedWhenNoRowExists() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_UNPINNED);
+    }
+
+    @Test
+    void readIdentityStatusReportsOkWhenPinnedRowMatchesDerivation() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
+                .thenReturn(Optional.of(pinnedParticipant(MEMBER, SS_HOST)));
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_OK);
+    }
+
+    @Test
+    void readIdentityStatusReportsMismatchWhenPinnedRowDiffersFromDerivation() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
+                .thenReturn(Optional.of(pinnedParticipant(MEMBER, "ih.other.test:7183")));
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_MISMATCH);
+    }
+
+    @Test
+    void readIdentityStatusReportsVersionUnsupportedForUnknownSchemeVersion() {
+        var pinned = pinnedParticipant(MEMBER, SS_HOST);
+        pinned.setSchemeVersion("v0");
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_VERSION_UNSUPPORTED);
+    }
+
+    @Test
+    void readIdentityStatusReportsUnknownWhenRepositoryFails() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
+                .thenThrow(new DataAccessResourceFailureException("connection lost"));
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_UNKNOWN);
     }
 
     private void givenServerConfWithOwner(ClientId owner) {

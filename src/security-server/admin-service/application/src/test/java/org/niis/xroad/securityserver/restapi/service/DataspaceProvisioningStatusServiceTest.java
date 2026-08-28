@@ -45,11 +45,16 @@ import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.ParticipantType;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -104,6 +109,7 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
         lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, serverConfRepository, dsParticipantRepository);
@@ -210,6 +216,40 @@ class DataspaceProvisioningStatusServiceTest {
                     assertThat(ctx.contextCreated()).isFalse();
                     assertThat(ctx.credentialStatus()).isEqualTo(STATUS_ABSENT);
                 });
+    }
+
+    @Test
+    void readStatusReportsIdentityStatusOnlyForMemberContexts() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+
+        DataspaceStatus status = statusService.readStatus();
+
+        var host = status.participantContexts().get(0);
+        var mgmt = status.participantContexts().get(1);
+        var member = status.participantContexts().get(2);
+        assertThat(host.identityStatus()).isNull();
+        assertThat(mgmt.identityStatus()).isNull();
+        assertThat(member.identityStatus()).isEqualTo(DataspaceProvisioningService.IDENTITY_UNPINNED);
+    }
+
+    @Test
+    void readStatusReportsIdentityMismatchForDriftedPinnedRow() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(identityHubClient.contextExists(anyString())).thenReturn(false);
+        var pinned = new DsParticipantEntity();
+        pinned.setParticipantType(ParticipantType.MEMBER);
+        pinned.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
+        pinned.setCtxId(OWNER_CTX_ID);
+        pinned.setDid(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183"));
+        pinned.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        pinned.setState(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.of(pinned));
+
+        DataspaceStatus status = statusService.readStatus();
+
+        assertThat(status.participantContexts().get(2).identityStatus())
+                .isEqualTo(DataspaceProvisioningService.IDENTITY_MISMATCH);
     }
 
     @Test

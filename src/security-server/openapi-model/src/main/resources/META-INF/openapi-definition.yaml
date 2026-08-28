@@ -8711,6 +8711,16 @@ components:
             - ABSENT
             - ERROR
             - UNKNOWN
+        identity_status:
+          type: string
+          readOnly: true
+          description: pinned-identity verification state, present only for MEMBER contexts
+          enum:
+            - OK
+            - MISMATCH
+            - VERSION_UNSUPPORTED
+            - UNPINNED
+            - UNKNOWN
     DataspaceTlsCertificateEnrollmentStatus:
       type: object
       description: how the DataSpace TLS certificate was enrolled, and its renewal bookkeeping
