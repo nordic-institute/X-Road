@@ -179,9 +179,12 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
-    # Token storage persists across pod restarts/redeploys so the signer's keys and
-    # certs survive instead of an empty re-init. RWO claim + singleton service ->
-    # Recreate, so a RollingUpdate can't have both pods mount it at once.
+    # /var/lib/softhsm/tokens is the packaged signer image's standard software-token
+    # store — production key-material persistence, not an HSM/e2e-only artifact. Token
+    # storage persists across pod restarts/redeploys so the signer's keys and certs
+    # survive instead of an empty re-init. RWO claim + singleton service -> Recreate,
+    # so a RollingUpdate can't have both pods mount it at once. Redeploy behavior over
+    # an already-populated token volume is still unverified.
     strategy:
       type: Recreate
     volumeMounts:
@@ -483,6 +486,8 @@ services:
   # Off by default (replicas: 0, the chart's existing off-switch for optional
   # workloads — see ds-control-plane/ds-identity-hub/ds-issuer-service below), so existing
   # deployers and every non-toggled release render unchanged.
+  # TODO: before production go-live, reconsider whether this test-support service definition
+  # belongs in the chart's default values at all, or should move to the dev/e2e values overlay.
   softtoken-signer:
     otelServiceName: xroad-softtoken-signer
     imageName: ss-softtoken-signer
