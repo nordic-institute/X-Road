@@ -41,11 +41,18 @@ const allPermissions = [
   Permissions.UPLOAD_DS_TLS_CERT,
 ];
 
+const notConfiguredEnrollmentStatusHandler = specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
+  response(200).json({ enrollment_method: 'NONE' }),
+);
+
 describe('SS DS TLS Certificate — no key generated yet (Browser Mode)', () => {
   it('shows the generate key button', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
-      msw: [specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false }))],
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false })),
+        notConfiguredEnrollmentStatusHandler,
+      ],
     });
 
     await expect.element(page.getByTestId('management-service-certificate-generateKey')).toBeVisible();
@@ -58,6 +65,7 @@ describe('SS DS TLS Certificate — no key generated yet (Browser Mode)', () => 
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false })),
+        notConfiguredEnrollmentStatusHandler,
         specHttp.untyped.post('/api/v1/ds-tls-certificate/key', () => {
           generateSpy();
           return new HttpResponse(null, { status: 201 });
@@ -80,6 +88,7 @@ describe('SS DS TLS Certificate — key generated, certificate pending (Browser 
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        notConfiguredEnrollmentStatusHandler,
         specHttp.untyped.post('/api/v1/ds-tls-certificate/csr', async ({ request }) => {
           csrSpy(await request.json());
           return HttpResponse.arrayBuffer(new ArrayBuffer(0), { status: 200 });
@@ -107,6 +116,7 @@ describe('SS DS TLS Certificate — certificate-only upload (Browser Mode)', () 
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        notConfiguredEnrollmentStatusHandler,
         specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', async ({ request }) => {
           const body = await request.formData();
           uploadSpy(Array.from(body.keys()).sort());
@@ -160,6 +170,7 @@ describe('SS DS TLS Certificate — uploading mismatched cert shows error (Brows
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        notConfiguredEnrollmentStatusHandler,
         specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', () =>
           HttpResponse.json({ status: 400, error: { code: 'ds_tls_key_certificate_mismatch' } }, { status: 400 }),
         ),
@@ -179,5 +190,79 @@ describe('SS DS TLS Certificate — uploading mismatched cert shows error (Brows
     await page.getByTestId('dialog-save-button').click();
 
     await expect.element(page.getByText('The uploaded certificate does not match the DataSpace TLS key')).toBeVisible();
+  });
+});
+
+describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
+  it('shows the ACME method and next scheduled renewal time', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
+          response(200).json({ enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z' }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-status')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
+  });
+
+  it('updates from manual to ACME after a manual certificate is transparently replaced, without a page reload', async () => {
+    let certificateUploaded = false;
+
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
+          response(200).json(
+            certificateUploaded
+              ? { enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z' }
+              : { enrollment_method: 'MANUAL' },
+          ),
+        ),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', async () => {
+          certificateUploaded = true;
+          return HttpResponse.json(
+            {
+              hash: 'AABB1122CCDD3344',
+              issuer_common_name: 'ds.example.org',
+              issuer_distinguished_name: 'CN=ds.example.org',
+              subject_common_name: 'ds.example.org',
+              subject_distinguished_name: 'CN=ds.example.org',
+              serial: '1',
+              version: 3,
+              signature: 'abc123',
+              signature_algorithm: 'SHA256withRSA',
+              public_key_algorithm: 'RSA',
+              rsa_public_key_exponent: 65537,
+              rsa_public_key_modulus: 'deadbeef',
+              not_before: '2024-01-01T00:00:00Z',
+              not_after: '2026-01-01T00:00:00Z',
+              key_usages: [],
+              subject_alternative_names: '',
+            },
+            { status: 200 },
+          );
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-status')).toBeVisible();
+    await expect.element(page.getByText('Manual')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).not.toBeInTheDocument();
+
+    await page.getByTestId('upload-management-service-certificate').click();
+    const certFile = new File(['-----BEGIN CERTIFICATE-----\ncert\n-----END CERTIFICATE-----'], 'ds-https.crt', {
+      type: 'application/x-pem-file',
+    });
+    await page.elementLocator(document.querySelector('input[type="file"]') as HTMLInputElement).upload(certFile);
+    await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.element(page.getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
   });
 });
