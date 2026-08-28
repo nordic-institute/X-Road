@@ -42,6 +42,7 @@ import org.niis.xroad.globalconf.model.DsTlsCaInfo;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -79,6 +80,8 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     @Mock
     private DsTlsAcmeService dsTlsAcmeService;
     @Mock
+    private MailNotificationHelper mailNotificationHelper;
+    @Mock
     private CertificateRenewalScheduler scheduler;
 
     private DsTlsAcmeCertificateRenewalWorker worker;
@@ -88,8 +91,9 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(globalConfProvider.isValid()).thenReturn(true);
         lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        lenient().when(dsTlsCertificateService.recordAcmeOutcome(any())).thenReturn(true);
         worker = new DsTlsAcmeCertificateRenewalWorker(globalConfProvider, adminServiceProperties, dsTlsCertificateService,
-                dsTlsAcmeService);
+                dsTlsAcmeService, mailNotificationHelper);
     }
 
     @Test
@@ -134,9 +138,21 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
         verify(dsTlsCertificateService).recordAcmeOutcome(anyString());
         verify(dsTlsCertificateService, never()).suspendAcmeScheduling();
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification(eq("https://"), anyString());
         verify(scheduler).failure();
         verify(scheduler, never()).success();
         verifyNoInteractions(dsTlsAcmeService);
+    }
+
+    @Test
+    void executeShouldNotSendAFailureNotificationWhenTheMalformedHostnameErrorIsUnchanged() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("https://");
+        when(dsTlsCertificateService.recordAcmeOutcome(anyString())).thenReturn(false);
+
+        worker.execute(scheduler);
+
+        verify(mailNotificationHelper, never()).sendDsTlsAcmeFailureNotification(any(), any());
+        verify(scheduler).failure();
     }
 
     @Test
@@ -166,6 +182,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         ArgumentCaptor<String> errorCaptor = ArgumentCaptor.forClass(String.class);
         verify(dsTlsCertificateService).recordAcmeOutcome(errorCaptor.capture());
         assertThat(errorCaptor.getValue()).isNotBlank();
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification(eq(HOSTNAME), eq(errorCaptor.getValue()));
         verify(scheduler).failure();
         verify(scheduler, never()).success();
         verifyNoInteractions(dsTlsAcmeService);
@@ -191,6 +208,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         assertThat(certRequestCaptor.getValue()).isNotEmpty();
 
         verify(dsTlsCertificateService).storeAcmeEnrolledCertificate(any(), eq(new X509Certificate[]{newCert}), eq(nextRenewal));
+        verify(mailNotificationHelper).sendDsTlsAcmeSuccessNotification(HOSTNAME, false);
         verify(scheduler).success();
         verify(scheduler, never()).failure();
     }
@@ -215,6 +233,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         verify(dsTlsAcmeService, never()).enroll(any(), any(), any());
         verify(dsTlsAcmeService).renew(eq(caInfo), eq(HOSTNAME), eq(currentCertificate), any());
         verify(dsTlsCertificateService).storeAcmeEnrolledCertificate(any(), eq(new X509Certificate[]{newCert}), any());
+        verify(mailNotificationHelper).sendDsTlsAcmeSuccessNotification(HOSTNAME, true);
         verify(scheduler).success();
     }
 
@@ -234,6 +253,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         verify(dsTlsAcmeService, never()).renew(any(), any(), any(), any());
         verify(dsTlsCertificateService, never()).storeAcmeEnrolledCertificate(any(), any(), any());
         verify(dsTlsCertificateService).recordAcmeOutcome(null);
+        verifyNoInteractions(mailNotificationHelper);
         verify(scheduler).success();
     }
 
@@ -249,8 +269,25 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
         verify(dsTlsCertificateService, never()).storeAcmeEnrolledCertificate(any(), any(), any());
         verify(dsTlsCertificateService).recordAcmeOutcome("CA unreachable");
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification(HOSTNAME, "CA unreachable");
         verify(scheduler).failure();
         verify(scheduler, never()).success();
+    }
+
+    @Test
+    void executeShouldNotSendASecondFailureNotificationWhenTheErrorIsUnchanged() {
+        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
+        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
+        when(dsTlsAcmeService.enroll(any(), any(), any())).thenThrow(new IllegalStateException("CA unreachable"));
+        when(dsTlsCertificateService.recordAcmeOutcome("CA unreachable")).thenReturn(false);
+
+        worker.execute(scheduler);
+
+        verify(dsTlsCertificateService).recordAcmeOutcome("CA unreachable");
+        verify(mailNotificationHelper, never()).sendDsTlsAcmeFailureNotification(any(), any());
+        verify(scheduler).failure();
     }
 
     @Test

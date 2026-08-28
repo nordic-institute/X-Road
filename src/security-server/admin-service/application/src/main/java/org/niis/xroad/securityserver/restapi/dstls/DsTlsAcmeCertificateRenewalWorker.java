@@ -35,6 +35,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.DsTlsCaInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -70,6 +71,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
     private final AdminServiceProperties adminServiceProperties;
     private final DsTlsCertificateService dsTlsCertificateService;
     private final DsTlsAcmeService dsTlsAcmeService;
+    private final MailNotificationHelper mailNotificationHelper;
 
     @Override
     public void execute(CertificateRenewalScheduler scheduler) {
@@ -88,7 +90,10 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             hostname = resolvePublicHostname();
         } catch (Exception ex) {
             log.error("The configured DataSpace public hostname is malformed", ex);
-            dsTlsCertificateService.recordAcmeOutcome(describeError(ex));
+            String error = describeError(ex);
+            if (dsTlsCertificateService.recordAcmeOutcome(error)) {
+                mailNotificationHelper.sendDsTlsAcmeFailureNotification(adminServiceProperties.getDataspace().getIdentityHubUrl(), error);
+            }
             finishCycle(scheduler, true);
             return;
         }
@@ -141,7 +146,9 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             String error = "More than one ACME-capable DS TLS CA is designated (%d); refusing to enroll against any of them"
                     .formatted(acmeCapableCas.size());
             log.error(error);
-            dsTlsCertificateService.recordAcmeOutcome(error);
+            if (dsTlsCertificateService.recordAcmeOutcome(error)) {
+                mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, error);
+            }
             return false;
         }
 
@@ -150,7 +157,10 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             return true;
         } catch (Exception ex) {
             log.error("DS TLS ACME enrollment/renewal failed", ex);
-            dsTlsCertificateService.recordAcmeOutcome(describeError(ex));
+            String error = describeError(ex);
+            if (dsTlsCertificateService.recordAcmeOutcome(error)) {
+                mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, error);
+            }
             return false;
         }
     }
@@ -180,7 +190,9 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         Instant nextRenewalTime = dsTlsAcmeService.getNextRenewalTime(caInfo, chainArray[0]);
         dsTlsCertificateService.storeAcmeEnrolledCertificate(keyPair.getPrivate(), chainArray, nextRenewalTime);
 
-        log.info("DS TLS certificate successfully {} via ACME", currentCertificate == null ? "enrolled" : "renewed");
+        boolean isRenewal = currentCertificate != null;
+        mailNotificationHelper.sendDsTlsAcmeSuccessNotification(hostname, isRenewal);
+        log.info("DS TLS certificate successfully {} via ACME", isRenewal ? "renewed" : "enrolled");
     }
 
     private void finishCycle(CertificateRenewalScheduler scheduler, boolean failed) {

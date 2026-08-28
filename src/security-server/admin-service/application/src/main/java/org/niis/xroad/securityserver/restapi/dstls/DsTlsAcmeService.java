@@ -30,11 +30,14 @@ import org.niis.xroad.common.acme.AcmeKeyPurpose;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.List;
+
+import static java.util.Objects.requireNonNullElse;
 
 /**
  * Thin DS TLS-specific wrapper around the shared {@link AcmeService} engine (order, renew, ARI-aware renewal
@@ -60,13 +63,14 @@ class DsTlsAcmeService {
     private static final List<String> NO_CONTACTS = List.of();
 
     private final AcmeService acmeService;
+    private final AdminServiceProperties adminServiceProperties;
 
     /**
      * Orders a brand-new DS TLS certificate: no certificate exists yet for this CSR's key.
      */
     List<X509Certificate> enroll(DsTlsCaInfo caInfo, String hostname, byte[] certRequest) {
         return acmeService.orderCertificateFromACMEServer(hostname, hostname, DS_TLS_ACME_KEY_PURPOSE,
-                toApprovedCaInfo(caInfo), DS_TLS_ACME_ALIAS, certRequest, NO_CONTACTS);
+                toApprovedCaInfo(caInfo), DS_TLS_ACME_ALIAS, certRequest, resolveContacts());
     }
 
     /**
@@ -75,7 +79,7 @@ class DsTlsAcmeService {
      */
     List<X509Certificate> renew(DsTlsCaInfo caInfo, String hostname, X509Certificate currentCertificate, byte[] certRequest) {
         return acmeService.renew(DS_TLS_ACME_ALIAS, hostname, toApprovedCaInfo(caInfo), DS_TLS_ACME_KEY_PURPOSE,
-                currentCertificate, certRequest, NO_CONTACTS);
+                currentCertificate, certRequest, resolveContacts());
     }
 
     /**
@@ -84,7 +88,11 @@ class DsTlsAcmeService {
      */
     Instant getNextRenewalTime(DsTlsCaInfo caInfo, X509Certificate certificate) {
         return acmeService.getNextRenewalTime(DS_TLS_ACME_ALIAS, toApprovedCaInfo(caInfo), certificate,
-                DS_TLS_ACME_KEY_PURPOSE, NO_CONTACTS);
+                DS_TLS_ACME_KEY_PURPOSE, resolveContacts());
+    }
+
+    private List<String> resolveContacts() {
+        return requireNonNullElse(adminServiceProperties.getDataspace().getTlsCertificateContacts(), NO_CONTACTS);
     }
 
     /**

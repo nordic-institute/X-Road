@@ -34,6 +34,7 @@ import org.niis.xroad.common.acme.AcmeKeyPurpose;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -42,6 +43,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,18 +55,23 @@ class DsTlsAcmeServiceTest {
 
     @Mock
     private AcmeService acmeService;
+    @Mock
+    private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private AdminServiceProperties.Dataspace dataspace;
 
     private DsTlsAcmeService dsTlsAcmeService;
 
     private DsTlsAcmeService service() {
         if (dsTlsAcmeService == null) {
-            dsTlsAcmeService = new DsTlsAcmeService(acmeService);
+            lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+            dsTlsAcmeService = new DsTlsAcmeService(acmeService, adminServiceProperties);
         }
         return dsTlsAcmeService;
     }
 
     @Test
-    void enrollShouldOrderUnderTheFixedAliasWithNoContacts() {
+    void enrollShouldOrderUnderTheFixedAliasWithNoContactsWhenUnconfigured() {
         DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         byte[] certRequest = {1, 2, 3};
         X509Certificate cert = mock(X509Certificate.class);
@@ -86,6 +93,19 @@ class DsTlsAcmeServiceTest {
     }
 
     @Test
+    void enrollShouldPassTheConfiguredTlsCertificateContacts() {
+        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(mock(X509Certificate.class)));
+
+        service().enroll(caInfo, HOSTNAME, new byte[]{1, 2, 3});
+
+        verify(acmeService).orderCertificateFromACMEServer(eq(HOSTNAME), eq(HOSTNAME), eq(AcmeKeyPurpose.AUTHENTICATION),
+                any(ApprovedCAInfo.class), eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), any(), eq(List.of("dstls@example.org")));
+    }
+
+    @Test
     void renewShouldReferenceTheCurrentCertificateUnderTheFixedAlias() {
         DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate currentCertificate = mock(X509Certificate.class);
@@ -98,6 +118,18 @@ class DsTlsAcmeServiceTest {
         assertThat(result).containsExactly(newCert);
         verify(acmeService).renew(eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), eq(HOSTNAME), any(ApprovedCAInfo.class),
                 eq(AcmeKeyPurpose.AUTHENTICATION), eq(currentCertificate), eq(certRequest), eq(List.of()));
+    }
+
+    @Test
+    void renewShouldPassTheConfiguredTlsCertificateContacts() {
+        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
+        when(acmeService.renew(any(), any(), any(), any(), any(), any(), any())).thenReturn(List.of(mock(X509Certificate.class)));
+
+        service().renew(caInfo, HOSTNAME, mock(X509Certificate.class), new byte[]{4, 5, 6});
+
+        verify(acmeService).renew(eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), eq(HOSTNAME), any(ApprovedCAInfo.class),
+                eq(AcmeKeyPurpose.AUTHENTICATION), any(), any(), eq(List.of("dstls@example.org")));
     }
 
     @Test

@@ -379,6 +379,22 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         public int getMaxHolderPidSlots() {
             return config.value(AdminServiceConfigKeys.DATASPACE_MAX_HOLDER_PID_SLOTS);
         }
+
+        public List<String> getTlsCertificateContacts() {
+            return optionalList(config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_CONTACTS));
+        }
+
+        public List<String> getTlsCertificateNotificationContacts() {
+            return optionalList(config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_NOTIFICATION_CONTACTS));
+        }
+
+        public boolean isTlsCertificateRenewalSuccessNotificationEnabled() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_RENEWAL_SUCCESS_NOTIFICATION_ENABLED);
+        }
+
+        public boolean isTlsCertificateRenewalFailureNotificationEnabled() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_RENEWAL_FAILURE_NOTIFICATION_ENABLED);
+        }
     }
 
 }
