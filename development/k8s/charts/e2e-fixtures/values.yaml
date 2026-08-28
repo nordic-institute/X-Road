@@ -49,8 +49,6 @@ services:
       path: "/testca/certs"
       port: 8888
       scheme: HTTP
-    serviceAccount:
-      annotations: {}
     env: {}
 
   # Mock OpenAPI/REST information system. Public image — full ref, bypasses
@@ -69,8 +67,6 @@ services:
       path: "/v3/api-docs"
       port: 8080
       scheme: HTTP
-    serviceAccount:
-      annotations: {}
     env: {}
 
   # Mock SOAP information system (example-adapter WAR). Public image; the
@@ -95,8 +91,6 @@ services:
       path: "/example-adapter/Endpoint?wsdl"
       port: 8080
       scheme: HTTP
-    serviceAccount:
-      annotations: {}
     env: {}
 
   # Mock plain-REST information system (WireMock). Public image.
@@ -122,8 +116,6 @@ services:
       path: "/__admin/health"
       port: 8080
       scheme: HTTP
-    serviceAccount:
-      annotations: {}
     env: {}
     volumeMounts:
       - name: isrest-mappings
@@ -167,8 +159,6 @@ services:
       path: "/"
       port: 8025
       scheme: HTTP
-    serviceAccount:
-      annotations: {}
     env:
       MP_MAX_MESSAGES: "5000"
       MP_DATABASE: "/data/mailpit.db"

@@ -82,7 +82,7 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ .service }}-sa
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
@@ -166,63 +166,4 @@ spec:
       volumes:
         {{- toYaml .config.volumes | nindent 8 }}
       {{- end }}
-{{- end }}
-
-{{/*
-ServiceAccount + Role + RoleBinding for a service. Scoped to reading its own
-env ConfigMap plus configmaps/pods generally, matching the central-server/
-security-server charts' convention.
-*/}}
-{{- define "xroad.serviceaccount" -}}
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ .service }}-sa
-  labels:
-    {{- include "xroad.labels" .root | nindent 4 }}
-    app: xroad-{{ .service }}
-  {{- with .config.serviceAccount.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: {{ .service }}-role
-  labels:
-    {{- include "xroad.labels" .root | nindent 4 }}
-    app: xroad-{{ .service }}
-rules:
-  {{- include "xroad.serviceAccountRules" . | nindent 2 }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ .service }}-rolebinding
-  labels:
-    {{- include "xroad.labels" .root | nindent 4 }}
-    app: xroad-{{ .service }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: {{ .service }}-role
-subjects:
-  - kind: ServiceAccount
-    name: {{ .service }}-sa
-    namespace: {{ .root.Release.Namespace }}
-{{- end }}
-
-{{- define "xroad.serviceAccountRules" -}}
-- apiGroups: [""]
-  resources: ["configmaps", "pods"]
-  verbs: ["get", "watch", "list"]
-- apiGroups: [""]
-  resources: ["configmaps"]
-  resourceNames:
-    - {{ printf "%s-%s-env" .root.Release.Name .service | quote }}
-  verbs: ["get", "watch", "list"]
-{{- if and .config.rbac (hasKey .config.rbac "extraRules") }}
-{{- toYaml .config.rbac.extraRules | nindent 0 }}
-{{- end }}
 {{- end }}

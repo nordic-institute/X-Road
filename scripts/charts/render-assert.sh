@@ -122,7 +122,7 @@ echo ""
 render_and_assert "central-server" Deployment Service ConfigMap ServiceAccount || STATUS=1
 echo ""
 
-render_and_assert "e2e-fixtures" Deployment Job ConfigMap ServiceAccount || STATUS=1
+render_and_assert "e2e-fixtures" Deployment Job ConfigMap || STATUS=1
 echo ""
 
 render_and_assert "ds-https-keystore" Job ServiceAccount Role RoleBinding || STATUS=1

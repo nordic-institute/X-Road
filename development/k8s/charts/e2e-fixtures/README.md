@@ -16,9 +16,11 @@ so the CS chart stays on a clean production track while these fixtures stay
 unambiguously dev/E2E-only. Structure mirrors the central-server chart: a
 values-driven `services` map for the four simple test-double workloads
 (`testca`, `isopenapi`, `issoap`, `isrest`, `mailpit`), using the same
-`xroad.labels` / `xroad.service` / `xroad.deployment` / `xroad.serviceaccount`
-helper templates. The hurl bootstrap is a dedicated `batch/v1` Job, since it
-does not fit the long-running `services` map shape.
+`xroad.labels` / `xroad.service` / `xroad.deployment` helper templates. None
+of the fixtures calls the k8s API — config arrives via kubelet-mediated
+envFrom/ConfigMap volumes — so they run with no ServiceAccount and
+`automountServiceAccountToken: false`. The hurl bootstrap is a dedicated
+`batch/v1` Job, since it does not fit the long-running `services` map shape.
 
 ## 2. Fixture images
 

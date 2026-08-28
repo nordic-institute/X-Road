@@ -9,8 +9,6 @@ today; the switch is kept for parity in case a future fixture needs it.
 {{- if hasKey $config "replicas" }}{{ $replicas = $config.replicas | int }}{{ end }}
 {{- if gt $replicas 0 }}
 ---
-{{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $config) }}
----
 {{- include "xroad.configmap.env" (dict "root" $ "service" $service "config" $config) }}
 ---
 {{- include "xroad.service" (dict "root" $ "service" $service "config" $config) }}
