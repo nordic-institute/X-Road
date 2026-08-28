@@ -28,11 +28,5 @@ isrest_mapping_files:
   - is_rest_2.json
   - is_rest_3.json
 
-# setup.hurl's last two entries poll each SS's DSP HOST participant-context credential status —
-# meaningless while DSP is off. Tied to the existing proxy_dsp_enabled kill-switch (see the
-# security_server role) rather than a separate flag: whichever topology enables DSP already
-# flips that var, and the hurl bootstrap should then run the full scenario, gates included.
-hurl_skip_dsp_readiness_gates: "{{ not (proxy_dsp_enabled | default(true) | bool) }}"
-
 hurl_wait_retries: 60
 hurl_wait_delay: 10

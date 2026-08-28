@@ -1,5 +1,8 @@
 ---
-{% set ds_tls = ds_tls_enabled | default(false) | bool %}
+{# DS-HTTPS TLS follows the fixture stack: e2e_fixtures_enabled is the same signal
+   site.yml gates the ds-https-keystore provisioning on, so TLS is on exactly when
+   the keystore Secret these mounts reference exists. #}
+{% set ds_tls = e2e_fixtures_enabled | default(false) | bool %}
 {% set ds_truststore_file = ds_truststore_key | default('cacerts') %}
 {% set ds_truststore_opts = '-Djavax.net.ssl.trustStore=/etc/xroad/ssl/' ~ ds_truststore_file ~ ' -Djavax.net.ssl.trustStorePassword=changeit' %}
 {# Advertised DS hostnames. In k8s the ds-* services are separate, namespace-scoped Services, so
@@ -72,8 +75,6 @@ configSeed:
       value: https
     - key: xroad.proxy.addon.op-monitor.enabled
       value: "true"
-    - key: xroad.proxy.dsp-enabled
-      value: "{{ proxy_dsp_enabled | string | lower }}"
     - key: xroad.configuration-client.update-interval
       value: "{{ configuration_client_update_interval }}"
     - key: xroad.signer.ocsp-response-retrieval-active
@@ -84,14 +85,12 @@ configSeed:
       value: "{{ ds_participant_id }}"
     - key: xroad.proxy-ui-api.dataspace.participant-id
       value: "{{ ds_participant_id }}"
-{% if proxy_dsp_enabled %}
     # Where this Security Server advertises its own server proxy for the DSP data
     # plane. The product default is https://localhost:5500, which only holds when
     # consumer and provider share a host; a multi-release k8s topology needs it
     # per release.
     - key: xroad.proxy.dsp.serverproxy-endpoint
       value: "https://{{ ds_serverproxy_host }}:5500"
-{% endif %}
 {% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
     - key: xroad.op-monitor.records-available-timestamp-offset-seconds
       value: "{{ op_monitor_records_available_offset_seconds }}"
@@ -188,7 +187,6 @@ services:
   op-monitor:
     enabled: true
 
-{% if proxy_dsp_enabled %}
   # DSP services — bump replicas from chart default of 0. DB clusters are
   # provisioned by the cloudnative_pg role (see ds_*_db vars). OpenBao TLS
   # trust is the chart's secretStore.tls knob (set once, above), not
@@ -253,7 +251,6 @@ services:
         name: {{ svc }}-ds-https
 {% endif %}
 {% endfor %}
-{% endif %}
 {% if softtoken_signer_enabled | default(false) | bool %}
   softtoken-signer:
     replicas: 1

@@ -23,8 +23,6 @@ argument_specs:
       messagelog_archive_cron: {type: str, default: ""}
       messagelog_clean_cron: {type: str, default: ""}
       messagelog_encryption_config: {type: str, default: ""}
-      proxy_dsp_enabled: {type: bool, default: true}
-      ds_tls_enabled: {type: bool, default: false}
       ds_truststore_key: {type: str, default: cacerts}
       ds_mgmt_context_enabled: {type: bool, default: false}
       dsp_participant_context_id: {type: str, default: ""}

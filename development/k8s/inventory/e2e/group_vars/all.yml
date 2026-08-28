@@ -2,7 +2,7 @@
 # Full base topology for E2E `k8s` env-mode: kind cluster + Central Server chart + two
 # Security Server chart releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor
 # Postgres + OpenBao) + e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore,
-# hurl bootstrap). DSP is on — see the proxy_dsp_enabled block below for what that does and why.
+# hurl bootstrap). DSP is always on.
 
 cluster_provider: kind
 kind_cluster_name: xroad-e2e-cluster
@@ -58,25 +58,6 @@ external_service_host: host.docker.internal
 
 # No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
-
-# DSP on. This is not an extra scenario: dsp-enabled is a global gate on the client
-# proxy's send path (ClientSoapMessageProcessor / ClientRestMessageProcessor ask
-# consumerSideDspProcessor for asset access on every request, or get null), so with it off the
-# k8s lane was running the same suite over a different transport than compose. Turning it on
-# also provisions the three ds-*-service databases, raises the ds-* replicas from the chart
-# default of 0, and re-arms e2e_fixtures' hurl DSP readiness gates (that role derives
-# hurl_skip_dsp_readiness_gates from this flag), so the bootstrap runs setup.hurl to its end.
-proxy_dsp_enabled: true
-
-# DS-HTTPS on the EDC ports. No single advertised host — each ds-* service is reached on its own
-# namespace-qualified Service name, which is what the ds-https cert's SAN list already covers.
-ds_tls_enabled: true
-
-# The ds-https-keystore chart self-signs and publishes its truststore as a JRE-copy JKS named
-# `cacerts`; the role's default names the xrd-ca-signed PKCS12 `cacerts.p12` that the hybrid dev
-# flavor produces instead. Mounting the wrong key yields no truststore at all and every DS-HTTPS
-# handshake fails PKIX.
-ds_truststore_key: cacerts
 
 # Mirrors compose, whose SsStackSetup sets DSP_MGMT_CONTEXT=true on both stacks. With DSP on,
 # management requests are routed through the management participant context

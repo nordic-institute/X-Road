@@ -64,15 +64,6 @@ external_service_host: host.docker.internal
 # No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
 
-# DSP on: same reasoning as e2e (see inventory/e2e/group_vars/all.yml) — turning it off would
-# leave a developer exercising a different send-path than what e2e/compose/production run.
-proxy_dsp_enabled: true
-
-# DS-HTTPS on the EDC ports, self-signed ds-https-keystore chart (see inventory/e2e for why the
-# truststore key differs from the role's own cacerts.p12 default).
-ds_tls_enabled: true
-ds_truststore_key: cacerts
-
 ds_mgmt_context_enabled: true
 
 # The Issuer Service is co-located in the Central Server dev image (port 6183), reached

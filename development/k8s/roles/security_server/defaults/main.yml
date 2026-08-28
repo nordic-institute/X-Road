@@ -69,12 +69,6 @@ messagelog_clean_cron: ""
 # above; adding one here would re-arm a scheduled run that races the test.
 messagelog_encryption_config: ""
 
-proxy_dsp_enabled: true
-
-# DS-HTTPS TLS on the EDC ports. A multi-release topology has no single advertised host, so it
-# opts in here explicitly and addresses each ds-* service by its namespace-qualified Service name.
-ds_tls_enabled: false
-
 # Secret key (and mounted filename) of the DS-HTTPS truststore inside the ds-https-keystore
 # Secret. Matches the self-signed ds-https-keystore chart's JRE-copy JKS name; set per-inventory
 # if a different producer is ever wired in.

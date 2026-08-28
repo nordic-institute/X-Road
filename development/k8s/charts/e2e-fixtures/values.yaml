@@ -250,12 +250,3 @@ hurl:
     example_service_address: "http://issoap.cs:8080/example-adapter/Endpoint"
     is_rest_url: "http://isrest.cs:8080/integration/mock_1"
     is_openapi_url: "http://isopenapi.cs:8080/v3/api-docs"
-  # setup.hurl's last two entries (see the "DSP readiness gates (LAST)"
-  # comment in the file) poll each SS's HOST participant-context credential
-  # status — meaningless when DSP is off (ds-control-plane at replicas: 0,
-  # security-server chart's XROAD_PROXY_UI_API_DATASPACE_ENABLED unset). The
-  # Job computes the file's total entry count at runtime and passes
-  # `--to-entry (total - 2)` when this is true, so the two DSP entries never
-  # run; set false once the two-SS topology enables DSP to run setup.hurl
-  # through to its actual end.
-  skipDspReadinessGates: false
