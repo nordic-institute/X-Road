@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 
 import java.util.Collection;
 
@@ -51,8 +51,8 @@ public class GlobalConfVer7Test {
 
     @Test
     public void getApprovedDsTlsCas() {
-        Collection<DsTlsCaInfo> eeDsTlsCas = globalConfProvider.getApprovedDsTlsCas("EE");
-        DsTlsCaInfo dsTlsCa = eeDsTlsCas.stream().filter(ca -> ca.getName().equals("Test DS TLS CA")).findFirst().get();
+        Collection<ApprovedDsTlsCaInfo> eeDsTlsCas = globalConfProvider.getApprovedDsTlsCas("EE");
+        ApprovedDsTlsCaInfo dsTlsCa = eeDsTlsCas.stream().filter(ca -> ca.getName().equals("Test DS TLS CA")).findFirst().get();
 
         assertEquals("Test DS TLS CA", dsTlsCa.getName());
         assertEquals(TestCertUtil.getCaCert(), dsTlsCa.getTopCaCert());

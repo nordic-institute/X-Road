@@ -38,7 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -190,7 +190,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     @Test
     void executeShouldEnrollAFreshCertificateWhenNoneIsStoredYet() throws Exception {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
         when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
@@ -215,7 +215,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     @Test
     void executeShouldTransparentlyReplaceAManuallyUploadedCertificateWhenDueForRenewal() throws Exception {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
         when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
 
@@ -239,7 +239,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     @Test
     void executeShouldDoNothingWhenTheCurrentCertificateIsNotYetDue() throws Exception {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
         when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
 
@@ -259,7 +259,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     @Test
     void executeShouldRecordTheErrorAndFailWithoutTouchingTheServedCertificateWhenEnrollmentFails() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
         when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
@@ -276,7 +276,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     @Test
     void executeShouldNotSendASecondFailureNotificationWhenTheErrorIsUnchanged() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
         when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
@@ -292,7 +292,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     @Test
     void executeShouldGenerateAFreshKeyPairForEveryEnrollment() throws Exception {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + HOSTNAME + ":7182");
         when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
@@ -308,8 +308,8 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         assertThat(keyCaptor.getAllValues().get(0)).isNotEqualTo(keyCaptor.getAllValues().get(1));
     }
 
-    private static DsTlsCaInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
-        return new DsTlsCaInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
+    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
+        return new ApprovedDsTlsCaInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

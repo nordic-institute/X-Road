@@ -23,26 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.globalconf.model;
 
-import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.acme.config.AcmeConfig;
-import org.niis.xroad.common.acme.config.AcmeProperties;
-import org.niis.xroad.common.vault.VaultClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
- * Wires the ACME client beans that are specific to the Security Server admin-service: they depend on this
- * admin-service's own {@link AcmeProperties} and {@link AcmeConfig} bean instances (bound from
- * {@code AdminServiceConfigKeys}), so they stay here rather than in acme-spring.
+ * Value object containing approved DataSpace TLS CA information.
  */
-@Configuration
-public class AcmeBeanConfig {
+@Data
+public class ApprovedDsTlsCaInfo {
 
-    @Bean
-    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig, VaultClient vaultClient) {
-        return new AcmeService(acmeProperties, acmeConfig, vaultClient);
-    }
+    private final String name;
 
+    private final X509Certificate topCaCert;
+    private final List<X509Certificate> intermediateCaCerts;
+
+    private final String acmeServerDirectoryUrl;
+    private final String acmeServerIpAddress;
+    private final String dsTlsCertificateProfileId;
 }

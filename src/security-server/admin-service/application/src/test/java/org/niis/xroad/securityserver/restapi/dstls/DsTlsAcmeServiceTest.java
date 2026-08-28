@@ -30,10 +30,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.acme.AcmeKeyPurpose;
-import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.common.acme.AcmeAccountContext;
+import org.niis.xroad.common.acme.AcmeClient;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 
 import java.security.cert.X509Certificate;
@@ -54,7 +53,7 @@ class DsTlsAcmeServiceTest {
     private static final String HOSTNAME = "ss.example.org";
 
     @Mock
-    private AcmeService acmeService;
+    private AcmeClient acmeClient;
     @Mock
     private AdminServiceProperties adminServiceProperties;
     @Mock
@@ -65,88 +64,107 @@ class DsTlsAcmeServiceTest {
     private DsTlsAcmeService service() {
         if (dsTlsAcmeService == null) {
             lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-            dsTlsAcmeService = new DsTlsAcmeService(acmeService, adminServiceProperties);
+            dsTlsAcmeService = new DsTlsAcmeService(acmeClient, adminServiceProperties);
         }
         return dsTlsAcmeService;
     }
 
     @Test
     void enrollShouldOrderUnderTheFixedAliasWithNoContactsWhenUnconfigured() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         byte[] certRequest = {1, 2, 3};
         X509Certificate cert = mock(X509Certificate.class);
-        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any(), any()))
+        when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(cert));
 
         List<X509Certificate> result = service().enroll(caInfo, HOSTNAME, certRequest);
 
         assertThat(result).containsExactly(cert);
+        ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
+        verify(acmeClient).orderCertificate(eq(HOSTNAME), eq(HOSTNAME), accountCaptor.capture(), eq(certRequest));
 
-        ArgumentCaptor<ApprovedCAInfo> caInfoCaptor = ArgumentCaptor.forClass(ApprovedCAInfo.class);
-        verify(acmeService).orderCertificateFromACMEServer(eq(HOSTNAME), eq(HOSTNAME), eq(AcmeKeyPurpose.AUTHENTICATION),
-                caInfoCaptor.capture(), eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), eq(certRequest), eq(List.of()));
-
-        assertThat(caInfoCaptor.getValue().getName()).isEqualTo("Test CA");
-        assertThat(caInfoCaptor.getValue().getAcmeServerDirectoryUrl()).isEqualTo("http://testca:8887");
-        assertThat(caInfoCaptor.getValue().getAuthenticationCertificateProfileId()).isNull();
-        assertThat(caInfoCaptor.getValue().getSigningCertificateProfileId()).isNull();
+        AcmeAccountContext account = accountCaptor.getValue();
+        assertThat(account.accountAlias()).isEqualTo(DsTlsAcmeService.DS_TLS_ACME_ALIAS);
+        assertThat(account.caName()).isEqualTo("Test CA");
+        assertThat(account.acmeServerDirectoryUrl()).isEqualTo("http://testca:8887");
+        assertThat(account.certificateProfileId()).isNull();
+        assertThat(account.contacts()).isEmpty();
     }
 
     @Test
-    void enrollShouldPassTheConfiguredTlsCertificateContacts() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
-        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
-        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any(), any()))
+    void enrollShouldCarryTheConfiguredDsTlsCertificateProfileIdThrough() {
+        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, "ds-tls-profile-id");
+        when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
 
         service().enroll(caInfo, HOSTNAME, new byte[]{1, 2, 3});
 
-        verify(acmeService).orderCertificateFromACMEServer(eq(HOSTNAME), eq(HOSTNAME), eq(AcmeKeyPurpose.AUTHENTICATION),
-                any(ApprovedCAInfo.class), eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), any(), eq(List.of("dstls@example.org")));
+        ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
+        verify(acmeClient).orderCertificate(any(), any(), accountCaptor.capture(), any());
+        assertThat(accountCaptor.getValue().certificateProfileId()).isEqualTo("ds-tls-profile-id");
+    }
+
+    @Test
+    void enrollShouldPassTheConfiguredTlsCertificateContacts() {
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
+        when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
+                .thenReturn(List.of(mock(X509Certificate.class)));
+
+        service().enroll(caInfo, HOSTNAME, new byte[]{1, 2, 3});
+
+        ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
+        verify(acmeClient).orderCertificate(eq(HOSTNAME), eq(HOSTNAME), accountCaptor.capture(), any());
+        assertThat(accountCaptor.getValue().contacts()).containsExactly("dstls@example.org");
     }
 
     @Test
     void renewShouldReferenceTheCurrentCertificateUnderTheFixedAlias() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate currentCertificate = mock(X509Certificate.class);
         byte[] certRequest = {4, 5, 6};
         X509Certificate newCert = mock(X509Certificate.class);
-        when(acmeService.renew(any(), any(), any(), any(), any(), any(), any())).thenReturn(List.of(newCert));
+        when(acmeClient.renew(any(AcmeAccountContext.class), any(), any(), any())).thenReturn(List.of(newCert));
 
         List<X509Certificate> result = service().renew(caInfo, HOSTNAME, currentCertificate, certRequest);
 
         assertThat(result).containsExactly(newCert);
-        verify(acmeService).renew(eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), eq(HOSTNAME), any(ApprovedCAInfo.class),
-                eq(AcmeKeyPurpose.AUTHENTICATION), eq(currentCertificate), eq(certRequest), eq(List.of()));
+        ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
+        verify(acmeClient).renew(accountCaptor.capture(), eq(HOSTNAME), eq(currentCertificate), eq(certRequest));
+        assertThat(accountCaptor.getValue().accountAlias()).isEqualTo(DsTlsAcmeService.DS_TLS_ACME_ALIAS);
     }
 
     @Test
     void renewShouldPassTheConfiguredTlsCertificateContacts() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
-        when(acmeService.renew(any(), any(), any(), any(), any(), any(), any())).thenReturn(List.of(mock(X509Certificate.class)));
+        when(acmeClient.renew(any(AcmeAccountContext.class), any(), any(), any()))
+                .thenReturn(List.of(mock(X509Certificate.class)));
 
         service().renew(caInfo, HOSTNAME, mock(X509Certificate.class), new byte[]{4, 5, 6});
 
-        verify(acmeService).renew(eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), eq(HOSTNAME), any(ApprovedCAInfo.class),
-                eq(AcmeKeyPurpose.AUTHENTICATION), any(), any(), eq(List.of("dstls@example.org")));
+        ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
+        verify(acmeClient).renew(accountCaptor.capture(), eq(HOSTNAME), any(), any());
+        assertThat(accountCaptor.getValue().contacts()).containsExactly("dstls@example.org");
     }
 
     @Test
     void getNextRenewalTimeShouldDelegateToTheSharedEngine() {
-        DsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate certificate = mock(X509Certificate.class);
         Instant expected = Instant.now().plusSeconds(3600);
-        when(acmeService.getNextRenewalTime(any(), any(), any(), any(), any())).thenReturn(expected);
+        when(acmeClient.getNextRenewalTime(any(AcmeAccountContext.class), any())).thenReturn(expected);
 
         Instant result = service().getNextRenewalTime(caInfo, certificate);
 
         assertThat(result).isEqualTo(expected);
-        verify(acmeService).getNextRenewalTime(eq(DsTlsAcmeService.DS_TLS_ACME_ALIAS), any(ApprovedCAInfo.class),
-                eq(certificate), eq(AcmeKeyPurpose.AUTHENTICATION), eq(List.of()));
+        ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
+        verify(acmeClient).getNextRenewalTime(accountCaptor.capture(), eq(certificate));
+        assertThat(accountCaptor.getValue().accountAlias()).isEqualTo(DsTlsAcmeService.DS_TLS_ACME_ALIAS);
+        assertThat(accountCaptor.getValue().caName()).isEqualTo("Test CA");
     }
 
-    private static DsTlsCaInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
-        return new DsTlsCaInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
+    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, String acmeServerDirectoryUrl) {
+        return new ApprovedDsTlsCaInfo(name, null, List.of(), acmeServerDirectoryUrl, null, null);
     }
 }

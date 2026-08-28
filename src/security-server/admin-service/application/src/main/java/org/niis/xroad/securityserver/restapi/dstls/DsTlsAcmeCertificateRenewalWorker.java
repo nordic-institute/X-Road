@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -131,7 +131,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
      * @return {@code true} on success (including a skipped or not-yet-due cycle), {@code false} on a real failure
      */
     private boolean runCycle(String hostname) {
-        List<DsTlsCaInfo> acmeCapableCas = globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier())
+        List<ApprovedDsTlsCaInfo> acmeCapableCas = globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier())
                 .stream()
                 .filter(ca -> isNotBlank(ca.getAcmeServerDirectoryUrl()))
                 .toList();
@@ -165,7 +165,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
     }
 
-    private void enrollOrRenew(String hostname, DsTlsCaInfo caInfo) {
+    private void enrollOrRenew(String hostname, ApprovedDsTlsCaInfo caInfo) {
         X509Certificate currentCertificate = dsTlsCertificateService.getStatus().certificate();
 
         if (currentCertificate != null
