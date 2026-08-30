@@ -83,6 +83,10 @@
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
 #   hostname, statuslist.callback.address, and keystore config.
+#
+#    xroad.edc.web.https.trust.reload-interval-seconds: see the identical setting in
+#    xroad-ss/tasks/pre-ss-install.yml — the Issuer Service's own outbound self-connect trust needs
+#    the same reload-cycle shortening, since it is subject to the same fail-closed trust extension.
 # ---------------------------------------------------------------------------
 - name: preseed ds-issuer-service runtime overrides
   copy:
@@ -106,6 +110,12 @@
               password: "changeit"
             keymanager:
               password: "changeit"
+      xroad:
+        edc:
+          web:
+            https:
+              trust:
+                reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
 # 3. TLS keystore for DS services. Must be on disk before ds-* units start.

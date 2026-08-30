@@ -41,6 +41,15 @@
       value: "127.0.0.1"
     - key: xroad.common-global-conf.source
       value: REMOTE
+    # Registration of the DS TLS CA (setup.hurl) happens well after xroad-proxy,
+    # xroad-ds-control-plane and xroad-ds-identity-hub first boot. Each process
+    # resolves globalconf through its own GlobalConfRefreshJob, gated by this key
+    # (default 60s) — not by xroad.edc.web.https.trust.reload-interval-seconds,
+    # which only re-polls the already-cached GlobalConfProvider inside the DS TLS
+    # trust extension. Shortened here so CI's polling windows aren't spent waiting
+    # on a slow-by-default reload; not a production concern.
+    - key: xroad.common-global-conf.refresh-rate
+      value: "5S"
     - key: xroad.proxy-ui-api.acme-challenge-port-enabled
       value: "true"
     - key: xroad.acme
@@ -66,12 +75,15 @@
   loop_control:
     label: "{{ item.key }}"
 
-# Package postinst starts proxy and proxy-ui-api before the seed exists, and the
-# DSL caches its resolution at startup — restart so they pick up the seeded rows.
-- name: restart proxy and proxy-ui-api to resolve the seeded configuration
+# Package postinst starts these before the seed exists, and XRoadConfigBuilder
+# resolves every registered key once at process start (DefaultXRoadConfig does
+# not reread) — restart so they pick up the seeded rows.
+- name: restart services to resolve the seeded configuration
   systemd:
     name: "{{ item }}"
     state: restarted
   loop:
     - xroad-proxy
     - xroad-proxy-ui-api
+    - xroad-ds-control-plane
+    - xroad-ds-identity-hub

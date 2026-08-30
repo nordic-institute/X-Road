@@ -168,6 +168,7 @@ services:
       --variable ss0_proxy=${PROXY_0}
       --variable ss1_proxy=${PROXY_1}
       --variable is_host=cs
+      --variable ds_tls_ca_file=ds/ds-https-cert.pem
       --file-root /hurl-files
       /hurl-src/setup.hurl
       --very-verbose
@@ -183,6 +184,9 @@ services:
       - xroad-network
     volumes:
       - ca-volume:/hurl-files/ca
+      # Same self-signed cert ds-https-keystore-init generates and every ds-* container serves (there
+      # is no separate issuing CA in this environment): registered as its own DS TLS CA trust anchor.
+      - ds-https-keystore:/hurl-files/ds:ro
     depends_on:
       cs:
         condition: service_healthy
@@ -194,6 +198,11 @@ services:
         condition: service_healthy
       isrest:
         condition: service_healthy
+      # Belt-and-braces: cs itself already depends_on this with service_completed_successfully, so by
+      # the time cs is healthy the volume is populated — spelled out here too so the requirement doesn't
+      # rely on tracing through cs's own dependencies.
+      ds-https-keystore-init:
+        condition: service_completed_successfully
 
   openbao:
     image: ${OPENBAO_DEV_IMG}

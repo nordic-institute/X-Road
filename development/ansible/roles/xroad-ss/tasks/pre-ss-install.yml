@@ -41,6 +41,12 @@
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
 #    EDC's @Setting resolution. These must exist before the unit's first start.
 #
+#    xroad.edc.web.https.trust.reload-interval-seconds: registration of the DS TLS CA (setup.hurl)
+#    happens well after this unit's first boot — the fail-closed outbound trust extension only picks
+#    it up on its next reload cycle. Shortened here (default 60s) so CI's did.json-style polling
+#    windows aren't spent waiting on a slow-by-default reload; not a production concern, since real
+#    deployments provision the CA before ds-* traffic flows.
+#
 # TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
 #   keystore config as an answerable question.
 # ---------------------------------------------------------------------------
@@ -60,6 +66,12 @@
               password: "changeit"
             keymanager:
               password: "changeit"
+      xroad:
+        edc:
+          web:
+            https:
+              trust:
+                reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
@@ -113,6 +125,11 @@
             trusted-issuer:
               issuer:
                 id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+          web:
+            https:
+              trust:
+                # See the identical setting in local-ds-identity-hub.yaml for why this is shortened.
+                reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
 # 6. TLS keystore for DS services. Must be on disk before ds-* units start.
