@@ -32,6 +32,58 @@
     mode: "0755"
 
 # ---------------------------------------------------------------------------
+# 2. Vault CA for the control-plane's and identity-hub's own EDC/Hashicorp
+#    vault client. Same root cause as the Issuer Service's in
+#    xroad-cs/tasks/pre-cs-install.yml: this trust replaces JVM defaults on
+#    the shared OkHttp client, so nothing trusts OpenBao's self-signed cert
+#    for it unless QUARKUS_VAULT_TLS_CA_CERT points at the escape hatch
+#    (VaultEndpointTrust, read via plain System.getenv — not subject to the
+#    QuarkusConfigBridge env-var limitation noted below).
+#
+#    Confirmed from run 33164674001's ds-control-plane.log on ss1: 18x
+#    "[Hashicorp Vault] Failed to get secret ... PKIX path building failed
+#    ... Failed to fetch client secret from the vault with alias:
+#    xrd-ss1.lxd-sts-client-secret" during DSP dispatch — the OAuth2/STS step
+#    reads the STS client secret from the SS's own OpenBao through the same
+#    fail-closed client. xroad-ds-issuer-service is the only CS-side unit
+#    (xroad-centralserver depends on it alone; xroad-ds-control-plane and
+#    xroad-ds-identity-hub are xroad-securityserver dependencies only — see
+#    deployment/native-packages/src/xroad/ubuntu/generic/control), so this is
+#    an SS-only gap.
+#
+#    Points at the already-installed system copy (644, world-readable) rather
+#    than /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to
+#    avoid a second permissions dependency.
+# ---------------------------------------------------------------------------
+- name: create systemd drop-in dirs for QUARKUS_VAULT_TLS_CA_CERT
+  file:
+    path: "/etc/systemd/system/{{ item }}.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: &ss_vault_tls_ca_units
+    - xroad-ds-control-plane
+    - xroad-ds-identity-hub
+
+- name: set QUARKUS_VAULT_TLS_CA_CERT for the control-plane's and identity-hub's EDC vault clients
+  copy:
+    dest: "/etc/systemd/system/{{ item }}.service.d/vault-tls-ca.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
+  loop: *ss_vault_tls_ca_units
+  register: ss_vault_tls_ca_dropins
+
+- name: reload systemd after the vault CA drop-ins
+  systemd:
+    daemon_reload: true
+  when: ss_vault_tls_ca_dropins is changed
+
+# ---------------------------------------------------------------------------
 # 3. xroad.proxy.dsp.* and xroad.proxy-ui-api.dataspace.* runtime config moved
 #    to the configuration_properties DB override layer (the XRoadConfig DSL
 #    does not read conf.d yaml) — see seed-config-properties.yml, which runs

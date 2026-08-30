@@ -68,6 +68,60 @@
   when: cs_xroad_host_dropins is changed
 
 # ---------------------------------------------------------------------------
+# 2a. Vault CA for the Issuer Service's own EDC/Hashicorp vault client.
+#
+#     Root cause of the did.json 204 that survives even with the DS TLS CA
+#     registered: provisionIssuer() (called synchronously from
+#     POST /api/v1/initialization) does no outbound self-connect at all — DID
+#     creation and publication are local DB operations. The one outbound call
+#     is EDC's own vault write (createTokenAndStoreInVault), over the same
+#     fail-closed OkHttp client this trust replaces JVM defaults on. Before
+#     that replacement, xroad-secret-store-local's postinst already put
+#     OpenBao's self-signed cert into the *system* (and by extension, JVM
+#     default) trust store — see secret-store-local.postinst:
+#     `install -m 644 /opt/openbao/tls/tls.crt
+#     /usr/local/share/ca-certificates/openbao.crt && update-ca-certificates`
+#     (+ an explicit ca-certificates-java resync) — so this always worked
+#     silently via JVM defaults. This trust never consults JVM defaults, and
+#     nothing wires the vault-specific escape hatch (QUARKUS_VAULT_TLS_CA_CERT,
+#     read directly via System.getenv in VaultEndpointTrust — NOT subject to
+#     the QuarkusConfigBridge env-var limitation noted below, since it never
+#     goes through EDC's @Setting resolution) to point at it. Confirmed from
+#     run 33054152643's xrd-cs.log: OpenBao itself logs repeated
+#     "TLS handshake error ... remote error: tls: unknown certificate" from
+#     127.0.0.1 for the whole run, while X-Road's own (separate) vault usage
+#     via ReloadableVaultKeyManager succeeds throughout — two independent
+#     vault clients, only one of them (EDC's) was ever untrusted.
+#
+#     Points at the already-installed system copy (644, world-readable) rather
+#     than /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to
+#     avoid a second permissions dependency.
+# ---------------------------------------------------------------------------
+- name: create systemd drop-in dir for QUARKUS_VAULT_TLS_CA_CERT
+  file:
+    path: /etc/systemd/system/xroad-ds-issuer-service.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: set QUARKUS_VAULT_TLS_CA_CERT for the Issuer Service's EDC vault client
+  copy:
+    dest: /etc/systemd/system/xroad-ds-issuer-service.service.d/vault-tls-ca.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
+  register: cs_vault_tls_ca_dropin
+
+- name: reload systemd after the vault CA drop-in
+  systemd:
+    daemon_reload: true
+  when: cs_vault_tls_ca_dropin is changed
+
+# ---------------------------------------------------------------------------
 # 2. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
 #    EDC's @Setting resolution. These must exist before the unit's first start.

@@ -3,6 +3,17 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
+      # Root cause of the did.json 204 that survives even with the DS TLS CA registered:
+      # provisionIssuer() (called synchronously from POST /api/v1/initialization) does no outbound
+      # self-connect at all -- DID creation/publication are local DB operations. The one outbound call
+      # is EDC's own vault write, over the same fail-closed OkHttp client this trust replaces JVM
+      # defaults on. Before that replacement, the image's own postinst already put OpenBao's
+      # self-signed cert into the system (and by extension, JVM default) trust store -- see
+      # secret-store-local.postinst: `install -m 644 /opt/openbao/tls/tls.crt
+      # /usr/local/share/ca-certificates/openbao.crt && update-ca-certificates` (+ a ca-certificates-java
+      # resync) -- so this always worked silently via JVM defaults. Read directly via System.getenv in
+      # VaultEndpointTrust (not through EDC's @Setting resolution), so a plain env var here is enough.
+      - QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
     deploy:
       resources:
         reservations:
