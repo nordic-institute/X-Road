@@ -392,11 +392,8 @@ public final class AcmeClient {
     }
 
     public Instant getNextRenewalTime(AcmeAccountContext account, X509Certificate x509Certificate) {
-        return resolveNextRenewalTime(getLogin(account), x509Certificate);
-    }
-
-    private Instant resolveNextRenewalTime(Login login, X509Certificate x509Certificate) {
         try {
+            Login login = getLogin(account);
             if (hasRenewalInfo(login)) {
                 return getRenewalInfo(login, x509Certificate).getSuggestedWindowStart();
             }

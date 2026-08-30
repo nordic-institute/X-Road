@@ -319,6 +319,17 @@ class AcmeClientTest {
     }
 
     @Test
+    void getNextRenewalTimeFallsBackToFixedWindowWhenNoEabCredentialsAreConfiguredForMember() {
+        acmeProperties.setEabCredentials(new AcmeProperties.EabCredentials());
+        when(acmeConfig.getAcmeRenewalTimeBeforeExpirationDate()).thenReturn(14);
+        AcmeAccountContext account = accountContext(MEMBER_ID, AcmeKeyPurpose.SIGNING, null, List.of());
+
+        Instant nextRenewalTime = acmeClient.getNextRenewalTime(account, certificate);
+
+        assertThat(nextRenewalTime).isEqualTo(certificate.getNotAfter().toInstant().minus(14, ChronoUnit.DAYS));
+    }
+
+    @Test
     void renewsCertificateForAnAccountContextWithNoProfileIdConfigured() throws Exception {
         stubDirectory(true);
         stubNewAccount();
