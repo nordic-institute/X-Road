@@ -71,6 +71,65 @@ for chart in "${CHARTS[@]}"; do
     fi
 done
 
+# Test 4: Package and push the dev-only charts (central-server, e2e-fixtures, ds-https-keystore)
+#
+# These wrap dev-only images and are intentionally absent from publish.sh's
+# CHARTS array — they are not versioned release artifacts. This step still
+# proves they package and round-trip through an OCI registry, under a
+# separate "helm-dev" registry path so the smoke tags can never be mistaken
+# for a real release under "helm/".
+log_info "Step 4: Packaging and pushing dev-only charts..."
+echo ""
+
+DEV_CHARTS=(
+    "deployment/central-server/k8s/charts/central-server"
+    "development/k8s/charts/e2e-fixtures"
+    "development/k8s/charts/ds-https-keystore"
+)
+DEV_SMOKE_VERSION="0.0.0-smoke"
+DEV_OCI_URL="oci://${REGISTRY}/helm-dev"
+
+DEV_PACKAGE_DIR=$(mktemp -d)
+trap 'rm -rf "${DEV_PACKAGE_DIR}"' EXIT
+
+for chart_rel_path in "${DEV_CHARTS[@]}"; do
+    CHART_PATH="${ROOT_DIR}/${chart_rel_path}"
+    chart="$(basename "${chart_rel_path}")"
+
+    log_info "Packaging: ${chart}"
+    helm package "${CHART_PATH}" \
+        --destination "${DEV_PACKAGE_DIR}" \
+        --version "${DEV_SMOKE_VERSION}" \
+        --app-version "${DEV_SMOKE_VERSION}"
+
+    PACKAGE_FILE="${DEV_PACKAGE_DIR}/${chart}-${DEV_SMOKE_VERSION}.tgz"
+
+    log_info "Pushing: ${chart} -> ${DEV_OCI_URL}"
+    helm push "${PACKAGE_FILE}" "${DEV_OCI_URL}" --plain-http
+done
+
+echo ""
+log_success "Dev-only charts packaged and pushed successfully"
+echo ""
+
+# Test 5: Verify dev-only charts in registry
+log_info "Step 5: Verifying dev-only charts in registry..."
+echo ""
+
+for chart_rel_path in "${DEV_CHARTS[@]}"; do
+    chart="$(basename "${chart_rel_path}")"
+    log_info "Checking: helm-dev/${chart}"
+
+    RESPONSE=$(curl -sf "${REGISTRY_URL}/v2/helm-dev/${chart}/tags/list" 2>/dev/null || echo '{"tags":[]}')
+    TAGS=$(echo "$RESPONSE" | grep -o '"tags":\[[^]]*\]' | sed 's/"tags"://; s/\[//; s/\]//; s/"//g' || echo "")
+
+    if [[ -n "$TAGS" && "$TAGS" != "null" ]]; then
+        log_success "  Found tags: ${TAGS}"
+    else
+        log_warn "  No tags found"
+    fi
+done
+
 echo ""
 echo "========================================"
 log_success "Testing Complete!"

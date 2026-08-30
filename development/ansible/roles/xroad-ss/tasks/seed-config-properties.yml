@@ -26,6 +26,10 @@
       value: "{{ inventory_hostname }}.lxd"
     - key: xroad.proxy.dsp.cache.enabled
       value: "false"
+    # Seconds (prod default 60); short so a fixture-written dataset is visible to the
+    # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "5"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ inventory_hostname }}.lxd:7182"
     - key: xroad.proxy-ui-api.dataspace.participant-id

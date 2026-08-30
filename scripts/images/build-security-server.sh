@@ -315,8 +315,14 @@ for service in "${SERVICES[@]}"; do
   # Add tag and push/load
   build_cmd+=(
     --tag "${full_image_name}:${IMAGE_TAG}"
-    --tag "${full_image_name}:latest"
   )
+
+  # The floating latest tag is a local-dev convention (kind inventories default
+  # to :latest). Never move it on a shared registry, where concurrent CI builds
+  # from different branches would clobber each other's latest.
+  if [[ "$REGISTRY" == "localhost:"* ]]; then
+    build_cmd+=(--tag "${full_image_name}:latest")
+  fi
 
   if [[ "$PUSH" == "true" ]]; then
     build_cmd+=(--push)

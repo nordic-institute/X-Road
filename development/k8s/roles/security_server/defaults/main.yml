@@ -21,10 +21,83 @@ openbao_tls_secret_name: openbao-server-tls
 
 configuration_client_update_interval: "10"
 
-proxy_dsp_enabled: true
+# op-monitor's records-available-timestamp-offset-seconds (chart/image default: 60s) delays how
+# soon a freshly-logged request is visible to getSecurityServerOperationalData — fine for
+# production, too slow for a test that queries within seconds of the request. Empty by default
+# (chart/image default of 60s stands, e.g. for dev/eks); set per-inventory (e.g. e2e) to shorten it.
+op_monitor_records_available_offset_seconds: ""
+
+# The proxy batches timestamping on its own ~60s cadence by default
+# (xroad.proxy.message-log.timestamper.timestamp-immediately). LogArchiver only picks up records
+# that already have a timestamp record, so an archive triggered right after a traffic burst can
+# silently miss the last wave. Off by default (chart/image default stands); e2e needs archiving
+# to see every record it just logged, so it turns this on.
+proxy_timestamp_immediately: false
+
+# Cadence at which the proxy (and every other service holding a GlobalConfProvider) reloads the
+# global configuration it already has on disk (xroad.common-global-conf.refresh-rate, chart/image
+# default 60s). Empty by default; e2e shortens it so a Security Server notices newly-registered
+# members/services without waiting out the full default interval.
+common_global_conf_refresh_rate: ""
+
+# xroad.proxy.batch-signing-enabled, off by default. e2e turns it on for parity with the compose
+# lane's e2e fixture; message flow scenarios are indifferent to which signing mode produced the
+# signature.
+proxy_batch_signing_enabled: false
+
+# xroad.message-log.archiver.clean-keep-records-for (days), @WithDefault("30") — LogCleaner only
+# deletes records older than this. Empty by default (chart/image default of 30 days stands); e2e
+# sets it to "0" so a record is cleanup-eligible immediately after archiving, which is what
+# SsMessagelogArchiveTest's "0 records left in DB" assertions require.
+messagelog_archiver_clean_keep_records_for: ""
+
+# auxiliary-service schedules messagelog archival every 6h and cleanup every 12h
+# (xroad.auxiliary-service.message-log.archive-cron / clean-cron), invoking the containerised
+# profile's message_log_archiver.sh — the same script a test triggers on demand. A scheduled run
+# firing mid-test would archive or clean records the test is asserting on. Empty by default
+# (chart/image schedule stands); set per-inventory to a value Quarkus reads as off ("off",
+# "disabled") where a test owns the triggering.
+messagelog_archive_cron: ""
+messagelog_clean_cron: ""
+
+# Messagelog DB + archive encryption, mirroring compose's msglog_encryption_config/
+# application.yaml mount and the LXD role's msglog-encryption.yml — the raw
+# "xroad: message-log-encryption: ..." YAML projected into the proxy and
+# message-log-archiver containers (chart's messageLogEncryption.applicationYaml). Empty by
+# default: no ConfigMap, no mount. Set per-release (e.g. e2e's ss1). Deliberately excludes
+# archive-cron/clean-cron keys — those stay off via messagelog_archive_cron/clean_cron
+# above; adding one here would re-arm a scheduled run that races the test.
+messagelog_encryption_config: ""
+
+# Secret key (and mounted filename) of the DS-HTTPS truststore inside the ds-https-keystore
+# Secret. Matches the self-signed ds-https-keystore chart's JRE-copy JKS name; set per-inventory
+# if a different producer is ever wired in.
+ds_truststore_key: cacerts
+
+# Per-release signer image override toggle (emits services.signer.imageName — the chart
+# itself has no HSM knowledge). Off by default: the chart's plain signer image renders
+# unchanged. Set true for a single Security Server release (e.g. e2e's ss1) that needs a
+# pkcs11 HARDWARE token.
+signer_hsm_enabled: false
+
+# Dev-only image swapped in for the signer service when signer_hsm_enabled is set.
+signer_hsm_image: ss-signer-with-hsm
+
+# Per-release softtoken-signer toggle (chart's services.softtoken-signer.replicas — see
+# security-server chart values.yaml). Off by default: the chart renders no softtoken-signer
+# workload and proxy's env is unchanged. Set true for a single Security Server release (e.g.
+# e2e's ss0) that should sign soft-token-based keys through the split-out process instead of
+# co-located in `signer` — mirroring compose's E2eEnvSetup ss0=softtoken-signer / ss1=HSM split.
+softtoken_signer_enabled: false
 
 trusted_issuer_host: xrd-cs
-xrd_ca_external_host: xrd-ca.lxd
+
+# Per-release DSP participant-context-id override (chart's dsp.participantContextId — see
+# security-server chart values.yaml). Empty by default: the chart's own hardcoded
+# "security-server" env entries render unchanged. Set per Security Server release (e.g. one
+# value per ss0/ss1 in a multi-SS topology) to give each release a distinct identifier instead
+# of conflating them.
+dsp_participant_context_id: ""
 
 serverconf_db:
   name: db-serverconf

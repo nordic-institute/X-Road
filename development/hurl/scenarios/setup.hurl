@@ -415,6 +415,16 @@ HTTP 201
 ss0_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 
 
+# Wait for the Central Server to publish a non-empty global configuration
+GET http://{{cs_host}}/internalconf
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+body contains "Content-identifier: SHARED-PARAMETERS"
+
 # Register auth certificate
 PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
@@ -704,7 +714,9 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
-# Get first hardware token
+# ss1's sign key is deliberately provisioned on its SoftHSM-backed token, selected explicitly
+# by type so list order never matters and a missing HARDWARE token fails this capture loudly
+# instead of silently landing the key on the wrong token.
 GET https://{{ss1_host}}:4000/api/v1/tokens
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 

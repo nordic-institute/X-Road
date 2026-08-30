@@ -131,7 +131,8 @@ class LegacyConfigMigrationCLIVaultTest {
         assertThatThrownBy(() ->
                 LegacyConfigMigrationCLI.main(new String[]{
                         "acme-account-keys",
-                        stubKeystore.toString()
+                        stubKeystore.toString(),
+                        tempDir.resolve("stub-db.properties").toString()
                 }))
                 .isInstanceOf(MigrationException.class)
                 .hasMessageContaining("Migration failed")
@@ -152,7 +153,8 @@ class LegacyConfigMigrationCLIVaultTest {
         assertThatThrownBy(() ->
                 LegacyConfigMigrationCLI.main(new String[]{
                         "acme-account-keys",
-                        stubKeystore.toString()
+                        stubKeystore.toString(),
+                        tempDir.resolve("stub-db.properties").toString()
                 }))
                 .isInstanceOf(MigrationException.class)
                 .hasMessageContaining("Migration failed")

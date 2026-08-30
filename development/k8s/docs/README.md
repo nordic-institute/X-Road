@@ -1,6 +1,10 @@
 # X-Road k8s Ansible (`niis.xroad_k8s`)
 
-Ansible Collection that spins up the X-Road Security Server on a local [KinD](https://kind.sigs.k8s.io/) cluster (or a pre-provisioned EKS cluster — see [EKS.md](./EKS.md)).
+Ansible Collection that spins up a full X-Road stack — Central Server + two Security Servers +
+e2e-fixtures (test CA, mock IS, mailpit, hurl bootstrap) — on a local [KinD](https://kind.sigs.k8s.io/)
+cluster (or a pre-provisioned EKS cluster — see [EKS.md](./EKS.md)). `dev` and `e2e` bring up the
+same in-cluster topology through the same `playbooks/site.yml`, roles and charts, differing only by
+`--env` (inventory/values); there is no external LXD or Docker dependency for either.
 
 ## Prerequisites
 
@@ -53,23 +57,21 @@ All live under `scripts/env-k8s/`:
 
 | Script | Purpose |
 |---|---|
-| `start-env.sh` | Bring up the full k8s stack (preflight → images → ansible → port-forward → hurl) |
+| `start-env.sh` | Bring up the full k8s stack (preflight → images → ansible → port-forward) |
 | `delete-env.sh` | Tear down helm releases + optionally delete the KinD cluster |
 | `port-forward.sh` | Start/restart `kubectl port-forward` for 4000, 5500, 5577, 8080, 8443 |
 | `preflight.sh` | Detect missing tooling and print install hints per OS |
 | `dev.sh` | Per-service rebuild + redeploy (`kind load docker-image` + `kubectl rollout restart`) |
-| `init-ss2.sh` | Hurl bootstrap for SS2 (assumes external CS/CA/SS0 are already running) |
 | `lint.sh` | Run `ansible-lint` + `yamllint` |
 
 Image build lives at `scripts/images/build-security-server.sh` — called automatically by `start-env.sh` and `dev.sh`.
 
 ### Common flags for `start-env.sh`
 
-- `--env=dev|test|eks` — target environment (default `dev`)
+- `--env=dev|test|eks|e2e` — target environment (default `dev`)
 - `--recreate` — delete the existing kind cluster before bringing it back up
 - `--skip-images` — don't rebuild the Security Server container images
 - `--skip-forward` — don't start port-forwards
-- `--skip-init` — don't run `scripts/env-k8s/init-ss2.sh` (hurl bootstrap against external CS/CA/SS0)
 - `--skip-preflight` — skip tooling check
 - `-e VAR=VAL` — forwarded to `ansible-playbook --extra-vars`
 
@@ -96,9 +98,14 @@ scripts/env-k8s/lint.sh                      # ansible-lint + yamllint
 
 | Environment | Cluster | Charts | Registry |
 |---|---|---|---|
-| `dev` | KinD `xroad-dev-cluster` | Local `deployment/security-server/k8s/charts/...` | `localhost:5555` (via containerd mirror) |
+| `dev` | KinD `xroad-dev-cluster` | Local charts (`deployment/*/k8s/charts/...`, `development/k8s/charts/...`) | `localhost:5555` (via containerd mirror) |
+| `e2e` | KinD `xroad-e2e-cluster` | Local charts (`deployment/*/k8s/charts/...`, `development/k8s/charts/...`) | `localhost:5555` (via containerd mirror) |
 | `test` | KinD `xroad-test-cluster` | Artifactory `oci://artifactory.niis.org/xroad8-snapshot-helm` | `artifactory.niis.org/xroad8-snapshot-image` |
 | `eks` | Pre-provisioned EKS | Artifactory release OCI repo | ECR |
+
+`dev` and `e2e` deploy the identical topology (Central Server + ss0/ss1 Security Servers +
+e2e-fixtures); `test` and `eks` are Security-Server-only, `test` reaching an external CS/CA/SS0 via
+`external-service-bridge` (to `host.docker.internal`).
 
 Environment-specific values live in `inventory/<env>/group_vars/all.yml`.
 

@@ -44,12 +44,14 @@ configSeed:
       value: https://proxy:8443
     - key: xroad.proxy.addon.op-monitor.connection.scheme
       value: https
+    # dsp.participantContextId, when set, overrides the value of this row and
+    # the dataspace.participant-id row below (see templates/init/config-seed-job.yaml).
     - key: xroad.proxy.dsp.participant-context-id
-      value: xrd-ss2
+      value: security-server
     # ds-identity-hub gates its startup on this row (waits), so the default
     # seed must carry it or enabling the ds services deadlocks their pods.
     - key: xroad.proxy-ui-api.dataspace.participant-id
-      value: xrd-ss2
+      value: security-server
     - key: xroad.op-monitor.scheme
       value: https
     # A signer serving a Security Server retrieves OCSP responses periodically.
@@ -57,6 +59,16 @@ configSeed:
     # containerized profile cannot know which product the signer serves.
     - key: xroad.signer.ocsp-response-retrieval-active
       value: "true"
+    # configuration-client gates its startup on this row (waits) so it never boots against
+    # the packaged 60s poll default before the seed Job commits — see its `waits:` entry
+    # below. Value matches ConfClientConfigKeys.UPDATE_INTERVAL's packaged default.
+    - key: xroad.configuration-client.update-interval
+      value: "60"
+    # ds-control-plane gates its startup on this row (waits) so it never boots against
+    # the packaged 60s default before the seed Job commits. Value matches
+    # XRoadServerConfCatalogExtension's packaged default.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "60"
 
 imagePullSecrets: []
 
@@ -87,6 +99,9 @@ serviceAccount:
 
 services:
   configuration-client:
+    waits:
+      - type: serverconfProperty
+        key: xroad.configuration-client.update-interval
     otelServiceName: xroad-confclient
     imageName: ss-configuration-client
     resources:
@@ -169,6 +184,23 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
+    # /var/lib/softhsm/tokens is SoftHSM2's PKCS#11 token store — used only when the
+    # dev/e2e overlay swaps this image to ss-signer-with-hsm. The plain ss-signer image
+    # has no softhsm2 and keeps software-token keys in the serverconf DB, not on disk.
+    # The mount and PVC stay unconditional only so the chart itself is HSM-agnostic.
+    # RWO claim + singleton service -> Recreate, so a RollingUpdate can't have both
+    # pods mount it at once.
+    # TODO: before production go-live, reconsider gating this mount/PVC behind a toggle;
+    # redeploy over an already-populated token volume is also still unverified.
+    strategy:
+      type: Recreate
+    volumeMounts:
+      - mountPath: /var/lib/softhsm/tokens
+        name: signer-tokens
+    volumes:
+      - name: signer-tokens
+        persistentVolumeClaim:
+          claimName: signer-tokens-pvc
   proxy:
     waits:
       - type: serverconfProperty
@@ -286,6 +318,8 @@ services:
     ports:
       - port: 4099
         name: http
+      - port: 2552
+        name: grpc
     debugPort: 9999
     readinessProbe:
       path: "/q/health/ready"
@@ -374,6 +408,9 @@ services:
         - apiGroups: ["batch"]
           resources: ["jobs"]
           verbs: ["create", "get", "list", "watch", "delete"]
+        - apiGroups: [ "" ]
+          resources: [ "pods/log" ]
+          verbs: [ "get" ]
         - apiGroups: [ "apps" ]
           resources: [ "deployments","deployments/scale" ]
           verbs: [ "get", "list", "update", "watch", "patch" ]
@@ -434,6 +471,8 @@ services:
       - mountPath: /etc/xroad/job-templates
         name: job-templates
         readOnly: true
+      - mountPath: /var/lib/xroad/messagelog-archives
+        name: message-log-archives-volume
     volumes:
       - name: backups-volume
         persistentVolumeClaim:
@@ -444,6 +483,51 @@ services:
       - name: job-templates
         configMap:
           name: message-log-archiver-job-template
+      - name: message-log-archives-volume
+        persistentVolumeClaim:
+          claimName: message-log-archives-pvc
+
+  # Split-out soft-token signing process (compose's `softtoken-signer` service). Not a token
+  # type — a separate signing process. When the channel is enabled, `SignerSignRpcClient.sign()`
+  # routes soft-token-based keys to it over gRPC instead of signing them co-located in `signer`.
+  # Off by default (replicas: 0, the chart's existing off-switch for optional
+  # workloads — see ds-control-plane/ds-identity-hub/ds-issuer-service below), so existing
+  # deployers and every non-toggled release render unchanged.
+  # TODO: before production go-live, reconsider whether this test-support service definition
+  # belongs in the chart's default values at all, or should move to the dev/e2e values overlay.
+  softtoken-signer:
+    otelServiceName: xroad-softtoken-signer
+    imageName: ss-softtoken-signer
+    replicas: 0
+    resources:
+      requests:
+        memory: 128Mi
+      limits:
+        memory: 384Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5561
+        name: grpc
+    debugPort: 9999
+    readinessProbe:
+      path: "/q/health/ready"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
+      XROAD_HOST: "softtoken-signer"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      XROAD_SOFTTOKEN_SIGNER_RPC_LISTEN_ADDRESS: "0.0.0.0"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
 
   ds-control-plane:
     imageName: ds-control-plane
@@ -487,7 +571,7 @@ services:
     env:
       HOSTNAME: "ds-control-plane"
       XROAD_HOST: "ds-control-plane"
-      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "xrd-ss2"
+      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "security-server"
       # Feeds edc.iam.trusted-issuer.issuer.id, which the packaged application.yaml interpolates from
       # this X-Road key. The EDC key cannot be set by an env var directly: EDC reads it through
       # QuarkusConfigBridge, which snapshots config.getPropertyNames(), and SmallRye enumerates an env
@@ -531,6 +615,8 @@ services:
         host: ds-identity-hub
         port: 7185
         name: wait-identity-hub
+      - type: serverconfProperty
+        key: xroad.dsp.catalog.cache.ttl-seconds
 
   ds-identity-hub:
     imageName: ds-identity-hub
@@ -689,6 +775,29 @@ messageLogArchiver:
     - name: archive-volume
       persistentVolumeClaim:
         claimName: message-log-archives-pvc
+  # Additive counterparts to volumes/volumeMounts above (see
+  # templates/message-log-archiver-job-configmap.yaml) — appended rather than
+  # replacing them, since a Helm values override replaces a list wholesale and
+  # archive-volume must survive any e2e/dev overlay that also needs a mount here.
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# Messagelog DB + archive encryption, projected as a single Quarkus config
+# file (application.yaml) into the proxy and message-log-archiver containers
+# via their extraVolumes/extraVolumeMounts. See
+# MessageLogEncryptionProperties (lib/messagelog-core) for the config
+# contract this feeds. Off by default — no ConfigMap, no mounts.
+messageLogEncryption:
+  enabled: false
+  applicationYaml: ""
+
+# OpenBao (secret store) TLS trust. When caSecretName is set, every workload
+# whose env carries XROAD_SECRET_STORE_HOST gets the CA mounted and trusted —
+# the rule lives in services/all.yaml. Empty: no mount, no trust env.
+secretStore:
+  tls:
+    caSecretName: ""
+    caSecretKey: "tls.crt"
 
 persistentVolumeClaims:
   backups-pvc:
@@ -700,6 +809,11 @@ persistentVolumeClaims:
   message-log-archives-pvc:
     accessMode: ReadWriteOnce
     storage: 1Gi
+  # Sized like gpg-keys-pvc, not the 1Gi archive claims — the token directory
+  # holds a handful of keys and certs. Mounted by the signer service below.
+  signer-tokens-pvc:
+    accessMode: ReadWriteOnce
+    storage: 128Mi
 
 jvmHeap:
   maxRAMPercentage: 60.0
@@ -738,6 +852,20 @@ otel:
 # `xroad.dsp.enabled` short-circuits all DSP-scoped resources.
 postgres:
   image: ""
+
+# participantContextId, when non-empty, overrides the per-release DSP
+# participant-context identifier everywhere the chart carries it: the
+# ds-control-plane service's XROAD_DSP_PARTICIPANT_CONTEXT_ID env (see
+# templates/_configmap.tpl's `xroad.configmap.env`) and the two configSeed
+# rows the proxy and ds-identity-hub gate their startup on
+# (xroad.proxy.dsp.participant-context-id,
+# xroad.proxy-ui-api.dataspace.participant-id — see
+# templates/init/config-seed-job.yaml). Left empty by default so a standalone
+# `helm install` with no overrides keeps the "security-server" defaults
+# unchanged; set it (e.g. per Security Server Helm release) to give distinct
+# releases distinct identifiers instead of conflating them on the same value.
+dsp:
+  participantContextId: ""
 
 # Wait-gate initContainer resources + retry tunables. Conservative defaults
 # so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).

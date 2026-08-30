@@ -148,6 +148,8 @@ services:
         condition: service_healthy
       configuration-client:
         condition: service_healthy
+      config-seed-e2e:
+        condition: service_completed_successfully
       ds-https-keystore-seed:
         condition: service_completed_successfully
 

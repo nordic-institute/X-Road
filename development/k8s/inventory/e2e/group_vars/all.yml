@@ -1,0 +1,178 @@
+---
+# Full base topology for E2E `k8s` env-mode: kind cluster + Central Server chart + two
+# Security Server chart releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor
+# Postgres + OpenBao) + e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore,
+# hurl bootstrap). DSP is always on.
+
+cluster_provider: kind
+kind_cluster_name: xroad-e2e-cluster
+kind_worker_count: 1
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+# Retained as the single-instance fallback the OpenBao/Security Server loops default to when
+# security_server_instances isn't set (dev/test/eks) — unused here since e2e always sets that
+# list, but kept defined to satisfy site.yml's pre_tasks assert.
+security_server_namespace: ss0
+monitoring_namespace: ss-monitoring
+
+central_server_namespace: cs
+e2e_fixtures_namespace: cs
+central_server_enabled: true
+e2e_fixtures_enabled: true
+
+xroad_image_registry: "localhost:5555"
+xroad_image_tag: "latest"
+serverconf_init_image: "localhost:5555/ss-db-init:latest"
+jvm_metrics_enabled: false
+
+charts_root: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts"
+
+openbao_init_chart_repo: ""
+openbao_init_chart: "{{ charts_root }}/openbao-init"
+openbao_init_chart_version: ""
+
+security_server_chart_repo: ""
+security_server_chart: "{{ charts_root }}/security-server"
+security_server_chart_version: ""
+
+central_server_chart_repo: ""
+central_server_chart: "{{ playbook_dir }}/../../../deployment/central-server/k8s/charts/central-server"
+central_server_chart_version: ""
+
+e2e_fixtures_chart_repo: ""
+e2e_fixtures_chart: "{{ playbook_dir }}/../charts/e2e-fixtures"
+e2e_fixtures_chart_version: ""
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+containerd_config_patches:
+  - |
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]
+      endpoint = ["http://host.docker.internal:5555"]
+
+external_service_host: host.docker.internal
+
+# No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
+external_service_bridges: []
+
+# The Issuer Service is co-located in the Central Server dev image (port 6183), reached
+# cross-namespace. Drives both the proxy-ui-api dataspace issuer DID and the ds-control-plane
+# trusted-issuer seed row. The role default (xrd-cs) is the LXD-hybrid Central Server.
+trusted_issuer_host: central-server.cs
+
+# Two Security Server chart releases in separate namespaces — the k8s form of compose's
+# ss0-/ss1-prefixed stacks. Each gets its own distinct DSP participant-context identifier
+# (security-server chart's dsp.participantContextId, templates/_configmap.tpl) so the two
+# releases are never conflated on the chart's own hardcoded "xrd-ss2" default, and its own
+# openbao_tls_dir so the two releases' self-signed openbao certs (each SAN-scoped to its own
+# namespace) don't clobber each other's on-disk staging files mid-run.
+# ss0 enables the softtoken-signer split (security_server role's
+# softtoken_signer_enabled var) — mirrors compose's E2eEnvSetup, which puts ss0 on the
+# split-out soft-token signing process and ss1 on SoftHSM. ss1 also enables the signer image
+# override toggle (security_server role's signer_hsm_enabled var) — setup.hurl's bootstrap
+# needs ss1 to expose a pkcs11 HARDWARE token; ss0 hardcodes token id 0 and doesn't need one, so
+# it's left at the role's default (false).
+#
+# ss1 additionally enables messagelog DB + archive encryption with per-member
+# key grouping, mirroring compose's
+# msglog_encryption_config/application.yaml mount and the LXD role's
+# msglog-encryption.yml/msglog-archive-encryption.yml exactly — the deliberately
+# bogus member identifiers and non-existent key id are reproduced verbatim, not
+# cleaned up, since SsMessagelogArchiveTest's negative scenario depends on the
+# archiver tolerating them. No archive-cron/clean-cron key here: both crons are
+# already parked off (messagelog_archive_cron/messagelog_clean_cron
+# above) and re-adding one would re-arm a scheduled run that races the test.
+# ss0 gets neither var and keeps producing plaintext, ungrouped archives.
+# messagelog_encryption_pgp_public_keyring_file points the openbao role's
+# messagelog-pgp-keyring-vault-seed Job at the e2e suite's own gpg_keys
+# fixture (read from disk at play time, not copied into this repo) — only
+# the recipient *public* keyring is seeded; the archive signing key and the
+# messagelog DB master key are both generated unconditionally at Security
+# Server init and need no provisioning.
+security_server_instances:
+  - namespace: ss0
+    dsp_participant_context_id: xrd-ss0
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
+    softtoken_signer_enabled: true
+  - namespace: ss1
+    dsp_participant_context_id: xrd-ss1
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
+    signer_hsm_enabled: true
+    messagelog_encryption_config: |
+      xroad:
+        message-log-encryption:
+          db:
+            encryption-enabled: true
+          archive:
+            encryption-enabled: true
+            default-key-id: 3BD9C292C63580F8
+            grouping-strategy: SUBSYSTEM
+            grouping-keys:
+              "not/existing/member": 8A4BB80EEE081BDE
+              "DEV/COM/4321": E93952B01C2D2EA5,8A4BB80EEE081BDE
+              "another/fake/member": 1234567890ABCDEF
+    messagelog_encryption_pgp_public_keyring_file: "{{ playbook_dir }}/../../../src/security-server/e2e-test/src/intTest/resources/gpg_keys/public-keys.asc"
+
+# SsMonitoringTest queries getSecurityServerOperationalData a couple of seconds after logging
+# the request; op-monitor's default records-available-timestamp-offset-seconds (60s) would hide
+# that record from the query window. Shorten it to match the compose e2e/api-test op-monitor
+# override (compose.ss-opmonitor.e2e.yaml).
+op_monitor_records_available_offset_seconds: "1"
+
+# Compose parity (compose.e2e.yaml, compose.ss-msglog.e2e.yaml):
+# the proxy batches timestamping on a ~60s cadence by default, and LogArchiver only picks up
+# records that already have a timestamp record — so triggering an archive right after the
+# traffic test can silently miss the last wave. Force every record to get a timestamp
+# immediately instead.
+proxy_timestamp_immediately: true
+
+# Shorten the proxy's own global-conf reload cadence (default 60s) so a Security Server picks up
+# a just-registered member/service within the suite's retry budget, matching compose.e2e.yaml's
+# XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE=10S. Distinct from the security_server role's
+# configuration_client_update_interval, which governs how often configuration-client itself
+# re-fetches from the Central Server.
+common_global_conf_refresh_rate: "10s"
+
+# Compose parity (compose.ss-batch-signature-enabled.e2e.yaml) — message flow scenarios don't
+# care which signing mode produced the signature, but this keeps the k8s lane exercising the
+# same proxy code path compose does.
+proxy_batch_signing_enabled: true
+
+# LogCleaner only deletes records older than clean-keep-records-for days (default 30), so without
+# this a freshly-archived record is never cleanup-eligible and SsMessagelogArchiveTest's "0
+# records left in DB" assertions can never pass. Matches compose.ss-msglog.e2e.yaml.
+messagelog_archiver_clean_keep_records_for: "0"
+
+# SsMessagelogArchiveTest triggers archival and cleanup itself and asserts on exact record counts,
+# so auxiliary-service's own 6h/12h schedules must not fire alongside it. Matches
+# compose.ss-msglog.e2e.yaml, which disables both for the same reason. Note these schedules are
+# live in a containerised deployment: the %containerized profile points command-path at
+# /usr/share/xroad/scripts/containerised/message_log_archiver.sh, not at the native package's
+# /usr/share/xroad/bin/xroad-message-log-archiver (absent from the image).
+messagelog_archive_cron: "off"
+messagelog_clean_cron: "disabled"
+
+deploy_prometheus: false
+deploy_netdata: false
+
+openbao_ha_replicas: 1
+openbao_tls_mode: self_signed
+
+# ss1 forwards to the SAME local host (localhost) as ss0, so it needs its own local ports —
+# ss1's are ss0's + 1. K8sEnvProperties' ss0-/ss1- defaults (security-server/e2e-test) match
+# these exactly.
+port_forwards:
+  - {name: proxy-ui-api, namespace: ss0, resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: ss0, resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: ss0, resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: ss0, resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: ss0, resource: svc/proxy, ports: "8443:8443"}
+  - {name: ss1-proxy-ui-api, namespace: ss1, resource: svc/proxy-ui-api, ports: "4001:4000"}
+  - {name: ss1-proxy-http, namespace: ss1, resource: svc/proxy, ports: "5501:5500"}
+  - {name: ss1-proxy-ocsp, namespace: ss1, resource: svc/proxy, ports: "5578:5577"}
+  - {name: ss1-proxy-8080, namespace: ss1, resource: svc/proxy, ports: "8081:8080"}
+  - {name: ss1-proxy-8443, namespace: ss1, resource: svc/proxy, ports: "8444:8443"}

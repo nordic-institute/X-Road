@@ -1,0 +1,57 @@
+---
+# Needed when images live in a private registry (CI pulls from GHCR, denied anonymously);
+# a no-op locally, where kind pulls from unauthenticated localhost:5555.
+
+- name: Assert pull-secret credentials are complete
+  ansible.builtin.assert:
+    that:
+      - xroad_image_pull_registry | length > 0
+      - xroad_image_pull_username | length > 0
+      - xroad_image_pull_password | length > 0
+      - xroad_image_pull_secret_namespaces | length > 0
+    fail_msg: >-
+      xroad_image_pull_secret is set to '{{ xroad_image_pull_secret }}' but the registry,
+      username, password or namespace list is missing. Supply all four, or leave
+      xroad_image_pull_secret empty to skip pull-secret provisioning entirely.
+
+# The chart releases create their own namespaces, but this Secret has to exist before the
+# first pod is scheduled, so the namespaces are created here rather than waited for.
+- name: Ensure target namespaces exist
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ pull_secret_ns }}"
+  loop: "{{ xroad_image_pull_secret_namespaces }}"
+  loop_control:
+    loop_var: pull_secret_ns
+
+- name: Create image pull Secret in each namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ xroad_image_pull_secret }}"
+        namespace: "{{ pull_secret_ns }}"
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: >-
+          {{
+            {'auths': {
+              xroad_image_pull_registry: {
+                'username': xroad_image_pull_username,
+                'password': xroad_image_pull_password,
+                'auth': (xroad_image_pull_username ~ ':' ~ xroad_image_pull_password) | b64encode
+              }
+            }} | to_json | b64encode
+          }}
+  loop: "{{ xroad_image_pull_secret_namespaces }}"
+  loop_control:
+    loop_var: pull_secret_ns
+  no_log: true

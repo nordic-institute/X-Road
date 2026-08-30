@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: e2e_fixtures
+  namespace: niis
+  author: Nordic Institute for Interoperability Solutions
+  description: Deploy dev/E2E-only fixtures (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap)
+  license: MIT
+  min_ansible_version: "2.20"
+  platforms:
+    - name: MacOSX
+      versions: [any]
+    - name: Ubuntu
+      versions: [noble, resolute]
+    - name: EL
+      versions: ["8", "9", "10"]
+  galaxy_tags: [kubernetes, xroad, e2e]
+dependencies: []

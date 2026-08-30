@@ -1,0 +1,50 @@
+---
+# Tear down one Security Server release + its namespace-scoped OpenBao/CNPG resources. Included
+# (not a role) and looped from teardown.yml over the same security_server_instances list
+# site.yml's bring-up loops over, so dev/test/eks (single implicit instance) and e2e (ss0/ss1)
+# both get every namespace they actually provisioned cleaned up — not just the first one.
+- name: "[{{ ss_instance.namespace }}] Uninstall security-server helm release"
+  kubernetes.core.helm:
+    name: security-server
+    release_namespace: "{{ ss_instance.namespace }}"
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: absent
+  ignore_errors: true
+
+- name: "[{{ ss_instance.namespace }}] Delete CNPG Cluster CRs"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    namespace: "{{ ss_instance.namespace }}"
+    name: "{{ item }}"
+    state: absent
+    wait: true
+    wait_timeout: 120
+  loop:
+    - db-serverconf
+    - db-messagelog
+    - db-opmonitor
+    - db-openbao
+  ignore_errors: true
+
+- name: "[{{ ss_instance.namespace }}] Uninstall openbao helm releases"
+  kubernetes.core.helm:
+    name: "{{ item }}"
+    release_namespace: "{{ ss_instance.namespace }}"
+    kubeconfig: "{{ kubeconfig_path }}"
+    state: absent
+  loop:
+    - openbao-initializer
+    - openbao
+  ignore_errors: true
+
+- name: "[{{ ss_instance.namespace }}] Delete namespace"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: v1
+    kind: Namespace
+    name: "{{ ss_instance.namespace }}"
+    state: absent
+    wait: true
+  ignore_errors: true

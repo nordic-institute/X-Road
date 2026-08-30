@@ -136,8 +136,10 @@ services:
           chmod u+w cacerts
           keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
             -keystore cacerts -storepass changeit
-          chmod 0644 ds-https.p12 cacerts ds-https-cert.pem ds-https-key.pem
         fi
+        # Outside the reuse guard: the shared volume can hold key files written
+        # root-0600 by older init runs, unreadable by the xroad user in the cs container.
+        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem ds-https-key.pem
         # Stopgap (XRDDEV-3294 retires this): the owned Jetty module reads the DS TLS
         # certificate from OpenBao, not from these files — seed the same key/cert
         # generated above into tls/ds-https so ds-* services (and the co-located

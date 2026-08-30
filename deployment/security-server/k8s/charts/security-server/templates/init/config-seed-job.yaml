@@ -72,8 +72,31 @@ spec:
               psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
               SET search_path TO {{ .Values.init.serverconf.schema | default "public" }}, public;
               {{- range .Values.configSeed.properties }}
+              {{- /*
+              dsp.participantContextId is the single per-release knob for the DSP
+              participant identity (see values.yaml); when set it wins over the two
+              participant rows' listed values, mirroring the env override in
+              _configmap.tpl so all carriers of the identifier stay in step.
+              */}}
+              {{- $value := .value }}
+              {{- if and $.Values.dsp.participantContextId (or (eq .key "xroad.proxy.dsp.participant-context-id") (eq .key "xroad.proxy-ui-api.dataspace.participant-id")) }}
+              {{- $value = $.Values.dsp.participantContextId }}
+              {{- end }}
               INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
-                VALUES ('{{ .key | replace "'" "''" }}', '{{ .value | replace "'" "''" }}', now(), now())
+                VALUES ('{{ .key | replace "'" "''" }}', '{{ $value | replace "'" "''" }}', now(), now())
+                ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
+              {{- end }}
+              {{- /*
+              Consumer side of the softtoken-signer split (see values.yaml's
+              services.softtoken-signer comment). Only the proxy's sign() path
+              consults it, and the enabled flag is a DSL key that cannot ride
+              env, so the chart appends the row whenever the workload is on;
+              the channel host falls back to the "softtoken-signer" container
+              default.
+              */}}
+              {{- if include "xroad.softtokenSigner.enabled" $ }}
+              INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at)
+                VALUES ('xroad.common-rpc.channel.softtoken-signer.enabled', 'true', now(), now())
                 ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value, updated_at = now();
               {{- end }}
               SQL

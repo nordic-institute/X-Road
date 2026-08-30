@@ -38,13 +38,10 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 /**
  * LXD-based implementation of the e2e environment. Assumes the environment is already provisioned
@@ -139,11 +136,11 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         var stderr = stderrFuture.get();
         var exitCode = process.waitFor();
 
-        // An operation-level failure keeps exit code 0 (MessageLogArchiverService catches and logs
-        // internally), so the real outcome is read from the CLI's own log file — the %native Quarkus
-        // profile disables console logging in favor of /var/log/xroad/message-log-archiver.log. A
-        // startup-level failure (JVM/config/connection) exits non-zero without reaching that file,
-        // so its cause is only visible on the process streams.
+        // The CLI exits non-zero on an operation failure, but its output goes to the log file —
+        // the %native Quarkus profile disables console logging in favor of
+        // /var/log/xroad/message-log-archiver.log — so the success marker is verified there and
+        // the log tail carries an operation failure's cause. Only a startup-level failure
+        // (JVM/config/connection) surfaces on the process streams.
         var successMarker = command.startsWith("archive") ? ARCHIVE_SUCCESS_MARKER : CLEANUP_SUCCESS_MARKER;
         var logTail = tailArchiverLog(env);
         if (exitCode != 0 || !logTail.contains(successMarker)) {
@@ -175,43 +172,33 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @SneakyThrows
     public int decryptArchives(String env, String filePrefix, String keyId, String passphrase, String outputDir) {
         var container = "xrd-" + env;
-        var keyFile = coreProperties.resourceDir() + "gpg_keys/" + keyId + ".asc";
-        var downloadedDir = Files.createTempDirectory("lxd-encrypted-");
-        var decryptedDir = Files.createTempDirectory("lxd-decrypted-");
+        var keyFile = Path.of(coreProperties.resourceDir() + "gpg_keys/" + keyId + ".asc");
+        var workDir = "/tmp/decrypt-" + UUID.randomUUID();
+        var gnupgHome = workDir + "/gnupg";
+        var decryptedDir = workDir + "/out";
 
         try {
-            // Mirrors compose's decrypt-archives.sh: operates directly on the archive directory on
-            // the SS host, not on a prior local download — the decrypt scenarios never download
-            // archives first.
-            var listProcess = new ProcessBuilder(
-                    lxdProperties.lxcCommand(), "exec", container, "--",
-                    "find", ARCHIVE_DIR, "-maxdepth", "1", "-type", "f", "-name", filePrefix + "*.gpg")
-                    .start();
-            var fileList = readAll(listProcess.getInputStream());
-            var listError = readAll(listProcess.getErrorStream());
-            var listExit = listProcess.waitFor();
-            if (listExit != 0) {
-                throw new IllegalStateException("Listing %s*.gpg archives in %s failed (exit %d): %s"
-                        .formatted(filePrefix, container, listExit, listError));
-            }
-            var remoteFiles = fileList.lines().filter(line -> !line.isBlank()).toList();
+            // Decryption happens inside the container, using its own gpg, rather than on the test
+            // host: the fixture keys carry no encryption capability, which gpg 2.4.x tolerates and
+            // 2.5+ refuses, so a host-side decrypt makes the outcome depend on the host's gpg
+            // version. Only the recipient private key ever leaves the test host, piped in over
+            // `lxc exec` stdin; nothing is written to a container image or left behind on disk.
+            var listResult = lxcExecChecked(container,
+                    "find", ARCHIVE_DIR, "-maxdepth", "1", "-type", "f", "-name", filePrefix + "*.gpg");
+            var remoteFiles = listResult.stdout().lines().filter(line -> !line.isBlank()).toList();
+
+            lxcExecChecked(container, "mkdir", "-p", "-m", "700", gnupgHome);
+            lxcExecChecked(container, "mkdir", "-p", decryptedDir);
+            importKey(container, gnupgHome, keyFile);
 
             for (var remoteFile : remoteFiles) {
-                run(lxdProperties.lxcCommand(), "file", "pull", "%s%s".formatted(container, remoteFile), downloadedDir.toString());
+                decryptOneInContainer(container, gnupgHome, remoteFile, passphrase, decryptedDir);
             }
 
-            List<Path> downloadedFiles;
-            try (Stream<Path> paths = Files.list(downloadedDir)) {
-                downloadedFiles = paths.toList();
-            }
-            for (var file : downloadedFiles) {
-                decryptOne(file, keyFile, passphrase, decryptedDir);
-            }
-            packageAsTarball(decryptedDir, outputDir);
+            downloadDecryptedTarball(container, decryptedDir, outputDir);
             return remoteFiles.size();
         } finally {
-            deleteRecursively(downloadedDir);
-            deleteRecursively(decryptedDir);
+            lxcExec(container, "rm", "-rf", workDir);
         }
     }
 
@@ -233,54 +220,93 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         run(lxdProperties.lxcCommand(), "exec", container, "--", "rm", "-f", remoteTarball);
     }
 
+    /**
+     * Tars up the container's decrypted-files directory and downloads it, mirroring
+     * {@link #downloadArchivesTarball}. An empty {@code remoteDecryptedDir} still yields a readable
+     * tarball containing only its own directory entry, so a wrong key/passphrase produces zero file
+     * entries rather than a missing or broken tarball.
+     */
     @SneakyThrows
-    private void packageAsTarball(Path sourceDir, String outputDir) {
-        Files.createDirectories(Path.of(outputDir));
-        // COPYFILE_DISABLE suppresses BSD tar's AppleDouble ._* metadata entries when this runs on
-        // macOS (harmless/absent on the ubuntu-24.04 CI runner's GNU tar), which would otherwise
-        // inflate the entry count the archive assertions and the decrypt count checks read back
-        // out of this tarball.
-        var processBuilder = new ProcessBuilder("tar", "czf", outputDir + "/messagelog-archives.tar.gz", "-C", sourceDir.toString(), ".");
-        processBuilder.environment().put("COPYFILE_DISABLE", "1");
-        var process = processBuilder.start();
-        var stdout = readAll(process.getInputStream());
-        var stderr = readAll(process.getErrorStream());
+    private void downloadDecryptedTarball(String container, String remoteDecryptedDir, String localDir) {
+        Files.createDirectories(Path.of(localDir));
+        var remoteTarball = "/tmp/messagelog-archives-" + UUID.randomUUID() + ".tar.gz";
+        run(lxdProperties.lxcCommand(), "exec", container, "--",
+                "sh", "-c", "cd %s && tar czf %s .".formatted(remoteDecryptedDir, remoteTarball));
+        run(lxdProperties.lxcCommand(), "file", "pull",
+                "%s%s".formatted(container, remoteTarball), localDir + "/messagelog-archives.tar.gz");
+        run(lxdProperties.lxcCommand(), "exec", container, "--", "rm", "-f", remoteTarball);
+    }
+
+    /**
+     * Imports the recipient private key into a gpg homedir inside the container, piping the key
+     * material in over {@code lxc exec} stdin so it never touches an intermediate file or the
+     * container image.
+     */
+    @SneakyThrows
+    private void importKey(String container, String gnupgHome, Path keyFile) {
+        var commandArgs = new ArrayList<>(List.of(
+                lxdProperties.lxcCommand(), "exec", container, "--",
+                "gpg", "--homedir", gnupgHome, "--batch", "--yes", "--import", "-"));
+        var process = new ProcessBuilder(commandArgs).redirectInput(keyFile.toFile()).start();
+        var stdoutFuture = CompletableFuture.supplyAsync(() -> readAll(process.getInputStream()));
+        var stderrFuture = CompletableFuture.supplyAsync(() -> readAll(process.getErrorStream()));
+        var stdout = stdoutFuture.get();
+        var stderr = stderrFuture.get();
         var exitCode = process.waitFor();
         if (exitCode != 0) {
-            throw new IllegalStateException("tar failed (exit %d): %s%s".formatted(exitCode, stdout, stderr));
+            throw new IllegalStateException("Importing key %s into %s failed (exit %d): %s%s"
+                    .formatted(keyFile, container, exitCode, stdout, stderr));
         }
     }
 
+    /**
+     * Decrypts a single archive in place inside the container. gpg's exit code cannot be trusted
+     * here: these archives are signed by a key the fixture keyring doesn't hold, so gpg reports
+     * "Can't check signature: No public key" and exits non-zero even after writing a complete,
+     * correctly decrypted output file. A wrong key/passphrase, by contrast, never writes the output
+     * file at all. So success is judged by the output file existing and being non-empty
+     * ({@code test -s}), not by gpg's exit status; a failed decrypt is logged at WARN with gpg's
+     * stderr and leaves no (or an empty) file behind, keeping it out of the resulting tarball.
+     */
     @SneakyThrows
-    private void decryptOne(Path encryptedFile, String keyFile, String passphrase, Path outputDir) {
-        var gnupgHome = Files.createTempDirectory("lxd-gpg-");
-        try {
-            Files.setPosixFilePermissions(gnupgHome, PosixFilePermissions.fromString("rwx------"));
+    private void decryptOneInContainer(String container, String gnupgHome, String remoteFile, String passphrase, String decryptedDir) {
+        var outFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1).replaceFirst("\\.gpg$", "");
+        var outPath = decryptedDir + "/" + outFileName;
 
-            runGpg(gnupgHome, "--batch", "--yes", "--import", keyFile);
-
-            var outFileName = encryptedFile.getFileName().toString().replaceFirst("\\.gpg$", "");
-            var outPath = outputDir.resolve(outFileName);
-            // Errors are ignored per file, mirroring decrypt-archives.sh — a wrong key/passphrase
-            // fails individual files without aborting the batch.
-            try {
-                runGpg(gnupgHome, "--batch", "--no-tty", "--pinentry-mode", "loopback",
-                        "--passphrase", passphrase, "--output", outPath.toString(),
-                        "--decrypt", encryptedFile.toString());
-            } catch (IllegalStateException e) {
-                log.debug("Decryption of {} with the given key failed (expected for wrong-key scenarios): {}",
-                        encryptedFile, e.getMessage());
-            }
-        } finally {
-            deleteRecursively(gnupgHome);
+        var decryptResult = lxcExec(container,
+                "gpg", "--homedir", gnupgHome, "--batch", "--no-tty", "--pinentry-mode", "loopback",
+                "--passphrase", passphrase, "--output", outPath, "--decrypt", remoteFile);
+        var sizeCheck = lxcExec(container, "test", "-s", outPath);
+        if (sizeCheck.exitCode() != 0) {
+            log.warn("Decryption of {} in {} did not produce output (gpg exit {}): {}",
+                    remoteFile, container, decryptResult.exitCode(), decryptResult.stderr());
+            lxcExec(container, "rm", "-f", outPath);
         }
     }
 
+    private record LxcExecResult(String stdout, String stderr, int exitCode) {
+    }
+
     @SneakyThrows
-    private void runGpg(Path gnupgHome, String... args) {
-        var commandArgs = new ArrayList<>(List.of("gpg", "--homedir", gnupgHome.toString()));
-        commandArgs.addAll(List.of(args));
-        run(commandArgs.toArray(String[]::new));
+    private LxcExecResult lxcExec(String container, String... command) {
+        var commandArgs = new ArrayList<>(List.of(lxdProperties.lxcCommand(), "exec", container, "--"));
+        commandArgs.addAll(List.of(command));
+        var process = new ProcessBuilder(commandArgs).start();
+        var stdoutFuture = CompletableFuture.supplyAsync(() -> readAll(process.getInputStream()));
+        var stderrFuture = CompletableFuture.supplyAsync(() -> readAll(process.getErrorStream()));
+        var stdout = stdoutFuture.get();
+        var stderr = stderrFuture.get();
+        var exitCode = process.waitFor();
+        return new LxcExecResult(stdout, stderr, exitCode);
+    }
+
+    private LxcExecResult lxcExecChecked(String container, String... command) {
+        var result = lxcExec(container, command);
+        if (result.exitCode() != 0) {
+            throw new IllegalStateException("%s in %s failed (exit %d): %s"
+                    .formatted(List.of(command), container, result.exitCode(), result.stderr()));
+        }
+        return result;
     }
 
     @SneakyThrows
@@ -294,19 +320,6 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         if (exitCode != 0) {
             throw new IllegalStateException("%s failed (exit %d): %s%s"
                     .formatted(List.of(command), exitCode, stdout, stderr));
-        }
-    }
-
-    @SneakyThrows
-    private void deleteRecursively(Path dir) {
-        try (Stream<Path> walk = Files.walk(dir)) {
-            walk.sorted(Comparator.reverseOrder()).forEach(p -> {
-                try {
-                    Files.deleteIfExists(p);
-                } catch (IOException e) {
-                    log.warn("Failed to delete {}: {}", p, e.getMessage());
-                }
-            });
         }
     }
 
