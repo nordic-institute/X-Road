@@ -70,7 +70,9 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
     private static final String VAULT_URL_SETTING = "edc.vault.hashicorp.url";
     private static final String VAULT_CA_CERT_ENV = "QUARKUS_VAULT_TLS_CA_CERT";
 
-    private static final Duration RELOAD_INTERVAL = Duration.ofSeconds(60);
+    /** Mirrors {@code xroad.edc.web.https.keystore.reload-interval-seconds} (XRoadJettyExtension) in naming. */
+    private static final String RELOAD_INTERVAL_SETTING = "xroad.edc.web.https.trust.reload-interval-seconds";
+    private static final long DEFAULT_RELOAD_INTERVAL_SECONDS = 60;
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
 
@@ -99,7 +101,8 @@ public class XRoadTlsOkHttpClientExtension implements ServiceExtension {
                 monitor);
         var trustManager = new DsTlsCompositeTrustManager(vaultTrust.orElse(null), listTrustManager);
 
-        reloader = PeriodicMaterialReloader.schedule("ds-tls-ca-trust", initial, RELOAD_INTERVAL,
+        var reloadInterval = Duration.ofSeconds(context.getSetting(RELOAD_INTERVAL_SETTING, DEFAULT_RELOAD_INTERVAL_SECONDS));
+        reloader = PeriodicMaterialReloader.schedule("ds-tls-ca-trust", initial, reloadInterval,
                 RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, listTrustManager::setDelegate, monitor);
 
         return buildClient(trustManager);

@@ -69,8 +69,10 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -129,6 +131,23 @@ class XRoadTlsOkHttpClientExtensionTest {
         assertThatThrownBy(() -> get(client, wouldBeAcceptedServer)).isInstanceOf(IOException.class);
     }
 
+    /**
+     * The exact key and default are a contract other layers rely on without compiling against this class:
+     * ansible/compose test-environment overrides (needed because CS-side globalconf registration only takes
+     * effect after a reload cycle) set the YAML key {@code xroad.edc.web.https.trust.reload-interval-seconds}
+     * directly, with nothing to catch a silent rename at compile time.
+     */
+    @Test
+    void theReloadIntervalSettingKeyAndDefaultAreQueriedFromContext() throws Exception {
+        var ca = selfSignedCa("Any CA");
+        startHttpsServer(issueLeaf(ca, "any"));
+        stubContext(List.of(dsTlsCaInfo("any", ca.certificate())));
+
+        new XRoadTlsOkHttpClientExtension().okHttpClient(context);
+
+        verify(context).getSetting("xroad.edc.web.https.trust.reload-interval-seconds", 60L);
+    }
+
     @Test
     void shutdownClosesTheReloaderWithoutThrowing() throws Exception {
         var ca = selfSignedCa("Any CA");
@@ -137,7 +156,7 @@ class XRoadTlsOkHttpClientExtensionTest {
         var extension = new XRoadTlsOkHttpClientExtension();
         extension.okHttpClient(context);
 
-        extension.shutdown();
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
     }
 
     private void stubContext(List<DsTlsCaInfo> cas) {
@@ -150,6 +169,11 @@ class XRoadTlsOkHttpClientExtensionTest {
         lenient().when(context.getMonitor()).thenReturn(monitor);
         lenient().when(context.getService(GlobalConfProvider.class)).thenReturn(globalConfProvider);
         lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.isNull())).thenReturn(null);
+        // No setting configured in these tests: mirrors real behaviour (SettingResolver returns the
+        // caller's own default) rather than Mockito's zero-value default, which would otherwise hand
+        // PeriodicMaterialReloader.schedule a zero-second interval and blow up scheduleWithFixedDelay.
+        lenient().when(context.getSetting(ArgumentMatchers.anyString(), ArgumentMatchers.anyLong()))
+                .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     private static int get(OkHttpClient client, HttpsServer server) throws Exception {
