@@ -53,7 +53,11 @@
 #
 #    Points at the already-installed system copy (644, world-readable) rather
 #    than /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to
-#    avoid a second permissions dependency.
+#    avoid a second permissions dependency. The copy's location is distro
+#    specific — xroad-secret-store-local's Debian postinst installs it under
+#    /usr/local/share/ca-certificates, the RPM %post under
+#    /etc/pki/ca-trust/source/anchors — and the CI inventory runs ss0 on
+#    RHEL 9, so the path must follow os_family.
 # ---------------------------------------------------------------------------
 - name: create systemd drop-in dirs for QUARKUS_VAULT_TLS_CA_CERT
   file:
@@ -74,7 +78,12 @@
     mode: "0644"
     content: |
       [Service]
-      Environment=QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
+      Environment=QUARKUS_VAULT_TLS_CA_CERT={{ openbao_system_ca_cert }}
+  vars:
+    openbao_system_ca_cert: >-
+      {{ '/etc/pki/ca-trust/source/anchors/openbao.crt'
+         if ansible_facts['os_family'] == 'RedHat'
+         else '/usr/local/share/ca-certificates/openbao.crt' }}
   loop: *ss_vault_tls_ca_units
   register: ss_vault_tls_ca_dropins
 
