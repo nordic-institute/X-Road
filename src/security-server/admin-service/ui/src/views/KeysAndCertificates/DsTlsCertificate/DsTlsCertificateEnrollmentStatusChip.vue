@@ -25,39 +25,32 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdCard
-    v-if="status || loading"
-    class="mt-4"
-    title="dsTlsCertificate.enrollmentStatus.title"
-    data-test="ds-tls-enrollment-status"
-    :loading="loading"
-  >
-    <XrdCardTable v-if="status">
-      <XrdCardTableRow label="dsTlsCertificate.enrollmentStatus.method.label">
-        <template #value>
-          <XrdStatusChip :type="methodChip.type" :translated-text="$t(methodChip.textKey)" />
-        </template>
-      </XrdCardTableRow>
-      <XrdCardTableRow v-if="status.next_renewal_time" label="dsTlsCertificate.enrollmentStatus.nextRenewalTime">
-        <template #value>
-          <span data-test="ds-tls-enrollment-next-renewal">
-            {{ formatDate(status.next_renewal_time) }}
+  <div v-if="status" class="ds-tls-enrollment-status" data-test="ds-tls-enrollment-status">
+    <XrdStatusChip :type="methodChip.type" data-test="ds-tls-enrollment-method">
+      <template #text>
+        <span class="body-small">
+          <span class="font-weight-medium">{{ $t(methodChip.textKey) }}</span>
+          <span v-if="status.next_renewal_time" data-test="ds-tls-enrollment-next-renewal">
+            &nbsp;{{ $t(renewalLabelKey) }} {{ formatDate(status.next_renewal_time) }}
             <v-tooltip activator="parent" location="top">{{ formatDateTime(status.next_renewal_time) }}</v-tooltip>
           </span>
-        </template>
-      </XrdCardTableRow>
-      <XrdCardTableRow v-if="status.last_error" label="dsTlsCertificate.enrollmentStatus.lastError">
-        <template #value>
-          <XrdStatusChip type="error" :translated-text="status.last_error" />
-        </template>
-      </XrdCardTableRow>
-    </XrdCardTable>
-  </XrdCard>
+        </span>
+      </template>
+    </XrdStatusChip>
+    <XrdStatusChip v-if="status.last_error" type="error" data-test="ds-tls-enrollment-error">
+      <template #text>
+        <span class="ds-tls-enrollment-error-text">
+          {{ status.last_error }}
+          <v-tooltip activator="parent" location="top">{{ status.last_error }}</v-tooltip>
+        </span>
+      </template>
+    </XrdStatusChip>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
-import { XrdCard, XrdCardTable, XrdCardTableRow, XrdStatusChip, formatDate, formatDateTime, useNotifications } from '@niis/shared-ui';
+import { XrdStatusChip, formatDate, formatDateTime, useNotifications } from '@niis/shared-ui';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 import { DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
 
@@ -65,23 +58,19 @@ const { fetchDsTlsCertificateEnrollmentStatus } = useDsTlsCertificate();
 const { addError } = useNotifications();
 
 const status = ref<DataspaceTlsCertificateEnrollmentStatus | null>(null);
-const loading = ref(false);
 
-async function refresh() {
-  loading.value = true;
+async function fetchStatus() {
   try {
     status.value = await fetchDsTlsCertificateEnrollmentStatus();
   } catch (error) {
     status.value = null;
     addError(error);
-  } finally {
-    loading.value = false;
   }
 }
 
-onMounted(refresh);
-
-defineExpose({ refresh });
+onMounted(() => {
+  fetchStatus();
+});
 
 const methodChip = computed(() => {
   switch (status.value?.enrollment_method) {
@@ -93,6 +82,29 @@ const methodChip = computed(() => {
       return { type: 'inactive' as const, textKey: 'dsTlsCertificate.enrollmentStatus.method.none' };
   }
 });
+
+const renewalLabelKey = computed(() => {
+  const nextRenewalTime = status.value?.next_renewal_time;
+  const isFuture = !!nextRenewalTime && new Date(nextRenewalTime).getTime() > Date.now();
+  return isFuture ? 'dsTlsCertificate.enrollmentStatus.nextRenewal' : 'dsTlsCertificate.enrollmentStatus.wasDue';
+});
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.ds-tls-enrollment-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ds-tls-enrollment-error-text {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+</style>

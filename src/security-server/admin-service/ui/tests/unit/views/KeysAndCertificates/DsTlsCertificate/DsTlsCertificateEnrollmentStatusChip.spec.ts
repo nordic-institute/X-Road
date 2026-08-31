@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import DsTlsCertificateEnrollmentStatus from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatus.vue';
+import DsTlsCertificateEnrollmentStatusChip from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatusChip.vue';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { describe, expect, it } from 'vitest';
@@ -46,7 +46,7 @@ function mountStatus(status: DataspaceTlsCertificateEnrollmentStatus) {
   const store = mockedStore(useDsTlsCertificate);
   store.fetchDsTlsCertificateEnrollmentStatus.mockResolvedValue(status);
 
-  const wrapper = mount(DsTlsCertificateEnrollmentStatus, {
+  const wrapper = mount(DsTlsCertificateEnrollmentStatusChip, {
     global: {
       plugins: [pinia, vuetify],
       mocks: {
@@ -62,13 +62,13 @@ async function flush(wrapper: ReturnType<typeof mount>) {
   await wrapper.vm.$nextTick();
 }
 
-describe('DsTlsCertificateEnrollmentStatus', () => {
-  it('shows a loading indicator while the initial fetch is pending, with no method/renewal/error content yet', async () => {
+describe('DsTlsCertificateEnrollmentStatusChip', () => {
+  it('renders nothing while the initial fetch is pending, with no loading indicator', async () => {
     const pinia = createTestingPinia();
     const store = mockedStore(useDsTlsCertificate);
     store.fetchDsTlsCertificateEnrollmentStatus.mockReturnValue(new Promise(() => {}));
 
-    const wrapper = mount(DsTlsCertificateEnrollmentStatus, {
+    const wrapper = mount(DsTlsCertificateEnrollmentStatusChip, {
       global: {
         plugins: [pinia, vuetify],
         mocks: {
@@ -78,26 +78,63 @@ describe('DsTlsCertificateEnrollmentStatus', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.find('[data-test="ds-tls-enrollment-status"]').exists()).toBe(true);
-    expect(wrapper.find('.v-card--loading').exists()).toBe(true);
-    expect(wrapper.text()).not.toContain('dsTlsCertificate.enrollmentStatus.method');
+    expect(wrapper.find('[data-test="ds-tls-enrollment-status"]').exists()).toBe(false);
   });
 
-  it('shows the enrollment method for a manually uploaded certificate, with no renewal time or error', async () => {
+  it('shows the enrollment method for a manually uploaded certificate, with no renewal time or error chip', async () => {
     const { wrapper } = mountStatus({ enrollment_method: 'MANUAL' });
     await flush(wrapper);
 
     expect(wrapper.text()).toContain('dsTlsCertificate.enrollmentStatus.method.manual');
     expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').exists()).toBe(false);
-    expect(wrapper.text()).not.toContain('dsTlsCertificate.enrollmentStatus.lastError');
+    expect(wrapper.find('[data-test="ds-tls-enrollment-error"]').exists()).toBe(false);
   });
 
-  it('shows the ACME enrollment method and the next scheduled renewal time when reported', async () => {
-    const { wrapper } = mountStatus({ enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z' });
+  it('labels a future next_renewal_time as "Next renewal"', async () => {
+    const future = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const { wrapper } = mountStatus({ enrollment_method: 'ACME', next_renewal_time: future });
     await flush(wrapper);
 
     expect(wrapper.text()).toContain('dsTlsCertificate.enrollmentStatus.method.acme');
-    expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').text()).toContain(
+      'dsTlsCertificate.enrollmentStatus.nextRenewal',
+    );
+  });
+
+  it('labels a past next_renewal_time as "Was due", even without a last_error', async () => {
+    const past = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { wrapper } = mountStatus({ enrollment_method: 'ACME', next_renewal_time: past });
+    await flush(wrapper);
+
+    expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').text()).toContain(
+      'dsTlsCertificate.enrollmentStatus.wasDue',
+    );
+    expect(wrapper.find('[data-test="ds-tls-enrollment-error"]').exists()).toBe(false);
+  });
+
+  it('labels a future next_renewal_time as "Next renewal" even when last_error is set', async () => {
+    const future = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const { wrapper } = mountStatus({
+      enrollment_method: 'ACME',
+      next_renewal_time: future,
+      last_error: 'hostname is malformed',
+    });
+    await flush(wrapper);
+
+    expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').text()).toContain(
+      'dsTlsCertificate.enrollmentStatus.nextRenewal',
+    );
+    expect(wrapper.find('[data-test="ds-tls-enrollment-error"]').exists()).toBe(true);
+  });
+
+  it('shows both the method chip and the error chip when last_error is set, never replacing one with the other', async () => {
+    const { wrapper } = mountStatus({ enrollment_method: 'ACME', last_error: 'ACME order failed: timeout' });
+    await flush(wrapper);
+
+    expect(wrapper.find('[data-test="ds-tls-enrollment-method"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('dsTlsCertificate.enrollmentStatus.method.acme');
+    expect(wrapper.find('[data-test="ds-tls-enrollment-error"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('ACME order failed: timeout');
   });
 
   it('surfaces the last error even when no certificate has ever been issued (method NONE)', async () => {
@@ -108,20 +145,11 @@ describe('DsTlsCertificateEnrollmentStatus', () => {
     expect(wrapper.text()).toContain('ACME order failed: timeout');
   });
 
-  it('shows only the "not configured" method, with no renewal time or error, when no certificate has ever been obtained', async () => {
-    const { wrapper } = mountStatus({ enrollment_method: 'NONE' });
-    await flush(wrapper);
-
-    expect(wrapper.text()).toContain('dsTlsCertificate.enrollmentStatus.method.none');
-    expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').exists()).toBe(false);
-    expect(wrapper.text()).not.toContain('dsTlsCertificate.enrollmentStatus.lastError');
-  });
-
-  it('shows no error text when the last attempt succeeded', async () => {
+  it('shows no error chip when the last attempt succeeded', async () => {
     const { wrapper } = mountStatus({ enrollment_method: 'ACME' });
     await flush(wrapper);
 
-    expect(wrapper.text()).not.toContain('dsTlsCertificate.enrollmentStatus.lastError');
+    expect(wrapper.find('[data-test="ds-tls-enrollment-error"]').exists()).toBe(false);
   });
 
   it('renders nothing but notifies the user when the fetch fails, rather than showing a stale or misleading status', async () => {
@@ -129,7 +157,7 @@ describe('DsTlsCertificateEnrollmentStatus', () => {
     const store = mockedStore(useDsTlsCertificate);
     store.fetchDsTlsCertificateEnrollmentStatus.mockRejectedValue(new Error('network error'));
 
-    const wrapper = mount(DsTlsCertificateEnrollmentStatus, {
+    const wrapper = mount(DsTlsCertificateEnrollmentStatusChip, {
       global: {
         plugins: [pinia, vuetify],
         mocks: {
@@ -141,28 +169,5 @@ describe('DsTlsCertificateEnrollmentStatus', () => {
 
     expect(wrapper.find('[data-test="ds-tls-enrollment-status"]').exists()).toBe(false);
     expect(useNotificationsContainer(pinia).notifications).toHaveLength(1);
-  });
-
-  it('stops showing the loading indicator once the fetch resolves', async () => {
-    const { wrapper } = mountStatus({ enrollment_method: 'MANUAL' });
-    await flush(wrapper);
-
-    expect(wrapper.find('.v-card--loading').exists()).toBe(false);
-  });
-
-  it('re-fetches and updates from manual to ACME when refresh() is called, without remounting', async () => {
-    const { wrapper, store } = mountStatus({ enrollment_method: 'MANUAL' });
-    await flush(wrapper);
-    expect(wrapper.text()).toContain('dsTlsCertificate.enrollmentStatus.method.manual');
-
-    store.fetchDsTlsCertificateEnrollmentStatus.mockResolvedValue({
-      enrollment_method: 'ACME',
-      next_renewal_time: '2026-09-01T00:00:00Z',
-    });
-    await (wrapper.vm as unknown as { refresh: () => Promise<void> }).refresh();
-    await flush(wrapper);
-
-    expect(wrapper.text()).toContain('dsTlsCertificate.enrollmentStatus.method.acme');
-    expect(wrapper.find('[data-test="ds-tls-enrollment-next-renewal"]').exists()).toBe(true);
   });
 });

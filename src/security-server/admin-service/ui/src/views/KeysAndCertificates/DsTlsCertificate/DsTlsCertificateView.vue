@@ -39,12 +39,10 @@
       <v-chip v-if="keyGeneratedPending" color="warning" variant="outlined" class="ml-2">
         {{ $t('dsTlsCertificate.keyGeneratedPending') }}
       </v-chip>
+      <DsTlsCertificateEnrollmentStatusChip class="ml-2" />
     </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
-    </template>
-    <template #append-card>
-      <DsTlsCertificateEnrollmentStatus ref="enrollmentStatusRef" />
     </template>
   </XrdTlsCertificateView>
 </template>
@@ -55,7 +53,7 @@ import { Permissions, RouteName } from '@/global';
 import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate, DsTlsCertificateStatus } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
-import DsTlsCertificateEnrollmentStatus from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatus.vue';
+import DsTlsCertificateEnrollmentStatusChip from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatusChip.vue';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 
 const { hasPermission } = useUser();
@@ -69,7 +67,6 @@ const generateKeyVisible = computed(() => hasPermission(Permissions.GENERATE_DS_
 const generateCsrVisible = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_CSR));
 
 const status = ref<DsTlsCertificateStatus | null>(null);
-const enrollmentStatusRef = ref<InstanceType<typeof DsTlsCertificateEnrollmentStatus> | null>(null);
 const keyGeneratedPending = computed(() => status.value?.key_generated === true && !status.value?.certificate);
 
 const handler = computed<TlsCertificatesHandler>(() => ({
@@ -79,7 +76,6 @@ const handler = computed<TlsCertificatesHandler>(() => ({
   fetchTlsCertificate(): Promise<TlsCertificate> {
     return fetchDsTlsCertificateStatus().then((current) => {
       status.value = current;
-      enrollmentStatusRef.value?.refresh();
       return current.certificate ?? { hash: '' };
     });
   },

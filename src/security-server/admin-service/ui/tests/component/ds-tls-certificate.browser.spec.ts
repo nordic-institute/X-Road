@@ -194,7 +194,7 @@ describe('SS DS TLS Certificate — uploading mismatched cert shows error (Brows
 });
 
 describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
-  it('shows the ACME method and next scheduled renewal time', async () => {
+  it('shows the ACME method chip in the page header, with the next scheduled renewal time', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
@@ -206,10 +206,51 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
     });
 
     await expect.element(page.getByTestId('ds-tls-enrollment-status')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
+    await expect.element(page.getByText('ACME')).toBeVisible();
     await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
+    await expect.element(page.getByText('Next renewal', { exact: false })).toBeVisible();
+    expect(page.getByTestId('ds-tls-enrollment-status').elements()).toHaveLength(1);
   });
 
-  it('updates from manual to ACME after a manual certificate is transparently replaced, without a page reload', async () => {
+  it('labels a past next_renewal_time "Was due" even though the last attempt succeeded', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
+          response(200).json({ enrollment_method: 'ACME', next_renewal_time: '2020-01-01T00:00:00Z' }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
+    await expect.element(page.getByText('Was due', { exact: false })).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-error')).not.toBeInTheDocument();
+  });
+
+  it('shows both the method chip and a separate error chip when the last enrollment attempt failed', async () => {
+    const longError =
+      'ACME order failed: the certificate authority rejected the request because the configured hostname could not be validated within the allotted time';
+
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
+          response(200).json({ enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z', last_error: longError }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
+    await expect.element(page.getByText('Next renewal', { exact: false })).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-error')).toBeVisible();
+  });
+
+  it('keeps showing the pre-upload status after a certificate upload, since the chip only fetches on mount', async () => {
     let certificateUploaded = false;
 
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
@@ -262,7 +303,8 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     await page.getByTestId('dialog-save-button').click();
 
-    await expect.element(page.getByText('ACME')).toBeVisible();
-    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
+    await expect.element(page.getByTestId('view-management-service-certificate')).toBeVisible();
+    await expect.element(page.getByText('Manual')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).not.toBeInTheDocument();
   });
 });

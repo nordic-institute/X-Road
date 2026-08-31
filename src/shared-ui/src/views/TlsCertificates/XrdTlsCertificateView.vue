@@ -111,7 +111,6 @@
           </tbody>
         </v-table>
       </XrdCard>
-      <slot name="append-card" />
       <GenerateKeyDialog
         v-if="showGenerateKeyDialog"
         :handler="handler"

@@ -186,15 +186,13 @@
   "dsTlsCertificate": {
     "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending",
     "enrollmentStatus": {
-      "title": "Enrollment status",
       "method": {
-        "label": "Enrollment method",
         "none": "Not configured",
         "manual": "Manual",
         "acme": "ACME"
       },
-      "nextRenewalTime": "Next scheduled renewal",
-      "lastError": "Last error"
+      "nextRenewal": "Next renewal",
+      "wasDue": "Was due"
     }
   },
   "diagnostics": {
