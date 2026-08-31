@@ -254,6 +254,56 @@ configure_kv() {
   return 0
 }
 
+# xroad-ds-control-plane and xroad-ds-identity-hub replace EDC's own Jetty
+# extension with one that serves every HTTP(S) port on the JVM from a single
+# keystore read from xrd-secret/tls/ds-https, with no fallback: an empty path
+# is a hard boot failure (DsHttpsKeyStoreLoader). Every other deployment mode
+# provisions that path from a real CA (a shared dev CA in the LXD ansible
+# roles, ACME/manual CSR upload via the admin API in production); the sidecar
+# has none of that infrastructure, so this mints a self-signed placeholder
+# purely so the service starts - an operator who needs the dataspace HTTPS
+# listener to be trusted by real peers still has to enroll a proper
+# certificate through the same admin API path as every other deployment mode.
+seed_ds_https_placeholder_cert() {
+  local addr="${1:-$BAO_ADDR}"
+  local token="${2:-$BAO_TOKEN}"
+
+  if curl -s -k -H "X-Vault-Token: $token" "$addr/v1/xrd-secret/tls/ds-https" 2>/dev/null | \
+       jq -e '.data.certificate' >/dev/null 2>&1; then
+    echo "[OPENBAO] DS-HTTPS TLS certificate already present at xrd-secret/tls/ds-https; skipping"
+    return 0
+  fi
+
+  echo "[OPENBAO] Generating a self-signed DS-HTTPS TLS placeholder certificate"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  if ! openssl req \
+      -out "$tmp_dir/ds-https.crt" \
+      -new \
+      -keyout "$tmp_dir/ds-https.key" \
+      -newkey rsa:2048 \
+      -nodes \
+      -sha256 \
+      -x509 \
+      -subj "/CN=${HOSTNAME:-localhost}" \
+      -days 1095 \
+      -addext "subjectAltName = DNS:${HOSTNAME:-localhost},DNS:localhost,IP:127.0.0.1" \
+      -addext "keyUsage = digitalSignature,keyEncipherment" \
+      -addext "extendedKeyUsage = serverAuth" 2>/dev/null; then
+    echo "[OPENBAO] Failed to generate the DS-HTTPS placeholder certificate" >&2
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  local payload
+  payload=$(jq -n --rawfile cert "$tmp_dir/ds-https.crt" --rawfile key "$tmp_dir/ds-https.key" \
+    '{certificate: $cert, privateKey: $key}')
+  rm -rf "$tmp_dir"
+
+  bao_api "POST" "$addr" "/v1/xrd-secret/tls/ds-https" \
+    "$payload" "$token" "Seeding DS-HTTPS TLS placeholder certificate" >/dev/null
+}
+
 create_token() {
   local addr="${1:-$BAO_ADDR}"
   local token="${2:-$BAO_TOKEN}"

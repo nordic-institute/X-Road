@@ -281,6 +281,14 @@ configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
   exit 1
 }
 
+if dpkg -s xroad-ds-control-plane &>/dev/null || dpkg -s xroad-ds-identity-hub &>/dev/null; then
+  log "Seeding DS-HTTPS TLS placeholder certificate"
+  seed_ds_https_placeholder_cert "$BAO_ADDR" "$BAO_TOKEN" || {
+    warn "Failed to seed DS-HTTPS TLS placeholder certificate"
+    exit 1
+  }
+fi
+
 regenerate_client_token=true
 if [ -f "$CLIENT_TOKEN_FILE" ]; then
   EXISTING_TOKEN=$(cat "$CLIENT_TOKEN_FILE")

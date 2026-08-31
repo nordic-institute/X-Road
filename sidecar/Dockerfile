@@ -16,6 +16,8 @@ RUN apt-get -qq update \
     xroad-opmonitor \
     xroad-auxiliary-service \
     xroad-message-log-archiver \
+    xroad-ds-control-plane \
+    xroad-ds-identity-hub \
   && apt-get -qq clean
 
 # Packages beyond slim's own set, from a local directory of tree-built DEBs.
@@ -34,6 +36,8 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
     xroad-opmonitor \
     xroad-auxiliary-service \
     xroad-message-log-archiver \
+    xroad-ds-control-plane \
+    xroad-ds-identity-hub \
   && apt-get -qq remove dpkg-dev \
   && apt-get -qq autoremove \
   && rm -rf /tmp/repo \
