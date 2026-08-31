@@ -27,6 +27,14 @@ init_db_dir() {
   fi
 }
 
+configure_secret_store() {
+  log "Configuring secret store"
+  if ! bash /usr/share/xroad/scripts/sidecar/secret-store-init.sh 2>&1 | sed 's/^/    /'; then
+    warn "Secret store configuration failed"
+    return 1
+  fi
+}
+
 create_backup_dir_if_not_exists() {
   local xroadDir=/var/lib/xroad
   local backupDir=$xroadDir/backup
@@ -225,4 +233,5 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi
 
+configure_secret_store
 create_backup_dir_if_not_exists

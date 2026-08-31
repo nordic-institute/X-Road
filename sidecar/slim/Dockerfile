@@ -15,7 +15,7 @@ RUN apt-get -qq update \
   && apt-get -qq install \
     sudo ca-certificates gnupg supervisor net-tools iproute2 locales \
     openjdk-25-jre-headless rlwrap ca-certificates-java \
-    crudini adduser expect curl wget openssl nano-tiny bc \
+    crudini adduser expect curl wget openssl nano-tiny bc jq \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql \
@@ -58,6 +58,7 @@ RUN gpg --dearmor -o /usr/share/keyrings/xroad-keyring.gpg '/tmp/repokey.gpg' \
   && apt-get -qq clean
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
+COPY --chown=root:root files/secret-store-local.conf /etc/xroad/services/secret-store-local.conf
 
 RUN rm -f \
     /etc/xroad/db.properties \
@@ -89,6 +90,8 @@ RUN rm -f \
 COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+COPY --chown=root:root files/_openbao.sh files/secret-store-init.sh files/xroad-secret-store-gate.sh /usr/share/xroad/scripts/sidecar/
+RUN chmod 0755 /usr/share/xroad/scripts/sidecar/*.sh
 
 # Cleanup mirror configuration (restore public mirrors for published image)
 RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
