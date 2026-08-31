@@ -197,6 +197,7 @@ since `slim`'s trusted repository does not persist past that build), plus the `s
 docker build -f Dockerfile \
   --build-arg PACKAGE_SOURCE=internal \
   --build-arg VERSION=8.0.0 \
+  --build-arg TAG=xroad-security-server-sidecar \
   --build-context packages=../deployment/native-packages/build/ubuntu26.04 \
   -t xroad-security-server-sidecar:8.0.0 .
 ```
@@ -375,7 +376,7 @@ It is recommended to configure persistent [storage](https://docs.docker.com/stor
 For example, to run sidecar using volumes for each mount point execute the following command:
 ```bash
 docker run --detach \
-  --name sss-7.6.0 \
+  --name sss-8.0.0 \
   -p 127.0.0.1:4170:4000 \
   -p 127.0.0.1:5588:5588 \
   -p 8443:8443 \
@@ -387,7 +388,7 @@ docker run --detach \
   -v sidecar_config_volume:/etc/xroad \
   -v sidecar_backup_volume:/var/lib/xroad \
   -v sidecar_db_volume:/var/lib/postgresql/18/main \
-  niis/xroad-security-server-sidecar:7.6.0
+  niis/xroad-security-server-sidecar:8.0.0
 ```
 
 ### 2.8 Automatic backups
