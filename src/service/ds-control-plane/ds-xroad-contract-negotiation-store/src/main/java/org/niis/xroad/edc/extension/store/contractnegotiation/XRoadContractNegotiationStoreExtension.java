@@ -29,8 +29,6 @@ package org.niis.xroad.edc.extension.store.contractnegotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.SqlContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
-import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -44,6 +42,7 @@ import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
 
 import java.time.Clock;
 
@@ -52,10 +51,14 @@ import static org.niis.xroad.edc.extension.store.contractnegotiation.XRoadContra
 /**
  * Takes over both duties of the stock {@code SqlContractNegotiationStoreExtension}, which is excluded from the
  * runtime via {@code xroad.edc.boot.excluded-service-extensions} so that this extension is the sole
- * {@link ContractNegotiationStore} provider: it constructs the stock SQL store, with stock Postgres dialect
- * statements and stock lease mechanics, wrapped in {@link XRoadContractNegotiationStore}; and it registers the
- * stock schema DDL with the SQL schema bootstrapper. The excluded extension's jar stays on the runtime classpath
- * so its store class, dialect statements and schema resource remain available to this extension.
+ * {@link ContractNegotiationStore} provider: it constructs the stock SQL store, wrapped in
+ * {@link XRoadContractNegotiationStore}, and registers the stock schema DDL with the SQL schema bootstrapper. The
+ * excluded extension's jar stays on the runtime classpath so its store class and schema resource remain available
+ * to this extension.
+ *
+ * <p>Statements are always {@link XRoadPostgresContractNegotiationStatements}: the converge mechanism is
+ * Postgres-specific SQL (the deployment database is Postgres in every X-Road topology), so there is no
+ * dialect-agnostic fallback to inject here, unlike the stock extension's optional statements override.
  */
 @Provides({ContractNegotiationStore.class})
 @Extension(value = EXTENSION_NAME)
@@ -77,9 +80,6 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
 
     @Inject
     private Clock clock;
-
-    @Inject(required = false)
-    private ContractNegotiationStatements statements;
 
     @Inject
     private TypeManager typeManager;
@@ -103,17 +103,16 @@ public class XRoadContractNegotiationStoreExtension implements ServiceExtension 
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var statementImpl = resolveStatements();
-        var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(statementImpl.getContractNegotiationTable());
+        var statements = new XRoadPostgresContractNegotiationStatements(leaseStatements, clock);
+        var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(statements.getContractNegotiationTable());
         var delegate = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), statementImpl, leaseContextBuilder, queryExecutor);
+                typeManager.getMapper(), statements, leaseContextBuilder, queryExecutor);
 
-        context.registerService(ContractNegotiationStore.class, new XRoadContractNegotiationStore(delegate));
+        var store = new XRoadContractNegotiationStore(delegate, dataSourceRegistry, dataSourceName, transactionContext,
+                typeManager.getMapper(), statements, leaseContextBuilder, queryExecutor);
+
+        context.registerService(ContractNegotiationStore.class, store);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, CONTRACT_NEGOTIATION_SCHEMA_RESOURCE);
-    }
-
-    private ContractNegotiationStatements resolveStatements() {
-        return statements != null ? statements : new PostgresDialectStatements(leaseStatements, clock);
     }
 }

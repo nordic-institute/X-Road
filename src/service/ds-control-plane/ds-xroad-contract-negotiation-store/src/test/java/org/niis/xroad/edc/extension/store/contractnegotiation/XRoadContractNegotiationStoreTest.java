@@ -27,17 +27,23 @@
 
 package org.niis.xroad.edc.extension.store.contractnegotiation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.extension.store.contractnegotiation.schema.XRoadContractNegotiationStatements;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -47,17 +53,37 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Covers only the pure-delegate methods. The forked {@code save} path needs a real Postgres connection to exercise
+ * meaningfully and is covered by the Testcontainers-backed store test instead.
+ */
 @ExtendWith(MockitoExtension.class)
 class XRoadContractNegotiationStoreTest {
 
     @Mock
     private ContractNegotiationStore delegate;
 
+    @Mock
+    private DataSourceRegistry dataSourceRegistry;
+
+    @Mock
+    private TransactionContext transactionContext;
+
+    @Mock
+    private XRoadContractNegotiationStatements statements;
+
+    @Mock
+    private SqlLeaseContextBuilder leaseContext;
+
+    @Mock
+    private QueryExecutor queryExecutor;
+
     private XRoadContractNegotiationStore store;
 
     @BeforeEach
     void setUp() {
-        store = new XRoadContractNegotiationStore(delegate);
+        store = new XRoadContractNegotiationStore(delegate, dataSourceRegistry, "test-datasource", transactionContext,
+                new ObjectMapper(), statements, leaseContext, queryExecutor);
     }
 
     @Test
@@ -86,16 +112,6 @@ class XRoadContractNegotiationStoreTest {
 
         assertThat(store.findByIdAndLease("id")).isSameAs(result);
         verify(delegate).findByIdAndLease("id");
-    }
-
-    @Test
-    void saveDelegates() {
-        var negotiation = mock(ContractNegotiation.class);
-        var result = StoreResult.<Void>success(null);
-        when(delegate.save(negotiation)).thenReturn(result);
-
-        assertThat(store.save(negotiation)).isSameAs(result);
-        verify(delegate).save(negotiation);
     }
 
     @Test

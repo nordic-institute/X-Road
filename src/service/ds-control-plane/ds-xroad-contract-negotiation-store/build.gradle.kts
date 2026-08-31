@@ -13,4 +13,11 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.jupiter)
   testImplementation(libs.edc.junit)
+  testImplementation(libs.edc.spi.policy)
+  testImplementation(libs.edc.lib.json)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.testcontainers.junit)
+  testImplementation(libs.testcontainers.postgresql)
+  testImplementation(testFixtures(libs.edc.spi.contract))
+  testImplementation(testFixtures(libs.edc.sql.test.fixtures))
 }

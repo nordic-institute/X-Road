@@ -30,8 +30,6 @@ package org.niis.xroad.edc.extension.store.contractnegotiation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.BaseSqlDialectStatements;
-import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -42,6 +40,7 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.edc.extension.store.contractnegotiation.schema.postgres.XRoadPostgresContractNegotiationStatements;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,7 +52,7 @@ import static org.mockito.Mockito.when;
 class XRoadContractNegotiationStoreExtensionTest {
 
     @Test
-    void initializeRegistersSoleDelegatingStoreAndTakesOverSchemaDdl(ServiceExtensionContext context, ObjectFactory factory) {
+    void initializeRegistersSoleConvergingStoreAndTakesOverSchemaDdl(ServiceExtensionContext context, ObjectFactory factory) {
         var leaseContextBuilderProvider = mock(SqlLeaseContextBuilderProvider.class);
         when(leaseContextBuilderProvider.createContextBuilder(any())).thenReturn(mock());
         var sqlSchemaBootstrapper = mock(SqlSchemaBootstrapper.class);
@@ -62,7 +61,6 @@ class XRoadContractNegotiationStoreExtensionTest {
 
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
-        context.registerService(ContractNegotiationStatements.class, null);
         context.registerService(TypeManager.class, typeManager);
         context.registerService(QueryExecutor.class, mock(QueryExecutor.class));
         context.registerService(SqlSchemaBootstrapper.class, sqlSchemaBootstrapper);
@@ -73,31 +71,10 @@ class XRoadContractNegotiationStoreExtensionTest {
 
         var registered = context.getService(ContractNegotiationStore.class);
         assertThat(registered).isInstanceOf(XRoadContractNegotiationStore.class);
-        assertThat(registered).extracting("delegate").extracting("statements").isInstanceOf(BaseSqlDialectStatements.class);
+        assertThat(registered).extracting("statements").isInstanceOf(XRoadPostgresContractNegotiationStatements.class);
+        assertThat(registered).extracting("delegate").extracting("statements")
+                .isInstanceOf(XRoadPostgresContractNegotiationStatements.class);
 
         verify(sqlSchemaBootstrapper).addStatementFromResource(DataSourceRegistry.DEFAULT_DATASOURCE, "contract-negotiation-schema.sql");
-    }
-
-    @Test
-    void initializeUsesInjectedStatementsWhenProvided(ServiceExtensionContext context, ObjectFactory factory) {
-        var leaseContextBuilderProvider = mock(SqlLeaseContextBuilderProvider.class);
-        when(leaseContextBuilderProvider.createContextBuilder(any())).thenReturn(mock());
-        var customStatements = mock(ContractNegotiationStatements.class);
-        var typeManager = mock(TypeManager.class);
-        when(typeManager.getMapper()).thenReturn(new ObjectMapper());
-
-        context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
-        context.registerService(TransactionContext.class, mock(TransactionContext.class));
-        context.registerService(ContractNegotiationStatements.class, customStatements);
-        context.registerService(TypeManager.class, typeManager);
-        context.registerService(QueryExecutor.class, mock(QueryExecutor.class));
-        context.registerService(SqlSchemaBootstrapper.class, mock(SqlSchemaBootstrapper.class));
-        context.registerService(SqlLeaseContextBuilderProvider.class, leaseContextBuilderProvider);
-
-        var extension = factory.constructInstance(XRoadContractNegotiationStoreExtension.class);
-        extension.initialize(context);
-
-        var registered = context.getService(ContractNegotiationStore.class);
-        assertThat(registered).extracting("delegate").extracting("statements").isSameAs(customStatements);
     }
 }
