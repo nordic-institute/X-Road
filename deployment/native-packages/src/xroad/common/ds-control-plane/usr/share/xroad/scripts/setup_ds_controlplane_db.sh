@@ -9,7 +9,7 @@ source /usr/share/xroad/scripts/_setup_db.sh
 
 default_host=$1
 if [[ -z "$default_host" ]]; then
-    url=$(get_prop '/etc/xroad/db.properties' 'ds-control-plane.hibernate.connection.url' '')
+    url=$(get_prop '/etc/xroad/db.properties' 'xroad.db.ds-control-plane.hibernate.connection.url' '')
     pat='^jdbc:postgresql://([^/]*).*'
     if [[ "$url" =~ $pat ]]; then
         default_host="${BASH_REMATCH[1]}"
