@@ -142,3 +142,8 @@ RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/t
 CMD ["/root/entrypoint.sh"]
 
 EXPOSE 8080 8443 4000 5500 5577 5588
+
+# Liveness only: readiness includes the globalconf/serverconf checks, which are
+# down by design before an anchor is imported, so it must not gate container health.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=180s --retries=5 \
+  CMD curl -f http://localhost:5588/q/health/live || exit 1
