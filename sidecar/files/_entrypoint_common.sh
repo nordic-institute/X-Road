@@ -110,7 +110,7 @@ PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
 RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
-if [ -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf ]; then
+if dpkg -s xroad-opmonitor &>/dev/null; then
   RECONFIG+=(xroad-opmonitor)
 fi
 
@@ -179,10 +179,8 @@ if [ ! -f ${DB_PROPERTIES} ]; then
   if [[ "${XROAD_DB_HOST}" != "127.0.0.1" ]]; then
     LOCAL_DB=false
     log "Using remote database $XROAD_DB_HOST:$XROAD_DB_PORT"
-    if [ -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-      messagelog=true
-    fi
-    if [ -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf ]; then
+    messagelog=true
+    if dpkg -s xroad-opmonitor &>/dev/null; then
       opmonitor=true
     fi
     echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections

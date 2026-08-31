@@ -58,8 +58,6 @@ RUN gpg --dearmor -o /usr/share/keyrings/xroad-keyring.gpg '/tmp/repokey.gpg' \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
     xroad-proxy \
     xroad-proxy-ui-api \
-    xroad-opmonitor \
-    xroad-monitor \
     xroad-database-remote \
     xroad-secret-store-remote \
     openbao \
@@ -85,8 +83,6 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
     xroad-proxy \
     xroad-proxy-ui-api \
-    xroad-opmonitor \
-    xroad-monitor \
     xroad-database-remote \
     xroad-secret-store-remote \
     openbao \

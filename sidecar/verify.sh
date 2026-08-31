@@ -34,14 +34,10 @@ Options:
                                (default: 10)
   --exclude=LIST               Comma-separated supervisord program names to
                                skip in the stability check. Default:
-                               "xroad-opmonitor,xroad-secret-store-gate".
-                               xroad-opmonitor's database is provisioned by
-                               a follow-up issue and it is expected to
-                               restart-loop on Hikari connection errors
-                               until that lands; xroad-secret-store-gate is
-                               a one-shot init program that is supposed to
-                               exit 0 and stay stopped once it has unsealed
-                               OpenBao and released the X-Road services.
+                               "xroad-secret-store-gate" - a one-shot init
+                               program that is supposed to exit 0 and stay
+                               stopped once it has unsealed OpenBao and
+                               released the X-Road services.
   --keep                       Do not remove the container on exit (for
                                inspecting a failed run).
   --no-build                   Skip the docker-build.sh step; probe
@@ -58,7 +54,7 @@ tag="xroad-security-server-sidecar"
 timeout=600
 stability_window=60
 stability_interval=10
-exclude="xroad-opmonitor,xroad-secret-store-gate"
+exclude="xroad-secret-store-gate"
 keep=false
 do_build=true
 
