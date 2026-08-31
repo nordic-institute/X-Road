@@ -23,7 +23,7 @@ RUN apt-get -qq update \
   && adduser --quiet --system --uid 999 --home /var/lib/xroad \
     --no-create-home --shell /bin/bash --group xroad \
   && adduser xroad sudo \
-  && apt-get -qq install postgresql postgresql-contrib \
+  && apt-get -qq install postgresql-18 \
   && apt-get -qq clean
 
 ARG VERSION
@@ -41,8 +41,8 @@ RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-openbao-deb.sh
 
-RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
-  && apt-key add '/tmp/repokey.gpg' \
+RUN gpg --dearmor -o /usr/share/keyrings/xroad-keyring.gpg '/tmp/repokey.gpg' \
+  && echo "deb [signed-by=/usr/share/keyrings/xroad-keyring.gpg] $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   # Do not exclude man pages & other documentation
   && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
   # Install
@@ -53,6 +53,8 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     xroad-opmonitor \
     xroad-monitor \
     xroad-database-remote \
+    xroad-secret-store-remote \
+    openbao \
   && apt-get -qq clean
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
@@ -70,6 +72,7 @@ RUN rm -f \
 ##
 # create a backup of the configuration for version migration and
 # for initializing an empty config volume
+  && test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini \
   && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
   && cp -a /etc/xroad /usr/share/xroad/config/etc/ \
 # move files that should not be overwritten during migration to another folder
@@ -81,9 +84,7 @@ RUN rm -f \
 ##
   && dpkg-query --showformat='${Version}' --show xroad-proxy >/usr/share/xroad/config/VERSION \
   && cp /usr/share/xroad/config/VERSION /etc/xroad/VERSION \
-  && sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh \
-  && mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled \
-  && mv /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf.disabled
+  && sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh
 
 COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
