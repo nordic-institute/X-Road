@@ -144,8 +144,8 @@ main() {
   export XROAD_SS_PACKAGE
   export XROAD_DELETE_OBSOLETE_FILES
 
-# Ensure whiptail is available for interactive upgrades.
-# Keep this outside run_step(), since its error handler may use whiptail.
+  # Ensure whiptail is available for interactive upgrades.
+  # Keep this outside run_step(), since its error handler may use whiptail.
   if [[ "${XROAD_UPGRADE_UNATTENDED:-}" != "true" ]]; then
     if bash "$SCRIPT_DIR/tasks/migration/ensure_whiptail.sh"; then
       log_info "whiptail prerequisite satisfied"
