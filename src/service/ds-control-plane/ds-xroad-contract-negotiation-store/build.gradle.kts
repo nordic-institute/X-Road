@@ -27,6 +27,7 @@ dependencies {
 val generateEdcVersionFixture = tasks.register("generateEdcVersionFixture") {
   val edcVersion = libs.versions.edc.get()
   val outputDir = layout.buildDirectory.dir("generated/resources/edcVersionFixture")
+  inputs.property("edcVersion", edcVersion)
   outputs.dir(outputDir)
   doLast {
     outputDir.get().file("edc-version.txt").asFile.apply {

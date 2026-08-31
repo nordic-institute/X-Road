@@ -115,6 +115,17 @@ class XRoadContractNegotiationStoreCanaryTest {
     }
 
     @Test
+    void stockAgreementUpsertStillRewritesClaimsOnConflict() {
+        var template = stockStatements.getUpsertAgreementTemplate();
+
+        assertThat(updateSetClause(template))
+                .as("claims must stay in the DO UPDATE SET list: last-writer-wins on claims relies on every "
+                        + "conflicting save rewriting the column. A skip-list change upstream would leave the first "
+                        + "writer's claims frozen without altering the INSERT column list. " + RE_DIFF_HINT)
+                .contains("claims = EXCLUDED.claims");
+    }
+
+    @Test
     void stockNegotiationUpsertColumnsMatchRecordedExpectation() {
         var template = stockStatements.getUpsertNegotiationTemplate();
 
