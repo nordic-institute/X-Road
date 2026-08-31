@@ -35,6 +35,42 @@ configure_secret_store() {
   fi
 }
 
+seed_dsp_participant_context_id() {
+  log "Seeding DSP participant-context-id"
+  if ! bash /usr/share/xroad/scripts/sidecar/dsp-config-seed.sh 2>&1 | sed 's/^/    /'; then
+    warn "DSP participant-context-id seeding failed"
+    return 1
+  fi
+}
+
+# The packaged xroad-proxy startup script (proxy.conf, via global.conf's
+# set_quarkus_profiles) always launches the JVM with -Dquarkus.profile=native,ss.
+# It never activates the "containerized" profile that proxy's own
+# application.yaml uses to turn on its health-check HTTP listener
+# (quarkus.http.host-enabled: ${xroad.proxy.health-check-enabled}, true only
+# under "%containerized"), because that profile is only ever set by the
+# separate, non-supervisord Quarkus container images. Under supervisord the
+# packaged scripts are what start xroad-proxy, so this container adds
+# "containerized" itself, through the documented local.conf override point
+# (see global.conf's apply_local_conf), instead of leaving the proxy without a
+# liveness endpoint.
+configure_containerized_quarkus_profile() {
+  local local_conf=/etc/xroad/services/local.conf
+  local marker="# xroad-sidecar: activate the containerized Quarkus profile for xroad-proxy"
+  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
+    return 0
+  fi
+  log "Activating the containerized Quarkus profile for xroad-proxy"
+  cat >>"$local_conf" <<EOF
+$marker
+if [ "\$1" = "XROAD_PROXY_PARAMS" ]; then
+  PROXY_PARAMS="\$PROXY_PARAMS -Dquarkus.profile=\${XROAD_QUARKUS_PROFILES},containerized"
+fi
+EOF
+  chown root:root "$local_conf"
+  chmod 644 "$local_conf"
+}
+
 create_backup_dir_if_not_exists() {
   local xroadDir=/var/lib/xroad
   local backupDir=$xroadDir/backup
@@ -214,6 +250,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
     echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
     touch /.xroad-reconfigured
+    seed_dsp_participant_context_id
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
     pg_ctlcluster 18 main stop
@@ -233,5 +270,6 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi
 
+configure_containerized_quarkus_profile
 configure_secret_store
 create_backup_dir_if_not_exists
