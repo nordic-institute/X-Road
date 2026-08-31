@@ -43,6 +43,22 @@ seed_dsp_participant_context_id() {
   fi
 }
 
+# xroad.signer.autologin.enabled (XRDADR-34) is resolved by the signer's
+# XRoadConfig DSL from the serverconf configuration_properties table or its
+# packaged default only - unlike the per-token PINs
+# (XROAD_SIGNER_AUTOLOGIN_TOKENS__<id>__PIN, a plain smallrye @ConfigMapping
+# that reads the process environment directly), it has no environment or
+# JVM-system-property binding. XROAD_SIGNER_AUTOLOGIN_ENABLED is the
+# sidecar's operator-facing bridge from a docker-run variable to that row;
+# see signer-autologin-config-seed.sh for the full contract.
+seed_signer_autologin_enabled() {
+  log "Seeding signer autologin enable flag"
+  if ! bash /usr/share/xroad/scripts/sidecar/signer-autologin-config-seed.sh 2>&1 | sed 's/^/    /'; then
+    warn "Signer autologin enable-flag seeding failed"
+    return 1
+  fi
+}
+
 # The packaged xroad-proxy startup script (proxy.conf, via global.conf's
 # set_quarkus_profiles) always launches the JVM with -Dquarkus.profile=native,ss,
 # so proxy's own DeploymentMode stays NATIVE (org.niis.xroad.proxy.core.
@@ -304,6 +320,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
     touch /.xroad-reconfigured
     seed_dsp_participant_context_id
+    seed_signer_autologin_enabled
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
     pg_ctlcluster 18 main stop

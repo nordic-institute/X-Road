@@ -58,7 +58,9 @@ spec:
           capabilities:
             drop: ["NET_RAW"]
         env:
-        - name: XROAD_TOKEN_PIN
+        - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
+          value: "true"
+        - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
           value: "12345"
         - name: XROAD_ADMIN_USER
           value: "xrd"
