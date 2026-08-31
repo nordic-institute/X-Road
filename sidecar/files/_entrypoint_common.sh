@@ -44,27 +44,35 @@ seed_dsp_participant_context_id() {
 }
 
 # The packaged xroad-proxy startup script (proxy.conf, via global.conf's
-# set_quarkus_profiles) always launches the JVM with -Dquarkus.profile=native,ss.
-# It never activates the "containerized" profile that proxy's own
-# application.yaml uses to turn on its health-check HTTP listener
-# (quarkus.http.host-enabled: ${xroad.proxy.health-check-enabled}, true only
-# under "%containerized"), because that profile is only ever set by the
-# separate, non-supervisord Quarkus container images. Under supervisord the
-# packaged scripts are what start xroad-proxy, so this container adds
-# "containerized" itself, through the documented local.conf override point
-# (see global.conf's apply_local_conf), instead of leaving the proxy without a
-# liveness endpoint.
-configure_containerized_quarkus_profile() {
+# set_quarkus_profiles) always launches the JVM with -Dquarkus.profile=native,ss,
+# so proxy's own DeploymentMode stays NATIVE (org.niis.xroad.proxy.core.
+# configuration.ProxyConfig#deploymentMode checks for "containerized" in the
+# active profile list) - which is required: DeploymentMode.CONTAINERIZED also
+# flips xroad.common-global-conf.source to REMOTE and the gRPC peer hosts
+# (signer, configuration-client, ...) from 127.0.0.1 to service DNS names that
+# do not exist in this single-container image. Adding "containerized" to the
+# profile list is therefore not an option here.
+#
+# health-check-enabled is the one health-check key with a container-only
+# default (ProxyConfigKeys.HEALTH_CHECK_ENABLED: false natively, true under
+# "%containerized"); health-check-port and health-check-interface default the
+# same way in both modes, so only this one property needs forcing. Forced
+# directly as JVM system properties (ordinal 400, above the packaged
+# application.yaml's ordinal-255 defaults) through the documented local.conf
+# override point (see global.conf's apply_local_conf), so the proxy's
+# quarkus.http.host-enabled: ${xroad.proxy.health-check-enabled} interpolation
+# resolves true without touching quarkus.profile/DeploymentMode at all.
+configure_proxy_health_check_listener() {
   local local_conf=/etc/xroad/services/local.conf
-  local marker="# xroad-sidecar: activate the containerized Quarkus profile for xroad-proxy"
+  local marker="# xroad-sidecar: force-enable xroad-proxy's health-check HTTP listener"
   if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
     return 0
   fi
-  log "Activating the containerized Quarkus profile for xroad-proxy"
+  log "Force-enabling xroad-proxy's health-check HTTP listener"
   cat >>"$local_conf" <<EOF
 $marker
 if [ "\$1" = "XROAD_PROXY_PARAMS" ]; then
-  PROXY_PARAMS="\$PROXY_PARAMS -Dquarkus.profile=\${XROAD_QUARKUS_PROFILES},containerized"
+  PROXY_PARAMS="\$PROXY_PARAMS -Dxroad.proxy.health-check-enabled=true -Dquarkus.http.host-enabled=true"
 fi
 EOF
   chown root:root "$local_conf"
@@ -270,6 +278,6 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi
 
-configure_containerized_quarkus_profile
+configure_proxy_health_check_listener
 configure_secret_store
 create_backup_dir_if_not_exists
