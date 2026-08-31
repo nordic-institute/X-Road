@@ -22,14 +22,35 @@ scalability, a Sidecar cluster consisting of a primary node and multiple seconda
 
 ## Sidecar Docker Image
 
-X-Road Security Server Sidecar Docker image contains a custom set of modules instead of `xroad-securityserver`:
+The Security Server Sidecar builds two image variants instead of installing the `xroad-securityserver`
+meta-package as-is: `slim`, a minimal proxy stack, and `full`, built `FROM` the `slim` tag with the rest of the
+meta-package's services added.
+
+The `slim` image installs:
 
 * xroad-proxy
-* xroad-addon-wsdlvalidator
-* xroad-autologin.
+* xroad-proxy-ui-api
+* xroad-database-remote
+* xroad-secret-store-remote
+* openbao
 
-The image is built from pre-built X-Road software packages downloaded from the official
-[X-Road repository](https://artifactory.niis.org/xroad-release-deb).
+`xroad-base`, `xroad-confclient` and `xroad-signer` arrive as dependencies of `xroad-proxy`.
+
+The `full` image adds, on top of `slim`:
+
+* xroad-monitor
+* xroad-opmonitor
+* xroad-auxiliary-service (backup/restore, and the scheduled message log archive/cleanup jobs)
+* xroad-message-log-archiver (a one-shot CLI that `xroad-auxiliary-service` invokes on a cron schedule; it has no
+  supervisord program of its own)
+* xroad-ds-control-plane
+* xroad-ds-identity-hub
+
+The image is built from pre-built X-Road software packages, either installed from an X-Road apt repository
+selected by the `REPO` build argument, or, for development builds, from a local directory of tree-built `.deb`
+packages (`PACKAGE_SOURCE=internal`, see [docker-build.sh](docker-build.sh)). Released images are built from the
+official [X-Road repository](https://artifactory.niis.org/xroad-release-deb); the default in the Dockerfile is the
+development repository.
 
 ## Security Server Sidecar Installation
 
@@ -41,8 +62,17 @@ The Security Server Sidecar Docker image (`niis/xroad-security-server-sidecar`) 
 
 ## Key Points and Limitations for X-Road Security Server Sidecar Deployment
 
-* The Security Server Sidecar `slim` version does not support message logging, operational monitoring nor environmental
-  monitoring functionality, which is recommended for a service provider's Security Server role.
+* The Security Server Sidecar `slim` version does not support environmental monitoring, operational monitoring,
+  message log archiving, backup/restore or dataspace services, which are recommended for a service provider's
+  Security Server role. It does not install `xroad-monitor`, `xroad-opmonitor`, `xroad-auxiliary-service`,
+  `xroad-message-log-archiver`, `xroad-ds-control-plane` or `xroad-ds-identity-hub` at all; the `full` image installs
+  all of them, running `xroad-monitor`, `xroad-opmonitor`, `xroad-auxiliary-service`, `xroad-ds-control-plane` and
+  `xroad-ds-identity-hub` under supervisord (`xroad-message-log-archiver` is a one-shot CLI that
+  `xroad-auxiliary-service` invokes on a cron schedule, not a supervised program of its own).
+* The Security Server Sidecar embeds [OpenBao](https://openbao.org/) as its secret store by default, running under
+  supervisord and initialized on first boot (unseal, PKI/secret mounts, client token). Point the container at an
+  external secret store instead with the `XROAD_SECRET_STORE_*` environment variables — see the
+  [User guide](../doc/Sidecar/security_server_sidecar_user_guide.md) for details.
 * The Security Server Sidecar creates and manages its own internal TLS keys and certificates and does TLS termination
   by itself. In a cluster setup with an external load balancer, the load balancer must use SSL passthrough so that SSL
   termination is done by the Sidecar.
