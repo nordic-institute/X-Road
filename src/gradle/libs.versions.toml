@@ -292,6 +292,7 @@ edc-sql-policy-monitor = { module = "org.eclipse.edc:policy-monitor-store-sql", 
 edc-sql-core = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
 edc-sql-lease = { module = "org.eclipse.edc:sql-lease", version.ref = "edc" }
 edc-sql-lease-core = { module = "org.eclipse.edc:sql-lease-core", version.ref = "edc" }
+edc-sql-lease-spi = { module = "org.eclipse.edc:sql-lease-spi", version.ref = "edc" }
 edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
 edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.ref = "edc" }
 edc-sql-cel-store = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
