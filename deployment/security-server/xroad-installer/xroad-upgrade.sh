@@ -144,6 +144,10 @@ main() {
   export XROAD_SS_PACKAGE
   export XROAD_DELETE_OBSOLETE_FILES
 
+ # Validate the source version before installing interactive prerequisites.
+  bash "$SCRIPT_DIR/tasks/migration/check_version_gate.sh" --no-confirm
+  log_message ""
+
   # Ensure whiptail is available for interactive upgrades.
   # Keep this outside run_step(), since its error handler may use whiptail.
   if [[ "${XROAD_UPGRADE_UNATTENDED:-}" != "true" ]]; then
