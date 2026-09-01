@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jboss-test-logging-conventions")
 }
 
 dependencies {
