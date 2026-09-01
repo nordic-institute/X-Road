@@ -68,34 +68,18 @@
   when: cs_xroad_host_dropins is changed
 
 # ---------------------------------------------------------------------------
-# 2a. Vault CA for the Issuer Service's own EDC/Hashicorp vault client.
+# 2a. Vault CA for the Issuer Service's own EDC/Hashicorp vault client. The DS
+#     TLS trust replaces JVM defaults on the shared EDC OkHttp client, so
+#     OpenBao's self-signed cert (installed system-wide by
+#     xroad-secret-store-local's postinst) is no longer trusted implicitly —
+#     the vault-specific escape hatch must point at it. QUARKUS_VAULT_TLS_CA_CERT
+#     is read via plain System.getenv in VaultEndpointTrust, never through
+#     EDC's @Setting resolution, so it is not subject to the QuarkusConfigBridge
+#     env-var limitation noted below.
 #
-#     Root cause of the did.json 204 that survives even with the DS TLS CA
-#     registered: provisionIssuer() (called synchronously from
-#     POST /api/v1/initialization) does no outbound self-connect at all — DID
-#     creation and publication are local DB operations. The one outbound call
-#     is EDC's own vault write (createTokenAndStoreInVault), over the same
-#     fail-closed OkHttp client this trust replaces JVM defaults on. Before
-#     that replacement, xroad-secret-store-local's postinst already put
-#     OpenBao's self-signed cert into the *system* (and by extension, JVM
-#     default) trust store — see secret-store-local.postinst:
-#     `install -m 644 /opt/openbao/tls/tls.crt
-#     /usr/local/share/ca-certificates/openbao.crt && update-ca-certificates`
-#     (+ an explicit ca-certificates-java resync) — so this always worked
-#     silently via JVM defaults. This trust never consults JVM defaults, and
-#     nothing wires the vault-specific escape hatch (QUARKUS_VAULT_TLS_CA_CERT,
-#     read directly via System.getenv in VaultEndpointTrust — NOT subject to
-#     the QuarkusConfigBridge env-var limitation noted below, since it never
-#     goes through EDC's @Setting resolution) to point at it. Confirmed from
-#     run 33054152643's xrd-cs.log: OpenBao itself logs repeated
-#     "TLS handshake error ... remote error: tls: unknown certificate" from
-#     127.0.0.1 for the whole run, while X-Road's own (separate) vault usage
-#     via ReloadableVaultKeyManager succeeds throughout — two independent
-#     vault clients, only one of them (EDC's) was ever untrusted.
-#
-#     Points at the already-installed system copy (644, world-readable) rather
-#     than /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to
-#     avoid a second permissions dependency.
+#     Points at the installed system copy (644, world-readable) rather than
+#     /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to avoid a
+#     second permissions dependency.
 # ---------------------------------------------------------------------------
 - name: create systemd drop-in dir for QUARKUS_VAULT_TLS_CA_CERT
   file:

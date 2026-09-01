@@ -117,13 +117,12 @@ class VaultEndpointTrustTest {
     }
 
     /**
-     * {@code URI.getHost()} keeps an IPv6 literal's brackets ({@code "[::1]"}), but a real handshake against a
-     * peer dialled as {@code https://[::1]:port/} shows OkHttp passes the socket factory the unbracketed form
-     * ({@code "::1"}) — that is what {@code SSLSession.getPeerHost()} then reports to the trust manager
-     * (confirmed with a real client/server handshake in
-     * {@link DsTlsCompositeTrustManagerTest#aVaultCaAddressedByAnIpv6LiteralAcceptsTheUnbracketedPeerHost()}).
-     * The unbracketed form is therefore the one that must match; the bracketed form is also accepted, in case
-     * some other caller passes one.
+     * {@code URI.getHost()} keeps an IPv6 literal's brackets ({@code "[::1]"}), but OkHttp hands the socket
+     * factory the unbracketed form ({@code "::1"}) — that is what {@code SSLSession.getPeerHost()} reports to
+     * the trust manager
+     * ({@link DsTlsCompositeTrustManagerTest#aVaultCaAddressedByAnIpv6LiteralAcceptsTheUnbracketedPeerHost()}
+     * exercises this with a real client/server handshake). The unbracketed form is therefore the one that must
+     * match; the bracketed form is also accepted, in case some other caller passes one.
      */
     @Test
     void resolvesAnIpv6LiteralHostAndMatchesItUnbracketed() throws Exception {
