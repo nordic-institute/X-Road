@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
@@ -71,6 +72,9 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *       host-address in {@link CounterPartyTarget#defaultMap()} for normal requests or
  *       {@link CounterPartyTarget#managementMap()} for MANAGEMENT requests. Lookup miss is a hard
  *       error (fail fast; no silent fallback).</li>
+ *   <li>{@code participantContextId} — selected per candidate: management, builtin-service and
+ *       self-call candidates use the configured legacy context, everything else negotiates as the
+ *       sender member's derived context ({@link ParticipantIdentifierScheme#memberCtxId}).</li>
  * </ul>
  *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
@@ -94,6 +98,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
+    private final AssetAccessClientProperties clientProperties;
 
     @SuppressWarnings("deprecation")
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
@@ -131,12 +136,14 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
         var localServerId = safeLocalServerId();
         var localServerAddress = safeLocalServerAddress(localServerId);
+        var senderMemberContextId = ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
 
         var remoteFailures = new ArrayList<RuntimeException>();
         var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
             var useMgmtCtx = requestForcesMgmtCtx || isSelfCall(candidate, localServerId, localServerAddress);
             var targets = useMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
+            var participantContextId = useMgmtCtx ? clientProperties.participantContextId() : senderMemberContextId;
             var target = targets.get(candidate.hostAddress());
             if (target == null) {
                 var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
@@ -151,7 +158,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             }
             try {
                 return assetAccessAcquisitionService.acquireAssetAccess(
-                        assetId, target.counterPartyId(), target.counterPartyAddress());
+                        participantContextId, assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
