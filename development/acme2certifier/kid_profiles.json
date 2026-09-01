@@ -13,5 +13,11 @@
     "cahandler": {
       "profile_id": "sign"
     }
+  },
+  "keyid_4": {
+    "hmac": "d1e4f9c6a8b53d2e7f0c1a4b8d3e6f9c2a5b8d1e4f7a0c3b6d9e2f5a8b1c4d7e",
+    "cahandler": {
+      "profile_id": ["ds-tls-profile"]
+    }
   }
 }

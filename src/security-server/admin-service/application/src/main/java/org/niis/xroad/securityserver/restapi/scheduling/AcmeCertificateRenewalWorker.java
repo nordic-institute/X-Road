@@ -82,7 +82,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Component
 @Transactional
 @RequiredArgsConstructor
-public class AcmeClientWorker implements AcmeRenewalWorker {
+public class AcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;

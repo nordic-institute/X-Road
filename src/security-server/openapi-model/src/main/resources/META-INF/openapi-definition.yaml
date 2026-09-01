@@ -2577,6 +2577,33 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /dataspace/tls-certificate/enrollment-status:
+    get:
+      tags:
+        - dataspace
+      summary: view the DataSpace TLS certificate's enrollment status
+      operationId: getDataspaceTlsCertificateEnrollmentStatus
+      description: <h3>Administrator views how the DataSpace TLS certificate was obtained (manually or via ACME),
+        when it is next due for ACME renewal, and its last enrollment/renewal error.</h3>
+      responses:
+        '200':
+          description: DataSpace TLS certificate enrollment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataspaceTlsCertificateEnrollmentStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/operational-monitoring:
     get:
       tags:
@@ -8683,5 +8710,29 @@ components:
             - ABSENT
             - ERROR
             - UNKNOWN
+    DataspaceTlsCertificateEnrollmentStatus:
+      type: object
+      description: how the DataSpace TLS certificate was enrolled, and its renewal bookkeeping
+      required:
+        - enrollment_method
+      properties:
+        enrollment_method:
+          type: string
+          readOnly: true
+          description: how the currently stored DataSpace TLS certificate was obtained, or NONE if none has
+            been configured yet
+          enum:
+            - NONE
+            - MANUAL
+            - ACME
+        next_renewal_time:
+          type: string
+          format: date-time
+          readOnly: true
+          description: when the certificate is next due for ACME renewal, absent when not applicable
+        last_error:
+          type: string
+          readOnly: true
+          description: the last enrollment/renewal error, absent when the last attempt succeeded
 security:
   - ApiKeyAuth: []

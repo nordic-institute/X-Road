@@ -27,59 +27,31 @@
 package org.niis.xroad.common.acme.spring.provider;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.niis.xroad.common.acme.AcmeProfileIdContext;
 import org.niis.xroad.common.acme.provider.AcmeXroadHttpConnector;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanLookup;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.connector.DefaultConnection;
 import org.shredzone.acme4j.connector.HttpConnector;
-import org.shredzone.acme4j.exception.AcmeException;
-import org.shredzone.acme4j.toolbox.JSONBuilder;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.KeyPair;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * Sends the {@code profile_id} header carried in the {@link AcmeProfileIdContext} for whichever ACME call is
+ * currently in flight on this thread. Holds no CSR- or CA-list-derived state of its own: the caller ({@link
+ * org.niis.xroad.common.acme.AcmeService}) resolves the profile id up front and scopes it via {@link
+ * AcmeProfileIdContext#runWithProfileId}.
+ */
 @Slf4j
 public class AcmeProfileIdConnection extends DefaultConnection {
 
     private static final String PROFILE_ID_HEADER_KEY = "profile_id";
-    private KeyUsage keyUsage;
 
     public AcmeProfileIdConnection(HttpConnector httpConnector) {
         super(httpConnector);
-    }
-
-    @Override
-    protected int sendSignedRequest(URL url, JSONBuilder claims, Session session,
-                                    KeyPair keypair, URL accountLocation, String accept) throws AcmeException {
-        if (claims != null && claims.toMap().get("csr") != null) {
-            extractKeyUsageFromCsr(claims);
-        }
-        return super.sendSignedRequest(url, claims, session, keypair, accountLocation, accept);
-    }
-
-    private void extractKeyUsageFromCsr(JSONBuilder claims) throws AcmeException {
-        String csrBase64Encoded = (String) claims.toMap().get("csr");
-        byte[] csrBytes = Base64.getUrlDecoder().decode(csrBase64Encoded);
-        try {
-            PKCS10CertificationRequest csr = new PKCS10CertificationRequest(csrBytes);
-            keyUsage = Optional.ofNullable(csr.getRequestedExtensions())
-                    .map(KeyUsage::fromExtensions)
-                    .orElse(null);
-        } catch (IOException e) {
-            throw new AcmeException("Error reading csr for key usage information", e);
-        }
     }
 
     @Override
@@ -92,10 +64,8 @@ public class AcmeProfileIdConnection extends DefaultConnection {
             builder.header("Accept-Encoding", "gzip");
         }
 
-        if (keyUsage != null) {
-            String profileId = buildProfileIdHeader(session);
-            builder.setHeader("User-Agent", profileId + AcmeXroadHttpConnector.XROAD_ACME_USER_AGENT);
-        }
+        AcmeProfileIdContext.current().ifPresent(profileId -> builder.setHeader("User-Agent",
+                PROFILE_ID_HEADER_KEY + "=" + profileId + " " + AcmeXroadHttpConnector.XROAD_ACME_USER_AGENT));
 
         body.accept(builder);
         try {
@@ -103,30 +73,5 @@ public class AcmeProfileIdConnection extends DefaultConnection {
         } catch (InterruptedException ex) {
             throw new IOException("Request was interrupted", ex);
         }
-    }
-
-    private String buildProfileIdHeader(Session session) {
-        GlobalConfProvider globalConfProvider = GlobalConfBeanLookup.getGlobalConfProvider();
-        Collection<ApprovedCAInfo> approvedCAsForThisInstance =
-                globalConfProvider.getApprovedCAs(globalConfProvider.getInstanceIdentifier());
-        ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()
-                .filter(ca -> isCABeingConnectedTo(session, ca))
-                .findFirst().orElseThrow();
-        String profileId = PROFILE_ID_HEADER_KEY + "=";
-        if (keyUsage.hasUsages(KeyUsage.nonRepudiation)) {
-            profileId += approvedCA.getSigningCertificateProfileId();
-        } else {
-            profileId += approvedCA.getAuthenticationCertificateProfileId();
-        }
-        profileId += " ";
-        return profileId;
-    }
-
-    private static boolean isCABeingConnectedTo(Session session, ApprovedCAInfo ca) {
-        if (ca.getAcmeServerDirectoryUrl() == null) {
-            return false;
-        }
-        String dirUrlHost = URI.create(ca.getAcmeServerDirectoryUrl()).getHost();
-        return session.getServerUri().getHost().equals(dirUrlHost);
     }
 }
