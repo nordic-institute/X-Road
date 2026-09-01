@@ -185,3 +185,104 @@
   until: xroad_token_post.resources | length > 0
   retries: 30
   delay: 2
+
+# Modeled on the ds_https_keystore role's ds-https-vault-seed Job. Unlike that
+# role this one already runs once per Security Server instance (looped from
+# site.yml), so there's no extra-namespaces loop here — just this instance's
+# own namespace, once its OpenBao is initialized and xroad-token exists.
+- name: Seed messagelog PGP public keyring into OpenBao (when configured)
+  when: (messagelog_encryption_pgp_public_keyring_file | default('')) | length > 0
+  block:
+    - name: Create ConfigMap with the messagelog PGP public keyring
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: messagelog-pgp-keyring-seed
+            namespace: "{{ security_server_namespace }}"
+          data:
+            public-keys.asc: "{{ lookup('file', messagelog_encryption_pgp_public_keyring_file) }}"
+
+    # K8s Jobs are immutable — delete and recreate on every run, same pattern
+    # as ds-https-vault-seed. The KV v1 write itself is a plain overwrite, so
+    # re-running the play is safe and simply reseeds.
+    - name: Remove stale messagelog-pgp-keyring-vault-seed Job before reseeding
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: batch/v1
+        kind: Job
+        name: messagelog-pgp-keyring-vault-seed
+        namespace: "{{ security_server_namespace }}"
+        state: absent
+        wait: true
+        wait_timeout: 60
+
+    - name: Seed messagelog PGP public keyring into OpenBao
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
+        state: present
+        definition:
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: messagelog-pgp-keyring-vault-seed
+            namespace: "{{ security_server_namespace }}"
+          spec:
+            backoffLimit: "{{ openbao_pgp_keyring_vault_seed_backoff_limit }}"
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: seed
+                    image: "{{ openbao_pgp_keyring_vault_seed_image }}"
+                    command: ["sh", "-c"]
+                    args:
+                      - |
+                        set -eu
+                        PAYLOAD=$(jq -Rs '{payload: .}' /keyring/public-keys.asc)
+                        curl -fsSk -X POST \
+                          -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
+                          -H "Content-Type: application/json" \
+                          --data "$PAYLOAD" \
+                          "https://openbao:8200/v1/xrd-secret/message-log/archival/pgp/public-keys" >/dev/null
+                        echo "Wrote messagelog PGP public keyring to OpenBao at message-log/archival/pgp/public-keys"
+                    env:
+                      - name: XROAD_SECRET_STORE_TOKEN
+                        valueFrom:
+                          secretKeyRef:
+                            name: xroad-token
+                            key: XROAD_SECRET_STORE_TOKEN
+                    volumeMounts:
+                      - name: pgp-keyring
+                        mountPath: /keyring
+                        readOnly: true
+                volumes:
+                  - name: pgp-keyring
+                    configMap:
+                      name: messagelog-pgp-keyring-seed
+
+    - name: Wait for messagelog-pgp-keyring-vault-seed Job to complete
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
+        api_version: batch/v1
+        kind: Job
+        name: messagelog-pgp-keyring-vault-seed
+        namespace: "{{ security_server_namespace }}"
+      register: pgp_keyring_vault_seed_job
+      until: >-
+        (pgp_keyring_vault_seed_job.resources | length > 0) and
+        ((pgp_keyring_vault_seed_job.resources[0].status.succeeded | default(0)) >= 1 or
+         (pgp_keyring_vault_seed_job.resources[0].status.failed | default(0)) >= 1)
+      retries: "{{ openbao_pgp_keyring_wait_retries }}"
+      delay: "{{ openbao_pgp_keyring_wait_delay }}"
+
+    - name: Fail fast if messagelog PGP keyring seeding failed
+      ansible.builtin.fail:
+        msg: >-
+          messagelog-pgp-keyring-vault-seed Job failed in namespace
+          '{{ security_server_namespace }}' — check
+          `kubectl logs -n {{ security_server_namespace }} job/messagelog-pgp-keyring-vault-seed`
+      when: (pgp_keyring_vault_seed_job.resources[0].status.failed | default(0)) >= 1

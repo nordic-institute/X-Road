@@ -1,9 +1,21 @@
 ---
-{% if not openbao_global_tls_disable %}
+# The server.ha.config listener below is always TLS, and the chart derives
+# probe scheme and BAO_ADDR solely from this flag — keep it false.
 global:
   tlsDisable: false
-{% endif %}
+# The agent injector is unused — X-Road reaches OpenBao through the init Job and
+# the Quarkus vault client, not sidecar injection. It also owns cluster-scoped
+# RBAC, which collides when OpenBao is installed as more than one release
+# (the per-Security-Server namespaces in the e2e topology).
+injector:
+  enabled: false
 server:
+  # X-Road authenticates to OpenBao with the static xroad-token, not the
+  # Kubernetes auth method, so the auth-delegator binding is unused. It is also
+  # cluster-scoped and would collide across the per-Security-Server OpenBao
+  # releases in the e2e topology.
+  authDelegator:
+    enabled: false
   podManagementPolicy: "Parallel"
   ha:
     enabled: true

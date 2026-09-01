@@ -31,6 +31,7 @@ Options:
   -m <service>   Service name (required). One of:
                    ${SUPPORTED_SERVICES[*]}
   -b             Build image via build-security-server.sh + push to localhost:5555
+                 (signer also rebuilds the SoftHSM variant ss-signer-with-hsm)
   -d             Deploy: kind load docker-image + kubectl rollout restart
   -e <env>       Target env (default: dev). Only dev is kind-backed.
   -n <namespace> Security server namespace (default: ss)
@@ -131,6 +132,14 @@ handleBuild() {
   require_bin docker "brew install --cask docker"
   IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-security-server.sh" "${target}" --push
   log_success "Image built: localhost:5555/$(service_to_image):latest"
+
+  # Releases overriding services.signer.imageName run ss-signer-with-hsm, layered on ss-signer.
+  # Rebuild it alongside so both variants stay on the same code.
+  if [[ "${SERVICE}" == "signer" ]]; then
+    log_info "Building SoftHSM signer variant"
+    IMAGE_REGISTRY="localhost:5555" "${CORE_ROOT}/scripts/images/build-signer-with-hsm.sh" --push
+    log_success "Image built: localhost:5555/ss-signer-with-hsm:latest"
+  fi
 }
 
 handleDeploy() {
@@ -138,7 +147,7 @@ handleDeploy() {
   require_bin kubectl "brew install kubectl"
   require_bin kind    "brew install kind"
 
-  local image cluster_name context
+  local image cluster_name context live_image
   image="localhost:5555/$(service_to_image):latest"
 
   # kubectl current-context gives `kind-<clustername>`; strip the prefix.
@@ -149,6 +158,15 @@ handleDeploy() {
     exit 1
   fi
   cluster_name="${context#kind-}"
+
+  # A release may override services.signer.imageName to ss-signer-with-hsm, so
+  # the image name cannot be derived from the service name alone. Take it from the
+  # live Deployment.
+  if [[ "${SERVICE}" == "signer" ]]; then
+    live_image="$(kubectl -n "${NAMESPACE}" get "deployment/${SERVICE}" \
+      -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)"
+    [[ -n "${live_image}" ]] && image="${live_image}"
+  fi
 
   log_kv "  Env"          "${ENV_NAME}"     2 5
   log_kv "  Namespace"    "${NAMESPACE}"    2 5

@@ -60,9 +60,11 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
     /**
      * Default per-host map used when no provider-specific source is configured.
      *
-     * <p>Covers known dev/test candidates: LXD + k8s ({@code xrd-ss0/1/2}) and Docker
-     * compose ({@code ss0/1}). Keys are the values returned by globalconf for each
-     * provider security-server host-address.
+     * <p>Covers the known dev/test substrates, one group of keys each: Docker compose E2E
+     * ({@code xrd-ss0/1/2}, whose addresses carry compose's {@code ENV_PREFIX}), LXD
+     * ({@code xrd-ss*.lxd}), Docker compose system-test ({@code ss0/1}), and k8s
+     * ({@code proxy.ss0/1}). Keys are the values returned by globalconf for each provider
+     * security-server host-address, so they follow whatever each substrate registers.
      *
      * <p>The {@code counterPartyAddress} bakes in BOTH the provider's local participant
      * context id AND the DSP profile id segment ({@code /http-dsp-profile-2025-1}) because
@@ -97,7 +99,13 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
                 Map.entry("ss0", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
                         "https://ds-control-plane:8183/api/dsp/ss0/" + DSP_PROFILE_ID)),
                 Map.entry("ss1", new CounterPartyTarget("did:web:ds-identity-hub%3A7183",
-                        "https://ds-control-plane:8183/api/dsp/ss1/" + DSP_PROFILE_ID)));
+                        "https://ds-control-plane:8183/api/dsp/ss1/" + DSP_PROFILE_ID)),
+                //For k8s: keys are the namespace-qualified proxy Service names each release
+                //registers in globalconf, not the SS hostnames.
+                Map.entry("proxy.ss0", new CounterPartyTarget("did:web:ds-identity-hub.ss0%3A7183",
+                        "https://ds-control-plane.ss0:8183/api/dsp/xrd-ss0/" + DSP_PROFILE_ID)),
+                Map.entry("proxy.ss1", new CounterPartyTarget("did:web:ds-identity-hub.ss1%3A7183",
+                        "https://ds-control-plane.ss1:8183/api/dsp/xrd-ss1/" + DSP_PROFILE_ID)));
     }
 
     /**

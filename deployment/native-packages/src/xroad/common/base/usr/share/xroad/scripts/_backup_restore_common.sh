@@ -54,7 +54,7 @@ check_central_ha_node_name () {
   CONFIG_FILE="/etc/xroad/conf.d/local.yaml"
   local node_name=""
   if [ -f "$CONFIG_FILE" ]; then
-    node_name=get_prop "$CONFIG_FILE" "xroad.admin-service.ha-node-name"
+    node_name=$(get_prop "$CONFIG_FILE" "xroad.admin-service.ha-node-name")
   fi
   if [[ $USE_BASE_64 = true ]] ; then
     CENTRAL_SERVER_HA_NODE_NAME=$(echo "$CENTRAL_SERVER_HA_NODE_NAME" | base64 --decode)

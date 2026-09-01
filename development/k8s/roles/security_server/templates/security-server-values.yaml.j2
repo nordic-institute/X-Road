@@ -1,6 +1,18 @@
 ---
-{% set ds_tls = ss2_advertised_host is defined %}
-{% set ds_truststore_opts = '-Djavax.net.ssl.trustStore=/etc/xroad/ssl/cacerts.p12 -Djavax.net.ssl.trustStorePassword=changeit' %}
+{# DS-HTTPS TLS follows the fixture stack: e2e_fixtures_enabled is the same signal
+   site.yml gates the ds-https-keystore provisioning on, so TLS is on exactly when
+   the keystore Secret these mounts reference exists. #}
+{% set ds_tls = e2e_fixtures_enabled | default(false) | bool %}
+{% set ds_truststore_file = ds_truststore_key | default('cacerts') %}
+{% set ds_truststore_opts = '-Djavax.net.ssl.trustStore=/etc/xroad/ssl/' ~ ds_truststore_file ~ ' -Djavax.net.ssl.trustStorePassword=changeit' %}
+{# Advertised DS hostnames. In k8s the ds-* services are separate, namespace-scoped Services, so
+   each is addressed on its own namespace-qualified name — the same rule the rest of this
+   topology follows, and the names the ds-https cert's SAN list already carries. #}
+{% set ds_cp_host = 'ds-control-plane.' ~ security_server_namespace %}
+{% set ds_ih_host = 'ds-identity-hub.' ~ security_server_namespace %}
+{% set ds_serverproxy_host = 'proxy.' ~ security_server_namespace %}
+{% set ds_participant_id = dsp_participant_context_id %}
+{% set messagelog_encryption_enabled = (messagelog_encryption_config | default('')) | length > 0 %}
 {% if (xroad_image_registry | length > 0) or jvm_metrics_enabled %}
 global:
 {% if xroad_image_registry | length > 0 %}
@@ -26,9 +38,19 @@ init:
   opmonitor:
     dbUsername: {{ opmonitor_db.username }}
 
-{% set proxy_env = {
-  'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt',
-} %}
+# Single knob (chart's secretStore.tls) replacing per-workload QUARKUS_VAULT_TLS_CA_CERT /
+# SPRING_CLOUD_VAULT_SSL_TRUST_STORE env + manual volume mounts; the chart fans it out to
+# every workload with an XROAD_SECRET_STORE_HOST env, including the archiver Job. Set
+# unconditionally: the openbao role's listener always carries TLS cert/key, so OpenBao
+# serves TLS in every inventory.
+secretStore:
+  tls:
+    caSecretName: {{ openbao_tls_secret_name }}
+    caSecretKey: tls.crt
+
+{# xroad.* runtime values no longer travel as env — see the configSeed block below.
+   What remains here is env other layers actually read (JVM options, EDC/SmallRye keys). #}
+{% set proxy_env = {} %}
 {% if ds_tls %}
 {% set _ = proxy_env.update({
   'JAVA_TOOL_OPTIONS': ds_truststore_opts,
@@ -38,7 +60,9 @@ init:
 # xroad.* runtime config goes through the configuration_properties DB layer
 # (the XRoadConfig DSL ignores pod env) — seeded by the chart's config-seed
 # hook Job. This list REPLACES the chart default, so it carries the chart's
-# entries plus this environment's values.
+# entries plus this environment's values. OpenBao TLS trust is NOT wired here
+# per service — the chart's secretStore.tls knob (set once, above) fans it out
+# to every secret-store workload, ephemeral Jobs included.
 configSeed:
   properties:
     - key: xroad.proxy-ui-api.proxy-server-url
@@ -49,8 +73,6 @@ configSeed:
       value: https
     - key: xroad.proxy.addon.op-monitor.enabled
       value: "true"
-    - key: xroad.proxy.dsp-enabled
-      value: "{{ proxy_dsp_enabled | string | lower }}"
     - key: xroad.configuration-client.update-interval
       value: "{{ configuration_client_update_interval }}"
     - key: xroad.signer.ocsp-response-retrieval-active
@@ -58,97 +80,118 @@ configSeed:
     # proxy and ds-identity-hub gate their startup on these two rows (chart
     # waits), so they must be seeded regardless of ds_tls or the pods deadlock.
     - key: xroad.proxy.dsp.participant-context-id
-      value: "{{ ss2_advertised_host | default('xrd-ss2') }}"
+      value: "{{ ds_participant_id }}"
     - key: xroad.proxy-ui-api.dataspace.participant-id
-      value: "{{ ss2_advertised_host | default('xrd-ss2') }}"
+      value: "{{ ds_participant_id }}"
+    # Where this Security Server advertises its own server proxy for the DSP data
+    # plane. The product default is https://localhost:5500, which only holds when
+    # consumer and provider share a host; a multi-release k8s topology needs it
+    # per release.
+    - key: xroad.proxy.dsp.serverproxy-endpoint
+      value: "https://{{ ds_serverproxy_host }}:5500"
+{% if (op_monitor_records_available_offset_seconds | default('')) | length > 0 %}
+    - key: xroad.op-monitor.records-available-timestamp-offset-seconds
+      value: "{{ op_monitor_records_available_offset_seconds }}"
+{% endif %}
+{% if proxy_timestamp_immediately | default(false) | bool %}
+    - key: xroad.proxy.message-log.timestamper.timestamp-immediately
+      value: "true"
+{% endif %}
+{% if (common_global_conf_refresh_rate | default('')) | length > 0 %}
+    - key: xroad.common-global-conf.refresh-rate
+      value: "{{ common_global_conf_refresh_rate }}"
+{% endif %}
+{% if proxy_batch_signing_enabled | default(false) | bool %}
+    - key: xroad.proxy.batch-signing-enabled
+      value: "true"
+{% endif %}
+{% if (messagelog_archive_cron | default('')) | length > 0 %}
+    - key: xroad.auxiliary-service.message-log.archive-cron
+      value: "{{ messagelog_archive_cron }}"
+{% endif %}
+{% if (messagelog_clean_cron | default('')) | length > 0 %}
+    - key: xroad.auxiliary-service.message-log.clean-cron
+      value: "{{ messagelog_clean_cron }}"
+{% endif %}
+{% if (messagelog_archiver_clean_keep_records_for | default('')) | length > 0 %}
+    - key: xroad.message-log-archiver.clean-keep-records-for
+      value: "{{ messagelog_archiver_clean_keep_records_for }}"
+{% endif %}
+{% if messagelog_encryption_enabled %}
+{# The encryption/grouping fixture used to be a projected application.yaml on the
+   proxy and the archiver Job; the config layer no longer reads that file, so the
+   same values become DB rows. grouping-keys is a map keyed by member ids — the
+   DB row carries it as JSON, values as key-id arrays. #}
+{% set _enc = (messagelog_encryption_config | from_yaml)['xroad']['message-log-encryption'] %}
+{% set _gk = {} %}
+{% for _member, _keys in (_enc['archive']['grouping-keys'] | default({})).items() %}
+{% set _ = _gk.update({_member: (_keys | string).split(',')}) %}
+{% endfor %}
+    - key: xroad.message-log-encryption.db.encryption-enabled
+      value: "{{ _enc['db']['encryption-enabled'] | string | lower }}"
+    - key: xroad.message-log-encryption.archive.encryption-enabled
+      value: "{{ _enc['archive']['encryption-enabled'] | string | lower }}"
+    - key: xroad.message-log-encryption.archive.default-key-id
+      value: "{{ _enc['archive']['default-key-id'] }}"
+    - key: xroad.message-log-encryption.archive.grouping-strategy
+      value: "{{ _enc['archive']['grouping-strategy'] }}"
+    - key: xroad.message-log-encryption.archive.grouping-keys
+      value: '{{ _gk | to_json }}'
+{% endif %}
 {% if ds_tls %}
     # Dataspace provisioning via the proxy-ui-api reconciler (replaces the manual
-    # IH/CP seed). identity-hub-url is the advertised host so the derived holder
-    # DID / credentialService / STS URL are resolvable by the LXD issuer; the
-    # in-cluster proxy-ui-api reaches it through the xrd-ss2.lxd hostAlias.
+    # IH/CP seed). identity-hub-url is the release's own namespace-qualified
+    # identity-hub Service, so the derived holder DID / credentialService / STS
+    # URL resolve for whoever issues credentials.
     - key: xroad.proxy-ui-api.dataspace.enabled
       value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
-      value: "https://{{ ss2_advertised_host }}:7182"
-    - key: xroad.proxy-ui-api.dataspace.management-context-enabled
-      value: "false"
+      value: "https://{{ ds_ih_host }}:7182"
     - key: xroad.proxy-ui-api.dataspace.issuer-did
-      value: "did:web:xrd-cs%3A6183:issuer"
+      value: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
+    # Seconds (prod default 60); short so a fixture-written dataset is visible to the
+    # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "5"
 {% endif %}
 
 services:
 {% for svc, extra_env in [
-  ('configuration-client', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
-  ('signer', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('configuration-client', {}),
+  ('signer', {}),
   ('proxy', proxy_env),
-  ('monitor', {'QUARKUS_VAULT_TLS_CA_CERT': '/etc/xroad/ssl/openbao.crt'}),
+  ('monitor', {}),
 ] %}
+{% set has_extra_volumes = ds_tls and svc == 'proxy' %}
+{% if extra_env or has_extra_volumes %}
   {{ svc }}:
+{% if extra_env %}
     env:
 {% for k, v in extra_env.items() %}
       {{ k }}: "{{ v }}"
 {% endfor %}
+{% endif %}
+{% if has_extra_volumes %}
     extraVolumes:
-      - name: {{ svc }}-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-{% if ds_tls and svc == 'proxy' %}
       - name: {{ svc }}-ds-https
         secret:
           secretName: ds-https-keystore
-{% endif %}
     extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: {{ svc }}-openbao-tls-certificate
-{% if ds_tls and svc == 'proxy' %}
-      - mountPath: /etc/xroad/ssl/cacerts.p12
-        subPath: cacerts.p12
+      - mountPath: /etc/xroad/ssl/{{ ds_truststore_file }}
+        subPath: {{ ds_truststore_file }}
         name: {{ svc }}-ds-https
+{% endif %}
 {% endif %}
 {% endfor %}
 
-  proxy-ui-api:
-    env:
-      SPRING_CLOUD_VAULT_SSL_TRUST_STORE: "file:/etc/xroad/ssl/openbao.crt"
-      SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE: "PEM"
-    extraVolumes:
-      - name: proxy-ui-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: proxy-ui-openbao-tls-certificate
-
   op-monitor:
     enabled: true
-    env:
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
-    extraVolumes:
-      - name: op-monitor-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: op-monitor-openbao-tls-certificate
 
   # DSP services — bump replicas from chart default of 0. DB clusters are
-  # provisioned by the cloudnative_pg role (see ds_*_db vars).
-  # ds-* services talk to OpenBao over HTTPS via the Quarkus vault client,
-  # so they need the same openbao TLS cert mount as proxy/signer/monitor.
-  # With ds_tls the shared xrd-ca-signed keystore lights up HTTPS on every
-  # EDC port, matching the LXD stack's ds-https-keystore.yml behaviour.
+  # provisioned by the cloudnative_pg role (see ds_*_db vars). OpenBao TLS
+  # trust is the chart's secretStore.tls knob (set once, above), not
+  # per-service here. With ds_tls the shared self-signed keystore
+  # (ds-https-keystore chart) lights up HTTPS on every EDC port.
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1
@@ -166,72 +209,51 @@ services:
       port: 4099
       scheme: "HTTP"
 {% endif %}
-    env:
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
 {% if ds_tls %}
+    env:
       EDC_WEB_HTTPS_KEYSTORE_PATH: "/etc/xroad/ssl/ds-https.p12"
       EDC_WEB_HTTPS_KEYSTORE_TYPE: "PKCS12"
       EDC_WEB_HTTPS_KEYSTORE_PASSWORD: "changeit"
       EDC_WEB_HTTPS_KEYMANAGER_PASSWORD: "changeit"
       JAVA_TOOL_OPTIONS: "{{ ds_truststore_opts }}"
 {% if svc == 'ds-control-plane' %}
-      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "{{ ss2_advertised_host }}"
-      # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged application.yaml.
+      # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged
+      # application.yaml. The participant context id itself rides the chart's
+      # dsp.participantContextId knob (set below), not a per-service env entry here.
       XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
-      EDC_DSP_CALLBACK_ADDRESS: "https://{{ ss2_advertised_host }}:8183/api/dsp/%s"
+      EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_cp_host }}:8183/api/dsp/%s"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
 {% if svc == 'ds-identity-hub' %}
-      EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ss2_advertised_host }}"
+      EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ds_ih_host }}"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
-{% endif %}
     extraVolumes:
-      - name: {{ svc }}-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-{% if ds_tls %}
       - name: {{ svc }}-ds-https
         secret:
           secretName: ds-https-keystore
-{% endif %}
     extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: {{ svc }}-openbao-tls-certificate
-{% if ds_tls %}
       - mountPath: /etc/xroad/ssl/ds-https.p12
         subPath: ds-https.p12
         name: {{ svc }}-ds-https
-      - mountPath: /etc/xroad/ssl/cacerts.p12
-        subPath: cacerts.p12
+      - mountPath: /etc/xroad/ssl/{{ ds_truststore_file }}
+        subPath: {{ ds_truststore_file }}
         name: {{ svc }}-ds-https
 {% endif %}
 {% endfor %}
+{% if softtoken_signer_enabled | default(false) | bool %}
+  softtoken-signer:
+    replicas: 1
+{% endif %}
+{% if signer_hsm_enabled | default(false) | bool %}
+  signer:
+    imageName: {{ signer_hsm_image }}
+{% endif %}
+{% if serverconf_init_image | length > 0 %}
   auxiliary-service:
     env:
-{% if serverconf_init_image | length > 0 %}
       SERVERCONF_INIT_IMAGE: {{ serverconf_init_image }}
 {% endif %}
-      QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
-    extraVolumes:
-      - name: auxiliary-service-openbao-tls-certificate
-        secret:
-          secretName: {{ openbao_tls_secret_name }}
-          items:
-            - key: tls.crt
-              path: openbao.crt
-    extraVolumeMounts:
-      - mountPath: /etc/xroad/ssl/openbao.crt
-        subPath: openbao.crt
-        name: auxiliary-service-openbao-tls-certificate
-
-messageLogArchiver:
-  env:
-    QUARKUS_VAULT_TLS_CA_CERT: "/etc/xroad/ssl/openbao.crt"
 
 {% if jvm_metrics_enabled %}
 jvmMetrics:
@@ -250,10 +272,17 @@ otel:
     deploymentEnvironment: {{ otel_deployment_environment }}
 {% endif %}
 
-{% if ds_tls %}
+{% if dsp_participant_context_id | length > 0 %}
+dsp:
+  participantContextId: "{{ dsp_participant_context_id }}"
 {% endif %}
 
 # Postgres image used by DSP wait-gate initContainers. The DB clusters
 # themselves are provisioned by the cloudnative_pg role, not the chart.
 postgres:
   image: "{{ postgres_image }}"
+
+{% if (xroad_image_pull_secret | default('')) | length > 0 %}
+imagePullSecrets:
+  - {{ xroad_image_pull_secret }}
+{% endif %}

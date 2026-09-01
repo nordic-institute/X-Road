@@ -1,0 +1,52 @@
+name: 'Download Artifact With Retry'
+description: >-
+  Downloads a single workflow-run artifact via the gh CLI, retrying transient
+  failures (e.g. ECONNRESET on GetSignedArtifactURL) instead of failing the
+  whole job. actions/download-artifact has no retry around that call, which is
+  costly for downloads that sit after expensive provisioning.
+inputs:
+  name:
+    description: 'Artifact name to download'
+    required: true
+  path:
+    description: 'Directory to extract the artifact into (default: current directory, matching actions/download-artifact with no path input)'
+    required: false
+    default: '.'
+  attempts:
+    description: 'Number of download attempts before giving up'
+    required: false
+    default: '3'
+  retry-delay-seconds:
+    description: 'Delay before the first retry; doubles after each subsequent failure'
+    required: false
+    default: '10'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download ${{ inputs.name }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ARTIFACT_NAME: ${{ inputs.name }}
+        ARTIFACT_PATH: ${{ inputs.path }}
+        ATTEMPTS: ${{ inputs.attempts }}
+        RETRY_DELAY_SECONDS: ${{ inputs.retry-delay-seconds }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$ARTIFACT_PATH"
+        delay="$RETRY_DELAY_SECONDS"
+        for ((attempt = 1; attempt <= ATTEMPTS; attempt++)); do
+          echo "Download attempt ${attempt}/${ATTEMPTS} for artifact '${ARTIFACT_NAME}'"
+          if gh run download "$GITHUB_RUN_ID" -n "$ARTIFACT_NAME" -D "$ARTIFACT_PATH"; then
+            echo "Downloaded '${ARTIFACT_NAME}' on attempt ${attempt}/${ATTEMPTS}"
+            exit 0
+          fi
+          if (( attempt < ATTEMPTS )); then
+            echo "::warning::Download of artifact '${ARTIFACT_NAME}' failed on attempt ${attempt}/${ATTEMPTS}; retrying in ${delay}s"
+            sleep "$delay"
+            delay=$((delay * 2))
+          fi
+        done
+        echo "::error::Download of artifact '${ARTIFACT_NAME}' failed after ${ATTEMPTS} attempts"
+        exit 1

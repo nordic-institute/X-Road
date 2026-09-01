@@ -58,6 +58,27 @@ class ValidatorTest {
     }
 
     @Test
+    void positiveLongAcceptsPositiveValue() {
+        assertThat(Validator.positiveLong().validate(1L).valid()).isTrue();
+    }
+
+    @Test
+    void positiveLongRejectsZeroNegativeAndNull() {
+        var positive = Validator.positiveLong();
+
+        assertThat(positive.validate(0L).valid()).isFalse();
+        assertThat(positive.validate(-1L).valid()).isFalse();
+        assertThat(positive.validate(null).valid()).isFalse();
+    }
+
+    @Test
+    void positiveLongRejectionCarriesMessage() {
+        var result = Validator.positiveLong().validate(0L);
+
+        assertThat(result.message()).isEqualTo("must be a positive number");
+    }
+
+    @Test
     void negativeDurationDefaultWithPositiveFailsAtBuild() {
         var builder = Prefix.of("xroad.signer")
                 .keyDuration("csr-timeout")
@@ -104,6 +125,7 @@ class ValidatorTest {
         assertThat(Validator.pattern("[a-z]+").describe()).contains("matches [a-z]+");
         assertThat(Validator.nonEmpty().describe()).contains("non-empty");
         assertThat(Validator.positive().describe()).contains("positive duration");
+        assertThat(Validator.positiveLong().describe()).contains("positive number");
     }
 
     @Test

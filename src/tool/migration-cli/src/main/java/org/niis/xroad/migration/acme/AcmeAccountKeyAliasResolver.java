@@ -37,7 +37,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -151,22 +150,30 @@ public final class AcmeAccountKeyAliasResolver {
             dataSource.setCurrentSchema(dbCredentials.schema());
         }
 
-        List<String> encodedClientIds = new ArrayList<>();
+        Set<String> encodedClientIds = new LinkedHashSet<>();
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(SELECT_CLIENT_IDENTIFIERS)) {
             while (resultSet.next()) {
-                String encodedId = ClientId.Conf.create(
+                ClientId.Conf clientId = ClientId.Conf.create(
                         resultSet.getString("xroad_instance"),
                         resultSet.getString("member_class"),
                         resultSet.getString("member_code"),
                         resultSet.getString("subsystem_code")
-                ).asEncodedId();
-                encodedClientIds.add(encodedId);
+                );
+                encodedClientIds.addAll(candidateEncodedIdsFor(clientId));
             }
         }
 
-        log.info("Loaded {} client identifier(s) from serverconf database for ACME alias resolution", encodedClientIds.size());
+        log.info("Loaded {} distinct member identifier(s) from serverconf database for ACME alias resolution",
+                encodedClientIds.size());
         return encodedClientIds;
+    }
+
+    static Set<String> candidateEncodedIdsFor(ClientId clientId) {
+        if (clientId.getSubsystemCode() == null) {
+            return Set.of(clientId.asEncodedId());
+        }
+        return Set.of(clientId.asEncodedId(), clientId.getMemberId().asEncodedId());
     }
 }

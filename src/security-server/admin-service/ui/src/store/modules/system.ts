@@ -82,14 +82,13 @@ export const useSystem = defineStore('system', {
       this.$reset();
     },
     async fetchSecurityServerNodeType() {
-      return api.get<VersionInfo>('/system/version').then((res) => {
-        this.securityServerVersion = res.data;
+      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
+        this.securityServerNodeType = res.data.node_type;
       });
     },
     async fetchSecurityServerVersion() {
-      // Fetch tokens from backend
-      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
-        this.securityServerNodeType = res.data.node_type;
+      return api.get<VersionInfo>('/system/version').then((res) => {
+        this.securityServerVersion = res.data;
       });
     },
     async fetchAuthenticationProviderType() {

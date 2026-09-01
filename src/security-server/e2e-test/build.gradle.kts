@@ -66,7 +66,7 @@ val e2eEnvMode = providers.gradleProperty("e2e.env-mode").getOrElse("compose")
 
 tasks.register<Test>("e2eTest") {
   // Only the harness-managed compose stack needs the generated env and copied compose files. Pre-provisioned
-  // targets (lxd, and any future deployment mode) attach to an environment that already exists.
+  // targets (lxd, k8s, and any future deployment mode) attach to an environment that already exists.
   if (e2eEnvMode == "compose") {
     dependsOn(provider { tasks.named("generateIntTestEnv") })
     dependsOn(provider { tasks.named("copyComposeFiles") })
@@ -75,7 +75,8 @@ tasks.register<Test>("e2eTest") {
 
   description = "Runs the e2e test suite in scenario order. The target environment is selected by " +
       "-Pe2e.env-mode (default 'compose': harness-boots the shared aux/ss0/ss1 stack via the " +
-      "LauncherSessionListener SPI; 'lxd': attaches to a pre-provisioned LXD environment). " +
+      "LauncherSessionListener SPI; 'lxd': attaches to a pre-provisioned LXD environment; 'k8s': " +
+      "attaches to a pre-provisioned kind cluster). " +
       "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
 

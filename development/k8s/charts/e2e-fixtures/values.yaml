@@ -1,0 +1,237 @@
+# NOT production-ready — dev/E2E-only fixtures. See README.md.
+#
+# Reproduces the non-CS parts of the compose aux stack
+# (security-server/e2e-test/src/intTest/resources/compose.aux.yaml) as
+# in-cluster k8s resources: test CA, mock information systems, a mail sink,
+# a DS-HTTPS keystore init Job, and a hurl bootstrap Job. The `services` map
+# and `xroad.*` helpers follow the central-server chart's structure for
+# consistency across the k8s/charts/ tree, even though most of these
+# workloads are third-party test doubles rather than X-Road components.
+
+global:
+  image:
+    registry: ghcr.io/nordic-institute/x-road
+    tag: latest
+    pullPolicy: IfNotPresent
+  extraPodAnnotations: {}
+
+imagePullSecrets: []
+
+# Mixed third-party images (testca-dev, wiremock, mailpit, example-adapter,
+# hurl) with varied user/filesystem assumptions — same reasoning as the
+# central-server chart: left empty rather than faking a hardening posture
+# none of these images were built to support.
+securityContext:
+  pod: {}
+  container: {}
+
+services:
+  # Test CA: ACME (8887) + cert issuance/serving (8888) + TSA (8899). Ports
+  # and the readiness path verified against compose.aux.yaml's `testca`
+  # service. Private dev-infra image, built by
+  # core/scripts/images/build-dev-infra.sh (same GHCR path/pull-secret
+  # mechanism as the central-server-dev image).
+  testca:
+    imageName: testca-dev
+    resources:
+      requests:
+        memory: 32Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 8887
+        name: acme
+      - port: 8888
+        name: ca-api
+      - port: 8899
+        name: tsa
+    readinessProbe:
+      path: "/testca/certs"
+      port: 8888
+      scheme: HTTP
+    env: {}
+
+  # Mock OpenAPI/REST information system. Public image — full ref, bypasses
+  # global.image.registry/imagePullSecrets.
+  isopenapi:
+    image: "ghcr.io/nordic-institute/xrddev-example-restapi:latest"
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 8080
+        name: http
+    readinessProbe:
+      path: "/v3/api-docs"
+      port: 8080
+      scheme: HTTP
+    env: {}
+
+  # Mock SOAP information system (example-adapter WAR). Public image; the
+  # command override runs the WAR directly, matching compose's entrypoint.
+  issoap:
+    image: "niis/example-adapter:latest"
+    command:
+      - java
+      - -Xms64m
+      - -Xmx256m
+      - -jar
+      - /example-adapter.war
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 8080
+        name: http
+    readinessProbe:
+      path: "/example-adapter/Endpoint?wsdl"
+      port: 8080
+      scheme: HTTP
+    env: {}
+
+  # Mock plain-REST information system (WireMock). Public image.
+  #
+  # compose bind-mounts wiremock_mappings (security-server/e2e-test/src/
+  # intTest/resources/wiremock_mappings) for WireMock's auto-loaded *.json
+  # stubs. Real file content is injected at render/install time via
+  # --set-file services.isrest.mappings.<name>=<path> (name = filename minus
+  # .json; repeat per stub — see README section 4 for the full command).
+  # Left unset, WireMock starts with no stub mappings and serves 404s for
+  # every request (see isrest-mappings-configmap.yaml).
+  isrest:
+    image: "wiremock/wiremock:latest"
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    ports:
+      - port: 8080
+        name: http
+    readinessProbe:
+      path: "/__admin/health"
+      port: 8080
+      scheme: HTTP
+    env: {}
+    volumeMounts:
+      - name: isrest-mappings
+        mountPath: /home/wiremock/mappings
+        readOnly: true
+    volumes:
+      - name: isrest-mappings
+        configMap:
+          name: isrest-mappings
+    # Keys are stub filenames without the .json suffix (see
+    # isrest-mappings-configmap.yaml, which re-appends it for the ConfigMap
+    # data key / mounted filename); values are real file content, never
+    # forked into the chart.
+    mappings:
+      is_rest_1: ""
+      is_rest_2: ""
+      is_rest_3: ""
+
+  # Mail sink. Public image. compose bind-mounts an (empty, untracked)
+  # ./testmail dir; mailpit does NOT self-generate the STARTTLS pair, so
+  # compose's mailpit crashes on the missing cert too — it is tolerated there
+  # only because compose has no healthcheck gate and no scenario uses the
+  # sink. In-cluster it must actually become Ready for the fixtures
+  # `helm --wait` to pass, so it runs as a plain SMTP+HTTP sink (no STARTTLS,
+  # no auth). A mail-exercising scenario would provision cert/key/auth itself.
+  mailpit:
+    image: "axllent/mailpit:latest"
+    resources:
+      requests:
+        memory: 32Mi
+      limits:
+        memory: 256Mi
+    ports:
+      - port: 8025
+        name: http
+      - port: 1025
+        name: smtp
+    readinessProbe:
+      # compose defines no healthcheck for mailpit; this one exists only here,
+      # not mirrored, since the k8s Deployment template requires one.
+      path: "/"
+      port: 8025
+      scheme: HTTP
+    env:
+      MP_MAX_MESSAGES: "5000"
+      MP_DATABASE: "/data/mailpit.db"
+    volumeMounts:
+      - name: mailpit-data
+        mountPath: /data
+    volumes:
+      - name: mailpit-data
+        emptyDir: {}
+
+# --- hurl bootstrap Job ---
+# Runs the existing development/hurl/scenarios/setup.hurl unmodified against
+# the in-cluster topology. See README section 4.
+hurl:
+  image: ghcr.io/orange-opensource/hurl:8.0.1
+  curlImage: curlimages/curl:8.11.1
+  resources:
+    requests:
+      memory: 24Mi
+    limits:
+      memory: 128Mi
+  retry: 30
+  retryInterval: 10000
+  # Real scenario file content, injected at render/install time — never
+  # copied into the chart. Populate with (paths relative to the chart dir;
+  # adjust for your cwd):
+  #   helm template . \
+  #     --set-file hurl.files.setupHurl=../../../../../src/security-server/e2e-test/build/resources/intTest/hurl/scenarios/setup.hurl \
+  #     --set-file hurl.files.varsEnv=../../../../../development/hurl/scenarios/vars.env
+  # or point straight at core/development/hurl/scenarios/{setup.hurl,vars.env}.
+  files:
+    setupHurl: ""
+    varsEnv: ""
+  # Overrides layered on top of vars.env, pointing setup.hurl at in-cluster
+  # Service DNS names instead of compose's mapped host ports. ss0/ss1 here
+  # are the actual namespace names the two Security Server chart releases
+  # are deployed into.
+  #
+  # cs_host is namespace-qualified (`central-server.cs`, not bare) because it
+  # is also stored as the Central Server's address at init (setup.hurl's
+  # central_server_address) and baked into the global-conf anchor's
+  # http://<cs>/internalconf download URL — which the Security Servers in the
+  # ss0/ss1 namespaces fetch and verify. A bare `central-server` resolves only
+  # within the cs namespace; `<svc>.<ns>` resolves from every namespace via the
+  # shared `svc.cluster.local` search domain (same convention as ss0_host).
+  vars:
+    cs_host: central-server.cs
+    # ca_host is namespace-qualified for the same cross-namespace reason as
+    # cs_host: the ACME/OCSP/TSA responder URLs (http://<ca>:8887/8888/8899)
+    # are registered in global conf and read by the ss0/ss1 signers. A bare
+    # `testca` resolves only within the cs namespace, so the signers could not
+    # fetch OCSP responses (certs then unusable → signer.unknown_member on
+    # auth-cert registration). tsa_url is captured from the CS's registered TSA
+    # URL, so it inherits this qualification.
+    ca_host: testca.cs
+    ss0_host: proxy-ui-api.ss0
+    ss1_host: proxy-ui-api.ss1
+    ss0_proxy: proxy.ss0
+    ss1_proxy: proxy.ss1
+    # Issuer Service host. Namespace-qualified even though hurl runs in the cs
+    # namespace, because this is not only a name to dial: the gate at
+    # setup.hurl:832 asserts the served document's id equals
+    # did:web:{{is_host}}%3A6183:issuer, and that DID is stored once, from the
+    # Central Server's XROAD_DATASPACE_ISSUER_HOST. The Security Servers'
+    # identity hubs resolve it from ss0/ss1, so it is the qualified form; the
+    # bare name is a different DID and the endpoint answers 204 for it.
+    is_host: central-server.cs
+    # Service backends the provider SS (ss0) routes to during the message-flow
+    # scenarios. vars.env defaults them to bare `issoap`/`isrest`/`isopenapi`
+    # (fine on compose's single docker network); in k8s they live in the cs
+    # namespace while ss0 runs in the ss0 namespace, so they are qualified here.
+    # Full URLs (not just hosts) because hurl variables are whole values.
+    example_service_wsdl: "http://issoap.cs:8080/example-adapter/Endpoint?wsdl"
+    example_service_address: "http://issoap.cs:8080/example-adapter/Endpoint"
+    is_rest_url: "http://isrest.cs:8080/integration/mock_1"
+    is_openapi_url: "http://isopenapi.cs:8080/v3/api-docs"

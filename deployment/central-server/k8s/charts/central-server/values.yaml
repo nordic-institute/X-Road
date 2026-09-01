@@ -1,0 +1,70 @@
+# NOT production-ready — wraps the all-in-one `central-server-dev` image. See README.md.
+# The `services` map follows the Security Server chart's shape so a later
+# decomposition only adds map entries, not a templates rewrite.
+
+global:
+  image:
+    registry: ghcr.io/nordic-institute/x-road
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Extra annotations applied to every pod (spec.template.metadata.annotations).
+  extraPodAnnotations: {}
+
+imagePullSecrets: []
+
+# Empty on purpose: the dev image runs postgres/supervisord/nginx as root and
+# cannot honor the Security Server chart's rootless/read-only-rootfs posture.
+securityContext:
+  pod: {}
+  container: {}
+
+services:
+  central-server:
+    imageName: central-server-dev
+    resources:
+      requests:
+        memory: 512Mi
+      limits:
+        memory: 3Gi
+    ports:
+      # 80 serves global conf distribution (/internalconf) to the Security Servers
+      - port: 80
+        name: gconf-http
+      - port: 443
+        name: gconf-https
+      - port: 4000
+        name: https
+      # 4001/4002: management-request endpoints Security Servers call cross-namespace
+      - port: 4001
+        name: reg-service
+      - port: 4002
+        name: mgmt-service
+      - port: 5432
+        name: postgres
+      - port: 6183
+        name: issuer-did
+      - port: 6185
+        name: issuer-issuance
+      - port: 6187
+        name: issuer-status
+      - port: 9994
+        name: signer-debug
+    readinessProbe:
+      # empty-path placeholder: no unauthenticated health endpoint identified yet
+      path: ""
+      port: 4000
+      scheme: HTTPS
+    serviceAccount:
+      annotations: {}
+    env:
+      XROAD_HOST: "central-server"
+    # Issuer Service HTTPS keystore (provisioned by the ds-https-keystore chart);
+    # without it the Issuer Service crash-loops and CS init fails.
+    volumeMounts:
+      - name: ds-https-keystore
+        mountPath: /etc/xroad/ds-ssl
+        readOnly: true
+    volumes:
+      - name: ds-https-keystore
+        secret:
+          secretName: ds-https-keystore
