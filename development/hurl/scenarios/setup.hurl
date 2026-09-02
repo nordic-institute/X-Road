@@ -187,6 +187,21 @@ cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 
+# Register the DataSpace TLS CA in globalconf's approvedDsTlsCa — a list separate from the
+# certification-services (member approvedCA) registration above; ds-* outbound HTTPS trust is never
+# derived from the member CA list. `ds_tls_ca_file` is environment-supplied (compose/ansible variable)
+# since the right trust anchor differs per environment: a self-signed leaf in Docker e2e, the shared
+# test CA in LXD. Must precede any ds-* traffic (the did.json polling below) — the fail-closed trust
+# reloader only picks the registration up on a later reload cycle.
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certification-authorities
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+[MultipartFormData]
+name: Test DS TLS CA
+certificate: file,{{ds_tls_ca_file}};
+
+HTTP 201
+
+
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}

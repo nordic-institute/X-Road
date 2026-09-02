@@ -68,6 +68,44 @@
   when: cs_xroad_host_dropins is changed
 
 # ---------------------------------------------------------------------------
+# 2a. Vault CA for the Issuer Service's own EDC/Hashicorp vault client. The DS
+#     TLS trust replaces JVM defaults on the shared EDC OkHttp client, so
+#     OpenBao's self-signed cert (installed system-wide by
+#     xroad-secret-store-local's postinst) is no longer trusted implicitly —
+#     the vault-specific escape hatch must point at it. QUARKUS_VAULT_TLS_CA_CERT
+#     is read via plain System.getenv in VaultEndpointTrust, never through
+#     EDC's @Setting resolution, so it is not subject to the QuarkusConfigBridge
+#     env-var limitation noted below.
+#
+#     Points at the installed system copy (644, world-readable) rather than
+#     /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to avoid a
+#     second permissions dependency.
+# ---------------------------------------------------------------------------
+- name: create systemd drop-in dir for QUARKUS_VAULT_TLS_CA_CERT
+  file:
+    path: /etc/systemd/system/xroad-ds-issuer-service.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: set QUARKUS_VAULT_TLS_CA_CERT for the Issuer Service's EDC vault client
+  copy:
+    dest: /etc/systemd/system/xroad-ds-issuer-service.service.d/vault-tls-ca.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
+  register: cs_vault_tls_ca_dropin
+
+- name: reload systemd after the vault CA drop-in
+  systemd:
+    daemon_reload: true
+  when: cs_vault_tls_ca_dropin is changed
+
+# ---------------------------------------------------------------------------
 # 2. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
 #    EDC's @Setting resolution. These must exist before the unit's first start.
@@ -83,6 +121,10 @@
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
 #   hostname, statuslist.callback.address, and keystore config.
+#
+#    xroad.edc.web.https.trust.reload-interval-seconds: see the identical setting in
+#    xroad-ss/tasks/pre-ss-install.yml — the Issuer Service's own outbound self-connect trust needs
+#    the same reload-cycle shortening, since it is subject to the same fail-closed trust extension.
 # ---------------------------------------------------------------------------
 - name: preseed ds-issuer-service runtime overrides
   copy:
@@ -106,6 +148,12 @@
               password: "changeit"
             keymanager:
               password: "changeit"
+      xroad:
+        edc:
+          web:
+            https:
+              trust:
+                reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
 # 3. TLS keystore for DS services. Must be on disk before ds-* units start.

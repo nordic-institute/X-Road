@@ -90,9 +90,23 @@ spec:
               readOnly: true
             - name: hurl-files
               mountPath: /hurl-files
+            # Nested under the hurl-files emptyDir so setup.hurl reaches it as
+            # the file-root-relative ds_tls_ca_file variable (ds/ds-https-cert.pem).
+            # Unlike the CA certs above there is nothing to fetch: the
+            # ds-https-keystore chart already publishes the cert as a
+            # same-namespace Secret.
+            - name: ds-tls-ca
+              mountPath: /hurl-files/ds
+              readOnly: true
       volumes:
         - name: hurl-scenarios
           configMap:
             name: {{ .Release.Name }}-hurl-scenarios
         - name: hurl-files
           emptyDir: {}
+        - name: ds-tls-ca
+          secret:
+            secretName: ds-https-keystore
+            items:
+              - key: ds-https-cert.pem
+                path: ds-https-cert.pem
