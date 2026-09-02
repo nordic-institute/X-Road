@@ -67,22 +67,16 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
+    private final ServiceContextResolver serviceContextResolver;
+    private final DspParticipantContextHolder dspParticipantContextHolder;
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String resolveContextId(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : participantContextId;
-    }
 
     @Override
     @Nullable
     @WithSpan("dsp-find-acl")
     public PolicyDefinition findById(@SpanAttribute String policyId) {
-        return cache.findById(policyId, () -> findByIdInternal(policyId));
+        return cache.findById(policyId, dspParticipantContextHolder.get(), () -> findByIdInternal(policyId));
     }
 
     @Nullable
@@ -212,8 +206,9 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(),
-                endpoints, resolveContextId(serviceId));
+        var ctxId = ServiceContextResolver.selectContext(
+                serviceContextResolver.resolveContexts(serviceId), dspParticipantContextHolder.get());
+        return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
 
     /**
@@ -238,6 +233,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
 
+        var contexts = serviceContextResolver.resolveContexts(serviceId);
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();
             var subjectAccessRights = entry.getValue();
@@ -246,8 +242,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                     .map(AccessRight::getEndpoint)
                     .toList();
 
-            policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
-                    subjectAccessRights.getFirst().getSubjectId(), endpoints, resolveContextId(serviceId)));
+            for (var ctxId : contexts) {
+                policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
+                        subjectAccessRights.getFirst().getSubjectId(), endpoints, ctxId));
+            }
         }
     }
 

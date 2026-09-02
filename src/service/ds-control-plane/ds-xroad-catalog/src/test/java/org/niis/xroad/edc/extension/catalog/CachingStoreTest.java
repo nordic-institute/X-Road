@@ -32,13 +32,17 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.common.base.Ticker;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -50,6 +54,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -70,20 +75,28 @@ class CachingStoreTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
+    @Mock
+    private ParticipantContextService participantContextService;
+
     private StoreEnumerationCache<Asset> noCache;
     private StoreEnumerationCache<Asset> withCache;
+    private final DspParticipantContextHolder dspParticipantContextHolder = new DspParticipantContextHolder();
 
     @BeforeEach
     void setUp() {
         noCache = new StoreEnumerationCache<>(false, 60, 1000, "test");
         withCache = new StoreEnumerationCache<>(true, 3600, 1000, "test");
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
     }
 
     private AssetIndexServerConfStore buildStore(StoreEnumerationCache<Asset> cache) {
         return new AssetIndexServerConfStore(serverConfProvider, globalConfProvider,
                 PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
                 new BuiltinServiceCatalog(serverConfProvider, false, false, false,
-                        BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache);
+                        BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache,
+                new ServiceContextResolver(participantContextService, globalConfProvider,
+                        PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID),
+                dspParticipantContextHolder);
     }
 
     private void setupSingleMemberService() {
@@ -139,6 +152,39 @@ class CachingStoreTest {
         store.findById(SERVICE_1.asEncodedId());
 
         verify(serverConfProvider, times(1)).serviceExists(SERVICE_1);
+    }
+
+    /**
+     * Regression test: a by-id lookup's result depends on which participant context the caller
+     * addressed, so the cache key must fold in that context — otherwise the first context to ask
+     * for a given id would poison the cache for every other legitimate context until TTL expiry,
+     * silently reintroducing the negotiation-ownership-validation 404 fixed by making findById
+     * context-aware in the first place.
+     */
+    @Test
+    void findByIdCacheKeyIncludesRequestedContextSoDifferentContextsDoNotShareAStaleRow() {
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1111");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(
+                List.of(ParticipantContext.Builder.newInstance().participantContextId(memberCtxId).identity(memberCtxId).build())));
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var store = buildStore(withCache);
+
+        dspParticipantContextHolder.set(PARTICIPANT_CONTEXT_ID);
+        var hostResult = store.findById(SERVICE_1.asEncodedId());
+
+        dspParticipantContextHolder.set(memberCtxId);
+        var memberResult = store.findById(SERVICE_1.asEncodedId());
+
+        // Re-request the host context after the member lookup was cached — must still be host-tagged
+        dspParticipantContextHolder.set(PARTICIPANT_CONTEXT_ID);
+        var hostResultAgain = store.findById(SERVICE_1.asEncodedId());
+
+        assertThat(hostResult.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+        assertThat(memberResult.getParticipantContextId()).isEqualTo(memberCtxId);
+        assertThat(hostResultAgain.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
     }
 
     @Test

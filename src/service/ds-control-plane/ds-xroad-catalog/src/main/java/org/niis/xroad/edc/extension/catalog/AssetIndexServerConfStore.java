@@ -62,15 +62,9 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
+    private final ServiceContextResolver serviceContextResolver;
+    private final DspParticipantContextHolder dspParticipantContextHolder;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String resolveContextId(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : participantContextId;
-    }
 
     private boolean isOwnerOnly(ServiceId serviceId) {
         try {
@@ -100,7 +94,9 @@ class AssetIndexServerConfStore implements AssetIndex {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
                 if (serverConfProvider.getDisabledNotice(serviceId) == null) {
-                    assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
+                    for (var ctxId : serviceContextResolver.resolveContexts(serviceId)) {
+                        assets.add(AssetMapper.toAsset(serviceId, ctxId));
+                    }
                 }
             }
         }
@@ -115,7 +111,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Override
     @Nullable
     public Asset findById(String assetId) {
-        return cache.findById(assetId, () -> findByIdInternal(assetId));
+        return cache.findById(assetId, dspParticipantContextHolder.get(), () -> findByIdInternal(assetId));
     }
 
     @Nullable
@@ -144,7 +140,8 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
                 ? managementParticipantContextId
-                : resolveContextId(serviceId);
+                : ServiceContextResolver.selectContext(
+                        serviceContextResolver.resolveContexts(serviceId), dspParticipantContextHolder.get());
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 

@@ -35,9 +35,12 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -54,6 +57,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,10 +73,18 @@ class StoreCacheBenchmarkTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
+    @Mock
+    private ParticipantContextService participantContextService;
+
     @BeforeAll
     static void silenceCatalogLogging() {
         originalLevel = CATALOG_LOGGER.getLevel();
         CATALOG_LOGGER.setLevel(Level.WARN);
+    }
+
+    @BeforeEach
+    void stubPersistedParticipantContexts() {
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
     }
 
     @AfterAll
@@ -197,7 +210,9 @@ class StoreCacheBenchmarkTest {
                 "participant", "participant-mgmt",
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),
-                cache);
+                cache,
+                new ServiceContextResolver(participantContextService, globalConfProvider, "participant", "participant-mgmt"),
+                new DspParticipantContextHolder());
     }
 
     static long median(long[] times) {

@@ -29,6 +29,10 @@ package org.niis.xroad.edc.extension.catalog;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -39,16 +43,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,6 +64,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
     private static final String HOST_CONTEXT = "ss1";
     private static final String MGMT_CONTEXT = "ss1-mgmt";
+    private static final String MEMBER_CONTEXT = "ss1:CLASS:MEMBER";
 
     @Mock
     private ServiceExtensionContext context;
@@ -63,12 +72,16 @@ class XRoadDataPlaneRegistrarExtensionTest {
     @Mock
     private DataPlaneInstanceStore store;
 
+    @Mock
+    private ParticipantContextService participantContextService;
+
     private XRoadDataPlaneRegistrarExtension extension;
 
     @BeforeEach
     void setUp() throws Exception {
         extension = new XRoadDataPlaneRegistrarExtension();
         setField(extension, "dataPlaneInstanceStore", store);
+        setField(extension, "participantContextService", participantContextService);
     }
 
     @Test
@@ -160,8 +173,119 @@ class XRoadDataPlaneRegistrarExtensionTest {
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(ConfigFactory.empty());
 
         extension.initialize(context);
+        extension.start();
 
         verify(store, never()).save(any());
+        verify(participantContextService, never()).search(any());
+    }
+
+    @Test
+    void initializeNeverQueriesPersistedParticipantContextStore() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+
+        extension.initialize(context);
+
+        verifyNoInteractions(participantContextService);
+    }
+
+    @Test
+    void startWithEmptyPersistedStoreRegistersOnlyLegacyPair() {
+        stubParticipantContexts();
+        stubPersistedParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+
+        extension.initialize(context);
+        extension.start();
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(DataPlaneInstance::getParticipantContextId)
+                .containsExactlyInAnyOrder(HOST_CONTEXT, MGMT_CONTEXT);
+    }
+
+    @Test
+    void startReconcilesPersistedParticipantContexts() {
+        stubParticipantContexts();
+        stubPersistedParticipantContexts(participantContext(MEMBER_CONTEXT), participantContext(HOST_CONTEXT));
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+
+        extension.initialize(context);
+        extension.start();
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(3)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(DataPlaneInstance::getParticipantContextId)
+                .containsExactlyInAnyOrder(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT);
+    }
+
+    @Test
+    void startPropagatesFailureWhenPersistedContextEnumerationFails() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+        when(participantContextService.search(any(QuerySpec.class)))
+                .thenReturn(ServiceResult.unexpected("relation \"participant_context\" does not exist"));
+
+        extension.initialize(context);
+
+        assertThatThrownBy(extension::start).isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void providedRegistrarRegistersHookedContextInProcess() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+        extension.initialize(context);
+
+        var registrar = extension.dataPlaneContextRegistrar();
+        registrar.registerParticipantContext(MEMBER_CONTEXT);
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(3)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(DataPlaneInstance::getId)
+                .contains("xroad-proxy::" + MEMBER_CONTEXT);
+    }
+
+    @Test
+    void registrarHookIsIdempotentOnRepeatCalls() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+        extension.initialize(context);
+
+        var registrar = extension.dataPlaneContextRegistrar();
+        registrar.registerParticipantContext(MEMBER_CONTEXT);
+        registrar.registerParticipantContext(MEMBER_CONTEXT);
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(4)).save(captor.capture());
+        assertThat(captor.getAllValues())
+                .filteredOn(instance -> instance.getParticipantContextId().equals(MEMBER_CONTEXT))
+                .extracting(DataPlaneInstance::getId)
+                .containsOnly("xroad-proxy::" + MEMBER_CONTEXT);
     }
 
     private void stubParticipantContexts() {
@@ -169,6 +293,18 @@ class XRoadDataPlaneRegistrarExtensionTest {
         when(context.getSetting("xroad.dsp.participant-context-id", HOST_CONTEXT)).thenReturn(HOST_CONTEXT);
         when(context.getSetting("xroad.dsp.management-participant-context-id", HOST_CONTEXT + "-mgmt"))
                 .thenReturn(MGMT_CONTEXT);
+    }
+
+    private void stubPersistedParticipantContexts(ParticipantContext... persisted) {
+        when(participantContextService.search(any(QuerySpec.class)))
+                .thenReturn(ServiceResult.success(List.of(persisted)));
+    }
+
+    private static ParticipantContext participantContext(String participantContextId) {
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId(participantContextId)
+                .identity("did:web:example.com:" + participantContextId)
+                .build();
     }
 
     private static Config buildDataplaneConfig(Map<String, String> entries) {

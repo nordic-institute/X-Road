@@ -27,22 +27,39 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
+
 /**
- * Populates the EDC {@link DataPlaneInstanceStore} from local YAML configuration at boot.
+ * Populates the EDC {@link DataPlaneInstanceStore} from local YAML configuration at boot, and exposes a
+ * {@link DataPlaneContextRegistrar} hook so other extensions can register data-plane instances for
+ * participant contexts created afterwards, at runtime.
+ *
+ * <p>At boot, this extension registers the configured legacy pair (host and management contexts). At
+ * {@code start()} — after every extension's SQL schema has been bootstrapped in the {@code prepare()}
+ * phase, but before any extension's {@code start()} runs — it reconciles: it enumerates every
+ * participant context already persisted in the {@link ParticipantContextService} store — regardless of
+ * kind — and registers instances for those too. This covers the case where the in-memory
+ * {@link DataPlaneInstanceStore} was wiped by a restart while the participant-context store survived it.
+ * The enumeration is deferred out of {@code initialize()} because the SQL-backed participant-context
+ * store's schema does not exist yet at that point on a fresh database.</p>
  */
 @Slf4j
+@Provides(DataPlaneContextRegistrar.class)
 @Extension(XRoadDataPlaneRegistrarExtension.NAME)
 public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
 
@@ -54,14 +71,14 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
     static final String DEFAULT_HOSTNAME = "localhost";
     static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
 
-    static final String KEY_ID = "id";
-    static final String KEY_URL = "url";
-    static final String KEY_ENABLED = "enabled";
-    static final String KEY_ALLOWED_SOURCE_TYPES = "allowed-source-types";
-    static final String KEY_ALLOWED_TRANSFER_TYPES = "allowed-transfer-types";
-
     @Inject
     private DataPlaneInstanceStore dataPlaneInstanceStore;
+
+    @Inject
+    private ParticipantContextService participantContextService;
+
+    private DataPlaneContextRegistrar registrar;
+    private List<String> legacyContextIds;
 
     @Override
     public String name() {
@@ -72,13 +89,51 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var dataplanesConfig = context.getConfig(SETTING_DATAPLANES);
         var entries = dataplanesConfig.partition().toList();
+        registrar = new DefaultDataPlaneContextRegistrar(entries, dataPlaneInstanceStore);
+
         if (entries.isEmpty()) {
             log.warn("No data plane entries configured under '{}' — control plane will advertise no transfer endpoints.",
                     SETTING_DATAPLANES);
             return;
         }
-        var participantContextIds = resolveParticipantContextIds(context);
-        entries.forEach(entry -> registerFromConfig(entry, participantContextIds));
+
+        legacyContextIds = resolveParticipantContextIds(context);
+        legacyContextIds.forEach(registrar::registerParticipantContext);
+    }
+
+    /**
+     * Reconciles data-plane instances from the persisted participant-context store. Runs in {@code start()},
+     * not {@code initialize()}: the SQL-backed participant-context store's schema is only guaranteed to exist
+     * once every extension's {@code prepare()} phase has completed, which happens strictly before any
+     * extension's {@code start()}.
+     */
+    @Override
+    public void start() {
+        if (legacyContextIds == null) {
+            return;
+        }
+        reconcilePersistedParticipantContexts();
+    }
+
+    /**
+     * Exposes the hook other extensions call to register a data-plane instance for a participant context
+     * created at runtime.
+     */
+    @Provider
+    public DataPlaneContextRegistrar dataPlaneContextRegistrar() {
+        return registrar;
+    }
+
+    private void reconcilePersistedParticipantContexts() {
+        var result = participantContextService.search(QuerySpec.max());
+        if (result.failed()) {
+            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED,
+                    "Failed to enumerate persisted participant contexts for boot reconcile: %s", result.getFailureDetail());
+        }
+        result.getContent().stream()
+                .map(ParticipantContext::getParticipantContextId)
+                .filter(participantContextId -> !legacyContextIds.contains(participantContextId))
+                .forEach(registrar::registerParticipantContext);
     }
 
     private List<String> resolveParticipantContextIds(ServiceExtensionContext context) {
@@ -87,56 +142,5 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
         var managementParticipantContextId = context.getSetting(
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + MANAGEMENT_CONTEXT_SUFFIX);
         return Stream.of(participantContextId, managementParticipantContextId).distinct().toList();
-    }
-
-    private void registerFromConfig(Config entry, List<String> participantContextIds) {
-        var node = entry.currentNode();
-        boolean enabled = entry.getBoolean(KEY_ENABLED, true);
-        if (!enabled) {
-            log.info("Data plane entry '{}' is disabled — skipping.", node);
-            return;
-        }
-        participantContextIds.forEach(participantContextId -> register(entry, node, participantContextId));
-    }
-
-    private void register(Config entry, String node, String participantContextId) {
-        var instance = buildInstance(entry, participantContextId);
-        var result = dataPlaneInstanceStore.save(instance);
-        if (result.failed()) {
-            log.error("Failed to register data plane '{}' (config node '{}'): {}",
-                    instance.getId(), node, result.getFailureDetail());
-            return;
-        }
-        log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
-                instance.getId(), participantContextId, node, instance.getUrl());
-    }
-
-    private DataPlaneInstance buildInstance(Config entry, String participantContextId) {
-        var builder = DataPlaneInstance.Builder.newInstance()
-                .id(instanceId(entry.getString(KEY_ID), participantContextId))
-                .participantContextId(participantContextId)
-                .url(entry.getString(KEY_URL));
-
-        getMultiValues(entry, KEY_ALLOWED_SOURCE_TYPES).forEach(builder::allowedSourceType);
-        getMultiValues(entry, KEY_ALLOWED_TRANSFER_TYPES).forEach(builder::allowedTransferType);
-
-        var instance = builder.build();
-        instance.transitionToRegistered();
-        return instance;
-    }
-
-    private static String instanceId(String baseId, String participantContextId) {
-        return baseId + "::" + participantContextId;
-    }
-
-    private static List<String> getMultiValues(Config entry, String key) {
-        var value = entry.getString(key, "");
-        if (value == null || value.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(value.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
     }
 }

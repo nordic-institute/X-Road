@@ -64,21 +64,15 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
+    private final ServiceContextResolver serviceContextResolver;
+    private final DspParticipantContextHolder dspParticipantContextHolder;
     private final QueryEvaluator<ContractDefinition> queryEvaluator =
             new QueryEvaluator<>(ContractDefinition::getId, ContractDefinition::getParticipantContextId);
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String resolveContextId(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : participantContextId;
-    }
 
     @Override
     @Nullable
     public ContractDefinition findById(String definitionId) {
-        return cache.findById(definitionId, () -> findByIdInternal(definitionId));
+        return cache.findById(definitionId, dspParticipantContextHolder.get(), () -> findByIdInternal(definitionId));
     }
 
     @Nullable
@@ -203,8 +197,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        return ContractDefinitionMapper.toContractDefinition(serviceId,
-                matchedEntries.getFirst().getSubjectId(), resolveContextId(serviceId));
+        var ctxId = ServiceContextResolver.selectContext(
+                serviceContextResolver.resolveContexts(serviceId), dspParticipantContextHolder.get());
+        return ContractDefinitionMapper.toContractDefinition(serviceId, matchedEntries.getFirst().getSubjectId(), ctxId);
     }
 
     /**
@@ -225,10 +220,13 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
+        var contexts = serviceContextResolver.resolveContexts(serviceId);
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();
-            definitions.add(ContractDefinitionMapper.toContractDefinition(serviceId,
-                    subjectAccessRights.getFirst().getSubjectId(), resolveContextId(serviceId)));
+            for (var ctxId : contexts) {
+                definitions.add(ContractDefinitionMapper.toContractDefinition(serviceId,
+                        subjectAccessRights.getFirst().getSubjectId(), ctxId));
+            }
         }
     }
 

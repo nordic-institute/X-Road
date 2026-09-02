@@ -28,23 +28,36 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.util.List;
 
 /**
  * Overrides EDC's default catalog SPIs (AssetIndex, DataAddressResolver,
  * PolicyDefinitionStore, ContractDefinitionStore) with ServerConf-backed read-only stores.
+ *
+ * <p>Also exposes a {@link CatalogCacheInvalidator} hook so other extensions can invalidate the
+ * store-enumeration caches when a change (e.g. a new participant context) must be visible immediately.</p>
  */
 @Slf4j
+@Provides(CatalogCacheInvalidator.class)
 @Extension(XRoadServerConfCatalogExtension.NAME)
 public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
@@ -77,11 +90,22 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
     @Inject
     private GlobalConfProvider globalConfProvider;
 
+    @Inject
+    private ParticipantContextService participantContextService;
+
+    @Inject
+    private WebService webService;
+
     private String participantContextId;
     private String managementParticipantContextId;
     private BuiltinServiceCatalog builtinServiceCatalog;
     private StoreCacheConfig cacheConfig;
+    private ServiceContextResolver serviceContextResolver;
+    private DspParticipantContextHolder dspParticipantContextHolder;
     private AssetIndexServerConfStore assetIndexStore;
+    private StoreEnumerationCache<PolicyDefinition> policyDefinitionCache;
+    private StoreEnumerationCache<ContractDefinition> contractDefinitionCache;
+    private CatalogCacheInvalidator catalogCacheInvalidator;
 
     @Override
     public String name() {
@@ -114,11 +138,23 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.info("Store cache enabled={} ttlSeconds={} findByIdMaxSize={}",
                 cacheEnabled, cacheTtlSeconds, cacheFindByIdMaxSize);
 
+        serviceContextResolver = new ServiceContextResolver(
+                participantContextService, globalConfProvider, participantContextId, managementParticipantContextId);
+        dspParticipantContextHolder = new DspParticipantContextHolder();
+        webService.registerResource(ApiContext.PROTOCOL, new DspParticipantContextRequestFilter(dspParticipantContextHolder));
+
+        StoreEnumerationCache<Asset> assetCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
+                cacheConfig.findByIdMaxSize(), "AssetIndex");
+        policyDefinitionCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
+                cacheConfig.findByIdMaxSize(), "PolicyDefinition");
+        contractDefinitionCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
+                cacheConfig.findByIdMaxSize(), "ContractDefinition");
+
         assetIndexStore = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId,
-                builtinServiceCatalog,
-                new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
-                        cacheConfig.findByIdMaxSize(), "AssetIndex"));
+                builtinServiceCatalog, assetCache, serviceContextResolver, dspParticipantContextHolder);
+
+        catalogCacheInvalidator = new DefaultCatalogCacheInvalidator(List.of(assetCache, policyDefinitionCache, contractDefinitionCache));
     }
 
     @Provider
@@ -139,8 +175,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         return new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(),
                 participantContextId, managementParticipantContextId, builtinServiceCatalog,
-                new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
-                        cacheConfig.findByIdMaxSize(), "PolicyDefinition"));
+                policyDefinitionCache,
+                serviceContextResolver, dspParticipantContextHolder);
     }
 
     @Provider
@@ -150,7 +186,16 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 serverConfProvider, globalConfProvider,
                 participantContextId, managementParticipantContextId,
                 builtinServiceCatalog,
-                new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
-                        cacheConfig.findByIdMaxSize(), "ContractDefinition"));
+                contractDefinitionCache,
+                serviceContextResolver, dspParticipantContextHolder);
+    }
+
+    /**
+     * Exposes the hook other extensions call to invalidate the catalog store-enumeration caches
+     * when a change (e.g. a genuine participant-context creation) must be visible immediately.
+     */
+    @Provider
+    public CatalogCacheInvalidator catalogCacheInvalidator() {
+        return catalogCacheInvalidator;
     }
 }

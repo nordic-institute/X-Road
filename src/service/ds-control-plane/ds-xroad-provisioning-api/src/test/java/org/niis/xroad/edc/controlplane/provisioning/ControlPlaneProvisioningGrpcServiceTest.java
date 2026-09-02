@@ -46,6 +46,8 @@ import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantConte
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
+import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
+import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +63,10 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @Mock
     private ParticipantContextConfigService participantContextConfigService;
     @Mock
+    private DataPlaneContextRegistrar dataPlaneContextRegistrar;
+    @Mock
+    private CatalogCacheInvalidator catalogCacheInvalidator;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> createObserver;
     @Mock
     private StreamObserver<PutParticipantContextConfigResp> configObserver;
@@ -70,7 +76,8 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @BeforeEach
     void setUp() {
         service = new ControlPlaneProvisioningGrpcService(
-                participantContextService, participantContextConfigService, new RpcResponseHandler());
+                participantContextService, participantContextConfigService, dataPlaneContextRegistrar,
+                catalogCacheInvalidator, new RpcResponseHandler());
     }
 
     @ParameterizedTest
@@ -85,6 +92,8 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+        verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
+        verify(catalogCacheInvalidator, never()).invalidateStoreCaches();
     }
 
     @ParameterizedTest
@@ -99,6 +108,8 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+        verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
+        verify(catalogCacheInvalidator, never()).invalidateStoreCaches();
     }
 
     @Test
@@ -119,10 +130,12 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onNext(any());
         verify(createObserver).onCompleted();
         verify(createObserver, never()).onError(any());
+        verify(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+        verify(catalogCacheInvalidator).invalidateStoreCaches();
     }
 
     @Test
-    void createParticipantContextToleratesConflict() {
+    void createParticipantContextToleratesConflictAndStillRegistersDataPlaneButSkipsCacheInvalidation() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.conflict("already exists"));
 
@@ -136,6 +149,26 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onNext(any());
         verify(createObserver).onCompleted();
         verify(createObserver, never()).onError(any());
+        verify(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+        verify(catalogCacheInvalidator, never()).invalidateStoreCaches();
+    }
+
+    @Test
+    void createParticipantContextDoesNotRegisterDataPlaneOrInvalidateCacheOnUnexpectedFailure() {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.unexpected("db down"));
+
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
+        verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
+        verify(catalogCacheInvalidator, never()).invalidateStoreCaches();
     }
 
     @Test

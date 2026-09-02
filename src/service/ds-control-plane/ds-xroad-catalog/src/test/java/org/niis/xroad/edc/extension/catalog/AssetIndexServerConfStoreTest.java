@@ -31,13 +31,17 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -48,6 +52,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +69,11 @@ class AssetIndexServerConfStoreTest {
 
     @Mock
     private GlobalConfProvider globalConfProvider;
+
+    @Mock
+    private ParticipantContextService participantContextService;
+
+    private final DspParticipantContextHolder dspParticipantContextHolder = new DspParticipantContextHolder();
 
     private AssetIndexServerConfStore assetIndex;
 
@@ -88,7 +98,13 @@ class AssetIndexServerConfStoreTest {
     void setUp() {
         assetIndex = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                noBuiltins(), DISABLED_CACHE);
+                noBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
+    }
+
+    private ServiceContextResolver serviceContextResolver() {
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        return new ServiceContextResolver(
+                participantContextService, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID);
     }
 
     private BuiltinServiceCatalog allBuiltins() {
@@ -365,6 +381,23 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
+    void queryAssetsWithMemberCtxFilterReturnsMemberServicesOnly() {
+        setupMembersAndServices();
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1111");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+
+        var memberSpec = QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", memberCtxId))
+                .build();
+        var memberResult = assetIndex.queryAssets(memberSpec).toList();
+
+        assertThat(memberResult).extracting(Asset::getId).containsExactly(SERVICE_1.asEncodedId());
+        assertThat(memberResult).allSatisfy(asset ->
+                assertThat(asset.getParticipantContextId()).isEqualTo(memberCtxId));
+    }
+
+    @Test
     void findByIdMgmtServiceTaggedWithMgmtCtx() {
         when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
@@ -380,7 +413,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsIncludesBuiltinsWhenNoServerconfServices() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
@@ -394,7 +427,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsBuiltinsTaggedWithMgmtContext() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
@@ -407,7 +440,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsBuiltinsNeverTaggedWithHostContext() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
@@ -420,7 +453,7 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsHostCtxFilterExcludesBuiltins() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var hostSpec = QuerySpec.Builder.newInstance()
@@ -436,7 +469,7 @@ class AssetIndexServerConfStoreTest {
     void findByIdReturnsBuiltinAsset() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.findById(builtinAssetId);
@@ -450,7 +483,7 @@ class AssetIndexServerConfStoreTest {
     void findByIdReturnsNullForUnknownBuiltinServiceCode() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
 
         var result = store.findById("DEV:GOV:1111:nonExistentService");
 
@@ -462,7 +495,7 @@ class AssetIndexServerConfStoreTest {
     void resolveForAssetReturnsDataAddressForBuiltin() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.resolveForAsset(builtinAssetId);
@@ -481,7 +514,7 @@ class AssetIndexServerConfStoreTest {
     void resolveForAssetReturnsNullForDisabledBuiltin() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                noBuiltins(), DISABLED_CACHE);
+                noBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.resolveForAsset(builtinAssetId);
@@ -517,10 +550,114 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
+    void queryAssetsIncludesMemberContextRowForProvisionedOwner() {
+        setupMembersAndServices();
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1111");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        var service1Contexts = result.stream()
+                .filter(a -> a.getId().equals(SERVICE_1.asEncodedId()))
+                .map(Asset::getParticipantContextId)
+                .toList();
+        assertThat(service1Contexts).containsExactlyInAnyOrder(
+                MGMT_PARTICIPANT_CONTEXT_ID, PARTICIPANT_CONTEXT_ID, memberCtxId);
+    }
+
+    @Test
+    void queryAssetsNoMemberContextRowWhenOwnerNotProvisioned() {
+        setupMembersAndServices();
+        stubPersistedMemberContext();
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).extracting(Asset::getParticipantContextId)
+                .allMatch(ctx -> ctx.equals(PARTICIPANT_CONTEXT_ID) || ctx.equals(MGMT_PARTICIPANT_CONTEXT_ID));
+    }
+
+    @Test
+    void queryAssetsSubsystemOwnedServiceCollapsesToMemberContext() {
+        var subsystemService = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemZ", "otherOp");
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(subsystemService));
+        when(serverConfProvider.getDisabledNotice(subsystemService)).thenReturn(null);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1111");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        assertThat(result).extracting(Asset::getParticipantContextId)
+                .containsExactlyInAnyOrder(MGMT_PARTICIPANT_CONTEXT_ID, PARTICIPANT_CONTEXT_ID, memberCtxId);
+    }
+
+    @Test
+    void findByIdStillReturnsHostContextWhenOwnerIsProvisioned() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1111");
+        stubPersistedMemberContext(ParticipantIdentifierScheme.memberCtxId(memberOnly));
+
+        var result = assetIndex.findById(SERVICE_1.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+    }
+
+    private void stubPersistedMemberContext(String... memberCtxIds) {
+        var contexts = List.of(memberCtxIds).stream()
+                .map(id -> ParticipantContext.Builder.newInstance().participantContextId(id).identity(id).build())
+                .toList();
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(contexts));
+    }
+
+    /**
+     * Regression test for the negotiation-ownership-validation 404: EDC's DSP negotiation flow
+     * resolves a contract's asset by id with no context parameter, then checks the returned row's
+     * participantContextId against the participant context the request was addressed to
+     * (ContractNegotiationProtocolServiceImpl#fetchValidatableOffer). Before this fix, findById
+     * always tagged the row with the host context, so any negotiation addressed to a provisioned
+     * member's context was rejected as not belonging to that context.
+     */
+    @Test
+    void findByIdReturnsMemberContextRowWhenRequestTargetsThatMemberContext() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1111");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+        dspParticipantContextHolder.set(memberCtxId);
+
+        var result = assetIndex.findById(SERVICE_1.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(memberCtxId);
+    }
+
+    @Test
+    void findByIdFallsBackToHostContextWhenRequestedContextIsNotPublishedForThisService() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        stubPersistedMemberContext();
+        dspParticipantContextHolder.set("some-other-participant-context");
+
+        var result = assetIndex.findById(SERVICE_1.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
     void countAssetsIncludesBuiltins() {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var count = store.countAssets(List.of());

@@ -3,9 +3,12 @@ plugins {
 }
 
 dependencies {
+  implementation(project(":common:common-core"))
+
   implementation(libs.edc.spi.core)
   implementation(libs.edc.boot)
   implementation(libs.edc.spi.dataplane.selector)
+  implementation(libs.edc.spi.participantcontext)
   implementation(libs.jakarta.annotationApi)
   implementation(libs.slf4j.api)
 

@@ -33,14 +33,18 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -50,6 +54,8 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,6 +73,11 @@ class PolicyDefinitionServerConfStoreTest {
 
     @Mock
     private GlobalConfProvider globalConfProvider;
+
+    @Mock
+    private ParticipantContextService participantContextService;
+
+    private final DspParticipantContextHolder dspParticipantContextHolder = new DspParticipantContextHolder();
 
     private PolicyDefinitionServerConfStore store;
 
@@ -87,7 +98,13 @@ class PolicyDefinitionServerConfStoreTest {
     void setUp() {
         store = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins(), DISABLED_CACHE);
+                noBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
+    }
+
+    private ServiceContextResolver serviceContextResolver() {
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        return new ServiceContextResolver(
+                participantContextService, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX);
     }
 
     private BuiltinServiceCatalog allBuiltins() {
@@ -366,7 +383,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllIncludesBuiltinPolicies() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.none()).toList();
@@ -378,7 +395,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllBuiltinPoliciesTaggedWithMgmtContext() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.none()).toList();
@@ -391,7 +408,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var hostSpec = QuerySpec.Builder.newInstance()
@@ -407,7 +424,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findByIdReturnsBuiltinPolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
         var result = builtinStore.findById(builtinAssetId);
@@ -421,7 +438,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService");
 
@@ -476,7 +493,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllBuiltinPoliciesHavePermissivePolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                allBuiltins(), DISABLED_CACHE);
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = builtinStore.findAll(QuerySpec.none()).toList();
@@ -489,7 +506,7 @@ class PolicyDefinitionServerConfStoreTest {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins(), cache);
+                noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
@@ -507,7 +524,7 @@ class PolicyDefinitionServerConfStoreTest {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins(), cache);
+                noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
@@ -526,7 +543,7 @@ class PolicyDefinitionServerConfStoreTest {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins(), cache);
+                noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
@@ -544,7 +561,7 @@ class PolicyDefinitionServerConfStoreTest {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
-                noBuiltins(), cache);
+                noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var unknownService = ServiceId.Conf.create("DEV", "GOV", "0000", "None", "noSvc", "v1");
         when(serverConfProvider.serviceExists(unknownService)).thenReturn(false);
 
@@ -556,6 +573,117 @@ class PolicyDefinitionServerConfStoreTest {
         assertThat(r1).isNull();
         assertThat(r2).isNull();
         verify(serverConfProvider, times(2)).serviceExists(unknownService);
+    }
+
+    @Test
+    void findAllIncludesMemberContextRowForProvisionedOwner() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1234");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
+        var perSubject = result.stream()
+                .filter(p -> !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(perSubject).extracting(PolicyDefinition::getParticipantContextId)
+                .containsExactlyInAnyOrder(PARTICIPANT_CTX, memberCtxId);
+    }
+
+    @Test
+    void findAllNoMemberContextRowWhenOwnerNotProvisioned() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
+        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        stubPersistedMemberContext();
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
+        assertThat(result).extracting(PolicyDefinition::getParticipantContextId)
+                .allMatch(ctx -> ctx.equals(PARTICIPANT_CTX) || ctx.equals(MGMT_PARTICIPANT_CTX));
+    }
+
+    @Test
+    void findAllSubsystemOwnedServiceCollapsesToMemberContext() {
+        var subsystemOwner = ClientId.Conf.create("DEV", "GOV", "1234", "OtherSubSys");
+        var subsystemService = ServiceId.Conf.create(subsystemOwner, "otherOp");
+        var ep = new Endpoint("otherOp", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
+        when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(subsystemService));
+        when(serverConfProvider.getDisabledNotice(subsystemService)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(subsystemService)).thenReturn(List.of(ar));
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1234");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
+        var perSubject = result.stream()
+                .filter(p -> !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
+                .toList();
+        assertThat(perSubject).extracting(PolicyDefinition::getParticipantContextId)
+                .containsExactlyInAnyOrder(PARTICIPANT_CTX, memberCtxId);
+    }
+
+    @Test
+    void findByIdStillReturnsHostContextWhenOwnerIsProvisioned() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var accessRight = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(accessRight));
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1234");
+        stubPersistedMemberContext(ParticipantIdentifierScheme.memberCtxId(memberOnly));
+
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+        var result = store.findById(policyId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+    }
+
+    /**
+     * Regression test for the negotiation-ownership-validation 404: EDC's DSP negotiation flow
+     * resolves the offer's policy by id with no context parameter, then checks the returned row's
+     * participantContextId against the participant context the request was addressed to
+     * (ContractNegotiationProtocolServiceImpl#fetchValidatableOffer via ConsumerOfferResolver).
+     * Before this fix, findById always tagged the row with the host context, so any negotiation
+     * addressed to a provisioned member's context was rejected as not belonging to that context.
+     */
+    @Test
+    void findByIdReturnsMemberContextRowWhenRequestTargetsThatMemberContext() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var accessRight = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(accessRight));
+        var memberOnly = ClientId.Conf.create("DEV", "GOV", "1234");
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(memberOnly);
+        stubPersistedMemberContext(memberCtxId);
+        dspParticipantContextHolder.set(memberCtxId);
+
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+        var result = store.findById(policyId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(memberCtxId);
+    }
+
+    private void stubPersistedMemberContext(String... memberCtxIds) {
+        var contexts = List.of(memberCtxIds).stream()
+                .map(id -> ParticipantContext.Builder.newInstance().participantContextId(id).identity(id).build())
+                .toList();
+        when(participantContextService.search(any())).thenReturn(ServiceResult.success(contexts));
     }
 
     private static AccessRight createAccessRight(ee.ria.xroad.common.identifier.XRoadId subjectId, Endpoint endpoint) {
