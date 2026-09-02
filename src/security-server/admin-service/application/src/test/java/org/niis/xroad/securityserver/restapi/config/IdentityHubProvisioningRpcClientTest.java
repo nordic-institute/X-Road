@@ -42,8 +42,8 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContex
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
@@ -66,7 +66,7 @@ class IdentityHubProvisioningRpcClientTest {
     private IdentityHubProvisioningRpcClient client;
 
     private GetCredentialRequestStateResp configuredStateResp;
-    private GetParticipantContextExistsResp configuredExistsResp;
+    private GetParticipantContextDidResp configuredDidResp;
     private final AtomicReference<CreateParticipantContextReq> capturedCreateReq = new AtomicReference<>();
     private final AtomicReference<RequestCredentialReq> capturedRequestCredReq = new AtomicReference<>();
 
@@ -97,9 +97,9 @@ class IdentityHubProvisioningRpcClientTest {
             }
 
             @Override
-            public void getParticipantContextExists(GetParticipantContextExistsReq request,
-                                                    StreamObserver<GetParticipantContextExistsResp> responseObserver) {
-                responseObserver.onNext(configuredExistsResp);
+            public void getParticipantContextDid(GetParticipantContextDidReq request,
+                                                 StreamObserver<GetParticipantContextDidResp> responseObserver) {
+                responseObserver.onNext(configuredDidResp);
                 responseObserver.onCompleted();
             }
         };
@@ -147,9 +147,8 @@ class IdentityHubProvisioningRpcClientTest {
     }
 
     @Test
-    void getParticipantContextDidReturnsDidWhenExists() {
-        configuredExistsResp = GetParticipantContextExistsResp.newBuilder()
-                .setExists(true)
+    void getParticipantContextDidReturnsDidWhenPresent() {
+        configuredDidResp = GetParticipantContextDidResp.newBuilder()
                 .setDid("did:web:example")
                 .build();
 
@@ -158,7 +157,7 @@ class IdentityHubProvisioningRpcClientTest {
 
     @Test
     void getParticipantContextDidReturnsEmptyWhenAbsent() {
-        configuredExistsResp = GetParticipantContextExistsResp.newBuilder().setExists(false).build();
+        configuredDidResp = GetParticipantContextDidResp.getDefaultInstance();
 
         assertThat(client.getParticipantContextDid("ctx-id")).isEmpty();
     }

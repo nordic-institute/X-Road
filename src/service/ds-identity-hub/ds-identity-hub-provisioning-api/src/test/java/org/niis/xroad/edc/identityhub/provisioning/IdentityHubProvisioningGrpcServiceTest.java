@@ -44,8 +44,8 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContex
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
@@ -184,21 +184,20 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParticipantContextExistsReturnsTrueAndDidWhenFound() {
+    void getParticipantContextDidReturnsDidWhenFound() {
         var context = mock(org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext.class);
         when(context.getDid()).thenReturn("did:web:ih.example.test%3A7183");
         when(participantContextService.getParticipantContext("ctx-1"))
                 .thenReturn(ServiceResult.success(context));
 
-        StreamObserver<GetParticipantContextExistsResp> observer = mock(StreamObserver.class);
-        var request = GetParticipantContextExistsReq.newBuilder()
+        StreamObserver<GetParticipantContextDidResp> observer = mock(StreamObserver.class);
+        var request = GetParticipantContextDidReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .build();
 
-        service.getParticipantContextExists(request, observer);
+        service.getParticipantContextDid(request, observer);
 
-        verify(observer).onNext(GetParticipantContextExistsResp.newBuilder()
-                .setExists(true)
+        verify(observer).onNext(GetParticipantContextDidResp.newBuilder()
                 .setDid("did:web:ih.example.test%3A7183")
                 .build());
         verify(observer).onCompleted();
@@ -206,34 +205,34 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParticipantContextExistsReturnsFalseOnlyForNotFound() {
+    void getParticipantContextDidReturnsNoDidOnlyForNotFound() {
         when(participantContextService.getParticipantContext("ctx-1"))
                 .thenReturn(ServiceResult.notFound("ctx-1 not found"));
 
-        StreamObserver<GetParticipantContextExistsResp> observer = mock(StreamObserver.class);
-        var request = GetParticipantContextExistsReq.newBuilder()
+        StreamObserver<GetParticipantContextDidResp> observer = mock(StreamObserver.class);
+        var request = GetParticipantContextDidReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .build();
 
-        service.getParticipantContextExists(request, observer);
+        service.getParticipantContextDid(request, observer);
 
-        verify(observer).onNext(GetParticipantContextExistsResp.newBuilder().setExists(false).build());
+        verify(observer).onNext(GetParticipantContextDidResp.getDefaultInstance());
         verify(observer).onCompleted();
         verify(observer, never()).onError(any());
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParticipantContextExistsSurfacesErrorForNonNotFoundFailure() {
+    void getParticipantContextDidSurfacesErrorForNonNotFoundFailure() {
         when(participantContextService.getParticipantContext("ctx-1"))
                 .thenReturn(ServiceResult.unexpected("db unreachable"));
 
-        StreamObserver<GetParticipantContextExistsResp> observer = mock(StreamObserver.class);
-        var request = GetParticipantContextExistsReq.newBuilder()
+        StreamObserver<GetParticipantContextDidResp> observer = mock(StreamObserver.class);
+        var request = GetParticipantContextDidReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .build();
 
-        service.getParticipantContextExists(request, observer);
+        service.getParticipantContextDid(request, observer);
 
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(observer, never()).onCompleted();

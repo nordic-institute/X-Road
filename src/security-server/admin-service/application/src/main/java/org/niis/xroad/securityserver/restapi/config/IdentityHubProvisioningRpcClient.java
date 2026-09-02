@@ -35,7 +35,7 @@ import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.springframework.beans.factory.DisposableBean;
@@ -121,9 +121,9 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
     }
 
     public Optional<String> getParticipantContextDid(String participantContextId) {
-        var response = exec(() -> stub.getParticipantContextExists(GetParticipantContextExistsReq.newBuilder()
+        var response = exec(() -> stub.getParticipantContextDid(GetParticipantContextDidReq.newBuilder()
                 .setParticipantContextId(participantContextId)
                 .build()));
-        return response.getExists() ? Optional.of(response.getDid()) : Optional.empty();
+        return response.hasDid() ? Optional.of(response.getDid()) : Optional.empty();
     }
 }

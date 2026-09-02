@@ -40,8 +40,8 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContex
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsReq;
-import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextExistsResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
@@ -90,9 +90,9 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
     }
 
     @Override
-    public void getParticipantContextExists(GetParticipantContextExistsReq request,
-                                            StreamObserver<GetParticipantContextExistsResp> responseObserver) {
-        responseHandler.handleRequest(responseObserver, () -> getParticipantContextExistsInternal(request));
+    public void getParticipantContextDid(GetParticipantContextDidReq request,
+                                         StreamObserver<GetParticipantContextDidResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> getParticipantContextDidInternal(request));
     }
 
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
@@ -147,16 +147,15 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 .build();
     }
 
-    private GetParticipantContextExistsResp getParticipantContextExistsInternal(GetParticipantContextExistsReq request) {
+    private GetParticipantContextDidResp getParticipantContextDidInternal(GetParticipantContextDidReq request) {
         var result = participantContextService.getParticipantContext(request.getParticipantContextId());
         if (result.succeeded()) {
-            return GetParticipantContextExistsResp.newBuilder()
-                    .setExists(true)
+            return GetParticipantContextDidResp.newBuilder()
                     .setDid(result.getContent().getDid())
                     .build();
         }
         if (result.reason() == ServiceFailure.Reason.NOT_FOUND) {
-            return GetParticipantContextExistsResp.newBuilder().setExists(false).build();
+            return GetParticipantContextDidResp.getDefaultInstance();
         }
         throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId(), result.getFailureDetail());
     }
