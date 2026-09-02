@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import email
 import os
+import re
 import sys
 import time
 import logging
@@ -75,13 +76,17 @@ class CAHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(self.FORM_HTML)
 
+    # openssl config subjectAltName syntax (DNS:host,IP:1.2.3.4,...) — restricted so the
+    # value can only reach openssl as data, never as config syntax beyond a SAN list.
+    SAN_RE = re.compile(r'^[A-Za-z0-9.,:_@/*\[\]-]+$')
+
     def _parse_multipart(self):
         # Parse the multipart/form-data POST with the stdlib email module.
         # Replaces cgi.FieldStorage (the cgi module was removed in Python 3.13).
-        # Returns (certreq_filename, certreq_bytes, req_type).
+        # Returns (certreq_filename, certreq_bytes, req_type, san).
         length = int(self.headers.get('Content-Length', 0))
         if length <= 0 or length > 10000:
-            return (None, None, 'auto')
+            return (None, None, 'auto', '')
         body = self.rfile.read(length)
         msg = email.message_from_bytes(
             b"Content-Type: " + self.headers.get('Content-Type', '').encode()
@@ -89,6 +94,7 @@ class CAHandler(BaseHTTPRequestHandler):
         certreq_filename = None
         certreq_bytes = None
         req_type = 'auto'
+        san = ''
         if msg.is_multipart():
             for part in msg.get_payload():
                 name = part.get_param('name', header='content-disposition')
@@ -97,7 +103,9 @@ class CAHandler(BaseHTTPRequestHandler):
                     certreq_bytes = part.get_payload(decode=True)
                 elif name == 'type':
                     req_type = part.get_payload(decode=True).decode().strip()
-        return (certreq_filename, certreq_bytes, req_type)
+                elif name == 'san':
+                    san = part.get_payload(decode=True).decode().strip()
+        return (certreq_filename, certreq_bytes, req_type, san)
 
     def do_POST(self):
         self.log_request_info()
@@ -108,7 +116,12 @@ class CAHandler(BaseHTTPRequestHandler):
             self.send_response(100)
             self.end_headers()
 
-        (req_filename, req_bytes, req_type) = self._parse_multipart()
+        (req_filename, req_bytes, req_type, san) = self._parse_multipart()
+
+        if san and not self.SAN_RE.match(san):
+            logger.warning("Bad request - invalid san field")
+            self.send_response(400, "Bad Request - Invalid san field")
+            return
 
         if req_filename and req_bytes is not None:
             # The field contains an uploaded file
@@ -132,7 +145,10 @@ class CAHandler(BaseHTTPRequestHandler):
                 t.write(req_bytes)
                 t.flush()
                 logger.info(f"Executing sign_req.sh with type {sign_type}")
-                p = subprocess.Popen(["bash", "/home/ca/CA/sign_req.sh", sign_type, t.name],
+                cmd = ["bash", "/home/ca/CA/sign_req.sh", sign_type, t.name]
+                if san:
+                    cmd.append(san)
+                p = subprocess.Popen(cmd,
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
                 (out, err) = p.communicate()

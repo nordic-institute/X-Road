@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ "$1" = "" ] || [ "$2" = "" ]
 then
-    echo Usage $0 [auth|sign] [certificate request file] >&2
+    echo Usage $0 [auth|sign] [certificate request file] [subjectAltName] >&2
     exit 1
 fi
 
@@ -44,12 +44,18 @@ function opensslCA() {
 }
 
 if [ "$1" == "auth" ]; then
-  # openssl req -text prints IP entries as "IP Address:1.2.3.4"; openssl config
-  # syntax wants "IP:1.2.3.4". Translate so re-injection through extfile parses.
-  subjectAltName=$(openssl req -in csr/${SER}.csr -text -noout \
-    | grep -A1 "Subject Alternative Name" | tail -n1 \
-    | sed 's/^[ \t]*//' \
-    | sed 's/IP Address:/IP:/g')
+  # An explicit subjectAltName argument wins over whatever the CSR carries: CSRs from
+  # the admin API's DS TLS flow are DN-only by design (the private key never leaves the
+  # server), so the CA is the only place the SAN list can be attached.
+  subjectAltName="${3:-}"
+  if [ -z "$subjectAltName" ]; then
+    # openssl req -text prints IP entries as "IP Address:1.2.3.4"; openssl config
+    # syntax wants "IP:1.2.3.4". Translate so re-injection through extfile parses.
+    subjectAltName=$(openssl req -in csr/${SER}.csr -text -noout \
+      | grep -A1 "Subject Alternative Name" | tail -n1 \
+      | sed 's/^[ \t]*//' \
+      | sed 's/IP Address:/IP:/g')
+  fi
   if [ ! -z "$subjectAltName" ]; then
     extensionsOverride="
 [ auth_ext ]
