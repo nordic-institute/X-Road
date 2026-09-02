@@ -1,0 +1,34 @@
+---
+# The ds-* Deployments are excluded from the role's install-time availability wait:
+# they fail fast on an empty tls/ds-https vault slot (by design) and only converge
+# once the DS TLS certificate has been provisioned through the admin API by the
+# e2e-fixtures hurl bootstrap, which runs after every chart is installed.
+- name: Wait for DS Deployments to become Available
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ security_server_namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/instance=security-server"
+  register: ss_ds_deployments
+  until: >-
+    (ss_ds_deployments.resources | selectattr('metadata.name', 'match', '^ds-') | list | length > 0) and
+    (ss_ds_deployments.resources
+     | selectattr('metadata.name', 'match', '^ds-')
+     | map(attribute='spec.replicas', default=0)
+     | map('int') | sum) ==
+    (ss_ds_deployments.resources
+     | selectattr('metadata.name', 'match', '^ds-')
+     | map(attribute='status.availableReplicas', default=0)
+     | map('int') | sum)
+  retries: "{{ security_server_wait_retries }}"
+  delay: "{{ security_server_wait_delay }}"
+
+- name: Summarise DS pod readiness
+  ansible.builtin.debug:
+    msg: >-
+      {{ item.metadata.name }}: available {{ item.status.availableReplicas | default(0) }}/{{ item.status.replicas | default(0) }}
+  loop: "{{ ss_ds_deployments.resources | selectattr('metadata.name', 'match', '^ds-') | list }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"

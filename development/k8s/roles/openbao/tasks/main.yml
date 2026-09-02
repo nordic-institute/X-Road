@@ -186,10 +186,8 @@
   retries: 30
   delay: 2
 
-# Modeled on the ds_https_keystore role's ds-https-vault-seed Job. Unlike that
-# role this one already runs once per Security Server instance (looped from
-# site.yml), so there's no extra-namespaces loop here — just this instance's
-# own namespace, once its OpenBao is initialized and xroad-token exists.
+# Runs once per Security Server instance (looped from site.yml) — just this
+# instance's own namespace, once its OpenBao is initialized and xroad-token exists.
 - name: Seed messagelog PGP public keyring into OpenBao (when configured)
   when: (messagelog_encryption_pgp_public_keyring_file | default('')) | length > 0
   block:
@@ -206,8 +204,8 @@
           data:
             public-keys.asc: "{{ lookup('file', messagelog_encryption_pgp_public_keyring_file) }}"
 
-    # K8s Jobs are immutable — delete and recreate on every run, same pattern
-    # as ds-https-vault-seed. The KV v1 write itself is a plain overwrite, so
+    # K8s Jobs are immutable — delete and recreate on every run. The KV v1
+    # write itself is a plain overwrite, so
     # re-running the play is safe and simply reseeds.
     - name: Remove stale messagelog-pgp-keyring-vault-seed Job before reseeding
       kubernetes.core.k8s:

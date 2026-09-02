@@ -28,6 +28,10 @@
     wait: false
     values: "{{ lookup('template', 'security-server-values.yaml.j2') | from_yaml }}"
 
+# The ds-* Deployments are excluded here: they fail fast on an empty tls/ds-https
+# vault slot (by design) and cannot become Available before the e2e-fixtures hurl
+# bootstrap — which runs after this role — provisions the DS TLS certificate
+# through the admin API. Their convergence is awaited by wait_ds_available.yml.
 - name: Wait for Security Server Deployments to become Available
   kubernetes.core.k8s_info:
     kubeconfig: "{{ kubeconfig_path }}"
@@ -38,11 +42,13 @@
       - "app.kubernetes.io/instance=security-server"
   register: ss_deployments
   until: >-
-    (ss_deployments.resources | length > 0) and
+    (ss_deployments.resources | rejectattr('metadata.name', 'match', '^ds-') | list | length > 0) and
     (ss_deployments.resources
+     | rejectattr('metadata.name', 'match', '^ds-')
      | map(attribute='spec.replicas', default=0)
      | map('int') | sum) ==
     (ss_deployments.resources
+     | rejectattr('metadata.name', 'match', '^ds-')
      | map(attribute='status.availableReplicas', default=0)
      | map('int') | sum)
   retries: "{{ security_server_wait_retries }}"
@@ -52,6 +58,6 @@
   ansible.builtin.debug:
     msg: >-
       {{ item.metadata.name }}: available {{ item.status.availableReplicas | default(0) }}/{{ item.status.replicas | default(0) }}
-  loop: "{{ ss_deployments.resources }}"
+  loop: "{{ ss_deployments.resources | rejectattr('metadata.name', 'match', '^ds-') | list }}"
   loop_control:
     label: "{{ item.metadata.name }}"

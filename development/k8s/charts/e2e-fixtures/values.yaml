@@ -236,10 +236,19 @@ hurl:
     is_rest_url: "http://isrest.cs:8080/integration/mock_1"
     is_openapi_url: "http://isopenapi.cs:8080/v3/api-docs"
     # setup.hurl registers this file as the DataSpace TLS CA
-    # (POST /ds-tls-certification-authorities). Like compose — and unlike LXD,
-    # which anchors to its external test CA — the in-cluster topology has no
-    # issuing CA: every namespace serves the ds-https-keystore chart's one
-    # self-signed cert, so that cert is registered as its own trust anchor.
-    # The file is projected from the ds-https-keystore Secret into the Job's
-    # file-root (see hurl-bootstrap-job.yaml).
-    ds_tls_ca_file: ds/ds-https-cert.pem
+    # (POST /ds-tls-certification-authorities): the test CA root the
+    # fetch-ca-certs initContainer downloads into the Job's file-root — the
+    # same CA that signs every server's DS TLS leaf when setup.hurl provisions
+    # it through the admin API's manual CSR flow.
+    ds_tls_ca_file: ca/ca.pem
+    # DS TLS leaf DN/SAN per server, consumed by setup.hurl's provisioning
+    # steps. The DN CN is the server's DS public hostname; the SAN list carries
+    # every namespace-qualified Service name the server's ds-* endpoints are
+    # dialed on (Jetty SNI checks and client hostname verification both resolve
+    # against it).
+    cs_ds_tls_dn: CN=central-server.cs
+    cs_ds_tls_san: DNS:central-server.cs,DNS:central-server,DNS:localhost
+    ss0_ds_tls_dn: CN=ds-identity-hub.ss0
+    ss0_ds_tls_san: DNS:ds-control-plane.ss0,DNS:ds-identity-hub.ss0,DNS:localhost
+    ss1_ds_tls_dn: CN=ds-identity-hub.ss1
+    ss1_ds_tls_san: DNS:ds-control-plane.ss1,DNS:ds-identity-hub.ss1,DNS:localhost

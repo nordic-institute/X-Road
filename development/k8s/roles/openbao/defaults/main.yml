@@ -33,8 +33,7 @@ openbao_helm_wait_timeout: 10m
 # Recipient PGP public keyring for messagelog archive encryption, seeded by a
 # one-shot Job into this instance's OpenBao at
 # xrd-secret/message-log/archival/pgp/public-keys (KV v1, field "payload" —
-# see lib/vault-core VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH), modeled
-# on the ds_https_keystore role's ds-https-vault-seed Job. A file path, read
+# see lib/vault-core VaultClient.MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH). A file path, read
 # from disk at play time — same "read the real file, inject at render time"
 # pattern as the e2e_fixtures role's hurl_setup_file/isrest_mapping_files.
 # Empty by default: no seed Job/ConfigMap is created, matching dev/eks
@@ -45,9 +44,7 @@ openbao_helm_wait_timeout: 10m
 # LXD role's xrd-ss1-only import).
 messagelog_encryption_pgp_public_keyring_file: ""
 
-# Image for the pgp-keyring-vault-seed Job — same curl+jq image the
-# ds_https_keystore role's ds-https-vault-seed Job uses, so no new image
-# needs pulling into the cluster.
+# Image for the pgp-keyring-vault-seed Job (curl+jq).
 openbao_pgp_keyring_vault_seed_image: "dwdraju/alpine-curl-jq"
 openbao_pgp_keyring_vault_seed_backoff_limit: 3
 openbao_pgp_keyring_wait_retries: 30

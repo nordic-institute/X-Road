@@ -68,11 +68,6 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Provision DS-HTTPS keystore (when enabled) — before the Central/Security Server charts that mount it
-      ansible.builtin.include_role:
-        name: ds_https_keystore
-      when: e2e_fixtures_enabled | default(false) | bool
-
     - name: Deploy Security Server
       ansible.builtin.include_role:
         name: security_server
@@ -95,6 +90,21 @@
     - name: Deploy e2e-fixtures (test CA, mock IS, mailpit, hurl bootstrap) (when enabled)
       ansible.builtin.include_role:
         name: e2e_fixtures
+      when: e2e_fixtures_enabled | default(false) | bool
+
+    # The ds-* Deployments fail fast on an empty tls/ds-https vault slot (by design) and
+    # crash-loop until the hurl bootstrap above has provisioned each server's DS TLS
+    # certificate through the admin API — only now can their availability be awaited.
+    - name: Wait for DS Deployments to become Available after DS TLS provisioning
+      ansible.builtin.include_role:
+        name: security_server
+        tasks_from: wait_ds_available.yml
+      vars:
+        security_server_namespace: "{{ ss_instance.namespace }}"
+      loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
+      loop_control:
+        loop_var: ss_instance
+        label: "{{ ss_instance.namespace }}"
       when: e2e_fixtures_enabled | default(false) | bool
 
     - name: Deploy Prometheus (when enabled)
