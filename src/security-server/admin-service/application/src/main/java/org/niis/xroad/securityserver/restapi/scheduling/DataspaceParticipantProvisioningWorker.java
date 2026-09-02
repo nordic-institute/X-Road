@@ -58,18 +58,27 @@ public class DataspaceParticipantProvisioningWorker {
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     public void scheduledProvision() {
+        provisionParticipantBestEffort();
+    }
+
+    /**
+     * Executes one provisioning step, logging and swallowing any failure. Used by callers that must
+     * not fail on a provisioning problem: the scheduled tick and the eager run right after security
+     * server initialization.
+     */
+    public void provisionParticipantBestEffort() {
         try {
             provisionParticipant();
         } catch (Exception e) {
-            log.error("Data space participant provisioning tick failed", e);
+            log.error("Data space participant provisioning failed; the scheduled worker will converge "
+                    + "once the dependency recovers", e);
         }
     }
 
     /**
-     * Executes one idempotent provisioning step. Safe to call directly for an eager first
-     * provisioning run at SS init. A failure in one participant context is logged and does not
-     * block the remaining contexts; a context whose creation failed is skipped in the credential
-     * pass of the same tick.
+     * Executes one idempotent provisioning step. A failure in one participant context is logged and
+     * does not block the remaining contexts; a context whose creation failed is skipped in the
+     * credential pass of the same tick.
      */
     public void provisionParticipant() {
         var contexts = dataspaceProvisioningService.participantContexts(true);

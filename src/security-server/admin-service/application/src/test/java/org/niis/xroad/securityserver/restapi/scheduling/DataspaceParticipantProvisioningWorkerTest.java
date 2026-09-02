@@ -81,6 +81,13 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
+    void provisionParticipantBestEffortSwallowsFailures() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenThrow(new RuntimeException("boom"));
+
+        assertThatCode(() -> worker.provisionParticipantBestEffort()).doesNotThrowAnyException();
+    }
+
+    @Test
     void provisionParticipantSkipsWhenOwnerNotYetKnown() {
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(PRE_OWNER_HOST_CONTEXT));
 

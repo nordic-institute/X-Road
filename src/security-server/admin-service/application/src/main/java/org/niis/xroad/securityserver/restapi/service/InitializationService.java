@@ -44,7 +44,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -54,8 +53,6 @@ import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
@@ -100,7 +97,6 @@ public class InitializationService {
     private final TokenPinValidator tokenPinValidator;
     private final SecurityServerBackupService securityServerBackupService;
     private final EncryptionInitializationService encryptionInitializationService;
-    private final DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
     private final ConfigurablePropertiesService configurablePropertiesService;
 
     /**
@@ -214,30 +210,6 @@ public class InitializationService {
         String keyRealName = ownerClientId.getXRoadInstance() + "/" + ownerClientId.getMemberClass() + "/"
                 + ownerClientId.getMemberCode() + "/" + serverConf.getServerCode();
         prepareEncryption(keyRealName);
-
-        eagerProvisionDataspaceParticipant();
-    }
-
-    private void eagerProvisionDataspaceParticipant() {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    provisionDataspaceParticipantBestEffort();
-                }
-            });
-        } else {
-            provisionDataspaceParticipantBestEffort();
-        }
-    }
-
-    private void provisionDataspaceParticipantBestEffort() {
-        try {
-            dataspaceParticipantProvisioningWorker.provisionParticipant();
-        } catch (Exception e) {
-            log.error("Data space participant provisioning failed at init; continuing initialization. "
-                    + "The scheduled provisioning worker will converge once the dependency recovers", e);
-        }
     }
 
     /**
