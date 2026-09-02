@@ -91,7 +91,7 @@ class CachingStoreTest {
 
     private AssetIndexServerConfStore buildStore(StoreEnumerationCache<Asset> cache) {
         return new AssetIndexServerConfStore(serverConfProvider, globalConfProvider,
-                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                MGMT_PARTICIPANT_CONTEXT_ID,
                 new BuiltinServiceCatalog(serverConfProvider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache,
                 new ServiceContextResolver(participantContextService, globalConfProvider,

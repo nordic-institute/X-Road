@@ -58,7 +58,6 @@ class AssetIndexServerConfStore implements AssetIndex {
 
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
-    private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;

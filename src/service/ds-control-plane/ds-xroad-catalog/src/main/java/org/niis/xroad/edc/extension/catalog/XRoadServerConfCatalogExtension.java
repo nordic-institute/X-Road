@@ -151,7 +151,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 cacheConfig.findByIdMaxSize(), "ContractDefinition");
 
         assetIndexStore = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId,
+                serverConfProvider, globalConfProvider, managementParticipantContextId,
                 builtinServiceCatalog, assetCache, serviceContextResolver, dspParticipantContextHolder);
 
         catalogCacheInvalidator = new DefaultCatalogCacheInvalidator(List.of(assetCache, policyDefinitionCache, contractDefinitionCache));
@@ -174,7 +174,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
         return new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(),
-                participantContextId, managementParticipantContextId, builtinServiceCatalog,
+                managementParticipantContextId, builtinServiceCatalog,
                 policyDefinitionCache,
                 serviceContextResolver, dspParticipantContextHolder);
     }
@@ -184,7 +184,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");
         return new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider,
-                participantContextId, managementParticipantContextId,
+                managementParticipantContextId,
                 builtinServiceCatalog,
                 contractDefinitionCache,
                 serviceContextResolver, dspParticipantContextHolder);

@@ -96,7 +96,7 @@ class ContractDefinitionServerConfStoreTest {
     @BeforeEach
     void setUp() {
         store = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 noBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
     }
 
@@ -418,7 +418,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllIncludesBuiltinContractDefinitions() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -430,7 +430,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinsTaggedWithMgmtContext() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -443,7 +443,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -459,7 +459,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsBuiltinContractDefinition() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
         var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
@@ -475,7 +475,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService-contract-definition");
@@ -535,7 +535,7 @@ class ContractDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinDefinitionsHaveAcceptAllPolicyId() {
         var builtinStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -551,7 +551,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllCacheHitServesFromCache() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
@@ -569,7 +569,7 @@ class ContractDefinitionServerConfStoreTest {
     void findAllCacheMissAfterInvalidate() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
@@ -588,7 +588,7 @@ class ContractDefinitionServerConfStoreTest {
     void findByIdCacheHitServesFromCache() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
@@ -607,7 +607,7 @@ class ContractDefinitionServerConfStoreTest {
     void findByIdCacheDoesNotCacheNotFound() {
         var cache = new StoreEnumerationCache<ContractDefinition>(true, 3600, 1000, "test");
         var cachedStore = new ContractDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(false);
 

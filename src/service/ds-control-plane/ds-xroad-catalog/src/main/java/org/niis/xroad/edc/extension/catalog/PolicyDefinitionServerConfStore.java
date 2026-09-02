@@ -63,7 +63,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
-    private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;

@@ -207,7 +207,7 @@ class StoreCacheBenchmarkTest {
     private AssetIndexServerConfStore buildStore(ServerConfProvider provider, boolean cacheEnabled) {
         var cache = new StoreEnumerationCache<Asset>(cacheEnabled, 3600, 10000, "bench");
         return new AssetIndexServerConfStore(provider, globalConfProvider,
-                "participant", "participant-mgmt",
+                "participant-mgmt",
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),
                 cache,

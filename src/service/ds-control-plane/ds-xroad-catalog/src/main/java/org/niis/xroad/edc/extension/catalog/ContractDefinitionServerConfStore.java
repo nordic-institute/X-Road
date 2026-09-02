@@ -60,7 +60,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
-    private final String participantContextId;
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;

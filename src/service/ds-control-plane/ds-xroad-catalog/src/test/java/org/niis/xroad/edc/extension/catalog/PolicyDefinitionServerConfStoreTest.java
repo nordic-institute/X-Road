@@ -97,7 +97,7 @@ class PolicyDefinitionServerConfStoreTest {
     @BeforeEach
     void setUp() {
         store = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 noBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
     }
 
@@ -382,7 +382,7 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findAllIncludesBuiltinPolicies() {
         var builtinStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -394,7 +394,7 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinPoliciesTaggedWithMgmtContext() {
         var builtinStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -407,7 +407,7 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinsHostCtxFilterExcludesBuiltins() {
         var builtinStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -423,7 +423,7 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsBuiltinPolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
 
@@ -437,7 +437,7 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findByIdReturnsNullForUnknownBuiltinId() {
         var builtinStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
 
         var result = builtinStore.findById("DEV:GOV:1234:nonExistentService");
@@ -492,7 +492,7 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findAllBuiltinPoliciesHavePermissivePolicy() {
         var builtinStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver(), dspParticipantContextHolder);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -505,7 +505,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllCacheHitServesFromCache() {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
@@ -523,7 +523,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllCacheMissAfterInvalidate() {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
@@ -542,7 +542,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findByIdCacheHitServesFromCache() {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
@@ -560,7 +560,7 @@ class PolicyDefinitionServerConfStoreTest {
     void findByIdCacheDoesNotCacheNotFound() {
         var cache = new StoreEnumerationCache<PolicyDefinition>(true, 3600, 1000, "test");
         var cachedStore = new PolicyDefinitionServerConfStore(
-                serverConfProvider, globalConfProvider, new PolicyMapper(), PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
+                serverConfProvider, globalConfProvider, new PolicyMapper(), MGMT_PARTICIPANT_CTX,
                 noBuiltins(), cache, serviceContextResolver(), dspParticipantContextHolder);
         var unknownService = ServiceId.Conf.create("DEV", "GOV", "0000", "None", "noSvc", "v1");
         when(serverConfProvider.serviceExists(unknownService)).thenReturn(false);
