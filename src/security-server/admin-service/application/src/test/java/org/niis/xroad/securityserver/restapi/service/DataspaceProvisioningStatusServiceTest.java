@@ -100,6 +100,9 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
+        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
+        lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
 
         var ownerEntity = mock(ClientEntity.class);

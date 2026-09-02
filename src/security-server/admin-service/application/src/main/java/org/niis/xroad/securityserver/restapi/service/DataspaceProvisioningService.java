@@ -146,9 +146,6 @@ public class DataspaceProvisioningService {
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
-    private static final int DID_PORT = 7183;
-    private static final int STS_PORT = 7184;
-    private static final int CREDENTIAL_PORT = 7185;
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
@@ -366,9 +363,13 @@ public class DataspaceProvisioningService {
      * plus its DID-serving port, because that is where DID documents are actually served. Target
      * source, once registered-address DID serving exists: the GlobalConf-registered security
      * server address ({@code GlobalConfProvider#getSecurityServerAddress}), with no port.
+     *
+     * <p>The port must match the identity hub's own {@code web.http.did.port}. It is part of every
+     * DID pinned in {@code ds_participant}, so changing it after a member has been pinned makes
+     * that pin fail verification.</p>
      */
     private String didAuthority(String identityHubHost) {
-        return identityHubHost + ":" + DID_PORT;
+        return identityHubHost + ":" + adminServiceProperties.getDataspace().getIdentityHubDidPort();
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -425,8 +426,9 @@ public class DataspaceProvisioningService {
     }
 
     private void createIdentityHubContext(String participantId, String did, String identityHubHost, ClientId memberId) {
-        var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s"
-                .formatted(identityHubHost, CREDENTIAL_PORT, UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
+        var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
+                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
+                UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         identityHubClient.createParticipantContext(participantId, did, memberId == null ? null : slashForm(memberId),
@@ -434,7 +436,8 @@ public class DataspaceProvisioningService {
     }
 
     private String stsTokenUrl(String identityHubHost) {
-        return "https://%s:%d/api/sts/token".formatted(identityHubHost, STS_PORT);
+        return "https://%s:%d/api/sts/token"
+                .formatted(identityHubHost, adminServiceProperties.getDataspace().getIdentityHubStsPort());
     }
 
     private String hostOf(String url) {

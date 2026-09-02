@@ -106,6 +106,9 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
+        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
+        lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
+        lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
@@ -422,6 +425,23 @@ class DataspaceProvisioningServiceTest {
         service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
         verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextUsesConfiguredIdentityHubPorts() {
+        when(dataspace.getIdentityHubDidPort()).thenReturn(8183);
+        when(dataspace.getIdentityHubStsPort()).thenReturn(8184);
+        when(dataspace.getIdentityHubCredentialsPort()).thenReturn(8185);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, "ih.example.test:8183");
+
+        service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER);
+
+        verify(identityHubClient).createParticipantContext(eq(ctxId), eq(expectedDid), any(),
+                argThat(url -> url.startsWith("https://ih.example.test:8185/api/credentials/")), any(), any());
+        verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
+                eq("https://ih.example.test:8184/api/sts/token"));
     }
 
     @Test
