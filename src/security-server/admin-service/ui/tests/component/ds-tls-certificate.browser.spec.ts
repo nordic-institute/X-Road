@@ -33,6 +33,8 @@ import { Permissions } from '@/global';
 
 const DS_TLS_CERTIFICATE_PATH = '/keys/ds-tls-cert';
 
+const FUTURE_RENEWAL_TIME = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
 const allPermissions = [
   Permissions.VIEW_DS_TLS_CERT,
   Permissions.DOWNLOAD_DS_TLS_CERT,
@@ -200,7 +202,7 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
         specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-          response(200).json({ enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z' }),
+          response(200).json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
         ),
       ],
     });
@@ -238,7 +240,7 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
         specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-          response(200).json({ enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z', last_error: longError }),
+          response(200).json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME, last_error: longError }),
         ),
       ],
     });
@@ -260,7 +262,7 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
         specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
           response(200).json(
             certificateUploaded
-              ? { enrollment_method: 'ACME', next_renewal_time: '2026-09-01T00:00:00Z' }
+              ? { enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }
               : { enrollment_method: 'MANUAL' },
           ),
         ),
