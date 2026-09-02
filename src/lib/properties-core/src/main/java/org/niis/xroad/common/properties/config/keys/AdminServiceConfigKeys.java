@@ -472,6 +472,21 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("participant-id")
             .build();
 
+    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_DID_PORT = DATASPACE
+            .integer("identity-hub-did-port")
+            .withDefaultValue(7183)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_STS_PORT = DATASPACE
+            .integer("identity-hub-sts-port")
+            .withDefaultValue(7184)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_CREDENTIALS_PORT = DATASPACE
+            .integer("identity-hub-credentials-port")
+            .withDefaultValue(7185)
+            .build();
+
     public static final ConfigKey<Boolean> DATASPACE_MANAGEMENT_CONTEXT_ENABLED = DATASPACE
             .bool("management-context-enabled")
             .withDefaultValue(false)

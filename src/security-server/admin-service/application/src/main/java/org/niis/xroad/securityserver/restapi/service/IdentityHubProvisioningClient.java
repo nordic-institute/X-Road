@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
 
+import java.util.Optional;
+
 /**
  * Transport-agnostic client for IdentityHub provisioning operations.
  */
@@ -56,7 +58,8 @@ public interface IdentityHubProvisioningClient {
     String getCredentialRequestState(String participantContextId, String holderPid);
 
     /**
-     * Returns {@code true} if a participant context with the given id exists in IdentityHub, {@code false} if absent.
+     * Returns the DID of the participant context with the given id, or empty if no such context
+     * exists in IdentityHub.
      */
-    boolean contextExists(String participantContextId);
+    Optional<String> contextDid(String participantContextId);
 }

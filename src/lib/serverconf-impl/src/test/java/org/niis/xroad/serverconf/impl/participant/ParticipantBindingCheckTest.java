@@ -44,53 +44,53 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 
-class ParticipantPinningCheckTest {
+class ParticipantBindingCheckTest {
 
     private static final String SS_HOST = "ss0.example.org";
     private static final ClientId MEMBER = ClientId.Conf.create("DEV", "COM", "222");
 
     @Test
-    void verifyPassesWhenMemberDerivationMatchesPinnedRow() {
-        DsParticipantEntity pinned = memberParticipant(MEMBER, SS_HOST);
+    void verifyPassesWhenMemberDerivationMatchesBoundRow() {
+        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
 
-        assertDoesNotThrow(() -> ParticipantPinningCheck.verify(pinned, SS_HOST));
+        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound, SS_HOST));
     }
 
     @Test
-    void verifyPassesWhenSystemDerivationMatchesPinnedRow() {
-        DsParticipantEntity pinned = systemParticipant(SS_HOST);
+    void verifyPassesWhenSystemDerivationMatchesBoundRow() {
+        DsParticipantEntity bound = systemParticipant(SS_HOST);
 
-        assertDoesNotThrow(() -> ParticipantPinningCheck.verify(pinned, SS_HOST));
+        assertDoesNotThrow(() -> ParticipantBindingCheck.verify(bound, SS_HOST));
     }
 
     @Test
     void verifyThrowsWithBothValuesWhenMemberHostChanged() {
-        DsParticipantEntity pinned = memberParticipant(MEMBER, SS_HOST);
+        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
         String newHost = "ss1.example.org";
 
         XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantPinningCheck.verify(pinned, newHost));
+                () -> ParticipantBindingCheck.verify(bound, newHost));
 
         assertEquals(DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code(), ex.getCode());
         assertEquals(List.of(
-                        pinned.getCtxId(),
-                        pinned.getDid(),
+                        bound.getCtxId(),
+                        bound.getDid(),
                         ParticipantIdentifierScheme.memberCtxId(MEMBER),
                         ParticipantIdentifierScheme.memberDid(MEMBER, newHost)),
                 ex.getErrorCodeMetadata());
 
-        // the pinned row itself is never mutated by a failed check
-        assertEquals(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST), pinned.getDid());
-        assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), pinned.getCtxId());
+        // the bound row itself is never mutated by a failed check
+        assertEquals(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST), bound.getDid());
+        assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), bound.getCtxId());
     }
 
     @Test
     void verifyThrowsWithBothValuesWhenSystemHostChanged() {
-        DsParticipantEntity pinned = systemParticipant(SS_HOST);
+        DsParticipantEntity bound = systemParticipant(SS_HOST);
         String newHost = "ss1.example.org";
 
         XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantPinningCheck.verify(pinned, newHost));
+                () -> ParticipantBindingCheck.verify(bound, newHost));
 
         assertEquals(DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code(), ex.getCode());
         assertEquals(List.of(
@@ -100,33 +100,33 @@ class ParticipantPinningCheckTest {
                         ParticipantIdentifierScheme.systemDid(newHost)),
                 ex.getErrorCodeMetadata());
 
-        // the pinned row itself is never mutated by a failed check
-        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST), pinned.getDid());
+        // the bound row itself is never mutated by a failed check
+        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST), bound.getDid());
     }
 
     @Test
-    void verifyThrowsWhenRowIsPinnedUnderUnsupportedSchemeVersion() {
-        DsParticipantEntity pinned = memberParticipant(MEMBER, SS_HOST);
-        pinned.setSchemeVersion("v2");
+    void verifyThrowsWhenRowWasBoundUnderUnsupportedSchemeVersion() {
+        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
+        bound.setSchemeVersion("v2");
 
         XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantPinningCheck.verify(pinned, SS_HOST));
+                () -> ParticipantBindingCheck.verify(bound, SS_HOST));
 
         assertEquals(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code(), ex.getCode());
         assertEquals(List.of("v2", ParticipantIdentifierScheme.SCHEME_VERSION), ex.getErrorCodeMetadata());
 
-        // the pinned row itself is never mutated by a failed check
-        assertEquals("v2", pinned.getSchemeVersion());
-        assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), pinned.getCtxId());
+        // the bound row itself is never mutated by a failed check
+        assertEquals("v2", bound.getSchemeVersion());
+        assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), bound.getCtxId());
     }
 
     @Test
     void verifyThrowsVersionErrorNotMismatchWhenVersionAndIdentifiersBothDiffer() {
-        DsParticipantEntity pinned = memberParticipant(MEMBER, SS_HOST);
-        pinned.setSchemeVersion("v2");
+        DsParticipantEntity bound = memberParticipant(MEMBER, SS_HOST);
+        bound.setSchemeVersion("v2");
 
         XrdRuntimeException ex = assertThrows(XrdRuntimeException.class,
-                () -> ParticipantPinningCheck.verify(pinned, "ss1.example.org"));
+                () -> ParticipantBindingCheck.verify(bound, "ss1.example.org"));
 
         assertEquals(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code(), ex.getCode());
     }

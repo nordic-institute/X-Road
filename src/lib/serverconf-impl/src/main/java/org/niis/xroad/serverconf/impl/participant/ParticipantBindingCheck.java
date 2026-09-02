@@ -37,52 +37,52 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDE
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 
 /**
- * Verifies a pinned {@code ds_participant} row against a fresh re-derivation, per XRDADR-41's
- * derive-then-store decision: the pinned row is authoritative, and a difference from a fresh
+ * Verifies a bound {@code ds_participant} row against a fresh re-derivation, per XRDADR-41's
+ * derive-then-bind decision: the bound row is authoritative, and a difference from a fresh
  * derivation must never be resolved by silently overwriting it.
  */
 @UtilityClass
-public class ParticipantPinningCheck {
+public class ParticipantBindingCheck {
 
     /**
-     * Re-derives the pinned participant's ctx-id and DID and compares them to the pinned row.
-     * Never mutates {@code pinned}.
+     * Re-derives the bound participant's ctx-id and DID and compares them to the bound row.
+     * Never mutates {@code bound}.
      *
-     * @param pinned the previously pinned participant row
+     * @param bound the previously bound participant row
      * @param ssHost the Security Server's current public address, as {@code host} or {@code host:port}
      * @throws XrdRuntimeException with {@code DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED} and metadata
-     *         {@code [pinnedSchemeVersion, supportedSchemeVersion]} if the row is pinned under a scheme
+     *         {@code [boundSchemeVersion, supportedSchemeVersion]} if the row was bound under a scheme
      *         version this check does not implement, or with {@code DSP_PARTICIPANT_IDENTIFIER_MISMATCH}
-     *         and metadata {@code [pinnedCtxId, pinnedDid, derivedCtxId, derivedDid]} if the re-derived
-     *         ctx-id or DID differs from the pinned row
+     *         and metadata {@code [boundCtxId, boundDid, derivedCtxId, derivedDid]} if the re-derived
+     *         ctx-id or DID differs from the bound row
      */
-    public static void verify(DsParticipantEntity pinned, String ssHost) {
-        if (!ParticipantIdentifierScheme.SCHEME_VERSION.equals(pinned.getSchemeVersion())) {
+    public static void verify(DsParticipantEntity bound, String ssHost) {
+        if (!ParticipantIdentifierScheme.SCHEME_VERSION.equals(bound.getSchemeVersion())) {
             throw XrdRuntimeException.systemException(DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED)
-                    .metadataItems(pinned.getSchemeVersion(), ParticipantIdentifierScheme.SCHEME_VERSION)
-                    .details(("participant '%s' is pinned under scheme version '%s', but only '%s' is supported; "
-                            + "the pinned identifiers cannot be verified against the '%s' derivation")
-                            .formatted(pinned.getCtxId(), pinned.getSchemeVersion(),
+                    .metadataItems(bound.getSchemeVersion(), ParticipantIdentifierScheme.SCHEME_VERSION)
+                    .details(("participant '%s' was bound under scheme version '%s', but only '%s' is supported; "
+                            + "the bound identifiers cannot be verified against the '%s' derivation")
+                            .formatted(bound.getCtxId(), bound.getSchemeVersion(),
                                     ParticipantIdentifierScheme.SCHEME_VERSION, ParticipantIdentifierScheme.SCHEME_VERSION))
                     .build();
         }
 
-        Derived derived = derive(pinned, ssHost);
+        Derived derived = derive(bound, ssHost);
 
-        if (!pinned.getCtxId().equals(derived.ctxId()) || !pinned.getDid().equals(derived.did())) {
+        if (!bound.getCtxId().equals(derived.ctxId()) || !bound.getDid().equals(derived.did())) {
             throw XrdRuntimeException.systemException(DSP_PARTICIPANT_IDENTIFIER_MISMATCH)
-                    .metadataItems(pinned.getCtxId(), pinned.getDid(), derived.ctxId(), derived.did())
-                    .details(("pinned participant identifier no longer matches derivation: "
-                            + "pinned ctx-id='%s' did='%s', derived ctx-id='%s' did='%s'")
-                            .formatted(pinned.getCtxId(), pinned.getDid(), derived.ctxId(), derived.did()))
+                    .metadataItems(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did())
+                    .details(("bound participant identifier no longer matches derivation: "
+                            + "bound ctx-id='%s' did='%s', derived ctx-id='%s' did='%s'")
+                            .formatted(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did()))
                     .build();
         }
     }
 
-    private static Derived derive(DsParticipantEntity pinned, String ssHost) {
-        return switch (pinned.getParticipantType()) {
+    private static Derived derive(DsParticipantEntity bound, String ssHost) {
+        return switch (bound.getParticipantType()) {
             case MEMBER -> {
-                ClientId member = pinned.getMemberIdentifier();
+                ClientId member = bound.getMemberIdentifier();
                 yield new Derived(
                         ParticipantIdentifierScheme.memberCtxId(member),
                         ParticipantIdentifierScheme.memberDid(member, ssHost));

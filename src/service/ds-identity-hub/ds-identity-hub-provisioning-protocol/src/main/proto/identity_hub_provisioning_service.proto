@@ -34,7 +34,7 @@ service IdentityHubProvisioningService {
   rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
   rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
   rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
-  rpc GetParticipantContextExists(GetParticipantContextExistsReq) returns (GetParticipantContextExistsResp);
+  rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
 }
 
 message CreateParticipantContextReq {
@@ -72,10 +72,10 @@ message GetCredentialRequestStateResp {
   string status = 2;
 }
 
-message GetParticipantContextExistsReq {
+message GetParticipantContextDidReq {
   string participant_context_id = 1;
 }
 
-message GetParticipantContextExistsResp {
-  bool exists = 1;
+message GetParticipantContextDidResp {
+  optional string did = 1;
 }

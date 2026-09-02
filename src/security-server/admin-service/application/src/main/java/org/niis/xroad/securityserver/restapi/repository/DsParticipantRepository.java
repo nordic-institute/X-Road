@@ -24,13 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.model;
+package org.niis.xroad.securityserver.restapi.repository;
+
+import ee.ria.xroad.common.identifier.ClientId;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.DsParticipantDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 /**
- * Discriminates a bound dataspace participant row per XRDADR-41: a {@code MEMBER} row carries the
- * X-Road member identifier it was derived from, while the single {@code SYSTEM} row per Security Server
- * carries none.
+ * Repository for the {@code ds_participant} table, per XRDADR-41's derive-then-bind decision.
  */
-public enum ParticipantType {
-    MEMBER, SYSTEM
+@Slf4j
+@Repository
+@Transactional
+@RequiredArgsConstructor
+public class DsParticipantRepository {
+
+    private final PersistenceUtils persistenceUtils;
+
+    private final DsParticipantDAOImpl dsParticipantDAO = new DsParticipantDAOImpl();
+
+    /**
+     * Finds the bound participant row for the given member identifier.
+     *
+     * @param member the member identifier
+     * @return the bound MEMBER row, if one has been provisioned
+     */
+    public Optional<DsParticipantEntity> findByMemberIdentifier(ClientId member) {
+        return dsParticipantDAO.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);
+    }
 }

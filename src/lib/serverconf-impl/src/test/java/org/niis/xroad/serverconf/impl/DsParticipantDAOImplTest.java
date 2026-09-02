@@ -52,7 +52,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for the {@code ds_participant} pinning table: persistence, and the unique and
+ * Tests for the {@code ds_participant} table: persistence, and the unique and
  * type/identifier consistency constraints from XRDADR-41.
  */
 public class DsParticipantDAOImplTest {
@@ -68,7 +68,7 @@ public class DsParticipantDAOImplTest {
 
     /**
      * The production at-most-one-SYSTEM-row rule is the Postgres partial unique index from changelog
-     * {@code 012-ds-participant-pinning}; HSQLDB has no partial indexes, so the test schema emulates it
+     * {@code 012-ds-participant-binding}; HSQLDB has no partial indexes, so the test schema emulates it
      * with a generated column carrying the same constraint name.
      */
     @BeforeClass

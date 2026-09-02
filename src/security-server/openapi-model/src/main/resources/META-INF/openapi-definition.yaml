@@ -8696,6 +8696,7 @@ components:
           enum:
             - HOST
             - MANAGEMENT
+            - MEMBER
         context_created:
           type: boolean
           readOnly: true
@@ -8709,6 +8710,17 @@ components:
             - PENDING
             - ABSENT
             - ERROR
+            - UNKNOWN
+        identity_status:
+          type: string
+          readOnly: true
+          description: bound-identity verification state, present only for MEMBER contexts
+          enum:
+            - OK
+            - MISMATCH
+            - VERSION_UNSUPPORTED
+            - UNBOUND
+            - DRIFTED
             - UNKNOWN
     DataspaceTlsCertificateEnrollmentStatus:
       type: object

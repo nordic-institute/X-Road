@@ -31,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 /**
  * gRPC-backed {@link IdentityHubProvisioningClient} that delegates to {@link IdentityHubProvisioningRpcClient}.
  */
@@ -61,7 +63,7 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     }
 
     @Override
-    public boolean contextExists(String participantContextId) {
-        return rpcClient.participantContextExists(participantContextId);
+    public Optional<String> contextDid(String participantContextId) {
+        return rpcClient.getParticipantContextDid(participantContextId);
     }
 }
