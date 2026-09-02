@@ -49,7 +49,7 @@
         </v-stepper-window-item>
 
         <v-stepper-window-item :value="memberStep">
-          <OwnerMemberStep :value="memberStep" @previous="previousStep" @done="nextStep" />
+          <OwnerMemberStep :value="memberStep" :show-previous-button="!!anchorStep" @previous="previousStep" @done="nextStep" />
         </v-stepper-window-item>
         <v-stepper-window-item :value="pinStep">
           <TokenPinStep :save-busy="pinSaveBusy" @previous="previousStep" @done="tokenPinReady" />
@@ -128,6 +128,9 @@ export default defineComponent({
     this.fetchInitializationStatus().catch((error) => {
       this.addError(error);
     });
+    // The current security server only exists once the owner member is set up,
+    // so this fails silently on a server that has not been initialized yet.
+    this.fetchCurrentSecurityServer().catch(() => undefined);
   },
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),

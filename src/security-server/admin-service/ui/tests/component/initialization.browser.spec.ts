@@ -80,6 +80,14 @@ const anchorImportedStatusFixture: InitializationStatus = {
   enforce_token_pin_policy: false,
 };
 
+const ownerAndCodeAlreadyInitializedStatusFixture: InitializationStatus = {
+  is_anchor_imported: true,
+  is_server_code_initialized: true,
+  is_server_owner_initialized: true,
+  software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+  enforce_token_pin_policy: false,
+};
+
 const currentServerFixture: SecurityServer = {
   id: 'CS:COM:1234:SS0',
   member_class: 'COM',
@@ -89,6 +97,7 @@ const currentServerFixture: SecurityServer = {
 
 validateBody(initStatusSchema, uninitializedStatusFixture);
 validateBody(initStatusSchema, anchorImportedStatusFixture);
+validateBody(initStatusSchema, ownerAndCodeAlreadyInitializedStatusFixture);
 validateBody(securityServerSchema, currentServerFixture);
 
 // ── MSW handlers ──────────────────────────────────────────────────────────────
@@ -99,6 +108,10 @@ const uninitializedStatusHandler = specHttp.get('/initialization/status', ({ res
 
 const anchorImportedStatusHandler = specHttp.get('/initialization/status', ({ response }) =>
   response(200).json(anchorImportedStatusFixture),
+);
+
+const ownerAndCodeAlreadyInitializedStatusHandler = specHttp.get('/initialization/status', ({ response }) =>
+  response(200).json(ownerAndCodeAlreadyInitializedStatusFixture),
 );
 
 const memberClassesHandler = specHttp.get('/member-classes', ({ response }) =>
@@ -157,6 +170,50 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
     await page.getByTestId('member-class-input').click();
 
     await expect.element(page.getByTestId('owner-member-save-button')).not.toBeDisabled();
+  });
+
+  it('Owner-member fields are prefilled and disabled, and Continue is enabled on load, on an already-initialized server', async () => {
+    await renderRoute('/initial-configuration', {
+      permissions: initPermissions,
+      msw: [
+        ownerAndCodeAlreadyInitializedStatusHandler,
+        memberClassesHandler,
+        memberNamesHandler,
+        currentServerHandler,
+      ],
+    });
+
+    await expect.element(page.getByTestId('member-class-input')).toBeVisible();
+
+    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+    await expect.element(page.getByTestId('member-class-input').getByRole('combobox').nth(1)).toBeDisabled();
+
+    await expect
+      .element(page.getByTestId('member-code-input').getByRole('textbox'))
+      .toHaveValue(currentServerFixture.member_code);
+    await expect.element(page.getByTestId('member-code-input').getByRole('textbox')).toBeDisabled();
+
+    await expect
+      .element(page.getByTestId('security-server-code-input').getByRole('textbox'))
+      .toHaveValue(currentServerFixture.server_code);
+    await expect.element(page.getByTestId('security-server-code-input').getByRole('textbox')).toBeDisabled();
+
+    await expect.element(page.getByTestId('owner-member-save-button')).not.toBeDisabled();
+  });
+
+  it('Previous button is not shown on the Owner Member step when the anchor is already imported', async () => {
+    await renderRoute('/initial-configuration', {
+      permissions: initPermissions,
+      msw: [
+        ownerAndCodeAlreadyInitializedStatusHandler,
+        memberClassesHandler,
+        memberNamesHandler,
+        currentServerHandler,
+      ],
+    });
+
+    await expect.element(page.getByTestId('member-class-input')).toBeVisible();
+    await expect.element(page.getByTestId('previous-button')).not.toBeInTheDocument();
   });
 
   it('PIN step shows token-policy alert; matching PINs enable Submit and POST 201 navigates to Clients', async () => {

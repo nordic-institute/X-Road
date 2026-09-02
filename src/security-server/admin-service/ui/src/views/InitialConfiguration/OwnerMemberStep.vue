@@ -174,6 +174,18 @@ export default defineComponent({
     },
   },
   beforeMount() {
+    if ((this.isServerOwnerInitialized || this.isServerCodeInitialized) && !this.currentSecurityServer) {
+      this.fetchCurrentSecurityServer()
+        .then(() => {
+          this.setFieldValue('memberClass', this.currentSecurityServer?.member_class);
+          this.setFieldValue('memberCode', this.currentSecurityServer?.member_code);
+          this.setFieldValue('securityServerCode', this.currentSecurityServer?.server_code);
+        })
+        .catch((error) => {
+          this.addError(error);
+        });
+    }
+
     this.fetchMemberClassesForCurrentInstance().catch((error) => {
       if (error.response.status === 500) {
         // this can happen if anchor is not ready
@@ -188,6 +200,8 @@ export default defineComponent({
     ...mapActions(useInitializeServer, ['storeInitServerSSCode', 'storeInitServerMemberClass', 'storeInitServerMemberCode']),
 
     ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance', 'fetchMemberName']),
+
+    ...mapActions(useUser, ['fetchCurrentSecurityServer']),
 
     done(): void {
       this.storeInitServerMemberClass(this.values.memberClass);
