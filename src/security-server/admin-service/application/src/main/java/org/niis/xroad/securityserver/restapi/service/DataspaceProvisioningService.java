@@ -37,6 +37,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Provisions this security server's data space participant contexts (IdentityHub + Control Plane)
@@ -57,6 +58,11 @@ import java.util.Optional;
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
  * returns {@link #STATUS_ERROR} so the status path can distinguish "failing" from "never requested".</p>
+ *
+ * <p>IdentityHub has no PENDING request state; its {@code HolderRequestState} enum only knows
+ * {@code CREATED}, {@code REQUESTING}, {@code REQUESTED}, {@code ISSUED} and {@code ERROR}. This class folds
+ * the three non-terminal names into {@link #STATUS_PENDING} so slot scanning and the status API only ever
+ * see the documented vocabulary — raw IdentityHub state names never leak out of this class.</p>
  */
 @Slf4j
 @Service
@@ -86,6 +92,8 @@ public class DataspaceProvisioningService {
             String credentialStatus
     ) {
     }
+
+    private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
@@ -138,13 +146,14 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
-            var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
-            if (state == null) {
+            var edcState = identityHubClient.getCredentialRequestState(participantId, holderPid);
+            if (edcState == null) {
                 identityHubClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
                         ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
                 return;
             }
-            if (STATUS_ISSUED.equals(state) || STATUS_PENDING.equals(state)) {
+            var status = toStatus(edcState);
+            if (STATUS_ISSUED.equals(status) || STATUS_PENDING.equals(status)) {
                 return;
             }
             // ERROR — advance to next slot
@@ -169,17 +178,31 @@ public class DataspaceProvisioningService {
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
-            var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
-            if (state == null) {
+            var edcState = identityHubClient.getCredentialRequestState(participantId, holderPid);
+            if (edcState == null) {
                 continue;
             }
-            if (STATUS_ERROR.equals(state)) {
+            var status = toStatus(edcState);
+            if (STATUS_ERROR.equals(status)) {
                 anyError = true;
                 continue;
             }
-            return state;
+            return status;
         }
         return anyError ? STATUS_ERROR : null;
+    }
+
+    /**
+     * Maps a raw IdentityHub {@code HolderRequestState} name onto the documented status vocabulary.
+     * IdentityHub has no PENDING state: {@code CREATED}, {@code REQUESTING} and {@code REQUESTED} all
+     * mean the request is in flight and are folded into {@link #STATUS_PENDING}. Anything else (in
+     * practice only {@code ERROR}) is treated as terminal-failed.
+     */
+    private static String toStatus(String edcState) {
+        if (STATUS_ISSUED.equals(edcState)) {
+            return STATUS_ISSUED;
+        }
+        return IN_FLIGHT_EDC_STATES.contains(edcState) ? STATUS_PENDING : STATUS_ERROR;
     }
 
     /**

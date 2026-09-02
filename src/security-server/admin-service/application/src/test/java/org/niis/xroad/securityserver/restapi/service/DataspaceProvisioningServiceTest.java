@@ -29,6 +29,8 @@ package org.niis.xroad.securityserver.restapi.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -89,9 +91,10 @@ class DataspaceProvisioningServiceTest {
                 anyString(), anyString(), anyString());
     }
 
-    @Test
-    void submitCredentialRequestNoOpWhenSlot0IsPending() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
+    @ParameterizedTest
+    @ValueSource(strings = {"CREATED", "REQUESTING", "REQUESTED"})
+    void submitCredentialRequestNoOpWhenSlot0IsInFlight(String edcInFlightState) {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(edcInFlightState);
 
         service.submitCredentialRequest(PARTICIPANT_ID);
 
@@ -162,9 +165,10 @@ class DataspaceProvisioningServiceTest {
         assertThat(status).isEqualTo(STATUS_ISSUED);
     }
 
-    @Test
-    void readCredentialStatusReturnsPendingWhenSlot0Pending() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
+    @ParameterizedTest
+    @ValueSource(strings = {"CREATED", "REQUESTING", "REQUESTED"})
+    void readCredentialStatusMapsInFlightEdcStateToPendingWhenSlot0InFlight(String edcInFlightState) {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(edcInFlightState);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -174,11 +178,21 @@ class DataspaceProvisioningServiceTest {
     @Test
     void readCredentialStatusSkipsErrorSlotAndReturnsNextActiveStatus() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn("REQUESTED");
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
         assertThat(status).isEqualTo(STATUS_PENDING);
+    }
+
+    @Test
+    void readCredentialStatusNeverLeaksRawEdcStateName() {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn("REQUESTED");
+
+        var status = service.readCredentialStatus(PARTICIPANT_ID);
+
+        assertThat(status).isIn(STATUS_ISSUED, STATUS_PENDING, STATUS_ERROR);
+        assertThat(status).isNotEqualTo("REQUESTED");
     }
 
     @Test
