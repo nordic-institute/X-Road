@@ -1168,6 +1168,26 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
   ]
 }
 
+# Grant TestService access to itself, for the same-SS self-call scenario: SS0 acts as both
+# consumer and provider of its own service. Tolerates 409 so this stays safe to run against
+# a substrate where the grant already exists.
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/DEV:COM:1234:TestService/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "{{is_rest_service_code}}"
+    },
+    {
+      "service_code": "getRandom"
+    }
+  ]
+}
+
+HTTP *
+[Asserts]
+status toString matches "^(201|409)$"
+
 # Register OpenAPI REST service
 POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions
 X-XSRF-TOKEN: {{ss0_xsrf_token}}

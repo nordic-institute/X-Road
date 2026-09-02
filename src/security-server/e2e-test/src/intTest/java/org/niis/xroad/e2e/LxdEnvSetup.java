@@ -51,10 +51,12 @@ import java.util.concurrent.CompletableFuture;
  * ops interfaces.
  */
 @Slf4j
-public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
+public class LxdEnvSetup extends BaseComposeSetup
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
+    private static final String DS_CONTROL_PLANE_DB = "ds-control-plane";
     private static final String ARCHIVE_DIR = "/var/lib/xroad";
     private static final String ARCHIVER_LOG = "/var/log/xroad/message-log-archiver.log";
     private static final String ARCHIVER_CLI = "/usr/share/xroad/bin/xroad-message-log-archiver";
@@ -99,12 +101,32 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public String execMessagelogSql(String env, String sql) {
+        return execPsql(env, "messagelog", sql, "PGOPTIONS=" + MESSAGELOG_SEARCH_PATH);
+    }
+
+    @Override
+    @SneakyThrows
+    public String execDsControlPlaneSql(String env, String sql) {
+        return execPsql(env, DS_CONTROL_PLANE_DB, sql);
+    }
+
+    /**
+     * Runs a query against the given database's local postgres instance on the {@code env} container
+     * via {@code lxc exec}, mirroring {@link K8sEnvSetup}'s {@code kubectl exec} equivalent.
+     * {@code extraEnv} carries any {@code KEY=value} pairs the {@code sudo} invocation should forward
+     * (e.g. messagelog's non-default search path); ds-control-plane needs none, since EDC's schema
+     * lives in the default {@code public} schema.
+     */
+    @SneakyThrows
+    private String execPsql(String env, String database, String sql, String... extraEnv) {
         var container = "xrd-" + env;
-        var process = new ProcessBuilder(
+        var commandArgs = new ArrayList<String>(List.of(
                 lxdProperties.lxcCommand(), "exec", container, "--",
-                "sudo", "-u", "postgres", "PGOPTIONS=" + MESSAGELOG_SEARCH_PATH,
-                "psql", "-d", "messagelog", "-tAX", "-c", sql)
-                .start();
+                "sudo", "-u", "postgres"));
+        commandArgs.addAll(List.of(extraEnv));
+        commandArgs.addAll(List.of("psql", "-d", database, "-tAX", "-c", sql));
+
+        var process = new ProcessBuilder(commandArgs).start();
 
         // Stdout and stderr are drained concurrently to avoid deadlocking on a full pipe buffer:
         // lxc exec emits sudoers noise on stderr on every call, which must not be mistaken for failure.
@@ -115,7 +137,7 @@ public class LxdEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         var exitCode = process.waitFor();
 
         if (exitCode != 0) {
-            throw new IllegalStateException("psql query on %s failed (exit %d): %s".formatted(env, exitCode, stderr));
+            throw new IllegalStateException("psql query on %s failed (exit %d): %s".formatted(database, exitCode, stderr));
         }
         return stdout.trim();
     }
