@@ -104,7 +104,9 @@ public class SsStackSetup extends BaseComposeSetup {
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_PROTOCOL, forListeningPort())
+                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_RPC, forListeningPort())
                 .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_CREDENTIALS, forListeningPort())
+                .withExposedService(OPENBAO, Port.OPENBAO, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
@@ -209,7 +211,9 @@ public class SsStackSetup extends BaseComposeSetup {
         public static final int PROXY = 8080;
         public static final int PROXY_HEALTHCHECK = 5588;
         public static final int CONTROL_PLANE_PROTOCOL = 8183;
+        public static final int CONTROL_PLANE_RPC = 5461;
         public static final int IDENTITY_HUB_CREDENTIALS = 7185;
+        public static final int OPENBAO = 8200;
 
         private Port() {
         }

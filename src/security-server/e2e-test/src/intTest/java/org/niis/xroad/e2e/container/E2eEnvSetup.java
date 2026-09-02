@@ -27,6 +27,7 @@ package org.niis.xroad.e2e.container;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.e2e.ContainerLifecycleOps;
 import org.niis.xroad.e2e.E2eEnvironment;
 import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
@@ -50,7 +51,8 @@ import static org.awaitility.Awaitility.await;
  * overridden to fail loudly — test code must use the env-qualified overloads.
  */
 @Slf4j
-public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
+public class E2eEnvSetup extends BaseComposeSetup
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, ContainerLifecycleOps {
 
     private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
@@ -200,6 +202,11 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             case "aux" -> aux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
+    }
+
+    @Override
+    public String containerStartedAt(String envName, String service) {
+        return mapEnvironment(envName).containerStartedAt(service);
     }
 
     private void ensureDsHttpsKeystoreVolume() {

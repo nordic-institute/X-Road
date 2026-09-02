@@ -46,7 +46,8 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 public class AuxStackSetup extends BaseComposeSetup {
 
     private static final String COMPOSE_AUX_FILE = "compose.aux.yaml";
-    private static final String CS = "cs";
+    public static final String CS = "cs";
+    public static final String TESTCA = "testca";
     public static final String HURL = "hurl";
 
     public AuxStackSetup(ApiTestCoreProperties coreProperties) {
@@ -62,6 +63,7 @@ public class AuxStackSetup extends BaseComposeSetup {
     protected ComposeContainer initEnv() {
         return new ComposeContainer(composeProjectName(), new File(coreProperties.resourceDir() + COMPOSE_AUX_FILE))
                 .withExposedService(CS, Port.UI, forListeningPort())
+                .withExposedService(TESTCA, Port.CA, forListeningPort())
                 .withEnv("PROXY_UI_0", "ss0-ui")
                 .withEnv("PROXY_0", "xrd-ss0")
                 .withEnv("PROXY_UI_1", "ss1-ui")
@@ -113,6 +115,7 @@ public class AuxStackSetup extends BaseComposeSetup {
      */
     public static final class Port {
         public static final int UI = 4000;
+        public static final int CA = 8888;
 
         private Port() {
         }

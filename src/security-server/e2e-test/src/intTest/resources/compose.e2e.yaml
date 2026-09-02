@@ -47,3 +47,6 @@ services:
   db-messagelog:
     ports:
       - "0:5432"
+  openbao:
+    ports:
+      - "0:8200"

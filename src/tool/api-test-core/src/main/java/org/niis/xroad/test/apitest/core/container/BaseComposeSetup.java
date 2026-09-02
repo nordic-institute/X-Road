@@ -225,6 +225,17 @@ public abstract class BaseComposeSetup {
     }
 
     /**
+     * Returns the container's Docker {@code State.StartedAt} timestamp. Comparing the value before and
+     * after a scenario proves the container was not restarted, without asserting on internal call sequences.
+     */
+    public String containerStartedAt(String containerName) {
+        var container = env.getContainerByServiceName(containerName).orElseThrow(
+                () -> new IllegalStateException("Container not found: " + containerName));
+        return container.getDockerClient().inspectContainerCmd(container.getContainerId())
+                .exec().getState().getStartedAt();
+    }
+
+    /**
      * Copies a classpath resource directory into a running container. The source is resolved by
      * {@link MountableFile#forClasspathResource(String)} and the entire tree is copied to
      * {@code targetPath} inside the named container.

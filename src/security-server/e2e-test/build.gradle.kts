@@ -12,6 +12,8 @@ dependencies {
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:globalconf-impl"))
   intTestImplementation(project(":lib:vault-core"))
+  intTestImplementation(project(":lib:ds-identity-core"))
+  intTestImplementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   intTestImplementation(project(":service:op-monitor:op-monitor-core")) {
     exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
   }

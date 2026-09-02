@@ -50,6 +50,8 @@ services:
       - xroad-network
     volumes:
       - ca-volume:/home/ca/certs
+    ports:
+      - "0:8888"
   mailpit:
     image: axllent/mailpit
     restart: unless-stopped
