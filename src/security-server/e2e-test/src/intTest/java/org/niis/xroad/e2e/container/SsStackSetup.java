@@ -103,8 +103,6 @@ public class SsStackSetup extends BaseComposeSetup {
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
-                .withExposedService(DS_CONTROL_PLANE, Port.CONTROL_PLANE_PROTOCOL, forListeningPort())
-                .withExposedService(DS_IDENTITY_HUB, Port.IDENTITY_HUB_CREDENTIALS, forListeningPort())
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
@@ -159,6 +157,28 @@ public class SsStackSetup extends BaseComposeSetup {
                     log.info("{} proxy readiness: status={}, authKeyOcsp={}", name, overall, authKeyOcsp);
                     return "UP".equals(overall) && "OK".equals(authKeyOcsp);
                 });
+    }
+
+    /**
+     * Blocks until this stack's ds-* containers report a healthy docker health check. They fail
+     * fast on an empty {@code tls/ds-https} vault slot by design and restart until setup.hurl has
+     * uploaded this server's DS TLS certificate through the admin API, so this is only awaitable
+     * after the hurl scenario has finished.
+     */
+    public void awaitDsReadiness() {
+        for (String service : List.of(DS_CONTROL_PLANE, DS_IDENTITY_HUB)) {
+            log.info("Waiting for {} {} to become healthy", name, service);
+            await()
+                    .atMost(Duration.ofMinutes(5))
+                    .pollInterval(Duration.ofSeconds(5))
+                    .ignoreExceptions()
+                    .until(() -> env.getContainerByServiceName(service)
+                            .map(c -> {
+                                var health = c.getCurrentContainerInfo().getState().getHealth();
+                                return health != null && "healthy".equals(health.getStatus());
+                            })
+                            .orElse(false));
+        }
     }
 
     private void connectToExternalNetwork(List<String> serviceNames) {

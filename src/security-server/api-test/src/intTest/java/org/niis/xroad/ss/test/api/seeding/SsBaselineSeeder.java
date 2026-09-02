@@ -42,6 +42,7 @@ import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
 import org.niis.xroad.ss.test.api.admin.ClientsAdminClient;
+import org.niis.xroad.ss.test.api.admin.DsTlsCertificateAdminClient;
 import org.niis.xroad.ss.test.api.admin.TokensAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
@@ -131,6 +132,7 @@ public class SsBaselineSeeder {
 
         if (testCaBaseUrl != null) {
             ensureOwnerSignCert();
+            ensureDsTlsCertificate();
         }
 
         log.info("Security Server baseline is ready");
@@ -263,6 +265,39 @@ public class SsBaselineSeeder {
                 .asByteArray();
         tokens.importCertificate(signedCert).statusCode(201);
         log.info("Owner sign certificate seeded successfully");
+    }
+
+    /**
+     * Ensures the {@code tls/ds-https} vault slot holds a certificate, provisioning one through the
+     * admin API's manual CSR flow (generate key server-side, sign at the test CA, upload) when empty.
+     * The ds-* containers fail fast on an empty slot by design and restart until this lands, and the
+     * non-destructive DS TLS tests assert against a populated slot. Skipped when a certificate is
+     * already present so a re-run never rolls back a rotated (e.g. ACME-enrolled) certificate. The
+     * CSR is DN-only (the admin API exposes no SAN input), so the SAN list every ds-* hostname needs
+     * is attached by the test CA from the {@code san} form field.
+     */
+    private void ensureDsTlsCertificate() {
+        var client = new DsTlsCertificateAdminClient(session);
+        var status = client.getStatus().statusCode(200).extract().jsonPath();
+        if (status.getBoolean("key_generated") && status.get("certificate") != null) {
+            log.debug("DS TLS certificate already present — skipping seed");
+            return;
+        }
+        log.info("Provisioning DS TLS certificate through the admin API manual CSR flow");
+        client.generateKey().statusCode(201);
+        var csrBytes = client.generateCsr("CN=ui");
+        var signedCert = RestAssured.given()
+                .relaxedHTTPSValidation()
+                .multiPart("certreq", "ds-tls.pem", csrBytes, "application/octet-stream")
+                .multiPart("type", "auth")
+                .multiPart("san", "DNS:ui,DNS:ds-control-plane,DNS:ds-identity-hub,DNS:ds-issuer-service,DNS:localhost")
+                .post(testCaBaseUrl + "/sign")
+                .then()
+                .statusCode(200)
+                .extract()
+                .asByteArray();
+        client.uploadCertificate(signedCert).statusCode(200);
+        log.info("DS TLS certificate provisioned successfully");
     }
 
     private void bootstrapAdminUser(String baseUrl) {
