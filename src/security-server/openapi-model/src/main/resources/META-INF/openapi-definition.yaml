@@ -8714,12 +8714,12 @@ components:
         identity_status:
           type: string
           readOnly: true
-          description: pinned-identity verification state, present only for MEMBER contexts
+          description: bound-identity verification state, present only for MEMBER contexts
           enum:
             - OK
             - MISMATCH
             - VERSION_UNSUPPORTED
-            - UNPINNED
+            - UNBOUND
             - DRIFTED
             - UNKNOWN
     DataspaceTlsCertificateEnrollmentStatus:

@@ -126,7 +126,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     void provisionParticipantContinuesWithRemainingContextsWhenOneFails() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT, MGMT_CONTEXT));
-        doThrow(new IllegalStateException("pinned row mismatch"))
+        doThrow(new IllegalStateException("bound row mismatch"))
                 .when(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
 
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();

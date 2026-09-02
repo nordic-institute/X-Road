@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 /**
- * Repository for the {@code ds_participant} pinning table, per XRDADR-41's derive-then-store decision.
+ * Repository for the {@code ds_participant} table, per XRDADR-41's derive-then-bind decision.
  */
 @Slf4j
 @Repository
@@ -52,10 +52,10 @@ public class DsParticipantRepository {
     private final DsParticipantDAOImpl dsParticipantDAO = new DsParticipantDAOImpl();
 
     /**
-     * Finds the pinned participant row for the given member identifier.
+     * Finds the bound participant row for the given member identifier.
      *
      * @param member the member identifier
-     * @return the pinned MEMBER row, if one has been provisioned
+     * @return the bound MEMBER row, if one has been provisioned
      */
     public Optional<DsParticipantEntity> findByMemberIdentifier(ClientId member) {
         return dsParticipantDAO.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);

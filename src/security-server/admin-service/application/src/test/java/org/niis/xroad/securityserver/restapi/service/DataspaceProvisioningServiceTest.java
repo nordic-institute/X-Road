@@ -418,7 +418,7 @@ class DataspaceProvisioningServiceTest {
     // --- ensureParticipantContext (MEMBER) ---
 
     @Test
-    void ensureParticipantContextDerivesUnpinnedDidWhenNoRowExists() {
+    void ensureParticipantContextDerivesUnboundDidWhenNoRowExists() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
@@ -471,19 +471,19 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextUsesPinnedDidWhenRowExists() {
-        var pinned = pinnedParticipant(MEMBER, SS_HOST);
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
+    void ensureParticipantContextUsesBoundDidWhenRowExists() {
+        var bound = boundParticipant(MEMBER, SS_HOST);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(bound));
 
         service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
-        verify(identityHubClient).createParticipantContext(any(), eq(pinned.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
+        verify(identityHubClient).createParticipantContext(any(), eq(bound.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
     }
 
     @Test
-    void ensureParticipantContextThrowsWhenPinnedRowNoLongerMatchesDerivation() {
-        var pinned = pinnedParticipant(MEMBER, "ih.other.test:7183");
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
+    void ensureParticipantContextThrowsWhenBoundRowNoLongerMatchesDerivation() {
+        var bound = boundParticipant(MEMBER, "ih.other.test:7183");
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(bound));
 
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         assertThatThrownBy(() ->
@@ -524,33 +524,33 @@ class DataspaceProvisioningServiceTest {
     // --- readIdentityStatus ---
 
     @Test
-    void readIdentityStatusReportsUnpinnedWhenNoRowExists() {
+    void readIdentityStatusReportsUnboundWhenNoRowExists() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
 
-        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNPINNED);
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNBOUND);
     }
 
     @Test
-    void readIdentityStatusReportsOkWhenPinnedRowMatchesDerivation() {
+    void readIdentityStatusReportsOkWhenBoundRowMatchesDerivation() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
-                .thenReturn(Optional.of(pinnedParticipant(MEMBER, SS_HOST)));
+                .thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
 
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.OK);
     }
 
     @Test
-    void readIdentityStatusReportsMismatchWhenPinnedRowDiffersFromDerivation() {
+    void readIdentityStatusReportsMismatchWhenBoundRowDiffersFromDerivation() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
-                .thenReturn(Optional.of(pinnedParticipant(MEMBER, "ih.other.test:7183")));
+                .thenReturn(Optional.of(boundParticipant(MEMBER, "ih.other.test:7183")));
 
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.MISMATCH);
     }
 
     @Test
     void readIdentityStatusReportsVersionUnsupportedForUnknownSchemeVersion() {
-        var pinned = pinnedParticipant(MEMBER, SS_HOST);
-        pinned.setSchemeVersion("v0");
-        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
+        var bound = boundParticipant(MEMBER, SS_HOST);
+        bound.setSchemeVersion("v0");
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(bound));
 
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.VERSION_UNSUPPORTED);
     }
@@ -581,7 +581,7 @@ class DataspaceProvisioningServiceTest {
         return entity;
     }
 
-    private DsParticipantEntity pinnedParticipant(ClientId member, String ssHost) {
+    private DsParticipantEntity boundParticipant(ClientId member, String ssHost) {
         var participant = new DsParticipantEntity();
         participant.setParticipantType(ParticipantType.MEMBER);
         participant.setMemberIdentifier(ClientIdEntityFactory.create(member));

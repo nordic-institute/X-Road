@@ -56,7 +56,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 public class ParticipantIdentifierScheme {
 
     /**
-     * The scheme version segment in the DID path, and the value recorded alongside a pinned identifier.
+     * The scheme version segment in the DID path, and the value recorded alongside a bound identifier.
      */
     public static final String SCHEME_VERSION = "v1";
 

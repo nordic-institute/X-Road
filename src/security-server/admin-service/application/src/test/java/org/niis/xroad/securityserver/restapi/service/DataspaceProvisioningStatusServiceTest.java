@@ -233,21 +233,21 @@ class DataspaceProvisioningStatusServiceTest {
         var member = status.participantContexts().get(2);
         assertThat(host.identityStatus()).isNull();
         assertThat(mgmt.identityStatus()).isNull();
-        assertThat(member.identityStatus()).isEqualTo(IdentityStatus.UNPINNED);
+        assertThat(member.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
     }
 
     @Test
-    void readStatusReportsIdentityMismatchForDriftedPinnedRow() {
+    void readStatusReportsIdentityMismatchForDriftedBoundRow() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
-        var pinned = new DsParticipantEntity();
-        pinned.setParticipantType(ParticipantType.MEMBER);
-        pinned.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
-        pinned.setCtxId(OWNER_CTX_ID);
-        pinned.setDid(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183"));
-        pinned.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-        pinned.setState(ParticipantState.ACTIVE);
-        when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.of(pinned));
+        var bound = new DsParticipantEntity();
+        bound.setParticipantType(ParticipantType.MEMBER);
+        bound.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
+        bound.setCtxId(OWNER_CTX_ID);
+        bound.setDid(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183"));
+        bound.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        bound.setState(ParticipantState.ACTIVE);
+        when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.of(bound));
 
         DataspaceStatus status = statusService.readStatus();
 
