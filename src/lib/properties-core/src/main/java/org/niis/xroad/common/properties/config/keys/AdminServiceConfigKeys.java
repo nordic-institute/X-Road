@@ -514,6 +514,28 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(20)
             .build();
 
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */
+    public static final ConfigKey<String[]> DATASPACE_TLS_CERTIFICATE_CONTACTS = DATASPACE
+            .stringArray("tls-certificate-contacts")
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-notification-contacts} */
+    public static final ConfigKey<String[]> DATASPACE_TLS_CERTIFICATE_NOTIFICATION_CONTACTS = DATASPACE
+            .stringArray("tls-certificate-notification-contacts")
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-renewal-success-notification-enabled} */
+    public static final ConfigKey<Boolean> DATASPACE_TLS_CERTIFICATE_RENEWAL_SUCCESS_NOTIFICATION_ENABLED = DATASPACE
+            .bool("tls-certificate-renewal-success-notification-enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-renewal-failure-notification-enabled} */
+    public static final ConfigKey<Boolean> DATASPACE_TLS_CERTIFICATE_RENEWAL_FAILURE_NOTIFICATION_ENABLED = DATASPACE
+            .bool("tls-certificate-renewal-failure-notification-enabled")
+            .withDefaultValue(true)
+            .build();
+
     private AdminServiceConfigKeys() {
     }
 

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.config;
+package org.niis.xroad.securityserver.restapi.config;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
 @ExtendWith(SystemStubsExtension.class)
-class AcmeSchedulingConfigTest {
+class AcmeCertificateRenewalSchedulingConfigTest {
 
     @SystemStub
     private final EnvironmentVariables variables = new EnvironmentVariables();
@@ -70,6 +70,6 @@ class AcmeSchedulingConfigTest {
     private boolean schedulingEnabled(boolean renewalActive, NodeProperties.NodeType nodeType) {
         variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
 
-        return AcmeSchedulingConfig.IsAcmeCertRenewalJobsActive.schedulingEnabled(renewalActive);
+        return AcmeCertificateRenewalSchedulingConfig.IsAcmeCertRenewalJobsActive.schedulingEnabled(renewalActive);
     }
 }

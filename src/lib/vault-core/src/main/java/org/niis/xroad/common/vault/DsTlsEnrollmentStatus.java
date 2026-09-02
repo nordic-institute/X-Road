@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.vault;
 
-import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.acme.config.AcmeConfig;
-import org.niis.xroad.common.acme.config.AcmeProperties;
-import org.niis.xroad.common.vault.VaultClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.time.Instant;
 
 /**
- * Wires the ACME client beans that are specific to the Security Server admin-service: they depend on this
- * admin-service's own {@link AcmeProperties} and {@link AcmeConfig} bean instances (bound from
- * {@code AdminServiceConfigKeys}), so they stay here rather than in acme-spring.
+ * The DS TLS certificate's enrollment bookkeeping: how the currently stored credential was obtained, when it is
+ * next due for renewal, and its last enrollment/renewal error. Stored at a path sibling to the credential material
+ * itself ({@link VaultClient#DS_HTTPS_ENROLLMENT_STATUS_PATH}), so that recording a failed attempt can never
+ * corrupt the certificate currently being served.
+ *
+ * @param method          how the currently stored credential was obtained, or {@code null} when no credential has
+ *                         ever been successfully stored
+ * @param nextRenewalTime when the credential is next due for ACME renewal, or {@code null} when not applicable
+ * @param lastError       the last enrollment/renewal error, or {@code null} when the last attempt succeeded
  */
-@Configuration
-public class AcmeBeanConfig {
+public record DsTlsEnrollmentStatus(DsTlsEnrollmentMethod method, Instant nextRenewalTime, String lastError) {
 
-    @Bean
-    public AcmeService acmeService(AcmeProperties acmeProperties, AcmeConfig acmeConfig, VaultClient vaultClient) {
-        return new AcmeService(acmeProperties, acmeConfig, vaultClient);
+    public boolean configured() {
+        return method != null;
     }
-
 }

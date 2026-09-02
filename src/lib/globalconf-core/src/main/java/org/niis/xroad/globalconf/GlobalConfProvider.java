@@ -38,7 +38,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -293,7 +293,7 @@ public interface GlobalConfProvider {
      * @return all known approved DataSpace TLS CAs. Separate from {@link #getApprovedCAs}: this list is never
      * consulted for member-certificate validation.
      */
-    default Collection<DsTlsCaInfo> getApprovedDsTlsCas(
+    default Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
             String instanceIdentifier) {
         return Collections.emptyList();
     }

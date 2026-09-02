@@ -50,7 +50,7 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -562,16 +562,16 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Collection<DsTlsCaInfo> getApprovedDsTlsCas(
+    public Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
             String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getApprovedDsTlsCas()
                 .stream()
-                .map(this::createDsTlsCaInfo)
+                .map(this::createApprovedDsTlsCaInfo)
                 .toList();
     }
 
-    private DsTlsCaInfo createDsTlsCaInfo(SharedParameters.ApprovedDsTlsCa ca) {
-        return new DsTlsCaInfo(
+    private ApprovedDsTlsCaInfo createApprovedDsTlsCaInfo(SharedParameters.ApprovedDsTlsCa ca) {
+        return new ApprovedDsTlsCaInfo(
                 ca.getName(),
                 CryptoUtils.readCertificate(ca.getTopCA().getCert()),
                 ca.getIntermediateCas().stream()

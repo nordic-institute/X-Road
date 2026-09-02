@@ -28,7 +28,7 @@ package org.niis.xroad.edc.trust;
 
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -75,7 +75,7 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var cas = globalConfProvider.getApprovedDsTlsCas(instanceIdentifier)
                 .stream()
-                .sorted(Comparator.comparing(DsTlsCaInfo::getName))
+                .sorted(Comparator.comparing(ApprovedDsTlsCaInfo::getName))
                 .toList();
 
         if (cas.isEmpty()) {
@@ -84,7 +84,7 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
         return new PeriodicMaterialReloader.Loaded<>(buildTrustManager(cas), fingerprint(cas));
     }
 
-    private static X509ExtendedTrustManager buildTrustManager(List<DsTlsCaInfo> cas) {
+    private static X509ExtendedTrustManager buildTrustManager(List<ApprovedDsTlsCaInfo> cas) {
         try {
             var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(null, null);
@@ -112,7 +112,7 @@ public final class DsTlsCaTrustManagerLoader implements PeriodicMaterialReloader
         }
     }
 
-    private static String fingerprint(List<DsTlsCaInfo> cas) {
+    private static String fingerprint(List<ApprovedDsTlsCaInfo> cas) {
         try {
             var digest = MessageDigest.getInstance(FINGERPRINT_ALGORITHM);
             for (var ca : cas) {

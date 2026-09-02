@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.model.DsTlsCaInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 
 import java.security.cert.CertificateException;
 import java.util.List;
@@ -124,7 +124,7 @@ class DsTlsCaTrustManagerLoaderTest {
         assertThat(loader.load().fingerprint()).isEqualTo(loader.load().fingerprint());
     }
 
-    private static DsTlsCaInfo dsTlsCaInfo(String name, TestCa ca) {
-        return new DsTlsCaInfo(name, ca.certificate(), List.of(), null, null, null);
+    private static ApprovedDsTlsCaInfo dsTlsCaInfo(String name, TestCa ca) {
+        return new ApprovedDsTlsCaInfo(name, ca.certificate(), List.of(), null, null, null);
     }
 }

@@ -28,9 +28,13 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceParticipantContextStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceProvisioningStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceTlsCertificateEnrollmentStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DataspaceTlsCertificateEnrollmentStatusDto.EnrollmentMethodEnum;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
@@ -40,10 +44,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Data space API controller — read-only provisioning status endpoint.
+ * Data space API controller — read-only provisioning status and DataSpace TLS certificate enrollment status
+ * endpoints.
  */
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -53,12 +59,30 @@ import java.util.List;
 public class DataspaceApiController implements DataspaceApi {
 
     private final DataspaceProvisioningStatusService dataspaceProvisioningStatusService;
+    private final DsTlsCertificateService dsTlsCertificateService;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_DATASPACE_STATUS')")
     public ResponseEntity<DataspaceProvisioningStatusDto> getDataspaceProvisioningStatus() {
         DataspaceStatus status = dataspaceProvisioningStatusService.readStatus();
         return new ResponseEntity<>(toDto(status), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_DS_TLS_CERT')")
+    public ResponseEntity<DataspaceTlsCertificateEnrollmentStatusDto> getDataspaceTlsCertificateEnrollmentStatus() {
+        DsTlsEnrollmentStatus status = dsTlsCertificateService.getEnrollmentStatus();
+        return new ResponseEntity<>(toDto(status), HttpStatus.OK);
+    }
+
+    private DataspaceTlsCertificateEnrollmentStatusDto toDto(DsTlsEnrollmentStatus status) {
+        var dto = new DataspaceTlsCertificateEnrollmentStatusDto(
+                status.configured() ? EnrollmentMethodEnum.valueOf(status.method().name()) : EnrollmentMethodEnum.NONE);
+        if (status.nextRenewalTime() != null) {
+            dto.setNextRenewalTime(status.nextRenewalTime().atOffset(ZoneOffset.UTC));
+        }
+        dto.setLastError(status.lastError());
+        return dto;
     }
 
     private DataspaceProvisioningStatusDto toDto(DataspaceStatus status) {
