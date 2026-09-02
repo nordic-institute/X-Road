@@ -42,6 +42,8 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Datas
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
@@ -66,9 +68,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ERROR;
-import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ISSUED;
-import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_PENDING;
 
 @ExtendWith(MockitoExtension.class)
 class DataspaceProvisioningServiceTest {
@@ -119,7 +118,7 @@ class DataspaceProvisioningServiceTest {
     void ensureMembershipCredentialSubmitsIntoSlot0WhenNoExistingRequest() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
 
-        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_PENDING);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.PENDING);
 
         verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT0),
                 anyString(), anyString(), anyString());
@@ -127,25 +126,25 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureMembershipCredentialNoOpWhenSlot0IsPending() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.PENDING.name());
 
-        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_PENDING);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.PENDING);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     @Test
     void ensureMembershipCredentialNoOpWhenSlot0IsIssued() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ISSUED.name());
 
-        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_ISSUED);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.ISSUED);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     @Test
     void ensureMembershipCredentialAdvancesPastErrorSlot() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
         service.ensureMembershipCredential(PARTICIPANT_ID);
@@ -156,8 +155,8 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureMembershipCredentialAdvancesPastMultipleErrorSlots() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(CredentialStatus.ERROR.name());
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT2)).thenReturn(null);
 
         service.ensureMembershipCredential(PARTICIPANT_ID);
@@ -169,10 +168,10 @@ class DataspaceProvisioningServiceTest {
     @Test
     void ensureMembershipCredentialNoSubmitWhenAllSlotsExhausted() {
         when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(CredentialStatus.ERROR.name());
 
-        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(STATUS_ERROR);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.ERROR);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
@@ -191,41 +190,41 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusReturnsIssuedWhenSlot0Issued() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ISSUED.name());
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
-        assertThat(status).isEqualTo(STATUS_ISSUED);
+        assertThat(status).isEqualTo(CredentialStatus.ISSUED);
     }
 
     @Test
     void readCredentialStatusReturnsPendingWhenSlot0Pending() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.PENDING.name());
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
-        assertThat(status).isEqualTo(STATUS_PENDING);
+        assertThat(status).isEqualTo(CredentialStatus.PENDING);
     }
 
     @Test
     void readCredentialStatusSkipsErrorSlotAndReturnsNextActiveStatus() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_PENDING);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(CredentialStatus.PENDING.name());
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
-        assertThat(status).isEqualTo(STATUS_PENDING);
+        assertThat(status).isEqualTo(CredentialStatus.PENDING);
     }
 
     @Test
     void readCredentialStatusReturnsErrorWhenAllSlotsError() {
         when(dataspace.getMaxHolderPidSlots()).thenReturn(2);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ERROR);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(CredentialStatus.ERROR.name());
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
-        assertThat(status).isEqualTo(STATUS_ERROR);
+        assertThat(status).isEqualTo(CredentialStatus.ERROR);
     }
 
     @Test
@@ -241,14 +240,32 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void readCredentialStatusStopsAtFirstActiveSlotAfterErrors() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ERROR);
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(CredentialStatus.ISSUED.name());
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
-        assertThat(status).isEqualTo(STATUS_ISSUED);
+        assertThat(status).isEqualTo(CredentialStatus.ISSUED);
         // slot2..N are not queried
         verify(identityHubClient, times(2)).getCredentialRequestState(eq(PARTICIPANT_ID), anyString());
+    }
+
+    @Test
+    void readCredentialStatusMapsUnrecognizedHubStateToUnknown() {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn("APPROVED");
+
+        assertThat(service.readCredentialStatus(PARTICIPANT_ID)).isEqualTo(CredentialStatus.UNKNOWN);
+    }
+
+    @Test
+    void ensureMembershipCredentialAdvancesPastUnrecognizedHubState() {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn("APPROVED");
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
+
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.PENDING);
+
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT1),
+                anyString(), anyString(), anyString());
     }
 
     // --- participantContexts ---
@@ -490,7 +507,7 @@ class DataspaceProvisioningServiceTest {
     void readIdentityStatusReportsUnpinnedWhenNoRowExists() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
 
-        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_UNPINNED);
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNPINNED);
     }
 
     @Test
@@ -498,7 +515,7 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
                 .thenReturn(Optional.of(pinnedParticipant(MEMBER, SS_HOST)));
 
-        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_OK);
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.OK);
     }
 
     @Test
@@ -506,7 +523,7 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
                 .thenReturn(Optional.of(pinnedParticipant(MEMBER, "ih.other.test:7183")));
 
-        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_MISMATCH);
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.MISMATCH);
     }
 
     @Test
@@ -515,7 +532,7 @@ class DataspaceProvisioningServiceTest {
         pinned.setSchemeVersion("v0");
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(pinned));
 
-        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_VERSION_UNSUPPORTED);
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.VERSION_UNSUPPORTED);
     }
 
     @Test
@@ -523,7 +540,7 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
                 .thenThrow(new DataAccessResourceFailureException("connection lost"));
 
-        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(DataspaceProvisioningService.IDENTITY_UNKNOWN);
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNKNOWN);
     }
 
     private void givenServerConfWithOwner(ClientId owner) {

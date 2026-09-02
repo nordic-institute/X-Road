@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
@@ -83,25 +84,24 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * ids. A slot in terminal ERROR is skipped and the next slot is used on the following submit; a slot in
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
- * returns {@link #STATUS_ERROR} so the status path can distinguish "failing" from "never requested".</p>
+ * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".</p>
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataspaceProvisioningService {
 
-    public static final String STATUS_ISSUED = "ISSUED";
-    public static final String STATUS_PENDING = "PENDING";
-    public static final String STATUS_ERROR = "ERROR";
-    public static final String STATUS_ABSENT = "ABSENT";
-    public static final String STATUS_UNKNOWN = "UNKNOWN";
+    /**
+     * Membership credential state of one participant context. {@code UNKNOWN} covers both an
+     * unreadable identity hub and a hub state outside this set.
+     */
+    public enum CredentialStatus { ISSUED, PENDING, ERROR, ABSENT, UNKNOWN }
 
-    public static final String IDENTITY_OK = "OK";
-    public static final String IDENTITY_MISMATCH = "MISMATCH";
-    public static final String IDENTITY_VERSION_UNSUPPORTED = "VERSION_UNSUPPORTED";
-    public static final String IDENTITY_UNPINNED = "UNPINNED";
-    public static final String IDENTITY_DRIFTED = "DRIFTED";
-    public static final String IDENTITY_UNKNOWN = "UNKNOWN";
+    /**
+     * Pinned-identity state of one MEMBER participant context. {@code DRIFTED} means the identity
+     * hub serves a different DID than this server intends to publish.
+     */
+    public enum IdentityStatus { OK, MISMATCH, VERSION_UNSUPPORTED, UNPINNED, DRIFTED, UNKNOWN }
 
     public enum ParticipantKind { HOST, MANAGEMENT, MEMBER }
 
@@ -129,17 +129,16 @@ public class DataspaceProvisioningService {
      * @param participantId    the participant context id
      * @param kind             HOST, MANAGEMENT or MEMBER
      * @param contextCreated   whether the participant context exists in IdentityHub
-     * @param credentialStatus ISSUED / PENDING / ABSENT / ERROR / UNKNOWN
-     * @param identityStatus   OK / MISMATCH / VERSION_UNSUPPORTED / UNPINNED / DRIFTED / UNKNOWN for
-     *                         a MEMBER context ({@code DRIFTED}: the hub serves a different DID than
-     *                         this server intends to publish); {@code null} for HOST and MANAGEMENT
+     * @param credentialStatus the membership credential state
+     * @param identityStatus   the pinned-identity state for a MEMBER context; {@code null} for HOST
+     *                         and MANAGEMENT
      */
     public record ParticipantContextStatus(
             String participantId,
             ParticipantKind kind,
             boolean contextCreated,
-            String credentialStatus,
-            @Nullable String identityStatus
+            CredentialStatus credentialStatus,
+            @Nullable IdentityStatus identityStatus
     ) {
     }
 
@@ -201,10 +200,10 @@ public class DataspaceProvisioningService {
      * ERROR state. Returns immediately — does not poll for the outcome.
      *
      * @param participantId the participant context id
-     * @return {@code "ISSUED"} for a terminally issued credential, {@code "PENDING"} when a request
-     *         is active or was just submitted, {@code "ERROR"} when all slots are exhausted
+     * @return {@code ISSUED} for a terminally issued credential, {@code PENDING} when a request is
+     *         active or was just submitted, {@code ERROR} when all slots are exhausted
      */
-    public String ensureMembershipCredential(String participantId) {
+    public CredentialStatus ensureMembershipCredential(String participantId) {
         var ds = adminServiceProperties.getDataspace();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
@@ -213,19 +212,17 @@ public class DataspaceProvisioningService {
                 log.info("Data space provisioning: submitting credential request for participant {}", participantId);
                 identityHubClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
                         ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
-                return STATUS_PENDING;
+                return CredentialStatus.PENDING;
             }
-            if (STATUS_ISSUED.equals(state)) {
-                return STATUS_ISSUED;
-            }
-            if (STATUS_PENDING.equals(state)) {
-                return STATUS_PENDING;
+            var status = hubCredentialState(state);
+            if (status == CredentialStatus.ISSUED || status == CredentialStatus.PENDING) {
+                return status;
             }
             // ERROR — advance to next slot
         }
         log.warn("Data space credential for participant {} exhausted {} holder-pid slots (all in ERROR); no request submitted",
                 participantId, ds.getMaxHolderPidSlots());
-        return STATUS_ERROR;
+        return CredentialStatus.ERROR;
     }
 
     /**
@@ -236,10 +233,10 @@ public class DataspaceProvisioningService {
      * {@code null} when no request has been submitted yet (all slots absent).</p>
      *
      * @param participantId the participant context id
-     * @return {@code "ISSUED"}, {@code "PENDING"}, {@code "ERROR"}, or {@code null}
+     * @return {@code ISSUED}, {@code PENDING}, {@code ERROR}, {@code UNKNOWN}, or {@code null}
      */
     @Nullable
-    public String readCredentialStatus(String participantId) {
+    public CredentialStatus readCredentialStatus(String participantId) {
         var ds = adminServiceProperties.getDataspace();
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
@@ -248,13 +245,18 @@ public class DataspaceProvisioningService {
             if (state == null) {
                 continue;
             }
-            if (STATUS_ERROR.equals(state)) {
+            var status = hubCredentialState(state);
+            if (status == CredentialStatus.ERROR) {
                 anyError = true;
                 continue;
             }
-            return state;
+            return status;
         }
-        return anyError ? STATUS_ERROR : null;
+        return anyError ? CredentialStatus.ERROR : null;
+    }
+
+    private static CredentialStatus hubCredentialState(String state) {
+        return EnumUtils.getEnum(CredentialStatus.class, state, CredentialStatus.UNKNOWN);
     }
 
     /**
@@ -328,27 +330,27 @@ public class DataspaceProvisioningService {
                     identityStatusOf(assessment, hubDid));
         } catch (Exception e) {
             log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
-            return new ParticipantContextStatus(participantId, context.kind(), false, STATUS_UNKNOWN,
+            return new ParticipantContextStatus(participantId, context.kind(), false, CredentialStatus.UNKNOWN,
                     identityStatusOf(assessment, Optional.empty()));
         }
     }
 
     @Nullable
-    private static String identityStatusOf(@Nullable MemberIdentity assessment, Optional<String> hubDid) {
+    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<String> hubDid) {
         if (assessment == null) {
             return null;
         }
         if (assessment.intendedDid() != null && hubDid.isPresent() && !hubDid.get().equals(assessment.intendedDid())) {
-            return IDENTITY_DRIFTED;
+            return IdentityStatus.DRIFTED;
         }
         return assessment.status();
     }
 
-    private String resolveCredentialStatus(String participantId, boolean contextCreated) {
+    private CredentialStatus resolveCredentialStatus(String participantId, boolean contextCreated) {
         if (!contextCreated) {
-            return STATUS_ABSENT;
+            return CredentialStatus.ABSENT;
         }
-        return Optional.ofNullable(readCredentialStatus(participantId)).orElse(STATUS_ABSENT);
+        return Optional.ofNullable(readCredentialStatus(participantId)).orElse(CredentialStatus.ABSENT);
     }
 
     private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
@@ -380,13 +382,13 @@ public class DataspaceProvisioningService {
 
     /**
      * Reports the identity-pinning state of one member's participant context without provisioning
-     * anything. Tolerates backend unavailability — errors are reported as {@link #IDENTITY_UNKNOWN}
-     * rather than thrown.
+     * anything. Tolerates backend unavailability — errors are reported as
+     * {@link IdentityStatus#UNKNOWN} rather than thrown.
      *
      * @param memberId the member whose pinned identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNPINNED} or {@code UNKNOWN}
      */
-    public String readIdentityStatus(ClientId memberId) {
+    public IdentityStatus readIdentityStatus(ClientId memberId) {
         return assessMemberIdentity(memberId).status();
     }
 
@@ -395,7 +397,7 @@ public class DataspaceProvisioningService {
      * (the pinned DID, or the fresh derivation when unpinned; {@code null} when the pin itself is in
      * an error state and no intended DID can be stated).
      */
-    private record MemberIdentity(String status, @Nullable String intendedDid) {
+    private record MemberIdentity(IdentityStatus status, @Nullable String intendedDid) {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
@@ -403,22 +405,22 @@ public class DataspaceProvisioningService {
             var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
             var pinned = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (pinned.isEmpty()) {
-                return new MemberIdentity(IDENTITY_UNPINNED, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
+                return new MemberIdentity(IdentityStatus.UNPINNED, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
             }
             ParticipantPinningCheck.verify(pinned.get(), ssHost);
-            return new MemberIdentity(IDENTITY_OK, pinned.get().getDid());
+            return new MemberIdentity(IdentityStatus.OK, pinned.get().getDid());
         } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
-                return new MemberIdentity(IDENTITY_MISMATCH, null);
+                return new MemberIdentity(IdentityStatus.MISMATCH, null);
             }
             if (DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code().equals(e.getErrorCode())) {
-                return new MemberIdentity(IDENTITY_VERSION_UNSUPPORTED, null);
+                return new MemberIdentity(IdentityStatus.VERSION_UNSUPPORTED, null);
             }
             log.warn("Data space: could not read identity status for member {}", memberId, e);
-            return new MemberIdentity(IDENTITY_UNKNOWN, null);
+            return new MemberIdentity(IdentityStatus.UNKNOWN, null);
         } catch (Exception e) {
             log.warn("Data space: could not read identity status for member {}", memberId, e);
-            return new MemberIdentity(IDENTITY_UNKNOWN, null);
+            return new MemberIdentity(IdentityStatus.UNKNOWN, null);
         }
     }
 

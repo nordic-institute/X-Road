@@ -42,6 +42,8 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Datas
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatusService.DataspaceStatus;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -59,9 +61,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ABSENT;
-import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_ISSUED;
-import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.STATUS_UNKNOWN;
 
 @ExtendWith(MockitoExtension.class)
 class DataspaceProvisioningStatusServiceTest {
@@ -123,8 +122,9 @@ class DataspaceProvisioningStatusServiceTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
         when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host"));
         when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host:mgmt"));
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
-        when(identityHubClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ISSUED.name());
+        when(identityHubClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0))
+                .thenReturn(CredentialStatus.ISSUED.name());
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -135,11 +135,11 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(host.participantId()).isEqualTo(PARTICIPANT_ID);
         assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(host.contextCreated()).isTrue();
-        assertThat(host.credentialStatus()).isEqualTo(STATUS_ISSUED);
+        assertThat(host.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
         assertThat(mgmt.participantId()).isEqualTo(MGMT_PARTICIPANT_ID);
         assertThat(mgmt.kind()).isEqualTo(ParticipantKind.MANAGEMENT);
         assertThat(mgmt.contextCreated()).isTrue();
-        assertThat(mgmt.credentialStatus()).isEqualTo(STATUS_ISSUED);
+        assertThat(mgmt.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
         assertThat(status.participantContexts().get(2).kind()).isEqualTo(ParticipantKind.MEMBER);
         assertThat(status.participantContexts().get(2).participantId()).isEqualTo(OWNER_CTX_ID);
     }
@@ -150,7 +150,7 @@ class DataspaceProvisioningStatusServiceTest {
         when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host"));
         when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.empty());
         when(identityHubClient.contextDid(OWNER_CTX_ID)).thenReturn(Optional.empty());
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(STATUS_ISSUED);
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ISSUED.name());
 
         DataspaceStatus status = statusService.readStatus();
 
@@ -159,10 +159,10 @@ class DataspaceProvisioningStatusServiceTest {
         var mgmt = status.participantContexts().get(1);
         assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(host.contextCreated()).isTrue();
-        assertThat(host.credentialStatus()).isEqualTo(STATUS_ISSUED);
+        assertThat(host.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
         assertThat(mgmt.kind()).isEqualTo(ParticipantKind.MANAGEMENT);
         assertThat(mgmt.contextCreated()).isFalse();
-        assertThat(mgmt.credentialStatus()).isEqualTo(STATUS_ABSENT);
+        assertThat(mgmt.credentialStatus()).isEqualTo(CredentialStatus.ABSENT);
     }
 
     @Test
@@ -178,7 +178,7 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
-                    assertThat(ctx.credentialStatus()).isEqualTo(STATUS_UNKNOWN);
+                    assertThat(ctx.credentialStatus()).isEqualTo(CredentialStatus.UNKNOWN);
                 });
     }
 
@@ -197,7 +197,7 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
-                    assertThat(ctx.credentialStatus()).isEqualTo(STATUS_ABSENT);
+                    assertThat(ctx.credentialStatus()).isEqualTo(CredentialStatus.ABSENT);
                 });
     }
 
@@ -214,7 +214,7 @@ class DataspaceProvisioningStatusServiceTest {
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
-                    assertThat(ctx.credentialStatus()).isEqualTo(STATUS_ABSENT);
+                    assertThat(ctx.credentialStatus()).isEqualTo(CredentialStatus.ABSENT);
                 });
     }
 
@@ -230,7 +230,7 @@ class DataspaceProvisioningStatusServiceTest {
         var member = status.participantContexts().get(2);
         assertThat(host.identityStatus()).isNull();
         assertThat(mgmt.identityStatus()).isNull();
-        assertThat(member.identityStatus()).isEqualTo(DataspaceProvisioningService.IDENTITY_UNPINNED);
+        assertThat(member.identityStatus()).isEqualTo(IdentityStatus.UNPINNED);
     }
 
     @Test
@@ -249,7 +249,7 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.participantContexts().get(2).identityStatus())
-                .isEqualTo(DataspaceProvisioningService.IDENTITY_MISMATCH);
+                .isEqualTo(IdentityStatus.MISMATCH);
     }
 
     @Test
@@ -262,7 +262,7 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.participantContexts().get(2).identityStatus())
-                .isEqualTo(DataspaceProvisioningService.IDENTITY_DRIFTED);
+                .isEqualTo(IdentityStatus.DRIFTED);
     }
 
     @Test
