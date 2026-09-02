@@ -66,6 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,7 +99,9 @@ class SsMonitoringTest extends E2eTest {
     private static final String OPERATIONAL_DATA_JSON = "operational-monitoring-data.json.gz";
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
     private static final Duration OP_MONITOR_SETTLE_DELAY = Duration.ofSeconds(2);
-    private static final Duration OP_MONITOR_SETTLE_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration OP_MONITOR_RETRY_INTERVAL = Duration.ofSeconds(3);
+    private static final Duration OP_MONITOR_RETRY_TIMEOUT = Duration.ofSeconds(90);
+    private static final String SSL_AUTH_FAULT_CODE = "ssl_authentication_failed";
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
 
@@ -348,21 +351,60 @@ class SsMonitoringTest extends E2eTest {
     }
 
     private void sendGetSecurityServerOperationalData(E2eEnvironment env, String envName) {
-        Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
-        var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        lastOpMonitorResponse = RestAssuredFactory.given()
-                .header("Content-Type", "text/xml")
-                .body(buildOperationalDataRequestBody())
-                .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
+        lastOpMonitorResponse = sendOpMonitorRequestUntilReady(env, envName, buildOperationalDataRequestBody(),
+                response -> !isSslAuthenticationFault(response),
+                "an operational-data response that is not an internal-TLS authentication fault");
     }
 
     private void sendGetSecurityServerHealthData(E2eEnvironment env, String envName) {
-        Awaitility.await().pollDelay(OP_MONITOR_SETTLE_DELAY).timeout(OP_MONITOR_SETTLE_TIMEOUT).until(() -> true);
+        lastOpMonitorResponse = sendOpMonitorRequestUntilReady(env, envName, buildHealthDataRequestBody(),
+                response -> !isSslAuthenticationFault(response) && !healthDataSuccessCount(response).isEmpty(),
+                "a health-data response carrying a successfulRequestCount");
+    }
+
+    /**
+     * Re-sends the request until the response is usable. Two conditions race here and neither is
+     * observable from the client: the owner client's connection type has to reach the proxy, which
+     * reads it through its own serverconf cache with no invalidation signal from the admin service,
+     * and op-monitor has to flush its buffer before the queried records exist.
+     *
+     * <p>Only the op-monitor queries are retried. The proxymonitor requests race the same way, but
+     * re-sending them is not safe: each one writes messagelog records, and
+     * {@code messagelogContainsMetricsRequests} asserts an exact row count for its query id.
+     */
+    private Response sendOpMonitorRequestUntilReady(E2eEnvironment env, String envName, String requestBody,
+                                                    Predicate<Response> ready, String description) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        lastOpMonitorResponse = RestAssuredFactory.given()
-                .header("Content-Type", "text/xml")
-                .body(buildHealthDataRequestBody())
-                .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
+        var url = "http://%s:%s".formatted(mapping.host(), mapping.port());
+        var last = new AtomicReference<Response>();
+        try {
+            Awaitility.await()
+                    .pollDelay(OP_MONITOR_SETTLE_DELAY)
+                    .pollInterval(OP_MONITOR_RETRY_INTERVAL)
+                    .timeout(OP_MONITOR_RETRY_TIMEOUT)
+                    .ignoreExceptions()
+                    .until(() -> {
+                        last.set(RestAssuredFactory.given()
+                                .header("Content-Type", "text/xml")
+                                .body(requestBody)
+                                .post(url));
+                        return ready.test(last.get());
+                    });
+        } catch (ConditionTimeoutException e) {
+            var observed = last.get();
+            throw new ConditionTimeoutException(
+                    "Timed out waiting for %s from %s (last status: %s)".formatted(
+                            description, envName, observed == null ? "no response" : observed.getStatusCode()), e);
+        }
+        return last.get();
+    }
+
+    private boolean isSslAuthenticationFault(Response response) {
+        return response.asString().contains(SSL_AUTH_FAULT_CODE);
+    }
+
+    private String healthDataSuccessCount(Response response) {
+        return evalOpMonitorXpath(response.asString(), "//om:successfulRequestCount");
     }
 
     @SneakyThrows
