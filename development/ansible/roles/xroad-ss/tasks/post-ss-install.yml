@@ -1,6 +1,4 @@
 ---
-- include_tasks: seed-ds-https-vault.yml
-
 # TEMPORARY (dataspaces dev): post-install safety net. The pre-install preseed
 # ensures DS services boot cleanly on a fresh install, but if an earlier run
 # left a unit in `inactive (dead)` state (e.g., from a prior StartLimitBurst
