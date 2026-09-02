@@ -37,6 +37,7 @@ import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,8 +72,14 @@ class SsProxyDspSelfCallTest extends E2eTest {
             """;
 
     private static final int NEGOTIATION_STATE_FINALIZED = 1200;
-    private static final int TRANSFER_STATE_COMPLETED = 800;
     private static final int EXPECTED_NEGOTIATION_COUNT = 2;
+
+    /**
+     * X-Road repurposes the EDC data plane as a standing message-exchange channel rather than a one-shot
+     * dataset pull: a transfer reaching STARTED and staying there is this system's normal successful outcome,
+     * not an in-progress state waiting to reach COMPLETED. Both are accepted as "succeeded".
+     */
+    private static final Set<Integer> TRANSFER_SUCCESS_STATES = Set.of(600, 800);
 
     private static final Duration POLL_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
@@ -103,7 +110,7 @@ class SsProxyDspSelfCallTest extends E2eTest {
                 assertSingleConvergedAgreement(dbOps, agreementInternalId));
 
         and("the transfer over the converged agreement succeeds", () ->
-                awaitTransferSucceeded(dbOps, negotiationWatermark));
+                awaitTransferSucceeded(dbOps, agreementInternalId));
     }
 
     private ValidatableResponse sendSelfCallRequest(E2eEnvironment env) {
@@ -175,13 +182,14 @@ class SsProxyDspSelfCallTest extends E2eTest {
     }
 
     /**
-     * Polls until every {@code edc_transfer_process} row created after {@code watermark} reaches COMPLETED, and
-     * at least one such row exists. No xroad fork changes {@code edc_transfer_process}, so this only needs the
-     * stock schema and the creation-time watermark to scope the rows to this self-call.
+     * Polls until at least one {@code edc_transfer_process} row for the converged agreement's internal id
+     * (its {@code contract_id}, the same value as {@code edc_contract_negotiation.agreement_id}) reaches a
+     * success state, and every such row is in a success state. No xroad fork changes
+     * {@code edc_transfer_process}, so this only needs the stock schema.
      */
-    private void awaitTransferSucceeded(DsControlPlaneDbOps dbOps, long watermark) {
+    private void awaitTransferSucceeded(DsControlPlaneDbOps dbOps, String agreementInternalId) {
         var sql = ("SELECT transferprocess_id, state FROM edc_transfer_process "
-                + "WHERE created_at > %d ORDER BY created_at").formatted(watermark);
+                + "WHERE contract_id = '%s' ORDER BY created_at").formatted(agreementInternalId);
         var lastSeen = new AtomicReference<>(List.<String[]>of());
 
         try {
@@ -193,11 +201,11 @@ class SsProxyDspSelfCallTest extends E2eTest {
                         var rows = parseRows(dbOps.execDsControlPlaneSql(SELF_CALL_ENV, sql));
                         lastSeen.set(rows);
                         return !rows.isEmpty()
-                                && rows.stream().allMatch(row -> Integer.parseInt(row[1]) == TRANSFER_STATE_COMPLETED);
+                                && rows.stream().allMatch(row -> TRANSFER_SUCCESS_STATES.contains(Integer.parseInt(row[1])));
                     });
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
-                    "Timed out waiting for the self-call's transfer to complete; "
+                    "Timed out waiting for the self-call's transfer to succeed; "
                             + "last observed rows (transferprocess_id|state): %s".formatted(lastSeen.get()), e);
         }
     }
