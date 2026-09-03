@@ -30,6 +30,13 @@
     name: xroad-database-remote
   when: (database_admin_password is defined) and (database_admin_password != "")
 
+- name: configure OpenBao repository gate ahead of openbao resolution
+  apt:
+    name: xroad-secret-store-local-repo
+    state: latest
+  tags:
+    - install-xroad-cs-packages
+
 - name: install xroad central server
   apt:
     name: xroad-centralserver
