@@ -1,20 +1,18 @@
 ---
 # TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
 # that xroad-* packages auto-start EDC systemd units (ds-identity-hub,
-# ds-control-plane, xroad-proxy) before their runtime configs and TLS keystore
-# are on disk, causing crash-loop / StartLimitBurst. Pre-seeding here lets every
-# service boot exactly once, cleanly.
+# ds-control-plane, xroad-proxy) before their runtime configs are on disk,
+# causing crash-loop / StartLimitBurst. Pre-seeding here lets every service
+# boot cleanly.
 #
 # Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
 #   - ds-control-plane:  participant-context-id
-#   - ds-identity-hub:   keystore path
 #   - xroad-proxy:       dsp.participant-context-id
 # AND the packages no longer start the units unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
-# of xroad-ss) before this file runs, so keystore tasks below can `chown
-# xroad:xroad` without pre-creating anything.
+# of xroad-ss) before this file runs.
 
 # ---------------------------------------------------------------------------
 # 1. /etc/xroad/conf.d — config dir. xroad-common creates this during install;
@@ -75,10 +73,30 @@
   loop: *ss_vault_tls_ca_units
   register: ss_vault_tls_ca_dropins
 
-- name: reload systemd after the vault CA drop-ins
+# The ds-* units serve the DS TLS certificate from OpenBao's tls/ds-https slot,
+# provisioned through the admin API by the hurl step that runs after the whole
+# playbook. Until then they fail fast on the empty slot by design; the packaged
+# Restart=on-failure alone would trip the default start-rate limit and leave the
+# units dead before hurl ever runs, so this dev drop-in disables the limit and
+# paces the retries.
+- name: keep ds-* units retrying until DS TLS provisioning lands (dev drop-in)
+  copy:
+    dest: "/etc/systemd/system/{{ item }}.service.d/ds-tls-retry.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      StartLimitIntervalSec=0
+      [Service]
+      RestartSec=5
+  loop: *ss_vault_tls_ca_units
+  register: ss_ds_tls_retry_dropins
+
+- name: reload systemd after the ds-* drop-ins
   systemd:
     daemon_reload: true
-  when: ss_vault_tls_ca_dropins is changed
+  when: ss_vault_tls_ca_dropins is changed or ss_ds_tls_retry_dropins is changed
 
 # ---------------------------------------------------------------------------
 # 3. xroad.proxy.dsp.* and xroad.proxy-ui-api.dataspace.* runtime config moved
@@ -97,7 +115,7 @@
 #    deployments provision the CA before ds-* traffic flows.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
-#   keystore config as an answerable question.
+#   this config as an answerable question.
 # ---------------------------------------------------------------------------
 - name: preseed ds-identity-hub runtime overrides
   copy:
@@ -106,15 +124,6 @@
     group: xroad
     mode: "0640"
     content: |
-      edc:
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
       xroad:
         edc:
           web:
@@ -126,8 +135,8 @@
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   participant-context-id, trusted-issuer.id, sts.oauth.token.url,
-#   dsp.callback.address, and keystore config.
+#   participant-context-id, trusted-issuer.id, sts.oauth.token.url and
+#   dsp.callback.address config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
   copy:
@@ -155,14 +164,6 @@
             oauth:
               token:
                 url: "https://{{ inventory_hostname }}.lxd:7184/api/sts/token"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
       xroad:
         dsp:
           participant-context-id: "{{ inventory_hostname }}.lxd"
@@ -179,13 +180,3 @@
               trust:
                 # See the identical setting in local-ds-identity-hub.yaml for why this is shortened.
                 reload-interval-seconds: 5
-
-# ---------------------------------------------------------------------------
-# 6. TLS keystore for DS services. Must be on disk before ds-* units start.
-#    Also installs xrd-ca into the system trust store so the JVM (xroad-proxy,
-#    Quarkus ds-* services) can verify peer certs at first boot.
-#
-# TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
-#   real PKI (replace xrd-ca with federation CA, rotate via PKI lifecycle).
-# ---------------------------------------------------------------------------
-- include_tasks: ds-https-keystore.yml
