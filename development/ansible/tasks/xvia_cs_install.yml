@@ -1,0 +1,345 @@
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Instalação do Central Server
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FASE CS-1: Download de pacotes do Central Server
+# ──────────────────────────────────────────────────────────────────────────────
+- name: "CS — Check if CS packages already downloaded"
+  find:
+    paths: "{{ xvia_cs_debs_dir }}"
+    patterns: "*.deb"
+  register: _cs_debs_existing
+
+- name: Create CS packages directory
+  file:
+    path: "{{ xvia_cs_debs_dir }}"
+    state: directory
+    mode: '0755'
+  when: _cs_debs_existing.matched == 0
+
+- name: "CS — Download CS packages from CDN"
+  get_url:
+    url: "{{ xvia_cdn_base_url }}/central-server/{{ xvia_ubuntu_version }}/{{ item }}"
+    dest: "{{ xvia_cs_debs_dir }}/{{ item }}"
+    timeout: 600
+  loop:
+    - "xroad-base_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_amd64.deb"
+    - "xroad-centralserver_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+    - "xroad-center_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+    - "xroad-center-management-service_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+    - "xroad-center-registration-service_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+    - "xroad-centralserver-monitoring_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+    - "xroad-confclient_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_amd64.deb"
+    - "xroad-database-remote_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+    - "xroad-nginx_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_amd64.deb"
+    - "xroad-signer_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_amd64.deb"
+    - "xroad-autologin_{{ xvia_version }}-0.gite6139dc.{{ xvia_ubuntu_version }}_all.deb"
+  when:
+    - _cs_debs_existing.matched == 0
+    - xvia_package_source == "cdn"
+
+- name: "CS — Download CS packages from S3"
+  shell: >
+    aws s3 cp s3://{{ xvia_s3_bucket }}/central-server/{{ xvia_ubuntu_version }}/
+    {{ xvia_cs_debs_dir }}/ --recursive
+    {% if xvia_s3_profile | default('') != '' %}--profile {{ xvia_s3_profile }}{% endif %}
+    --region {{ xvia_s3_region }}
+  when:
+    - _cs_debs_existing.matched == 0
+    - xvia_package_source == "s3"
+
+- name: "CS — Copy CS .deb packages to APT repo"
+  shell: cp -f {{ xvia_cs_debs_dir }}/*.deb {{ xvia_apt_repo_dir }}/
+  changed_when: false
+
+- name: "CS — Regenerate APT Packages index"
+  shell: dpkg-scanpackages -m . > Packages
+  args:
+    chdir: "{{ xvia_apt_repo_dir }}"
+
+- name: "CS — Update APT cache"
+  apt:
+    update_cache: yes
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FASE CS-2: Banco de dados do Central Server
+# ──────────────────────────────────────────────────────────────────────────────
+- name: "CS — Generate centerui passwords if empty"
+  set_fact:
+    centerui_password: "{{ centerui_password if centerui_password != '' else lookup('password', '/dev/null chars=ascii_letters,digits length=24') }}"
+    centerui_admin_password: "{{ centerui_admin_password if centerui_admin_password != '' else lookup('password', '/dev/null chars=ascii_letters,digits length=24') }}"
+
+- name: "CS — Drop centerui_production if exists"
+  shell: >
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
+    -c "DROP DATABASE IF EXISTS \"{{ cs_database_name }}\";"
+  changed_when: false
+  no_log: true
+  failed_when: false
+
+- name: "CS — Create centerui_production database"
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "CREATE DATABASE \"{{ cs_database_name }}\" ENCODING 'UTF8';"
+    PGPASSWORD='{{ database_admin_password }}' psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "REVOKE ALL ON DATABASE \"{{ cs_database_name }}\" FROM PUBLIC;"
+  changed_when: false
+  no_log: false
+
+
+- name: "CS — Create centerui roles"
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "
+    DO \$\$ BEGIN
+      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='{{ item.name }}') THEN
+        CREATE ROLE {{ item.name }} LOGIN PASSWORD '{{ item.password }}';
+      ELSE
+        ALTER ROLE {{ item.name }} PASSWORD '{{ item.password }}';
+      END IF;
+    END \$\$;"
+  loop:
+    - { name: "{{ centerui_admin_username }}", password: "{{ centerui_admin_password }}" }
+    - { name: "{{ centerui_username }}", password: "{{ centerui_password }}" }
+  changed_when: false
+  no_log: true
+
+- name: "CS — Grant DB permissions"
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -c "
+      GRANT {{ centerui_admin_username }} TO {{ database_admin_user }};
+      GRANT {{ centerui_username }} TO {{ database_admin_user }};
+      GRANT CREATE, TEMPORARY, CONNECT ON DATABASE \"{{ cs_database_name }}\" TO {{ centerui_admin_username }};
+      GRANT TEMPORARY, CONNECT ON DATABASE \"{{ cs_database_name }}\" TO {{ centerui_username }};
+    "
+  changed_when: false
+  no_log: true
+
+- name: "CS — Ensure postgresql-contrib is installed on DB server (on-premises)"
+  apt:
+    name: "postgresql-{{ xvia_pg_version | default('16') }}-contrib"
+    state: present
+    update_cache: yes
+  delegate_to: "{{ groups['db_servers'][0] if (groups['db_servers'] | default([])) | length > 0 else inventory_hostname }}"
+  become: true
+  when:
+    - _use_remote_db | bool
+    - not (db_is_managed | default(false) | bool)
+    - (groups['db_servers'] | default([])) | length > 0
+  ignore_errors: true
+  register: _contrib_install
+
+- name: "CS — AVISO: postgresql-contrib não pôde ser instalado automaticamente"
+  debug:
+    msg: >
+      ATENÇÃO: Não foi possível instalar postgresql-contrib no servidor de banco ({{ _db_host }}).
+      Instale manualmente no servidor de banco: sudo apt-get install -y postgresql-{{ xvia_pg_version | default('16') }}-contrib
+  when:
+    - _contrib_install is defined
+    - _contrib_install is failed
+
+- name: "CS — AVISO: banco gerenciado (RDS/Aurora) detectado"
+  debug:
+    msg: >
+      INFO: Banco gerenciado (RDS/Aurora) detectado — instalação de postgresql-contrib via SSH não é
+      necessária. A extensão hstore será criada via SQL (CREATE EXTENSION) diretamente.
+  when:
+    - _use_remote_db | bool
+    - db_is_managed | default(false) | bool
+
+- name: "CS — AVISO: db_servers vazio, não é possível instalar postgresql-contrib"
+  debug:
+    msg: >
+      ATENÇÃO: use_remote_db=true mas nenhum host em [db_servers] e db_is_managed=false.
+      Adicione o servidor de banco ao grupo [db_servers] no inventário ou defina db_is_managed=true para RDS/Aurora.
+  when:
+    - _use_remote_db | bool
+    - not (db_is_managed | default(false) | bool)
+    - (groups['db_servers'] | default([])) | length == 0
+
+- name: "CS — Install hstore extension"
+  shell: >
+    PGPASSWORD='{{ database_admin_password }}'
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }}
+    -d {{ cs_database_name }} -c "CREATE EXTENSION IF NOT EXISTS hstore;"
+  changed_when: false
+  no_log: true
+
+- name: "CS — Create centerui schema and permissions"
+  shell: |
+    PGPASSWORD='{{ database_admin_password }}' \
+    psql -h {{ _db_host }} -p {{ _db_port }} -U {{ database_admin_user }} -d "{{ cs_database_name }}" -c "
+      CREATE SCHEMA IF NOT EXISTS centerui AUTHORIZATION {{ centerui_admin_username }};
+      GRANT ALL PRIVILEGES ON SCHEMA centerui TO {{ centerui_admin_username }};
+      GRANT USAGE ON SCHEMA centerui TO {{ centerui_username }};
+      REVOKE ALL ON SCHEMA public FROM PUBLIC;
+      GRANT USAGE ON SCHEMA public TO {{ centerui_admin_username }};
+      GRANT USAGE ON SCHEMA public TO {{ centerui_username }};
+      ALTER DEFAULT PRIVILEGES FOR ROLE {{ centerui_admin_username }} IN SCHEMA centerui
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {{ centerui_username }};
+      ALTER DEFAULT PRIVILEGES FOR ROLE {{ centerui_admin_username }} IN SCHEMA centerui
+        GRANT USAGE, SELECT ON SEQUENCES TO {{ centerui_username }};
+      ALTER DEFAULT PRIVILEGES FOR ROLE {{ centerui_admin_username }} IN SCHEMA centerui
+        GRANT EXECUTE ON FUNCTIONS TO {{ centerui_username }};
+    "
+  changed_when: false
+  no_log: true
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FASE CS-3: Configuração e instalação de pacotes
+# ──────────────────────────────────────────────────────────────────────────────
+- name: "CS — Create /etc/xroad.properties"
+  copy:
+    content: |
+      postgres.connection.password={{ database_admin_password }}
+      centerui.database.admin_user={{ centerui_admin_username }}
+      centerui.database.admin_password={{ centerui_admin_password }}
+    dest: /etc/xroad.properties
+    mode: '0600'
+  no_log: true
+
+- name: "CS — Ensure /etc/xroad directory"
+  file:
+    path: /etc/xroad
+    state: directory
+    owner: xroad
+    group: xroad
+    mode: '0751'
+
+- name: "CS — Create /etc/xroad/db.properties (Spring format)"
+  copy:
+    content: |
+      spring.datasource.url=jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/{{ cs_database_name }}
+      spring.datasource.username={{ centerui_username }}
+      spring.datasource.password={{ centerui_password }}
+      spring.datasource.hikari.data-source-properties.currentSchema=centerui,public
+    dest: /etc/xroad/db.properties
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  no_log: true
+
+- name: "CS — Set debconf values"
+  debconf:
+    name: xroad-center
+    question: "{{ item.question }}"
+    vtype: string
+    value: "{{ item.value }}"
+  loop:
+    - { question: "xroad-common/username", value: "{{ _admin_user }}" }
+    - { question: "xroad-common/database-host", value: "{{ _database_host_full }}" }
+    - { question: "xroad-common/admin-subject", value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/service-subject", value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/global-conf-subject", value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/skip-cs-db-migrations", value: "false" }
+
+# NOTE: Do NOT mask CS services before install.
+# The xroad-center postinst needs services unmasked to start them.
+# (Different from SS which can mask/unmask around install.)
+
+- name: "CS — Install xroad-database-remote"
+  apt:
+    name: xroad-database-remote
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: "CS — Install xroad-base"
+  apt:
+    name: xroad-base
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: "CS — Install xroad-centralserver"
+  apt:
+    name: "{{ xvia_cs_packages }}"
+    state: present
+    force: yes
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: "CS — Ensure all packages configured"
+  shell: dpkg --configure -a
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  changed_when: false
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FASE CS-4: Pós-instalação — reescrever configs, run migrations, start
+# ──────────────────────────────────────────────────────────────────────────────
+- name: "CS — Rewrite db.properties after install"
+  copy:
+    content: |
+      spring.datasource.url=jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/{{ cs_database_name }}
+      spring.datasource.username={{ centerui_username }}
+      spring.datasource.password={{ centerui_password }}
+      spring.datasource.hikari.data-source-properties.currentSchema=centerui,public
+    dest: /etc/xroad/db.properties
+    owner: xroad
+    group: xroad
+    mode: '0640'
+  no_log: true
+
+- name: "CS — Run database migrations"
+  shell: /usr/share/xroad/db/migrate.sh
+  register: _cs_migrate
+  changed_when: "'migrated' in _cs_migrate.stdout | default('')"
+  failed_when: _cs_migrate.rc != 0
+
+- name: "CS — Create PAM config"
+  copy:
+    content: |
+      #%PAM-1.0
+      @include common-auth
+      @include common-account
+      @include common-session
+    dest: /etc/pam.d/xroad
+    mode: '0644'
+
+- name: "CS — Add admin to xroad groups"
+  user:
+    name: "{{ _admin_user }}"
+    groups: "{{ item }}"
+    append: yes
+  loop:
+    - xroad-security-officer
+    - xroad-registration-officer
+    - xroad-system-administrator
+
+- name: "CS — Start Central Server services"
+  service:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+  loop:
+    - xroad-signer
+    - xroad-confclient
+    - xroad-center
+
+- name: "CS — Wait for CS UI (port 4000)"
+  uri:
+    url: "https://localhost:4000"
+    validate_certs: no
+    status_code: [200, 302]
+  register: _cs_ui
+  until: _cs_ui.status is defined and _cs_ui.status in [200, 302]
+  retries: 30
+  delay: 10
+
+- name: "✅ Central Server instalado!"
+  debug:
+    msg: |
+      ══════════════════════════════════════════════════════════════
+       X-VIA Central Server instalado com sucesso!
+      ══════════════════════════════════════════════════════════════
+       URL:       https://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:4000
+       Usuário:   {{ _admin_user }}
+       Banco:     {{ _db_host }}:{{ _db_port }}/{{ cs_database_name }}
+      ══════════════════════════════════════════════════════════════

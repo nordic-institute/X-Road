@@ -1,0 +1,540 @@
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Playbook completo para instalação on-premises
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Instala todos os componentes X-Road X-VIA 7.8.0:
+#   - Central Server (cs_servers)
+#   - Security Server (ss_servers)
+#   - CA Server - OCSP/TSA (ca_servers)
+#
+# REQUISITOS:
+#   - Ubuntu 22.04 ou 24.04 (amd64)
+#   - Mínimo 4GB RAM, 2 vCPUs por servidor
+#   - PostgreSQL on-premises acessível (ou banco local por VM)
+#   - Portas: 4000(UI), 443, 5500, 5577, 8080(CA)
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXEMPLOS DE USO:
+#
+# 1) INSTALAÇÃO COMPLETA (todos os componentes):
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      -e "admin_password=SenhaAdmin" \
+#      -e "database_admin_password=SenhaBanco"
+#
+# 2) APENAS CENTRAL SERVER:
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      -e "admin_password=SenhaAdmin" \
+#      -e "database_admin_password=SenhaBanco" \
+#      --tags cs
+#
+# 3) APENAS SECURITY SERVER:
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      -e "admin_password=SenhaAdmin" \
+#      -e "database_admin_password=SenhaBanco" \
+#      --tags ss
+#
+# 4) APENAS CA:
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      --tags ca
+#
+# 5) COM USUÁRIOS/SENHAS CUSTOMIZADOS:
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      -e "admin_password=MinhaSenh4" \
+#      -e "xroad_ui_user=meu-admin" \
+#      -e "database_admin_password=DBSenh4" \
+#      -e "database_admin_user=dba_cliente" \
+#      -e "serverconf_password=SenhaServerconf" \
+#      -e "messagelog_password=SenhaMsglog" \
+#      -e "opmonitor_password=SenhaOpmon" \
+#      -e "centerui_password=SenhaCenterUI" \
+#      -e "centerui_admin_password=SenhaCenterAdmin"
+#
+# 6) BANCO LOCAL (sem PostgreSQL externo):
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      -e "admin_password=SenhaAdmin" \
+#      -e "use_remote_db=false"
+#
+# 7) PACOTES LOCAIS (sem internet):
+#    ansible-playbook -i hosts/xvia_onpremises.txt xvia_install.yml \
+#      -e "admin_password=SenhaAdmin" \
+#      -e "database_admin_password=SenhaBanco" \
+#      -e "xvia_package_source=local"
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PLAY 1: CA Server (deve ser instalado primeiro — emite certificados)
+# ══════════════════════════════════════════════════════════════════════════════
+- name: "X-VIA: Install CA Server"
+  hosts: ca_servers
+  become: true
+  become_user: root
+  tags: [ca]
+
+  vars_files:
+    - vars_files/xvia_cdn.yml
+
+  vars:
+    xvia_ca_organization: "{{ ca_organization | default('X-VIA CA') }}"
+    xvia_ca_cn: "{{ ca_cn | default('X-VIA Test CA') }}"
+    xvia_ca_ocsp_organization: "{{ ca_ocsp_organization | default(xvia_ca_organization) }}"
+    xvia_ca_ocsp_cn: "{{ ca_ocsp_cn | default('X-VIA Test OCSP') }}"
+    xvia_ca_tsa_organization: "{{ ca_tsa_organization | default(xvia_ca_organization) }}"
+    xvia_ca_tsa_cn: "{{ ca_tsa_cn | default('X-VIA Test TSA') }}"
+
+  tasks:
+    - include_tasks: tasks/xvia_ca_install.yml
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PLAY 2: Central Server
+# ══════════════════════════════════════════════════════════════════════════════
+- name: "X-VIA: Install Central Server"
+  hosts: cs_servers
+  become: true
+  become_user: root
+  tags: [cs]
+
+  vars_files:
+    - vars_files/xvia_cdn.yml
+    - vars_files/xvia_database.yml
+
+  vars:
+    _use_remote_db: "{{ use_remote_db | default(true) | bool }}"
+    _db_host: "{{ database_host.split(':')[0] if _use_remote_db else '127.0.0.1' }}"
+    _db_port: "{{ database_host.split(':')[1] | default('5432') if _use_remote_db else '5432' }}"
+    _database_host_full: "{{ _db_host }}:{{ _db_port }}"
+    _admin_user: "{{ xroad_ui_user | default('xvia-admin') }}"
+    _admin_password: "{{ admin_password | default('') }}"
+
+  pre_tasks:
+    - name: Validate admin_password
+      assert:
+        that: _admin_password != ''
+        fail_msg: "admin_password é obrigatório. Passe via -e admin_password=SENHA"
+
+    - name: Validate database_admin_password (remote)
+      assert:
+        that: database_admin_password != ''
+        fail_msg: "database_admin_password é obrigatório para banco remoto"
+      when: _use_remote_db
+
+    - name: "CS — Remove ALL stale local xroad repo configs"
+      shell: |
+        rm -f /etc/apt/sources.list.d/xvia-local*.list
+        rm -f /etc/apt/sources.list.d/xroad*.list
+        grep -rl 'file:/xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        grep -rl 'file:///xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        sed -i '/file:.*\/xroad/d' /etc/apt/sources.list 2>/dev/null || true
+      changed_when: false
+
+    - name: "CS — Install prerequisites"
+      apt:
+        name:
+          - acl
+          - curl
+          - locales
+          - software-properties-common
+          - dialog
+          - ca-certificates
+          - gnupg2
+          - rsyslog
+          - openjdk-21-jre-headless
+          - rlwrap
+          - ca-certificates-java
+          - crudini
+          - lsb-release
+          - net-tools
+          - expect
+          - dpkg-dev
+          - apt-transport-https
+          - postgresql-common
+          - postgresql
+          - postgresql-contrib
+        state: present
+        update_cache: yes
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Configure PostgreSQL PGDG apt repository
+      command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+      args:
+        creates: /etc/apt/sources.list.d/pgdg.list
+
+    - name: Install PostgreSQL client
+      apt:
+        name: "postgresql-client-{{ xvia_pg_version }}"
+        state: present
+        update_cache: yes
+
+    - name: Enable UTF-8 locale
+      locale_gen:
+        name: en_US.UTF-8
+        state: present
+
+    - name: Create xroad group
+      group:
+        name: xroad
+        system: true
+
+    - name: Create xroad user
+      user:
+        name: xroad
+        group: xroad
+        system: true
+        shell: /bin/bash
+        createhome: yes
+
+    - name: Create admin user
+      user:
+        name: "{{ _admin_user }}"
+        shell: /usr/sbin/nologin
+        create_home: no
+
+    - name: Set admin password
+      shell: "echo '{{ _admin_user }}:{{ _admin_password }}' | chpasswd"
+      changed_when: true
+      no_log: true
+
+    - name: Ensure APT repo directory exists
+      shell: |
+        [ -d {{ xvia_apt_repo_dir }} ] || { rm -f {{ xvia_apt_repo_dir }}; mkdir -p {{ xvia_apt_repo_dir }}; }
+      changed_when: false
+
+    - name: Add local APT repository
+      apt_repository:
+        repo: "deb [trusted=yes] file://{{ xvia_apt_repo_dir }} /"
+        filename: xvia-local
+        update_cache: no
+
+  tasks:
+    - include_tasks: tasks/xvia_cs_install.yml
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PLAY 3: Security Server(s)
+# ══════════════════════════════════════════════════════════════════════════════
+- name: "X-VIA: Install Security Server"
+  hosts: ss_servers
+  become: true
+  become_user: root
+  tags: [ss]
+
+  vars_files:
+    - vars_files/xvia_cdn.yml
+    - vars_files/xvia_database.yml
+
+  vars:
+    _use_remote_db: "{{ use_remote_db | default(true) | bool }}"
+    _db_host: "{{ database_host.split(':')[0] if _use_remote_db else '127.0.0.1' }}"
+    _db_port: "{{ database_host.split(':')[1] | default('5432') if _use_remote_db else '5432' }}"
+    _database_host_full: "{{ _db_host }}:{{ _db_port }}"
+    _admin_user: "{{ xroad_ui_user | default('xvia-admin') }}"
+    _admin_password: "{{ admin_password | default('') }}"
+
+  pre_tasks:
+    - name: Validate admin_password
+      assert:
+        that: _admin_password != ''
+        fail_msg: "admin_password é obrigatório. Passe via -e admin_password=SENHA"
+
+    - name: Validate database_admin_password (remote)
+      assert:
+        that: database_admin_password != ''
+        fail_msg: "database_admin_password é obrigatório para banco remoto"
+      when: _use_remote_db
+
+  tasks:
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 1: Pré-requisitos
+    # ──────────────────────────────────────────────────────────────────────────
+    - name: "SS — Remove ALL stale local xroad repo configs"
+      shell: |
+        rm -f /etc/apt/sources.list.d/xvia-local*.list
+        rm -f /etc/apt/sources.list.d/xroad*.list
+        grep -rl 'file:/xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        grep -rl 'file:///xroad' /etc/apt/sources.list.d/ 2>/dev/null | xargs -r rm -f
+        sed -i '/file:.*\/xroad/d' /etc/apt/sources.list 2>/dev/null || true
+      changed_when: false
+
+    - name: "SS — Install prerequisites"
+      apt:
+        name:
+          - acl
+          - curl
+          - locales
+          - software-properties-common
+          - dialog
+          - ca-certificates
+          - gnupg2
+          - rsyslog
+          - openjdk-21-jre-headless
+          - rlwrap
+          - ca-certificates-java
+          - crudini
+          - lsb-release
+          - net-tools
+          - expect
+          - dpkg-dev
+          - apt-transport-https
+          - postgresql-common
+          - postgresql
+          - postgresql-contrib
+        state: present
+        update_cache: yes
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Configure PostgreSQL PGDG apt repository
+      command: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+      args:
+        creates: /etc/apt/sources.list.d/pgdg.list
+
+    - name: Install PostgreSQL client
+      apt:
+        name: "postgresql-client-{{ xvia_pg_version }}"
+        state: present
+        update_cache: yes
+
+    - name: Enable UTF-8 locale
+      locale_gen:
+        name: en_US.UTF-8
+        state: present
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 2: Download de pacotes
+    # ──────────────────────────────────────────────────────────────────────────
+    - name: Check if SS packages already downloaded
+      find:
+        paths: "{{ xvia_debs_dir }}"
+        patterns: "*.deb"
+      register: _debs_existing
+
+    - name: Create packages directory
+      file:
+        path: "{{ xvia_debs_dir }}"
+        state: directory
+        mode: '0755'
+      when: _debs_existing.matched == 0
+
+    - name: "SS — Download packages from CDN"
+      get_url:
+        url: "{{ xvia_ss_tarball_url }}"
+        dest: /tmp/xvia-ss-packages.tar.gz
+        timeout: 900
+      when:
+        - _debs_existing.matched == 0
+        - xvia_package_source == "cdn"
+
+    - name: "SS — Download packages from S3"
+      shell: >
+        aws s3 cp s3://{{ xvia_s3_bucket }}/{{ xvia_ubuntu_version }}/xroad-{{ xvia_version }}-{{ xvia_ubuntu_version }}.tar.gz
+        /tmp/xvia-ss-packages.tar.gz
+        {% if xvia_s3_profile | default('') != '' %}--profile {{ xvia_s3_profile }}{% endif %}
+        --region {{ xvia_s3_region }}
+      when:
+        - _debs_existing.matched == 0
+        - xvia_package_source == "s3"
+
+    - name: "SS — Copy local tarball"
+      copy:
+        src: "{{ xvia_local_tarball_path }}"
+        dest: /tmp/xvia-ss-packages.tar.gz
+        remote_src: yes
+      when:
+        - _debs_existing.matched == 0
+        - xvia_package_source == "local"
+
+    - name: Extract packages
+      unarchive:
+        src: /tmp/xvia-ss-packages.tar.gz
+        dest: "{{ xvia_debs_dir }}"
+        remote_src: yes
+      when: _debs_existing.matched == 0
+
+    - name: Cleanup tarball
+      file:
+        path: /tmp/xvia-ss-packages.tar.gz
+        state: absent
+
+    - name: Ensure APT repo directory exists
+      shell: |
+        [ -d {{ xvia_apt_repo_dir }} ] || { rm -f {{ xvia_apt_repo_dir }}; mkdir -p {{ xvia_apt_repo_dir }}; }
+      changed_when: false
+
+    - name: Copy .deb packages to APT repo
+      shell: cp -f {{ xvia_debs_dir }}/*.deb {{ xvia_apt_repo_dir }}/
+      changed_when: false
+
+    - name: Generate APT Packages index
+      shell: dpkg-scanpackages -m . > Packages
+      args:
+        chdir: "{{ xvia_apt_repo_dir }}"
+
+    - name: Remove old xroad repo config
+      file:
+        path: /etc/apt/sources.list.d/xroad.list
+        state: absent
+
+    - name: Add local APT repository
+      apt_repository:
+        repo: "deb [trusted=yes] file://{{ xvia_apt_repo_dir }} /"
+        filename: xvia-local
+        update_cache: yes
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 3: Usuários do sistema
+    # ──────────────────────────────────────────────────────────────────────────
+    - name: Create xroad group
+      group:
+        name: xroad
+        system: true
+
+    - name: Create xroad user
+      user:
+        name: xroad
+        group: xroad
+        system: true
+        shell: /bin/bash
+        createhome: yes
+
+    - name: Add xroad to shadow group
+      user:
+        name: xroad
+        groups: shadow
+        append: yes
+
+    - name: Create admin user
+      user:
+        name: "{{ _admin_user }}"
+        shell: /usr/sbin/nologin
+        create_home: no
+
+    - name: Set admin password
+      shell: "echo '{{ _admin_user }}:{{ _admin_password }}' | chpasswd"
+      changed_when: true
+      no_log: true
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 4: Banco de dados
+    # ──────────────────────────────────────────────────────────────────────────
+    - include_tasks: tasks/xvia_db_local.yml
+      when: not _use_remote_db
+
+    - include_tasks: tasks/xvia_db_remote.yml
+      when: _use_remote_db
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 5: Configuração
+    # ──────────────────────────────────────────────────────────────────────────
+    - name: Ensure /etc/xroad directory
+      file:
+        path: /etc/xroad
+        state: directory
+        owner: xroad
+        group: xroad
+        mode: '0751'
+
+    - name: Create /etc/xroad.properties
+      copy:
+        content: "postgres.connection.password = {{ database_admin_password if _use_remote_db else '' }}\n"
+        dest: /etc/xroad.properties
+        mode: '0600'
+      no_log: true
+
+    - name: Create /etc/xroad/db.properties
+      template:
+        src: templates/xvia_db.properties.j2
+        dest: /etc/xroad/db.properties
+        owner: xroad
+        group: xroad
+        mode: '0640'
+        force: yes
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 6: Instalação de pacotes
+    # ──────────────────────────────────────────────────────────────────────────
+    - name: Set debconf values
+      debconf:
+        name: xroad-proxy
+        question: "{{ item.question }}"
+        vtype: string
+        value: "{{ item.value }}"
+      loop:
+        - { question: "xroad-common/username", value: "{{ _admin_user }}" }
+        - { question: "xroad-common/database-host", value: "{{ _database_host_full }}" }
+        - { question: "xroad-common/proxy-memory", value: "{{ xvia_proxy_memory }}" }
+
+    - name: Mask xroad services before install
+      shell: systemctl mask {{ item }} 2>/dev/null || true
+      loop:
+        - xroad-proxy
+        - xroad-signer
+        - xroad-confclient
+        - xroad-proxy-ui-api
+        - xroad-monitor
+        - xroad-addon-messagelog
+        - xroad-opmonitor
+      changed_when: false
+
+    - name: Install xroad-database-remote
+      apt:
+        name: xroad-database-remote
+        state: present
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      when: _use_remote_db
+
+    - name: Install xroad-base
+      apt:
+        name: xroad-base
+        state: present
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Install X-Road Security Server
+      apt:
+        name: "{{ xvia_ss_packages }}"
+        state: present
+        force: yes
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Install xroad-addon-opmonitoring
+      apt:
+        name: xroad-addon-opmonitoring
+        state: present
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      when: xvia_enable_opmonitoring | default(true) | bool
+
+    - name: Ensure all packages configured
+      shell: dpkg --configure -a
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      changed_when: false
+
+    - name: Unmask xroad services
+      shell: systemctl unmask {{ item }}
+      loop:
+        - xroad-proxy
+        - xroad-signer
+        - xroad-confclient
+        - xroad-proxy-ui-api
+        - xroad-monitor
+        - xroad-addon-messagelog
+        - xroad-opmonitor
+      changed_when: false
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 7-8: Pós-instalação e Validação
+    # ──────────────────────────────────────────────────────────────────────────
+    - include_tasks: tasks/xvia_postinstall.yml
+    - include_tasks: tasks/xvia_validate.yml
+
+  handlers:
+    - name: reload postgresql
+      service:
+        name: postgresql
+        state: reloaded
