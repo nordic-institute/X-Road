@@ -37,12 +37,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.List;
 import java.util.stream.Stream;
-
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 
 /**
  * Populates the EDC {@link DataPlaneInstanceStore} from local YAML configuration at boot, and exposes a
@@ -57,6 +54,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
  * {@link DataPlaneInstanceStore} was wiped by a restart while the participant-context store survived it.
  * The enumeration is deferred out of {@code initialize()} because the SQL-backed participant-context
  * store's schema does not exist yet at that point on a fresh database.</p>
+ *
+ * <p>A failed enumeration is logged and skipped rather than propagated: aborting {@code start()} would
+ * take the whole control plane down over a transient database fault, where continuing still serves the
+ * configured contexts and the next provisioning push re-registers the rest.</p>
  */
 @Slf4j
 @Provides(DataPlaneContextRegistrar.class)
@@ -78,7 +79,8 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
     private ParticipantContextService participantContextService;
 
     private DataPlaneContextRegistrar registrar;
-    private List<String> legacyContextIds;
+    private List<String> legacyContextIds = List.of();
+    private boolean dataPlanesConfigured;
 
     @Override
     public String name() {
@@ -97,6 +99,7 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
             return;
         }
 
+        dataPlanesConfigured = true;
         legacyContextIds = resolveParticipantContextIds(context);
         legacyContextIds.forEach(registrar::registerParticipantContext);
     }
@@ -109,7 +112,7 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
      */
     @Override
     public void start() {
-        if (legacyContextIds == null) {
+        if (!dataPlanesConfigured) {
             return;
         }
         reconcilePersistedParticipantContexts();
@@ -127,8 +130,9 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
     private void reconcilePersistedParticipantContexts() {
         var result = participantContextService.search(QuerySpec.max());
         if (result.failed()) {
-            throw XrdRuntimeException.systemException(DSP_PARTICIPANT_CONTEXT_FAILED,
-                    "Failed to enumerate persisted participant contexts for boot reconcile: %s", result.getFailureDetail());
+            log.warn("Failed to enumerate persisted participant contexts for boot reconcile, serving the configured "
+                    + "contexts only; the next provisioning push re-registers the rest: {}", result.getFailureDetail());
+            return;
         }
         result.getContent().stream()
                 .map(ParticipantContext::getParticipantContextId)

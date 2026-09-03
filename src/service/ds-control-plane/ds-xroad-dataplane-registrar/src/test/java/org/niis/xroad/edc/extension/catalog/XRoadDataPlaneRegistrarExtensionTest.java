@@ -43,7 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.lang.reflect.Field;
@@ -51,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -232,7 +231,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
     }
 
     @Test
-    void startPropagatesFailureWhenPersistedContextEnumerationFails() {
+    void startKeepsServingConfiguredContextsWhenPersistedContextEnumerationFails() {
         stubParticipantContexts();
         when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
                 "xroad.cp.dataplane.proxy.id", "xroad-proxy",
@@ -244,7 +243,12 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
         extension.initialize(context);
 
-        assertThatThrownBy(extension::start).isInstanceOf(XrdRuntimeException.class);
+        assertThatCode(extension::start).doesNotThrowAnyException();
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(DataPlaneInstance::getParticipantContextId)
+                .containsExactlyInAnyOrder(HOST_CONTEXT, MGMT_CONTEXT);
     }
 
     @Test
