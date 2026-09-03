@@ -30,6 +30,7 @@ Doc. ID: UG-SS-SIDECAR
 | 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
 | 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
 | 02.03.2026 | 1.22    | Fix broken link                                         | Petteri Kivimäki          |
+| 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
 
 ## License
 
@@ -57,6 +58,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.9 Message log archives](#29-message-log-archives)
   * [2.10 Secret Store](#210-secret-store)
   * [2.11 Health Checks](#211-health-checks)
+  * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
   * [3.2 Enabling ACME Support](#32-enabling-acme-support)
@@ -442,6 +444,46 @@ Readiness (`/q/health/ready`) additionally includes global-configuration and ser
 legitimately `DOWN` until an anchor has been imported and the server configured. A freshly started, uninitialized
 container is therefore expected to be Docker-`healthy` while its readiness endpoint still reports `DOWN` — this is
 not a fault, and orchestrators must not use readiness to decide whether to restart the container.
+
+### 2.12 First-Boot Hook Scripts
+
+Executable scripts mounted into `/etc/xroad/entrypoint.d/` run once, on the container's first boot: after the
+image's own database provisioning and configuration seeding, before supervisord starts any X-Road service. The
+database (embedded or external) is up and reachable at that point, so a hook can call the native configuration
+tool to seed rows the operator needs in place before services start, for example:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+/usr/share/xroad/scripts/db_property.sh set xroad.some.property some-value --yes
+```
+
+Rules:
+
+* Scripts run in lexical filename order (`10-...` before `20-...`); a numeric prefix controls ordering when more
+  than one script is mounted.
+* Only regular, executable files run. Non-executable files and subdirectories are skipped, with a log line naming
+  each skipped file.
+* A script that exits non-zero fails the boot: the entrypoint logs the failing script and its exit status and the
+  container does not start supervisord. Fix the script, then restart the container with `RECONFIG_REQUIRED=true` to
+  retry (a plain restart does not re-run hooks, see below).
+* Hooks do not run again on a later restart of the same container: they share the reconfiguration marker that
+  guards the image's own seeding, `/.xroad-reconfigured`. Set `RECONFIG_REQUIRED=true` to force a rerun, for example
+  after fixing a failed hook.
+* Nothing is mounted into `/etc/xroad/entrypoint.d/` by default, so a container with no hook volume behaves exactly
+  as one without this feature.
+
+Example compose mount:
+
+```yaml
+services:
+  sidecar:
+    image: niis/xroad-security-server-sidecar:8.0.0
+    volumes:
+      - ./entrypoint.d:/etc/xroad/entrypoint.d:ro
+```
+
+with `./entrypoint.d/10-seed-config.sh` executable on the host and containing the script shown above.
 
 ## 3 Initial configuration
 

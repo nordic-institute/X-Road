@@ -110,6 +110,7 @@ RUN rm -f \
 # create a backup of the configuration for version migration and
 # for initializing an empty config volume
   && test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini \
+  && mkdir -p /etc/xroad/entrypoint.d \
   && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
   && cp -a /etc/xroad /usr/share/xroad/config/etc/ \
 # move files that should not be overwritten during migration to another folder

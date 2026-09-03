@@ -124,6 +124,33 @@ EOF
   chmod 644 "$local_conf"
 }
 
+HOOK_DIR=/etc/xroad/entrypoint.d
+
+# Hooks need the database up, so they run from the same dpkg-reconfigure-
+# success guard as the seed_* functions above - true by default only on the
+# container's first boot (see RECONFIG_REQUIRED), so a plain restart does
+# not re-run them, and the local database started further down for the
+# reconfigure step is still running when they execute.
+run_first_boot_hooks() {
+  [ -d "$HOOK_DIR" ] || return 0
+  local hook rc
+  local -a hooks
+  mapfile -t hooks < <(find "$HOOK_DIR" -maxdepth 1 -type f -print | LC_ALL=C sort)
+  for hook in "${hooks[@]}"; do
+    if [ ! -x "$hook" ]; then
+      log "Skipping non-executable first-boot hook \"$hook\""
+      continue
+    fi
+    log "Running first-boot hook \"$hook\""
+    "$hook"
+    rc=$?
+    if [ "$rc" -ne 0 ]; then
+      warn "First-boot hook \"$hook\" exited with status $rc, aborting boot"
+      exit 1
+    fi
+  done
+}
+
 create_backup_dir_if_not_exists() {
   local xroadDir=/var/lib/xroad
   local backupDir=$xroadDir/backup
@@ -321,6 +348,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     touch /.xroad-reconfigured
     seed_dsp_participant_context_id
     seed_signer_autologin_enabled
+    run_first_boot_hooks
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
     pg_ctlcluster 18 main stop

@@ -80,3 +80,6 @@ The Security Server Sidecar Docker image (`niis/xroad-security-server-sidecar`) 
   not. To avoid potential security issues, it is possible to set up Docker so that it uses Linux user namespaces, in
   which case root inside the container is not root (user id 0) on the host. For more information, see
   <https://docs.docker.com/engine/security/userns-remap/>.
+* Executable scripts mounted into `/etc/xroad/entrypoint.d/` run once, on first boot, after the image's own database
+  provisioning and seeding and before supervisord starts any service — see the
+  [User guide](../doc/Sidecar/security_server_sidecar_user_guide.md) for the full contract.
