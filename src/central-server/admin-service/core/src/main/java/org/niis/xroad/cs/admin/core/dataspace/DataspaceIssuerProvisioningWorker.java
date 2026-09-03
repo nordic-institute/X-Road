@@ -33,6 +33,7 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -66,6 +67,22 @@ public class DataspaceIssuerProvisioningWorker {
         }
         if (systemParameterService.getInstanceIdentifier().isEmpty()) {
             log.debug("Data space issuer provisioning: Central Server not yet initialized, skipping");
+            return;
+        }
+        provisionBestEffort();
+    }
+
+    /**
+     * Non-blocking eager trigger for the initialization request path: runs one best-effort
+     * provisioning attempt on a background thread; the scheduled tick remains the convergence
+     * guarantee.
+     */
+    public void provisionAsync() {
+        CompletableFuture.runAsync(this::provisionBestEffort);
+    }
+
+    private void provisionBestEffort() {
+        if (provisioned.get()) {
             return;
         }
         try {
