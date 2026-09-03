@@ -31,6 +31,7 @@ Doc. ID: UG-SS-SIDECAR
 | 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
 | 02.03.2026 | 1.22    | Fix broken link                                         | Petteri Kivimäki          |
 | 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
+| 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
 
 ## License
 
@@ -180,29 +181,17 @@ Alternatively, build the images locally with the [docker-build.sh script](../../
 
 Packages are installed from an X-Road apt repository by default (the `REPO` positional argument selects it,
 defaulting to the development repository; see `docker-build.sh --help`). To build from a local directory of
-tree-built `.deb` packages instead (for example `deployment/native-packages/build/ubuntu26.04`), build the image
-with `docker build` directly and pass `PACKAGE_SOURCE=internal` with a `packages` build context — `docker-build.sh`
-does not expose this as a flag. Run from the `sidecar/` directory:
+tree-built `.deb` packages instead (for example `deployment/native-packages/build/ubuntu26.04`), pass
+`--packages-path`; it builds the slim and full images with `PACKAGE_SOURCE=internal` and the given directory
+bind-mounted as the `packages` build context (each image re-scans it into its own trusted repository, since
+`slim`'s trusted repository does not persist past that build):
 
 ```bash
-docker build -f slim/Dockerfile \
-  --build-arg PACKAGE_SOURCE=internal \
-  --build-context packages=../deployment/native-packages/build/ubuntu26.04 \
-  --build-context mirror-scripts=../deployment/.scripts \
-  -t xroad-security-server-sidecar:8.0.0-slim .
+./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
+./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
 ```
 
-The `full` image needs the same `packages` build context again (it re-scans it into its own trusted repository,
-since `slim`'s trusted repository does not persist past that build), plus the `slim` tag it is built `FROM`:
-
-```bash
-docker build -f Dockerfile \
-  --build-arg PACKAGE_SOURCE=internal \
-  --build-arg VERSION=8.0.0 \
-  --build-arg TAG=xroad-security-server-sidecar \
-  --build-context packages=../deployment/native-packages/build/ubuntu26.04 \
-  -t xroad-security-server-sidecar:8.0.0 .
-```
+`docker-build.sh` fails with a clear error if the given path does not exist or contains no files.
 
 ```bash
 docker run --detach \

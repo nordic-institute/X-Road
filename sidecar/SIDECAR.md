@@ -48,9 +48,9 @@ The `full` image adds, on top of `slim`:
 
 The image is built from pre-built X-Road software packages, either installed from an X-Road apt repository
 selected by the `REPO` build argument, or, for development builds, from a local directory of tree-built `.deb`
-packages (`PACKAGE_SOURCE=internal`, see [docker-build.sh](docker-build.sh)). Released images are built from the
-official [X-Road repository](https://artifactory.niis.org/xroad-release-deb); the default in the Dockerfile is the
-development repository.
+packages (`PACKAGE_SOURCE=internal`, see [docker-build.sh](docker-build.sh)'s `--packages-path` option).
+Released images are built from the official [X-Road repository](https://artifactory.niis.org/xroad-release-deb);
+the default in the Dockerfile is the development repository.
 
 ## Security Server Sidecar Installation
 

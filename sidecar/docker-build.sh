@@ -3,9 +3,10 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: docker-build.sh [--target=slim|full] [--no-cache] [--no-mirror] [version] [tag] [repo] [dist] [repo_key]
+Usage: docker-build.sh [--target=slim|full] [--no-cache] [--no-mirror]
+                        [--packages-path=DIR] [version] [tag] [repo] [dist] [repo_key]
 
-  --target=slim|full  Build only the named image. With no --target, all
+  --target=slim|full   Build only the named image. With no --target, all
                        images (slim, full, country variants,
                        kubernetesBalancer) are built, unchanged from before.
                        Building "full" requires the "slim" tag to already
@@ -13,6 +14,13 @@ Usage: docker-build.sh [--target=slim|full] [--no-cache] [--no-mirror] [version]
   --no-cache           Pass --no-cache to every docker build.
   --no-mirror          Skip the package-mirror build args even if the
                        XROAD_MIRROR_* environment variables are set.
+  --packages-path=DIR  Build the slim and full images from a local directory
+                       of tree-built Ubuntu DEBs instead of an X-Road apt
+                       repository (PACKAGE_SOURCE=internal, DIR bind-mounted
+                       as the "packages" build context). Country variants and
+                       kubernetesBalancer images, which do not install X-Road
+                       packages of their own, are unaffected. DIR must exist
+                       and contain at least one file.
   -h, --help           Show this help.
 USAGE
 }
@@ -20,6 +28,7 @@ USAGE
 no_cache=""
 no_mirror=""
 target=""
+packages_path=""
 n=1
 args_to_keep=()
 for i in "$@" ; do
@@ -29,6 +38,8 @@ for i in "$@" ; do
         no_mirror="true"
     elif [[ $i == "--target="* ]] ; then
         target="${i#--target=}"
+    elif [[ $i == "--packages-path="* ]] ; then
+        packages_path="${i#--packages-path=}"
     elif [[ $i == "--help" || $i == "-h" ]] ; then
         usage
         exit 0
@@ -56,6 +67,17 @@ repo="${3-}"
 dist="${4-}"
 repo_key="${5-}"
 
+# Prepare internal-package build args (only set when --packages-path is given)
+PACKAGE_BUILD_ARGS=()
+if [[ -n "$packages_path" ]]; then
+  if [[ ! -d "$packages_path" ]] || [[ -z "$(ls -A "$packages_path" 2>/dev/null)" ]]; then
+    echo "Packages path '$packages_path' does not exist or is empty." >&2
+    echo "Build tree-built Ubuntu DEBs first, e.g. scripts/packages/build-deb.sh resolute." >&2
+    exit 1
+  fi
+  PACKAGE_BUILD_ARGS=(--build-arg "PACKAGE_SOURCE=internal" --build-context "packages=$packages_path")
+fi
+
 # Prepare mirror build args (unless --no-mirror flag is set)
 MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
 
@@ -79,7 +101,9 @@ build() {
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
   [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
-  docker build --progress=plain -f "$1" "${build_args[@]}" "${MIRROR_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
+  local package_args=()
+  [[ "${3:-}" == "true" ]] && package_args=("${PACKAGE_BUILD_ARGS[@]+"${PACKAGE_BUILD_ARGS[@]}"}")
+  docker build --progress=plain -f "$1" "${build_args[@]}" "${package_args[@]+"${package_args[@]}"}" "${MIRROR_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
 copy_variant_conf() {
@@ -109,7 +133,7 @@ else
 fi
 
 if $build_all || [[ "$target" == "slim" ]]; then
-  build "$dir/slim/Dockerfile" "-slim"
+  build "$dir/slim/Dockerfile" "-slim" true
 fi
 
 if $build_all; then
@@ -119,7 +143,7 @@ if $build_all; then
 fi
 
 if $build_all || [[ "$target" == "full" ]]; then
-  build "$dir/Dockerfile" ""
+  build "$dir/Dockerfile" "" true
 fi
 
 if $build_all; then
