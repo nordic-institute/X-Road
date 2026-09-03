@@ -75,6 +75,8 @@ public class SsBaselineSeeder {
     private static final String TEST_CA = "Test CA";
     private static final String OWNER_MEMBER_ID = "DEV:%s:%s".formatted(SS_OWNER_CLASS, SS_OWNER_CODE);
     private static final String OWNER_CLIENT_ID = OWNER_MEMBER_ID;
+    private static final String DS_TLS_SAN =
+            "DNS:ui,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:ds-issuer-service,DNS:localhost";
 
     private final String uiBaseUrl;
     private final String testCaBaseUrl;
@@ -131,6 +133,7 @@ public class SsBaselineSeeder {
 
         if (testCaBaseUrl != null) {
             ensureOwnerSignCert();
+            ensureDsTlsCertificate();
         }
 
         log.info("Security Server baseline is ready");
@@ -263,6 +266,57 @@ public class SsBaselineSeeder {
                 .asByteArray();
         tokens.importCertificate(signedCert).statusCode(201);
         log.info("Owner sign certificate seeded successfully");
+    }
+
+    /**
+     * Ensures the tls/ds-https vault slot holds a certificate, provisioning it through the same
+     * admin API flow an operator would use: generate the server-side key, fetch a DN-only CSR,
+     * sign it at the stack's test CA with the SAN list the CA attaches, upload the certificate.
+     * Skips when a certificate is already present, so re-runs never roll back a rotated or
+     * ACME-enrolled certificate. The crash-looping ds-* containers converge once this lands.
+     */
+    private void ensureDsTlsCertificate() {
+        var status = session.given()
+                .get("/ds-tls-certificate")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath();
+        if (Boolean.TRUE.equals(status.getBoolean("key_generated")) && status.get("certificate") != null) {
+            log.debug("DS TLS certificate already present — skipping seed");
+            return;
+        }
+        log.info("Seeding the DS TLS certificate through the admin API");
+        session.given()
+                .post("/ds-tls-certificate/key")
+                .then()
+                .statusCode(201);
+        var csrBytes = session.given()
+                .contentType(ContentType.JSON)
+                .body("""
+                        {"name":"CN=ui"}
+                        """)
+                .post("/ds-tls-certificate/csr")
+                .then()
+                .statusCode(200)
+                .extract()
+                .asByteArray();
+        var signedCert = RestAssured.given()
+                .relaxedHTTPSValidation()
+                .multiPart("certreq", "ds-tls.csr.pem", csrBytes, "application/octet-stream")
+                .multiPart("type", "auth")
+                .multiPart("san", DS_TLS_SAN)
+                .post(testCaBaseUrl + "/sign")
+                .then()
+                .statusCode(200)
+                .extract()
+                .asByteArray();
+        session.given()
+                .multiPart("certificate", "ds-tls.crt", signedCert, "application/octet-stream")
+                .post("/ds-tls-certificate/certificate")
+                .then()
+                .statusCode(200);
+        log.info("DS TLS certificate seeded successfully");
     }
 
     private void bootstrapAdminUser(String baseUrl) {

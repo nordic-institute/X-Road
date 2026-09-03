@@ -121,7 +121,6 @@ COPY --from=perf --chown=postgres:postgres postgresql-performance.conf /etc/post
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chmod=755 files/wait-for-secret-store.sh /usr/share/xroad/scripts/wait-for-secret-store.sh
-COPY --chmod=755 files/seed-ds-https-vault-secret.sh /usr/share/xroad/scripts/seed-ds-https-vault-secret.sh
 CMD ["/root/entrypoint.sh"]
 
 VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/18/main/"]
