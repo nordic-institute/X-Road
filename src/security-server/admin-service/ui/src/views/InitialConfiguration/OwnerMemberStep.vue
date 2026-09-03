@@ -157,10 +157,24 @@ export default defineComponent({
 
   watch: {
     memberClassesCurrentInstance(val: string[]) {
-      // Set first member class selected if there is only one
-      if (val?.length === 1) {
+      // Set first member class selected if there is only one, unless the owner
+      // is already fixed by an existing server — its data takes precedence.
+      if (!this.isServerOwnerInitialized && val?.length === 1) {
         this.setFieldValue('memberClass', val[0]);
       }
+    },
+    currentSecurityServer: {
+      immediate: true,
+      handler(server) {
+        // Reacts whenever the server data arrives, regardless of whether it was
+        // already loaded before this component mounted or fetched afterwards.
+        if (!server) {
+          return;
+        }
+        this.setFieldValue('memberClass', server.member_class);
+        this.setFieldValue('memberCode', server.member_code);
+        this.setFieldValue('securityServerCode', server.server_code);
+      },
     },
     'values.memberClass'(val) {
       if (val) {
@@ -174,18 +188,6 @@ export default defineComponent({
     },
   },
   beforeMount() {
-    if ((this.isServerOwnerInitialized || this.isServerCodeInitialized) && !this.currentSecurityServer) {
-      this.fetchCurrentSecurityServer()
-        .then(() => {
-          this.setFieldValue('memberClass', this.currentSecurityServer?.member_class);
-          this.setFieldValue('memberCode', this.currentSecurityServer?.member_code);
-          this.setFieldValue('securityServerCode', this.currentSecurityServer?.server_code);
-        })
-        .catch((error) => {
-          this.addError(error);
-        });
-    }
-
     this.fetchMemberClassesForCurrentInstance().catch((error) => {
       if (error.response.status === 500) {
         // this can happen if anchor is not ready
@@ -200,8 +202,6 @@ export default defineComponent({
     ...mapActions(useInitializeServer, ['storeInitServerSSCode', 'storeInitServerMemberClass', 'storeInitServerMemberCode']),
 
     ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance', 'fetchMemberName']),
-
-    ...mapActions(useUser, ['fetchCurrentSecurityServer']),
 
     done(): void {
       this.storeInitServerMemberClass(this.values.memberClass);
