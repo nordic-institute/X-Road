@@ -37,6 +37,7 @@ import jakarta.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * has no way to obtain until consumer-side member-context targeting exists. The payload pull is
  * covered by the legacy leg.
  *
+ * <p>The no-restart assertion needs container start times, which only the Compose facade reports
+ * ({@link ContainerLifecycleOps}); on k8s and LXD this scenario self-skips via {@link Assumptions}.
+ *
  * <p>{@link #DS_CONTROL_PLANE_TLS_AUTHORITY} assumes the control plane's server TLS certificate
  * carries common name {@code ds-control-plane}, derived from its unprefixed {@code XROAD_HOST} env
  * var and shared by every stack. A hostname mismatch surfaces as an RPC handshake failure in
@@ -128,7 +132,12 @@ class DsRuntimeMemberTransferTest extends E2eTest {
 
     @Test
     @DisplayName("Runtime-added member on ss0 completes a transfer over its own context with zero restarts")
-    void runtimeAddedMemberCompletesTransferOverOwnContextWithZeroRestarts(E2eEnvironment env, ContainerLifecycleOps containerOps) {
+    void runtimeAddedMemberCompletesTransferOverOwnContextWithZeroRestarts(E2eEnvironment env) {
+        Assumptions.assumeTrue(env instanceof ContainerLifecycleOps,
+                () -> "%s cannot report container start times; the no-restart assertion is only wired for Compose"
+                        .formatted(env.getClass().getSimpleName()));
+        var containerOps = (ContainerLifecycleOps) env;
+
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         var containerTimestampsBefore = when("container start timestamps are captured before the scenario", () ->
