@@ -1,7 +1,7 @@
 ---
 # Full base topology for E2E `k8s` env-mode: kind cluster + Central Server chart + two
 # Security Server chart releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor
-# Postgres + OpenBao) + e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore,
+# Postgres + OpenBao) + e2e-fixtures chart (test CA, mock IS, mailpit,
 # hurl bootstrap). DSP is always on.
 
 cluster_provider: kind

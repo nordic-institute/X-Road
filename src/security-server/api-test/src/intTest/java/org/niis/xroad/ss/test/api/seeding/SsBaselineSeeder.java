@@ -125,6 +125,8 @@ public class SsBaselineSeeder {
 
         if (!Boolean.TRUE.equals(status.getIsServerCodeInitialized())) {
             initializeServer();
+            // initialization can outlive the UI session timeout; re-authenticate
+            session = AdminApiSession.silent(uiBaseUrl);
         }
 
         if (status.getSoftwareTokenInitStatus() != TokenInitStatusDto.INITIALIZED) {

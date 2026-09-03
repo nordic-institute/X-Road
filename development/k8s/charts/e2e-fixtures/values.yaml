@@ -3,7 +3,7 @@
 # Reproduces the non-CS parts of the compose aux stack
 # (security-server/e2e-test/src/intTest/resources/compose.aux.yaml) as
 # in-cluster k8s resources: test CA, mock information systems, a mail sink,
-# a DS-HTTPS keystore init Job, and a hurl bootstrap Job. The `services` map
+# and a hurl bootstrap Job (which also provisions DS TLS via the admin API). The `services` map
 # and `xroad.*` helpers follow the central-server chart's structure for
 # consistency across the k8s/charts/ tree, even though most of these
 # workloads are third-party test doubles rather than X-Road components.

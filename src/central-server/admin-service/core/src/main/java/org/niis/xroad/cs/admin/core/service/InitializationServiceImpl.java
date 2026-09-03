@@ -43,7 +43,6 @@ import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
 import org.niis.xroad.cs.admin.api.dto.TokenInitStatus;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
@@ -84,7 +83,6 @@ public class InitializationServiceImpl implements InitializationService {
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
     private final ExternalProcessRunner externalProcessRunner;
-    private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     @Value("${script.generate-gpg-keypair.path}")
     private final String generateKeypairScriptPath;
     @Value("${gpgkeys.gpghome}")
@@ -155,13 +153,6 @@ public class InitializationServiceImpl implements InitializationService {
         }
 
         generateGPGKeyPair(systemParameterService.getInstanceIdentifier());
-        provisionDataspaceIssuer();
-    }
-
-    private void provisionDataspaceIssuer() {
-        log.info("Provisioning data space issuer");
-        dataspaceIssuerProvisioningService.provisionIssuer();
-        log.info("Data space issuer provisioned");
     }
 
     private void initializeCsSystemParameters() {
