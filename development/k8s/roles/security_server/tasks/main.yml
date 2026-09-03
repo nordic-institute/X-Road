@@ -28,7 +28,11 @@
     wait: false
     values: "{{ lookup('template', 'security-server-values.yaml.j2') | from_yaml }}"
 
-- name: Wait for Security Server Deployments to become Available
+# ds-* Deployments are excluded: they CrashLoopBackOff on the empty tls/ds-https
+# vault slot by design until the e2e-fixtures hurl bootstrap — which runs after
+# every chart is deployed — provisions the certificate through the admin API.
+# The hurl scenario's own DSP readiness gates assert their convergence.
+- name: Wait for Security Server Deployments (excluding ds-*) to become Available
   kubernetes.core.k8s_info:
     kubeconfig: "{{ kubeconfig_path }}"
     api_version: apps/v1
@@ -37,12 +41,16 @@
     label_selectors:
       - "app.kubernetes.io/instance=security-server"
   register: ss_deployments
+  vars:
+    ss_core_deployments: >-
+      {{ ss_deployments.resources | default([])
+         | rejectattr('metadata.name', 'match', '^ds-') | list }}
   until: >-
-    (ss_deployments.resources | length > 0) and
-    (ss_deployments.resources
+    (ss_core_deployments | length > 0) and
+    (ss_core_deployments
      | map(attribute='spec.replicas', default=0)
      | map('int') | sum) ==
-    (ss_deployments.resources
+    (ss_core_deployments
      | map(attribute='status.availableReplicas', default=0)
      | map('int') | sum)
   retries: "{{ security_server_wait_retries }}"

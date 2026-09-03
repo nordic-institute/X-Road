@@ -235,11 +235,21 @@ hurl:
     example_service_address: "http://issoap.cs:8080/example-adapter/Endpoint"
     is_rest_url: "http://isrest.cs:8080/integration/mock_1"
     is_openapi_url: "http://isopenapi.cs:8080/v3/api-docs"
-    # setup.hurl registers this file as the DataSpace TLS CA
-    # (POST /ds-tls-certification-authorities). Like compose — and unlike LXD,
-    # which anchors to its external test CA — the in-cluster topology has no
-    # issuing CA: every namespace serves the ds-https-keystore chart's one
-    # self-signed cert, so that cert is registered as its own trust anchor.
-    # The file is projected from the ds-https-keystore Secret into the Job's
-    # file-root (see hurl-bootstrap-job.yaml).
-    ds_tls_ca_file: ds/ds-https-cert.pem
+    # setup.hurl registers the in-cluster test CA's root as the DataSpace TLS
+    # CA (POST /ds-tls-certification-authorities) and provisions every server's
+    # DS TLS certificate from it through the admin API. The root is downloaded
+    # into the Job's file-root by the fetch-ca-certs initContainer, same as the
+    # member-CA registration's ca/ca.pem.
+    ds_tls_ca_file: ca/ca.pem
+    # Per-server DS TLS certificate DN + SAN for the admin-API provisioning
+    # blocks. Namespace-qualified for the same cross-namespace reasons as
+    # cs_host/ca_host above: DID resolution of the CS-co-located issuer dials
+    # central-server.cs, and the identity hubs / control planes are dialed on
+    # their <svc>.<ns> names from other namespaces; the bare names cover
+    # same-namespace callers.
+    cs_ds_tls_dn: CN=central-server.cs
+    cs_ds_tls_san: DNS:central-server,DNS:central-server.cs,DNS:ds-issuer-service,DNS:ds-issuer-service.cs,DNS:localhost
+    ss0_ds_tls_dn: CN=xrd-ss0
+    ss0_ds_tls_san: DNS:ds-identity-hub.ss0,DNS:ds-control-plane.ss0,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:xrd-ss0,DNS:localhost
+    ss1_ds_tls_dn: CN=xrd-ss1
+    ss1_ds_tls_san: DNS:ds-identity-hub.ss1,DNS:ds-control-plane.ss1,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:xrd-ss1,DNS:localhost
