@@ -86,6 +86,9 @@ class CAhandler(object):
         self.header_info_field = False
         self.eab_handler = None
         self.eab_profiling = False
+        # unused ACME-profiles extension (distinct from EAB profile_id above); stock acme2certifier
+        # helpers (e.g. client_parameter_validate) read this attribute unconditionally
+        self.profiles = {}
 
     def __enter__(self):
         """Makes ACMEHandler a Context Manager"""

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -36,13 +35,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,8 +89,6 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
-    private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
 
     @SuppressWarnings("deprecation")
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
@@ -129,14 +124,10 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .build();
         }
 
-        var localServerId = safeLocalServerId();
-        var localServerAddress = safeLocalServerAddress(localServerId);
-
         var remoteFailures = new ArrayList<RuntimeException>();
         var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
-            var useMgmtCtx = requestForcesMgmtCtx || isSelfCall(candidate, localServerId, localServerAddress);
-            var targets = useMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
+            var targets = requestForcesMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
             var target = targets.get(candidate.hostAddress());
             if (target == null) {
                 var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
@@ -165,37 +156,6 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         return serviceId != null
                 && serviceId.getSubsystemCode() == null
                 && BUILTIN_SERVICE_CODES.contains(serviceId.getServiceCode());
-    }
-
-    private boolean isSelfCall(ProviderSecurityServerResolver.ProviderAddress candidate,
-                               SecurityServerId localServerId,
-                               String localServerAddress) {
-        if (candidate.serverId() != null && localServerId != null) {
-            return localServerId.equals(candidate.serverId());
-        }
-        return localServerAddress != null && localServerAddress.equals(candidate.hostAddress());
-    }
-
-    private SecurityServerId safeLocalServerId() {
-        try {
-            return serverConfProvider.getIdentifier();
-        } catch (Exception e) {
-            log.debug("Local security-server identifier unavailable: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    private String safeLocalServerAddress(SecurityServerId localServerId) {
-        if (localServerId == null) {
-            return null;
-        }
-
-        try {
-            return globalConfProvider.getSecurityServerAddress(localServerId);
-        } catch (Exception e) {
-            log.debug("Local security-server address unavailable for {}: {}", localServerId, e.getMessage());
-            return null;
-        }
     }
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,

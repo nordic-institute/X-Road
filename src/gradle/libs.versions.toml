@@ -156,6 +156,7 @@ test-restassured = { module = "io.rest-assured:rest-assured", version = "5.5.6" 
 
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testContainers" }
 mockserver-client = { module = "org.mock-server:mockserver-client-java", version = "7.4.0" }
 
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
@@ -290,8 +291,10 @@ edc-sql-control-plane = { module = "org.eclipse.edc:control-plane-sql", version.
 edc-sql-jti-validation = { module = "org.eclipse.edc:jti-validation-store-sql", version.ref = "edc" }
 edc-sql-policy-monitor = { module = "org.eclipse.edc:policy-monitor-store-sql", version.ref = "edc" }
 edc-sql-core = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
+edc-sql-test-fixtures = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
 edc-sql-lease = { module = "org.eclipse.edc:sql-lease", version.ref = "edc" }
 edc-sql-lease-core = { module = "org.eclipse.edc:sql-lease-core", version.ref = "edc" }
+edc-sql-lease-spi = { module = "org.eclipse.edc:sql-lease-spi", version.ref = "edc" }
 edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
 edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.ref = "edc" }
 edc-sql-cel-store = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
@@ -347,6 +350,7 @@ edc-spi-sts = { module = "org.eclipse.edc:sts-spi", version.ref = "edc" }
 edc-lib-dsp-catalog-transform = { module = "org.eclipse.edc:dsp-catalog-transform-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
+edc-lib-json = { module = "org.eclipse.edc:json-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }

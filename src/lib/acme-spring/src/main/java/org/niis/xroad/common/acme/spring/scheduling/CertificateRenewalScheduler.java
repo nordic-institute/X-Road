@@ -47,6 +47,7 @@ public class CertificateRenewalScheduler {
     private static final Duration RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY = Duration.of(60, SECONDS);
     private static final Duration INITIAL_DELAY = Duration.of(5, SECONDS);
     private boolean retryMode;
+    private boolean rescheduledDuringCycle;
 
     public void init() {
         reschedule(INITIAL_DELAY);
@@ -80,13 +81,20 @@ public class CertificateRenewalScheduler {
                 + "switching to global configuration recovery schedule");
         reschedule(RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY);
         retryMode = false;
+        rescheduledDuringCycle = true;
     }
 
     private void runJob() {
+        rescheduledDuringCycle = false;
         try {
             acmeRenewalWorker.execute(this);
         } finally {
-            reschedule(getNextDelay());
+            // globalConfInvalidated() already scheduled its own recovery delay; scheduling again here with
+            // getNextDelay() (which no longer reflects that call's intent) would immediately cancel and replace
+            // it with the normal, much longer renewal interval.
+            if (!rescheduledDuringCycle) {
+                reschedule(getNextDelay());
+            }
         }
     }
 

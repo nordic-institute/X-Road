@@ -15,6 +15,8 @@ dependencies {
   implementation(project(":lib:properties-core"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:vault-quarkus"))
+  implementation(project(":lib:globalconf-impl"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
 
   implementation(libs.bundles.quarkus.containerized)
 

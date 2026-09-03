@@ -13,4 +13,6 @@ dependencies {
   implementation(libs.springBoot.starterWeb)
 
   testImplementation(libs.systemStubs)
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.wiremock.standalone)
 }

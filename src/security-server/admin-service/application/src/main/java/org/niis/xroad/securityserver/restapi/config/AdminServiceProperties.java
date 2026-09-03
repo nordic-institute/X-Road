@@ -368,6 +368,18 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
             return config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_ID);
         }
 
+        public int getIdentityHubDidPort() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_DID_PORT);
+        }
+
+        public int getIdentityHubStsPort() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_STS_PORT);
+        }
+
+        public int getIdentityHubCredentialsPort() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_CREDENTIALS_PORT);
+        }
+
         public String getIssuerDid() {
             return config.value(AdminServiceConfigKeys.DATASPACE_ISSUER_DID);
         }
@@ -378,6 +390,22 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
 
         public int getMaxHolderPidSlots() {
             return config.value(AdminServiceConfigKeys.DATASPACE_MAX_HOLDER_PID_SLOTS);
+        }
+
+        public List<String> getTlsCertificateContacts() {
+            return optionalList(config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_CONTACTS));
+        }
+
+        public List<String> getTlsCertificateNotificationContacts() {
+            return optionalList(config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_NOTIFICATION_CONTACTS));
+        }
+
+        public boolean isTlsCertificateRenewalSuccessNotificationEnabled() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_RENEWAL_SUCCESS_NOTIFICATION_ENABLED);
+        }
+
+        public boolean isTlsCertificateRenewalFailureNotificationEnabled() {
+            return config.value(AdminServiceConfigKeys.DATASPACE_TLS_CERTIFICATE_RENEWAL_FAILURE_NOTIFICATION_ENABLED);
         }
     }
 

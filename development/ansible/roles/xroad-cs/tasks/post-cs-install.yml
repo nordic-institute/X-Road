@@ -65,12 +65,23 @@
       value: "{{ groups['cs_servers'] | first }}"
     - key: xroad.admin-service.global-configuration-generation-rate-in-seconds
       value: "10"
+    # See the identical setting in xroad-ss/tasks/seed-config-properties.yml —
+    # the Issuer Service's own outbound self-connect trust and DID publication
+    # need globalconf (approved DS TLS CAs) to propagate on the same shortened
+    # cadence, gated by this key rather than xroad.edc.web.https.trust.reload-interval-seconds.
+    - key: xroad.common-global-conf.refresh-rate
+      value: "5S"
   loop_control:
     label: "{{ item.key }}"
 
 - name: restart xroad-center to resolve the seeded issuer host
   systemd:
     name: xroad-center
+    state: restarted
+
+- name: restart xroad-ds-issuer-service to resolve the seeded configuration
+  systemd:
+    name: xroad-ds-issuer-service
     state: restarted
 
 # TEMPORARY FIX — race in ManagementServiceSslBundleRegistrar

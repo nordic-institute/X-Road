@@ -57,12 +57,17 @@ import java.util.regex.Pattern;
  * per-SS namespace instead.
  */
 @Slf4j
-public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps {
+public class K8sEnvSetup extends BaseComposeSetup
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
 
     private static final String MESSAGELOG_CLUSTER = "db-messagelog";
     private static final String MESSAGELOG_PRIMARY_SELECTOR = "cnpg.io/cluster=" + MESSAGELOG_CLUSTER
+            + ",cnpg.io/instanceRole=primary";
+    private static final String DS_CONTROL_PLANE_DB = "ds-control-plane";
+    private static final String DS_CONTROL_PLANE_CLUSTER = "db-ds-control-plane";
+    private static final String DS_CONTROL_PLANE_PRIMARY_SELECTOR = "cnpg.io/cluster=" + DS_CONTROL_PLANE_CLUSTER
             + ",cnpg.io/instanceRole=primary";
     private static final String AUXILIARY_SERVICE_WORKLOAD = "deploy/auxiliary-service";
     private static final String ARCHIVE_DIR = "/var/lib/xroad/messagelog-archives";
@@ -117,10 +122,27 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @SneakyThrows
     public String execMessagelogSql(String env, String sql) {
         var namespace = resolveNamespace(env);
-        var pod = resolvePrimaryMessagelogPod(namespace);
+        var pod = resolvePrimaryPod(namespace, MESSAGELOG_PRIMARY_SELECTOR, MESSAGELOG_CLUSTER);
+        return execPsql(namespace, pod, "messagelog", sql);
+    }
+
+    @Override
+    @SneakyThrows
+    public String execDsControlPlaneSql(String env, String sql) {
+        var namespace = resolveNamespace(env);
+        var pod = resolvePrimaryPod(namespace, DS_CONTROL_PLANE_PRIMARY_SELECTOR, DS_CONTROL_PLANE_CLUSTER);
+        return execPsql(namespace, pod, DS_CONTROL_PLANE_DB, sql);
+    }
+
+    /**
+     * Runs a query against a CNPG-managed database's primary pod via {@code kubectl exec}, mirroring
+     * {@link LxdEnvSetup}'s {@code lxc exec} equivalent.
+     */
+    @SneakyThrows
+    private String execPsql(String namespace, String pod, String database, String sql) {
         var process = new ProcessBuilder(
                 k8sProperties.kubectlCommand(), "-n", namespace, "exec", pod, "-c", "postgres", "--",
-                "psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql)
+                "psql", "-U", "postgres", "-d", database, "-tAX", "-c", sql)
                 .start();
 
         // Stdout and stderr are drained concurrently to avoid deadlocking on a full pipe buffer,
@@ -132,7 +154,7 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         var exitCode = process.waitFor();
 
         if (exitCode != 0) {
-            throw new IllegalStateException("psql query on %s failed (exit %d): %s".formatted(env, exitCode, stderr));
+            throw new IllegalStateException("psql query on %s failed (exit %d): %s".formatted(database, exitCode, stderr));
         }
         return stdout.trim();
     }
@@ -371,10 +393,10 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     }
 
     @SneakyThrows
-    private String resolvePrimaryMessagelogPod(String namespace) {
+    private String resolvePrimaryPod(String namespace, String labelSelector, String clusterName) {
         var process = new ProcessBuilder(
                 k8sProperties.kubectlCommand(), "-n", namespace, "get", "pod",
-                "-l", MESSAGELOG_PRIMARY_SELECTOR,
+                "-l", labelSelector,
                 "-o", "jsonpath={.items[0].metadata.name}")
                 .start();
         var stdout = readAll(process.getInputStream());
@@ -383,7 +405,7 @@ public class K8sEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         if (exitCode != 0 || stdout.isBlank()) {
             throw new IllegalStateException(
                     "Could not resolve the primary %s pod in namespace %s (exit %d): %s"
-                            .formatted(MESSAGELOG_CLUSTER, namespace, exitCode, stderr));
+                            .formatted(clusterName, namespace, exitCode, stderr));
         }
         return stdout;
     }

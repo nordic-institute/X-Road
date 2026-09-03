@@ -50,9 +50,13 @@ xroad:
       # JettyExtension is also excluded: its jetty-core artifact is excluded from the runtime classpath
       # entirely (see xroad.edc-owned-jetty-conventions), so this setting is defense in depth, not the
       # only thing standing between it and boot.
+      # SqlContractNegotiationStoreExtension is excluded so XRoadContractNegotiationStoreExtension is the
+      # sole ContractNegotiationStore provider; its jar stays on the classpath (via ds-control-plane-db) so
+      # the delegate store class, dialect statements and schema DDL remain usable.
       excluded-service-extensions: >-
         org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
-        org.eclipse.edc.web.jetty.JettyExtension
+        org.eclipse.edc.web.jetty.JettyExtension,
+        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension
   ds:
     rpc:
       host: "0.0.0.0"

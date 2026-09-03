@@ -235,3 +235,11 @@ hurl:
     example_service_address: "http://issoap.cs:8080/example-adapter/Endpoint"
     is_rest_url: "http://isrest.cs:8080/integration/mock_1"
     is_openapi_url: "http://isopenapi.cs:8080/v3/api-docs"
+    # setup.hurl registers this file as the DataSpace TLS CA
+    # (POST /ds-tls-certification-authorities). Like compose — and unlike LXD,
+    # which anchors to its external test CA — the in-cluster topology has no
+    # issuing CA: every namespace serves the ds-https-keystore chart's one
+    # self-signed cert, so that cert is registered as its own trust anchor.
+    # The file is projected from the ds-https-keystore Secret into the Job's
+    # file-root (see hurl-bootstrap-job.yaml).
+    ds_tls_ca_file: ds/ds-https-cert.pem

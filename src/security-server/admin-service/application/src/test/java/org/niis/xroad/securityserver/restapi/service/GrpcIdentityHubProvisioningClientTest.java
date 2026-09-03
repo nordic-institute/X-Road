@@ -33,6 +33,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -96,19 +98,19 @@ class GrpcIdentityHubProvisioningClientTest {
     }
 
     @Test
-    void contextExistsDelegatesToRpcClientAndReturnsTrue() {
-        when(rpcClient.participantContextExists(CTX_ID)).thenReturn(true);
+    void contextDidDelegatesToRpcClientAndReturnsDid() {
+        when(rpcClient.getParticipantContextDid(CTX_ID)).thenReturn(Optional.of("did:web:example"));
 
-        var result = client.contextExists(CTX_ID);
+        var result = client.contextDid(CTX_ID);
 
-        assertThat(result).isTrue();
-        verify(rpcClient).participantContextExists(CTX_ID);
+        assertThat(result).contains("did:web:example");
+        verify(rpcClient).getParticipantContextDid(CTX_ID);
     }
 
     @Test
-    void contextExistsReturnsFalseWhenRpcClientReturnsFalse() {
-        when(rpcClient.participantContextExists(CTX_ID)).thenReturn(false);
+    void contextDidReturnsEmptyWhenRpcClientReturnsEmpty() {
+        when(rpcClient.getParticipantContextDid(CTX_ID)).thenReturn(Optional.empty());
 
-        assertThat(client.contextExists(CTX_ID)).isFalse();
+        assertThat(client.contextDid(CTX_ID)).isEmpty();
     }
 }

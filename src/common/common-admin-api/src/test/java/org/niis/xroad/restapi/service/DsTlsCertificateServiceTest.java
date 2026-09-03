@@ -47,6 +47,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateValidator;
 
@@ -61,9 +63,12 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_CERTIFICATE_MISMATCH;
@@ -213,6 +218,173 @@ class DsTlsCertificateServiceTest {
         verify(vaultClient).createDsHttpsTlsCredentials(captor.capture());
         assertThat(captor.getValue().getKey()).isEqualTo(keyPair.getPrivate());
         assertThat(captor.getValue().getCertChain()).containsExactly(cert);
+    }
+
+    @Test
+    void storeAcmeEnrolledCertificateShouldStoreCredentialsAndTagAcmeStatus() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate cert = selfSignedCertificate(keyPair);
+        Instant nextRenewalTime = Instant.now().plus(60, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+
+        service().storeAcmeEnrolledCertificate(keyPair.getPrivate(), new X509Certificate[]{cert}, nextRenewalTime);
+
+        ArgumentCaptor<InternalSSLKey> credentialsCaptor = ArgumentCaptor.forClass(InternalSSLKey.class);
+        verify(vaultClient).createDsHttpsTlsCredentials(credentialsCaptor.capture());
+        assertThat(credentialsCaptor.getValue().getKey()).isEqualTo(keyPair.getPrivate());
+        assertThat(credentialsCaptor.getValue().getCertChain()).containsExactly(cert);
+
+        ArgumentCaptor<DsTlsEnrollmentStatus> statusCaptor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(statusCaptor.capture());
+        assertThat(statusCaptor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
+        assertThat(statusCaptor.getValue().nextRenewalTime()).isEqualTo(nextRenewalTime);
+        assertThat(statusCaptor.getValue().lastError()).isNull();
+    }
+
+    @Test
+    void storeAcmeEnrolledCertificateShouldRejectAMismatchedChainWithoutWritingAnything() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate certForOtherKey = selfSignedCertificate(generateRsaKeyPair());
+
+        assertThatThrownBy(() -> service().storeAcmeEnrolledCertificate(
+                keyPair.getPrivate(), new X509Certificate[]{certForOtherKey}, Instant.now()))
+                .isInstanceOf(BadRequestException.class)
+                .satisfies(e -> assertThat(((BadRequestException) e).getErrorDeviation().code())
+                        .isEqualTo(DS_TLS_KEY_CERTIFICATE_MISMATCH.code()));
+
+        verify(vaultClient, never()).createDsHttpsTlsCredentials(any());
+        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
+    }
+
+    @Test
+    void recordAcmeOutcomeShouldStoreANewErrorWithoutTouchingMethodOrNextRenewalTime() {
+        Instant nextRenewalTime = Instant.now().plus(30, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewalTime, null)));
+
+        boolean changed = service().recordAcmeOutcome("CA unreachable");
+
+        assertThat(changed).isTrue();
+        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
+        assertThat(captor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
+        assertThat(captor.getValue().nextRenewalTime()).isEqualTo(nextRenewalTime);
+        assertThat(captor.getValue().lastError()).isEqualTo("CA unreachable");
+    }
+
+    @Test
+    void recordAcmeOutcomeShouldBeANoOpWhenTheErrorIsUnchanged() {
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "CA unreachable")));
+
+        boolean changed = service().recordAcmeOutcome("CA unreachable");
+
+        assertThat(changed).isFalse();
+        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
+    }
+
+    @Test
+    void recordAcmeOutcomeShouldTagAcmeWhenNoStatusHasEverBeenRecorded() {
+        when(vaultClient.getDsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        boolean changed = service().recordAcmeOutcome("directory unreachable");
+
+        assertThat(changed).isTrue();
+        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
+        assertThat(captor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
+        assertThat(captor.getValue().nextRenewalTime()).isNull();
+        assertThat(captor.getValue().lastError()).isEqualTo("directory unreachable");
+    }
+
+    @Test
+    void getEnrollmentStatusShouldReportNoneConfiguredWhenNothingIsStoredAtAll() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
+        when(vaultClient.getDsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        var status = service().getEnrollmentStatus();
+
+        assertThat(status.configured()).isFalse();
+        assertThat(status.method()).isNull();
+        assertThat(status.lastError()).isNull();
+    }
+
+    @Test
+    void getEnrollmentStatusShouldReportNoneConfiguredWithLastErrorWhenAFirstAttemptFailed() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "directory unreachable")));
+
+        var status = service().getEnrollmentStatus();
+
+        assertThat(status.configured()).isFalse();
+        assertThat(status.method()).isNull();
+        assertThat(status.lastError()).isEqualTo("directory unreachable");
+    }
+
+    @Test
+    void getEnrollmentStatusShouldFallBackToManualWhenACertificateExistsWithNoRecordedStatus() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate cert = selfSignedCertificate(keyPair);
+        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[]{cert}));
+        when(vaultClient.getDsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        var status = service().getEnrollmentStatus();
+
+        assertThat(status.method()).isEqualTo(DsTlsEnrollmentMethod.MANUAL);
+        assertThat(status.nextRenewalTime()).isNull();
+        assertThat(status.lastError()).isNull();
+    }
+
+    @Test
+    void getEnrollmentStatusShouldReportAcmeWithNextRenewalTimeAndLastErrorWhenRecorded() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate cert = selfSignedCertificate(keyPair);
+        Instant nextRenewalTime = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[]{cert}));
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewalTime, "transient error")));
+
+        var status = service().getEnrollmentStatus();
+
+        assertThat(status.method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
+        assertThat(status.nextRenewalTime()).isEqualTo(nextRenewalTime);
+        assertThat(status.lastError()).isEqualTo("transient error");
+    }
+
+    @Test
+    void suspendAcmeSchedulingShouldClearNextRenewalTimeAndLastErrorWhilePreservingMethod() {
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), "some error")));
+
+        boolean changed = service().suspendAcmeScheduling();
+
+        assertThat(changed).isTrue();
+        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
+        assertThat(captor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
+        assertThat(captor.getValue().nextRenewalTime()).isNull();
+        assertThat(captor.getValue().lastError()).isNull();
+    }
+
+    @Test
+    void suspendAcmeSchedulingShouldBeANoOpWhenNoStatusHasEverBeenRecorded() {
+        when(vaultClient.getDsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        boolean changed = service().suspendAcmeScheduling();
+
+        assertThat(changed).isFalse();
+        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
+    }
+
+    @Test
+    void suspendAcmeSchedulingShouldBeANoOpWhenAlreadyClear() {
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, null)));
+
+        boolean changed = service().suspendAcmeScheduling();
+
+        assertThat(changed).isFalse();
+        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
     }
 
     @Test

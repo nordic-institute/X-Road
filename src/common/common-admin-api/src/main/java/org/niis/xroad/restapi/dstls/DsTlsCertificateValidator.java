@@ -57,7 +57,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_CERTIFIC
 public class DsTlsCertificateValidator {
 
     /**
-     * Parses and validates an uploaded certificate chain against the expected public key.
+     * Parses and validates an uploaded certificate chain against the expected public key. A thin decoding wrapper
+     * around {@link #validate(PublicKey, X509Certificate[])} for the manual-upload path, which crosses an admin
+     * API boundary as raw bytes.
      *
      * @param expectedPublicKey     the public key the leaf certificate must carry, i.e. the stored DS TLS key's
      *                              public key
@@ -68,13 +70,31 @@ public class DsTlsCertificateValidator {
      *                              public key does not match the expected key
      */
     public X509Certificate[] validate(PublicKey expectedPublicKey, byte[] certificateChainBytes) {
-        X509Certificate[] chain = parseCertificateChain(certificateChainBytes);
-        X509Certificate leaf = chain[0];
+        return validate(expectedPublicKey, parseCertificateChain(certificateChainBytes));
+    }
+
+    /**
+     * Validates an already-parsed certificate chain against the expected public key. Used where the chain was
+     * never serialized to bytes in the first place, e.g. a chain an ACME order returned directly.
+     *
+     * @param expectedPublicKey the public key the leaf certificate must carry, i.e. the private key the chain is
+     *                          about to be stored alongside
+     * @param certificateChain  the certificate chain, leaf certificate first
+     * @return the same certificate chain, once validated
+     * @throws BadRequestException with an actionable {@link org.niis.xroad.common.core.exception.ErrorCode}
+     *                              if the chain is empty, its leaf is expired/not yet valid, or its public key does
+     *                              not match the expected key
+     */
+    public X509Certificate[] validate(PublicKey expectedPublicKey, X509Certificate[] certificateChain) {
+        if (certificateChain.length == 0) {
+            throw new BadRequestException(DS_TLS_CERTIFICATE_PARSE_FAILED.build());
+        }
+        X509Certificate leaf = certificateChain[0];
 
         checkValidityWindow(leaf);
         checkKeyMatches(expectedPublicKey, leaf.getPublicKey());
 
-        return chain;
+        return certificateChain;
     }
 
     private X509Certificate[] parseCertificateChain(byte[] certificateChainBytes) {

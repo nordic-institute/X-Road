@@ -58,6 +58,15 @@ services:
       annotations: {}
     env:
       XROAD_HOST: "central-server"
+      # The Issuer Service's EDC vault client rides the fail-closed DS TLS OkHttp
+      # client, which replaces JVM default trust — the in-pod OpenBao's self-signed
+      # cert must be trusted through VaultEndpointTrust's escape hatch instead.
+      # The path is already baked into the central-server-dev image by
+      # xroad-secret-store-local's postinst (install /opt/openbao/tls/tls.crt →
+      # /usr/local/share/ca-certificates/openbao.crt), so no extra mount is needed.
+      # Same fix as the compose e2e cs container (compose.aux.yaml); the
+      # security-server chart covers its services via secretStore.tls instead.
+      QUARKUS_VAULT_TLS_CA_CERT: "/usr/local/share/ca-certificates/openbao.crt"
     # Issuer Service HTTPS keystore (provisioned by the ds-https-keystore chart);
     # without it the Issuer Service crash-loops and CS init fails.
     volumeMounts:

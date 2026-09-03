@@ -27,10 +27,6 @@ package org.niis.xroad.common.acme.spring.scheduling;
 
 /**
  * The unit of work {@link CertificateRenewalScheduler} triggers on each scheduling cycle.
- * <p>
- * Consumers of acme-spring implement this with whatever certificate lookup and renewal logic their
- * deployment needs, and register the implementation as a Spring bean so it is picked up as the
- * scheduler's dependency.
  */
 public interface AcmeRenewalWorker {
 

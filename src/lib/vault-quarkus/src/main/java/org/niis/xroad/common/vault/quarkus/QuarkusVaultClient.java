@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 
@@ -121,6 +122,16 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsTlsEnrollmentStatus() {
+        return readSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH).map(this::toDsTlsEnrollmentStatus);
+    }
+
+    @Override
+    public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        kvSecretEngine.writeSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
     }
 
     @Override

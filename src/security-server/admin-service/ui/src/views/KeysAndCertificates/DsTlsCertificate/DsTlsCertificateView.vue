@@ -39,6 +39,7 @@
       <v-chip v-if="keyGeneratedPending" color="warning" variant="outlined" class="ml-2">
         {{ $t('dsTlsCertificate.keyGeneratedPending') }}
       </v-chip>
+      <DsTlsCertificateEnrollmentStatusChip class="ml-2" />
     </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
@@ -52,6 +53,7 @@ import { Permissions, RouteName } from '@/global';
 import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate, DsTlsCertificateStatus } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
+import DsTlsCertificateEnrollmentStatusChip from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatusChip.vue';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 
 const { hasPermission } = useUser();

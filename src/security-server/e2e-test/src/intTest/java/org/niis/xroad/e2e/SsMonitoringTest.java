@@ -35,6 +35,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -62,6 +63,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
@@ -76,6 +78,15 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 /**
  * Runs last: the operational/health data tests assert on op-monitor records that accumulate from
  * every call made across the whole run.
+ *
+ * <p>{@code proxymonitorRespondsWithCorrectResponse} and
+ * {@code proxymonitorRespondsWithCorrectResponseFromManagementSecurityServer} are this suite's case-5
+ * self-targeted-built-ins coverage: an owner member querying its own server's {@code
+ * getSecurityServerMetrics} through that same server's proxy — first as a plain (non-management)
+ * owner on ss1, then as the management Security Server's own owner on ss0, since ss0's self-targeted
+ * calls currently travel through the {@code -mgmt} companion context (ADR-41) and so exercise a
+ * different call path than ss1's. Both assert externally observable behavior only (HTTP outcome,
+ * response payload), not which participant context carried the call.
  */
 @DisplayName("SS monitoring - proxy metrics, operational data and health data")
 @Order(400)
@@ -154,6 +165,29 @@ class SsMonitoringTest extends E2eTest {
 
     @Test
     @Order(4)
+    @DisplayName("Proxymonitor responds with correct response from management Security Server")
+    void proxymonitorRespondsWithCorrectResponseFromManagementSecurityServer(E2eEnvironment env) {
+        Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
+                () -> "%s does not run the dataspace protocol stack; case-5 self-targeted built-ins on the "
+                        + "management Security Server are only wired for k8s and LXD"
+                        .formatted(env.getClass().getSimpleName()));
+
+        given("ss0 owner client internal connection type is set to HTTP", () ->
+                setOwnerClientConnectionType(env, "ss0", "HTTP"));
+
+        var response = when("a proxymonitor getSecurityServerMetrics request is sent to ss0 with queryId PMID-E2E-SS0-1", () ->
+                sendProxymonitorRequest(env, "ss0", "PMID-E2E-SS0-1", null));
+
+        then("the proxymonitor response contains metricSet name SERVER:DEV/COM/1234/SS0", () -> {
+            assertThat(response.getStatusCode()).isEqualTo(200);
+            var actual = evalMonitoringXpath(response.asString(),
+                    "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name");
+            assertThat(actual).isEqualTo("SERVER:DEV/COM/1234/SS0");
+        });
+    }
+
+    @Test
+    @Order(5)
     @DisplayName("Messagelog contains metrics requests")
     void messagelogContainsMetricsRequests(E2eEnvironment env, MessagelogDbOps messagelogDbOps) {
         given("ss1 owner client internal connection type is set to HTTP", () ->
@@ -167,7 +201,7 @@ class SsMonitoringTest extends E2eTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     @DisplayName("Retrieving Operational Data of Security Server")
     void retrievingOperationalDataOfSecurityServer(E2eEnvironment env) {
         given("ss0 owner client internal connection type is set to HTTP", () ->
@@ -193,7 +227,7 @@ class SsMonitoringTest extends E2eTest {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     @DisplayName("Retrieving Health Data of Security Server")
     void retrievingHealthDataOfSecurityServer(E2eEnvironment env) {
         given("ss0 owner client internal connection type is set to HTTP", () ->
@@ -243,11 +277,7 @@ class SsMonitoringTest extends E2eTest {
     }
 
     private void setOwnerClientConnectionType(E2eEnvironment env, String envName, String connectionType) {
-        var ownerClientId = switch (envName) {
-            case "ss0" -> "DEV:COM:1234";
-            case "ss1" -> "DEV:COM:4321";
-            default -> throw new IllegalArgumentException("Unknown env for owner client: " + envName);
-        };
+        var ownerClientId = "DEV:COM:" + ownerMemberCode(envName);
         var mapping = env.getContainerMapping(envName, SsStackSetup.UI, SsStackSetup.Port.UI);
         var baseUrl = "https://%s:%s".formatted(mapping.host(), mapping.port());
 
@@ -271,11 +301,21 @@ class SsMonitoringTest extends E2eTest {
                 .isBetween(200, 299);
     }
 
+    private String ownerMemberCode(String envName) {
+        return switch (envName) {
+            case "ss0" -> "1234";
+            case "ss1" -> "4321";
+            default -> throw new IllegalArgumentException("Unknown env for owner client: " + envName);
+        };
+    }
+
     private Response sendProxymonitorRequest(E2eEnvironment env, String envName, String queryId, String metricName) {
         var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
+        var ownerMemberCode = ownerMemberCode(envName);
+        var serverCode = envName.toUpperCase(Locale.ROOT);
         return RestAssuredFactory.given()
                 .header("Content-Type", "text/xml")
-                .body(buildMetricsRequestBody(queryId, metricName))
+                .body(buildMetricsRequestBody(queryId, metricName, ownerMemberCode, serverCode))
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()));
     }
 
@@ -432,7 +472,7 @@ class SsMonitoringTest extends E2eTest {
         }
     }
 
-    private String buildMetricsRequestBody(String queryId, String metricName) {
+    private String buildMetricsRequestBody(String queryId, String metricName, String ownerMemberCode, String serverCode) {
         var outputSpec = metricName != null && !metricName.isBlank()
                 ? """
                 <monitoring:outputSpec>
@@ -450,19 +490,19 @@ class SsMonitoringTest extends E2eTest {
                         <xro:client iden:objectType="MEMBER">
                             <iden:xRoadInstance>DEV</iden:xRoadInstance>
                             <iden:memberClass>COM</iden:memberClass>
-                            <iden:memberCode>4321</iden:memberCode>
+                            <iden:memberCode>%s</iden:memberCode>
                         </xro:client>
                         <xro:service iden:objectType="SERVICE">
                             <iden:xRoadInstance>DEV</iden:xRoadInstance>
                             <iden:memberClass>COM</iden:memberClass>
-                            <iden:memberCode>4321</iden:memberCode>
+                            <iden:memberCode>%s</iden:memberCode>
                             <iden:serviceCode>getSecurityServerMetrics</iden:serviceCode>
                         </xro:service>
                         <xro:securityServer iden:objectType="SERVER">
                             <iden:xRoadInstance>DEV</iden:xRoadInstance>
                             <iden:memberClass>COM</iden:memberClass>
-                            <iden:memberCode>4321</iden:memberCode>
-                            <iden:serverCode>SS1</iden:serverCode>
+                            <iden:memberCode>%s</iden:memberCode>
+                            <iden:serverCode>%s</iden:serverCode>
                         </xro:securityServer>
                         <xro:id>%s</xro:id>
                         <xro:protocolVersion>4.0</xro:protocolVersion>
@@ -473,7 +513,7 @@ class SsMonitoringTest extends E2eTest {
                         </monitoring:getSecurityServerMetrics>
                     </soapenv:Body>
                 </soapenv:Envelope>
-                """.formatted(queryId, outputSpec);
+                """.formatted(ownerMemberCode, ownerMemberCode, ownerMemberCode, serverCode, queryId, outputSpec);
     }
 
     private String buildOperationalDataRequestBody() {

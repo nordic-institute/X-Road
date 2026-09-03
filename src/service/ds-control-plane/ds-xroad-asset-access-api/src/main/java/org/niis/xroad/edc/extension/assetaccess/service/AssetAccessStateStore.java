@@ -62,16 +62,21 @@ public class AssetAccessStateStore {
      * to create a new future, registers it, and returns it. The registered future removes itself from the
      * map on completion.
      *
+     * <p>The self-removal callback is attached only after {@code computeIfAbsent} has inserted the entry.
+     * A supplier may return an already-completed future (the assembly itself failed synchronously); attaching
+     * the callback inside the mapping function would run the removal before the entry exists, leaving the
+     * dead future cached under the key forever. Callers that join an existing future attach a redundant
+     * callback; the value-conditional remove makes that harmless.
+     *
      * <p>The supplier must be non-blocking: it runs under a {@link ConcurrentHashMap} bin lock
      * and is expected only to assemble (not await) the async pipeline.
      */
     public CompletableFuture<ServiceResult<DataAddress>> loadOrStartInFlight(
             String key,
             Supplier<CompletableFuture<ServiceResult<DataAddress>>> supplier) {
-        return inFlightRequests.computeIfAbsent(key, k -> {
-            var future = supplier.get();
-            return future.whenComplete((result, throwable) -> inFlightRequests.remove(key));
-        });
+        var future = inFlightRequests.computeIfAbsent(key, k -> supplier.get());
+        future.whenComplete((result, throwable) -> inFlightRequests.remove(key, future));
+        return future;
     }
 
     /**

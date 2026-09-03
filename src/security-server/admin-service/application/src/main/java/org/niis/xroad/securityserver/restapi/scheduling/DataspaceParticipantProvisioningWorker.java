@@ -28,12 +28,14 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Level-triggered provisioning worker that drives data space participant context provisioning
@@ -48,7 +50,6 @@ public class DataspaceParticipantProvisioningWorker {
     static final int INITIAL_DELAY_MS = 30000;
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
-    private final ScheduledJobHelper scheduledJobHelper;
     private final DataspaceReadinessPredicates readinessPredicates;
 
     /**
@@ -57,62 +58,75 @@ public class DataspaceParticipantProvisioningWorker {
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     public void scheduledProvision() {
+        provisionParticipantBestEffort();
+    }
+
+    /**
+     * Executes one provisioning step, logging and swallowing any failure. Used by callers that must
+     * not fail on a provisioning problem: the scheduled tick and the eager run right after security
+     * server initialization.
+     */
+    public void provisionParticipantBestEffort() {
         try {
             provisionParticipant();
         } catch (Exception e) {
-            log.error("Data space participant provisioning tick failed", e);
+            log.error("Data space participant provisioning failed; the scheduled worker will converge "
+                    + "once the dependency recovers", e);
         }
     }
 
     /**
-     * Executes one idempotent provisioning step. Safe to call directly for an eager first
-     * provisioning run at SS init; in that context a failure propagates to the caller.
+     * Executes one idempotent provisioning step. A failure in one participant context is logged and
+     * does not block the remaining contexts; a context whose creation failed is skipped in the
+     * credential pass of the same tick.
      */
     public void provisionParticipant() {
-        ServerConfEntity serverConf = loadServerConf();
-        if (serverConf == null) {
-            log.debug("Data space provisioning: SS not yet initialized, skipping");
+        var contexts = dataspaceProvisioningService.participantContexts(true);
+        if (ownerUnknown(contexts)) {
+            log.debug("Data space provisioning: SS owner not yet known, skipping");
             return;
         }
-
-        var owner = serverConf.getOwner();
-        if (owner == null) {
-            log.debug("Data space provisioning: server owner not set, skipping");
-            return;
-        }
-        var ownerId = owner.getIdentifier();
-        var ownerMemberIdSlashForm = "%s/%s/%s".formatted(ownerId.getXRoadInstance(), ownerId.getMemberClass(), ownerId.getMemberCode());
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
-            dataspaceProvisioningService.ensureParticipantContext(participantId, ownerMemberIdSlashForm);
-        }
+        var ensuredContexts = ensureContexts(contexts);
 
         if (!authCertRegistered) {
             log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");
             return;
         }
 
-        for (var participantId : dataspaceProvisioningService.participantContextIds(true)) {
-            var status = dataspaceProvisioningService.readCredentialStatus(participantId);
-            if (DataspaceProvisioningService.STATUS_ISSUED.equals(status)) {
-                log.debug("Data space provisioning: participant {} credential already ISSUED", participantId);
-            } else if (DataspaceProvisioningService.STATUS_PENDING.equals(status)) {
-                log.debug("Data space provisioning: participant {} credential PENDING, waiting for next tick", participantId);
-            } else {
-                log.info("Data space provisioning: submitting credential request for participant {}", participantId);
-                dataspaceProvisioningService.submitCredentialRequest(participantId);
-            }
-        }
+        ensureCredentials(ensuredContexts);
     }
 
-    private ServerConfEntity loadServerConf() {
-        try {
-            return scheduledJobHelper.getServerConf();
-        } catch (XrdRuntimeException e) {
-            return null;
+    private static boolean ownerUnknown(List<ParticipantContext> contexts) {
+        return contexts.stream().anyMatch(context -> context.memberId() == null);
+    }
+
+    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
+        List<ParticipantContext> ensured = new ArrayList<>();
+        for (var context : contexts) {
+            try {
+                dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
+                        context.memberId());
+                ensured.add(context);
+            } catch (Exception e) {
+                log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
+                        context.participantId(), e);
+            }
+        }
+        return ensured;
+    }
+
+    private void ensureCredentials(List<ParticipantContext> contexts) {
+        for (var context : contexts) {
+            try {
+                dataspaceProvisioningService.ensureMembershipCredential(context.participantId());
+            } catch (Exception e) {
+                log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
+                        context.participantId(), e);
+            }
         }
     }
 }

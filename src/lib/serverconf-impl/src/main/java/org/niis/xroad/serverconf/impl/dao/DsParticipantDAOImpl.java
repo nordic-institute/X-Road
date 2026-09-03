@@ -41,18 +41,18 @@ import org.niis.xroad.serverconf.model.ParticipantType;
 import java.util.Optional;
 
 /**
- * Dataspace participant pinning data access object implementation.
+ * Data access object implementation for bound dataspace participants.
  */
 public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
 
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
 
     /**
-     * Finds the pinned participant row for the given member identifier.
+     * Finds the bound participant row for the given member identifier.
      *
      * @param session the Hibernate session
      * @param member  the member identifier
-     * @return the pinned MEMBER row, if one has been provisioned
+     * @return the bound MEMBER row, if one has been provisioned
      */
     public Optional<DsParticipantEntity> findByMemberIdentifier(Session session, ClientId member) {
         ClientIdEntity identifier = identifierDAO.findClientId(session, member);
@@ -73,7 +73,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
      * Finds the Security Server's SYSTEM participant row, if it has been provisioned.
      *
      * @param session the Hibernate session
-     * @return the pinned SYSTEM row, if one has been provisioned
+     * @return the bound SYSTEM row, if one has been provisioned
      */
     public Optional<DsParticipantEntity> findSystemParticipant(Session session) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
