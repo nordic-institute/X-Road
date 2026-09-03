@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,18 +35,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
-import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,14 +54,19 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DataspaceParticipantProvisioningWorkerTest {
 
-    private static final String OWNER_SLASH_FORM = "TEST/GOV/1234";
+    private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "1234");
+    private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "5678");
     private static final String HOST_ID = "xrd-ss0";
     private static final String MGMT_ID = "xrd-ss0-mgmt";
+    private static final String MEMBER_ID = "TEST:COM:5678";
+
+    private static final ParticipantContext HOST_CONTEXT = new ParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+    private static final ParticipantContext MGMT_CONTEXT = new ParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+    private static final ParticipantContext MEMBER_CONTEXT = new ParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
+    private static final ParticipantContext PRE_OWNER_HOST_CONTEXT = new ParticipantContext(HOST_ID, ParticipantKind.HOST, null);
 
     @Mock
     private DataspaceProvisioningService dataspaceProvisioningService;
-    @Mock
-    private ScheduledJobHelper scheduledJobHelper;
     @Mock
     private DataspaceReadinessPredicates readinessPredicates;
 
@@ -69,84 +75,77 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @Test
     void scheduledProvisionSwallowsFailures() {
-        when(scheduledJobHelper.getServerConf()).thenThrow(new RuntimeException("boom"));
+        when(dataspaceProvisioningService.participantContexts(true)).thenThrow(new RuntimeException("boom"));
 
         assertThatCode(() -> worker.scheduledProvision()).doesNotThrowAnyException();
     }
 
     @Test
-    void provisionParticipantSkipsWhenServerNotInitialized() {
-        when(scheduledJobHelper.getServerConf()).thenThrow(mock(XrdRuntimeException.class));
+    void provisionParticipantBestEffortSwallowsFailures() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenThrow(new RuntimeException("boom"));
+
+        assertThatCode(() -> worker.provisionParticipantBestEffort()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void provisionParticipantSkipsWhenOwnerNotYetKnown() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(PRE_OWNER_HOST_CONTEXT));
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
-        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), any());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
     }
 
     @Test
     void provisionParticipantEnsuresAllContextsAndDefersCredentialUntilAuthCertRegistered() {
-        givenInitializedServer();
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, OWNER_SLASH_FORM);
-        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
     }
 
     @Test
-    void provisionParticipantSubmitsCredentialWhenAbsentAndAuthCertRegistered() {
-        givenInitializedServer();
+    void provisionParticipantEnsuresCredentialForEachContextWhenAuthCertRegistered() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
-        when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
-        when(dataspaceProvisioningService.readCredentialStatus(HOST_ID)).thenReturn("ERROR");
-        when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID)).thenReturn(null);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService).submitCredentialRequest(HOST_ID);
-        verify(dataspaceProvisioningService).submitCredentialRequest(MGMT_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID);
     }
 
     @Test
-    void provisionParticipantDoesNotResubmitWhenCredentialIssuedOrPending() {
-        givenInitializedServer();
+    void provisionParticipantContinuesWithRemainingContextsWhenOneFails() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
-        when(dataspaceProvisioningService.participantContextIds(true)).thenReturn(List.of(HOST_ID, MGMT_ID));
-        when(dataspaceProvisioningService.readCredentialStatus(HOST_ID))
-                .thenReturn(DataspaceProvisioningService.STATUS_ISSUED);
-        when(dataspaceProvisioningService.readCredentialStatus(MGMT_ID))
-                .thenReturn(DataspaceProvisioningService.STATUS_PENDING);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT, MGMT_CONTEXT));
+        doThrow(new IllegalStateException("bound row mismatch"))
+                .when(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
 
-        worker.provisionParticipant();
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
-        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_ID);
     }
 
     @Test
-    void provisionParticipantSkipsWhenOwnerIsNull() {
-        var serverConf = mock(ServerConfEntity.class);
-        when(serverConf.getOwner()).thenReturn(null);
-        when(scheduledJobHelper.getServerConf()).thenReturn(serverConf);
+    void provisionParticipantContinuesWithRemainingCredentialsWhenOneCredentialStepFails() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.ensureMembershipCredential(HOST_ID)).thenThrow(new IllegalStateException("ih down"));
 
-        worker.provisionParticipant();
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
-        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), anyString());
-        verify(dataspaceProvisioningService, never()).submitCredentialRequest(anyString());
-    }
-
-    private void givenInitializedServer() {
-        var ownerId = mock(ClientIdEntity.class);
-        when(ownerId.getXRoadInstance()).thenReturn("TEST");
-        when(ownerId.getMemberClass()).thenReturn("GOV");
-        when(ownerId.getMemberCode()).thenReturn("1234");
-        var owner = mock(ClientEntity.class);
-        when(owner.getIdentifier()).thenReturn(ownerId);
-        var serverConf = mock(ServerConfEntity.class);
-        when(serverConf.getOwner()).thenReturn(owner);
-        when(scheduledJobHelper.getServerConf()).thenReturn(serverConf);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID);
     }
 }

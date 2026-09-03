@@ -5,15 +5,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
-    logicalFilePath="serverconf/012-ds-participant-pinning.xml">
+    logicalFilePath="serverconf/012-ds-participant-binding.xml">
 
     <!--
-        Participant lifecycle table per XRDADR-41 ("Storage - derive, then store"): pins each
+        Participant lifecycle table per XRDADR-41 (derive, then bind): binds each
         dataspace participant's derived ctx-id, DID and scheme version at first provisioning, so a
         later derivation-rule change can never silently re-identify a provisioned participant.
         Nothing populates or reads this table yet.
     -->
-    <changeSet author="niis" id="012-ds-participant-pinning">
+    <changeSet author="niis" id="012-ds-participant-binding">
         <createTable tableName="ds_participant">
             <column name="id" autoIncrement="true" type="SERIAL">
                 <constraints primaryKey="true"/>

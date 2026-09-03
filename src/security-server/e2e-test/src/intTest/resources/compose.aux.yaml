@@ -3,6 +3,11 @@ services:
     image: ${CS_IMG}
     environment:
       - XROAD_HOST=cs
+      # The DS TLS trust replaces JVM defaults on the shared EDC OkHttp client, which EDC's vault
+      # client also uses -- OpenBao's self-signed cert (installed system-wide by the image's postinst)
+      # must be handed to it explicitly. Read via plain System.getenv in VaultEndpointTrust, not
+      # through EDC's @Setting resolution, so an env var is enough.
+      - QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
     deploy:
       resources:
         reservations:
@@ -129,10 +134,10 @@ services:
         # Outside the reuse guard: the shared volume can hold key files written
         # root-0600 by older init runs, unreadable by the xroad user in the cs container.
         chmod 0644 ds-https.p12 cacerts ds-https-cert.pem ds-https-key.pem
-        # Stopgap (XRDDEV-3294 retires this): the owned Jetty module reads the DS TLS
-        # certificate from OpenBao, not from these files — seed the same key/cert
-        # generated above into tls/ds-https so ds-* services (and the co-located
-        # Issuer Service in the cs container) don't fail closed.
+        # Stopgap until real DS TLS certificate provisioning covers this stack: the owned
+        # Jetty module reads the DS TLS certificate from OpenBao, not from these files —
+        # seed the same key/cert generated above into tls/ds-https so ds-* services (and
+        # the co-located Issuer Service in the cs container) don't fail closed.
         apk add --no-cache curl jq
         PAYLOAD=$$(jq -n --rawfile cert ds-https-cert.pem --rawfile key ds-https-key.pem \
           '{certificate: $$cert, privateKey: $$key}')
@@ -170,6 +175,7 @@ services:
       --variable ss0_proxy=${PROXY_0}
       --variable ss1_proxy=${PROXY_1}
       --variable is_host=cs
+      --variable ds_tls_ca_file=ds/ds-https-cert.pem
       --file-root /hurl-files
       /hurl-src/setup.hurl
       --very-verbose
@@ -185,6 +191,9 @@ services:
       - xroad-network
     volumes:
       - ca-volume:/hurl-files/ca
+      # Same self-signed cert ds-https-keystore-init generates and every ds-* container serves (there
+      # is no separate issuing CA in this environment): registered as its own DS TLS CA trust anchor.
+      - ds-https-keystore:/hurl-files/ds:ro
     depends_on:
       cs:
         condition: service_healthy
@@ -196,6 +205,8 @@ services:
         condition: service_healthy
       isrest:
         condition: service_healthy
+      ds-https-keystore-init:
+        condition: service_completed_successfully
 
   openbao:
     image: ${OPENBAO_DEV_IMG}

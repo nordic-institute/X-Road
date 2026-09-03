@@ -326,6 +326,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DSP_PROVISIONING_FAILED("dsp_provisioning_failed"),
     DSP_PARTICIPANT_IDENTIFIER_MISMATCH("dsp_participant_identifier_mismatch"),
     DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED("dsp_participant_scheme_version_unsupported"),
+    DSP_PARTICIPANT_DID_DRIFT("dsp_participant_did_drift"),
 
     // ===== DS TLS CERTIFICATE ERRORS =====
     DS_TLS_KEY_NOT_GENERATED("ds_tls_key_not_generated"),

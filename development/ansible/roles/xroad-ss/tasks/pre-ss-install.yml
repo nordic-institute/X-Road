@@ -32,6 +32,55 @@
     mode: "0755"
 
 # ---------------------------------------------------------------------------
+# 2. Vault CA for the control-plane's and identity-hub's own EDC/Hashicorp
+#    vault client, mirroring the Issuer Service drop-in in
+#    xroad-cs/tasks/pre-cs-install.yml: the DS TLS trust replaces JVM defaults
+#    on the shared EDC OkHttp client, so OpenBao's self-signed cert must be
+#    handed to it through QUARKUS_VAULT_TLS_CA_CERT (read via plain
+#    System.getenv in VaultEndpointTrust — not subject to the
+#    QuarkusConfigBridge env-var limitation noted below).
+#
+#    Points at the installed system copy (644, world-readable) rather than
+#    /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to avoid a
+#    second permissions dependency. The copy's location is distro specific —
+#    xroad-secret-store-local's Debian postinst installs it under
+#    /usr/local/share/ca-certificates, the RPM %post under
+#    /etc/pki/ca-trust/source/anchors — so the path follows os_family.
+# ---------------------------------------------------------------------------
+- name: create systemd drop-in dirs for QUARKUS_VAULT_TLS_CA_CERT
+  file:
+    path: "/etc/systemd/system/{{ item }}.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: &ss_vault_tls_ca_units
+    - xroad-ds-control-plane
+    - xroad-ds-identity-hub
+
+- name: set QUARKUS_VAULT_TLS_CA_CERT for the control-plane's and identity-hub's EDC vault clients
+  copy:
+    dest: "/etc/systemd/system/{{ item }}.service.d/vault-tls-ca.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=QUARKUS_VAULT_TLS_CA_CERT={{ openbao_system_ca_cert }}
+  vars:
+    openbao_system_ca_cert: >-
+      {{ '/etc/pki/ca-trust/source/anchors/openbao.crt'
+         if ansible_facts['os_family'] == 'RedHat'
+         else '/usr/local/share/ca-certificates/openbao.crt' }}
+  loop: *ss_vault_tls_ca_units
+  register: ss_vault_tls_ca_dropins
+
+- name: reload systemd after the vault CA drop-ins
+  systemd:
+    daemon_reload: true
+  when: ss_vault_tls_ca_dropins is changed
+
+# ---------------------------------------------------------------------------
 # 3. xroad.proxy.dsp.* and xroad.proxy-ui-api.dataspace.* runtime config moved
 #    to the configuration_properties DB override layer (the XRoadConfig DSL
 #    does not read conf.d yaml) — see seed-config-properties.yml, which runs
@@ -40,6 +89,12 @@
 # 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
 #    enumerable SmallRye sources (yaml/properties files); env-vars never reach
 #    EDC's @Setting resolution. These must exist before the unit's first start.
+#
+#    xroad.edc.web.https.trust.reload-interval-seconds: registration of the DS TLS CA (setup.hurl)
+#    happens well after this unit's first boot — the fail-closed outbound trust extension only picks
+#    it up on its next reload cycle. Shortened here (default 60s) so CI's did.json-style polling
+#    windows aren't spent waiting on a slow-by-default reload; not a production concern, since real
+#    deployments provision the CA before ds-* traffic flows.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
 #   keystore config as an answerable question.
@@ -60,6 +115,12 @@
               password: "changeit"
             keymanager:
               password: "changeit"
+      xroad:
+        edc:
+          web:
+            https:
+              trust:
+                reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
@@ -113,6 +174,11 @@
             trusted-issuer:
               issuer:
                 id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+          web:
+            https:
+              trust:
+                # See the identical setting in local-ds-identity-hub.yaml for why this is shortened.
+                reload-interval-seconds: 5
 
 # ---------------------------------------------------------------------------
 # 6. TLS keystore for DS services. Must be on disk before ds-* units start.
