@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.22
+Version: 1.24
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
