@@ -64,14 +64,16 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
  * (participant, asset) pair is only ever observable <i>once</i> per cache/agreement lifetime — a second call
  * inside that window reuses the existing agreement and transfer without touching the negotiation store at all.
  * So this test does not require a <i>freshly created</i> negotiation pair; it identifies the converged
- * self-negotiation structurally instead, by the shape only that mechanism produces: exactly two FINALIZED
- * negotiation rows sharing one {@code agreement_id}, both non-management (own-context routing keeps management
- * self-negotiations on a distinct {@code -mgmt}-suffixed participant context and {@code :mgmt}-suffixed
- * counterparty DID, so excluding those is enough to isolate this scenario's pair without hardcoding a
- * substrate-specific participant context string). Picking the pair with the latest activity still catches a
- * freshly negotiated run; picking the same, already-converged pair on a warm-cache rerun is exactly the
- * end-state proof this scenario exists to make, so reuse is a pass, not a false green — a stalled or
- * non-FINALIZED pair, or duplicate agreement rows, still fail either way.
+ * self-negotiation structurally instead, by the shape only this scenario's own negotiation produces: exactly
+ * two FINALIZED rows sharing one {@code agreement_id}, both non-management (own-context routing keeps
+ * management self-negotiations on a distinct {@code -mgmt}-suffixed participant context and {@code :mgmt}-
+ * suffixed counterparty DID, so excluding those needs no substrate-specific participant context string) and
+ * both for this scenario's own asset (see {@link #ASSET_SERVICE_SUFFIX} — needed because any other asset's
+ * self-negotiation, e.g. {@link SsMonitoringTest}'s own monitoring self-calls, produces the same non-management
+ * shape). Picking the pair with the latest activity still catches a freshly negotiated run; picking the same,
+ * already-converged pair on a warm-cache rerun is exactly the end-state proof this scenario exists to make, so
+ * reuse is a pass, not a false green — a stalled or non-FINALIZED pair, or duplicate agreement rows, still
+ * fail either way.
  */
 @DisplayName("SS proxy - same-SS dataspace self-call")
 @Order(300)
@@ -85,16 +87,27 @@ class SsProxyDspSelfCallTest extends E2eTest {
             {"data": 1.0, "service": "random"}
             """;
 
+    /**
+     * The DSP asset id's service-identifying suffix for this scenario's call ({@link #SELF_CALL_X_ROAD_CLIENT}'s
+     * subsystem plus {@link #SELF_CALL_SERVICE_PATH}'s service code, colon-joined — confirmed live against
+     * {@code edc_contract_agreement.asset_id}, e.g. {@code DEV:COM:1234:TestService:mock1}). Matched as a
+     * suffix, not full-string equality, so a leading segment that might vary is never load-bearing.
+     */
+    private static final String ASSET_SERVICE_SUFFIX = "TestService:mock1";
+
     private static final int NEGOTIATION_STATE_FINALIZED = 1200;
     private static final int EXPECTED_NEGOTIATION_COUNT = 2;
 
     /**
      * Excludes management self-negotiations (own-context routing establishes one independently of this
      * scenario, using a {@code -mgmt}-suffixed participant context and a {@code :mgmt}-suffixed counterparty
-     * DID) so the candidate-selection query below only ever sees this scenario's own negotiation pair.
+     * DID) so the candidate-selection query below only ever sees non-management negotiations. Combined with
+     * the asset-id join in {@link #awaitConvergedNegotiations}, this isolates this scenario's own pair from
+     * both management self-negotiations and any other asset's self-negotiation (e.g. monitoring's own
+     * getSecurityServer* self-calls, confirmed live to otherwise match this same shape).
      */
     private static final String NON_MGMT_FILTER =
-            "participant_context_id NOT LIKE '%-mgmt' AND counterparty_id NOT LIKE '%:mgmt'";
+            "n.participant_context_id NOT LIKE '%-mgmt' AND n.counterparty_id NOT LIKE '%:mgmt'";
 
     /**
      * X-Road repurposes the EDC data plane as a standing message-exchange channel rather than a one-shot
@@ -149,13 +162,17 @@ class SsProxyDspSelfCallTest extends E2eTest {
      * negotiation rows sharing one {@code agreement_id}; returns that shared internal agreement id.
      */
     private String awaitConvergedNegotiations(DsControlPlaneDbOps dbOps) {
-        // HAVING COUNT(*) = 2 matters as much as the non-mgmt filter: without it, a cross-SS negotiation from
-        // SsProxyMessageFlowTest (a single provider-side row on ss0, non-mgmt, otherwise indistinguishable)
-        // can outrank this scenario's own pair by recency and starve the poll on an unrelated 1-row group.
-        var candidateSql = "SELECT agreement_id FROM edc_contract_negotiation "
-                + "WHERE agreement_id IS NOT NULL AND " + NON_MGMT_FILTER
-                + " GROUP BY agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
-                + " ORDER BY MAX(created_at) DESC LIMIT 1";
+        // HAVING COUNT(*) = 2 matters as much as the non-mgmt and asset-id filters: without it, a cross-SS
+        // negotiation from SsProxyMessageFlowTest (a single provider-side row on ss0, non-mgmt, otherwise
+        // indistinguishable) can outrank this scenario's own pair by recency and starve the poll on an
+        // unrelated 1-row group. The asset-id join rules out any other asset's own self-negotiation pair
+        // (e.g. SsMonitoringTest's own getSecurityServer* self-calls, which match the non-mgmt shape too).
+        var candidateSql = "SELECT n.agreement_id FROM edc_contract_negotiation n "
+                + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
+                + "WHERE n.agreement_id IS NOT NULL AND " + NON_MGMT_FILTER
+                + " AND a.asset_id LIKE '%:" + ASSET_SERVICE_SUFFIX + "'"
+                + " GROUP BY n.agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
+                + " ORDER BY MAX(n.created_at) DESC LIMIT 1";
         var lastSeen = new AtomicReference<>(List.<String[]>of());
 
         try {

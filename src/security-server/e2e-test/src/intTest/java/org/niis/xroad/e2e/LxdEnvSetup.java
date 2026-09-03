@@ -57,6 +57,9 @@ public class LxdEnvSetup extends BaseComposeSetup
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
     private static final String DS_CONTROL_PLANE_DB = "ds-control-plane";
+    // The schema is named identically to the database, "ds-control-plane" — its dash means it is not a bare SQL
+    // identifier, so it must be double-quoted in the search_path GUC value or postgres rejects/misparses it.
+    private static final String DS_CONTROL_PLANE_SEARCH_PATH = "--search_path=\"ds-control-plane\",public";
     private static final String ARCHIVE_DIR = "/var/lib/xroad";
     private static final String ARCHIVER_LOG = "/var/log/xroad/message-log-archiver.log";
     private static final String ARCHIVER_CLI = "/usr/share/xroad/bin/xroad-message-log-archiver";
@@ -107,15 +110,15 @@ public class LxdEnvSetup extends BaseComposeSetup
     @Override
     @SneakyThrows
     public String execDsControlPlaneSql(String env, String sql) {
-        return execPsql(env, DS_CONTROL_PLANE_DB, sql);
+        return execPsql(env, DS_CONTROL_PLANE_DB, sql, "PGOPTIONS=" + DS_CONTROL_PLANE_SEARCH_PATH);
     }
 
     /**
      * Runs a query against the given database's local postgres instance on the {@code env} container
      * via {@code lxc exec}, mirroring {@link K8sEnvSetup}'s {@code kubectl exec} equivalent.
-     * {@code extraEnv} carries any {@code KEY=value} pairs the {@code sudo} invocation should forward
-     * (e.g. messagelog's non-default search path); ds-control-plane needs none, since EDC's schema
-     * lives in the default {@code public} schema.
+     * {@code extraEnv} carries any {@code KEY=value} pairs the {@code sudo} invocation should forward —
+     * both messagelog's and ds-control-plane's EDC tables live in a non-default, same-named schema, so
+     * each needs its own search path.
      */
     @SneakyThrows
     private String execPsql(String env, String database, String sql, String... extraEnv) {
