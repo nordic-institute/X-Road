@@ -169,7 +169,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Prerequisites to Installation
 
-There are multiple alternatives how the Security Server can be deployed. The options are described in [Annex C Deployment Options](#annex-c-deployment-options).
+The Security Server can be deployed in various ways. The options are described in [Annex C Deployment Options](#annex-c-deployment-options).
 
 The Security Server is officially supported on the following platforms:
 
@@ -188,7 +188,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 | **Ref** |                                                                                                                      | **Explanation**                                                                                                                                                                                                                                                                           |
 |---------|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0     | Ubuntu 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                     | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                           |
+| 1.0     | Ubuntu 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                     | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons a minimum of 4 GB of RAM is required.                                                                                                                                                           |
 | 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                       | X-Road package repository                                                                                                                                                                                                                                                                 |
 | 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                        |
@@ -203,7 +203,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | &nbsp;  | TCP 80,443                                                                                                           | Downloading global configuration from the Central Server                                                                                                                                                                                                                                  |
 | &nbsp;  | TCP 80,443                                                                                                           | Most common OCSP and time-stamping services                                                                                                                                                                                                                                               |
 | &nbsp;  | TCP 80,443                                                                                                           | Communication with ACME servers                                                                                                                                                                                                                                                           |
-| &nbsp;  | TCP 587                                                                                                              | Communication with mail servers. The mail server may be located in internal or external network                                                                                                                                                                                           |
+| &nbsp;  | TCP 587                                                                                                              | Communication with mail servers. The mail server may be located in either the internal or external network                                                                                                                                                                                |
 | 1.6     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                            |
 | &nbsp;  | TCP 4000                                                                                                             | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                     |
 | &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                       |
@@ -259,7 +259,7 @@ The table below lists the open ports for Security Server components utilizing th
 Minimum recommended hardware parameters:
 
 * the server’s hardware (motherboard, CPU, network interface cards, storage system) must be supported by Ubuntu in general;
-* a 64-bit dual-core Intel, AMD or compatible CPU; AES instruction set support is highly recommended;
+* a 64-bit dual-core Intel, AMD or a compatible CPU; AES instruction set support is highly recommended;
 * 4 GB RAM;
 * a 100 Mbps network interface card;
 * if necessary, interfaces for the use of hardware tokens.
@@ -393,7 +393,7 @@ sudo apt install xroad-securityserver
 Upon the first installation of the packages, the system asks for the following information.
 
 * Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.3**).
-* Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+* Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case a remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 * The Distinguished Name of the owner of the **user interface's and management REST API's** self-signed TLS certificate (*Subject DN*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface and to the management REST API.
   The name and IP addresses detected from the operating system are suggested as default values.
 
@@ -509,7 +509,7 @@ Depending on the hardware token there may be a need for more additional configur
 
 ### 2.11 Installing the Support for Environmental Monitoring
 
-The support for environmental monitoring functionality on a Security Server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+The support for environmental monitoring functionality on a Security Server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process which will gather and provide the monitoring information.
 
 ## 3 Security Server Initial Configuration
 
@@ -525,7 +525,7 @@ Configuring the Security Server assumes that the Security Server owner is a memb
 
 ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the Security Server owner by the X-Road central’s administrator.
 
-The Security Server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
+During the installation, the Security Server code and the software token’s PIN will be determined by the installer at the latest.
 
 | Ref |                                                         | Explanation                                 |
 |-----|---------------------------------------------------------|---------------------------------------------|
