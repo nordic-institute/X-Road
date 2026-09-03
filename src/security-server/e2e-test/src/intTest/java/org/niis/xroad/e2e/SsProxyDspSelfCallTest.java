@@ -68,7 +68,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
  * two FINALIZED rows sharing one {@code agreement_id}, both non-management (own-context routing keeps
  * management self-negotiations on a distinct {@code -mgmt}-suffixed participant context and {@code :mgmt}-
  * suffixed counterparty DID, so excluding those needs no substrate-specific participant context string) and
- * both for this scenario's own asset (see {@link #ASSET_SERVICE_SUFFIX} — needed because any other asset's
+ * both for this scenario's own asset (see {@link #ASSET_ID} — needed because any other asset's
  * self-negotiation, e.g. {@link SsMonitoringTest}'s own monitoring self-calls, produces the same non-management
  * shape). Picking the pair with the latest activity still catches a freshly negotiated run; picking the same,
  * already-converged pair on a warm-cache rerun is exactly the end-state proof this scenario exists to make, so
@@ -88,12 +88,12 @@ class SsProxyDspSelfCallTest extends E2eTest {
             """;
 
     /**
-     * The DSP asset id's service-identifying suffix for this scenario's call ({@link #SELF_CALL_X_ROAD_CLIENT}'s
-     * subsystem plus {@link #SELF_CALL_SERVICE_PATH}'s service code, colon-joined — confirmed live against
-     * {@code edc_contract_agreement.asset_id}, e.g. {@code DEV:COM:1234:TestService:mock1}). Matched as a
-     * suffix, not full-string equality, so a leading segment that might vary is never load-bearing.
+     * The DSP asset id for this scenario's call: {@link #SELF_CALL_X_ROAD_CLIENT}'s service identifier plus
+     * {@link #SELF_CALL_SERVICE_PATH}'s endpoint, colon-joined — the full deterministic form confirmed live
+     * against {@code edc_contract_agreement.asset_id}. Matched with full-string equality so the same service
+     * name under another member or instance can never satisfy the group query.
      */
-    private static final String ASSET_SERVICE_SUFFIX = "TestService:mock1";
+    private static final String ASSET_ID = "DEV:COM:1234:TestService:mock1";
 
     private static final int NEGOTIATION_STATE_FINALIZED = 1200;
     private static final int EXPECTED_NEGOTIATION_COUNT = 2;
@@ -170,7 +170,7 @@ class SsProxyDspSelfCallTest extends E2eTest {
         var candidateSql = "SELECT n.agreement_id FROM edc_contract_negotiation n "
                 + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
                 + "WHERE n.agreement_id IS NOT NULL AND " + NON_MGMT_FILTER
-                + " AND a.asset_id LIKE '%:" + ASSET_SERVICE_SUFFIX + "'"
+                + " AND a.asset_id = '" + ASSET_ID + "'"
                 + " GROUP BY n.agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
                 + " ORDER BY MAX(n.created_at) DESC LIMIT 1";
         var lastSeen = new AtomicReference<>(List.<String[]>of());
