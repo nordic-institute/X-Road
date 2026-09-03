@@ -33,6 +33,7 @@ import io.grpc.TlsChannelCredentials;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import jakarta.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -244,10 +245,9 @@ class DsRuntimeMemberTransferTest extends E2eTest {
                                 && "OCSP_RESPONSE_GOOD".equals(response.jsonPath().getString("ocsp_status"));
                     });
         } catch (ConditionTimeoutException e) {
-            var response = last.get();
             throw new AssertionError(
-                    "new member's sign certificate never reached OCSP_RESPONSE_GOOD. Last response body: %s"
-                            .formatted(response != null ? response.getBody().asString() : "<none>"), e);
+                    "new member's sign certificate never reached OCSP_RESPONSE_GOOD. Last attempt: %s"
+                            .formatted(describeLastAttempt(last.get())), e);
         }
     }
 
@@ -333,11 +333,20 @@ class DsRuntimeMemberTransferTest extends E2eTest {
                         return response.getStatusCode() == expectedStatus;
                     });
         } catch (ConditionTimeoutException e) {
-            var response = last.get();
-            throw new AssertionError("%s: expected status %d but last attempt returned %d after retrying for %s. Response body: %s"
-                    .formatted(context, expectedStatus, response.getStatusCode(), timeout, response.getBody().asString()), e);
+            throw new AssertionError("%s: expected status %d, retried for %s. Last attempt: %s"
+                    .formatted(context, expectedStatus, timeout, describeLastAttempt(last.get())), e);
         }
         return last.get();
+    }
+
+    /**
+     * Renders the last polled response for a timeout message. The reference is still unset when the very
+     * first poll has not returned by the time the timeout fires, so it is not assumed to hold a response.
+     */
+    private static String describeLastAttempt(@Nullable Response response) {
+        return response == null
+                ? "<none completed>"
+                : "status %d, body: %s".formatted(response.getStatusCode(), response.getBody().asString());
     }
 
     // -- provisioning wait ------------------------------------------------------------------------
