@@ -63,10 +63,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
- * End-to-end regression guard for the provider-side catalog / data-plane member-context story
- * (XRDDEV-3312): a member added to ss0 <b>at runtime</b> becomes a fully functioning dataspace
- * provider without a proxy or control-plane restart, both over the legacy host-context path and
- * over its own participant context.
+ * End-to-end regression guard for provider-side member-context publication: a member added to ss0
+ * <b>at runtime</b> becomes a fully functioning dataspace provider without a proxy or control-plane
+ * restart, both over the legacy host-context path and over its own participant context.
  *
  * <p>ss0 already hosts member {@code DEV:COM:1234} (subsystems {@code MANAGEMENT}/{@code TestService}/
  * {@code TestSaved}, see {@code setup.hurl}); this scenario adds a second, distinct member
@@ -81,11 +80,19 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * from the same OpenBao PKI mount ({@code xrd-pki}, role {@code xrd-internal}) the control plane
  * itself uses, via the same {@code XROAD_SECRET_STORE_TOKEN} already configured for this suite.
  *
- * <p><b>Verification note:</b> {@link #DS_CONTROL_PLANE_TLS_AUTHORITY} assumes the control plane's
- * server TLS certificate carries common name {@code ds-control-plane} (derived from its
- * unprefixed {@code XROAD_HOST} env var, shared by every stack). If the RPC handshake in
- * {@link #buildAssetAccessChannel} fails on a hostname mismatch, adjust that constant to match the
- * certificate's actual subject.
+ * <p><b>What "transfer completes" means on each leg.</b> The legacy host-context leg pulls a real
+ * payload through ss1's proxy and asserts the backend's response body. The member-context leg stops
+ * at endpoint-data-reference issuance: negotiation reaching FINALIZED and the transfer process
+ * reaching STARTED with a resolved data address, which is what proves data-plane instance selection
+ * scoped to the member context — the point of this story. It does not pull a payload, because that
+ * requires the consumer proxy's signer-issued proxy-to-proxy certificate, which a bare test client
+ * has no way to obtain until consumer-side member-context targeting exists. The payload pull is
+ * covered by the legacy leg.
+ *
+ * <p>{@link #DS_CONTROL_PLANE_TLS_AUTHORITY} assumes the control plane's server TLS certificate
+ * carries common name {@code ds-control-plane}, derived from its unprefixed {@code XROAD_HOST} env
+ * var and shared by every stack. A hostname mismatch surfaces as an RPC handshake failure in
+ * {@link #buildAssetAccessChannel}.
  */
 @DisplayName("DS - runtime-added member completes a member-context transfer")
 @Order(300)
@@ -152,7 +159,7 @@ class DsRuntimeMemberTransferTest extends E2eTest {
         // Adding the local client with ignore_warnings=true (below) does not require the new CS member
         // to already be visible in ss0's synced global configuration — ClientService#addLocalClientEntity
         // only turns that into a suppressible warning (WARNING_UNREGISTERED_MEMBER), never a hard failure.
-        // No globalconf-freshness wait is needed here; verified by reading that check rather than assumed.
+        // No globalconf-freshness wait is needed here.
         var clientId = addClientOnSs0(ss0);
         // Seeded members (1234/4321) get their signing key/certificate from the softtoken seed baked
         // into the stack images at build time. A runtime-added member has none — register fails outright
@@ -173,9 +180,9 @@ class DsRuntimeMemberTransferTest extends E2eTest {
         var hash = importSignCertificate(ss0, certPem);
         // Sign-cert import auto-activates (unlike auth certs) and verifies OCSP synchronously as part of
         // activation (see TokenCertificateService#importCertificate's activate=true path and the
-        // ocsp-verify-before-activation error it surfaces) — so this should resolve near-instantly. Kept
-        // as a bounded wait rather than a one-shot check because register's own retry (below) depends on
-        // it and a same-cycle async settle is cheap insurance against a genuine gap.
+        // ocsp-verify-before-activation error it surfaces), so this normally resolves immediately. It is
+        // a bounded wait rather than a one-shot check because registration below depends on the result
+        // and an asynchronous settle within the same cycle would otherwise fail the run.
         awaitOcspGood(ss0, hash);
     }
 
@@ -265,10 +272,9 @@ class DsRuntimeMemberTransferTest extends E2eTest {
     }
 
     private void registerAndApproveClient(AdminSession ss0, AdminSession cs, String clientId) {
-        // Bounded retry as a safety net for any transient failure at this step (the confirmed root cause
-        // of the original 500 here — signer having no certificate yet for the member — is now fixed by
-        // provisionSignCertificateForNewMember above) — capturing the last response so a genuine, unrelated
-        // failure is diagnosable rather than reported as a bare status-code mismatch.
+        // Bounded retry as a safety net for a transient failure at this step, capturing the last response
+        // so a genuine failure is diagnosable rather than reported as a bare status-code mismatch. The
+        // member's sign certificate, which registration requires, is provisioned above.
         awaitStatus("register new member's client on ss0", Duration.ofMinutes(2), 204,
                 () -> ss0.authed().put(ss0.baseUrl() + "/api/v1/clients/" + clientId + "/register"));
         approveLatestManagementRequest(cs);
