@@ -157,10 +157,24 @@ export default defineComponent({
 
   watch: {
     memberClassesCurrentInstance(val: string[]) {
-      // Set first member class selected if there is only one
-      if (val?.length === 1) {
+      // Set first member class selected if there is only one, unless the owner
+      // is already fixed by an existing server — its data takes precedence.
+      if (!this.isServerOwnerInitialized && val?.length === 1) {
         this.setFieldValue('memberClass', val[0]);
       }
+    },
+    currentSecurityServer: {
+      immediate: true,
+      handler(server) {
+        // Reacts whenever the server data arrives, regardless of whether it was
+        // already loaded before this component mounted or fetched afterwards.
+        if (!server) {
+          return;
+        }
+        this.setFieldValue('memberClass', server.member_class);
+        this.setFieldValue('memberCode', server.member_code);
+        this.setFieldValue('securityServerCode', server.server_code);
+      },
     },
     'values.memberClass'(val) {
       if (val) {

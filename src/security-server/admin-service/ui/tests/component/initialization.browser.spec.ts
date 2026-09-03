@@ -27,6 +27,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { page } from 'vitest/browser';
+import { delay } from 'msw';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
 import { Permissions, RouteName } from '@/global';
@@ -80,6 +81,14 @@ const anchorImportedStatusFixture: InitializationStatus = {
   enforce_token_pin_policy: false,
 };
 
+const ownerAndCodeAlreadyInitializedStatusFixture: InitializationStatus = {
+  is_anchor_imported: true,
+  is_server_code_initialized: true,
+  is_server_owner_initialized: true,
+  software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+  enforce_token_pin_policy: false,
+};
+
 const currentServerFixture: SecurityServer = {
   id: 'CS:COM:1234:SS0',
   member_class: 'COM',
@@ -89,6 +98,7 @@ const currentServerFixture: SecurityServer = {
 
 validateBody(initStatusSchema, uninitializedStatusFixture);
 validateBody(initStatusSchema, anchorImportedStatusFixture);
+validateBody(initStatusSchema, ownerAndCodeAlreadyInitializedStatusFixture);
 validateBody(securityServerSchema, currentServerFixture);
 
 // ── MSW handlers ──────────────────────────────────────────────────────────────
@@ -101,9 +111,24 @@ const anchorImportedStatusHandler = specHttp.get('/initialization/status', ({ re
   response(200).json(anchorImportedStatusFixture),
 );
 
+const ownerAndCodeAlreadyInitializedStatusHandler = specHttp.get('/initialization/status', ({ response }) =>
+  response(200).json(ownerAndCodeAlreadyInitializedStatusFixture),
+);
+
 const memberClassesHandler = specHttp.get('/member-classes', ({ response }) =>
   response(200).json(['COM', 'ORG']),
 );
+
+// A single available class, different from currentServerFixture.member_class, resolving
+// after the current-server fetch, so the "only one member class available" auto-select
+// would clobber the owner's already-populated real class if it were not guarded against
+// an already-initialized owner.
+const singleOtherMemberClassHandler = specHttp.get('/member-classes', async ({ response }) => {
+  await delay(50);
+  return response(200).json(['ORG']);
+});
+
+const emptyMemberClassesHandler = specHttp.get('/member-classes', ({ response }) => response(200).json([]));
 
 const memberNamesHandler = specHttp.get('/member-names', ({ response }) =>
   response(404).empty(),
@@ -157,6 +182,89 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
     await page.getByTestId('member-class-input').click();
 
     await expect.element(page.getByTestId('owner-member-save-button')).not.toBeDisabled();
+  });
+
+  it('Owner-member fields are prefilled and disabled, and Continue is enabled on load, on an already-initialized server', async () => {
+    await renderRoute('/initial-configuration', {
+      permissions: initPermissions,
+      msw: [
+        ownerAndCodeAlreadyInitializedStatusHandler,
+        memberClassesHandler,
+        memberNamesHandler,
+        currentServerHandler,
+      ],
+    });
+
+    await expect.element(page.getByTestId('member-class-input')).toBeVisible();
+
+    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+    await expect.element(page.getByTestId('member-class-input').getByRole('combobox').nth(1)).toBeDisabled();
+
+    await expect
+      .element(page.getByTestId('member-code-input').getByRole('textbox'))
+      .toHaveValue(currentServerFixture.member_code);
+    await expect.element(page.getByTestId('member-code-input').getByRole('textbox')).toBeDisabled();
+
+    await expect
+      .element(page.getByTestId('security-server-code-input').getByRole('textbox'))
+      .toHaveValue(currentServerFixture.server_code);
+    await expect.element(page.getByTestId('security-server-code-input').getByRole('textbox')).toBeDisabled();
+
+    await expect.element(page.getByTestId('owner-member-save-button')).not.toBeDisabled();
+  });
+
+  it("Owner's real member class is not overwritten by the single-available-class auto-select, on an already-initialized server", async () => {
+    await renderRoute('/initial-configuration', {
+      permissions: initPermissions,
+      msw: [
+        ownerAndCodeAlreadyInitializedStatusHandler,
+        singleOtherMemberClassHandler,
+        memberNamesHandler,
+        currentServerHandler,
+      ],
+    });
+
+    await expect.element(page.getByTestId('member-class-input')).toBeVisible();
+    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+  });
+
+  it('Owner-member fields stay prefilled and Continue stays enabled when the current instance has no member classes, on an already-initialized server', async () => {
+    await renderRoute('/initial-configuration', {
+      permissions: initPermissions,
+      msw: [
+        ownerAndCodeAlreadyInitializedStatusHandler,
+        emptyMemberClassesHandler,
+        memberNamesHandler,
+        currentServerHandler,
+      ],
+    });
+
+    await expect.element(page.getByTestId('member-class-input')).toBeVisible();
+    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+
+    await expect
+      .element(page.getByTestId('member-code-input').getByRole('textbox'))
+      .toHaveValue(currentServerFixture.member_code);
+    await expect
+      .element(page.getByTestId('security-server-code-input').getByRole('textbox'))
+      .toHaveValue(currentServerFixture.server_code);
+
+    await expect.element(page.getByTestId('owner-member-save-button')).not.toBeDisabled();
+  });
+
+  it('Previous button is not shown on the Owner Member step when the anchor is already imported', async () => {
+    await renderRoute('/initial-configuration', {
+      permissions: initPermissions,
+      msw: [
+        ownerAndCodeAlreadyInitializedStatusHandler,
+        memberClassesHandler,
+        memberNamesHandler,
+        currentServerHandler,
+      ],
+    });
+
+    await expect.element(page.getByTestId('member-class-input')).toBeVisible();
+    await expect.element(page.getByTestId('previous-button')).not.toBeInTheDocument();
   });
 
   it('PIN step shows token-policy alert; matching PINs enable Submit and POST 201 navigates to Clients', async () => {
