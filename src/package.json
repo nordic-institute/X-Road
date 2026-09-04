@@ -18,7 +18,7 @@
       "brace-expansion": "5.0.9",
       "form-data": "4.0.6",
       "defu": "6.1.5",
-      "fast-uri": "^3.1.5",
+      "fast-uri": "^3.1.7",
       "flatted": "3.4.2",
       "glob": "^11.1.0",
       "handlebars": "4.7.9",
