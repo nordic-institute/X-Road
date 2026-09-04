@@ -124,6 +124,32 @@ EOF
   chmod 644 "$local_conf"
 }
 
+# xroad-opmonitor's packaged JVM flags fix -XX:MaxMetaspaceSize at 120m, sized
+# for a dedicated container with the daemon's own uncontended memory
+# allocation - every other deployment mode. In this image, op-monitor-daemon
+# is one of several JVMs sharing one container's resource envelope, so the
+# same request-driven metaspace growth has markedly less isolation here and
+# can exhaust the packaged ceiling under sustained load, failing live
+# requests with OutOfMemoryError: Metaspace. Raised here, in the documented
+# local.conf override point, rather than in the shared xroad-opmonitor
+# package config every deployment mode consumes.
+configure_opmonitor_metaspace() {
+  local local_conf=/etc/xroad/services/local.conf
+  local marker="# xroad-sidecar: raise xroad-opmonitor's Metaspace ceiling"
+  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
+    return 0
+  fi
+  log "Raising xroad-opmonitor's Metaspace ceiling for the shared single-container deployment"
+  cat >>"$local_conf" <<EOF
+$marker
+if [ "\$1" = "XROAD_OPMON_PARAMS" ]; then
+  OPMON_PARAMS="\$OPMON_PARAMS -XX:MaxMetaspaceSize=256m"
+fi
+EOF
+  chown root:root "$local_conf"
+  chmod 644 "$local_conf"
+}
+
 HOOK_DIR=/etc/xroad/entrypoint.d
 
 # Hooks need the database up, so they run from the same dpkg-reconfigure-
@@ -371,6 +397,9 @@ fi
 configure_proxy_health_check_listener
 if dpkg -s xroad-ds-control-plane &>/dev/null; then
   configure_ds_control_plane_trusted_issuer_default
+fi
+if dpkg -s xroad-opmonitor &>/dev/null; then
+  configure_opmonitor_metaspace
 fi
 configure_secret_store
 create_backup_dir_if_not_exists
