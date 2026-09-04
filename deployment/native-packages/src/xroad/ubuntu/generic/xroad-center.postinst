@@ -167,18 +167,17 @@ EOF
     fi
 }
 
-# Asks (or, on upgrade over an existing row, skips) the dataspace issuer host question and
-# writes the answer to the CS configuration_properties DB layer — the only place the DSL config
-# resolves this key from. Must run after setup_database() so the table exists.
+# Writes the dataspace issuer host answer to the CS configuration_properties DB layer — the
+# only place the DSL config resolves this key from. The question itself is asked by the .config
+# script (shared xroad-common template), so the answer is available here on any package
+# configure order. Must run after setup_database() so the table exists.
 #
-# dpkg-reconfigure always calls this script with "configure" (never "reconfigure" — Debian
-# reserves that argument for the .config script), so the reconfigure case can't be told apart
-# from a plain configure by $1. It does export DEBCONF_RECONFIGURE=1, which is the documented
-# signal maintainer scripts use for exactly this. The action argument ($1) is checked as well,
-# per debconf-devel(7), for the day Debian starts passing "reconfigure" to postinst directly.
+# An existing row is left untouched except under dpkg-reconfigure, detected via
+# DEBCONF_RECONFIGURE=1 (postinst receives "configure", never "reconfigure", as $1 — that
+# argument is checked as well per debconf-devel(7) forward-compat guidance).
 #
 # A database error while reading the row aborts rather than counting as "row absent": treating
-# it as absent would re-ask the question and overwrite the instance-wide row on an HA node join.
+# it as absent would overwrite the instance-wide row on an HA node join.
 configure_dataspace_issuer_host() {
   local -r key="xroad.dataspace.issuer.host"
   local -r template="xroad-common/dataspace-issuer-host"
@@ -188,8 +187,8 @@ configure_dataspace_issuer_host() {
     reconfiguring=1
   fi
 
-  local existing="" row_present=0 rc=0
-  existing=$(/usr/share/xroad/scripts/db_property.sh get "$key") || rc=$?
+  local row_present=0 rc=0
+  /usr/share/xroad/scripts/db_property.sh get "$key" >/dev/null || rc=$?
   case "$rc" in
     0) row_present=1 ;;
     1) row_present=0 ;;
@@ -201,27 +200,10 @@ configure_dataspace_issuer_host() {
     return
   fi
 
-  local default
-  if [[ "$row_present" -eq 1 ]]; then
-    default="$existing"
-  else
-    default="$(hostname -f)"
-  fi
-
-  db_subst "$template" DEFAULT "$default"
-
-  if [[ "$reconfiguring" == "1" ]]; then
-    db_set "$template" "$default"
-  else
-    db_get "$template"
-    [ -z "$RET" ] && db_set "$template" "$default"
-  fi
-
-  db_input critical "$template" || true
-  db_go
-
-  db_get "$template"
-  /usr/share/xroad/scripts/db_property.sh set "$key" "$RET" --yes \
+  RET=""
+  db_get "$template" || true
+  local answer="${RET:-$(hostname -f)}"
+  /usr/share/xroad/scripts/db_property.sh set "$key" "$answer" --yes \
     || abort "Failed to store ${key} in the database. ABORTING."
 }
 
