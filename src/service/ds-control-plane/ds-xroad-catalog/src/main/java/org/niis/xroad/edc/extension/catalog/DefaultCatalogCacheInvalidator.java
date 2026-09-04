@@ -24,25 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
+
+import java.util.List;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Fans {@link StoreEnumerationCache#invalidate()} out across every catalog store's cache instance.
  */
-public interface ControlPlaneProvisioningClient {
+final class DefaultCatalogCacheInvalidator implements CatalogCacheInvalidator {
 
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, String did);
+    private final List<StoreEnumerationCache<?>> caches;
 
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
+    DefaultCatalogCacheInvalidator(List<StoreEnumerationCache<?>> caches) {
+        this.caches = List.copyOf(caches);
+    }
 
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    @Override
+    public void invalidate() {
+        caches.forEach(StoreEnumerationCache::invalidate);
+    }
 }

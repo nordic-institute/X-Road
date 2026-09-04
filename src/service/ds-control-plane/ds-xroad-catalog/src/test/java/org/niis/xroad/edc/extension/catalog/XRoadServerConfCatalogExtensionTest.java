@@ -100,6 +100,16 @@ class XRoadServerConfCatalogExtensionTest {
         assertThat(extension.contractDefinitionStore()).isInstanceOf(ContractDefinitionServerConfStore.class);
     }
 
+    @Test
+    void catalogCacheInvalidatorReturnsCorrectInstance() {
+        assertThat(extension.catalogCacheInvalidator()).isInstanceOf(DefaultCatalogCacheInvalidator.class);
+    }
+
+    @Test
+    void catalogCacheInvalidatorIsSharedAcrossCalls() {
+        assertThat(extension.catalogCacheInvalidator()).isSameAs(extension.catalogCacheInvalidator());
+    }
+
     private static void setField(Object target, String fieldName, Object value) throws Exception {
         var field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);

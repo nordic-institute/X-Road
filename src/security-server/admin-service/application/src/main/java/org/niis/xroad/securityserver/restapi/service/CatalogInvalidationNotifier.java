@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,30 +26,40 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.config.ControlPlaneProvisioningRpcClient;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.springframework.stereotype.Service;
 
 /**
- * gRPC-backed {@link ControlPlaneProvisioningClient} that delegates to {@link ControlPlaneProvisioningRpcClient}.
+ * Signals the data space control plane to flush its catalog caches on a local client add or remove,
+ * so the change is visible without waiting out the cache's own expiry. Keeps {@link ClientService}
+ * free of a direct dependency on dataspace internals.
+ *
+ * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
+ * or failed signal degrades latency, never correctness. A no-op when the data space feature is
+ * disabled, so a non-dataspace deployment never attempts the call.</p>
  */
-@Component
+@Slf4j
+@Service
 @RequiredArgsConstructor
-public class GrpcControlPlaneProvisioningClient implements ControlPlaneProvisioningClient {
+public class CatalogInvalidationNotifier {
 
-    private final ControlPlaneProvisioningRpcClient rpcClient;
+    private final ControlPlaneProvisioningClient controlPlaneProvisioningClient;
+    private final AdminServiceProperties adminServiceProperties;
 
-    @Override
-    public void createParticipantContext(String participantContextId, String did) {
-        rpcClient.createParticipantContext(participantContextId, did);
-    }
-
-    @Override
-    public void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl) {
-        rpcClient.putParticipantContextConfig(participantContextId, did, stsTokenUrl);
-    }
-
-    @Override
+    /**
+     * Notifies the control plane that the local client set changed. Swallows and logs any failure —
+     * the caller's operation must never fail because this signal could not be delivered.
+     */
     public void invalidateCatalogCaches() {
-        rpcClient.invalidateCatalogCaches();
+        if (!adminServiceProperties.getDataspace().isEnabled()) {
+            return;
+        }
+        try {
+            controlPlaneProvisioningClient.invalidateCatalogCaches();
+        } catch (Exception e) {
+            log.warn("Data space: failed to notify the control plane of a client change; the catalog "
+                    + "cache will refresh once its normal expiry elapses", e);
+        }
     }
 }

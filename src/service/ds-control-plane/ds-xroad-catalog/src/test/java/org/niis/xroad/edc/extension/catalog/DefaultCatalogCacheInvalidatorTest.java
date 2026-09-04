@@ -24,48 +24,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.securityserver.restapi.config.ControlPlaneProvisioningRpcClient;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class GrpcControlPlaneProvisioningClientTest {
-
-    private static final String CTX_ID = "test-ctx";
-    private static final String DID = "did:web:example";
-    private static final String STS_TOKEN_URL = "https://sts.example/token";
+class DefaultCatalogCacheInvalidatorTest {
 
     @Mock
-    private ControlPlaneProvisioningRpcClient rpcClient;
-
-    @InjectMocks
-    private GrpcControlPlaneProvisioningClient client;
+    private StoreEnumerationCache<?> assetIndexCache;
+    @Mock
+    private StoreEnumerationCache<?> policyDefinitionCache;
+    @Mock
+    private StoreEnumerationCache<?> contractDefinitionCache;
 
     @Test
-    void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID);
+    void invalidateFansOutToEveryCache() {
+        var invalidator = new DefaultCatalogCacheInvalidator(
+                List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
 
-        verify(rpcClient).createParticipantContext(CTX_ID, DID);
+        invalidator.invalidate();
+
+        verify(assetIndexCache).invalidate();
+        verify(policyDefinitionCache).invalidate();
+        verify(contractDefinitionCache).invalidate();
     }
 
     @Test
-    void putParticipantContextConfigDelegatesToRpcClient() {
-        client.putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
+    void invalidateOnRealCacheDiscardsWhatWasCached() {
+        var cache = new StoreEnumerationCache<String>(true, 3600, 1000, "test");
+        var invalidator = new DefaultCatalogCacheInvalidator(List.of(cache));
 
-        verify(rpcClient).putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
+        var firstLoad = cache.getEnumeration(() -> List.of("stale"));
+        assertThat(firstLoad).containsExactly("stale");
+
+        invalidator.invalidate();
+
+        var reloaded = cache.getEnumeration(() -> List.of("fresh"));
+        assertThat(reloaded).containsExactly("fresh");
     }
 
     @Test
-    void invalidateCatalogCachesDelegatesToRpcClient() {
-        client.invalidateCatalogCaches();
+    void invalidateIsNoOpWhenCachingIsDisabled() {
+        var disabledCache = new StoreEnumerationCache<String>(false, 3600, 1000, "test");
+        var invalidator = new DefaultCatalogCacheInvalidator(List.of(disabledCache));
 
-        verify(rpcClient).invalidateCatalogCaches();
+        assertThatCode(invalidator::invalidate).doesNotThrowAnyException();
     }
 }

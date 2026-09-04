@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,46 +25,63 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.securityserver.restapi.config.ControlPlaneProvisioningRpcClient;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GrpcControlPlaneProvisioningClientTest {
-
-    private static final String CTX_ID = "test-ctx";
-    private static final String DID = "did:web:example";
-    private static final String STS_TOKEN_URL = "https://sts.example/token";
+class CatalogInvalidationNotifierTest {
 
     @Mock
-    private ControlPlaneProvisioningRpcClient rpcClient;
+    private ControlPlaneProvisioningClient controlPlaneProvisioningClient;
+    @Mock
+    private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private Dataspace dataspace;
 
-    @InjectMocks
-    private GrpcControlPlaneProvisioningClient client;
+    private CatalogInvalidationNotifier notifier;
 
-    @Test
-    void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID);
-
-        verify(rpcClient).createParticipantContext(CTX_ID, DID);
+    @BeforeEach
+    void setUp() {
+        lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        notifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, adminServiceProperties);
     }
 
     @Test
-    void putParticipantContextConfigDelegatesToRpcClient() {
-        client.putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
+    void invalidateCatalogCachesCallsControlPlaneWhenDataspaceEnabled() {
+        when(dataspace.isEnabled()).thenReturn(true);
 
-        verify(rpcClient).putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
+        notifier.invalidateCatalogCaches();
+
+        verify(controlPlaneProvisioningClient).invalidateCatalogCaches();
     }
 
     @Test
-    void invalidateCatalogCachesDelegatesToRpcClient() {
-        client.invalidateCatalogCaches();
+    void invalidateCatalogCachesIsNoOpWhenDataspaceDisabled() {
+        when(dataspace.isEnabled()).thenReturn(false);
 
-        verify(rpcClient).invalidateCatalogCaches();
+        notifier.invalidateCatalogCaches();
+
+        verify(controlPlaneProvisioningClient, never()).invalidateCatalogCaches();
+    }
+
+    @Test
+    void invalidateCatalogCachesSwallowsAndLogsFailure() {
+        when(dataspace.isEnabled()).thenReturn(true);
+        doThrow(new RuntimeException("control plane unreachable"))
+                .when(controlPlaneProvisioningClient).invalidateCatalogCaches();
+
+        assertThatCode(() -> notifier.invalidateCatalogCaches()).doesNotThrowAnyException();
     }
 }

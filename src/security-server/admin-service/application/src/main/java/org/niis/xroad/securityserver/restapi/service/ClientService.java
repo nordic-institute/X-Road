@@ -134,6 +134,7 @@ public class ClientService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
+    private final CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -808,6 +809,7 @@ public class ClientService {
         if (clientId.isSubsystem() && StringUtils.isNotEmpty(subsystemName)) {
             subsystemNameStatus.set(clientId, globalConfProvider.getSubsystemName(clientId), subsystemName);
         }
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return client;
     }
 
@@ -858,6 +860,7 @@ public class ClientService {
         }
         removeLocalClient(clientEntity);
         subsystemNameStatus.clear(clientId);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     private void removeLocalClient(ClientEntity clientEntity) {

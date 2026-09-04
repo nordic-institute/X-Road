@@ -36,8 +36,11 @@ import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.ControlPlaneProvisioningServiceGrpc;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
+import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
 import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
@@ -62,6 +65,7 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
     private final ParticipantContextService participantContextService;
     private final ParticipantContextConfigService participantContextConfigService;
     private final DataPlaneContextRegistrar dataPlaneContextRegistrar;
+    private final CatalogCacheInvalidator catalogCacheInvalidator;
     private final RpcResponseHandler responseHandler;
 
     @Override
@@ -74,6 +78,12 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
     public void putParticipantContextConfig(PutParticipantContextConfigReq request,
                                             StreamObserver<PutParticipantContextConfigResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> putParticipantContextConfigInternal(request));
+    }
+
+    @Override
+    public void invalidateCatalogCaches(InvalidateCatalogCachesReq request,
+                                        StreamObserver<InvalidateCatalogCachesResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, this::invalidateCatalogCachesInternal);
     }
 
     private CreateParticipantContextResp createParticipantContextInternal(CreateParticipantContextReq request) {
@@ -102,5 +112,10 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
         var result = participantContextConfigService.save(configuration);
         requireSuccessOrConflict(result, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
         return PutParticipantContextConfigResp.getDefaultInstance();
+    }
+
+    private InvalidateCatalogCachesResp invalidateCatalogCachesInternal() {
+        catalogCacheInvalidator.invalidate();
+        return InvalidateCatalogCachesResp.getDefaultInstance();
     }
 }

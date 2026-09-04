@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
 import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
@@ -51,6 +52,8 @@ class ControlPlaneProvisioningExtensionTest {
     @Mock
     private DataPlaneContextRegistrar dataPlaneContextRegistrar;
     @Mock
+    private CatalogCacheInvalidator catalogCacheInvalidator;
+    @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
     private Monitor monitor;
@@ -65,6 +68,7 @@ class ControlPlaneProvisioningExtensionTest {
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "participantContextConfigService", participantContextConfigService);
         setField(extension, "dataPlaneContextRegistrar", dataPlaneContextRegistrar);
+        setField(extension, "catalogCacheInvalidator", catalogCacheInvalidator);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }

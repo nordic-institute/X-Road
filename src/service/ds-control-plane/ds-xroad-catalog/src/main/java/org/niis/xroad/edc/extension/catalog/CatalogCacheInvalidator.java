@@ -24,25 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Flushes every catalog store's cache, so a change made elsewhere becomes visible without waiting
+ * out the cache's own expiry.
  */
-public interface ControlPlaneProvisioningClient {
+public interface CatalogCacheInvalidator {
 
     /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
+     * Flushes all catalog store caches. Safe to call when caching is disabled — a no-op in that case.
      */
-    void createParticipantContext(String participantContextId, String did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
-
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    void invalidate();
 }

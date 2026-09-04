@@ -41,6 +41,8 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.controlplane.provisioning.proto.ControlPlaneProvisioningServiceGrpc;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
 
@@ -63,6 +65,7 @@ class ControlPlaneProvisioningRpcClientTest {
 
     private final AtomicReference<CreateParticipantContextReq> capturedCreateReq = new AtomicReference<>();
     private final AtomicReference<PutParticipantContextConfigReq> capturedPutConfigReq = new AtomicReference<>();
+    private final AtomicReference<InvalidateCatalogCachesReq> capturedInvalidateReq = new AtomicReference<>();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -80,6 +83,14 @@ class ControlPlaneProvisioningRpcClientTest {
                                                     StreamObserver<PutParticipantContextConfigResp> responseObserver) {
                 capturedPutConfigReq.set(request);
                 responseObserver.onNext(PutParticipantContextConfigResp.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+
+            @Override
+            public void invalidateCatalogCaches(InvalidateCatalogCachesReq request,
+                                                StreamObserver<InvalidateCatalogCachesResp> responseObserver) {
+                capturedInvalidateReq.set(request);
+                responseObserver.onNext(InvalidateCatalogCachesResp.newBuilder().build());
                 responseObserver.onCompleted();
             }
         };
@@ -120,5 +131,12 @@ class ControlPlaneProvisioningRpcClientTest {
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
         assertThat(req.getDid()).isEqualTo("did:web:example");
         assertThat(req.getStsTokenUrl()).isEqualTo("https://sts.example/token");
+    }
+
+    @Test
+    void invalidateCatalogCachesInvokesTheRemoteService() {
+        client.invalidateCatalogCaches();
+
+        assertThat(capturedInvalidateReq.get()).isNotNull();
     }
 }

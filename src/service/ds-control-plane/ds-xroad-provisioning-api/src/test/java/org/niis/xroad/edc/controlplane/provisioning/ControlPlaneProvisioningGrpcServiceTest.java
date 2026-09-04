@@ -44,8 +44,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
+import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
 import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,9 +67,13 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @Mock
     private DataPlaneContextRegistrar dataPlaneContextRegistrar;
     @Mock
+    private CatalogCacheInvalidator catalogCacheInvalidator;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> createObserver;
     @Mock
     private StreamObserver<PutParticipantContextConfigResp> configObserver;
+    @Mock
+    private StreamObserver<InvalidateCatalogCachesResp> invalidateObserver;
 
     private ControlPlaneProvisioningGrpcService service;
 
@@ -74,7 +81,7 @@ class ControlPlaneProvisioningGrpcServiceTest {
     void setUp() {
         service = new ControlPlaneProvisioningGrpcService(
                 participantContextService, participantContextConfigService, dataPlaneContextRegistrar,
-                new RpcResponseHandler());
+                catalogCacheInvalidator, new RpcResponseHandler());
     }
 
     @ParameterizedTest
@@ -222,5 +229,17 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(configObserver).onError(any(StatusRuntimeException.class));
         verify(configObserver, never()).onCompleted();
+    }
+
+    @Test
+    void invalidateCatalogCachesInvokesInvalidatorAndCompletes() {
+        var request = InvalidateCatalogCachesReq.getDefaultInstance();
+
+        service.invalidateCatalogCaches(request, invalidateObserver);
+
+        verify(catalogCacheInvalidator).invalidate();
+        verify(invalidateObserver).onNext(any());
+        verify(invalidateObserver).onCompleted();
+        verify(invalidateObserver, never()).onError(any());
     }
 }
