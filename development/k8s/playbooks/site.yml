@@ -68,11 +68,6 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Provision DS-HTTPS keystore (when enabled) — before the Central/Security Server charts that mount it
-      ansible.builtin.include_role:
-        name: ds_https_keystore
-      when: e2e_fixtures_enabled | default(false) | bool
-
     - name: Deploy Security Server
       ansible.builtin.include_role:
         name: security_server

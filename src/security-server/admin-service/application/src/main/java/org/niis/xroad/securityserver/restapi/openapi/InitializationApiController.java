@@ -114,7 +114,7 @@ public class InitializationApiController implements InitializationApi {
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
         }
-        dataspaceParticipantProvisioningWorker.provisionParticipantBestEffort();
+        dataspaceParticipantProvisioningWorker.provisionParticipantAsync();
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }

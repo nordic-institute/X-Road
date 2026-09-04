@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Level-triggered provisioning worker that drives data space participant context provisioning
@@ -62,11 +63,20 @@ public class DataspaceParticipantProvisioningWorker {
     }
 
     /**
+     * Runs one best-effort provisioning step on a background thread. For callers on a request path:
+     * an unreachable ds-* dependency must not stall the request (each unreachable context costs a
+     * full gRPC deadline), and the scheduled tick remains the convergence guarantee.
+     */
+    public void provisionParticipantAsync() {
+        CompletableFuture.runAsync(this::provisionParticipantBestEffort);
+    }
+
+    /**
      * Executes one provisioning step, logging and swallowing any failure. Used by callers that must
      * not fail on a provisioning problem: the scheduled tick and the eager run right after security
      * server initialization.
      */
-    public void provisionParticipantBestEffort() {
+    public synchronized void provisionParticipantBestEffort() {
         try {
             provisionParticipant();
         } catch (Exception e) {

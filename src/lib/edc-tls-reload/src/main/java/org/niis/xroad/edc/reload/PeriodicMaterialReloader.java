@@ -75,8 +75,8 @@ public final class PeriodicMaterialReloader<T> implements AutoCloseable {
 
     /**
      * Starts polling {@code loader} every {@code checkInterval}, beginning one interval after this call
-     * returns. {@code initial} is the material already applied by the caller's own eager, fail-fast boot-time
-     * load — the schedule only calls {@code onChange} once the loader reports a fingerprint different from it.
+     * returns. {@code initial} is the material already applied by the caller's own boot-time load — the
+     * schedule only calls {@code onChange} once the loader reports a fingerprint different from it.
      */
     public static <T> PeriodicMaterialReloader<T> schedule(String name, Loaded<T> initial, Duration checkInterval,
                                                             int maxAttemptsPerCycle, Duration retryDelay,

@@ -33,7 +33,6 @@ jobs:
         run: |
           helm lint deployment/central-server/k8s/charts/central-server || true
           helm lint development/k8s/charts/e2e-fixtures || true
-          helm lint development/k8s/charts/ds-https-keystore || true
 
       - name: Helm template render assertions
         run: ./scripts/charts/render-assert.sh

@@ -69,11 +69,6 @@ messagelog_clean_cron: ""
 # above; adding one here would re-arm a scheduled run that races the test.
 messagelog_encryption_config: ""
 
-# Secret key (and mounted filename) of the DS-HTTPS truststore inside the ds-https-keystore
-# Secret. Matches the self-signed ds-https-keystore chart's JRE-copy JKS name; set per-inventory
-# if a different producer is ever wired in.
-ds_truststore_key: cacerts
-
 # Per-release signer image override toggle (emits services.signer.imageName — the chart
 # itself has no HSM knowledge). Off by default: the chart's plain signer image renders
 # unchanged. Set true for a single Security Server release (e.g. e2e's ss1) that needs a

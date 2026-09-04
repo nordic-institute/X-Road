@@ -1,17 +1,16 @@
 ---
 # TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
 # that xroad-centralserver package auto-starts xroad-ds-issuer-service before
-# its runtime config and TLS keystore are on disk, causing crash-loop /
-# StartLimitBurst. Pre-seeding here lets the service boot exactly once, cleanly.
+# its runtime config is on disk, causing crash-loop / StartLimitBurst.
+# Pre-seeding here lets the service boot cleanly.
 #
 # Remove this file (and the `include_tasks: pre-cs-install.yml` line in main.yml)
 # once upstream packaging ships debconf preseeds or cloud-init hooks for:
-#   - ds-issuer-service: hostname, statuslist.callback.address, keystore
+#   - ds-issuer-service: hostname, statuslist.callback.address
 # AND the package no longer starts the unit unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
-# of xroad-cs) before this file runs, so keystore tasks below can `chown
-# xroad:xroad` without pre-creating anything.
+# of xroad-cs) before this file runs.
 
 # ---------------------------------------------------------------------------
 # 1. /etc/xroad/conf.d — xroad-common creates this during install; we need
@@ -116,11 +115,11 @@
 #    because the systemd unit doesn't export HOSTNAME to the JVM, so EDC
 #    defaults to "localhost". The URL must be reachable from any consumer SS's
 #    Identity Hub during VP validation — we point at the CS host directly.
-#    https because ds-https-keystore.yml enables TLS on every ds-* port; plain
+#    https because the owned Jetty module serves TLS on every ds-* port; plain
 #    http would surface as "unexpected end of stream" on the IH side.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
-#   hostname, statuslist.callback.address, and keystore config.
+#   hostname and statuslist.callback.address config.
 #
 #    xroad.edc.web.https.trust.reload-interval-seconds: see the identical setting in
 #    xroad-ss/tasks/pre-ss-install.yml — the Issuer Service's own outbound self-connect trust needs
@@ -137,29 +136,12 @@
         hostname: "{{ groups['cs_servers'] | first }}"
         statuslist:
           callback:
-            # https because ds-https-keystore.yml enables TLS on every ds-* port —
+            # https because the owned Jetty module serves TLS on every ds-* port —
             # plain http here surfaces as "unexpected end of stream" on the IH side.
             address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
-        web:
-          https:
-            keystore:
-              path: "/etc/xroad/ssl/ds-https.p12"
-              type: "PKCS12"
-              password: "changeit"
-            keymanager:
-              password: "changeit"
       xroad:
         edc:
           web:
             https:
               trust:
                 reload-interval-seconds: 5
-
-# ---------------------------------------------------------------------------
-# 3. TLS keystore for DS services. Must be on disk before ds-* units start.
-#    Also installs xrd-ca into the system trust store.
-#
-# TEMPORARY (dataspaces dev): remove once packages handle TLS bootstrap via
-#   real PKI (replace xrd-ca with federation CA, rotate via PKI lifecycle).
-# ---------------------------------------------------------------------------
-- include_tasks: ds-https-keystore.yml

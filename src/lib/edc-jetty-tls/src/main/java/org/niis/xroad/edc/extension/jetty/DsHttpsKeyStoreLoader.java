@@ -67,7 +67,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             throw new DsTlsKeyStoreLoadException(
                     "DataSpace TLS key exists in OpenBao at tls/ds-https but has no certificate yet "
                             + "(certificate pending). Complete ACME enrollment or upload the signed certificate "
-                            + "chain through the admin API before starting this service.");
+                            + "chain through the admin API.");
         }
         var keyStore = buildKeyStore(credentials);
         return new PeriodicMaterialReloader.Loaded<>(keyStore, fingerprint(credentials.getCertChain()));
@@ -80,8 +80,7 @@ final class DsHttpsKeyStoreLoader implements PeriodicMaterialReloader.MaterialLo
             if (e.isCausedBy(ErrorCode.MISSING_SECRET)) {
                 throw new DsTlsKeyStoreLoadException(
                         "No DataSpace TLS certificate found in OpenBao at tls/ds-https. Enable DataSpace TLS "
-                                + "enrollment or complete the manual CSR upload through the admin API before "
-                                + "starting this service.", e);
+                                + "enrollment or complete the manual CSR upload through the admin API.", e);
             }
             throw new DsTlsKeyStoreLoadException(
                     "Could not reach OpenBao to load the DataSpace TLS certificate from tls/ds-https: " + e.getMessage(), e);
