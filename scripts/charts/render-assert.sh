@@ -20,7 +20,7 @@ source "${ROOT_DIR}/scripts/lib/base-script.sh"
 chart_dir() {
     case "$1" in
         central-server) echo "${ROOT_DIR}/deployment/central-server/k8s/charts/central-server" ;;
-        e2e-fixtures|ds-https-keystore) echo "${ROOT_DIR}/development/k8s/charts/$1" ;;
+        e2e-fixtures) echo "${ROOT_DIR}/development/k8s/charts/$1" ;;
         *) echo "${ROOT_DIR}/deployment/security-server/k8s/charts/$1" ;;
     esac
 }
@@ -123,9 +123,6 @@ render_and_assert "central-server" Deployment Service ConfigMap ServiceAccount |
 echo ""
 
 render_and_assert "e2e-fixtures" Deployment Job ConfigMap || STATUS=1
-echo ""
-
-render_and_assert "ds-https-keystore" Job ServiceAccount Role RoleBinding || STATUS=1
 echo ""
 
 render_and_assert_snapshot "security-server" \

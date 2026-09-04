@@ -52,11 +52,11 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
  * API tests for the shared {@code /ds-tls-certificate} admin resource (common-admin-api, XRDDEV-3289 CSR-only
- * rework), limited to read-only operations that are safe on the warm substrate. This stack's
- * {@code ds-https-keystore-init} container seeds a real key and self-signed certificate into the
- * {@code tls/ds-https} vault slot before any service starts (ds-* components read their serving certificate
- * from that same slot and fail closed otherwise), so — unlike the server-wide internal TLS certificate,
- * which starts with packaging defaults — the DS TLS slot is never empty on this stack. The empty-slot
+ * rework), limited to read-only operations that are safe on the warm substrate. The baseline seeder
+ * provisions a real key and test-CA-signed certificate into the {@code tls/ds-https} vault slot through
+ * the admin API before any test runs (ds-* components read their serving certificate from that same slot
+ * and fail closed otherwise), so — unlike the server-wide internal TLS certificate,
+ * which starts with packaging defaults — the DS TLS slot is never empty for a test. The empty-slot
  * negative paths (no key generated, no certificate acquired yet) are exercised instead by the Central
  * Server api-test suite (which stands OpenBao in with MockServer and controls the slot's content
  * precisely) and by common-admin-api's unit tests, so that coverage is relocated, not lost. Mutating

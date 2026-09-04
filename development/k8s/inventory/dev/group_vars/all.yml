@@ -1,7 +1,7 @@
 ---
 # Full base topology: kind cluster + Central Server chart + two Security Server chart
 # releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao)
-# + e2e-fixtures chart (test CA, mock IS, mailpit, DS-HTTPS keystore, hurl bootstrap) —
+# + e2e-fixtures chart (test CA, mock IS, mailpit, hurl bootstrap incl. DS TLS provisioning) —
 # same playbooks/site.yml, roles and charts as inventory/e2e, differing only in the values
 # below. DSP is on. No LXD dependency: everything runs in-cluster.
 

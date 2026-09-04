@@ -32,7 +32,6 @@ import org.niis.xroad.e2e.MessagelogArchiveOps;
 import org.niis.xroad.e2e.MessagelogDbOps;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
-import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.Container;
 
 import java.nio.file.Files;
@@ -55,7 +54,6 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final Pattern PROCESSED_FILES_PATTERN = Pattern.compile("Processed (\\d+) files\\.");
     private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
 
-    private static final String DS_HTTPS_KEYSTORE_VOLUME = "e2e-ds-https-keystore";
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
 
     private AuxStackSetup aux;
@@ -68,8 +66,6 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public void start() {
-        ensureDsHttpsKeystoreVolume();
-
         aux = new AuxStackSetup(coreProperties);
         aux.start();
 
@@ -200,12 +196,6 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             case "aux" -> aux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
-    }
-
-    private void ensureDsHttpsKeystoreVolume() {
-        var dockerClient = DockerClientFactory.lazyClient();
-        dockerClient.createVolumeCmd().withName(DS_HTTPS_KEYSTORE_VOLUME).exec();
-        log.info("Ensured external docker volume {} exists", DS_HTTPS_KEYSTORE_VOLUME);
     }
 
     @Override

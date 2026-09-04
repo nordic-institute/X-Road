@@ -36,9 +36,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
+import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioningWorker;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -49,9 +49,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,7 +76,7 @@ class InitializationServiceImplTest {
     @Mock
     private ExternalProcessRunner externalProcessRunner;
     @Mock
-    private DataspaceIssuerProvisioningService issuerProvisioningService;
+    private DataspaceIssuerProvisioningWorker dataspaceIssuerProvisioningWorker;
 
     private InitializationServiceImpl service;
 
@@ -95,10 +93,10 @@ class InitializationServiceImplTest {
         when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class)))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("cmd", 0, List.of()));
 
-        service = buildService(issuerProvisioningService);
+        service = buildService();
     }
 
-    private InitializationServiceImpl buildService(DataspaceIssuerProvisioningService provisioning) {
+    private InitializationServiceImpl buildService() {
         return new InitializationServiceImpl(
                 signerProxyFacade,
                 globalGroupRepository,
@@ -107,7 +105,7 @@ class InitializationServiceImplTest {
                 auditDataHelper,
                 new HAConfigStatus("node1", false),
                 externalProcessRunner,
-                provisioning,
+                dataspaceIssuerProvisioningWorker,
                 GPG_KEY_PATH,
                 GPG_HOME
         );
@@ -122,15 +120,8 @@ class InitializationServiceImplTest {
     }
 
     @Test
-    void issuerProvisioningFailurePropagates() {
-        doThrow(new RuntimeException("gRPC failure")).when(issuerProvisioningService).provisionIssuer();
-
-        assertThrows(RuntimeException.class, () -> service.initialize(dto()));
-    }
-
-    @Test
-    void issuerProvisioningCalledOnInitialize() {
+    void initializeSucceedsAndTriggersIssuerProvisioning() {
         assertDoesNotThrow(() -> service.initialize(dto()));
-        verify(issuerProvisioningService).provisionIssuer();
+        verify(dataspaceIssuerProvisioningWorker).provisionAsync();
     }
 }

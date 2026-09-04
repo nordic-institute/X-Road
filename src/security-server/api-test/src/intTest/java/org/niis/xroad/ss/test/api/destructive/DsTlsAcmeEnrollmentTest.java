@@ -48,8 +48,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * automatically on the worker's own schedule — no synchronous admin-API call triggers it, unlike
  * {@link org.niis.xroad.ss.test.api.keys.AcmeOrderTest}.
  * <p>
- * Runs on the destructive lane, not the shared parallel stack: this stack's {@code ds-https-keystore-init}
- * container always pre-seeds a long-lived self-signed certificate into the {@code tls/ds-https} vault slot
+ * Runs on the destructive lane, not the shared parallel stack: the baseline seeder always pre-provisions a
+ * long-lived test-CA-signed certificate into the {@code tls/ds-https} vault slot through the admin API
  * (see {@link org.niis.xroad.ss.test.api.keys.DsTlsCertificateTest}), which the worker correctly treats as not
  * yet due for renewal and leaves alone. Observing a genuine ACME enrollment therefore requires clearing that
  * slot first — a vault-mutating operation only safe once Phase 1's read-only {@code DsTlsCertificateTest}
