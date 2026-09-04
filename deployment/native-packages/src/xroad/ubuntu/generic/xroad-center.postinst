@@ -19,33 +19,6 @@ gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"
 }
 
-handle_error() {
-    ERR=$(</tmp/cert.err)
-    db_subst xroad-common/cert-generation-abort ERR "$(printf %s "$ERR" | debconf-escape -e)"
-    db_input critical xroad-common/cert-generation-abort
-    db_go
-    rm -f /tmp/cert.err
-}
-
-handle_error_retry() {
-  ERR=$1
-  db_reset xroad-common/cert-generation-retry
-  db_reset xroad-common/cert-generation-error
-  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
-  db_beginblock
-  db_input critical xroad-common/cert-generation-error || true
-  db_input critical xroad-common/cert-generation-retry || true
-  db_endblock
-  db_go
-
-  db_get xroad-common/cert-generation-retry
-  if [ "$RET" = false ]; then
-    exit 1
-  fi
-
-  echo "Retrying certificate generation"
-}
-
 # setup database and run migrations
 setup_database() {
     /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
@@ -113,10 +86,6 @@ setup_database() {
 
     psql_dbuser() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
-    }
-
-    psql_adminuser() {
-        PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
     }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
@@ -402,10 +371,6 @@ configure | reconfigure)
       # always fix gpghome ownership
       [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
     fi
-
-    RET=
-    db_get xroad-common/skip-cs-db-migrations || true
-    skip_migrations="${RET}"
 
     #create symlink to nginx config
     if [[ -d /etc/nginx/sites-enabled ]]; then
