@@ -81,7 +81,7 @@ public class DataspaceIssuerProvisioningWorker {
         CompletableFuture.runAsync(this::provisionBestEffort);
     }
 
-    private void provisionBestEffort() {
+    private synchronized void provisionBestEffort() {
         if (provisioned.get()) {
             return;
         }

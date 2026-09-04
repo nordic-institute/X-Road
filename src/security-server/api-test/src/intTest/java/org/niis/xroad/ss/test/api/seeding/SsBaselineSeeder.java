@@ -275,7 +275,7 @@ public class SsBaselineSeeder {
      * admin API flow an operator would use: generate the server-side key, fetch a DN-only CSR,
      * sign it at the stack's test CA with the SAN list the CA attaches, upload the certificate.
      * Skips when a certificate is already present, so re-runs never roll back a rotated or
-     * ACME-enrolled certificate. The crash-looping ds-* containers converge once this lands.
+     * ACME-enrolled certificate. The ds-* containers, waiting at startup on this slot, converge once this lands.
      */
     private void ensureDsTlsCertificate() {
         var status = session.given()

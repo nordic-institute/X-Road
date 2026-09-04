@@ -73,30 +73,10 @@
   loop: *ss_vault_tls_ca_units
   register: ss_vault_tls_ca_dropins
 
-# The ds-* units serve the DS TLS certificate from OpenBao's tls/ds-https slot,
-# provisioned through the admin API by the hurl step that runs after the whole
-# playbook. Until then they fail fast on the empty slot by design; the packaged
-# Restart=on-failure alone would trip the default start-rate limit and leave the
-# units dead before hurl ever runs, so this dev drop-in disables the limit and
-# paces the retries.
-- name: keep ds-* units retrying until DS TLS provisioning lands (dev drop-in)
-  copy:
-    dest: "/etc/systemd/system/{{ item }}.service.d/ds-tls-retry.conf"
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      [Unit]
-      StartLimitIntervalSec=0
-      [Service]
-      RestartSec=5
-  loop: *ss_vault_tls_ca_units
-  register: ss_ds_tls_retry_dropins
-
-- name: reload systemd after the ds-* drop-ins
+- name: reload systemd after the vault CA drop-ins
   systemd:
     daemon_reload: true
-  when: ss_vault_tls_ca_dropins is changed or ss_ds_tls_retry_dropins is changed
+  when: ss_vault_tls_ca_dropins is changed
 
 # ---------------------------------------------------------------------------
 # 3. xroad.proxy.dsp.* and xroad.proxy-ui-api.dataspace.* runtime config moved

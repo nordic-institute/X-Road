@@ -47,12 +47,11 @@ services:
 
   # The ds-* services read their serving certificate from OpenBao's tls/ds-https slot,
   # populated by setup.hurl through this stack's admin API after all stacks are up. Until
-  # then they fail fast on the empty slot by design — restart: on-failure keeps them
-  # retrying, and nothing health-gates on them before the hurl provisioning runs.
+  # then they block at startup waiting for the slot, and nothing health-gates on them
+  # before the hurl provisioning runs.
   ds-control-plane:
     image: ${DS_CONTROL_PLANE_IMG}
     pull_policy: always
-    restart: on-failure
     environment:
       - DEBUG=true
       - HOSTNAME=${ENV_PREFIX:-}ds-control-plane
@@ -110,7 +109,6 @@ services:
   ds-identity-hub:
     image: ${DS_IDENTITY_HUB_IMG}
     pull_policy: always
-    restart: on-failure
     environment:
       - HOSTNAME=${ENV_PREFIX:-}ds-identity-hub
       - XROAD_HOST=ds-identity-hub

@@ -52,8 +52,8 @@ comment for the `--set-file` recipe.
 There is no keystore fixture: `setup.hurl` provisions each server's DS TLS
 certificate through the admin API (generate key, DN-only CSR, signing at the
 in-cluster test CA with a per-server SAN list, upload) and registers the test
-CA's root as the DS TLS trust anchor. The ds-* pods CrashLoopBackOff on the
-empty `tls/ds-https` vault slot by design until the hurl bootstrap runs; the
+CA's root as the DS TLS trust anchor. The ds-* pods wait at startup on the
+empty `tls/ds-https` vault slot until the hurl bootstrap runs; the
 scenario's DSP readiness gates assert their convergence. The DN/SAN values
 live in `values.yaml` under `hurl.vars`.
 

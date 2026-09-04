@@ -1,7 +1,7 @@
 ---
 {# DS-HTTPS TLS follows the fixture stack: e2e_fixtures_enabled gates the DSP wiring,
    and the fixtures' hurl bootstrap provisions each release's DS TLS certificate
-   through the admin API (the ds-* pods crash-loop on the empty vault slot until then). #}
+   through the admin API (the ds-* pods wait at startup for the slot until then). #}
 {% set ds_tls = e2e_fixtures_enabled | default(false) | bool %}
 {# Advertised DS hostnames. In k8s the ds-* services are separate, namespace-scoped Services, so
    each is addressed on its own namespace-qualified name — the same rule the rest of this
@@ -153,7 +153,7 @@ services:
   # trust is the chart's secretStore.tls knob (set once, above), not
   # per-service here. The ds-* pods serve HTTPS from the tls/ds-https vault
   # slot, provisioned through the admin API by the fixtures' hurl bootstrap;
-  # until that runs they CrashLoopBackOff on the empty slot by design.
+  # until that runs they block at startup waiting for the slot.
 {% for svc in ['ds-control-plane', 'ds-identity-hub', 'ds-issuer-service'] %}
   {{ svc }}:
     replicas: 1

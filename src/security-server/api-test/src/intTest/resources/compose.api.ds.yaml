@@ -24,12 +24,11 @@ services:
 
   # The ds-* services read their serving certificate from OpenBao's tls/ds-https slot,
   # populated by SsBaselineSeeder through the admin API after the stack is up. Until
-  # then they fail fast on the empty slot by design — restart: on-failure keeps them
-  # retrying, and nothing health-gates on them before the seeder runs.
+  # then they block at startup waiting for the slot, and nothing health-gates on them
+  # before the seeder runs.
   ds-control-plane:
     image: ${DS_CONTROL_PLANE_IMG}
     pull_policy: always
-    restart: on-failure
     environment:
       - DEBUG=true
       - HOSTNAME=ds-control-plane
@@ -75,9 +74,8 @@ services:
         condition: service_healthy
       configuration-client:
         condition: service_healthy
-      # service_started, not service_healthy: both services crash-loop until the DS TLS
-      # slot is provisioned, and `docker compose up` aborts outright when a
-      # service_healthy dependency crash-loops.
+      # service_started, not service_healthy: identity-hub only becomes healthy once the
+      # DS TLS slot is provisioned, which the seeder does after `docker compose up` returns.
       ds-identity-hub:
         condition: service_started
 
@@ -107,7 +105,6 @@ services:
   ds-identity-hub:
     image: ${DS_IDENTITY_HUB_IMG}
     pull_policy: always
-    restart: on-failure
     environment:
       - HOSTNAME=ds-identity-hub
       - XROAD_HOST=ds-identity-hub
@@ -159,7 +156,6 @@ services:
   ds-issuer-service:
     image: ${DS_ISSUER_SERVICE_IMG}
     pull_policy: always
-    restart: on-failure
     environment:
       - HOSTNAME=ds-issuer-service
       - XROAD_HOST=ds-issuer-service

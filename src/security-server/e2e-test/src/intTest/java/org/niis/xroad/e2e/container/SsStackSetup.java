@@ -103,10 +103,10 @@ public class SsStackSetup extends BaseComposeSetup {
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
-                // No start-time waits on the ds-* services: they fail fast on the empty
-                // tls/ds-https vault slot and retry until setup.hurl provisions the
-                // certificate through the admin API, which runs after all stacks are up;
-                // the hurl scenario's DSP readiness gates assert their convergence.
+                // No start-time waits on the ds-* services: they block at startup on the
+                // empty tls/ds-https vault slot until setup.hurl provisions the certificate
+                // through the admin API, which runs after all stacks are up; the hurl
+                // scenario's DSP readiness gates assert their convergence.
                 .withLogConsumer(DB_MESSAGELOG, createLogConsumer(name, DB_MESSAGELOG))
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))

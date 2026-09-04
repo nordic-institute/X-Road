@@ -76,7 +76,7 @@ public class DataspaceParticipantProvisioningWorker {
      * not fail on a provisioning problem: the scheduled tick and the eager run right after security
      * server initialization.
      */
-    public void provisionParticipantBestEffort() {
+    public synchronized void provisionParticipantBestEffort() {
         try {
             provisionParticipant();
         } catch (Exception e) {

@@ -31,16 +31,15 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.edc.reload.InitialMaterialWait;
 import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 
-import java.security.KeyStore;
 import java.time.Duration;
 
 import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
@@ -49,7 +48,9 @@ import static org.niis.xroad.edc.extension.jetty.XRoadJettyExtension.NAME;
  * X-Road's replacement for EDC's {@code JettyExtension}. Sources the HTTPS keystore for every connector on
  * this JVM from OpenBao ({@code tls/ds-https}) instead of a file, and keeps checking it on a schedule so a
  * rotated certificate replaces the served one without a restart — capabilities stock's file-at-boot,
- * no-reload design does not expose. Excluded from EDC's own boot in favour of this one via
+ * no-reload design does not expose. Boot blocks until the slot holds a certificate rather than failing, so
+ * a freshly installed service converges on its own once the certificate is provisioned. Excluded from EDC's
+ * own boot in favour of this one via
  * {@code xroad.edc.boot.excluded-service-extensions}; the {@code jetty-core} artifact carrying it is also
  * excluded from the runtime classpath entirely (see the {@code xroad.edc-owned-jetty-conventions} Gradle
  * convention), so both layers agree on which module serves HTTPS.
@@ -63,6 +64,8 @@ public class XRoadJettyExtension implements ServiceExtension {
     private static final String DEFAULT_CONTEXT_NAME = "default";
     private static final String DEFAULT_PATH = "/api";
     private static final int DEFAULT_PORT = 8181;
+    private static final String KEYSTORE_MATERIAL_NAME = "ds-https-keystore";
+    private static final Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final int RELOAD_MAX_ATTEMPTS_PER_CYCLE = 3;
     private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(2);
 
@@ -96,13 +99,13 @@ public class XRoadJettyExtension implements ServiceExtension {
         portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, defaultPort, defaultPath));
 
         var loader = new DsHttpsKeyStoreLoader(vaultClient);
-        var initial = loadOrFail(loader);
+        var initial = InitialMaterialWait.await(KEYSTORE_MATERIAL_NAME, loader, STARTUP_POLL_INTERVAL, monitor);
 
         jettyService = new XRoadJettyService(initial.material(), monitor, portMappingRegistry);
         context.registerService(WebServer.class, jettyService);
         context.registerService(XRoadJettyService.class, jettyService);
 
-        reloader = PeriodicMaterialReloader.schedule("ds-https-keystore", initial, Duration.ofSeconds(reloadIntervalSeconds),
+        reloader = PeriodicMaterialReloader.schedule(KEYSTORE_MATERIAL_NAME, initial, Duration.ofSeconds(reloadIntervalSeconds),
                 RELOAD_MAX_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, loader::load, jettyService::reload, monitor);
     }
 
@@ -124,13 +127,5 @@ public class XRoadJettyExtension implements ServiceExtension {
     @Provider
     public PortMappingRegistry portMappings() {
         return portMappingRegistry;
-    }
-
-    private static PeriodicMaterialReloader.Loaded<KeyStore> loadOrFail(DsHttpsKeyStoreLoader loader) {
-        try {
-            return loader.load();
-        } catch (DsTlsKeyStoreLoadException e) {
-            throw new EdcException(e.getMessage(), e);
-        }
     }
 }

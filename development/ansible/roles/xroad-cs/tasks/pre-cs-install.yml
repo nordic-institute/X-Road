@@ -99,29 +99,10 @@
       Environment=QUARKUS_VAULT_TLS_CA_CERT=/usr/local/share/ca-certificates/openbao.crt
   register: cs_vault_tls_ca_dropin
 
-# The Issuer Service serves the DS TLS certificate from OpenBao's tls/ds-https
-# slot, provisioned through the admin API by the hurl step that runs after the
-# whole playbook. Until then it fails fast on the empty slot by design; the
-# packaged Restart=on-failure alone would trip the default start-rate limit and
-# leave the unit dead before hurl ever runs, so this dev drop-in disables the
-# limit and paces the retries.
-- name: keep the issuer unit retrying until DS TLS provisioning lands (dev drop-in)
-  copy:
-    dest: /etc/systemd/system/xroad-ds-issuer-service.service.d/ds-tls-retry.conf
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      [Unit]
-      StartLimitIntervalSec=0
-      [Service]
-      RestartSec=5
-  register: cs_ds_tls_retry_dropin
-
-- name: reload systemd after the issuer drop-ins
+- name: reload systemd after the vault CA drop-in
   systemd:
     daemon_reload: true
-  when: cs_vault_tls_ca_dropin is changed or cs_ds_tls_retry_dropin is changed
+  when: cs_vault_tls_ca_dropin is changed
 
 # ---------------------------------------------------------------------------
 # 2. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees

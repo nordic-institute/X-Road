@@ -8,15 +8,6 @@
     path: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
     state: absent
 
-# TEMPORARY (dataspaces dev): post-install safety net. Same reasoning as
-# xroad-ss/tasks/post-ss-install.yml — `state: started` recovers any DS unit
-# left `inactive` by a prior StartLimitBurst from before the preseed existed.
-# Idempotent; not `restarted`. Remove once the env is stable.
-- name: ensure DS units are running after install (idempotent — no restart)
-  systemd:
-    name: xroad-ds-issuer-service
-    state: started
-
 # The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
 # and conf.d yaml are ignored — so the issuer DID host must be a row in the
 # centerui configuration_properties table (default is localhost; the SS side
