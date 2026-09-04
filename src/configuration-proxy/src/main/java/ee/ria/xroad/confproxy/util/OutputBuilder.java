@@ -28,6 +28,7 @@ package ee.ria.xroad.confproxy.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationUtils;
 import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
@@ -232,8 +233,11 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        boolean isVersionGt2 = metadata.getConfigurationVersion() != null
-                && Integer.parseInt(metadata.getConfigurationVersion()) > 2;
+        Integer versionInt = ConfigurationUtils.parseGlobalConfVersion(metadata.getConfigurationVersion());
+        if (versionInt == null) {
+            return false;
+        }
+        boolean isVersionGt2 = versionInt > 2;
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
         boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
         return isVersionGt2 && isSharedParams && isMainInstance;
