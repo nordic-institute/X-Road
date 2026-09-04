@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +48,8 @@ class ControlPlaneProvisioningExtensionTest {
     private ParticipantContextService participantContextService;
     @Mock
     private ParticipantContextConfigService participantContextConfigService;
+    @Mock
+    private DataPlaneContextRegistrar dataPlaneContextRegistrar;
     @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
@@ -61,6 +64,7 @@ class ControlPlaneProvisioningExtensionTest {
         extension = new ControlPlaneProvisioningExtension();
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "participantContextConfigService", participantContextConfigService);
+        setField(extension, "dataPlaneContextRegistrar", dataPlaneContextRegistrar);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }

@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
   implementation(project(":service:ds-control-plane:ds-xroad-provisioning-protocol"))
+  implementation(project(":service:ds-control-plane:ds-xroad-dataplane-registrar"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:edc-rpc"))
 

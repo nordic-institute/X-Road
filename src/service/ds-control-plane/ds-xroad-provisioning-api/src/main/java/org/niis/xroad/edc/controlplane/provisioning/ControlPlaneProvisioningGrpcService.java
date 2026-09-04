@@ -38,6 +38,7 @@ import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantConte
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
+import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
@@ -60,6 +61,7 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
 
     private final ParticipantContextService participantContextService;
     private final ParticipantContextConfigService participantContextConfigService;
+    private final DataPlaneContextRegistrar dataPlaneContextRegistrar;
     private final RpcResponseHandler responseHandler;
 
     @Override
@@ -83,6 +85,7 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
 
         var result = participantContextService.createParticipantContext(participantContext);
         requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
+        dataPlaneContextRegistrar.registerParticipantContext(request.getParticipantContextId());
         return CreateParticipantContextResp.getDefaultInstance();
     }
 

@@ -56,6 +56,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
     private static final String HOST_CONTEXT = "ss1";
     private static final String MGMT_CONTEXT = "ss1-mgmt";
+    private static final String MEMBER_CONTEXT = "ss1:CLASS:MEMBER";
 
     @Mock
     private ServiceExtensionContext context;
@@ -161,6 +162,58 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
         extension.initialize(context);
 
+        verify(store, never()).save(any());
+    }
+
+    @Test
+    void providedRegistrarRegistersHookedContextInProcess() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+        extension.initialize(context);
+
+        var registrar = extension.dataPlaneContextRegistrar();
+        registrar.registerParticipantContext(MEMBER_CONTEXT);
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(3)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(DataPlaneInstance::getId)
+                .contains("xroad-proxy::" + MEMBER_CONTEXT);
+    }
+
+    @Test
+    void registrarHookIsIdempotentOnRepeatCalls() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+        extension.initialize(context);
+
+        var registrar = extension.dataPlaneContextRegistrar();
+        registrar.registerParticipantContext(MEMBER_CONTEXT);
+        registrar.registerParticipantContext(MEMBER_CONTEXT);
+
+        var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+        verify(store, times(4)).save(captor.capture());
+        assertThat(captor.getAllValues())
+                .filteredOn(instance -> instance.getParticipantContextId().equals(MEMBER_CONTEXT))
+                .extracting(DataPlaneInstance::getId)
+                .containsOnly("xroad-proxy::" + MEMBER_CONTEXT);
+    }
+
+    @Test
+    void providedRegistrarIsAvailableEvenWithNoConfiguredEntries() {
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(ConfigFactory.empty());
+
+        extension.initialize(context);
+
+        assertThat(extension.dataPlaneContextRegistrar()).isNotNull();
+        extension.dataPlaneContextRegistrar().registerParticipantContext(MEMBER_CONTEXT);
         verify(store, never()).save(any());
     }
 
