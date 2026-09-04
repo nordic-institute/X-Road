@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.24
+Version: 1.25
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -32,6 +32,7 @@ Doc. ID: UG-SS-SIDECAR
 | 02.03.2026 | 1.22    | Fix broken link                                         | Petteri Kivimäki          |
 | 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
 | 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
+| 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
 
 ## License
 
@@ -421,6 +422,22 @@ To use an external secret store instead of the embedded one, set:
 
 When `XROAD_SECRET_STORE_HOST` is set, the embedded OpenBao program does not start and the container does not
 attempt to initialize it; the X-Road services connect to the external store using the values provided.
+
+The `full` image's dataspace services (ds-control-plane, ds-identity-hub) also need a TLS certificate for their
+HTTPS listeners. By default the container mints a self-signed placeholder on first boot, purely so those services
+start — real peers will not trust it. To supply a real certificate instead, mount the PEM files into the container
+and set:
+
+| Variable                    | Description                                          |
+|------------------------------|-------------------------------------------------------|
+| `XROAD_DS_HTTPS_CERT_FILE`  | Path to the certificate, PEM-encoded                  |
+| `XROAD_DS_HTTPS_KEY_FILE`   | Path to the matching private key, PEM-encoded         |
+
+Both variables are required together; setting only one is an error. When set, the container seeds that
+certificate and key into the secret store instead of generating a placeholder, and also imports the certificate as
+a trusted system CA so the container's own outbound dataspace calls accept it back from any peer presenting the
+same certificate — the setup a shared, self-signed certificate across every participant needs. Like the placeholder,
+this only happens once on first boot; a later restart does not re-check or re-import it.
 
 ### 2.11 Health Checks
 

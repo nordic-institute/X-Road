@@ -260,10 +260,12 @@ configure_kv() {
 # is a hard boot failure (DsHttpsKeyStoreLoader). Every other deployment mode
 # provisions that path from a real CA (a shared dev CA in the LXD ansible
 # roles, ACME/manual CSR upload via the admin API in production); the sidecar
-# has none of that infrastructure, so this mints a self-signed placeholder
-# purely so the service starts - an operator who needs the dataspace HTTPS
-# listener to be trusted by real peers still has to enroll a proper
-# certificate through the same admin API path as every other deployment mode.
+# has none of that infrastructure, so by default this mints a self-signed
+# placeholder purely so the service starts. An operator can supply a real
+# certificate instead via XROAD_DS_HTTPS_CERT_FILE/XROAD_DS_HTTPS_KEY_FILE
+# (PEM files, e.g. bind-mounted into the container); when set, that material
+# is seeded here instead of a placeholder, and trust_ds_https_supplied_cert
+# below makes the sidecar's own outbound dataspace calls trust it too.
 seed_ds_https_placeholder_cert() {
   local addr="${1:-$BAO_ADDR}"
   local token="${2:-$BAO_TOKEN}"
@@ -271,6 +273,22 @@ seed_ds_https_placeholder_cert() {
   if curl -s -k -H "X-Vault-Token: $token" "$addr/v1/xrd-secret/tls/ds-https" 2>/dev/null | \
        jq -e '.data.certificate' >/dev/null 2>&1; then
     echo "[OPENBAO] DS-HTTPS TLS certificate already present at xrd-secret/tls/ds-https; skipping"
+    return 0
+  fi
+
+  if [ -n "${XROAD_DS_HTTPS_CERT_FILE:-}" ] || [ -n "${XROAD_DS_HTTPS_KEY_FILE:-}" ]; then
+    if [ ! -s "${XROAD_DS_HTTPS_CERT_FILE:-}" ] || [ ! -s "${XROAD_DS_HTTPS_KEY_FILE:-}" ]; then
+      echo "[OPENBAO] XROAD_DS_HTTPS_CERT_FILE and XROAD_DS_HTTPS_KEY_FILE must both point at readable, non-empty PEM files" >&2
+      return 1
+    fi
+
+    echo "[OPENBAO] Seeding the operator-supplied DS-HTTPS TLS certificate from XROAD_DS_HTTPS_CERT_FILE"
+    local payload
+    payload=$(jq -n --rawfile cert "$XROAD_DS_HTTPS_CERT_FILE" --rawfile key "$XROAD_DS_HTTPS_KEY_FILE" \
+      '{certificate: $cert, privateKey: $key}')
+    bao_api "POST" "$addr" "/v1/xrd-secret/tls/ds-https" \
+      "$payload" "$token" "Seeding the supplied DS-HTTPS TLS certificate" >/dev/null || return 1
+    trust_ds_https_supplied_cert
     return 0
   fi
 
@@ -302,6 +320,25 @@ seed_ds_https_placeholder_cert() {
 
   bao_api "POST" "$addr" "/v1/xrd-secret/tls/ds-https" \
     "$payload" "$token" "Seeding DS-HTTPS TLS placeholder certificate" >/dev/null
+}
+
+# The sidecar's own ds-control-plane and ds-identity-hub make outbound HTTPS calls to other
+# dataspace participants (asset-access negotiation, DID resolution), so trust has to hold in
+# both directions: peers need to accept the certificate seeded above, and this container's own
+# JVMs need to accept whatever certificate those peers present back. When every participant is
+# configured with the same shared certificate (self-signed, so the certificate is its own
+# trust anchor), importing it as a system CA here covers both: it is already what this
+# container presents, and importing it makes this container accept it from others too.
+# ca-certificates-java (installed alongside the JDK) mirrors the system CA list into the JVMs'
+# default trust store on every update-ca-certificates run, so no JVM-level trust-store
+# override is needed.
+trust_ds_https_supplied_cert() {
+  if [ ! -s "${XROAD_DS_HTTPS_CERT_FILE:-}" ]; then
+    return 0
+  fi
+  cp "$XROAD_DS_HTTPS_CERT_FILE" /usr/local/share/ca-certificates/xroad-ds-https-supplied.crt
+  update-ca-certificates >/dev/null
+  echo "[OPENBAO] Imported XROAD_DS_HTTPS_CERT_FILE as a trusted system CA"
 }
 
 create_token() {
