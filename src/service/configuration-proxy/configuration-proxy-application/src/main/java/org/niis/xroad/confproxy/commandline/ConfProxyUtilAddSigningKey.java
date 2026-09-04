@@ -46,6 +46,8 @@ import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
 @ArchUnitSuppressed("NoVanillaExceptions")
 public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
 
+    public static final long EPOCH_SECOND = 2147483647L;
+
     /**
      * Constructs a confproxy-add-signing-key utility program instance.
      */
@@ -89,7 +91,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
     private void addSigningKey(final ConfProxyProperties conf,
                                final String keyId) throws Exception {
         final byte[] certBytes = signerRpcClient.generateSelfSignedCert(keyId, null, SIGNING, "N/A",
-                new Date(0), Date.from(Instant.ofEpochSecond(Integer.MAX_VALUE)));
+                new Date(0), Date.from(Instant.ofEpochSecond(EPOCH_SECOND)));
         conf.saveCert(keyId, certBytes);
         System.out.println("Saved self-signed certificate to cert_"
                 + keyId + ".pem");
