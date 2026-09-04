@@ -95,6 +95,14 @@ public class ProxyMessageDecoder {
      */
     static final long MAX_HASHCHAIN_PART_BYTES = 1_048_576L;
 
+    /**
+     * Maximum accepted byte size for the signature MIME part. A BDOC/XAdES signature (XML with embedded certificate
+     * chain, OCSP response and timestamp token) is normally tens to a few hundred KB even with large certificates.
+     * 10 MB leaves ample headroom above any real-world signature while still capping adversarial input from an
+     * unauthenticated peer.
+     */
+    static final long MAX_SIGNATURE_PART_BYTES = 10_485_760L;
+
     private final ProxyMessageConsumer callback;
 
     /**
@@ -515,13 +523,21 @@ public class ProxyMessageDecoder {
     }
 
     private static String readBoundedHashChainPart(InputStream is) throws IOException {
+        return readBoundedPart(is, MAX_HASHCHAIN_PART_BYTES, "Hash-chain");
+    }
+
+    private static String readBoundedSignaturePart(InputStream is) throws IOException {
+        return readBoundedPart(is, MAX_SIGNATURE_PART_BYTES, "Signature");
+    }
+
+    private static String readBoundedPart(InputStream is, long maxBytes, String partLabel) throws IOException {
         var bounded = BoundedInputStream.builder()
                 .setInputStream(is)
-                .setMaxCount(MAX_HASHCHAIN_PART_BYTES + 1)
+                .setMaxCount(maxBytes + 1)
                 .get();
         var content = IOUtils.toString(bounded, UTF_8);
-        if (bounded.getCount() > MAX_HASHCHAIN_PART_BYTES) {
-            throw new IOException("Hash-chain part size exceeds limit of %d bytes".formatted(MAX_HASHCHAIN_PART_BYTES));
+        if (bounded.getCount() > maxBytes) {
+            throw new IOException("%s part size exceeds limit of %d bytes".formatted(partLabel, maxBytes));
         }
         return content;
     }
@@ -536,7 +552,7 @@ public class ProxyMessageDecoder {
                     ? "" : bd.getMimeType().toLowerCase()) {
                 case SIGNATURE_BDOC:
                     // We got signature, just as expected.
-                    signature = new SignatureData(IOUtils.toString(is, UTF_8),
+                    signature = new SignatureData(readBoundedSignaturePart(is),
                             signature.getHashChainResult(), signature.getHashChain());
                     callback.signature(signature);
                     break;
