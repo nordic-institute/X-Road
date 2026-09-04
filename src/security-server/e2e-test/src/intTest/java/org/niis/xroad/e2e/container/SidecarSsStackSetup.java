@@ -26,14 +26,24 @@
 package org.niis.xroad.e2e.container;
 
 import com.github.dockerjava.api.model.ContainerNetwork;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.Container;
+import org.testcontainers.containers.ContainerState;
+import org.testcontainers.containers.ExecConfig;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
@@ -54,6 +64,17 @@ public class SidecarSsStackSetup extends AbstractSsStack {
 
     private static final String COMPOSE_SIDECAR_FILE = "compose.ss0-sidecar.e2e.yaml";
     private static final String XROAD_NETWORK = "xroad-network";
+
+    private static final String POSTGRES_USER = "postgres";
+    private static final String XROAD_USER = "xroad";
+    private static final String MESSAGELOG_DB = "messagelog";
+    private static final String MESSAGELOG_SEARCH_PATH = "messagelog,public";
+    private static final String ARCHIVE_DIR = "/var/lib/xroad";
+    private static final String ARCHIVER_LOG = "/var/log/xroad/message-log-archiver.log";
+    private static final String ARCHIVER_CLI = "/usr/share/xroad/bin/xroad-message-log-archiver";
+    private static final String ARCHIVE_SUCCESS_MARKER = "Archival operation completed successfully";
+    private static final String CLEANUP_SUCCESS_MARKER = "Cleanup operation completed successfully";
+    private static final String MESSAGELOG_ARCHIVES_FILE = "messagelog-archives.tar.gz";
 
     /**
      * The sidecar's measured cold start is around three minutes (embedded PostgreSQL and OpenBao
@@ -164,6 +185,160 @@ public class SidecarSsStackSetup extends AbstractSsStack {
     @Override
     public ContainerMapping getContainerMapping(String service, int originalPort) {
         return super.getContainerMapping(SIDECAR, originalPort);
+    }
+
+    /**
+     * Runs a query against the embedded PostgreSQL's {@code messagelog} database as the {@code postgres}
+     * user, mirroring {@link org.niis.xroad.e2e.LxdEnvSetup}'s single-host {@code psql} pattern in place
+     * of a dedicated {@code db-messagelog} container. The search path is overridden because a native
+     * package local install schemas the database after its own user, {@code messagelog}, not
+     * {@code public}.
+     */
+    public String execMessagelogSql(String sql) {
+        var result = execAsUserChecked(POSTGRES_USER, Map.of("PGOPTIONS", "--search_path=" + MESSAGELOG_SEARCH_PATH),
+                "psql", "-d", MESSAGELOG_DB, "-tAX", "-c", sql);
+        return result.getStdout().trim();
+    }
+
+    /**
+     * Runs the message log archiver CLI as the {@code xroad} user, blocking until it completes. The CLI
+     * always exits 0 regardless of outcome, so success is verified from its log file, exactly as
+     * {@link org.niis.xroad.e2e.LxdEnvSetup} does against a native install.
+     */
+    public void triggerMessageLogCommand(String command) {
+        var commandArgs = new ArrayList<>(List.of(ARCHIVER_CLI));
+        commandArgs.addAll(List.of(command.trim().split("\\s+")));
+        var result = execAsUser(XROAD_USER, commandArgs.toArray(String[]::new));
+
+        var successMarker = command.startsWith("archive") ? ARCHIVE_SUCCESS_MARKER : CLEANUP_SUCCESS_MARKER;
+        var logTail = tailArchiverLog();
+        if (result.getExitCode() != 0 || !logTail.contains(successMarker)) {
+            throw new IllegalStateException(
+                    "message log %s on sidecar %s did not report success (exit %d); stderr: %s; stdout: %s; log tail:%n%s"
+                            .formatted(command, name, result.getExitCode(), result.getStderr(), result.getStdout(), logTail));
+        }
+    }
+
+    private String tailArchiverLog() {
+        return exec("tail", "-n", "50", ARCHIVER_LOG).getStdout();
+    }
+
+    /**
+     * Packages every produced {@code mlog-*} archive file into a tarball and downloads it, mirroring
+     * {@link org.niis.xroad.e2e.LxdEnvSetup}.
+     */
+    public void downloadMessageLogArchives(String localDir) {
+        downloadTarball("cd %s && find . -maxdepth 1 -type f -name 'mlog-*' | tar czf %s -T -", ARCHIVE_DIR, localDir);
+    }
+
+    /**
+     * Decrypts every archive file under the sidecar's message log archive directory whose name starts
+     * with {@code filePrefix}, following the same steps as {@link org.niis.xroad.e2e.LxdEnvSetup}. Message
+     * log encryption is an ss1-only feature, so on ss0 no file ever matches {@code filePrefix*.gpg} and
+     * this returns 0 with an empty tarball — the unencrypted path the interface still has to satisfy.
+     */
+    @SneakyThrows
+    public int decryptArchives(String filePrefix, String keyId, String passphrase, String outputDir) {
+        var keyFile = Path.of(coreProperties.resourceDir() + "gpg_keys/" + keyId + ".asc");
+        var workDir = "/tmp/decrypt-" + UUID.randomUUID();
+        var gnupgHome = workDir + "/gnupg";
+        var decryptedDir = workDir + "/out";
+        var keyFileInContainer = workDir + "/key.asc";
+
+        try {
+            var listResult = execChecked("find", ARCHIVE_DIR, "-maxdepth", "1", "-type", "f", "-name", filePrefix + "*.gpg");
+            var remoteFiles = listResult.getStdout().lines().filter(line -> !line.isBlank()).toList();
+
+            execChecked("mkdir", "-p", "-m", "700", gnupgHome);
+            execChecked("mkdir", "-p", decryptedDir);
+            containerState().copyFileToContainer(MountableFile.forHostPath(keyFile), keyFileInContainer);
+            execChecked("gpg", "--homedir", gnupgHome, "--batch", "--yes", "--import", keyFileInContainer);
+
+            for (var remoteFile : remoteFiles) {
+                decryptOne(gnupgHome, remoteFile, passphrase, decryptedDir);
+            }
+
+            downloadTarball("cd %s && tar czf %s .", decryptedDir, outputDir);
+            return remoteFiles.size();
+        } finally {
+            exec("rm", "-rf", workDir);
+        }
+    }
+
+    /**
+     * Decrypts a single archive in place; gpg's exit code cannot be trusted (these fixtures are signed by
+     * a key the recipient keyring doesn't hold), so success is judged by the output file existing and
+     * being non-empty, matching {@link org.niis.xroad.e2e.LxdEnvSetup}.
+     */
+    private void decryptOne(String gnupgHome, String remoteFile, String passphrase, String decryptedDir) {
+        var outFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1).replaceFirst("\\.gpg$", "");
+        var outPath = decryptedDir + "/" + outFileName;
+
+        var decryptResult = exec("gpg", "--homedir", gnupgHome, "--batch", "--no-tty", "--pinentry-mode", "loopback",
+                "--passphrase", passphrase, "--output", outPath, "--decrypt", remoteFile);
+        var sizeCheck = exec("test", "-s", outPath);
+        if (sizeCheck.getExitCode() != 0) {
+            log.warn("Decryption of {} in sidecar {} did not produce output (gpg exit {}): {}",
+                    remoteFile, name, decryptResult.getExitCode(), decryptResult.getStderr());
+            exec("rm", "-f", outPath);
+        }
+    }
+
+    @SneakyThrows
+    private void downloadTarball(String tarCommandFormat, String remoteDir, String localDir) {
+        Files.createDirectories(Path.of(localDir));
+        var remoteTarball = "/tmp/" + MESSAGELOG_ARCHIVES_FILE.replace(".tar.gz", "-" + UUID.randomUUID() + ".tar.gz");
+        execChecked("sh", "-c", tarCommandFormat.formatted(remoteDir, remoteTarball));
+        execChecked("chmod", "0644", remoteTarball);
+        copyFileFromContainer(SIDECAR, remoteTarball, localDir + "/" + MESSAGELOG_ARCHIVES_FILE);
+        execChecked("rm", "-f", remoteTarball);
+    }
+
+    /**
+     * Execs in the container's default (root) context. The single-container replacement for
+     * {@link org.niis.xroad.e2e.LxdEnvSetup}'s {@code lxc exec}.
+     */
+    @SneakyThrows
+    private Container.ExecResult exec(String... command) {
+        return containerState().execInContainer(command);
+    }
+
+    private Container.ExecResult execChecked(String... command) {
+        var result = exec(command);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("%s in sidecar %s failed (exit %d): %s"
+                    .formatted(List.of(command), name, result.getExitCode(), result.getStderr()));
+        }
+        return result;
+    }
+
+    /**
+     * Execs as the given user via docker {@code exec}'s native user-switching support, in place of
+     * {@link org.niis.xroad.e2e.LxdEnvSetup}'s {@code sudo -u} — the single-container replacement for
+     * dedicated per-role containers ({@code db-messagelog} runs as {@code postgres},
+     * {@code message-log-cli} as its packaged user).
+     */
+    private Container.ExecResult execAsUser(String user, String... command) {
+        return execAsUser(user, Map.of(), command);
+    }
+
+    @SneakyThrows
+    private Container.ExecResult execAsUser(String user, Map<String, String> envVars, String... command) {
+        var config = ExecConfig.builder().command(command).envVars(envVars).user(user).build();
+        return containerState().execInContainer(config);
+    }
+
+    private Container.ExecResult execAsUserChecked(String user, Map<String, String> envVars, String... command) {
+        var result = execAsUser(user, envVars, command);
+        if (result.getExitCode() != 0) {
+            throw new IllegalStateException("%s as %s in sidecar %s failed (exit %d): %s"
+                    .formatted(List.of(command), user, name, result.getExitCode(), result.getStderr()));
+        }
+        return result;
+    }
+
+    private ContainerState containerState() {
+        return env.getContainerByServiceName(SIDECAR).orElseThrow();
     }
 
     private Slf4jLogConsumer createLogConsumer(String envName, String containerName) {

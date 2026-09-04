@@ -133,7 +133,9 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public String execMessagelogSql(String envName, String sql) {
-        requireMultiContainerSs0(envName);
+        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+            return sidecar.execMessagelogSql(sql);
+        }
         var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
                 "psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
         if (result.getExitCode() != 0) {
@@ -145,7 +147,10 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public void triggerMessageLogCommand(String envName, String command) {
-        requireMultiContainerSs0(envName);
+        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+            sidecar.triggerMessageLogCommand(command);
+            return;
+        }
         var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
                 + " -Dquarkus.profile=containerized"
                 + " -jar /opt/app/quarkus-run.jar " + command
@@ -159,14 +164,19 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public void downloadMessageLogArchives(String envName, String localDir) {
-        requireMultiContainerSs0(envName);
+        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+            sidecar.downloadMessageLogArchives(localDir);
+            return;
+        }
         downloadArchivesTarball(envName, "/var/lib/xroad", localDir);
     }
 
     @Override
     @SneakyThrows
     public int decryptArchives(String envName, String filePrefix, String keyId, String passphrase, String outputDir) {
-        requireMultiContainerSs0(envName);
+        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+            return sidecar.decryptArchives(filePrefix, keyId, passphrase, outputDir);
+        }
         var keyFile = "/gpg-keys/%s.asc".formatted(keyId);
         var remoteOutputDir = "/tmp/decrypt-" + UUID.randomUUID();
 
@@ -218,16 +228,14 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     }
 
     /**
-     * The sidecar ss0 variant has no {@code db-messagelog}/{@code message-log-cli} containers to exec
-     * into; messagelog DB and archive operations against it are a follow-up (issue 05), not this
-     * slice, so they fail loudly here instead of surfacing an opaque "container not found".
+     * Returns {@code ss0} when it is running the sidecar stack variant, so messagelog DB and archive
+     * operations can route to its single-container exec-based implementation instead of the
+     * {@code db-messagelog}/{@code message-log-cli} containers the multi-container stack exposes.
+     * Returns {@code null} for every other environment name (including {@code ss0} when it is the
+     * multi-container stack).
      */
-    private void requireMultiContainerSs0(String envName) {
-        if ("ss0".equals(envName) && ss0 instanceof SidecarSsStackSetup) {
-            throw new UnsupportedOperationException(
-                    "ss0 is running the sidecar stack variant (test-framework.ss0-stack=sidecar); "
-                            + "messagelog DB and archive operations are not implemented for it in this slice");
-        }
+    private SidecarSsStackSetup sidecarSs0(String envName) {
+        return "ss0".equals(envName) && ss0 instanceof SidecarSsStackSetup sidecar ? sidecar : null;
     }
 
     private void ensureDsHttpsKeystoreVolume() {
