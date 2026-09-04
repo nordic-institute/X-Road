@@ -205,16 +205,27 @@ EOF
 # dpkg-reconfigure always calls this script with "configure" (never "reconfigure" — Debian
 # reserves that argument for the .config script), so the reconfigure case can't be told apart
 # from a plain configure by $1. It does export DEBCONF_RECONFIGURE=1, which is the documented
-# signal maintainer scripts use for exactly this.
+# signal maintainer scripts use for exactly this. The action argument ($1) is checked as well,
+# per debconf-devel(7), for the day Debian starts passing "reconfigure" to postinst directly.
+#
+# A database error while reading the row aborts rather than counting as "row absent": treating
+# it as absent would re-ask the question and overwrite the instance-wide row on an HA node join.
 configure_dataspace_issuer_host() {
   local -r key="xroad.dataspace.issuer.host"
   local -r template="xroad-common/dataspace-issuer-host"
-  local -r reconfiguring="${DEBCONF_RECONFIGURE:-}"
 
-  local existing="" row_present=0
-  if existing=$(/usr/share/xroad/scripts/db_property.sh get "$key" 2>/dev/null); then
-    row_present=1
+  local reconfiguring=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    reconfiguring=1
   fi
+
+  local existing="" row_present=0 rc=0
+  existing=$(/usr/share/xroad/scripts/db_property.sh get "$key") || rc=$?
+  case "$rc" in
+    0) row_present=1 ;;
+    1) row_present=0 ;;
+    *) abort "Unable to read ${key} from the database. ABORTING." ;;
+  esac
 
   if [[ "$row_present" -eq 1 && "$reconfiguring" != "1" ]]; then
     log "Dataspace issuer host is already configured, skipping"
@@ -241,7 +252,8 @@ configure_dataspace_issuer_host() {
   db_go
 
   db_get "$template"
-  /usr/share/xroad/scripts/db_property.sh set "$key" "$RET" --yes
+  /usr/share/xroad/scripts/db_property.sh set "$key" "$RET" --yes \
+    || abort "Failed to store ${key} in the database. ABORTING."
 }
 
 extract_ip_list() {
@@ -345,7 +357,7 @@ case "$1" in
 configure | reconfigure)
     prepare_certificates_settings
     setup_database
-    configure_dataspace_issuer_host
+    configure_dataspace_issuer_host "$1"
 
     RET=""
     db_get xroad-common/username
