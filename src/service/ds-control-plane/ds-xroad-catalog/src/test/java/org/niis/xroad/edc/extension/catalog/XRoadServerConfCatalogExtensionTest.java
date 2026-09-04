@@ -28,7 +28,9 @@ package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +58,12 @@ class XRoadServerConfCatalogExtensionTest {
     private GlobalConfProvider globalConfProvider;
 
     @Mock
+    private ParticipantContextService participantContextService;
+
+    @Mock
+    private WebService webService;
+
+    @Mock
     private ServiceExtensionContext context;
 
     private XRoadServerConfCatalogExtension extension;
@@ -66,6 +74,8 @@ class XRoadServerConfCatalogExtensionTest {
 
         setField(extension, "serverConfProvider", serverConfProvider);
         setField(extension, "globalConfProvider", globalConfProvider);
+        setField(extension, "participantContextService", participantContextService);
+        setField(extension, "webService", webService);
 
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(context.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));

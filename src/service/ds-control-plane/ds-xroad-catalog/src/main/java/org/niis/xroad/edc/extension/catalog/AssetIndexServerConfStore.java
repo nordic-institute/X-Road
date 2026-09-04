@@ -62,15 +62,9 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
+    private final ServiceContextResolver serviceContextResolver;
+    private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String resolveContextId(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : participantContextId;
-    }
 
     private boolean isOwnerOnly(ServiceId serviceId) {
         try {
@@ -96,11 +90,14 @@ class AssetIndexServerConfStore implements AssetIndex {
 
     private List<Asset> buildAssetList() {
         var assets = new ArrayList<Asset>();
+        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
                 if (serverConfProvider.getDisabledNotice(serviceId) == null) {
-                    assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
+                    for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds)) {
+                        assets.add(AssetMapper.toAsset(serviceId, ctxId));
+                    }
                 }
             }
         }
@@ -115,7 +112,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Override
     @Nullable
     public Asset findById(String assetId) {
-        return cache.findById(assetId, () -> findByIdInternal(assetId));
+        return cache.findById(assetId, requestedParticipantContext.get(), () -> findByIdInternal(assetId));
     }
 
     @Nullable
@@ -144,8 +141,23 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
                 ? managementParticipantContextId
-                : resolveContextId(serviceId);
+                : selectContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
+    }
+
+    /**
+     * Every enabled service also carries an owner-only copy under the management context (added
+     * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
+     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveEnabled}
+     * resolves for the service itself.
+     */
+    private String selectContextId(ServiceId serviceId) {
+        var requested = requestedParticipantContext.get();
+        if (managementParticipantContextId.equals(requested)) {
+            return managementParticipantContextId;
+        }
+        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, serviceContextResolver.provisionedMemberContextIds());
+        return ServiceContextResolver.select(resolvedContexts, requested);
     }
 
     private boolean isLocallyRegisteredSubsystem(ClientId clientId) {

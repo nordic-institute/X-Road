@@ -32,8 +32,10 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.common.base.Ticker;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -70,20 +73,30 @@ class CachingStoreTest {
     @Mock
     private GlobalConfProvider globalConfProvider;
 
+    @Mock
+    private ParticipantContextService participantContextService;
+
     private StoreEnumerationCache<Asset> noCache;
     private StoreEnumerationCache<Asset> withCache;
+    private ServiceContextResolver serviceContextResolver;
+    private final ThreadLocalRequestedParticipantContext requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
 
     @BeforeEach
     void setUp() {
         noCache = new StoreEnumerationCache<>(false, 60, 1000, "test");
         withCache = new StoreEnumerationCache<>(true, 3600, 1000, "test");
+        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        serviceContextResolver = new ServiceContextResolver(
+                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, globalConfProvider, participantContextService);
+        requestedParticipantContext.clear();
     }
 
     private AssetIndexServerConfStore buildStore(StoreEnumerationCache<Asset> cache) {
         return new AssetIndexServerConfStore(serverConfProvider, globalConfProvider,
                 PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
                 new BuiltinServiceCatalog(serverConfProvider, false, false, false,
-                        BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache);
+                        BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache,
+                serviceContextResolver, requestedParticipantContext);
     }
 
     private void setupSingleMemberService() {
@@ -139,6 +152,21 @@ class CachingStoreTest {
         store.findById(SERVICE_1.asEncodedId());
 
         verify(serverConfProvider, times(1)).serviceExists(SERVICE_1);
+    }
+
+    @Test
+    void findByIdCacheKeyIncludesRequestedParticipantContext() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var store = buildStore(withCache);
+
+        requestedParticipantContext.set("member-ctx");
+        store.findById(SERVICE_1.asEncodedId());
+        requestedParticipantContext.set("other-member-ctx");
+        store.findById(SERVICE_1.asEncodedId());
+
+        verify(serverConfProvider, times(2)).serviceExists(SERVICE_1);
     }
 
     @Test
