@@ -83,4 +83,14 @@ public interface K8sEnvProperties {
     @WithDefault("kubectl")
     @WithName("kubectl-command")
     String kubectlCommand();
+
+    /** Central Server host, reached via kubectl port-forward (TEST_FRAMEWORK_K8S_CS_HOST). */
+    @WithDefault("localhost")
+    @WithName("cs-host")
+    String csHost();
+
+    /** Forwarded admin UI port on csHost (TEST_FRAMEWORK_K8S_CS_UI_PORT). */
+    @WithDefault("4002")
+    @WithName("cs-ui-port")
+    int csUiPort();
 }
