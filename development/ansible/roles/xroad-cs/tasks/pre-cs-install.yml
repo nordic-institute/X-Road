@@ -1,12 +1,12 @@
 ---
 # TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
 # that xroad-centralserver package auto-starts xroad-ds-issuer-service before
-# its runtime config and TLS keystore are on disk, causing crash-loop /
-# StartLimitBurst. Pre-seeding here lets the service boot exactly once, cleanly.
+# its runtime config is on disk, causing crash-loop / StartLimitBurst.
+# Pre-seeding here lets the service boot exactly once, cleanly.
 #
 # Remove this file (and the `include_tasks: pre-cs-install.yml` line in main.yml)
-# once upstream packaging ships debconf preseeds or cloud-init hooks for:
-#   - ds-issuer-service: hostname, statuslist.callback.address, keystore
+# once upstream packaging ships a debconf preseed for
+# ds-issuer-service: statuslist.callback.address,
 # AND the package no longer starts the unit unconditionally during postinst.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
