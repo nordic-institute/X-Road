@@ -29,7 +29,6 @@ import com.github.dockerjava.api.model.ContainerNetwork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
-import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 
@@ -51,7 +50,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
  */
 @Slf4j
 @SuppressWarnings("checkstyle:magicnumber")
-public class SsStackSetup extends BaseComposeSetup {
+public class SsStackSetup extends AbstractSsStack {
 
     public static final String UI = "ui";
     public static final String PROXY = "proxy";
@@ -139,9 +138,7 @@ public class SsStackSetup extends BaseComposeSetup {
         }
     }
 
-    /**
-     * Blocks until this stack's proxy reports readiness, including OCSP status for the auth key.
-     */
+    @Override
     public void awaitProxyReadiness() {
         var mapping = getContainerMapping(PROXY, Port.PROXY_HEALTHCHECK);
         var readinessUrl = "http://%s:%d/q/health/ready".formatted(mapping.host(), mapping.port());

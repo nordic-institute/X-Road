@@ -1,0 +1,44 @@
+services:
+  sidecar:
+    image: ${SIDECAR_IMG:-xroad-security-server-sidecar:8.0.0}
+    environment:
+      - XROAD_ADMIN_USER=xrd
+      - XROAD_ADMIN_PASSWORD=secret123!
+      - XROAD_DSP_PARTICIPANT_CONTEXT_ID=${XROAD_DSP_PARTICIPANT_CONTEXT_ID:-xrd-ss0}
+      # The admin-service's data space participant-context provisioning worker needs these on every
+      # scheduled tick, not only for DSP-specific scenarios: identity-hub-url/participant-id have no
+      # built-in default, so leaving them unset fails every tick with a NullPointerException instead
+      # of just leaving data space credentials unprovisioned. Values mirror what compose.e2e.yaml
+      # seeds for the multi-container ss0/ss1 stacks.
+      - XROAD_DATASPACE_IDENTITY_HUB_URL=https://ss0-ds-identity-hub:7183
+      - XROAD_DATASPACE_PARTICIPANT_ID=xrd-ss0
+      - XROAD_DATASPACE_ISSUER_DID=did:web:cs%3A6183:issuer
+      # xroad-ds-control-plane's own trusted-issuer check (its packaged application.yaml requires
+      # xroad.edc.iam.trusted-issuer.issuer.id with no fallback) otherwise falls back to the sidecar
+      # image's own placeholder DID, which does not match the shared CS issuer credentials are
+      # actually issued from, so every incoming catalog request is rejected as an untrusted issuer.
+      - XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID=did:web:cs%3A6183:issuer
+      # ds-control-plane builds its own self-callback URL (used even for a same-SS negotiation,
+      # e.g. the management Security Server registering its own clients) from this address. Without
+      # it, it falls back to the container's own auto-assigned Docker hostname, which is not in the
+      # shared DS-HTTPS certificate's SAN list, so the callback's TLS handshake fails.
+      - EDC_DSP_CALLBACK_ADDRESS=https://ss0-ds-control-plane:8183/api/dsp/%s
+      # Same shared, self-signed DS-HTTPS certificate ds-https-keystore-init distributes to every
+      # other ds-* container in this environment: seeding it here (rather than the sidecar's own
+      # placeholder) is what lets ss1/CS trust sidecar-ss0's dataspace listeners, and lets
+      # sidecar-ss0 trust theirs back, since a self-signed certificate is its own trust anchor.
+      - XROAD_DS_HTTPS_CERT_FILE=/etc/xroad/ds-https-shared/ds-https-cert.pem
+      - XROAD_DS_HTTPS_KEY_FILE=/etc/xroad/ds-https-shared/ds-https-key.pem
+    volumes:
+      - ds-https-keystore:/etc/xroad/ds-https-shared:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 1536M
+        limits:
+          memory: 6144M
+
+volumes:
+  ds-https-keystore:
+    external: true
+    name: e2e-ds-https-keystore

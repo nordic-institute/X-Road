@@ -31,6 +31,52 @@ To run a single test class or method directly:
 ./gradlew :security-server:e2e-test:e2eTest --tests "SsProxyMessageFlowTest"
 ```
 
+### ss0 as a sidecar container
+
+Compose mode also has a per-instance stack switch, `-Pe2e.ss0-stack`, that swaps ss0 (only ss0; ss1,
+the Central Server stack and hurl are unaffected) from today's per-service stack to one full sidecar
+container (embedded PostgreSQL, embedded OpenBao, every service under supervisord):
+
+| `-Pe2e.ss0-stack` | ss0 shape |
+|--------------------|-----------|
+| `multi-container` (default) | Today's ~17-container per-service stack |
+| `sidecar` | One `xroad-security-server-sidecar` container |
+
+The sidecar image is built from tree-built Ubuntu DEBs, not published packages. From
+`core/sidecar/`, after `core/scripts/packages/build-deb.sh` (or an equivalent tree build) has
+produced DEBs under `core/deployment/native-packages/build/ubuntu26.04`:
+
+```bash
+cd core/sidecar
+./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
+./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
+```
+
+This produces the local images `xroad-security-server-sidecar:8.0.0-slim` and
+`xroad-security-server-sidecar:8.0.0`. The harness resolves the sidecar image the same way it
+resolves every other service image — through the generated `.env` (`SIDECAR_IMG`, tagged
+`<xroadImageRegistry>/xroad-security-server-sidecar:<xroadImageTag>`) — so push the locally built
+image to the local registry under that reference before running the suite:
+
+```bash
+docker tag xroad-security-server-sidecar:8.0.0 localhost:5555/xroad-security-server-sidecar:8.0.0-beta2-SNAPSHOT
+docker push localhost:5555/xroad-security-server-sidecar:8.0.0-beta2-SNAPSHOT
+```
+
+(`localhost:5555` and `8.0.0-beta2-SNAPSHOT` are `core/src/gradle.properties`'
+`xroadImageRegistry`/default `xroadImageTag`; `core/scripts/build-images.sh` starts the `xrd-registry`
+container if it is not already running.) Then run the suite with the variant selected:
+
+```bash
+cd core/src
+./gradlew :security-server:e2e-test:e2eTest -Pe2e.ss0-stack=sidecar
+```
+
+Messagelog/archive operations and the batch-signing/op-monitor config seeding that today's ss0
+overlays provide are not implemented for the sidecar shape yet, so the scenarios that depend on them
+fail rather than passing, while bootstrap, registration, and message exchange in both directions run
+as normal.
+
 ## Running locally — LXD mode
 
 LXD mode assumes the LXD environment is already running and bootstrapped. The

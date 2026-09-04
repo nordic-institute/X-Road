@@ -59,7 +59,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
 
     private AuxStackSetup aux;
-    private SsStackSetup ss0;
+    private AbstractSsStack ss0;
     private SsStackSetup ss1;
 
     public E2eEnvSetup(ApiTestCoreProperties coreProperties) {
@@ -73,8 +73,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         aux = new AuxStackSetup(coreProperties);
         aux.start();
 
-        ss0 = new SsStackSetup(coreProperties, "ss0",
-                Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER, SsStackSetup.Feature.OP_MONITOR));
+        ss0 = buildSs0Stack(coreProperties);
         ss0.start();
 
         ss1 = new SsStackSetup(coreProperties, "ss1",
@@ -134,6 +133,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public String execMessagelogSql(String envName, String sql) {
+        requireMultiContainerSs0(envName);
         var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
                 "psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
         if (result.getExitCode() != 0) {
@@ -145,6 +145,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public void triggerMessageLogCommand(String envName, String command) {
+        requireMultiContainerSs0(envName);
         var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
                 + " -Dquarkus.profile=containerized"
                 + " -jar /opt/app/quarkus-run.jar " + command
@@ -158,12 +159,14 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public void downloadMessageLogArchives(String envName, String localDir) {
+        requireMultiContainerSs0(envName);
         downloadArchivesTarball(envName, "/var/lib/xroad", localDir);
     }
 
     @Override
     @SneakyThrows
     public int decryptArchives(String envName, String filePrefix, String keyId, String passphrase, String outputDir) {
+        requireMultiContainerSs0(envName);
         var keyFile = "/gpg-keys/%s.asc".formatted(keyId);
         var remoteOutputDir = "/tmp/decrypt-" + UUID.randomUUID();
 
@@ -200,6 +203,31 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             case "aux" -> aux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
+    }
+
+    private AbstractSsStack buildSs0Stack(ApiTestCoreProperties coreProperties) {
+        var variant = coreProperties.ss0Stack();
+        return switch (variant) {
+            case "multi-container" -> new SsStackSetup(coreProperties, "ss0",
+                    Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER,
+                            SsStackSetup.Feature.OP_MONITOR));
+            case "sidecar" -> new SidecarSsStackSetup(coreProperties, "ss0");
+            default -> throw new IllegalArgumentException(
+                    "Unknown ss0-stack variant: " + variant + " — expected 'multi-container' or 'sidecar'");
+        };
+    }
+
+    /**
+     * The sidecar ss0 variant has no {@code db-messagelog}/{@code message-log-cli} containers to exec
+     * into; messagelog DB and archive operations against it are a follow-up (issue 05), not this
+     * slice, so they fail loudly here instead of surfacing an opaque "container not found".
+     */
+    private void requireMultiContainerSs0(String envName) {
+        if ("ss0".equals(envName) && ss0 instanceof SidecarSsStackSetup) {
+            throw new UnsupportedOperationException(
+                    "ss0 is running the sidecar stack variant (test-framework.ss0-stack=sidecar); "
+                            + "messagelog DB and archive operations are not implemented for it in this slice");
+        }
     }
 
     private void ensureDsHttpsKeystoreVolume() {
