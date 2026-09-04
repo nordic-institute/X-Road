@@ -66,6 +66,8 @@ public class SsStackSetup extends BaseComposeSetup {
     public static final String DB_MESSAGELOG = "db-messagelog";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
+    /** Not a compose service of this stack: a service-key token for {@code E2eEnvironment}'s test CA env. */
+    public static final String CA = "ca";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
@@ -210,6 +212,8 @@ public class SsStackSetup extends BaseComposeSetup {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
         public static final int PROXY_HEALTHCHECK = 5588;
+        /** Test CA's cert-issuance/serving port (the {@code ca-api} service port in the k8s fixtures chart). */
+        public static final int CA_API = 8888;
 
         private Port() {
         }

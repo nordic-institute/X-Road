@@ -423,6 +423,7 @@ public class K8sEnvSetup extends BaseComposeSetup
             case "ss0" -> k8sProperties.ss0Host();
             case "ss1" -> k8sProperties.ss1Host();
             case "aux" -> k8sProperties.csHost();
+            case "ca" -> k8sProperties.caHost();
             default -> throw new IllegalArgumentException("Unknown k8s environment: " + env);
         };
     }
@@ -447,6 +448,10 @@ public class K8sEnvSetup extends BaseComposeSetup
             };
             case "aux" -> switch (service) {
                 case SsStackSetup.UI -> k8sProperties.csUiPort();
+                default -> port;
+            };
+            case "ca" -> switch (service) {
+                case SsStackSetup.CA -> k8sProperties.caPort();
                 default -> port;
             };
             default -> throw new IllegalArgumentException("Unknown k8s environment: " + env);
