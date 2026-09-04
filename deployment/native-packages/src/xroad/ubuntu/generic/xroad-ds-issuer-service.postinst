@@ -1,8 +1,57 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
+log() { echo >&2 "xroad-ds-issuer-service: $*"; }
+get_prop() {
+  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+}
+
+# Writes the operator-confirmed dataspace issuer host into the issuer's own runtime
+# config, so the unit's first start already composes a reachable status-list
+# callback URL and hostname instead of EDC's http://localhost:6187/statuslist
+# fallback. The question is asked by the .config script (co-owned xroad-common
+# template), so the answer is available here regardless of dpkg configure order
+# against xroad-center.
+#
+# A key already present in the file survives install and upgrade untouched, except
+# under dpkg-reconfigure (DEBCONF_RECONFIGURE=1, or $1 = reconfigure per
+# debconf-devel(7) forward-compat guidance), which rewrites both keys from the
+# fresh answer.
+configure_ds_issuer_runtime() {
+  local -r config_file="/etc/xroad/conf.d/local-ds-issuer-service.yaml"
+
+  local reconfiguring=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    reconfiguring=1
+  fi
+
+  RET=""
+  db_get xroad-common/dataspace-issuer-host || true
+  local -r answer="${RET:-$(hostname -f)}"
+
+  if [[ ! -f "$config_file" ]]; then
+    install -m 0640 -o xroad -g xroad /dev/null "$config_file"
+  fi
+
+  local -r callback_key="edc.statuslist.callback.address"
+  local -r callback_value="https://${answer}:6187/statuslist"
+  if [[ -n "$reconfiguring" || -z $(get_prop "$config_file" "$callback_key") ]]; then
+    /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "$callback_key" "$callback_value"
+  else
+    log "$callback_key is already configured in $config_file, skipping"
+  fi
+
+  local -r hostname_key="edc.hostname"
+  if [[ -n "$reconfiguring" || -z $(get_prop "$config_file" "$hostname_key") ]]; then
+    /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "$hostname_key" "$answer"
+  else
+    log "$hostname_key is already configured in $config_file, skipping"
+  fi
+}
+
 if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then
   /usr/share/xroad/scripts/setup_ds_issuerservice_db.sh
+  configure_ds_issuer_runtime "$1"
 fi
 
 #DEBHELPER#

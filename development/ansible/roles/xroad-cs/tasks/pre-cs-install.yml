@@ -1,13 +1,19 @@
 ---
-# TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
-# that xroad-centralserver package auto-starts xroad-ds-issuer-service before
-# its runtime config is on disk, causing crash-loop / StartLimitBurst.
-# Pre-seeding here lets the service boot exactly once, cleanly.
+# TEMPORARY (dataspaces dev): this file pre-seeds values that xroad-centralserver's
+# packages need on disk before their own postinst starts a unit for the first time,
+# where provisioning is only-if-absent so a value arriving late never lands
+# (systemd drop-ins for the admin-service TLS certificate hostname and the Issuer
+# Service's vault CA trust). The statuslist-callback/hostname gap this file used to
+# paper over for xroad-ds-issuer-service is closed: the package's own postinst now
+# writes edc.hostname and edc.statuslist.callback.address from the debconf-sourced
+# dataspace issuer host answer before the unit's first start.
 #
-# Remove this file (and the `include_tasks: pre-cs-install.yml` line in main.yml)
-# once upstream packaging ships a debconf preseed for
-# ds-issuer-service: statuslist.callback.address,
-# AND the package no longer starts the unit unconditionally during postinst.
+# What remains here, and why:
+# - the systemd drop-ins (XROAD_HOST, QUARKUS_VAULT_TLS_CA_CERT) have no packaged
+#   equivalent yet — remove each once its underlying package ships one;
+# - xroad.edc.web.https.trust.reload-interval-seconds is genuine dev-only tuning
+#   (shortens a reload cycle for faster local iteration, not a correctness fix), so
+#   it stays regardless of packaging maturity.
 
 # xroad user/group are already created by the xroad-base role (meta dependency
 # of xroad-cs) before this file runs.
@@ -105,21 +111,7 @@
   when: cs_vault_tls_ca_dropin is changed
 
 # ---------------------------------------------------------------------------
-# 2. DS issuer-service runtime overrides. EDC's QuarkusConfigBridge only sees
-#    enumerable SmallRye sources (yaml/properties files); env-vars never reach
-#    EDC's @Setting resolution. These must exist before the unit's first start.
-#
-#    edc.statuslist.callback.address: EDC's LocalStatusListCredentialPublisher
-#    composes "http://${edc.hostname}:6187/statuslist" by default, but
-#    edc.hostname (templated as ${HOSTNAME} in application.yaml) doesn't resolve
-#    because the systemd unit doesn't export HOSTNAME to the JVM, so EDC
-#    defaults to "localhost". The URL must be reachable from any consumer SS's
-#    Identity Hub during VP validation — we point at the CS host directly.
-#    https because the owned Jetty module serves TLS on every ds-* port; plain
-#    http would surface as "unexpected end of stream" on the IH side.
-#
-# TEMPORARY (dataspaces dev): remove once xroad-ds-issuer-service debconf ships
-#   hostname and statuslist.callback.address config.
+# 2. DS issuer-service dev-only runtime tuning.
 #
 #    xroad.edc.web.https.trust.reload-interval-seconds: see the identical setting in
 #    xroad-ss/tasks/pre-ss-install.yml — the Issuer Service's own outbound self-connect trust needs
@@ -132,13 +124,6 @@
     group: xroad
     mode: "0640"
     content: |
-      edc:
-        hostname: "{{ groups['cs_servers'] | first }}"
-        statuslist:
-          callback:
-            # https because the owned Jetty module serves TLS on every ds-* port —
-            # plain http here surfaces as "unexpected end of stream" on the IH side.
-            address: "https://{{ groups['cs_servers'] | first }}:6187/statuslist"
       xroad:
         edc:
           web:
