@@ -75,9 +75,17 @@ cd core/src
 The batch-signing and op-monitor configuration today's ss0 overlays seed via one-shot psql containers
 is seeded here by scripts mounted into the sidecar's first-boot hook directory
 (`/etc/xroad/entrypoint.d`, see `core/sidecar/SIDECAR.md`), calling the native `db_property.sh` tool
-instead. Messagelog/archive operations are not implemented for the sidecar shape yet, so the ss0
-archive scenario fails rather than passing, while bootstrap, registration, message exchange in both
-directions, batch signing and op-monitor all run as normal.
+instead. Messagelog DB and archive operations exec into the single container (psql against the
+embedded PostgreSQL, the archiver CLI as the `xroad` user) in place of the multi-container stack's
+dedicated `db-messagelog`/`message-log-cli` containers. The full suite — bootstrap, registration,
+message exchange in both directions, monitoring, batch signing, op-monitor, and the ss0 archive
+scenario — passes against the variant with the same self-skips as the default compose run (the three
+scenarios gated on `DsControlPlaneDbOps`, which only `K8sEnvSetup` and `LxdEnvSetup` implement).
+
+Softtoken-signer coverage is dropped from this variant: the sidecar image has no split-signer
+process, so a stack running it can never carry the softtoken-signer feature overlay. The k8s e2e mode
+keeps the split enabled on its ss0 and is this feature's documented coverage home; the LXD mode has
+never enabled it either.
 
 ## Running locally — LXD mode
 
