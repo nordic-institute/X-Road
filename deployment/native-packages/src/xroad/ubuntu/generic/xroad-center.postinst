@@ -198,6 +198,52 @@ EOF
     fi
 }
 
+# Asks (or, on upgrade over an existing row, skips) the dataspace issuer host question and
+# writes the answer to the CS configuration_properties DB layer — the only place the DSL config
+# resolves this key from. Must run after setup_database() so the table exists.
+#
+# dpkg-reconfigure always calls this script with "configure" (never "reconfigure" — Debian
+# reserves that argument for the .config script), so the reconfigure case can't be told apart
+# from a plain configure by $1. It does export DEBCONF_RECONFIGURE=1, which is the documented
+# signal maintainer scripts use for exactly this.
+configure_dataspace_issuer_host() {
+  local -r key="xroad.dataspace.issuer.host"
+  local -r template="xroad-common/dataspace-issuer-host"
+  local -r reconfiguring="${DEBCONF_RECONFIGURE:-}"
+
+  local existing="" row_present=0
+  if existing=$(/usr/share/xroad/scripts/db_property.sh get "$key" 2>/dev/null); then
+    row_present=1
+  fi
+
+  if [[ "$row_present" -eq 1 && "$reconfiguring" != "1" ]]; then
+    log "Dataspace issuer host is already configured, skipping"
+    return
+  fi
+
+  local default
+  if [[ "$row_present" -eq 1 ]]; then
+    default="$existing"
+  else
+    default="$(hostname -f)"
+  fi
+
+  db_subst "$template" DEFAULT "$default"
+
+  if [[ "$reconfiguring" == "1" ]]; then
+    db_set "$template" "$default"
+  else
+    db_get "$template"
+    [ -z "$RET" ] && db_set "$template" "$default"
+  fi
+
+  db_input critical "$template" || true
+  db_go
+
+  db_get "$template"
+  /usr/share/xroad/scripts/db_property.sh set "$key" "$RET" --yes
+}
+
 extract_ip_list() {
   echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
 }
@@ -299,6 +345,7 @@ case "$1" in
 configure | reconfigure)
     prepare_certificates_settings
     setup_database
+    configure_dataspace_issuer_host
 
     RET=""
     db_get xroad-common/username

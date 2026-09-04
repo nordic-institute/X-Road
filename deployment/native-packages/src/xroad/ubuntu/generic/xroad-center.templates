@@ -96,3 +96,14 @@ Description: Skip automatic database migrations?
  The normal operation is to perform the central server database migrations automatically.
  .
  To make it possible to keep using legacy database solutions such as BDR1, the automatic migrations can be skipped.
+
+Template: xroad-common/dataspace-issuer-host
+Type: string
+Description: Insert dataspace issuer host [default=${DEFAULT}]
+ This is the federation-visible name under which this Central Server publishes its dataspace Issuer DID.
+ .
+ It is often a public hostname or a load balancer name reachable by Security Servers and other federation participants, not necessarily this machine's own hostname.
+ .
+ Changing this value after credentials have been issued requires re-issuing them.
+ .
+ Suggested default: ${DEFAULT}
