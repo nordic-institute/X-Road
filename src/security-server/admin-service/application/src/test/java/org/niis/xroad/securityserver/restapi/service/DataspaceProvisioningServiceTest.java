@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -127,9 +129,10 @@ class DataspaceProvisioningServiceTest {
                 anyString(), anyString(), anyString());
     }
 
-    @Test
-    void ensureMembershipCredentialNoOpWhenSlot0IsPending() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.PENDING.name());
+    @ParameterizedTest
+    @ValueSource(strings = {"CREATED", "REQUESTING", "REQUESTED"})
+    void ensureMembershipCredentialNoOpWhenSlot0IsInFlight(String hubState) {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(hubState);
 
         assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.PENDING);
 
@@ -200,9 +203,10 @@ class DataspaceProvisioningServiceTest {
         assertThat(status).isEqualTo(CredentialStatus.ISSUED);
     }
 
-    @Test
-    void readCredentialStatusReturnsPendingWhenSlot0Pending() {
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.PENDING.name());
+    @ParameterizedTest
+    @ValueSource(strings = {"CREATED", "REQUESTING", "REQUESTED"})
+    void readCredentialStatusMapsInFlightHubStateToPending(String hubState) {
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(hubState);
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -212,7 +216,7 @@ class DataspaceProvisioningServiceTest {
     @Test
     void readCredentialStatusSkipsErrorSlotAndReturnsNextActiveStatus() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ERROR.name());
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(CredentialStatus.PENDING.name());
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn("REQUESTED");
 
         var status = service.readCredentialStatus(PARTICIPANT_ID);
 
@@ -261,14 +265,12 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureMembershipCredentialAdvancesPastUnrecognizedHubState() {
+    void ensureMembershipCredentialLeavesUnrecognizedHubStateUntouched() {
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn("APPROVED");
-        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT1)).thenReturn(null);
 
-        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.PENDING);
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.UNKNOWN);
 
-        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT1),
-                anyString(), anyString(), anyString());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
     }
 
     // --- participantContexts ---

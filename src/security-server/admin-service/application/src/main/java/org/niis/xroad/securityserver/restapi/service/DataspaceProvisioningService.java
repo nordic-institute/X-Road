@@ -85,6 +85,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
  * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".</p>
+ *
+ * <p>The identity hub reports raw EDC {@code HolderRequestState} names, which have no PENDING value:
+ * CREATED, REQUESTING and REQUESTED all denote a request in flight and map to {@link CredentialStatus#PENDING}.</p>
  */
 @Slf4j
 @Service
@@ -146,6 +149,7 @@ public class DataspaceProvisioningService {
     private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
+    private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
@@ -192,13 +196,14 @@ public class DataspaceProvisioningService {
 
     /**
      * Ensures an active membership credential request exists for the given participant context,
-     * in a single holder-pid slot scan: an existing ISSUED or PENDING request is left alone, a new
-     * request is submitted into the first free slot otherwise. Advances past slots in terminal
-     * ERROR state. Returns immediately — does not poll for the outcome.
+     * in a single holder-pid slot scan: a slot reporting any state other than terminal ERROR is
+     * left alone, a new request is submitted into the first free slot otherwise. Advances past
+     * slots in terminal ERROR state only. Returns immediately — does not poll for the outcome.
      *
      * @param participantId the participant context id
      * @return {@code ISSUED} for a terminally issued credential, {@code PENDING} when a request is
-     *         active or was just submitted, {@code ERROR} when all slots are exhausted
+     *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
+     *         {@code ERROR} when all slots are exhausted
      */
     public CredentialStatus ensureMembershipCredential(String participantId) {
         var ds = adminServiceProperties.getDataspace();
@@ -212,7 +217,7 @@ public class DataspaceProvisioningService {
                 return CredentialStatus.PENDING;
             }
             var status = hubCredentialState(state);
-            if (status == CredentialStatus.ISSUED || status == CredentialStatus.PENDING) {
+            if (status != CredentialStatus.ERROR) {
                 return status;
             }
             // ERROR — advance to next slot
@@ -253,6 +258,9 @@ public class DataspaceProvisioningService {
     }
 
     private static CredentialStatus hubCredentialState(String state) {
+        if (IN_FLIGHT_EDC_STATES.contains(state)) {
+            return CredentialStatus.PENDING;
+        }
         return EnumUtils.getEnum(CredentialStatus.class, state, CredentialStatus.UNKNOWN);
     }
 
