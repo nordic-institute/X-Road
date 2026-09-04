@@ -72,10 +72,12 @@ cd core/src
 ./gradlew :security-server:e2e-test:e2eTest -Pe2e.ss0-stack=sidecar
 ```
 
-Messagelog/archive operations and the batch-signing/op-monitor config seeding that today's ss0
-overlays provide are not implemented for the sidecar shape yet, so the scenarios that depend on them
-fail rather than passing, while bootstrap, registration, and message exchange in both directions run
-as normal.
+The batch-signing and op-monitor configuration today's ss0 overlays seed via one-shot psql containers
+is seeded here by scripts mounted into the sidecar's first-boot hook directory
+(`/etc/xroad/entrypoint.d`, see `core/sidecar/SIDECAR.md`), calling the native `db_property.sh` tool
+instead. Messagelog/archive operations are not implemented for the sidecar shape yet, so the ss0
+archive scenario fails rather than passing, while bootstrap, registration, message exchange in both
+directions, batch signing and op-monitor all run as normal.
 
 ## Running locally — LXD mode
 

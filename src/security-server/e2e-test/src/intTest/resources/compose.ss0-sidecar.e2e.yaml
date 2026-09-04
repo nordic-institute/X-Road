@@ -31,6 +31,7 @@ services:
       - XROAD_DS_HTTPS_KEY_FILE=/etc/xroad/ds-https-shared/ds-https-key.pem
     volumes:
       - ds-https-keystore:/etc/xroad/ds-https-shared:ro
+      - ./container-files/etc/xroad/entrypoint.d:/etc/xroad/entrypoint.d:ro
     deploy:
       resources:
         reservations:
