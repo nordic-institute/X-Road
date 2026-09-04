@@ -181,7 +181,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
-RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
+RECONFIG=(xroad-signer xroad-proxy xroad-proxy-ui-api xroad-confclient)
 if dpkg -s xroad-opmonitor &>/dev/null; then
   RECONFIG+=(xroad-opmonitor)
 fi
