@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.8.3 - 2026-08-14
+## 7.8.3 - 2026-09-04
 - XRDDEV-3262: Fix an issue with signature MIME part remaining unbounded.
 - XRDDEV-3263: Fix a hash chain verification-related security vulnerability affecting local/offline signature verification.
 - XRDDEV-3264: Fix an issue where cached certificate was trusted without checking configuration source.
@@ -11,7 +11,7 @@
 - XRDDEV-3269: Fix an issue with Signature-XML DOM parser allowing DOCTYPE.
 - XRDDEV-3271: Fix a global configuration-related security vulnerability in the Configuration Client and Configuration Proxy.
 - XRDDEV-3272: Fix a global configuration-related security vulnerability in the Configuration Client and Configuration Proxy.
-- XRDDEV-3276: Fix an access control issue with the send-test-mail function in the Central Server.
+- XRDDEV-3276: Fix an access control issue with the send-test-mail function in the Security Server.
 - XRDDEV-3277: Fix an issue with subsystem registration status resolution in the Central Server.
 - XRDDEV-3278: Fix a configuration client-related security vulnerability in the Security Server.
 - XRDDEV-3281: Fix an ACME HTTP-01 challenge handling-related security vulnerability in the Security Server.

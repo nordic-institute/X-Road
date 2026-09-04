@@ -6,7 +6,7 @@ publiccodeYmlVersion: "0.4"
 name: X-Road®
 url: https://github.com/nordic-institute/X-Road
 softwareVersion: 7.8.3
-releaseDate: 2026-08-17
+releaseDate: 2026-09-04
 logo: https://raw.githubusercontent.com/nordic-institute/X-Road/master/xroad_logo_small.png
 platforms:
   - linux
