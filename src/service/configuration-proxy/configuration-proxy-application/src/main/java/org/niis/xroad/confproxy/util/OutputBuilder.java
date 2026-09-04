@@ -40,6 +40,7 @@ import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
+import org.niis.xroad.globalconf.model.ConfigurationUtils;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
@@ -235,8 +236,11 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        boolean isVersionGt2 = metadata.getConfigurationVersion() != null
-                && Integer.parseInt(metadata.getConfigurationVersion()) > 2;
+        Integer versionInt = ConfigurationUtils.parseGlobalConfVersion(metadata.getConfigurationVersion());
+        if (versionInt == null) {
+            return false;
+        }
+        boolean isVersionGt2 = versionInt > 2;
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
         boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
         return isVersionGt2 && isSharedParams && isMainInstance;
