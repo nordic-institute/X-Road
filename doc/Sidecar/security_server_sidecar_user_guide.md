@@ -424,20 +424,11 @@ When `XROAD_SECRET_STORE_HOST` is set, the embedded OpenBao program does not sta
 attempt to initialize it; the X-Road services connect to the external store using the values provided.
 
 The `full` image's dataspace services (ds-control-plane, ds-identity-hub) also need a TLS certificate for their
-HTTPS listeners. By default the container mints a self-signed placeholder on first boot, purely so those services
-start — real peers will not trust it. To supply a real certificate instead, mount the PEM files into the container
-and set:
-
-| Variable                    | Description                                          |
-|------------------------------|-------------------------------------------------------|
-| `XROAD_DS_HTTPS_CERT_FILE`  | Path to the certificate, PEM-encoded                  |
-| `XROAD_DS_HTTPS_KEY_FILE`   | Path to the matching private key, PEM-encoded         |
-
-Both variables are required together; setting only one is an error. When set, the container seeds that
-certificate and key into the secret store instead of generating a placeholder, and also imports the certificate as
-a trusted system CA so the container's own outbound dataspace calls accept it back from any peer presenting the
-same certificate — the setup a shared, self-signed certificate across every participant needs. Like the placeholder,
-this only happens once on first boot; a later restart does not re-check or re-import it.
+HTTPS listeners. The sidecar handles this the same way as every other deployment mode: the services start with the
+certificate slot empty and wait until one is provisioned through the admin API — either by uploading a certificate
+signed against a CSR downloaded from the server, or by ACME enrollment from an approved CA. Self-signed
+certificates are not accepted by peers: outbound dataspace connections validate the peer's certificate against the
+approved CAs designated in the global configuration only.
 
 ### 2.11 Health Checks
 

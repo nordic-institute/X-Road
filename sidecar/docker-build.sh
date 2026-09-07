@@ -81,6 +81,9 @@ fi
 # Prepare mirror build args (unless --no-mirror flag is set)
 MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
 
+# Scripts shared with the native packages, kept out of the sidecar build context
+SHARED_SCRIPT_BUILD_ARGS=(--build-context "secret-store-scripts=$dir/../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts")
+
 # Add Docker Hub mirror build arg if configured
 if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
   MIRROR_BUILD_ARGS+=(--build-arg "DOCKER_REGISTRY=${XROAD_MIRROR_DOCKER_URL}")
@@ -103,7 +106,7 @@ build() {
   [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
   local package_args=()
   [[ "${3:-}" == "true" ]] && package_args=("${PACKAGE_BUILD_ARGS[@]+"${PACKAGE_BUILD_ARGS[@]}"}")
-  docker build --progress=plain -f "$1" "${build_args[@]}" "${package_args[@]+"${package_args[@]}"}" "${MIRROR_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
+  docker build --progress=plain -f "$1" "${build_args[@]}" "${package_args[@]+"${package_args[@]}"}" "${MIRROR_BUILD_ARGS[@]}" "${SHARED_SCRIPT_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
 copy_variant_conf() {

@@ -127,7 +127,8 @@ RUN rm -f \
 COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
-COPY --chown=root:root files/_openbao.sh files/secret-store-init.sh files/xroad-secret-store-gate.sh files/dsp-config-seed.sh files/signer-autologin-config-seed.sh /usr/share/xroad/scripts/sidecar/
+COPY --from=secret-store-scripts --chown=root:root _openbao.sh /usr/share/xroad/scripts/sidecar/
+COPY --chown=root:root files/secret-store-init.sh files/xroad-secret-store-gate.sh files/dsp-config-seed.sh files/signer-autologin-config-seed.sh /usr/share/xroad/scripts/sidecar/
 RUN chmod 0755 /usr/share/xroad/scripts/sidecar/*.sh
 
 # Cleanup mirror configuration (restore public mirrors for published image)
