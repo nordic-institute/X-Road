@@ -178,9 +178,20 @@ EOF
 #
 # A database error while reading the row aborts rather than counting as "row absent": treating
 # it as absent would overwrite the instance-wide row on an HA node join.
+#
+# When database migrations were skipped (operator-managed/legacy migration installs), the whole
+# step is skipped: the schema may predate the configuration_properties table, and the retained
+# debconf answer can be applied later via dpkg-reconfigure once the schema is migrated.
 configure_dataspace_issuer_host() {
   local -r key="xroad.dataspace.issuer.host"
   local -r template="xroad-common/dataspace-issuer-host"
+
+  RET=""
+  db_get xroad-common/skip-cs-db-migrations || true
+  if [[ "$RET" == "true" ]]; then
+    log "Database migrations were skipped — not storing ${key}; run 'dpkg-reconfigure xroad-center' after migrating"
+    return
+  fi
 
   local reconfiguring=""
   if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then

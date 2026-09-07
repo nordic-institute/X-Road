@@ -2,6 +2,11 @@
 . /usr/share/debconf/confmodule
 
 log() { echo >&2 "xroad-ds-issuer-service: $*"; }
+abort() {
+  local rc=$?
+  echo >&2 "xroad-ds-issuer-service: FATAL: $*"
+  exit $rc
+}
 get_prop() {
   /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
 }
@@ -36,14 +41,16 @@ configure_ds_issuer_runtime() {
   local -r callback_key="edc.statuslist.callback.address"
   local -r callback_value="https://${answer}:6187/statuslist"
   if [[ -n "$reconfiguring" || -z $(get_prop "$config_file" "$callback_key") ]]; then
-    /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "$callback_key" "$callback_value"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "$callback_key" "$callback_value" \
+      || abort "Failed to write ${callback_key} to ${config_file}. ABORTING."
   else
     log "$callback_key is already configured in $config_file, skipping"
   fi
 
   local -r hostname_key="edc.hostname"
   if [[ -n "$reconfiguring" || -z $(get_prop "$config_file" "$hostname_key") ]]; then
-    /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "$hostname_key" "$answer"
+    /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "$hostname_key" "$answer" \
+      || abort "Failed to write ${hostname_key} to ${config_file}. ABORTING."
   else
     log "$hostname_key is already configured in $config_file, skipping"
   fi
