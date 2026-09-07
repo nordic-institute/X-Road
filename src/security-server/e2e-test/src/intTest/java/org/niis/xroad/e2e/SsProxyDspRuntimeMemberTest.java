@@ -52,16 +52,47 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 
 /**
  * Proves the story's central, otherwise-unprovable claim: a second, distinct X-Road member, newly
- * onboarded to ss0 <b>after</b> the stack is already running, serves a real transfer under its own
- * dataspace participant context, with no proxy or connector restart anywhere in the flow.
+ * onboarded to ss0 <b>after</b> the stack is already running, serves a real transfer to a counter-party
+ * on the same Security Server, with no proxy or connector restart anywhere in the flow.
  *
  * <p>ss0 already hosts member {@code DEV:COM:1234} (subsystems {@code TestService}/{@code TestSaved}),
  * seeded at environment bring-up. This scenario adds a client for member {@code DEV:COM:4321} — an
  * X-Road member that already exists (it owns ss1) but has never had a client on ss0 — entirely through
- * ss0's own admin API, at test run time: local client add, registration, a REST service description,
- * self access rights, then a same-SS self-call exactly like {@link SsProxyDspSelfCallTest}, reusing that
- * class's converged-negotiation/single-agreement/transfer-succeeded assertions against this member's own,
- * brand-new participant context instead of {@code DEV:COM:1234}'s.
+ * ss0's own admin API, at test run time: local client add, registration, a REST service description.
+ * That new client is the <b>provider</b>. The <b>consumer</b> is {@code DEV:COM:1234:TestService},
+ * ss0's own already-registered, already-proven subsystem, granted access to the new client's service.
+ *
+ * <p><b>Why the consumer cannot be the new client calling itself.</b> {@link SsProxyDspSelfCallTest}'s
+ * same-identity self-call only works because {@code DEV:COM:1234} <i>is</i> ss0's owner: the proxy's
+ * consumer path always presents the fixed {@code xrd-ss0} host identity, and that coincides with
+ * {@code TestService}'s own participant identity for that scenario. The new client is not ss0's owner,
+ * so its service offer is ODRL-gated on {@code XROAD_CLIENT_ID == DEV:COM:4321:RuntimeService} — a
+ * condition the fixed {@code xrd-ss0} consumer identity can never satisfy. The proxy's consumer-side
+ * per-request participant context (which would let a call genuinely present the new client's own
+ * identity) is not something this epic addresses. So the consumer here is deliberately a subsystem
+ * that already, legitimately presents {@code xrd-ss0}: {@code TestService}.
+ *
+ * <p><b>Which participant context the transfer actually rides.</b> Publication is additive during this
+ * epic (the legacy host-context publication is removed only by a later cutover story), so the new
+ * client's service is published under {@code xrd-ss0} in addition to its own {@code DEV:COM:4321}
+ * context. A {@code TestService} (host-identity) consumer only ever discovers and negotiates the
+ * {@code xrd-ss0} copy of that offer, so the resulting negotiation, agreement and transfer all carry
+ * participant context {@code xrd-ss0} — confirmed by querying the live e2e cluster's
+ * {@code edc_contract_negotiation}/{@code edc_contract_agreement} rows for this exact consumer/provider
+ * pair, not assumed. This scenario therefore does <b>not</b> exercise the new member's own participant
+ * context as the transfer's context — {@link #awaitMemberContextIssued} still confirms that context and
+ * its membership credential are independently provisioned, proving the runtime member is a genuine
+ * dataspace participant, just not the one this particular transfer happens to travel under.
+ *
+ * <p><b>Per-member data-plane registration (slice 01) is not re-proven here.</b> Because the transfer
+ * rides {@code xrd-ss0}, it uses the boot-time host data-plane instance, not a runtime-registered
+ * instance scoped to {@code DEV:COM:4321}. The EDC data-plane instance store is in-memory in the control
+ * plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d} on the live database
+ * lists no data-plane-instance table) and no externally reachable listing endpoint the control port
+ * exposes (that port carries data-plane signaling callbacks, not a selector query API) — so a per-member
+ * data-plane record is not observable from an end-to-end test without addressing the member context
+ * directly, which the consumer-side gap above rules out. That registration path is proven by
+ * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests instead.
  *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
@@ -80,7 +111,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * exact pre-archive messagelog assertions) and after {@link SsProxyDspSelfCallTest}, before
  * {@link SsMonitoringTest} (whose operational-data assertions accumulate over the whole run).
  */
-@DisplayName("SS proxy - runtime-provisioned member transfers over its own dataspace context")
+@DisplayName("SS proxy - runtime-provisioned member serves a host-context consumer, no restart")
 @Order(350)
 @Slf4j
 @SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
@@ -109,12 +140,36 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
-    private static final String NEW_CLIENT_X_ROAD_ID = "DEV/COM/4321/RuntimeService";
     private static final String NEW_SERVICE_PATH = "/r1/DEV/COM/4321/RuntimeService/mock1";
     private static final String REST_SERVICE_CODE = "mock1";
 
+    /**
+     * The consumer: ss0's own, already-registered {@code TestService} subsystem, whose calls the proxy's
+     * fixed consumer identity legitimately presents as {@code xrd-ss0}. See the class doc's "Why the
+     * consumer cannot be the new client calling itself".
+     */
+    private static final String CONSUMER_CLIENT_ID = "DEV:COM:1234:TestService";
+    private static final String CONSUMER_X_ROAD_ID = "DEV/COM/1234/TestService";
+
     /** ss0's pre-existing TestService/mock1 REST service, whose backend URL is reused for the new client. */
-    private static final String EXISTING_SERVICE_ID = "DEV:COM:1234:TestService%3Amock1";
+    private static final String EXISTING_SERVICE_ID = "DEV:COM:1234:TestService:mock1";
+
+    /**
+     * The participant context this scenario's negotiation, agreement and transfer actually carry —
+     * confirmed by querying the live e2e cluster's {@code edc_contract_negotiation}/
+     * {@code edc_contract_agreement} rows for this exact consumer/provider pair, not assumed. It is
+     * {@code TestService}'s own host identity, not {@link #NEW_MEMBER_CTX_ID}: see the class doc's
+     * "Which participant context the transfer actually rides".
+     */
+    private static final String EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID = "xrd-ss0";
+
+    /**
+     * The DSP asset id for the new client's service — its full client id and the REST service code,
+     * colon-joined, confirmed live against {@code edc_contract_agreement.asset_id}. Matched with
+     * full-string equality so it disambiguates this scenario's negotiation from every other one sharing
+     * {@link #EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID}.
+     */
+    private static final String ASSET_ID = NEW_CLIENT_ID + ":" + REST_SERVICE_CODE;
 
     /**
      * ss0's own token, addressed the same way {@code setup.hurl}'s ss0 sign-key block does
@@ -143,6 +198,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration TRANSFER_POLL_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration TRANSFER_POLL_INTERVAL = Duration.ofSeconds(2);
+    private static final Duration CATALOG_VISIBILITY_TIMEOUT = Duration.ofSeconds(150);
+    private static final Duration CATALOG_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(10);
 
     private record AdminSession(Map<String, String> cookies, String xsrfToken) {
     }
@@ -165,8 +222,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     @Test
-    @DisplayName("A member added to ss0 at runtime transfers over its own participant context, no restart")
-    void memberAddedAtRuntimeTransfersOverOwnContext(E2eEnvironment env) {
+    @DisplayName("A member onboarded to ss0 at runtime serves a host-context consumer, no restart")
+    void memberOnboardedAtRuntimeServesAHostContextConsumer(E2eEnvironment env) {
         Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
                 () -> "%s does not run the dataspace protocol stack; runtime member provisioning is only wired for k8s and LXD"
                         .formatted(env.getClass().getSimpleName()));
@@ -204,20 +261,23 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         and("the new service description is enabled", () ->
                 enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
 
-        and("the new client is granted access to its own service, for the self-call below", () ->
-                grantSelfAccessRights(ss0BaseUrl, ss0Session, clientId));
+        and("the existing host-context consumer TestService is granted access to the new client's service", () ->
+                grantConsumerAccessRights(ss0BaseUrl, ss0Session, clientId, CONSUMER_CLIENT_ID));
 
-        then("the new member's participant context and membership credential are provisioned, with no restart", () ->
+        then("the new member's own participant context and membership credential are provisioned, independent of "
+                + "which context the transfer below ends up riding, with no restart", () ->
                 awaitMemberContextIssued(ss0BaseUrl, ss0Session));
 
-        var response = when("a REST request is sent from the new client to itself via the ss0 proxy", () ->
-                sendSelfCallRequest(env));
+        var response = when(
+                "a REST request from the host-context consumer to the new client's service succeeds via the ss0 proxy, "
+                        + "within the catalog cache window",
+                () -> awaitCallSucceeds(env));
 
-        then("the response is 200 with the expected POST service message", () ->
-                response.statusCode(200).body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
+        then("the response carries the expected POST service message", () ->
+                response.body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
 
         var agreementInternalId = then(
-                "the self-negotiation converges: two FINALIZED negotiations under the new member's own context FK-resolve to one agreement",
+                "the negotiation converges: two FINALIZED negotiations under the shared host context FK-resolve to one agreement",
                 () -> awaitConvergedNegotiations(dbOps));
 
         and("exactly one edc_contract_agreement row exists for the converged (agreement id, participant context) pair", () ->
@@ -565,11 +625,13 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Grants the new client access to its own service, mirroring the environment bring-up's own
-     * self-access grant for {@code TestService} (see {@link SsProxyDspSelfCallTest}). Tolerates 409 so
-     * this stays safe to run against a substrate where the grant already exists.
+     * Grants the host-context consumer ({@link #CONSUMER_CLIENT_ID}) access to the new provider
+     * client's service — the new client cannot legitimately call its own service (see the class doc),
+     * so this is an access right onto a different subject than the environment bring-up's own
+     * {@code TestService} self-access grant. Tolerates 409 so this stays safe to run against a
+     * substrate where the grant already exists.
      */
-    private void grantSelfAccessRights(String ss0BaseUrl, AdminSession ss0, String clientId) {
+    private void grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId, String consumerClientId) {
         var body = """
                 {
                   "items": [
@@ -580,9 +642,9 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         var response = authed(ss0)
                 .header("Content-Type", "application/json")
                 .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-clients/" + clientId + "/access-rights");
+                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId + "/access-rights");
         assertThat(response.getStatusCode())
-                .as("grant %s access to its own service", clientId)
+                .as("grant %s access to %s's service", consumerClientId, providerClientId)
                 .isIn(201, 409);
     }
 
@@ -619,26 +681,55 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         }
     }
 
-    private ValidatableResponse sendSelfCallRequest(E2eEnvironment env) {
+    /**
+     * The provider control plane serves the catalog from an enumeration cache with a bounded TTL
+     * (default 60 s), and service-description changes deliberately carry no invalidation signal — a
+     * freshly added service is contractually visible only after the cache expires. Retries the
+     * consumer's call across that window instead of asserting on the first attempt.
+     */
+    private ValidatableResponse awaitCallSucceeds(E2eEnvironment env) {
+        var last = new AtomicReference<ValidatableResponse>();
+        Awaitility.await()
+                .pollInterval(CATALOG_VISIBILITY_POLL_INTERVAL)
+                .timeout(CATALOG_VISIBILITY_TIMEOUT)
+                .untilAsserted(() -> {
+                    var response = sendConsumerCallRequest(env);
+                    last.set(response);
+                    assertThat(response.extract().statusCode())
+                            .as("consumer call via ss0 proxy (catalog visibility is bounded by the enumeration cache TTL)")
+                            .isEqualTo(200);
+                });
+        return last.get();
+    }
+
+    /**
+     * Sends the REST request as {@link #CONSUMER_CLIENT_ID} — ss0's own {@code TestService}, not the new
+     * client — to the new client's service. See the class doc's "Why the consumer cannot be the new
+     * client calling itself".
+     */
+    private ValidatableResponse sendConsumerCallRequest(E2eEnvironment env) {
         var mapping = env.getContainerMapping(SS0_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
         return RestAssuredFactory.given()
                 .body(REST_REQUEST_BODY)
                 .header("Content-Type", "application/json")
-                .header("x-road-client", NEW_CLIENT_X_ROAD_ID)
+                .header("x-road-client", CONSUMER_X_ROAD_ID)
                 .post("http://%s:%s%s".formatted(mapping.host(), mapping.port(), NEW_SERVICE_PATH))
                 .then();
     }
 
     /**
-     * Identical in shape to {@link SsProxyDspSelfCallTest#awaitConvergedNegotiations}, but scoped by the
-     * new member's own participant context id rather than an asset-id join plus a non-management filter:
-     * {@link #NEW_MEMBER_CTX_ID} is brand-new to this test run, so no other scenario's negotiation can
-     * ever share it — unlike {@code DEV:COM:1234}'s context, which several other scenarios also use.
+     * Similar in shape to {@link SsProxyDspSelfCallTest#awaitConvergedNegotiations}, but the roles of its
+     * two filters are swapped: there, the participant context id ({@code DEV:COM:1234}'s) is shared
+     * across scenarios and the asset id alone disambiguates; here, {@link #EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID}
+     * ({@code xrd-ss0}) is <i>also</i> shared — it is the whole server's default host context, used by
+     * plenty of other traffic including {@link SsProxyDspSelfCallTest}'s own negotiation — so the asset id
+     * join is what makes this scenario's own pair unambiguous, exactly as it does there.
      */
     private String awaitConvergedNegotiations(DsControlPlaneDbOps dbOps) {
         var candidateSql = "SELECT n.agreement_id FROM edc_contract_negotiation n "
                 + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
-                + "WHERE n.agreement_id IS NOT NULL AND n.participant_context_id = '" + NEW_MEMBER_CTX_ID + "'"
+                + "WHERE n.agreement_id IS NOT NULL AND n.participant_context_id = '" + EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID + "'"
+                + " AND a.asset_id = '" + ASSET_ID + "'"
                 + " GROUP BY n.agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
                 + " ORDER BY MAX(n.created_at) DESC LIMIT 1";
         var lastSeen = new AtomicReference<>(List.<String[]>of());
@@ -666,9 +757,10 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                     });
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
-                    "Timed out waiting for a converged self-negotiation pair under participant context '%s' "
+                    "Timed out waiting for a converged negotiation pair under participant context '%s' for asset '%s' "
                             + "(two FINALIZED rows sharing one agreement); last observed candidate group's rows "
-                            + "(id|state|agreement_id|participant_context_id): %s".formatted(NEW_MEMBER_CTX_ID, lastSeen.get()), e);
+                            + "(id|state|agreement_id|participant_context_id): %s"
+                            .formatted(EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID, ASSET_ID, lastSeen.get()), e);
         }
 
         return lastSeen.get().get(0)[2];
@@ -685,8 +777,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         var wireAgreementId = agreementRows.get(0)[0];
         var participantContextId = agreementRows.get(0)[1];
         assertThat(participantContextId)
-                .as("the converged agreement's participant context")
-                .isEqualTo(NEW_MEMBER_CTX_ID);
+                .as("the converged agreement's participant context (the shared host context, confirmed live — see the class doc)")
+                .isEqualTo(EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID);
 
         var compositeCount = Integer.parseInt(dbOps.execDsControlPlaneSql(SS0_ENV,
                 ("SELECT COUNT(*) FROM edc_contract_agreement "
