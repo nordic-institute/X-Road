@@ -253,6 +253,29 @@ class NotificationServiceImplTest {
         assertThat(alerts).containsExactly(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
     }
 
+    @Test
+    void getAlertsDsTlsAcmeEnrollmentStatusCheckThrowsProducesFallbackAlertNotException() {
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenThrow(new RuntimeException("vault unreachable"));
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.dataspace_tls_acme.status_check_failed"));
+    }
+
+    @Test
+    void getAlertsSurfacesBothSignerErrorAndDsTlsAcmeFailureWhenBothFail() {
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "CA unreachable"));
+        when(signerProxyFacade.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(2)
+                .contains(new AlertInfo("status.signer_error"))
+                .contains(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
+    }
+
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {
         KeyInfoProto keyinfo = KeyInfoProto.newBuilder()
                 .setAvailable(keyAvailable)

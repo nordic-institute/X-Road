@@ -485,7 +485,8 @@
   "status": {
     "dataspace_tls_acme": {
       "enrollment_failing": "Регистрация сертификата DS TLS через ACME не удалась: {0}",
-      "renewal_failing": "Продление сертификата DS TLS через ACME не удалось: {0}"
+      "renewal_failing": "Продление сертификата DS TLS через ACME не удалось: {0}",
+      "status_check_failed": "Не удалось проверить статус ACME сертификата DS TLS"
     },
     "global_conf_generation": {
       "failing": "Создание глобальной конфигурации не удалось с {0}",

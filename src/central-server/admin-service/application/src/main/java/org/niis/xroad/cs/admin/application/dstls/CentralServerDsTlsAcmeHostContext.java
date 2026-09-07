@@ -76,6 +76,16 @@ public class CentralServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
     }
 
     /**
+     * Central Server determines its designated DS TLS CA by querying its own database directly ({@link
+     * DsTlsCertificationAuthoritiesService}), never from globalconf distribution, so a transient globalconf
+     * generation problem on this server's own side has no bearing on this worker's ability to run.
+     */
+    @Override
+    public boolean requiresValidGlobalConf() {
+        return false;
+    }
+
+    /**
      * @return every DS TLS certification authority Central Server's own {@link DsTlsCertificationAuthoritiesService}
      *     currently has on record. The shared worker filters this down to the ACME-capable entries itself.
      */

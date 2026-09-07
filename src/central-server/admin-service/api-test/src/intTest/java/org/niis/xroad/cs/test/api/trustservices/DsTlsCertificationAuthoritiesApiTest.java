@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.test.api.trustservices;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.DsTlsCertificationAuthoritiesAdminClient;
@@ -54,6 +55,7 @@ class DsTlsCertificationAuthoritiesApiTest extends CsApiTest {
     private static final String DS_TLS_PROFILE_ID = "xrd-ds-tls";
 
     @Test
+    @ResourceLock("ds-tls-acme-capable-cas")
     void dsTlsCertificationAuthoritiesAreCreatedAndListed(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var client = new DsTlsCertificationAuthoritiesAdminClient(session);
@@ -116,6 +118,7 @@ class DsTlsCertificationAuthoritiesApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock("ds-tls-acme-capable-cas")
     void dsTlsCertificationAuthorityIsCreatedWithAcmeAndRetrieved(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var client = new DsTlsCertificationAuthoritiesAdminClient(session);
@@ -185,6 +188,7 @@ class DsTlsCertificationAuthoritiesApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock("ds-tls-acme-capable-cas")
     void dsTlsCertificationAuthorityIsUpdated(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var client = new DsTlsCertificationAuthoritiesAdminClient(session);
@@ -203,6 +207,7 @@ class DsTlsCertificationAuthoritiesApiTest extends CsApiTest {
     }
 
     @Test
+    @ResourceLock("ds-tls-acme-capable-cas")
     void dsTlsCertificationAuthorityAcmeFieldsAreCleared(CsBaselineSeeder seeder) throws Exception {
         var session = Step.given("admin session opened", seeder::newSession);
         var client = new DsTlsCertificationAuthoritiesAdminClient(session);

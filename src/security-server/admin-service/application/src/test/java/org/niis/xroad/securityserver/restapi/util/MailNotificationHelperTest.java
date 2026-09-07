@@ -144,7 +144,7 @@ class MailNotificationHelperTest {
 
         ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
         verify(mailService, times(1)).sendMailAsync(eq("a@example.org"), subjectCaptor.capture(), anyString());
-        verify(notificationMessageSourceAccessor).getMessage(eq("acme_ds_tls_cert_renewal_failure_title"), eq(new String[]{"enrollment"}));
+        verify(notificationMessageSourceAccessor).getMessage("acme_ds_tls_cert_renewal_failure_title", new String[]{"enrollment"});
         verify(notificationMessageSourceAccessor).getMessage(eq("acme_ds_tls_cert_renewal_failure_content"),
                 eq(new String[]{"enrollment", HOSTNAME, "CA unreachable"}));
     }
@@ -156,9 +156,9 @@ class MailNotificationHelperTest {
 
         helper.sendDsTlsAcmeFailureNotification(HOSTNAME, true, "CA unreachable");
 
-        verify(notificationMessageSourceAccessor).getMessage(eq("acme_ds_tls_cert_renewal_failure_title"), eq(new String[]{"renewal"}));
-        verify(notificationMessageSourceAccessor).getMessage(eq("acme_ds_tls_cert_renewal_failure_content"),
-                eq(new String[]{"renewal", HOSTNAME, "CA unreachable"}));
+        verify(notificationMessageSourceAccessor).getMessage("acme_ds_tls_cert_renewal_failure_title", new String[]{"renewal"});
+        verify(notificationMessageSourceAccessor).getMessage("acme_ds_tls_cert_renewal_failure_content",
+                new String[]{"renewal", HOSTNAME, "CA unreachable"});
     }
 
     @Test

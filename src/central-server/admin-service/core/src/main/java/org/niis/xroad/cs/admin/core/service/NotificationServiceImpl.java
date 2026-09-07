@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
@@ -74,16 +75,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Set<AlertInfo> getAlerts() {
+        final Set<AlertInfo> alerts = new HashSet<>();
+        alerts.addAll(checkDsTlsAcmeEnrollment());
 
         final List<TokenInfo> tokens;
         try {
             tokens = signerProxyFacade.getTokens();
         } catch (Exception e) {
             log.error("Failed to get tokens", e);
-            return Set.of(new AlertInfo("status.signer_error"));
+            alerts.add(new AlertInfo("status.signer_error"));
+            return alerts;
         }
 
-        final Set<AlertInfo> alerts = new HashSet<>();
         if (isInitialized(tokens)) {
             alerts.addAll(checkGlobalConfGenerationStatus());
             alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_INTERNAL, tokens));
@@ -91,19 +94,17 @@ public class NotificationServiceImpl implements NotificationService {
                 alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_EXTERNAL, tokens));
             }
         }
-        alerts.addAll(checkDsTlsAcmeEnrollment());
         return alerts;
     }
 
-    /**
-     * Surfaces a failing DS TLS ACME enrollment/renewal attempt. The shared ACME worker already records the
-     * current error (or clears it on recovery) via {@code DsTlsCertificateService.recordAcmeOutcome}
-     * regardless of any outcome-notification hook, so polling that recorded state here is enough to alert on
-     * it — no separate push/event mechanism is needed. Not gated on {@code isInitialized(tokens)}: the DS TLS
-     * certificate is unrelated to the signer/globalconf bootstrap state that gate checks.
-     */
     private Set<AlertInfo> checkDsTlsAcmeEnrollment() {
-        var enrollmentStatus = dsTlsCertificateService.getEnrollmentStatus();
+        final DsTlsEnrollmentStatus enrollmentStatus;
+        try {
+            enrollmentStatus = dsTlsCertificateService.getEnrollmentStatus();
+        } catch (Exception e) {
+            log.error("Failed to check DS TLS ACME enrollment status", e);
+            return Set.of(new AlertInfo("status.dataspace_tls_acme.status_check_failed"));
+        }
         String lastError = enrollmentStatus.lastError();
         if (lastError == null) {
             return Set.of();

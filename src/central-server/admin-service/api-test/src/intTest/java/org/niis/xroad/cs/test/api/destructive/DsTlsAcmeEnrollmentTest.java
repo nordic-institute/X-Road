@@ -28,6 +28,7 @@ package org.niis.xroad.cs.test.api.destructive;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
 import org.niis.xroad.cs.test.api.admin.DsTlsCertificationAuthoritiesAdminClient;
@@ -91,6 +92,7 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
 
     @Test
     @Tag("destructive")
+    @ResourceLock("ds-tls-acme-capable-cas")
     @DisplayName("A DS TLS certificate is auto-enrolled via ACME, routed through the real public nginx, "
             + "with SAN matching the configured issuer host")
     void dsTlsCertificateIsAutoEnrolledViaAcme(CsBaselineSeeder seeder, BaseComposeSetup stack) throws Exception {

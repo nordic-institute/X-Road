@@ -74,7 +74,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
     public void execute(CertificateRenewalScheduler scheduler) {
         log.info("DS TLS ACME certificate renewal cycle started");
 
-        if (!globalConfProvider.isValid()) {
+        if (hostContext.requiresValidGlobalConf() && !globalConfProvider.isValid()) {
             log.debug("Invalid global configuration, pausing DS TLS ACME renewal");
             if (scheduler != null) {
                 scheduler.globalConfInvalidated();

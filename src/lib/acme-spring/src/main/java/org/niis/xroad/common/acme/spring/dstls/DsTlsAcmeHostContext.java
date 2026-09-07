@@ -45,6 +45,16 @@ public interface DsTlsAcmeHostContext {
     String getPublicHostname();
 
     /**
+     * @return whether the shared worker must pause its renewal cycle while {@code GlobalConfProvider.isValid()}
+     *     is {@code false}. Defaults to {@code true}, preserving the Security Server's genuine dependency on
+     *     globalconf distribution to find its designated DS TLS CA. A product that determines its CA from its
+     *     own data source, independent of globalconf, overrides this to {@code false}.
+     */
+    default boolean requiresValidGlobalConf() {
+        return true;
+    }
+
+    /**
      * @return every DS TLS certification authority this product currently has approved/designated. The shared
      *     worker filters this list down to the ACME-capable entries (those with a non-blank ACME directory
      *     URL) and applies the zero/one/many designation rules itself — this method only supplies the raw,

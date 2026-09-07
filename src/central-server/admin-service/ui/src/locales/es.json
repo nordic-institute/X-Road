@@ -490,7 +490,8 @@
   "status": {
     "dataspace_tls_acme": {
       "enrollment_failing": "Falla en la inscripción ACME del certificado DS TLS: {0}",
-      "renewal_failing": "Falla en la renovación ACME del certificado DS TLS: {0}"
+      "renewal_failing": "Falla en la renovación ACME del certificado DS TLS: {0}",
+      "status_check_failed": "No se pudo comprobar el estado ACME del certificado DS TLS"
     },
     "global_conf_generation": {
       "failing": "Falla en la generación de la configuración global desde {0}",

@@ -50,6 +50,9 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVA
 @Component
 public class MailNotificationHelper {
 
+    private static final String RENEWAL = "renewal";
+    private static final String ENROLLMENT = "enrollment";
+
     private final MailNotificationProperties mailNotificationProperties;
     private final NotificationConfig notificationConfig;
     private final MessageSourceAccessor notificationMessageSourceAccessor;
@@ -179,7 +182,7 @@ public class MailNotificationHelper {
     public void sendDsTlsAcmeSuccessNotification(String hostname, boolean isRenewal) {
         if (adminServiceProperties.getDataspace().isTlsCertificateRenewalSuccessNotificationEnabled()) {
             String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_title",
-                    new String[]{isRenewal ? "renewal" : "enrollment"});
+                    new String[]{isRenewal ? RENEWAL : ENROLLMENT});
             String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_content",
                     new String[]{hostname, isRenewal ? "renewed" : "enrolled"});
             sendToDsTlsNotificationContacts(title, content);
@@ -189,9 +192,9 @@ public class MailNotificationHelper {
     public void sendDsTlsAcmeFailureNotification(String hostname, boolean isRenewal, String errorDescription) {
         if (adminServiceProperties.getDataspace().isTlsCertificateRenewalFailureNotificationEnabled()) {
             String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_title",
-                    new String[]{isRenewal ? "renewal" : "enrollment"});
+                    new String[]{isRenewal ? RENEWAL : ENROLLMENT});
             String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_content",
-                    new String[]{isRenewal ? "renewal" : "enrollment", hostname, errorDescription});
+                    new String[]{isRenewal ? RENEWAL : ENROLLMENT, hostname, errorDescription});
             sendToDsTlsNotificationContacts(title, content);
         }
     }

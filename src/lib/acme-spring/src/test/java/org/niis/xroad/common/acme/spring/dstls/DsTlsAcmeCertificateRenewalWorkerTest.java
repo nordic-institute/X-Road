@@ -61,6 +61,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +85,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     @BeforeEach
     void setUp() {
         lenient().when(globalConfProvider.isValid()).thenReturn(true);
+        lenient().when(hostContext.requiresValidGlobalConf()).thenReturn(true);
         lenient().when(dsTlsCertificateService.recordAcmeOutcome(any())).thenReturn(true);
         worker = new DsTlsAcmeCertificateRenewalWorker(globalConfProvider, dsTlsCertificateService, dsTlsAcmeService, hostContext);
     }
@@ -97,7 +99,25 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         verify(scheduler).globalConfInvalidated();
         verify(scheduler, never()).success();
         verify(scheduler, never()).failure();
-        verifyNoInteractions(dsTlsCertificateService, dsTlsAcmeService, hostContext);
+        verify(hostContext).requiresValidGlobalConf();
+        verifyNoMoreInteractions(hostContext);
+        verifyNoInteractions(dsTlsCertificateService, dsTlsAcmeService);
+    }
+
+    @Test
+    void executeShouldProceedWhenGlobalConfIsInvalidButHostContextDoesNotRequireIt() {
+        // requiresValidGlobalConf() short-circuits the gate, so isValid() is never even consulted - stubbed
+        // leniently only to document that its value genuinely doesn't matter here.
+        lenient().when(globalConfProvider.isValid()).thenReturn(false);
+        when(hostContext.requiresValidGlobalConf()).thenReturn(false);
+        when(hostContext.getPublicHostname()).thenReturn(null);
+
+        worker.execute(scheduler);
+
+        verify(scheduler, never()).globalConfInvalidated();
+        verify(dsTlsCertificateService).suspendAcmeScheduling();
+        verify(scheduler).success();
+        verify(scheduler, never()).failure();
     }
 
     @Test
@@ -165,7 +185,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         ArgumentCaptor<String> errorCaptor = ArgumentCaptor.forClass(String.class);
         verify(dsTlsCertificateService).recordAcmeOutcome(errorCaptor.capture());
         assertThat(errorCaptor.getValue()).isNotBlank();
-        verify(hostContext).notifyEnrollmentFailure(eq(HOSTNAME), eq(errorCaptor.getValue()));
+        verify(hostContext).notifyEnrollmentFailure(HOSTNAME, errorCaptor.getValue());
         verify(scheduler).failure();
         verify(scheduler, never()).success();
         verifyNoInteractions(dsTlsAcmeService);

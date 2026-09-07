@@ -38,6 +38,7 @@ import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,11 +107,16 @@ class CentralServerDsTlsAcmeHostContextTest {
 
     @Test
     void notifyEnrollmentSuccessShouldNotThrow() {
-        hostContext.notifyEnrollmentSuccess("ds.example.org", true);
+        assertThatCode(() -> hostContext.notifyEnrollmentSuccess("ds.example.org", true)).doesNotThrowAnyException();
     }
 
     @Test
     void notifyEnrollmentFailureShouldNotThrow() {
-        hostContext.notifyEnrollmentFailure("ds.example.org", "boom");
+        assertThatCode(() -> hostContext.notifyEnrollmentFailure("ds.example.org", "boom")).doesNotThrowAnyException();
+    }
+
+    @Test
+    void requiresValidGlobalConfShouldBeFalse() {
+        assertThat(hostContext.requiresValidGlobalConf()).isFalse();
     }
 }
