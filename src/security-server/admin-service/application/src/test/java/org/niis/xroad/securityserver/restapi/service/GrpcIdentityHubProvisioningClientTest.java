@@ -80,11 +80,11 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void getCredentialRequestStateDelegatesToRpcClientAndReturnsStatus() {
-        when(rpcClient.getCredentialRequestState(CTX_ID, HOLDER_PID)).thenReturn("PENDING");
+        when(rpcClient.getCredentialRequestState(CTX_ID, HOLDER_PID)).thenReturn("REQUESTED");
 
         var result = client.getCredentialRequestState(CTX_ID, HOLDER_PID);
 
-        assertThat(result).isEqualTo("PENDING");
+        assertThat(result).isEqualTo("REQUESTED");
         verify(rpcClient).getCredentialRequestState(CTX_ID, HOLDER_PID);
     }
 
