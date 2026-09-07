@@ -40,23 +40,9 @@ set_openbao_program_autostart() {
   crudini --set --existing=section "$SUPERVISOR_XROAD_CONF" program:openbao autostart "$1" &>/dev/null || :
 }
 
-# The embedded-store CA cert this image bakes in is meaningless for an
-# external store, which may not even use TLS the same way — drop the
-# trust env vars so a missing/irrelevant cert file cannot break startup.
-clear_embedded_ca_trust_env() {
-  local program
-  for program in xroad-signer xroad-confclient xroad-proxy xroad-monitor xroad-opmonitor; do
-    crudini --set --existing=section "$SUPERVISOR_XROAD_CONF" "program:$program" \
-      environment 'HOME="/var/lib/xroad"' &>/dev/null || :
-  done
-  crudini --set --existing=section "$SUPERVISOR_XROAD_CONF" program:xroad-proxy-ui-api \
-    environment 'HOME="/var/lib/xroad"' &>/dev/null || :
-}
-
 if [ -n "${XROAD_SECRET_STORE_HOST:-}" ]; then
   log "External secret store configured at $XROAD_SECRET_STORE_HOST — embedded OpenBao stays stopped"
   set_openbao_program_autostart false
-  clear_embedded_ca_trust_env
   exit 0
 fi
 

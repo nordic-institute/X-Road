@@ -35,6 +35,22 @@ configure_secret_store() {
   fi
 }
 
+# TLS trust for the embedded secret store's vault clients. The OpenBao TLS
+# certificate is regenerated on every boot (see secret-store-init.sh), so it
+# cannot ride the native packages' install-time system/JVM trust-store route;
+# instead the services inherit the CA path through supervisord's environment.
+# With an external store nothing is exported — the operator supplies trust
+# configuration, and any value already present in the container environment
+# wins over the embedded default.
+configure_secret_store_trust_env() {
+  if [ -n "${XROAD_SECRET_STORE_HOST:-}" ]; then
+    return 0
+  fi
+  export QUARKUS_VAULT_TLS_CA_CERT="${QUARKUS_VAULT_TLS_CA_CERT:-/etc/xroad/ssl/openbao.crt}"
+  export SPRING_CLOUD_VAULT_SSL_TRUST_STORE="${SPRING_CLOUD_VAULT_SSL_TRUST_STORE:-file:/etc/xroad/ssl/openbao.crt}"
+  export SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE="${SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE:-PEM}"
+}
+
 seed_dsp_participant_context_id() {
   log "Seeding DSP participant-context-id"
   if ! bash /usr/share/xroad/scripts/sidecar/dsp-config-seed.sh 2>&1 | sed 's/^/    /'; then
@@ -402,4 +418,5 @@ if dpkg -s xroad-opmonitor &>/dev/null; then
   configure_opmonitor_metaspace
 fi
 configure_secret_store
+configure_secret_store_trust_env
 create_backup_dir_if_not_exists
