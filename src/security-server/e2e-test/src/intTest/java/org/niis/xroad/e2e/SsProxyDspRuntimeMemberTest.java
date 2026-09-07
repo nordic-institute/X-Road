@@ -64,22 +64,25 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  *
  * <p><b>Why the consumer cannot be the new client calling itself.</b> {@link SsProxyDspSelfCallTest}'s
  * same-identity self-call only works because {@code DEV:COM:1234} <i>is</i> ss0's owner: the proxy's
- * consumer path always presents the fixed {@code xrd-ss0} host identity, and that coincides with
- * {@code TestService}'s own participant identity for that scenario. The new client is not ss0's owner,
- * so its service offer is ODRL-gated on {@code XROAD_CLIENT_ID == DEV:COM:4321:RuntimeService} — a
- * condition the fixed {@code xrd-ss0} consumer identity can never satisfy. The proxy's consumer-side
- * per-request participant context (which would let a call genuinely present the new client's own
- * identity) is not something this epic addresses. So the consumer here is deliberately a subsystem
- * that already, legitimately presents {@code xrd-ss0}: {@code TestService}.
+ * consumer path always presents the server's fixed host-context identity ({@code xrd-ss0} on k8s,
+ * {@code xrd-ss0.lxd} on LXD), and that coincides with {@code TestService}'s own participant identity
+ * for that scenario. The new client is not ss0's owner, so its service offer is ODRL-gated on
+ * {@code XROAD_CLIENT_ID == DEV:COM:4321:RuntimeService} — a condition the fixed host-context consumer
+ * identity can never satisfy. The proxy's consumer-side per-request participant context (which would
+ * let a call genuinely present the new client's own identity) is not something this epic addresses. So
+ * the consumer here is deliberately a subsystem that already, legitimately presents the host context:
+ * {@code TestService}.
  *
  * <p><b>Which participant context the transfer actually rides.</b> Publication is additive during this
  * epic (the legacy host-context publication is removed only by a later cutover story), so the new
- * client's service is published under {@code xrd-ss0} in addition to its own {@code DEV:COM:4321}
+ * client's service is published under the host context in addition to its own {@code DEV:COM:4321}
  * context. A {@code TestService} (host-identity) consumer only ever discovers and negotiates the
- * {@code xrd-ss0} copy of that offer, so the resulting negotiation, agreement and transfer all carry
- * participant context {@code xrd-ss0} — confirmed by querying the live e2e cluster's
- * {@code edc_contract_negotiation}/{@code edc_contract_agreement} rows for this exact consumer/provider
- * pair, not assumed. This scenario therefore does <b>not</b> exercise the new member's own participant
+ * host-context copy of that offer, so the resulting negotiation, agreement and transfer all carry the
+ * host participant context — whose literal value differs per environment, which is why the DB
+ * assertions read it from the matched rows instead of comparing against a constant. Confirmed by
+ * querying the live e2e cluster's {@code edc_contract_negotiation}/{@code edc_contract_agreement} rows
+ * for this exact consumer/provider pair, not assumed. This scenario therefore does <b>not</b> exercise
+ * the new member's own participant
  * context as the transfer's context — {@link #awaitMemberContextIssued} still confirms that context and
  * its membership credential are independently provisioned, proving the runtime member is a genuine
  * dataspace participant, just not the one this particular transfer happens to travel under.
@@ -155,19 +158,12 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final String EXISTING_SERVICE_ID = "DEV:COM:1234:TestService:mock1";
 
     /**
-     * The participant context this scenario's negotiation, agreement and transfer actually carry —
-     * confirmed by querying the live e2e cluster's {@code edc_contract_negotiation}/
-     * {@code edc_contract_agreement} rows for this exact consumer/provider pair, not assumed. It is
-     * {@code TestService}'s own host identity, not {@link #NEW_MEMBER_CTX_ID}: see the class doc's
-     * "Which participant context the transfer actually rides".
-     */
-    private static final String EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID = "xrd-ss0";
-
-    /**
      * The DSP asset id for the new client's service — its full client id and the REST service code,
-     * colon-joined, confirmed live against {@code edc_contract_agreement.asset_id}. Matched with
-     * full-string equality so it disambiguates this scenario's negotiation from every other one sharing
-     * {@link #EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID}.
+     * colon-joined, confirmed live against {@code edc_contract_agreement.asset_id}. Unique to this
+     * scenario, so full-string equality on it alone identifies this negotiation. The participant
+     * context the transfer rides is the environment's host context — {@code xrd-ss0} on k8s but
+     * {@code xrd-ss0.lxd} on LXD — so it is read from the matched rows and asserted for consistency,
+     * never against a literal; the only literal exclusion is the {@code -mgmt} companion context.
      */
     private static final String ASSET_ID = NEW_CLIENT_ID + ":" + REST_SERVICE_CODE;
 
@@ -727,17 +723,16 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Similar in shape to {@link SsProxyDspSelfCallTest#awaitConvergedNegotiations}, but the roles of its
-     * two filters are swapped: there, the participant context id ({@code DEV:COM:1234}'s) is shared
-     * across scenarios and the asset id alone disambiguates; here, {@link #EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID}
-     * ({@code xrd-ss0}) is <i>also</i> shared — it is the whole server's default host context, used by
-     * plenty of other traffic including {@link SsProxyDspSelfCallTest}'s own negotiation — so the asset id
-     * join is what makes this scenario's own pair unambiguous, exactly as it does there.
+     * Similar in shape to {@link SsProxyDspSelfCallTest#awaitConvergedNegotiations}. The transfer rides
+     * the environment's host participant context, whose literal value differs per environment
+     * ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD) and is shared with plenty of other traffic,
+     * so no context literal appears in the query: the scenario-unique {@link #ASSET_ID} join is what
+     * makes this pair unambiguous, and the mgmt companion context is the only exclusion by shape.
      */
     private String awaitConvergedNegotiations(DsControlPlaneDbOps dbOps) {
         var candidateSql = "SELECT n.agreement_id FROM edc_contract_negotiation n "
                 + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
-                + "WHERE n.agreement_id IS NOT NULL AND n.participant_context_id = '" + EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID + "'"
+                + "WHERE n.agreement_id IS NOT NULL AND n.participant_context_id NOT LIKE '%-mgmt'"
                 + " AND a.asset_id = '" + ASSET_ID + "'"
                 + " GROUP BY n.agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
                 + " ORDER BY MAX(n.created_at) DESC LIMIT 1";
@@ -766,10 +761,10 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                     });
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
-                    "Timed out waiting for a converged negotiation pair under participant context '%s' for asset '%s' "
-                            + "(two FINALIZED rows sharing one agreement); last observed candidate group's rows "
-                            + "(id|state|agreement_id|participant_context_id): %s"
-                            .formatted(EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID, ASSET_ID, lastSeen.get()), e);
+                    ("Timed out waiting for a converged negotiation pair for asset '%s' "
+                            + "(two FINALIZED non-mgmt rows sharing one agreement and one participant context); "
+                            + "last observed candidate group's rows (id|state|agreement_id|participant_context_id): %s")
+                            .formatted(ASSET_ID, lastSeen.get().stream().map(row -> String.join("|", row)).toList()), e);
         }
 
         return lastSeen.get().get(0)[2];
@@ -786,8 +781,18 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         var wireAgreementId = agreementRows.get(0)[0];
         var participantContextId = agreementRows.get(0)[1];
         assertThat(participantContextId)
-                .as("the converged agreement's participant context (the shared host context, confirmed live — see the class doc)")
-                .isEqualTo(EXPECTED_TRANSFER_PARTICIPANT_CONTEXT_ID);
+                .as("the converged agreement's participant context (the environment's host context, never the mgmt companion)")
+                .isNotBlank()
+                .doesNotEndWith("-mgmt");
+
+        var mismatchedNegotiations = Integer.parseInt(dbOps.execDsControlPlaneSql(SS0_ENV,
+                ("SELECT COUNT(*) FROM edc_contract_negotiation "
+                        + "WHERE agreement_id = '%s' AND participant_context_id <> '%s'")
+                        .formatted(agreementInternalId, participantContextId)).trim());
+        assertThat(mismatchedNegotiations)
+                .as("negotiations referencing agreement %s carry the same participant context as the agreement itself",
+                        agreementInternalId)
+                .isZero();
 
         var compositeCount = Integer.parseInt(dbOps.execDsControlPlaneSql(SS0_ENV,
                 ("SELECT COUNT(*) FROM edc_contract_agreement "
