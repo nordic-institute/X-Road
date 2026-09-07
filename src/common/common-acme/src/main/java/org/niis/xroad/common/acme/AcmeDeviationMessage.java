@@ -44,6 +44,7 @@ public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuild
     HTTP_CHALLENGE_FILE_CREATION("acme.http_challenge_file_creation"),
     HTTP_CHALLENGE_FILE_DELETION("acme.http_challenge_file_deletion"),
     HTTP_CHALLENGE_MISSING("acme.http_challenge_missing"),
+    HTTP_CHALLENGE_TOKEN_INVALID("acme.http_challenge_token_invalid"),
     CHALLENGE_TRIGGER_FAILURE("acme.challenge_trigger_failure"),
     AUTHORIZATION_FAILURE("acme.authorization_failure"),
     AUTHORIZATION_WAIT_FAILURE("acme.authorization_wait_failure"),

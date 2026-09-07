@@ -29,8 +29,8 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v145.network.Network;
-import org.openqa.selenium.devtools.v145.network.model.ConnectionType;
+import org.openqa.selenium.devtools.v150.network.Network;
+import org.openqa.selenium.devtools.v150.network.model.ConnectionType;
 
 import java.util.Optional;
 

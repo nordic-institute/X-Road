@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.controller;
+package org.nii.xroad.common.acme;
 
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.acme.AcmeConfig;
-import org.niis.xroad.common.exception.BadRequestException;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.List;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_URL;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RestController
-public class AcmeChallengeController {
+class AcmeChallengeTokenValidationTest {
 
-    @GetMapping(value = "/.well-known/acme-challenge/{token}")
-    public ResponseEntity<String> getChallenge(@PathVariable("token") String token) throws IOException {
-        if (!AcmeConfig.isValidChallengeToken(token)) {
-            throw new BadRequestException(INVALID_URL.build());
-        }
-        FileSystemResource fileSystemResource = new FileSystemResource(AcmeConfig.ACME_CHALLENGE_PATH.resolve(token));
-        return new ResponseEntity<>(fileSystemResource.getContentAsString(StandardCharsets.UTF_8), HttpStatus.OK);
+    @Test
+    void rejectsUnsafeTokens() {
+        List<String> unsafeTokens = List.of(
+                "",
+                "..",
+                "../evil",
+                "../../etc/xroad/conf.d/local.ini",
+                "/tmp/evil",
+                "foo/bar",
+                "foo\\bar",
+                "foo.bar"
+        );
+
+        assertThat(AcmeConfig.isValidChallengeToken(null)).isFalse();
+        unsafeTokens.forEach(token ->
+                assertThat(AcmeConfig.isValidChallengeToken(token)).as("token '%s'", token).isFalse());
+    }
+
+    @Test
+    void acceptsRealisticBase64UrlTokens() {
+        List<String> realisticTokens = List.of("xK3_-yZ9abcDEF01", "AbCd1234_-efGH", "a");
+
+        realisticTokens.forEach(token ->
+                assertThat(AcmeConfig.isValidChallengeToken(token)).as("token '%s'", token).isTrue());
+    }
+
+    @Test
+    void validTokenResolvesUnderChallengePath() {
+        String token = "xK3_-yZ9abcDEF01";
+
+        assertThat(AcmeConfig.isValidChallengeToken(token)).isTrue();
+
+        Path base = AcmeConfig.ACME_CHALLENGE_PATH.normalize();
+        Path resolved = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token).normalize();
+        assertThat(resolved.startsWith(base)).isTrue();
     }
 
 }

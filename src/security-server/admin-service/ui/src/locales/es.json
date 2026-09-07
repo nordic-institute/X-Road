@@ -342,6 +342,7 @@
       "http_challenge_file_creation": "Error al crear el archivo de desafío HTTP de ACME",
       "http_challenge_file_deletion": "Error al eliminar el archivo de desafío HTTP de ACME",
       "http_challenge_missing": "Actualmente, X-Road solo admite el desafío HTTP, pero este no está disponible entre las opciones posibles del servidor ACME",
+      "http_challenge_token_invalid": "El servidor ACME devolvió un token de desafío HTTP no válido",
       "order_creation_failure": "Error al crear un nuevo pedido en el servidor ACME",
       "order_finalization_failure": "Error al finalizar el pedido en el servidor ACME"
     },
