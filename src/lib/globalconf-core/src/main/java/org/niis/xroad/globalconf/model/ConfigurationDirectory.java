@@ -40,6 +40,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -50,8 +51,39 @@ public interface ConfigurationDirectory {
     String METADATA_SUFFIX = ".metadata";
     String INSTANCE_IDENTIFIER_FILE = "instance-identifier";
 
+    Set<String> RESERVED_PARAMETER_FILE_NAMES = Set.of(
+            ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS,
+            ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
+            INSTANCE_IDENTIFIER_FILE,
+            FILES
+    );
+
     // Logger specified here because annotation does not work in interface.
     Logger LOG = LoggerFactory.getLogger(ConfigurationDirectory.class);
+
+    /**
+     * Checks whether the given leaf file name is a metadata sidecar, matched case-insensitively
+     * so the guarantee holds regardless of the host filesystem.
+     *
+     * @param fileName the leaf file name to check
+     * @return true if the name ends with the metadata suffix
+     */
+    static boolean isMetadataFileName(String fileName) {
+        return fileName.toLowerCase(Locale.ROOT).endsWith(METADATA_SUFFIX);
+    }
+
+    /**
+     * Checks whether the given leaf file name collides with a reserved parameter or control file name
+     * (shared/private parameters, the instance-identifier or files control files) or is a metadata
+     * sidecar, matched case-insensitively so the guarantee holds regardless of the host filesystem.
+     *
+     * @param fileName the leaf file name to check
+     * @return true if a generic configuration part must not be persisted under this name
+     */
+    static boolean isReservedFileName(String fileName) {
+        String normalized = fileName.toLowerCase(Locale.ROOT);
+        return RESERVED_PARAMETER_FILE_NAMES.contains(normalized) || isMetadataFileName(normalized);
+    }
 
     /**
      * Saves the file to disk along with corresponding expiration date file.

@@ -43,13 +43,25 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static ee.ria.xroad.common.ErrorCodes.X_GLOBAL_CONF_PART_DUPLICATE_TARGET;
+import static ee.ria.xroad.common.ErrorCodes.X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION;
 import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION;
 import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static ee.ria.xroad.common.TestExceptionUtils.codedException;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -140,6 +152,164 @@ class ConfigurationDownloaderTest {
                 (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationDownloaderTest.com"));
         assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
         assertThat(connection.getHostnameVerifier()).isNotInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    void twoPartsResolvingToSameTargetAreRejected() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(codedException(X_GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    @Test
+    void duplicateTargetRejectionLeavesNoPartialWriteOnDisk() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, "content-a".getBytes()),
+                new ConfigurationDownloader.DownloadedContent(partB, "content-b".getBytes())
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(codedException(X_GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    @Test
+    void blankInstancePartIsSkippedAndValidPartsStillDownload() throws Exception {
+        ConfigurationDownloader downloader = getContentStubbingDownloader(3);
+        Configuration configuration = new Configuration(
+                new ConfigurationLocation("EE", LOCATION_HTTPS_URL_SUCCESS, List.of()));
+        configuration.getFiles().add(genericPartWithInstance("/good.xml", "EE"));
+        configuration.getFiles().add(genericPart("/bad.xml"));
+
+        List<ConfigurationDownloader.DownloadedContent> result = downloader.downloadAllContent(configuration);
+
+        assertEquals(1, result.size());
+        assertEquals("/good.xml", result.getFirst().file.getContentLocation());
+    }
+
+    @Test
+    void relativeContentLocationResolvesAgainstSourceUrl() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("files/part.xml");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs.x-road.global/files/part.xml");
+    }
+
+    @Test
+    void rootRelativeContentLocationResolvesToSourceOrigin() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("/V2/fi/shared-params.xml");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs.x-road.global/V2/fi/shared-params.xml");
+    }
+
+    @Test
+    void absoluteCrossHostContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://169.254.169.254/latest/meta-data/");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    @Test
+    void absoluteSameHostDifferentPortContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs:80/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://cs:9000/x");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    @Test
+    void absoluteSameOriginWithImplicitDefaultPortIsAllowed() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://cs:80/x");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs:80/x");
+    }
+
+    @Test
+    void sameHostDifferentSchemeContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("https://cs.x-road.global/x");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    @Test
+    void nonHttpSchemeContentLocationWithNoHostIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("file:///etc/passwd");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(codedException(X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    private static ConfigurationFile genericPart(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private ConfigurationDownloader getContentStubbingDownloader(int confVersion) {
+        return new ConfigurationDownloader("f", confVersion) {
+            @Override
+            byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
+                return "content".getBytes();
+            }
+
+            @Override
+            void verifyContent(byte[] content, ConfigurationFile file) {
+                // downloaded content is synthetic in this test; hash verification is exercised elsewhere
+            }
+        };
+    }
+
+    @Test
+    void duplicateTargetIsRejectedCaseInsensitively() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/Custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(codedException(X_GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    private static ConfigurationFile genericPartWithInstance(String contentLocation, String instance) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        headers.put(HEADER_CONTENT_IDENTIFIER, "GENERIC; instance='%s'".formatted(instance));
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
     }
 
     private void resetParser(ConfigurationDownloader downloader) {

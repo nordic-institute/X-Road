@@ -48,6 +48,11 @@ public final class TimeUtils {
     private TimeUtils() {
     }
 
+    @VisibleForTesting
+    public static Clock getClock() {
+        return clock;
+    }
+
     /**
      * Gets the number of seconds from the Java epoch of 1970-01-01T00:00:00Z.
      *

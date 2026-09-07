@@ -41,7 +41,12 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -79,6 +84,8 @@ public final class SoapUtils {
 
     public static final MessageFactory MESSAGE_FACTORY = initMessageFactory();
 
+    private static final XMLInputFactory PROLOG_SCAN_FACTORY = initPrologScanFactory();
+
     private static final String SOAP_SUFFIX_RESPONSE = "Response";
 
     /**
@@ -102,6 +109,13 @@ public final class SoapUtils {
         } catch (SOAPException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static XMLInputFactory initPrologScanFactory() {
+        var factory = XMLInputFactory.newDefaultFactory();
+        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        return factory;
     }
 
     /**
@@ -419,7 +433,37 @@ public final class SoapUtils {
         mimeHeaders.addHeader("Content-type",
                 contentTypeWithCharset(TEXT_XML, charset));
 
-        return MESSAGE_FACTORY.createMessage(mimeHeaders, is);
+        InputStream input = is.markSupported() ? is : new BufferedInputStream(is);
+        rejectDtd(input, charset);
+
+        return MESSAGE_FACTORY.createMessage(mimeHeaders, input);
+    }
+
+    /**
+     * Rejects XML containing a DTD before the bytes reach the SAAJ parser, so that protection
+     * against XXE and entity expansion does not depend on the SAAJ implementation's defaults.
+     * Scans the stream with a hardened StAX reader up to the root element (a DOCTYPE declaration
+     * can only appear before it) and then rewinds the stream.
+     */
+    private static void rejectDtd(InputStream is, String charset) throws SOAPException, IOException {
+        is.mark(Integer.MAX_VALUE);
+        try {
+            XMLStreamReader reader = PROLOG_SCAN_FACTORY.createXMLStreamReader(is, charset);
+            try {
+                int event = reader.getEventType();
+                while (event != XMLStreamConstants.START_ELEMENT && reader.hasNext()) {
+                    event = reader.next();
+                    if (event == XMLStreamConstants.DTD) {
+                        throw new SOAPException("Malformed SOAP message: DOCTYPE declarations are not allowed");
+                    }
+                }
+            } finally {
+                reader.close();
+            }
+        } catch (XMLStreamException e) {
+            throw new SOAPException("Malformed SOAP message: invalid XML", e);
+        }
+        is.reset();
     }
 
     static Object getFieldValue(Field field, Object object) {

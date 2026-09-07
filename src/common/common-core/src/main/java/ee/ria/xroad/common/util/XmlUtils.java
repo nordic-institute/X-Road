@@ -320,6 +320,9 @@ public final class XmlUtils {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            dbf.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
+            dbf.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            dbf.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
         } catch (ParserConfigurationException e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
@@ -345,6 +348,7 @@ public final class XmlUtils {
         XMLReader reader = factory.newSAXParser().getXMLReader();
         reader.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
         reader.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+        reader.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
         return reader;
     }
 
