@@ -28,7 +28,8 @@ package org.niis.xroad.e2e;
 /**
  * Access to the ds-control-plane database, available wherever the environment runs the dataspace
  * protocol stack. Unlike {@link MessagelogDbOps}, this is implemented only by the k8s and LXD
- * adapters: the Compose facade runs with DSP off and has no ds-control-plane database to reach.
+ * adapters: the Compose facade runs the full dataspace protocol stack too, but does not wire up
+ * this database-ops glue, so it has no way to reach the ds-control-plane database.
  */
 public interface DsControlPlaneDbOps {
 

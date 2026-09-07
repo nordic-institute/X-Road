@@ -1245,6 +1245,98 @@ PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_rest_openap
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 # =============================================================================
+# Reverse-direction fixture: gives ss1-hosted TestClient a provider role (on top of its existing
+# consumer role in the forward-direction scenarios above) and grants ss0-hosted TestSaved access to
+# it, so the suite can also assert an ss0-initiated cross-server exchange (every scenario above
+# only ever initiates at ss1 against an ss0-hosted service). Both subsystems are already registered
+# members of the SS that hosts them, so this only adds service-descriptions and access grants —
+# no new client registration, CS approval, or CSR/signing-key ceremony, and no new management-
+# request traffic that would shift the messagelog counts asserted later in the suite.
+# =============================================================================
+
+# Register SOAP service description for TestClient's new provider role
+POST https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test_client_id}}/service-descriptions
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "url": "{{example_service_wsdl}}",
+  "type": "WSDL",
+  "ignore_warnings": true
+}
+
+HTTP 201
+
+[Captures]
+ss1_test_client_wsdl_service_id: jsonpath "$.id"
+ss1_test_client_get_random_id: jsonpath "$.services[0].id"
+
+# Set TestClient's SOAP backend URL
+PATCH https://{{ss1_host}}:4000/api/v1/services/{{ss1_test_client_get_random_id}}
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "ignore_warnings": true,
+  "ssl_auth": false,
+  "ssl_auth_all": true,
+  "timeout": 60,
+  "timeout_all": true,
+  "url": "{{example_service_address}}",
+  "url_all": true
+}
+
+HTTP 200
+
+# Add TestSaved access to TestClient's getRandom
+POST https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test_client_id}}/service-clients/{{ss0_test_saved_id}}/access-rights
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "getRandom"
+    }
+  ]
+}
+
+HTTP 201
+
+# Enable SOAP service on TestClient
+PUT https://{{ss1_host}}:4000/api/v1/service-descriptions/{{ss1_test_client_wsdl_service_id}}/enable
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+# Register REST service description for TestClient's new provider role
+POST https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test_client_id}}/service-descriptions
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "url": "{{is_rest_url}}",
+  "type": "REST",
+  "rest_service_code": "{{is_rest_service_code}}"
+}
+
+HTTP 201
+
+[Captures]
+ss1_test_client_rest_service_id: jsonpath "$.id"
+
+# Enable REST service on TestClient
+PUT https://{{ss1_host}}:4000/api/v1/service-descriptions/{{ss1_test_client_rest_service_id}}/enable
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+# Grant TestSaved access to TestClient's REST service
+POST https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test_client_id}}/service-clients/{{ss0_test_saved_id}}/access-rights
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "{{is_rest_service_code}}"
+    }
+  ]
+}
+
+HTTP 201
+
+# =============================================================================
 # DSP readiness gates (LAST): block until each SS's HOST participant context
 # membership credential reaches ISSUED. Placed at the end so all core X-Road
 # setup (both SSes, certs, clients, services) completes first — proxy readiness
