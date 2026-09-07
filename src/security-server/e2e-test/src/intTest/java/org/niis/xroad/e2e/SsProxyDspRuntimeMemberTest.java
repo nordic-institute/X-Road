@@ -192,8 +192,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final int EXPECTED_NEGOTIATION_COUNT = 2;
     private static final Set<Integer> TRANSFER_SUCCESS_STATES = Set.of(600, 800);
 
-    private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofSeconds(60);
-    private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(2);
+    private static final Duration REGISTRATION_POLL_TIMEOUT = Duration.ofMinutes(3);
+    private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
     private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration TRANSFER_POLL_TIMEOUT = Duration.ofSeconds(60);
@@ -246,11 +246,10 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         and("its registration is submitted from ss0 to the Central Server", () ->
                 registerClient(ss0BaseUrl, ss0Session, clientId));
 
-        and("the Central Server's pending registration request is approved", () ->
-                approveLatestWaitingClientRegistration(csBaseUrl, login(csBaseUrl)));
+        var csSession = given("an admin session is established on the Central Server", () -> login(csBaseUrl));
 
-        then("ss0 reports the new client as REGISTERED", () ->
-                awaitClientRegistered(ss0BaseUrl, ss0Session, clientId));
+        then("the Central Server approves the pending request and ss0 reports the new client as REGISTERED", () ->
+                awaitClientRegistered(ss0BaseUrl, ss0Session, csBaseUrl, csSession, clientId));
 
         var backendUrl = and("the backend URL of ss0's existing TestService mock1 service is discovered", () ->
                 discoverExistingBackendUrl(ss0BaseUrl, ss0Session));
@@ -530,36 +529,46 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Approves the most recently submitted WAITING client registration request. Tolerates an empty
-     * WAITING list: if the Central Server auto-approves client registration requests, nothing is ever
-     * left waiting, and {@link #awaitClientRegistered} below still confirms the outcome either way.
+     * Waits until ss0 reports the new client as REGISTERED, approving the Central Server's pending
+     * request within the same loop. Environments differ: k8s auto-approves, so the request never
+     * surfaces as WAITING; LXD requires an explicit approval and the request may take a moment to
+     * appear as WAITING, then several globalconf-distribution cycles to propagate back to ss0 as
+     * REGISTERED. Approving on each tick — rather than once, up front — covers both, and tolerates
+     * the request not being WAITING yet at the first look.
      */
-    private void approveLatestWaitingClientRegistration(String csBaseUrl, AdminSession cs) {
-        var response = authed(cs).get(csBaseUrl + "/api/v1/management-requests?sort=id&desc=true&status=WAITING");
-        assertThat(response.getStatusCode()).as("list WAITING management requests").isEqualTo(200);
-
-        List<Object> items = response.jsonPath().getList("items");
-        if (items.isEmpty()) {
-            log.info("No WAITING management request found for the new client; assuming client registration requests auto-approve");
-            return;
-        }
-
-        var requestId = response.jsonPath().getInt("items[0].id");
-        var approval = authed(cs).post(csBaseUrl + "/api/v1/management-requests/" + requestId + "/approval");
-        assertThat(approval.getStatusCode()).as("approve client registration request %s", requestId).isEqualTo(200);
-    }
-
-    private void awaitClientRegistered(String ss0BaseUrl, AdminSession ss0, String clientId) {
+    private void awaitClientRegistered(String ss0BaseUrl, AdminSession ss0, String csBaseUrl, AdminSession cs, String clientId) {
         Awaitility.await()
                 .pollInterval(REGISTRATION_POLL_INTERVAL)
                 .timeout(REGISTRATION_POLL_TIMEOUT)
                 .untilAsserted(() -> {
+                    approvePendingRegistrationIfPresent(csBaseUrl, cs);
                     var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId);
                     assertThat(response.getStatusCode()).as("GET /clients/%s", clientId).isEqualTo(200);
                     assertThat(response.jsonPath().getString("status"))
                             .as("status of client %s", clientId)
                             .isEqualTo(REGISTERED_STATUS);
                 });
+    }
+
+    /**
+     * Approves the most recent WAITING client registration request if one is present. An empty list
+     * means either the environment auto-approved it or it has not surfaced yet; both are handled by
+     * the surrounding registration-status poll, so this returns quietly rather than asserting.
+     */
+    private void approvePendingRegistrationIfPresent(String csBaseUrl, AdminSession cs) {
+        var response = authed(cs).get(csBaseUrl + "/api/v1/management-requests?sort=id&desc=true&status=WAITING");
+        assertThat(response.getStatusCode()).as("list WAITING management requests").isEqualTo(200);
+
+        List<Object> items = response.jsonPath().getList("items");
+        if (items.isEmpty()) {
+            return;
+        }
+
+        var requestId = response.jsonPath().getInt("items[0].id");
+        var approval = authed(cs).post(csBaseUrl + "/api/v1/management-requests/" + requestId + "/approval");
+        assertThat(approval.getStatusCode())
+                .as("approve client registration request %s (409 if a prior tick already approved it)", requestId)
+                .isIn(200, 409);
     }
 
     private String discoverExistingBackendUrl(String ss0BaseUrl, AdminSession ss0) {
