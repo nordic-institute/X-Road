@@ -202,6 +202,23 @@ public interface Validator<T> {
         };
     }
 
+    /** @return validator rejecting null, zero, and negative values */
+    static Validator<Long> positiveLong() {
+        return new Validator<>() {
+            @Override
+            public Result validate(Long value) {
+                return value != null && value > 0
+                        ? Result.ok()
+                        : Result.error("must be a positive number");
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("positive number");
+            }
+        };
+    }
+
     /**
      * @param first  first validator
      * @param second second validator

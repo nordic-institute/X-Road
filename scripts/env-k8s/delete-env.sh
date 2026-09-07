@@ -16,7 +16,7 @@ Tear down the X-Road k8s environment: reap port-forwards → ansible teardown.ym
 → (optionally) kind delete cluster.
 
 Options:
-  --env=dev|test|eks         Target environment (default: dev)
+  --env=dev|test|eks|e2e     Target environment (default: dev)
   --keep-cluster             Uninstall helm releases but keep KinD cluster
   --force                    Do not prompt before destroying
   --custom-inventory=PATH    Use a custom inventory path

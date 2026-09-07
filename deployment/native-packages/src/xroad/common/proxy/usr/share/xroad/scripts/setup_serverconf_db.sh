@@ -21,8 +21,8 @@ gen_pw() {
 setup_database() {
 
   node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
-  if [[ "$node_type" == "slave" ]]; then
-    log "Skipping database setup on cluster slave node"
+  if [[ "$node_type" == "secondary" || "$node_type" == "slave" ]]; then
+    log "Skipping database setup on cluster secondary node"
     return 0
   fi
 

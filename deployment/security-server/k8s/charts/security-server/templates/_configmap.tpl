@@ -8,6 +8,22 @@ metadata:
     app: xroad-{{ .service }}
 data:
   {{- $env := .config.env }}
+  {{- /*
+  Only ds-control-plane reads the DSP participant-context id from env; the
+  proxy's copy is seeded as a configuration row by init/config-seed-job.yaml.
+  As merge dst, the override beats any per-service literal in values.yaml.
+  */}}
+  {{- if .root.Values.dsp.participantContextId }}
+  {{- if eq .service "ds-control-plane" }}
+  {{- $env = merge (dict "XROAD_DSP_PARTICIPANT_CONTEXT_ID" .root.Values.dsp.participantContextId) $env }}
+  {{- end }}
+  {{- end }}
+  {{- /*
+  The softtoken-signer consumer channel is not enabled here:
+  xroad.common-rpc.channel.softtoken-signer.enabled is read from the
+  database only, never from env — the config-seed Job appends the row; the
+  channel host falls back to the "softtoken-signer" container default.
+  */}}
   {{- $env = merge $env (dict "JAVA_MAX_RAM_PERCENTAGE" (printf "%v" .root.Values.jvmHeap.maxRAMPercentage)) }}
   {{- if .root.Values.jvmHeap.mallocArenaMax }}
   {{- $env = merge $env (dict "MALLOC_ARENA_MAX" (printf "%v" .root.Values.jvmHeap.mallocArenaMax)) }}

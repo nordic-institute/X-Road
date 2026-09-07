@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.migration.acme;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -116,6 +118,26 @@ class AcmeAccountKeyAliasResolverTest {
     void aRepeatedIdenticalClientIdentifierIsNotTreatedAsACollision() {
         AcmeAccountKeyAliasResolver resolver =
                 AcmeAccountKeyAliasResolver.fromKnownClientIds(List.of("DEV:COM:1234", "DEV:COM:1234"));
+
+        assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234")).containsExactly("sign_DEV:COM:1234");
+    }
+
+    @Test
+    void candidateEncodedIdsForAMemberClientIsJustItself() {
+        assertThat(AcmeAccountKeyAliasResolver.candidateEncodedIdsFor(ClientId.Conf.create("DEV", "COM", "1234")))
+                .containsExactly("DEV:COM:1234");
+    }
+
+    @Test
+    void candidateEncodedIdsForASubsystemClientAlsoDerivesItsMember() {
+        assertThat(AcmeAccountKeyAliasResolver.candidateEncodedIdsFor(ClientId.Conf.create("DEV", "COM", "1234", "SUB")))
+                .containsExactlyInAnyOrder("DEV:COM:1234:SUB", "DEV:COM:1234");
+    }
+
+    @Test
+    void resolvesMemberAliasWhenOnlyItsSubsystemIsAKnownClient() {
+        AcmeAccountKeyAliasResolver resolver = AcmeAccountKeyAliasResolver.fromKnownClientIds(
+                AcmeAccountKeyAliasResolver.candidateEncodedIdsFor(ClientId.Conf.create("DEV", "COM", "1234", "test-consumer")));
 
         assertThat(resolver.resolveOriginalCaseAliasCandidates("sign_dev:com:1234")).containsExactly("sign_DEV:COM:1234");
     }

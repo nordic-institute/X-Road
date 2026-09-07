@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import org.junit.runner.RunWith;
 import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
+import org.niis.xroad.common.acme.AcmeClient;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -75,6 +76,8 @@ public abstract class AbstractFacadeMockingTestContext {
     protected OpMonitorClient opMonitorClient;
     @MockitoBean
     protected AcmeService acmeService;
+    @MockitoBean
+    protected AcmeClient acmeClient;
     @MockitoSpyBean
     protected SubsystemNameStatus subsystemNameStatus;
     @MockitoBean

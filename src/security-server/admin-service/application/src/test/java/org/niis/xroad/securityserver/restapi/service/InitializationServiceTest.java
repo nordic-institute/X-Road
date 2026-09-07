@@ -44,7 +44,6 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -57,7 +56,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,8 +103,6 @@ public class InitializationServiceTest {
     @Mock
     private EncryptionInitializationService encryptionInitializationService;
     @Mock
-    private DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
-    @Mock
     private ConfigurablePropertiesService configurablePropertiesService;
 
     private InitializationService initializationService;
@@ -124,8 +120,7 @@ public class InitializationServiceTest {
         when(signerRpcClient.isEnforcedTokenPinPolicy()).thenReturn(Boolean.TRUE);
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
-                securityServerBackupService, encryptionInitializationService, dataspaceParticipantProvisioningWorker,
-                configurablePropertiesService);
+                securityServerBackupService, encryptionInitializationService, configurablePropertiesService);
     }
 
     @Test
@@ -480,17 +475,5 @@ public class InitializationServiceTest {
 
         assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
                 exception.getErrorDeviation().code());
-    }
-
-    @Test
-    public void initializeProvisioningFailIsAlwaysSwallowed() {
-        when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
-        when(serverConfService.isServerCodeInitialized()).thenReturn(false);
-        when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        doThrow(new RuntimeException("provisioning error")).when(dataspaceParticipantProvisioningWorker).provisionParticipant();
-
-        assertDoesNotThrow(() ->
-                initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                        SOFTWARE_TOKEN_PIN, true, null));
     }
 }

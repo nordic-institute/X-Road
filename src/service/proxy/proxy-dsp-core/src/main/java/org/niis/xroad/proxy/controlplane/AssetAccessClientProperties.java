@@ -44,8 +44,8 @@ public class AssetAccessClientProperties {
     private final XRoadConfig xRoadConfig;
 
     /**
-     * @return participant context ID used for management, builtin-service and self-call consumer
-     * paths; ordinary member traffic derives its context from the sender instead.
+     * @return participant context ID used for management and builtin-service consumer paths;
+     * ordinary member traffic derives its context from the sender instead.
      * No default — must be set explicitly per SS.
      */
     public String participantContextId() {

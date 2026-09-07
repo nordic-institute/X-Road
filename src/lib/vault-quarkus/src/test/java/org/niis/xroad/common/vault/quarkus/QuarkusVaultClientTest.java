@@ -33,6 +33,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -120,6 +122,34 @@ class QuarkusVaultClientTest {
         assertThat(retrievedTwo.expiresAt()).isEqualTo(expiresAtTwo);
 
         assertThat(retrievedOne.privateKey()).isNotEqualTo(retrievedTwo.privateKey());
+    }
+
+    @Test
+    void shouldStoreAndRetrieveDsTlsEnrollmentStatus() {
+        Instant nextRenewalTime = Instant.now().plus(60, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+        var stored = new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewalTime, "some error");
+
+        vaultClient.createDsTlsEnrollmentStatus(stored);
+        var retrieved = vaultClient.getDsTlsEnrollmentStatus().orElseThrow();
+
+        assertThat(retrieved).isEqualTo(stored);
+    }
+
+    @Test
+    void shouldStoreAndRetrieveDsTlsEnrollmentStatusWithNoRenewalTimeOrError() {
+        var stored = new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.MANUAL, null, null);
+
+        vaultClient.createDsTlsEnrollmentStatus(stored);
+        var retrieved = vaultClient.getDsTlsEnrollmentStatus().orElseThrow();
+
+        assertThat(retrieved).isEqualTo(stored);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenNoDsTlsEnrollmentStatusHasEverBeenRecorded() {
+        var retrieved = vaultClient.getDsTlsEnrollmentStatus();
+
+        assertThat(retrieved).isEmpty();
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

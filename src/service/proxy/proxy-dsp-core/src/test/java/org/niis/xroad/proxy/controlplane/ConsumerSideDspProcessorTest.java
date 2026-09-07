@@ -38,13 +38,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver.ProviderAddress;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 
@@ -80,10 +78,6 @@ class ConsumerSideDspProcessorTest {
     @Mock
     private ProviderSecurityServerResolver providerSecurityServerResolver;
     @Mock
-    private ServerConfProvider serverConfProvider;
-    @Mock
-    private GlobalConfProvider globalConfProvider;
-    @Mock
     private AssetAccessClientProperties clientProperties;
 
     private ConsumerSideDspProcessor processor;
@@ -92,7 +86,7 @@ class ConsumerSideDspProcessorTest {
     @BeforeEach
     void setUp() {
         processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
-                serverConfProvider, globalConfProvider, clientProperties);
+                clientProperties);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -136,45 +130,6 @@ class ConsumerSideDspProcessorTest {
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(CONFIGURED_CTX_ID), any(), eq(MGMT_DID_A), eq(MGMT_URL_A));
-    }
-
-    @Test
-    void selfCallCandidateNegotiatesAsConfiguredLegacyContext() {
-        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
-        when(clientProperties.participantContextId()).thenReturn(CONFIGURED_CTX_ID);
-        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(localServerId, HOST_A)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
-
-        processor.execute(new DspRequest(serviceId, SENDER, null, false));
-
-        verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(CONFIGURED_CTX_ID), any(), eq(MGMT_DID_A), eq(MGMT_URL_A));
-    }
-
-    @Test
-    void identityIsSelectedPerCandidateNotPerRequest() {
-        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
-        when(clientProperties.participantContextId()).thenReturn(CONFIGURED_CTX_ID);
-        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
-        when(globalConfProvider.getSecurityServerAddress(localServerId)).thenReturn(HOST_A);
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(localServerId, HOST_A),
-                        new ProviderAddress(null, HOST_B)));
-        // Both candidates fail, so both are tried regardless of shuffle order.
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
-                .thenThrow(new RuntimeException("unreachable"));
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
-                .isInstanceOf(XrdRuntimeException.class);
-
-        verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(CONFIGURED_CTX_ID), any(), eq(MGMT_DID_A), eq(MGMT_URL_A));
-        verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_B), eq(URL_B));
     }
 
     @Test
@@ -499,11 +454,10 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void selfCallByServerIdRoutesViaMgmtCtx() {
-        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
-        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
+    void selfCallCandidateByServerIdUsesDefaultCtx() {
+        var candidateServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
         when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(localServerId, HOST_A)));
+                .thenReturn(List.of(new ProviderAddress(candidateServerId, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
@@ -512,46 +466,8 @@ class ConsumerSideDspProcessorTest {
         var idCaptor = ArgumentCaptor.forClass(String.class);
         var addrCaptor = ArgumentCaptor.forClass(String.class);
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
-        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
-    }
-
-    @Test
-    void selfCallByHostAddressRoutesViaMgmtCtx() {
-        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
-        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
-        when(globalConfProvider.getSecurityServerAddress(localServerId)).thenReturn(HOST_A);
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
-
-        processor.execute(new DspRequest(serviceId, SENDER, null, false));
-
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
-        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
-    }
-
-    @Test
-    void remoteCandidateUsesHostCtxEvenWhenLocalServerKnown() {
-        var localServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
-        when(serverConfProvider.getIdentifier()).thenReturn(localServerId);
-        when(globalConfProvider.getSecurityServerAddress(localServerId)).thenReturn(HOST_A);
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
-
-        processor.execute(new DspRequest(serviceId, SENDER, null, false));
-
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
-        assertThat(idCaptor.getValue()).isEqualTo(DID_B);
-        assertThat(addrCaptor.getValue()).isEqualTo(URL_B);
+        assertThat(idCaptor.getValue()).isEqualTo(DID_A);
+        assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
     }
 
     @Test

@@ -32,6 +32,7 @@ dependencies {
   implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:serverconf-spring"))
   implementation(project(":lib:rpc-spring"))
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":common:common-admin-api"))
   implementation(project(":common:common-message"))
   implementation(project(":common:common-management-request"))
@@ -69,7 +70,18 @@ dependencies {
     exclude(group = "org.apache.tomcat")
   }
 
-  implementation(libs.apache.cxfToolsValidator)
+  implementation(libs.apache.cxfCore)
+  implementation(libs.apache.cxfToolsCommon) {
+    exclude(group = "org.apache.velocity", module = "velocity-engine-core")
+    exclude(group = "org.glassfish.jaxb", module = "jaxb-xjc")
+    exclude(group = "wsdl4j", module = "wsdl4j")
+  }
+  implementation(libs.apache.cxfToolsValidator) {
+    exclude(group = "org.apache.cxf", module = "cxf-rt-databinding-jaxb")
+    exclude(group = "org.apache.velocity", module = "velocity-engine-core")
+    exclude(group = "org.glassfish.jaxb", module = "jaxb-xjc")
+    exclude(group = "wsdl4j", module = "wsdl4j")
+  }
   implementation(libs.apache.cxfRtTransportsHttp)
   implementation(libs.javax.annotationApi)
 

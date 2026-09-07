@@ -234,7 +234,6 @@ public class ClientSoapMessageProcessor {
         log.trace("processRequest()");
         clientRequestPreparationService.recordServiceSecurityServerAddress(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(), ctx, opMonitoringData);
-        // MANAGEMENT requests force the mgmt participant context; context selection otherwise happens per candidate in the processor.
         AssetAccessResponse assetAccess = proxyProperties.dspEnabled()
                 ? consumerSideDspProcessor.execute(new DspRequest(
                         decoder.getServiceId(), decoder.getRequestSoap().getClient(),

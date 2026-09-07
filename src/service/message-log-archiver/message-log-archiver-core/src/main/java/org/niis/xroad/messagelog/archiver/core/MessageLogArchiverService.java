@@ -45,24 +45,16 @@ public class MessageLogArchiverService {
 
     public void triggerArchival(String instanceIdentifier) {
         log.info("Received archival trigger request");
-        try {
-            log.info("Starting archival operation");
-            logArchiver.execute(instanceIdentifier, archiverProperties, encryptionProperties);
-            log.info("Archival operation completed successfully");
-        } catch (Exception e) {
-            log.error("Archival operation failed", e);
-        }
+        log.info("Starting archival operation");
+        logArchiver.execute(instanceIdentifier, archiverProperties, encryptionProperties);
+        log.info("Archival operation completed successfully");
     }
 
     public void triggerCleanup() {
         log.info("Received cleanup trigger request");
-        try {
-            log.info("Starting cleanup operation");
-            logCleaner.execute(archiverProperties);
-            log.info("Cleanup operation completed successfully");
-        } catch (Exception e) {
-            log.error("Cleanup operation failed", e);
-        }
+        log.info("Starting cleanup operation");
+        logCleaner.execute(archiverProperties);
+        log.info("Cleanup operation completed successfully");
     }
 
 }

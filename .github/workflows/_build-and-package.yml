@@ -137,10 +137,11 @@ jobs:
           echo "  Build Number: ${BUILD_NUMBER}"
           echo "  Commit SHA: ${{ inputs.sha }}"
 
-      - name: Build and test source
+      # Test execution is deferred to the job end (see "Run tests")
+      - name: Build source
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel -Dorg.gradle.workers.max=6 \
           -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
           -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
 
@@ -199,23 +200,19 @@ jobs:
           path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
           compression-level: '0'
 
-      - name: Create lxd-artifacts-ready marker
-        run: echo "ready" > lxd-artifacts-ready.txt
+      # Everything the lxd e2e leg consumes (native packages + e2e-test-jar) is uploaded above this point.
+      - name: Write artifacts-ready marker
+        run: |
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/artifacts-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/artifacts-ready.env
 
-      - name: Upload lxd-artifacts-ready marker
+      - name: Upload artifacts-ready marker
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: lxd-artifacts-ready
-          path: lxd-artifacts-ready.txt
+          name: artifacts-ready
+          path: ci-markers/artifacts-ready.env
           compression-level: '0'
-
-      - name: Sonar analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./src
-        run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
-          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
 
       - name: Build Security Server images
         working-directory: ./scripts/images
@@ -224,6 +221,7 @@ jobs:
           IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
         run: |
           ./build-security-server.sh --platforms linux/amd64,linux/arm64 --push
+          ./build-signer-with-hsm.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -281,18 +279,6 @@ jobs:
           label: 'Storage After Build'
           show-build-dirs: 'true'
 
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
-        if: success() || failure()
-        with:
-          name: Unit and integration tests
-          path: src/**/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-          list-suites: 'failed'
-          list-tests: 'failed'
-
       - name: Build, test and package code execution measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
@@ -330,6 +316,48 @@ jobs:
           IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
           IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
             ./build-dev-infra.sh --push
+
+      - name: Write images-ready marker
+        run: |
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/images-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/images-ready.env
+
+      - name: Upload images-ready marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: images-ready
+          path: ci-markers/images-ready.env
+          compression-level: '0'
+
+      # `build`, not bare `test` as it triggers all the relevant tasks and previous build (w/o tests) is still cached.
+      - name: Run tests
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
+          -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
+          -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
+
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
+        if: success() || failure()
+        with:
+          name: Unit and integration tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      # Runs at the end, in parallel to e2e jobs.
+      - name: Sonar analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
+          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
 
       - name: Log storage after all packaging
         if: always()

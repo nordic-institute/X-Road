@@ -63,7 +63,6 @@ deploy_prometheus: false
 deploy_netdata: true
 
 openbao_ha_replicas: 1
-openbao_global_tls_disable: true
 openbao_tls_mode: self_signed
 
 port_forwards:

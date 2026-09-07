@@ -18,6 +18,7 @@ dependencies {
   implementation(libs.mapstruct)
 
   testImplementation(libs.quarkus.junit5)
+  testImplementation(libs.logback.classic)
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-pgp")))
   testImplementation(testFixtures(project(":lib:properties-core")))

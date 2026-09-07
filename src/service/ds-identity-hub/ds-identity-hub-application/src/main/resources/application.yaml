@@ -5,6 +5,7 @@ quarkus:
     unremovable-types:
       - org.niis.xroad.signer.client.SignerRpcClient
       - org.niis.xroad.signer.client.SignerSignClient
+      - org.niis.xroad.globalconf.GlobalConfProvider
   config:
     locations:
       - xroad-common.yaml

@@ -49,8 +49,8 @@ import org.niis.xroad.serverconf.model.ParticipantType;
 import static jakarta.persistence.AccessType.FIELD;
 
 /**
- * Pins a dataspace participant's derived ctx-id, DID and scheme version at first provisioning, per
- * XRDADR-41's derive-then-store decision. One row per participant context: a {@code MEMBER} row
+ * Binds a dataspace participant's derived ctx-id, DID and scheme version at first provisioning, per
+ * XRDADR-41's derive-then-bind decision. One row per participant context: a {@code MEMBER} row
  * references the owning member's identifier, the single per-server {@code SYSTEM} row does not.
  *
  * <p>The at-most-one-SYSTEM-row constraint is enforced only by the Postgres partial unique index in

@@ -4,13 +4,6 @@
        lameduck 5s
     }
     ready
-{% if ss2_advertised_host is defined %}
-    # The SS advertises its dataspace identity on {{ ss2_advertised_host }} (resolves
-    # off-cluster to the host bridge). Its own EDC connector self-references that host
-    # to reach its IdentityHub (did:web, credential, STS). Keep that self-traffic
-    # in-cluster by resolving the advertised host to the ds-identity-hub Service.
-    rewrite name exact {{ ss2_advertised_host }} ds-identity-hub.{{ security_server_namespace }}.svc.cluster.local
-{% endif %}
     hosts {
        {{ kind_gateway_ip.stdout }} host.docker.internal
        fallthrough

@@ -46,16 +46,24 @@ public class MessageLogCliApplication implements QuarkusApplication {
             String command = args[0];
             if (COMMAND_ARCHIVE.equalsIgnoreCase(command) && args.length == 2) {
                 String instanceIdentifier = args[1];
-                messageLogArchiverService.triggerArchival(instanceIdentifier);
-                return 0;
+                return execute(command, () -> messageLogArchiverService.triggerArchival(instanceIdentifier));
             } else if (COMMAND_CLEANUP.equalsIgnoreCase(command) && args.length == 1) {
-                messageLogArchiverService.triggerCleanup();
-                return 0;
+                return execute(command, messageLogArchiverService::triggerCleanup);
             }
         }
 
         usage();
         return 1;
+    }
+
+    private int execute(String command, Runnable operation) {
+        try {
+            operation.run();
+            return 0;
+        } catch (Exception e) {
+            log.error("{} operation failed", command, e);
+            return 1;
+        }
     }
 
     private void usage() {

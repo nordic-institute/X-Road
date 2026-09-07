@@ -40,6 +40,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateValidator;
@@ -57,6 +59,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_FAILED;
@@ -128,6 +132,97 @@ public class DsTlsCertificateService {
         return chain[0];
     }
 
+    /**
+     * Atomically stores a newly ACME-issued key and certificate chain, tagging the enrollment method
+     * {@link DsTlsEnrollmentMethod#ACME}, recording the next renewal time and clearing any prior error. Before
+     * writing, validates the chain's public key against {@code privateKey} as a self-check against a bug in the
+     * enrollment pipeline, not a trust check on the issuing CA — nothing is written if that check fails.
+     *
+     * @param privateKey        the newly generated DS TLS private key
+     * @param certificateChain  the certificate chain the ACME order returned, leaf certificate first
+     * @param nextRenewalTime   when this credential is next due for ACME renewal
+     */
+    public void storeAcmeEnrolledCertificate(PrivateKey privateKey, X509Certificate[] certificateChain, Instant nextRenewalTime) {
+        dsTlsCertificateValidator.validate(publicKeyOf(privateKey), certificateChain);
+
+        try {
+            vaultClient.createDsHttpsTlsCredentials(new InternalSSLKey(privateKey, certificateChain));
+        } catch (Exception e) {
+            log.error("Failed to store ACME-enrolled DataSpace TLS certificate", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+        writeEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewalTime, null));
+        log.info("Successfully stored ACME-enrolled DataSpace TLS certificate");
+    }
+
+    /**
+     * Records or clears the last enrollment/renewal error, without touching the served credential or the recorded
+     * method/next-renewal-time. A no-op when {@code errorDescription} equals what is already recorded, so a caller
+     * can call this every cycle without re-triggering anything downstream for an unchanged, still-failing state.
+     *
+     * @param errorDescription the enrollment/renewal error to record, or {@code null} to clear it
+     * @return {@code true} if the recorded error changed, {@code false} if it was already exactly this value
+     */
+    public boolean recordAcmeOutcome(String errorDescription) {
+        Optional<DsTlsEnrollmentStatus> existing = readEnrollmentStatus();
+        String currentError = existing.map(DsTlsEnrollmentStatus::lastError).orElse(null);
+        if (Objects.equals(currentError, errorDescription)) {
+            return false;
+        }
+
+        DsTlsEnrollmentMethod method = existing.map(DsTlsEnrollmentStatus::method).orElse(DsTlsEnrollmentMethod.ACME);
+        Instant nextRenewalTime = existing.map(DsTlsEnrollmentStatus::nextRenewalTime).orElse(null);
+        writeEnrollmentStatus(new DsTlsEnrollmentStatus(method, nextRenewalTime, errorDescription));
+        return true;
+    }
+
+    /**
+     * Reads back the current DS TLS enrollment status.
+     * <p>
+     * When a certificate is stored, the reported method falls back to {@link DsTlsEnrollmentMethod#MANUAL} if no
+     * enrollment status has ever been recorded for it - credentials written before this feature shipped default
+     * safely to manual. When no certificate is stored yet, {@link DsTlsEnrollmentStatus#method()} is {@code null}
+     * ("none configured"), but a recorded last error is still carried along so a stuck first enrollment attempt
+     * stays visible.
+     *
+     * @return the current enrollment status
+     */
+    public DsTlsEnrollmentStatus getEnrollmentStatus() {
+        boolean certificateAcquired = readCredentials().flatMap(this::leafOptional).isPresent();
+        Optional<DsTlsEnrollmentStatus> stored = readEnrollmentStatus();
+        String lastError = stored.map(DsTlsEnrollmentStatus::lastError).orElse(null);
+
+        if (!certificateAcquired) {
+            return new DsTlsEnrollmentStatus(null, null, lastError);
+        }
+
+        DsTlsEnrollmentMethod method = stored.map(DsTlsEnrollmentStatus::method).orElse(DsTlsEnrollmentMethod.MANUAL);
+        Instant nextRenewalTime = stored.map(DsTlsEnrollmentStatus::nextRenewalTime).orElse(null);
+        return new DsTlsEnrollmentStatus(method, nextRenewalTime, lastError);
+    }
+
+    /**
+     * Suspends ACME scheduling bookkeeping: clears the recorded next-renewal-time and last error while preserving
+     * the recorded method, for use when the feature this belongs to gets disabled after a certificate was already
+     * ACME-enrolled. Deliberately leaves the credential itself untouched. A no-op when already clear.
+     *
+     * @return {@code true} if anything was cleared, {@code false} if it was already clear
+     */
+    public boolean suspendAcmeScheduling() {
+        Optional<DsTlsEnrollmentStatus> existing = readEnrollmentStatus();
+        if (existing.isEmpty()) {
+            return false;
+        }
+
+        DsTlsEnrollmentStatus current = existing.get();
+        if (current.nextRenewalTime() == null && current.lastError() == null) {
+            return false;
+        }
+
+        writeEnrollmentStatus(new DsTlsEnrollmentStatus(current.method(), null, null));
+        return true;
+    }
+
     public byte[] downloadCertificateTar() {
         X509Certificate certificate = readCredentials()
                 .flatMap(this::leafOptional)
@@ -166,6 +261,24 @@ public class DsTlsCertificateService {
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         } catch (Exception e) {
             log.error("Failed to read DataSpace TLS credentials from vault", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+    }
+
+    private Optional<DsTlsEnrollmentStatus> readEnrollmentStatus() {
+        try {
+            return vaultClient.getDsTlsEnrollmentStatus();
+        } catch (Exception e) {
+            log.error("Failed to read DataSpace TLS enrollment status from vault", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+    }
+
+    private void writeEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        try {
+            vaultClient.createDsTlsEnrollmentStatus(status);
+        } catch (Exception e) {
+            log.error("Failed to store DataSpace TLS enrollment status in vault", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
     }

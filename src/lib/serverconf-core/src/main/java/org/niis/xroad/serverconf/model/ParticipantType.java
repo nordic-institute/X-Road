@@ -27,7 +27,7 @@
 package org.niis.xroad.serverconf.model;
 
 /**
- * Discriminates a pinned dataspace participant row per XRDADR-41: a {@code MEMBER} row carries the
+ * Discriminates a bound dataspace participant row per XRDADR-41: a {@code MEMBER} row carries the
  * X-Road member identifier it was derived from, while the single {@code SYSTEM} row per Security Server
  * carries none.
  */

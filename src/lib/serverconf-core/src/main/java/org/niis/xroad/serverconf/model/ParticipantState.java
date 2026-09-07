@@ -27,7 +27,7 @@
 package org.niis.xroad.serverconf.model;
 
 /**
- * Lifecycle state of a pinned dataspace participant row. Starts with a single value; later
+ * Lifecycle state of a bound dataspace participant row. Starts with a single value; later
  * provisioning stories extend it without a migration, since the column is stored as text.
  */
 public enum ParticipantState {

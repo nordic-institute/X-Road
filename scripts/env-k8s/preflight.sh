@@ -32,19 +32,6 @@ check_bin helm "brew install helm" "curl -fsSL https://raw.githubusercontent.com
 check_bin ansible-playbook "brew install ansible" "pip install ansible-core"
 check_bin ansible-galaxy "brew install ansible" "pip install ansible-core"
 
-if [[ "${SKIP_INIT:-false}" != "true" ]]; then
-  if ! command -v hurl >/dev/null 2>&1; then
-    log_warn "hurl not on PATH — init-ss2.sh will be skipped"
-    if [[ "${OS}" == "macos" ]]; then
-      log_info "  Install: brew install hurl"
-    else
-      log_info "  Install: https://hurl.dev/docs/installation.html"
-    fi
-  else
-    log_kv "  hurl" "$(command -v hurl)" 4 2
-  fi
-fi
-
 if command -v docker >/dev/null 2>&1; then
   if ! docker info >/dev/null 2>&1; then
     log_error "Docker daemon not reachable (is Docker Desktop / docker service running?)"

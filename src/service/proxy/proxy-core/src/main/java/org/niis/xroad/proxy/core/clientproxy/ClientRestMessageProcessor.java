@@ -271,7 +271,6 @@ public class ClientRestMessageProcessor {
                              ProxyRequestContext ctx) throws Exception {
         log.trace("sendRequest()");
 
-        // MANAGEMENT requests force the mgmt participant context; context selection otherwise happens per candidate in the processor.
         final URI[] addresses;
         if (proxyProperties.dspEnabled()) {
             var assetAccess = consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getClientId(),

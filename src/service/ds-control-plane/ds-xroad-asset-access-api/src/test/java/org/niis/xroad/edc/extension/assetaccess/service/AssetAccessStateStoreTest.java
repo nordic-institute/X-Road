@@ -112,6 +112,22 @@ class AssetAccessStateStoreTest {
     }
 
     @Test
+    void loadOrStartInFlightDoesNotCacheFutureAlreadyCompletedByItsSupplier() {
+        var failed = CompletableFuture.<ServiceResult<DataAddress>>failedFuture(new RuntimeException("boom"));
+        var first = store.loadOrStartInFlight("k", () -> failed);
+        assertThat(first).isCompletedExceptionally();
+
+        var supplierCalled = new AtomicInteger(0);
+        var second = store.loadOrStartInFlight("k", () -> {
+            supplierCalled.incrementAndGet();
+            return new CompletableFuture<>();
+        });
+
+        assertThat(supplierCalled.get()).isEqualTo(1);
+        assertThat(second).isNotCompleted();
+    }
+
+    @Test
     void loadOrStartInFlightDedupUnderConcurrency() throws Exception {
         var latch = new CountDownLatch(1);
         var supplierCallCount = new AtomicInteger(0);

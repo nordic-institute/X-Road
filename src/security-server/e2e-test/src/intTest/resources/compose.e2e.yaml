@@ -16,7 +16,8 @@ services:
         ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://${ENV_PREFIX:-}ds-identity-hub:7182', now(), now()),
         ('xroad.proxy-ui-api.dataspace.participant-id', '${DSP_PARTICIPANT_ID:-xrd-ss}', now(), now()),
         ('xroad.proxy-ui-api.dataspace.management-context-enabled', '${DSP_MGMT_CONTEXT:-false}', now(), now()),
-        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:cs%3A6183:issuer', now(), now())
+        ('xroad.proxy-ui-api.dataspace.issuer-did', 'did:web:cs%3A6183:issuer', now(), now()),
+        ('xroad.dsp.catalog.cache.ttl-seconds', '5', now(), now())
         ON CONFLICT DO NOTHING;
         SQL
     networks:

@@ -96,15 +96,13 @@ aws ecr get-login-password --region eu-west-1 | \
 scripts/env-k8s/start-env.sh \
   --env=eks \
   --skip-images \
-  --skip-forward \
-  --skip-init
+  --skip-forward
 ```
 
 Flags explained:
 
 - `--skip-images` — images already in ECR
 - `--skip-forward` — on EKS, access is via LoadBalancer / Ingress (not port-forward)
-- `--skip-init` — `init-ss2.sh` targets the local LXD stack and is inapplicable on EKS
 
 ## Per-concern EKS deltas
 

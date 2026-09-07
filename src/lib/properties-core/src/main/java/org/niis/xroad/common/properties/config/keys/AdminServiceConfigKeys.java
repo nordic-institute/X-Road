@@ -472,6 +472,21 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("participant-id")
             .build();
 
+    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_DID_PORT = DATASPACE
+            .integer("identity-hub-did-port")
+            .withDefaultValue(7183)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_STS_PORT = DATASPACE
+            .integer("identity-hub-sts-port")
+            .withDefaultValue(7184)
+            .build();
+
+    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_CREDENTIALS_PORT = DATASPACE
+            .integer("identity-hub-credentials-port")
+            .withDefaultValue(7185)
+            .build();
+
     public static final ConfigKey<Boolean> DATASPACE_MANAGEMENT_CONTEXT_ENABLED = DATASPACE
             .bool("management-context-enabled")
             .withDefaultValue(false)
@@ -512,6 +527,28 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> DATASPACE_MAX_HOLDER_PID_SLOTS = DATASPACE
             .integer("max-holder-pid-slots")
             .withDefaultValue(20)
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-contacts} */
+    public static final ConfigKey<String[]> DATASPACE_TLS_CERTIFICATE_CONTACTS = DATASPACE
+            .stringArray("tls-certificate-contacts")
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-notification-contacts} */
+    public static final ConfigKey<String[]> DATASPACE_TLS_CERTIFICATE_NOTIFICATION_CONTACTS = DATASPACE
+            .stringArray("tls-certificate-notification-contacts")
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-renewal-success-notification-enabled} */
+    public static final ConfigKey<Boolean> DATASPACE_TLS_CERTIFICATE_RENEWAL_SUCCESS_NOTIFICATION_ENABLED = DATASPACE
+            .bool("tls-certificate-renewal-success-notification-enabled")
+            .withDefaultValue(true)
+            .build();
+
+    /** {@code xroad.proxy-ui-api.dataspace.tls-certificate-renewal-failure-notification-enabled} */
+    public static final ConfigKey<Boolean> DATASPACE_TLS_CERTIFICATE_RENEWAL_FAILURE_NOTIFICATION_ENABLED = DATASPACE
+            .bool("tls-certificate-renewal-failure-notification-enabled")
+            .withDefaultValue(true)
             .build();
 
     private AdminServiceConfigKeys() {

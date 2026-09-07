@@ -5,7 +5,7 @@
 
 ## Supported Versions
 
-Latest version and two earlier versions of X-Road are officially supported by NIIS. The supported versions are defined on `MAJOR.MINOR` level so the release of patch versions (`MAJOR.MINOR.PATCH`) does not affect the support.
+The latest version and two preceding versions of X-Road are officially supported by NIIS. The supported versions are defined at the `MAJOR.MINOR` level so the release of patch versions (`MAJOR.MINOR.PATCH`) does not affect the support.
 
 | Version | Supported |
 |----------|-----------|
@@ -35,9 +35,15 @@ This policy applies to software components maintained by NIIS as part of the X-R
 
 Security issues affecting deployment-specific configurations, infrastructure, third-party extensions or integrations maintained by other organizations should be reported to the responsible operators or maintainers.
 
+## Secure Development
+
+NIIS integrates security activities throughout the development and maintenance of X-Road. These include code review, automated testing, dependency and vulnerability monitoring, dependency and software supply-chain controls, and generation of Software Bills of Materials (SBOMs).
+
+Security issues identified through these activities are assessed and addressed according to NIIS vulnerability management processes.
+
 ## Reporting a Vulnerability
 
-If you believe you have discovered a security vulnerability in X-Road, please report it privately through one of the following channels:
+NIIS encourages the voluntary reporting of vulnerabilities and other security issues that may affect X-Road. If you believe you have discovered a security vulnerability in X-Road, please report it privately through one of the following channels:
 
 - [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4)
   - Use the `Report a software problem` request type.
@@ -67,7 +73,7 @@ Reports that do not provide sufficient information to reproduce the issue may no
 
 NIIS works to develop and distribute remediation measures, security updates and mitigation guidance for vulnerabilities affecting supported versions of X-Road.
 
-Reported vulnerabilities are reviewed, assessed and prioritized according to their severity, exploitability and potential impact on X-Road ecosystems.
+Reported vulnerabilities are documented, reviewed, assessed and prioritized according to their severity, exploitability and potential impact on X-Road ecosystems.
 
 NIIS may request additional information from the reporter during the assessment process.
 
@@ -95,6 +101,8 @@ When vulnerabilities are confirmed and disclosure is appropriate, NIIS may publi
 - Fixed versions
 - Additional guidance for operators
 
+Where appropriate, NIIS obtains or references CVE identifiers for publicly disclosed vulnerabilities.
+
 Security-related information may be communicated through:
 
 - X-Road release notes
@@ -104,7 +112,7 @@ Security-related information may be communicated through:
 
 ## Vulnerability Information Sharing
 
-To support effective remediation and risk management, NIIS may share vulnerability information with:
+NIIS promotes the sharing of information about discovered vulnerabilities within the X-Road and broader open-source communities where doing so supports effective remediation and risk management. NIIS may share vulnerability information with:
 
 - Affected stakeholders
 - Relevant ecosystem participants
@@ -126,6 +134,18 @@ Researchers are expected to:
 - Refrain from public disclosure until coordinated disclosure activities have been completed
 
 Additional safe-harbor provisions applicable to participants in the X-Road Bug Bounty Program are described in the [program documentation](https://nordic-institute.atlassian.net/wiki/spaces/XRDBUGBOUNTY/pages/188252382/Safe+Harbor).
+
+## Cooperation with Authorities
+
+NIIS cooperates with competent market surveillance authorities in accordance with applicable regulatory requirements, including by supporting the mitigation of cybersecurity risks affecting X-Road and providing relevant cybersecurity policy documentation upon reasoned request.
+
+Where required by applicable legislation, NIIS reports actively exploited vulnerabilities and severe security incidents affecting network and information systems provided by NIIS for the development of X-Road to the competent authorities.
+
+NIIS' primary establishment is in Estonia. The Computer Security Incident Response Team (CSIRT) designated as coordinator is:
+
+CERT-EE
+Email: `cert@cert.ee`
+Website: https://www.ria.ee/en/cyber-security/handling-cyber-incidents-cert-ee
 
 ## Questions
 

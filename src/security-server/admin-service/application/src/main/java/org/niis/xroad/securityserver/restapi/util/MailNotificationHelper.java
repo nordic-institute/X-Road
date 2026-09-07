@@ -176,6 +176,32 @@ public class MailNotificationHelper {
         }
     }
 
+    public void sendDsTlsAcmeSuccessNotification(String hostname, boolean isRenewal) {
+        if (adminServiceProperties.getDataspace().isTlsCertificateRenewalSuccessNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_title",
+                    new String[]{isRenewal ? "renewal" : "enrollment"});
+            String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_content",
+                    new String[]{hostname, isRenewal ? "renewed" : "enrolled"});
+            sendToDsTlsNotificationContacts(title, content);
+        }
+    }
+
+    public void sendDsTlsAcmeFailureNotification(String hostname, String errorDescription) {
+        if (adminServiceProperties.getDataspace().isTlsCertificateRenewalFailureNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_title");
+            String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_content",
+                    new String[]{hostname, errorDescription});
+            sendToDsTlsNotificationContacts(title, content);
+        }
+    }
+
+    private void sendToDsTlsNotificationContacts(String title, String content) {
+        List<String> contacts = adminServiceProperties.getDataspace().getTlsCertificateNotificationContacts();
+        if (contacts != null) {
+            contacts.forEach(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
     /**
      * Resolves the ACME account contact email configured for the given member, if any.
      */

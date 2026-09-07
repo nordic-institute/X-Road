@@ -7,7 +7,7 @@ ENV_NAME="dev"
 
 usage() {
   cat <<EOF
-Usage: $0 [--env=dev|test|eks]
+Usage: $0 [--env=dev|test|eks|e2e]
 
 Start async kubectl port-forwards for the given environment. Writes child PIDs
 to .state/port-forwards-<env>.pid so delete-env.sh can reap them.

@@ -3,11 +3,3 @@ edc:
   statuslist:
     callback:
       address: https://${XROAD_HOST}:6187/statuslist
-  web:
-    https:
-      keystore:
-        path: /etc/xroad/ds-ssl/ds-https.p12
-        type: PKCS12
-        password: changeit
-      keymanager:
-        password: changeit

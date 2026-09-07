@@ -187,6 +187,75 @@ cost_type: FREE
 certificate: file,ca/tsa.pem;
 
 
+# Register the DataSpace TLS CA in globalconf's approvedDsTlsCa — a list separate from the
+# certification-services (member approvedCA) registration above; ds-* outbound HTTPS trust is never
+# derived from the member CA list. `ds_tls_ca_file` is environment-supplied (compose/ansible variable)
+# since the right trust anchor differs per environment: a self-signed leaf in Docker e2e, the shared
+# test CA in LXD. Must precede any ds-* traffic (the did.json polling below) — the fail-closed trust
+# reloader only picks the registration up on a later reload cycle.
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certification-authorities
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+[MultipartFormData]
+name: Test DS TLS CA
+certificate: file,{{ds_tls_ca_file}};
+
+HTTP 201
+
+# Provision the Central Server's DS TLS certificate through the admin API (the slice the
+# co-located Issuer Service serves from OpenBao): generate the server-side key, fetch a
+# DN-only CSR, sign it at the test CA with this environment's SAN list (the CA attaches
+# SANs from order metadata — the CSR carries none by design), and upload the certificate.
+# The ds-* processes wait at startup on the empty vault slot until this lands; every
+# ds-* convergence gate below runs after it.
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/key
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 201
+
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/csr
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "name": "{{cs_ds_tls_dn}}"
+}
+
+HTTP 200
+
+[Captures]
+cs_ds_tls_csr: body
+
+# Sign the DS TLS CSR (note that the test CA needs filename so we can't just send it under
+# [FormMultiPart] as we do with the other requests)
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: cs_ds_tls_cert.pem
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+auth
+--certboundary
+Content-Disposition: form-data; name="san"
+
+{{cs_ds_tls_san}}
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="ds-tls.csr.pem"
+
+{{cs_ds_tls_csr}}
+--certboundary--
+```
+
+HTTP 200
+
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/certificate
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+[MultipartFormData]
+certificate: file,cs_ds_tls_cert.pem;
+
+HTTP 200
+
+
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}
@@ -253,6 +322,56 @@ Content-Type: application/json
 }
 
 HTTP *
+
+# Provision SS0's DS TLS certificate through the admin API — same key/CSR/sign/upload flow
+# as the Central Server block above; the SAN list is this server's environment-supplied
+# ds-* host names. Runs as early as possible so the waiting ds-* services converge
+# well before the DSP readiness gates at the end.
+POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/key
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 201
+
+POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/csr
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+Content-Type: application/json
+{
+  "name": "{{ss0_ds_tls_dn}}"
+}
+
+HTTP 200
+
+[Captures]
+ss0_ds_tls_csr: body
+
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss0_ds_tls_cert.pem
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+auth
+--certboundary
+Content-Disposition: form-data; name="san"
+
+{{ss0_ds_tls_san}}
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="ds-tls.csr.pem"
+
+{{ss0_ds_tls_csr}}
+--certboundary--
+```
+
+HTTP 200
+
+POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/certificate
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[MultipartFormData]
+certificate: file,ss0_ds_tls_cert.pem;
+
+HTTP 200
 
 # Get the CA name
 GET https://{{ss0_host}}:4000/api/v1/certificate-authorities
@@ -398,6 +517,16 @@ HTTP 201
 [Captures]
 ss0_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 
+
+# Wait for the Central Server to publish a non-empty global configuration
+GET http://{{cs_host}}/internalconf
+[Options]
+retry: 60
+retry-interval: 5000
+
+HTTP 200
+[Asserts]
+body contains "Content-identifier: SHARED-PARAMETERS"
 
 # Register auth certificate
 PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/register
@@ -621,6 +750,53 @@ Content-Type: application/json
 
 HTTP *
 
+# Provision SS1's DS TLS certificate through the admin API — same flow as SS0 above.
+POST https://{{ss1_host}}:4000/api/v1/ds-tls-certificate/key
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 201
+
+POST https://{{ss1_host}}:4000/api/v1/ds-tls-certificate/csr
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "name": "{{ss1_ds_tls_dn}}"
+}
+
+HTTP 200
+
+[Captures]
+ss1_ds_tls_csr: body
+
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss1_ds_tls_cert.pem
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+auth
+--certboundary
+Content-Disposition: form-data; name="san"
+
+{{ss1_ds_tls_san}}
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="ds-tls.csr.pem"
+
+{{ss1_ds_tls_csr}}
+--certboundary--
+```
+
+HTTP 200
+
+POST https://{{ss1_host}}:4000/api/v1/ds-tls-certificate/certificate
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[MultipartFormData]
+certificate: file,ss1_ds_tls_cert.pem;
+
+HTTP 200
+
 # Add auth key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -688,7 +864,9 @@ HTTP 201
 [Captures]
 ss1_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
-# Get first hardware token
+# ss1's sign key is deliberately provisioned on its SoftHSM-backed token, selected explicitly
+# by type so list order never matters and a missing HARDWARE token fails this capture loudly
+# instead of silently landing the key on the wrong token.
 GET https://{{ss1_host}}:4000/api/v1/tokens
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 
@@ -1155,6 +1333,26 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     }
   ]
 }
+
+# Grant TestService access to itself, for the same-SS self-call scenario: SS0 acts as both
+# consumer and provider of its own service. Tolerates 409 so this stays safe to run against
+# a substrate where the grant already exists.
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/DEV:COM:1234:TestService/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "{{is_rest_service_code}}"
+    },
+    {
+      "service_code": "getRandom"
+    }
+  ]
+}
+
+HTTP *
+[Asserts]
+status toString matches "^(201|409)$"
 
 # Register OpenAPI REST service
 POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions

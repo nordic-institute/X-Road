@@ -47,7 +47,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -62,6 +64,9 @@ public interface VaultClient {
     String EXPIRES_AT_KEY = "expiresAt";
     String CERTIFICATE_KEY = "certificate";
     String PIN_KEY = "pin";
+    String METHOD_KEY = "method";
+    String NEXT_RENEWAL_TIME_KEY = "nextRenewalTime";
+    String LAST_ERROR_KEY = "lastError";
 
     String INTERNAL_TLS_CREDENTIALS_PATH = "tls/internal";
     String OPMONITOR_TLS_CREDENTIALS_PATH = "tls/opmonitor";
@@ -69,6 +74,7 @@ public interface VaultClient {
     String MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH = "tls/management-service";
     String CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH = "tls/configuration-proxy";
     String DS_HTTPS_TLS_CREDENTIALS_PATH = "tls/ds-https";
+    String DS_HTTPS_ENROLLMENT_STATUS_PATH = "tls/ds-https-enrollment-status";
 
     String MLOG_ARCHIVAL_PGP_SECRET_KEY_PATH = "message-log/archival/pgp/secret-key";
     String MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH = "message-log/archival/pgp/public-keys";
@@ -102,6 +108,21 @@ public interface VaultClient {
     InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException;
+
+    /**
+     * Retrieves the DS TLS certificate's enrollment bookkeeping record, stored at a path sibling to the credential
+     * material itself so that a bookkeeping write can never corrupt the certificate currently being served.
+     *
+     * @return the stored enrollment status, or empty if no enrollment attempt has ever been recorded
+     */
+    Optional<DsTlsEnrollmentStatus> getDsTlsEnrollmentStatus();
+
+    /**
+     * Stores the DS TLS certificate's enrollment bookkeeping record, replacing whatever was recorded before.
+     *
+     * @param status the enrollment status to store
+     */
+    void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status);
 
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
@@ -243,5 +264,34 @@ public interface VaultClient {
                     .build();
         }
         return Base64.getUrlEncoder().withoutPadding().encodeToString(alias.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Parses a raw Vault secret map into a {@link DsTlsEnrollmentStatus}. Shared by every {@link VaultClient}
+     * implementation regardless of whether its underlying client returns {@code Map<String, Object>} or
+     * {@code Map<String, String>} values.
+     */
+    default DsTlsEnrollmentStatus toDsTlsEnrollmentStatus(Map<String, ?> secret) {
+        var method = DsTlsEnrollmentMethod.valueOf(secret.get(METHOD_KEY).toString());
+        var nextRenewalTime = secret.containsKey(NEXT_RENEWAL_TIME_KEY)
+                ? Instant.parse(secret.get(NEXT_RENEWAL_TIME_KEY).toString()) : null;
+        var lastError = secret.containsKey(LAST_ERROR_KEY) ? secret.get(LAST_ERROR_KEY).toString() : null;
+        return new DsTlsEnrollmentStatus(method, nextRenewalTime, lastError);
+    }
+
+    /**
+     * Builds the raw Vault secret map for a {@link DsTlsEnrollmentStatus}, the inverse of
+     * {@link #toDsTlsEnrollmentStatus(Map)}.
+     */
+    default Map<String, String> toDsTlsEnrollmentStatusSecret(DsTlsEnrollmentStatus status) {
+        var secret = new HashMap<String, String>();
+        secret.put(METHOD_KEY, status.method().name());
+        if (status.nextRenewalTime() != null) {
+            secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime().toString());
+        }
+        if (status.lastError() != null) {
+            secret.put(LAST_ERROR_KEY, status.lastError());
+        }
+        return secret;
     }
 }

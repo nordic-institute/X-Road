@@ -18,7 +18,6 @@ argument_specs:
       openbao_init_chart: {type: str, required: true}
       openbao_init_chart_version: {type: str, required: false}
       openbao_ha_replicas: {type: int, default: 2}
-      openbao_global_tls_disable: {type: bool, default: false}
       openbao_tls_mode:
         type: str
         default: self_signed
@@ -27,3 +26,8 @@ argument_specs:
       openbao_tls_dir: {type: path, required: false}
       openbao_tls_validity_days: {type: int, default: 1825}
       openbao_helm_wait_timeout: {type: str, default: 10m}
+      messagelog_encryption_pgp_public_keyring_file: {type: str, default: ""}
+      openbao_pgp_keyring_vault_seed_image: {type: str, default: "dwdraju/alpine-curl-jq"}
+      openbao_pgp_keyring_vault_seed_backoff_limit: {type: int, default: 3}
+      openbao_pgp_keyring_wait_retries: {type: int, default: 30}
+      openbao_pgp_keyring_wait_delay: {type: int, default: 5}

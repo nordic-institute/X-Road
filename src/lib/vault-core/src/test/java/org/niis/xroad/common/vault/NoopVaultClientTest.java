@@ -53,6 +53,21 @@ class NoopVaultClientTest {
     }
 
     @Test
+    void getDsTlsEnrollmentStatusShouldReturnEmpty() {
+        var result = vaultClient.getDsTlsEnrollmentStatus();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void createDsTlsEnrollmentStatusShouldThrow() {
+        var status = new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), null);
+
+        assertThatThrownBy(() -> vaultClient.createDsTlsEnrollmentStatus(status))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void acmeAccountKeyPathShouldBeSanitizedAndCollisionFreePerAlias() {
         var pathOne = vaultClient.getAcmeAccountKeyPath("auth_CS:ORG:MEMBER1");
         var pathTwo = vaultClient.getAcmeAccountKeyPath("sign_CS:ORG:MEMBER1");

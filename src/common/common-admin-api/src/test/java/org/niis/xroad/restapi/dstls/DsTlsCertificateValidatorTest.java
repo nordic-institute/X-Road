@@ -135,6 +135,37 @@ class DsTlsCertificateValidatorTest {
         assertEquals(DS_TLS_CERTIFICATE_NOT_YET_VALID.code(), exception.getErrorDeviation().code());
     }
 
+    @Test
+    void parsedChainMatchingExpectedKeyShouldPass() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate cert = selfSignedCertificate(keyPair, Instant.now().minus(1, ChronoUnit.DAYS),
+                Instant.now().plus(365, ChronoUnit.DAYS));
+
+        X509Certificate[] chain = validator.validate(keyPair.getPublic(), new X509Certificate[]{cert});
+
+        assertEquals(1, chain.length);
+        assertEquals(cert, chain[0]);
+    }
+
+    @Test
+    void parsedEmptyChainShouldBeRejected() {
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> validator.validate(generateRsaKeyPair().getPublic(), new X509Certificate[0]));
+        assertEquals(DS_TLS_CERTIFICATE_PARSE_FAILED.code(), exception.getErrorDeviation().code());
+    }
+
+    @Test
+    void parsedChainWithMismatchedKeyShouldBeRejected() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        PublicKey otherPublicKey = generateRsaKeyPair().getPublic();
+        X509Certificate cert = selfSignedCertificate(keyPair, Instant.now().minus(1, ChronoUnit.DAYS),
+                Instant.now().plus(365, ChronoUnit.DAYS));
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> validator.validate(otherPublicKey, new X509Certificate[]{cert}));
+        assertEquals(DS_TLS_KEY_CERTIFICATE_MISMATCH.code(), exception.getErrorDeviation().code());
+    }
+
     private static KeyPair generateRsaKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

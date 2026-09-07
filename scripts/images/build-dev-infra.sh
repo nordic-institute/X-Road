@@ -181,6 +181,13 @@ build_cmd=(
   "${MIRROR_BUILD_ARGS[@]}"
 )
 
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${OPENBAO_IMAGE%:*}:latest")
+fi
+
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)
 else
@@ -228,6 +235,13 @@ build_cmd=(
   "${MIRROR_BUILD_ARGS[@]}"
 )
 
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${TESTCA_IMAGE%:*}:latest")
+fi
+
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)
 else
@@ -272,6 +286,13 @@ build_cmd=(
   "${MIRROR_BUILD_ARGS[@]}"
 )
 
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${POSTGRES_DEV_IMAGE%:*}:latest")
+fi
+
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)
 else
@@ -315,6 +336,13 @@ build_cmd=(
   --tag "$NGINX_CP_IMAGE"
   "${MIRROR_BUILD_ARGS[@]}"
 )
+
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${NGINX_CP_IMAGE%:*}:latest")
+fi
 
 if [[ "$PUSH" == "true" ]]; then
   build_cmd+=(--push)

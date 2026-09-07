@@ -23,8 +23,25 @@ OPTIONS:
 EOF
 }
 
-get_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
+read_backup_encryption_settings () {
+  # shellcheck source=/dev/null
+  source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+  prepare_db_props
+
+  if [ -f /etc/xroad/db_libpq.env ]; then
+    # shellcheck source=/dev/null
+    source /etc/xroad/db_libpq.env
+  fi
+
+  export PGPASSWORD="$db_password"
+  export PGOPTIONS="-c client-min-messages=warning -c search_path=${db_schema},public ${PGOPTIONS_EXTRA:-}"
+
+  local psql_q=(psql -v ON_ERROR_STOP=1 -qAt -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -U "$db_user" -d "$db_database")
+
+  ENCRYPT_BACKUP=$("${psql_q[@]}" -v k="xroad.backups.backup-encryption-enabled" \
+    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k';")
+  GPG_KEYIDS=$("${psql_q[@]}" -v k="xroad.backups.backup-encryption-keyids" \
+    -c "SELECT property_value FROM configuration_properties WHERE property_key = :'k';")
 }
 
 execute_backup () {
@@ -97,10 +114,9 @@ check_instance_id
 check_central_ha_node_name
 check_backup_file_name
 
-ENCRYPT_BACKUP=$(get_prop xroad.backups.backup-encryption-enabled)
+read_backup_encryption_settings
 ENCRYPT_BACKUP=${ENCRYPT_BACKUP:-false}
 echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
-GPG_KEYIDS=$(get_prop xroad.backups.backup-encryption-keyids)
 echo "GPG_KEYIDS=$GPG_KEYIDS"
 
 execute_backup
