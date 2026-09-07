@@ -23,45 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.config;
+package org.niis.xroad.common.acme.spring.dstls;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.connector.Connector;
-import org.apache.coyote.http11.Http11NioProtocol;
 import org.niis.xroad.common.acme.config.AcmeSchedulingConfig;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
-import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.TaskScheduler;
 
 /**
- * Registers the shared HTTP-01 challenge-response port-80 Tomcat connector. Kept separate from any
- * individual ACME scheduling config so that multiple independent {@link CertificateRenewalScheduler}
- * instances (auth/sign, DS TLS) can coexist without each registering its own connector on the same port.
+ * Wires the DS TLS certificate's own {@link CertificateRenewalScheduler} instance, entirely separate from any
+ * product's member auth/sign scheduler bean. Whether it actually runs is decided by
+ * {@link DsTlsAcmeHostContext#isSchedulingActive()}, evaluated once when this bean is created — enabling DS TLS
+ * ACME while admin-service is already running does not start this scheduler until the process restarts.
+ * {@link DsTlsAcmeCertificateRenewalWorker} still resolves the public hostname live on every tick regardless,
+ * so a not-currently-enabled state is still handled as "skip this cycle" rather than relying solely on this gate.
  */
 @Slf4j
 @Configuration
-public class AcmeChallengerConfig {
+public class DsTlsAcmeCertificateRenewalSchedulingConfig {
 
     @Bean
-    @Profile("nontest")
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer(AcmeSchedulingConfig acmeConfig) {
-        if (acmeConfig.isAcmeChallengePortEnabled()) {
-            return factory -> {
-                var connector = new Connector(Http11NioProtocol.class.getName());
-                int acmeChallengePort = acmeConfig.getAcmeChallengePort();
-                connector.setScheme("http");
-                connector.setPort(acmeChallengePort);
-                log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
-                factory.addAdditionalConnectors(connector);
-            };
-        } else {
-            log.info("ACME challenge port is disabled");
-            return _ -> {
-                // no-op
-            };
+    @Profile("!test")
+    @Order(Ordered.LOWEST_PRECEDENCE - 98)
+    CertificateRenewalScheduler dsTlsAcmeCertificateRenewalScheduler(DsTlsAcmeCertificateRenewalWorker dsTlsAcmeCertificateRenewalWorker,
+                                                                      TaskScheduler taskScheduler,
+                                                                      AcmeSchedulingConfig acmeConfig,
+                                                                      DsTlsAcmeHostContext hostContext) {
+        if (!hostContext.isSchedulingActive()) {
+            log.info("DS TLS ACME certificate renewal job auto-scheduling disabled");
+            return null;
         }
+        var scheduler = new CertificateRenewalScheduler(dsTlsAcmeCertificateRenewalWorker, acmeConfig, taskScheduler);
+        scheduler.init();
+        return scheduler;
     }
 }

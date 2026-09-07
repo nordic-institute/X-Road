@@ -30,7 +30,7 @@ package org.niis.xroad.common.acme.config;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
-public interface AcmeConfig {
+public interface AcmeConfig extends AcmeSchedulingConfig {
 
     Pattern ACME_CHALLENGE_TOKEN_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 
@@ -55,16 +55,6 @@ public interface AcmeConfig {
      * org.niis.xroad.securityserver.restapi.config.AcmeCertificateRenewalSchedulingConfig.IsAcmeCertRenewalJobsActive
      */
     boolean isAcmeRenewalActive();
-
-    /**
-     * ACME certificate renewal retry delay in seconds
-     */
-    int getAcmeRenewalRetryDelay();
-
-    /**
-     * ACME certificate renewal job interval in seconds
-     */
-    int getAcmeRenewalInterval();
 
     /**
      * when to trigger automatic renewal subtracted as days from the expiration date of the certificate.
@@ -106,13 +96,6 @@ public interface AcmeConfig {
      * the amount of days the ACME server account's self-signed certificate is valid
      */
     int getAcmeCertificateAccountKeyPairExpiration();
-
-    /**
-     * whether the service should listen on acme challenge port (default 80) for incoming requests
-     */
-    boolean isAcmeChallengePortEnabled();
-
-    int getAcmeChallengePort();
 
     int getAcmeKeyLength();
 

@@ -6,6 +6,7 @@ dependencies {
   api(project(":lib:acme-core"))
   api(project(":lib:globalconf-spring"))
 
+  implementation(project(":common:common-admin-api"))
   implementation(project(":lib:properties-core"))
   implementation(project(":lib:properties-spring"))
 
