@@ -46,9 +46,12 @@ class LegacyConfigLegacyConfigMigrationCLITest {
     private static final String INPUT_INI = "src/test/resources/local-test.ini";
     private static final String INPUT_DB_PROPERTIES_SRC = "src/test/resources/db-test.properties";
     private static final String INPUT_DB_PROPERTIES = "build/db-test.properties";
+    private static final String INPUT_HEALTH_CHECK_PROPERTIES_SRC = "src/test/resources/proxy-health-check-test.properties";
+    private static final String INPUT_HEALTH_CHECK_PROPERTIES = "build/proxy-health-check-test.properties";
 
     private static final String OUTPUT_YAML = "build/local.yml";
     private static final String OUTPUT_PROPERTIES = "build/db-test.properties";
+    private static final String OUTPUT_HEALTH_CHECK_PROPERTIES = "build/proxy-health-check-test.properties";
 
     private final YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
 
@@ -89,6 +92,27 @@ class LegacyConfigLegacyConfigMigrationCLITest {
         assertEquals("/var/cache/xroad", result.getProperty("xroad.signer.ocsp-cache-path"));
         assertEquals("", result.getProperty("xroad.proxy.empty-prop"));
         assertNull(result.getProperty("xroad.configuration-client.configuration-anchor-file"));
+
+        // proxy.health-check-port has a non-zero value → health-check-enabled must be derived
+        assertEquals(5588, result.getProperty("xroad.proxy.health-check-port"));
+        assertTrue(Boolean.parseBoolean(String.valueOf(result.getProperty("xroad.proxy.health-check-enabled"))));
+    }
+
+    @Test
+    void shouldInjectHealthCheckEnabledInPropertiesOutput() throws IOException {
+        Files.copy(Paths.get(INPUT_HEALTH_CHECK_PROPERTIES_SRC), Paths.get(INPUT_HEALTH_CHECK_PROPERTIES),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        LegacyConfigMigrationCLI.main(new String[]{
+                "config",
+                INPUT_HEALTH_CHECK_PROPERTIES
+        });
+
+        var result = new Properties();
+        result.load(Files.newInputStream(Paths.get(OUTPUT_HEALTH_CHECK_PROPERTIES)));
+
+        assertEquals("5588", result.getProperty("xroad.proxy.health-check-port"));
+        assertEquals("true", result.getProperty("xroad.proxy.health-check-enabled"));
     }
 
     @Test

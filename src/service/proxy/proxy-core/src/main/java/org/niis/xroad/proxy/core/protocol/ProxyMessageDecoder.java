@@ -30,10 +30,10 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.StaxEventSoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
@@ -43,6 +43,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.james.mime4j.MimeException;
@@ -86,6 +87,21 @@ public class ProxyMessageDecoder {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyMessageDecoder.class);
+
+    /**
+     * Maximum accepted byte size for a single hashchain or hashchainresult MIME part. Hash chains are logarithmic in
+     * batch size (depth ~21 for a million messages), so the largest legitimate part is a few KB. 1 MB is roughly
+     * 100x that upper bound, leaving ample room for any real-world chain while capping adversarial input.
+     */
+    static final long MAX_HASHCHAIN_PART_BYTES = 1_048_576L;
+
+    /**
+     * Maximum accepted byte size for the signature MIME part. A BDOC/XAdES signature (XML with embedded certificate
+     * chain, OCSP response and timestamp token) is normally tens to a few hundred KB even with large certificates.
+     * 10 MB leaves ample headroom above any real-world signature while still capping adversarial input from an
+     * unauthenticated peer.
+     */
+    static final long MAX_SIGNATURE_PART_BYTES = 10_485_760L;
 
     private final ProxyMessageConsumer callback;
 
@@ -199,7 +215,7 @@ public class ProxyMessageDecoder {
     }
 
     private void parseFault(InputStream is) throws IOException {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+        Soap soap = new StaxEventSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw XrdRuntimeException.systemException(INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");
@@ -360,7 +376,7 @@ public class ProxyMessageDecoder {
                             "Invalid content type for SOAP message: %s".formatted(bd.getMimeType()));
             }
 
-            Soap soap = new SaxSoapParserImpl().parse(partContentType, is);
+            Soap soap = new StaxEventSoapParserImpl().parse(partContentType, is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
             } else {
@@ -483,7 +499,7 @@ public class ProxyMessageDecoder {
         try {
             LOG.trace("handleHashChainResult()");
 
-            String hashChainResult = IOUtils.toString(is, UTF_8);
+            String hashChainResult = readBoundedHashChainPart(is);
             LOG.trace("HashChainResult: {}", hashChainResult);
 
             signature = new SignatureData(null, hashChainResult, null);
@@ -496,7 +512,7 @@ public class ProxyMessageDecoder {
         try {
             LOG.trace("handleHashChain()");
 
-            String hashChain = IOUtils.toString(is, UTF_8);
+            String hashChain = readBoundedHashChainPart(is);
             LOG.trace("HashChain: {}", hashChain);
 
             signature = new SignatureData(null, signature.getHashChainResult(),
@@ -504,6 +520,26 @@ public class ProxyMessageDecoder {
         } catch (Exception e) {
             throw translateException(e);
         }
+    }
+
+    private static String readBoundedHashChainPart(InputStream is) throws IOException {
+        return readBoundedPart(is, MAX_HASHCHAIN_PART_BYTES, "Hash-chain");
+    }
+
+    private static String readBoundedSignaturePart(InputStream is) throws IOException {
+        return readBoundedPart(is, MAX_SIGNATURE_PART_BYTES, "Signature");
+    }
+
+    private static String readBoundedPart(InputStream is, long maxBytes, String partLabel) throws IOException {
+        var bounded = BoundedInputStream.builder()
+                .setInputStream(is)
+                .setMaxCount(maxBytes + 1)
+                .get();
+        var content = IOUtils.toString(bounded, UTF_8);
+        if (bounded.getCount() > maxBytes) {
+            throw new IOException("%s part size exceeds limit of %d bytes".formatted(partLabel, maxBytes));
+        }
+        return content;
     }
 
     @SuppressWarnings("fallthrough")
@@ -515,7 +551,7 @@ public class ProxyMessageDecoder {
                     ? "" : bd.getMimeType().toLowerCase()) {
                 case SIGNATURE_BDOC:
                     // We got signature, just as expected.
-                    signature = new SignatureData(IOUtils.toString(is, UTF_8),
+                    signature = new SignatureData(readBoundedSignaturePart(is),
                             signature.getHashChainResult(), signature.getHashChain());
                     callback.signature(signature);
                     break;
@@ -525,7 +561,7 @@ public class ProxyMessageDecoder {
                     // party sent SOAP fault instead of signature.
 
                     // Parse the fault message.
-                    Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
+                    Soap soap = new StaxEventSoapParserImpl().parse(bd.getMimeType(), is);
                     if (soap instanceof SoapFault) {
                         callback.fault((SoapFault) soap);
                         return; // The nextPart will be set to NONE

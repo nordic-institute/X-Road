@@ -32,33 +32,23 @@ import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.validator.internal.WSDL11Validator;
 import org.apache.cxf.transport.http.HTTPConduitConfigurer;
-import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.SSLSocketFactory;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.List;
 
 @Component
 public class WsdlValidator {
     private final Bus bus;
 
-    public WsdlValidator(ServerConfProvider serverConfProvider) throws NoSuchAlgorithmException, KeyManagementException {
-        var sslCtx = SSLContext.getInstance("TLS");
-        sslCtx.init(
-                new KeyManager[] {new ClientSslKeyManager(serverConfProvider)},
-                new TrustManager[] {new HttpUrlConnectionConfig.NoopTrustManager()},
-                new SecureRandom());
+    public WsdlValidator(ServerConfProvider serverConfProvider) {
+        SSLSocketFactory sslSocketFactory = WsdlSslContextFactory.trustAllSslSocketFactory("TLS", serverConfProvider);
         bus = BusFactory.newInstance().createBus();
         bus.setExtension((name, address, conduit) -> {
             conduit.getTlsClientParameters().setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
-            conduit.getTlsClientParameters().setSSLSocketFactory(sslCtx.getSocketFactory());
+            conduit.getTlsClientParameters().setSSLSocketFactory(sslSocketFactory);
         }, HTTPConduitConfigurer.class);
     }
 

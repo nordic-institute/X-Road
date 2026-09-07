@@ -28,10 +28,17 @@
 package org.niis.xroad.globalconf.impl.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierProperties;
+import org.niis.xroad.globalconf.impl.ocsp.XRoadOcspVerifierProperties;
 
 public class OcspVerifierConfig {
+
+    @ApplicationScoped
+    public OcspVerifierProperties ocspVerifierProperties(XRoadConfig config) {
+        return new XRoadOcspVerifierProperties(config);
+    }
 
     @ApplicationScoped
     public OcspVerifierFactory ocspVerifierFactory(OcspVerifierProperties ocspVerifierProperties) {

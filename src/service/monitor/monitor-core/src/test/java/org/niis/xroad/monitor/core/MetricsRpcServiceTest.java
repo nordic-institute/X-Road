@@ -43,14 +43,16 @@ import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 
-import java.time.Duration;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * MetricsProviderActorTest
@@ -70,32 +72,8 @@ class MetricsRpcServiceTest {
      */
     @BeforeEach
     public void init() throws Exception {
-        EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
-            @Override
-            public Duration certificateInfoSensorInterval() {
-                return Duration.ofDays(1);
-            }
-
-            @Override
-            public Duration diskSpaceSensorInterval() {
-                return Duration.ofSeconds(60);
-            }
-
-            @Override
-            public Duration execListingSensorInterval() {
-                return Duration.ofSeconds(60);
-            }
-
-            @Override
-            public Duration systemMetricsSensorInterval() {
-                return Duration.ofSeconds(5);
-            }
-
-            @Override
-            public boolean limitRemoteDataSet() {
-                return true;
-            }
-        };
+        var envMonitorProperties = mock(EnvMonitorProperties.class);
+        when(envMonitorProperties.limitRemoteDataSet()).thenReturn(true);
 
         RpcCredentialsConfigurer rpcCredentialsConfigurer = new InsecureRpcCredentialsConfigurer();
 

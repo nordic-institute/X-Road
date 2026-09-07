@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.util.BackupUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
@@ -44,21 +44,17 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_GENERATION_INTERRUPTED;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGenerator {
-    private static final String BACKUP_FILENAME_DATE_TIME_FORMAT = "yyyyMMdd-HHmmss";
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-    private static final String FILE_NAME_FORMAT = "conf_backup_%s.gpg";
     private static final String ARG_VALUES_AS_ENC_BASE64 = "-b";
     private static final String ARG_INSTANCE_ID = "-i";
     private static final String ARG_NODE_NAME = "-n";
@@ -77,14 +73,11 @@ public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGene
 
     /**
      * Generate a new backup file
-     * @return
-     * @throws InterruptedException if the thread the backup process is interrupted and the backup fails. <b>The
-     *                              interrupted thread has already been handled with so you can choose to ignore this exception if you
-     *                              so please.</b>
+     * @return the generated backup file
      */
     @Override
-    public BackupFile generateBackup() throws InterruptedException {
-        String filename = generateBackupFileName();
+    public BackupFile generateBackup() {
+        String filename = BackupUtils.generateBackupFileName();
 
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
 
@@ -101,6 +94,9 @@ public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGene
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             throw new InternalServerErrorException(e, BACKUP_GENERATION_FAILED.build());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
         }
 
         Optional<BackupFile> backupFile = backupService.getBackup(filename);
@@ -126,10 +122,6 @@ public class ConfigurationBackupGeneratorImpl implements ConfigurationBackupGene
         args.add(ARG_BACKUP_FILE_PATH);
         args.add(EncoderUtils.encodeBase64(backupRepository.getConfigurationBackupPath() + backupFilename));
         return args.toArray(new String[0]);
-    }
-
-    private String generateBackupFileName() {
-        return String.format(FILE_NAME_FORMAT, TimeUtils.localDateTimeNow().format(DATE_TIME_FORMATTER));
     }
 
 }

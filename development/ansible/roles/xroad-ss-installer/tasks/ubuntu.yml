@@ -1,0 +1,11 @@
+---
+- name: Ensure tar, ca-certificates and curl are present
+  become: true
+  apt:
+    name:
+      - tar
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: true
+    cache_valid_time: 3600

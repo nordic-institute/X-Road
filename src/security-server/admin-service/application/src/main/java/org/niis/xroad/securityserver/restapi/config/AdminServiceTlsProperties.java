@@ -26,16 +26,31 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.common.vault.spring.config.SpringCertificateProvisioningProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
-@Configuration
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "xroad.proxy-ui-api.tls")
+import java.util.Arrays;
+import java.util.List;
+
+@RequiredArgsConstructor
 public class AdminServiceTlsProperties {
-    private SpringCertificateProvisioningProperties certificateProvisioning;
+
+    private final XRoadConfig xRoadConfig;
+
+    public CertificateProvisioningProperties getCertificateProvisioning() {
+        return new CertificateProvisioningConfig(
+                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_ISSUANCE_ROLE_NAME),
+                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_COMMON_NAME),
+                toList(xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_ALT_NAMES)),
+                toList(xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
+                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_TTL),
+                xRoadConfig.value(AdminServiceConfigKeys.TLS_CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
+    }
+
+    private static List<String> toList(String[] values) {
+        return Arrays.stream(values).filter(value -> !value.isBlank()).toList();
+    }
 }

@@ -1,5 +1,6 @@
 name: Build and Test
 on:
+  workflow_dispatch:
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
@@ -33,8 +34,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Skip Build on dependabot/gradle/* branches for any event sent by
+  # Dependabot itself (open, recreate, rebase — all fire pull_request with
+  # sender.login == 'dependabot[bot]'). The dependabot-gradle-metadata.yml
+  # workflow regenerates verification-metadata.xml and force-pushes as
+  # github-actions[bot]; that sync event has sender.login ==
+  # 'github-actions[bot]' and runs Build on the fixed commit.
+  # See gradle-dependency-verification.md.
   build-and-package:
     name: build & package
+    if: >
+      !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:
@@ -42,7 +53,7 @@ jobs:
       sha: ${{ github.sha }}
 
   test-central-server:
-    name: cs-system-tests
+    name: cs-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-central-server.yml
     secrets: inherit
@@ -53,7 +64,7 @@ jobs:
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
   test-security-server:
-    name: ss-system-tests
+    name: ss-tests
     needs: build-and-package
     uses: ./.github/workflows/_test-security-server.yml
     secrets: inherit
@@ -63,16 +74,35 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
+  # no needs edge on build-and-package (see _test-e2e.yml), so its Dependabot guard is repeated here
   test-e2e:
-    name: e2e-tests
-    needs: build-and-package
+    name: e2e
+    if: >
+      !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # timeouts include the in-job wait for the readiness marker
+          - variant: compose
+            runs_on: ubuntu-24.04
+            timeout_minutes: 90
+          - variant: lxd
+            runs_on: xrd-runner-8c
+            timeout_minutes: 120
+          # 8c runner: chart rollout is CPU-bound (~15 JVM cold starts)
+          - variant: k8s
+            runs_on: xrd-runner-8c
+            timeout_minutes: 90
     uses: ./.github/workflows/_test-e2e.yml
     secrets: inherit
     with:
       ref: ${{ github.ref }}
       sha: ${{ github.sha }}
-      image_registry: ${{ needs.build-and-package.outputs.image_registry }}
-      service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
+      variant: ${{ matrix.variant }}
+      runs_on: ${{ matrix.runs_on }}
+      timeout_minutes: ${{ matrix.timeout_minutes }}
 
   test-services:
     name: service-int-tests
@@ -85,31 +115,40 @@ jobs:
       image_registry: ${{ needs.build-and-package.outputs.image_registry }}
       service_image_tag: ${{ needs.build-and-package.outputs.service_image_tag }}
 
+  chart-lint-smoke:
+    name: chart-lint-smoke
+    uses: ./.github/workflows/_test-charts.yml
+    secrets: inherit
+    with:
+      ref: ${{ github.ref }}
+      sha: ${{ github.sha }}
+
   build-summary:
     name: Build Summary
-    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services]
+    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services, chart-lint-smoke]
     if: always()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Generate build summary
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
           # Build and Test Summary
-          
+
           | Job | Status | Duration |
           |-----|--------|----------|
           | Build and Package | ${{ needs.build-and-package.result == 'success' && '✅ Success' || needs.build-and-package.result == 'failure' && '❌ Failed' || needs.build-and-package.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Central Server Tests | ${{ needs.test-central-server.result == 'success' && '✅ Success' || needs.test-central-server.result == 'failure' && '❌ Failed' || needs.test-central-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
-          | E2E Tests | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | E2E Tests (all lanes) | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Service Integration Tests | ${{ needs.test-services.result == 'success' && '✅ Success' || needs.test-services.result == 'failure' && '❌ Failed' || needs.test-services.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
-          
+          | Chart Lint & Smoke | ${{ needs.chart-lint-smoke.result == 'success' && '✅ Success' || needs.chart-lint-smoke.result == 'failure' && '❌ Failed' || needs.chart-lint-smoke.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+
           ## Overall Result
-          
-          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
-          
+
+          ${{ (needs.build-and-package.result == 'success' && needs.test-central-server.result == 'success' && needs.test-security-server.result == 'success' && needs.test-e2e.result == 'success' && needs.test-services.result == 'success' && needs.chart-lint-smoke.result == 'success') && '🎉 All tests passed!' || '⚠️ Some tests failed or were skipped' }}
+
           ## Quick Actions
-          
+
           - 🔄 [Re-run failed jobs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           - 🐛 [View detailed logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           - 📊 [Build trends](https://github.com/${{ github.repository }}/actions)

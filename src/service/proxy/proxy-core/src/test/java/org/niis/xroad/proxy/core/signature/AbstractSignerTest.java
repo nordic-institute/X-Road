@@ -36,7 +36,8 @@ import ee.ria.xroad.common.util.MessageFileNames;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.mockito.Mock;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -73,7 +75,10 @@ public abstract class AbstractSignerTest {
     protected final OcspVerifierFactory ocspVerifierFactory = new OcspVerifierFactory();
     protected final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
     protected final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
-    protected final ProxyProperties proxyProperties = ConfigUtils.defaultConfiguration(ProxyProperties.class);
+    protected final ProxyProperties proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
+            .register(ProxyConfigKeys.instance())
+            .overrides(Map.of())
+            .build());
 
     protected MessageSigner signer;
 

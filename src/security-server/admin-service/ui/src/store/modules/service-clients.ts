@@ -28,7 +28,7 @@
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { ServiceClient, AccessRights, AccessRight } from '@/openapi-types';
+import { AccessRight, AccessRights, DeleteServiceClientAccessRightsData, ServiceClient } from '@/openapi-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
 import { AxiosRequestConfig } from 'axios';
 
@@ -76,9 +76,10 @@ export const useServiceClients = defineStore('service-clients', {
     async removeAccessRights(clientId: string, serviceClientId: string, serviceCodes: string[]) {
       const encodedId = encodePathParameter(clientId);
       const encodedServiceClientId = encodePathParameter(serviceClientId);
-      return api.post(`/clients/${encodedId}/service-clients/${encodedServiceClientId}/access-rights/delete`, {
+      const body: DeleteServiceClientAccessRightsData['body'] = {
         items: serviceCodes.map((code) => ({ service_code: code })),
-      });
+      };
+      return api.post(`/clients/${encodedId}/service-clients/${encodedServiceClientId}/access-rights/delete`, body);
     },
   },
 });

@@ -20,7 +20,6 @@ dependencies {
 
   implementation(libs.bundles.quarkus.core)
   implementation(libs.bundles.quarkus.containerized)
-  implementation(libs.quarkus.extension.systemd.notify)
 }
 
 tasks.jar {

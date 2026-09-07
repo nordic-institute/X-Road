@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
@@ -42,10 +41,10 @@ import org.niis.xroad.restapi.openapi.model.User;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.MockMvcPrint;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -110,9 +109,6 @@ public class CsrfWebMvcTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
-
-    @MockitoBean
-    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     @Before
     // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)

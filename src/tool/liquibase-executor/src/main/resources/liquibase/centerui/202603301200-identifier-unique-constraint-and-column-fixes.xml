@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+    logicalFilePath="centerui/202603301200-identifier-unique-constraint-and-column-fixes.xml">
+
+    <!-- object_type CHECK -->
+    <changeSet author="niis" id="202603301200-identifier-unique-constraint-and-column-fixes-001">
+        <sql>
+            ALTER TABLE identifier
+                ADD CONSTRAINT identifier_object_type_check
+                    CHECK (object_type IN ('MEMBER', 'SUBSYSTEM', 'SERVER'));
+        </sql>
+    </changeSet>
+
+    <!-- UNIQUE constraint -->
+    <changeSet author="niis" id="202603301200-identifier-unique-constraint-and-column-fixes-002">
+        <sql>
+            ALTER TABLE identifier
+                ADD CONSTRAINT identifier_unique_object_key
+                    UNIQUE NULLS NOT DISTINCT (
+                object_type,
+                xroad_instance,
+                member_class,
+                member_code,
+                subsystem_code,
+                server_code,
+                group_code
+                );
+        </sql>
+    </changeSet>
+
+    <!-- NOT NULL constraints -->
+    <changeSet author="niis" id="202603301200-identifier-unique-constraint-and-column-fixes-003">
+        <addNotNullConstraint tableName="identifier" columnName="object_type"/>
+        <addNotNullConstraint tableName="identifier" columnName="xroad_instance"/>
+        <addNotNullConstraint tableName="identifier" columnName="member_class"/>
+        <addNotNullConstraint tableName="identifier" columnName="member_code"/>
+    </changeSet>
+
+    <!-- Drop columns -->
+    <changeSet author="niis" id="202603301200-identifier-unique-constraint-and-column-fixes-004">
+        <dropColumn tableName="identifier" columnName="service_code"/>
+        <dropColumn tableName="identifier" columnName="service_version"/>
+    </changeSet>
+
+</databaseChangeLog>

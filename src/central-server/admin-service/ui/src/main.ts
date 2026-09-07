@@ -29,33 +29,22 @@
 Startpoint of the Vue application.
 Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
-Initialises the app root component.
+Initializes the app root component.
 */
 import { createApp } from 'vue';
 
-import { createPinia } from 'pinia';
-
 import axios from 'axios';
-import { createPersistedState } from 'pinia-plugin-persistedstate';
 
-import { setupAddErrorNavigation } from '@niis/shared-ui';
+import { pinia, setupAddErrorNavigation } from '@niis/shared-ui';
 
 import { createFilters } from '@/filters';
 import { RouteName } from '@/global';
 import { createLanguageHelper } from '@/plugins/i18n';
 import { createValidators } from '@niis/shared-ui/src/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify'; //
-
 import router from './router/router';
 
 import App from './App.vue';
-
-const pinia = createPinia();
-pinia.use(
-  createPersistedState({
-    storage: sessionStorage,
-  }),
-);
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';

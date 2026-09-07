@@ -2,14 +2,19 @@
 - name: check that OS is supported
   fail:
     msg: "This playbook only supports Ubuntu"
-  when: ansible_os_family != "Debian"
+  when: ansible_facts['os_family'] != "Debian"
+
+- name: Detect cached-image marker
+  stat:
+    path: /etc/xroad-cached-image
+  register: cache_marker
 
 - name: install required packages
   apt:
-      name: "{{ items }}"
-      state: present
-      update_cache: yes
-      install_recommends: no
+    name: "{{ items }}"
+    state: present
+    update_cache: true
+    install_recommends: false
   vars:
     items:
       - "python3"
@@ -19,22 +24,21 @@
       - "python3-pip"
       - "uwsgi"
       - "uwsgi-plugin-python3"
+  when: not cache_marker.stat.exists
 
-- name: download acme2certifier (jammy only)
+- name: download acme2certifier
   get_url:
-    url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
-    dest: /tmp/
-  when: ansible_distribution_release == "jammy"
-
-# get_url option is not yet supported for noble, in python 3.12 is this fixed
-- name: download acme2certifier (noble only)
-  shell: "curl -L -o /tmp/acme2certifier_{{ a2c_ver }}-1_all.deb https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
-  when: ansible_distribution_release == "noble"
+    url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-{{ a2c_deb_release }}_all.deb"
+    dest: "/tmp/acme2certifier_{{ a2c_ver }}-{{ a2c_deb_release }}_all.deb"
+  when:
+    - not cache_marker.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: group ca
   group:
     name: "ca"
     system: "yes"
+  when: not cache_marker.stat.exists
 
 - name: ca user
   user:
@@ -43,11 +47,13 @@
     comment: "CA user"
     createhome: "yes"
     system: "yes"
+  when: not cache_marker.stat.exists
 
 - name: Ensure nginx has access to ca user's home directory
   file:
-    mode: 0755
+    mode: "0755"
     path: /home/ca
+  when: not cache_marker.stat.exists
 
 - name: ocsp user
   user:
@@ -56,6 +62,7 @@
     comment: "OCSP user"
     createhome: "yes"
     system: "yes"
+  when: not cache_marker.stat.exists
 
 - name: copy root user directories
   copy:
@@ -63,10 +70,11 @@
     dest: /
     group: "root"
     owner: "root"
-  with_items:
+  loop:
     - "etc"
     - "usr"
     - "lib"
+  when: not cache_marker.stat.exists
 
 - name: copy ca group directories
   copy:
@@ -74,24 +82,26 @@
     dest: /home
     group: "ca"
     owner: "ca"
-  with_items:
+  loop:
     - "home/ca"
+  when: not cache_marker.stat.exists
 
 - name: set file permissions
   file:
-    mode: 0755
+    mode: "0755"
     path: "/usr/local/bin/{{ item }}"
-  with_items:
+  loop:
     - "sign"
     - "sign-auth"
     - "sign-sign"
     - "ca-revoke"
+  when: not cache_marker.stat.exists
 
 - name: set file permissions for CA
   file:
-    mode: 0740
+    mode: "0740"
     path: "/home/ca/CA/{{ item }}"
-  with_items:
+  loop:
     - "ocsp.sh"
     - "revoke.sh"
     - "sign.sh"
@@ -99,14 +109,16 @@
     - "ocsp.py"
     - "ca.py"
     - "sign_req.sh"
+  when: not cache_marker.stat.exists
 
 - name: set file permissions for TSA
   file:
-    mode: 0664
+    mode: "0664"
     path: "/home/ca/TSA/{{ item }}"
-  with_items:
+  loop:
     - "TSA.cnf"
     - "tsa_server.py"
+  when: not cache_marker.stat.exists
 
 - name: init.sh template
   template:
@@ -114,12 +126,14 @@
     dest: "/home/ca/CA/init.sh"
     owner: "ca"
     group: "ca"
-    mode: 0700
+    mode: "0700"
+  when: not cache_marker.stat.exists
 
 - name: check if ocsp.log exists
   stat:
     path: /var/log/ocsp.log
   register: stat_result
+  when: not cache_marker.stat.exists
 
 - name: create ocsp.log
   file:
@@ -127,13 +141,16 @@
     state: touch
     group: "ca"
     owner: "ca"
-    mode: 0664
-  when: stat_result.stat.exists == False
+    mode: "0664"
+  when:
+    - not cache_marker.stat.exists
+    - stat_result.stat.exists is defined and not stat_result.stat.exists
 
 - name: check if .init exists
   stat:
     path: /home/ca/CA/.init
   register: stat_result
+  when: not cache_marker.stat.exists
 
 - name: run init.sh
   shell: ./init.sh > init.log 2>&1
@@ -141,7 +158,9 @@
     chdir: "/home/ca/CA"
   become: true
   become_user: ca
-  when: stat_result.stat.exists == False
+  when:
+    - not cache_marker.stat.exists
+    - stat_result.stat.exists is defined and not stat_result.stat.exists
 
 - name: init_acme.sh template
   template:
@@ -149,12 +168,14 @@
     dest: "/home/ca/CA/init_acme.sh"
     owner: "ca"
     group: "ca"
-    mode: 0700
+    mode: "0700"
+  when: not cache_marker.stat.exists
 
 - name: check if .init_acme exists
   stat:
     path: /home/ca/CA/.init_acme
   register: stat_result
+  when: not cache_marker.stat.exists
 
 - name: run init_acme.sh
   shell: ./init_acme.sh > init_acme.log 2>&1
@@ -163,8 +184,9 @@
   become: true
   become_user: root
   when:
-    - stat_result.stat.exists == False
-    - (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+    - not cache_marker.stat.exists
+    - stat_result.stat.exists is defined and not stat_result.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: copy acme2certifier conf
   copy:
@@ -172,9 +194,11 @@
     dest: /var/www/acme2certifier/acme_srv/acme_srv.cfg
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "acme_srv.cfg"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when:
+    - not cache_marker.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: copy acme2certifier external account binding conf
   copy:
@@ -182,9 +206,11 @@
     dest: /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "kid_profiles.json"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when:
+    - not cache_marker.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: copy acme2certifier openssl handler
   copy:
@@ -192,44 +218,60 @@
     dest: /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
     group: "www-data"
     owner: "www-data"
-  with_items:
+  loop:
     - "openssl_ca_handler.py"
-  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+  when:
+    - not cache_marker.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
+
+- name: copy acme2certifier renewalinfo (patched)
+  copy:
+    src: "../../../acme2certifier/{{ item }}"
+    dest: /var/www/acme2certifier/acme_srv/renewalinfo.py
+    group: "www-data"
+    owner: "www-data"
+  loop:
+    - "renewalinfo.py"
+  when:
+    - not cache_marker.stat.exists
+    - ansible_facts['distribution_release'] in ["noble", "resolute"]
 
 - name: remove obsolete files
   file:
     path: /etc/nginx/sites-enabled/ocsp.nginx
     state: absent
+  when: not cache_marker.stat.exists
 
 - name: refresh systemd
   systemd:
-    daemon_reload: yes
+    daemon_reload: true
+  when: not cache_marker.stat.exists
 
-- name: restart nginx
+- name: ensure nginx running
   service:
     name: nginx
-    state: restarted
+    state: "{{ 'restarted' if not cache_marker.stat.exists else 'started' }}"
 
-- name: restart ocsp
+- name: ensure ocsp running
   service:
     name: ocsp
-    state: restarted
-    enabled: yes
+    state: "{{ 'restarted' if not cache_marker.stat.exists else 'started' }}"
+    enabled: true
 
-- name: restart ca
+- name: ensure ca running
   service:
     name: ca
-    state: restarted
-    enabled: yes
+    state: "{{ 'restarted' if not cache_marker.stat.exists else 'started' }}"
+    enabled: true
 
-- name: restart tsa
+- name: ensure tsa running
   service:
     name: tsa
-    state: restarted
-    enabled: yes
+    state: "{{ 'restarted' if not cache_marker.stat.exists else 'started' }}"
+    enabled: true
 
 - name: start acme2certifier (acme server)
   service:
     name: acme2certifier
     state: started
-    enabled: yes
+    enabled: true

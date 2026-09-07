@@ -114,11 +114,6 @@ xroad:
     key-management-api-whitelist: 127.0.0.0/8, ::1
     regular-api-whitelist: 0.0.0.0/0, ::/0
     acme-key-length: 2048
-    rpc:
-      enabled: true
-      listen-address: "127.0.0.1"
-      port: 4060
-
 file-upload-endpoints:
   endpoint-definitions:
     -
@@ -161,6 +156,7 @@ xroad:
     source: REMOTE
   proxy-ui-api:
     authentication-provider: DATABASE
+    enforce-user-password-policy: true
 ---
 spring:
   config:

@@ -110,6 +110,10 @@ create_backup_tarball () {
   echo "Backup file saved to ${BACKUP_FILENAME}"
 }
 
+write_backup_metadata () {
+  write_backup_metadata_json "${BACKUP_FILENAME}.metadata" "${BACKUP_FORMAT_VERSION_LABEL}" "${SERVER_TYPE}"
+}
+
 ENCRYPT_MODE="none"
 
 while getopts ":t:i:s:n:f:E:k:bS" opt ; do
@@ -156,5 +160,6 @@ create_database_backup
 create_openbao_backup
 make_tarball_label
 create_backup_tarball
+write_backup_metadata
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

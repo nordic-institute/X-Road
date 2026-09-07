@@ -6,6 +6,24 @@ die() {
   exit 1
 }
 
+MIN_PG_VERSION=15
+
+check_pg_version() {
+  local pg_version_num="$1"
+
+  if [[ -z "$pg_version_num" ]]; then
+    die "Unable to determine PostgreSQL version. Minimum required version is $MIN_PG_VERSION."
+  fi
+
+  local pg_major_version=$((pg_version_num / 10000))
+
+  if [ "$pg_major_version" -lt "$MIN_PG_VERSION" ]; then
+    die "PostgreSQL version $pg_major_version is not supported. Minimum required version is $MIN_PG_VERSION."
+  fi
+
+  log "PostgreSQL version $pg_major_version OK"
+}
+
 get_prop() {
   crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"
 }
@@ -23,7 +41,7 @@ setup_database() {
   else
     local -r root_properties=/etc/xroad.properties
   fi
-  get_db_prop() { get_prop "$db_properties" "$db_name.hibernate.connection.$1" "$2"; }
+  get_db_prop() { get_prop "$db_properties" "xroad.db.$db_name.hibernate.connection.$1" "$2"; }
 
   local db_host="${3:-127.0.0.1:5432}"
   local db_master_conn_user="$(get_prop ${root_properties} postgres.connection.user 'postgres')"
@@ -32,7 +50,7 @@ setup_database() {
 
   local db_conn_user=$(get_db_prop 'username' "${db_default_user}${suffix}")
   local db_user="${db_conn_user%%@*}"
-  local db_schema=$(get_prop ${db_properties} "$db_name.hibernate.hikari.dataSource.currentSchema" 'public')
+  local db_schema=$(get_prop ${db_properties} "xroad.db.$db_name.hibernate.hikari.dataSource.currentSchema" 'public')
   db_schema="${db_schema%%,*}"
   local db_password=$(get_db_prop 'password' "$(gen_pw)")
   local db_url=$(get_db_prop 'url' "jdbc:postgresql://$db_host/$db_name")
@@ -94,6 +112,28 @@ setup_database() {
   else
     function psql_master() { local_psql "$@"; }
   fi
+
+  # Verify PostgreSQL version meets minimum requirement
+  log "Checking PostgreSQL readiness and version..."
+
+  local pg_version_num=""
+
+  for i in {1..30}; do
+    if [[ "$db_addr" == "127.0.0.1" || "$db_addr" == "localhost" ]]; then
+      pg_version_num=$(su - postgres -c "psql -tA -c 'SHOW server_version_num'" 2>/dev/null | tr -d '[:space:]')
+    else
+      pg_version_num=$(PGCONNECT_TIMEOUT=5 psql_master -tA -c "SHOW server_version_num" 2>/dev/null | tr -d '[:space:]')
+    fi
+
+    if [[ "$pg_version_num" =~ ^[0-9]+$ ]]; then
+      break
+    fi
+
+    log "PostgreSQL not ready yet (attempt $i)..."
+    sleep 1
+  done
+
+  check_pg_version "$pg_version_num"
 
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."
@@ -175,8 +215,6 @@ EOF
     crudini --set ${db_properties} '' "xroad.db.$db_name.hibernate.connection.password" "${db_password}"
   fi
 
-  cd /usr/share/xroad/db/ || die "Running migrations failed, plase check that directory /usr/share/xroad/db exists"
-
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"
@@ -184,13 +222,12 @@ EOF
 
   url_concat_string="$([[ "$db_url" == *"?"* ]] && echo "&" || echo "?")"
 
-  LIQUIBASE_HOME="/usr/share/xroad/db" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
-    --classpath=/usr/share/xroad/jlib/postgresql.jar \
+  LIQUIBASE_COMMAND_PASSWORD="${db_admin_password}" /usr/share/xroad/db/liquibase.sh \
+    --changelog=$db_name \
     --url="${db_url}${url_concat_string}currentSchema=${db_schema},public" \
-    --changeLogFile="$db_name-changelog.xml" \
-    --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \
     --defaultSchemaName="${db_schema}" \
+    --prop-db-user="${db_user}" \
     $context \
     update ||
     die "Running database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"

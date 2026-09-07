@@ -35,7 +35,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -100,7 +99,7 @@ public class AuthCertRegRequest implements ManagementRequest {
     }
 
     @Override
-    public InputStream getRequestContent() throws IOException, OperatorCreationException {
+    public InputStream getRequestContent() throws IOException {
         verifyAuthCert();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -136,7 +135,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         multipart.write(ownerCert.getOcspBytes());
     }
 
-    private void writeSignatures() throws IOException, OperatorCreationException {
+    private void writeSignatures() throws IOException {
         KeyIdInfo authKeyId = getAuthKeyId();
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 

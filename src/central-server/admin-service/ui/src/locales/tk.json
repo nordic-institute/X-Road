@@ -123,6 +123,7 @@
     "authenticationCertificateProfileId": "Hakykylyk şahadatnamasynyň profil id-si",
     "certFile": "Şahadatnamanyň faýly",
     "certProfile": "Şahadatnamanyň profiliniň maglumaty",
+    "dsTlsCertificateProfileId": "DS TLS şahadatnama profil ID",
     "distinguishedName": "Tapawutly at",
     "init": {
       "address": "Merkezi serweriň salgysy",
@@ -138,6 +139,7 @@
     "keyLabel": "Açaryň düşnükli ady",
     "memberCode": "Agzanyň kody",
     "memberName": "Agzanyň ady",
+    "name": "Ady",
     "securityServerAddress": "Howpsuzlyk serweriň salgysy",
     "serverCode": "Serweriň kody",
     "serviceAddress": "Merkezi serweriň salgysy",
@@ -619,6 +621,23 @@
     "certProfileInputExplanation": "ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interfeýsi ýerine ýetirýän klassyň doly ady",
     "certificationServices": "Şahadatnama boýunça hyzmatlary",
     "defaultCsrFormat": "Deslapky CSR formaty",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "DS TLS CA goş",
+      "delete": {
+        "confirmationDialog": {
+          "message": "Siz dogurdanam \"{name}\" DS TLS CA-ny pozmak isleýärsiňizmi?",
+          "title": "Tassyklaýarsyňyzmy?"
+        },
+        "success": "DS TLS CA üstünlikli pozuldy"
+      },
+      "dsTlsCertificateProfileIdExplanation": "DS TLS şahadatnamasyny sargyt edilende, käbir ACME serwerleriniň şahadatnamanyň ulanyş görnüşini bilmegi üçin ulanylýan profil ID.",
+      "dsTlsCertificationAuthorities": "DS TLS CA-lar",
+      "dsTlsCertificationAuthority": "DS TLS CA",
+      "nameExplanation": "Bu şahadatnama edarasyny kesgitleýän erkin ady, mysal üçin \"Let's Encrypt\".",
+      "settings": {
+        "title": "DS TLS CA sazlamalary"
+      }
+    },
     "timestampingService": {
       "addedSuccessfully": "Wagt bellemek hyzmaty üstünlikli goşuldy",
       "dialog": {

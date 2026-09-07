@@ -28,12 +28,14 @@ package org.niis.xroad.proxy.core.testsuite.testcases;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.proxy.core.testsuite.IsolatedSslMessageTestCase;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
@@ -58,6 +60,8 @@ public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
         globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public SecurityServerId.Conf getServerId(X509Certificate cert) {
+                // sleep to throw exception after the TLS v1.3 handshake
+                Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(500));
                 return null;
             }
         });

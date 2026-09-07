@@ -24,12 +24,12 @@
  */
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
 
 import java.util.List;
 
@@ -57,7 +57,7 @@ class DiagnosticReportServiceTest {
     }
 
     @Test
-    void testGetDiagnosticReportFullSuccess() throws JsonProcessingException {
+    void testGetDiagnosticReportFullSuccess() throws JacksonException {
         when(collector1.collect()).thenReturn(7);
         when(collector2.collect()).thenReturn("Ubuntu");
 
@@ -80,7 +80,7 @@ class DiagnosticReportServiceTest {
     }
 
     @Test
-    void testGetDiagnosticReportWhenCollectorFails() throws JsonProcessingException {
+    void testGetDiagnosticReportWhenCollectorFails() throws JacksonException {
         when(collector1.collect()).thenReturn(7);
         when(collector2.collect()).thenThrow(new RuntimeException("Failed access OS info"));
 

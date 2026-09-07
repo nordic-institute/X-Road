@@ -26,21 +26,78 @@
  */
 package org.niis.xroad.common.healthcheck;
 
+import ee.ria.xroad.common.HeapMemoryStatus;
+
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class HeapMemoryLivenessCheckTest {
 
+    private static final String CHECK_NAME = "HEAP_MEMORY_CHECK";
+
+    @Mock
+    private HeapMemoryStatusService heapMemoryStatusService;
+
     @Test
-    void shouldReturnUpWhenMemoryBelowThreshold() {
-        HeapMemoryLivenessCheck check = new HeapMemoryLivenessCheck();
+    void callReturnsUpWhenUsedBelowThreshold() {
+        when(heapMemoryStatusService.getMemoryStatus())
+                .thenReturn(new HeapMemoryStatus(200L, 100L, 1000L, 100L, 80, 50L));
 
-        HealthCheckResponse response = check.call();
+        HealthCheckResponse response = new HeapMemoryLivenessCheck(heapMemoryStatusService).call();
 
-        // Normal test JVM usage is well below 95%
-        assertEquals(HealthCheckResponse.Status.UP, response.getStatus());
-        assertEquals("HEAP_MEMORY_CHECK", response.getName());
+        assertThat(response.getName()).isEqualTo(CHECK_NAME);
+        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
+        Map<String, Object> data = response.getData().orElseThrow();
+        assertThat(data).containsEntry("threshold_percent", 80L);
+        assertThat(data).doesNotContainKey("threshold_configured");
+    }
+
+    @Test
+    void callReturnsDownWhenUsedAboveThreshold() {
+        when(heapMemoryStatusService.getMemoryStatus())
+                .thenReturn(new HeapMemoryStatus(900L, 50L, 1000L, 850L, 80, 95L));
+
+        HealthCheckResponse response = new HeapMemoryLivenessCheck(heapMemoryStatusService).call();
+
+        assertThat(response.getName()).isEqualTo(CHECK_NAME);
+        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.DOWN);
+        assertThat(response.getData().orElseThrow()).containsEntry("threshold_percent", 80L);
+    }
+
+    @Test
+    void callReturnsUpWhenThresholdNotConfigured() {
+        when(heapMemoryStatusService.getMemoryStatus())
+                .thenReturn(new HeapMemoryStatus(990L, 10L, 1000L, 990L, null, 99L));
+
+        HealthCheckResponse response = new HeapMemoryLivenessCheck(heapMemoryStatusService).call();
+
+        assertThat(response.getStatus()).isEqualTo(HealthCheckResponse.Status.UP);
+        Map<String, Object> data = response.getData().orElseThrow();
+        assertThat(data).containsEntry("threshold_configured", false);
+        assertThat(data).doesNotContainKey("threshold_percent");
+    }
+
+    @Test
+    void callIncludesAllMemoryDataFields() {
+        when(heapMemoryStatusService.getMemoryStatus())
+                .thenReturn(new HeapMemoryStatus(500L, 200L, 1000L, 300L, 80, 30L));
+
+        HealthCheckResponse response = new HeapMemoryLivenessCheck(heapMemoryStatusService).call();
+
+        assertThat(response.getData().orElseThrow())
+                .containsEntry("total_memory", 500L)
+                .containsEntry("free_memory", 200L)
+                .containsEntry("used_percent", 30L)
+                .containsEntry("used_bytes", 300L)
+                .containsEntry("max_bytes", 1000L);
     }
 }

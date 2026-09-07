@@ -25,31 +25,26 @@
  */
 package org.niis.xroad.globalconf.spring;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.util.DurationConverter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.GlobalConfRefreshJob;
 import org.niis.xroad.globalconf.impl.config.GlobalConfConfig;
 import org.niis.xroad.globalconf.impl.config.GlobalConfProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
 import java.util.Optional;
 
-import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.MAPPING_PREFIX;
-
-@Slf4j
 @Configuration
-@RequiredArgsConstructor
-@EnableConfigurationProperties(SpringGlobalConfConfig.SpringCommonGlobalConfProperties.class)
 public class SpringGlobalConfConfig extends GlobalConfConfig {
+
+    @Bean
+    @Override
+    public GlobalConfProperties globalConfProperties(XRoadConfig xRoadConfig) {
+        return super.globalConfProperties(xRoadConfig);
+    }
 
     @Bean
     @Override
@@ -65,29 +60,6 @@ public class SpringGlobalConfConfig extends GlobalConfConfig {
     @Bean(initMethod = "init")
     public GlobalConfRefreshJob globalConfRefreshJob(GlobalConfProperties config, GlobalConfProvider globalConfProvider) {
         return new GlobalConfRefreshJob(config, globalConfProvider);
-    }
-
-    @Setter
-    @ConfigurationProperties(prefix = MAPPING_PREFIX)
-    public static class SpringCommonGlobalConfProperties implements GlobalConfProperties {
-        private GlobalConfSource source = GlobalConfSource.valueOf(DEFAULT_SOURCE);
-        private Duration refreshRate = DurationConverter.parseDuration(DEFAULT_RATE_INTERVAL);
-        private String configurationPath = DEFAULT_GLOBALCONF_DIR;
-
-        @Override
-        public GlobalConfSource source() {
-            return source;
-        }
-
-        @Override
-        public Duration refreshRate() {
-            return refreshRate;
-        }
-
-        @Override
-        public String configurationPath() {
-            return configurationPath;
-        }
     }
 
 }

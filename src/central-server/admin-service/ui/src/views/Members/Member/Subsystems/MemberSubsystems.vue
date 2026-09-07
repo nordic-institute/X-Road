@@ -70,7 +70,7 @@
             <td class="status unregistered-subsystem">
               <v-chip
                 class="xrd opacity-60 font-weight-medium"
-                prepend-icon="cancel filled mr-1 ml-n1"
+                prepend-icon="cancel__filled"
                 color="primary"
                 variant="outlined"
                 size="small"
@@ -134,7 +134,7 @@
                 :text="$t('securityServers.registered')"
               >
                 <template #prepend>
-                  <v-icon class="status-icon" icon="check_circle filled mr-1 ml-n1" color="success" />
+                  <v-icon class="status-icon filled" icon="check_circle" color="success" />
                 </template>
               </v-chip>
               <v-chip
@@ -395,6 +395,6 @@ export default defineComponent({
 }
 
 .bg-unregistered {
-  background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface-variant)) 8%, transparent) !important;
 }
 </style>

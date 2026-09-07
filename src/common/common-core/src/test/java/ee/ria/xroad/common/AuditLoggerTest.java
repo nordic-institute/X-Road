@@ -29,12 +29,12 @@ package ee.ria.xroad.common;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
 
 import java.nio.charset.StandardCharsets;
 
@@ -60,7 +60,7 @@ public class AuditLoggerTest {
     }
 
     @Test
-    public void log() throws JsonProcessingException {
+    public void log() throws JacksonException {
         byte[] tmp = new byte[32];
         for (int i = 0; i < tmp.length; i++) {
             tmp[i] = (byte) i;

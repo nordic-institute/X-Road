@@ -1,0 +1,7 @@
+[Unit]
+Description=Recover lima0 DHCPv4 lease if missing
+After=systemd-networkd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lima0-dhcp-recover.sh

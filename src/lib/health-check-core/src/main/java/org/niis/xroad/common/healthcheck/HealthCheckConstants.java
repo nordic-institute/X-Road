@@ -36,5 +36,6 @@ public class HealthCheckConstants {
     public static final String STATE = "state";
     public static final String ERROR = "error";
     public static final String REASON = "reason";
+    public static final String TIMEOUT = "timeout";
 
 }

@@ -17,7 +17,7 @@ prepare_tls_settings() {
       log "Preparing proxy-ui-api TLS settings"
 
       db_get xroad-common/proxy-ui-api-subject
-      cn="$RET"
+      cn="${RET#/CN=}"
       db_get xroad-common/proxy-ui-api-altsubject
       altn="$RET"
 

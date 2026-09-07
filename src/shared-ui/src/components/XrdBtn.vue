@@ -127,7 +127,7 @@ const button = useTemplateRef<VBtn>('button');
 
 function focus() {
   if (button.value && button.value.$el) {
-    (button.value.$el as HTMLElement).focus({ focusVisible: true });
+    (button.value.$el as HTMLElement).focus({ focusVisible: true } as FocusOptions);
   }
 }
 

@@ -53,14 +53,17 @@ public class SignerDatabaseCtx extends DatabaseCtx {
     );
 
     public SignerDatabaseCtx(@ConfigProperty(name = "xroad.db.serverconf.hibernate") Optional<Map<String, String>> serverconfProps,
+                             @ConfigProperty(name = "xroad.db.confproxy.hibernate") Optional<Map<String, String>> confProxyProps,
                              @ConfigProperty(name = "spring.datasource") Optional<Map<String, String>> centerUiProps) {
-        super(NAME, resolveProperties(serverconfProps, centerUiProps));
+        super(NAME, resolveProperties(serverconfProps, confProxyProps, centerUiProps));
     }
 
     static Map<String, String> resolveProperties(Optional<Map<String, String>> serverconfProps,
+                                                 Optional<Map<String, String>> confProxyProps,
                                                  Optional<Map<String, String>> centerUiProps) {
-        if (serverconfProps.isPresent()) {
-            return serverconfProps.get();
+        var hibernateBased = serverconfProps.or(() -> confProxyProps);
+        if (hibernateBased.isPresent()) {
+            return hibernateBased.get();
         } else if (centerUiProps.isPresent()) {
             return centerUiProps.get().entrySet().stream()
                     .filter(entry -> SPRING_TO_DB_PROP_MAPPING.containsKey(entry.getKey()))

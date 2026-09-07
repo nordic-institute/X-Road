@@ -39,7 +39,7 @@ import org.niis.xroad.common.pgp.BouncyCastlePgpEncryptionService;
 import org.niis.xroad.common.pgp.PgpKeyGenerator;
 import org.niis.xroad.common.pgp.PgpKeyManager;
 import org.niis.xroad.common.pgp.PgpKeyUtils;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
+import org.niis.xroad.messagelog.MessageLogEncryptionProperties;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -69,7 +69,8 @@ class VaultMemberEncryptionConfigProviderTest {
 
     private PgpKeyManager mockKeyManager;
     private VaultMemberEncryptionConfigProvider provider;
-    private MessageLogArchivalProperties mockProperties;
+    private MessageLogEncryptionProperties mockProperties;
+    private MessageLogEncryptionProperties.ArchiveEncryptionConfig encryptionProperties;
 
     // Test keys
     private PGPPublicKey testMemberKey;
@@ -126,22 +127,22 @@ class VaultMemberEncryptionConfigProviderTest {
         // Mock BouncyCastlePgpEncryptionService
         var mockEncryption = mock(BouncyCastlePgpEncryptionService.class);
 
-        // Mock MessageLogArchivalProperties with member-specific key mapping
-        mockProperties = mock(MessageLogArchivalProperties.class);
+        encryptionProperties = mock(MessageLogEncryptionProperties.ArchiveEncryptionConfig.class);
+
 
         // Set up archive grouping: INSTANCE/memberClass/memberCode -> MEMBER_KEY_ID
         Map<String, Set<String>> archiveGrouping = new HashMap<>();
         archiveGrouping.put("INSTANCE/memberClass/memberCode", setOf(MEMBER_KEY_ID));
-        when(mockProperties.grouping()).thenReturn(archiveGrouping);
+        when(encryptionProperties.grouping()).thenReturn(archiveGrouping);
 
         // Set up default key ID
-        when(mockProperties.defaultKeyId()).thenReturn(Optional.of(DEFAULT_KEY_ID));
+        when(encryptionProperties.defaultKeyId()).thenReturn(Optional.of(DEFAULT_KEY_ID));
 
         // Set up grouping strategy
-        when(mockProperties.groupingStrategy()).thenReturn(GroupingStrategy.MEMBER);
+        when(encryptionProperties.groupingStrategy()).thenReturn(GroupingStrategy.MEMBER);
 
         // Create provider
-        provider = new VaultMemberEncryptionConfigProvider(mockKeyManager, mockEncryption, mockProperties);
+        provider = new VaultMemberEncryptionConfigProvider(mockKeyManager, mockEncryption, encryptionProperties);
     }
 
     @Test
@@ -266,7 +267,7 @@ class VaultMemberEncryptionConfigProviderTest {
         String memberId = "INSTANCE/memberClass/memberCodeMissingKey";
 
         // Update mock to return null for default key ID (no default configured)
-        when(mockProperties.defaultKeyId()).thenReturn(Optional.empty());
+        when(encryptionProperties.defaultKeyId()).thenReturn(Optional.empty());
 
         when(mockKeyManager.getPublicKey(anyString())).thenReturn(Optional.empty());
         Map<String, PGPPublicKey> allKeys = Map.of(

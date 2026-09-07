@@ -27,9 +27,9 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
-import lombok.Setter;
-import org.niis.xroad.backupmanager.proto.BackupManagerRpcChannelProperties;
-import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
+import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcChannelProperties;
+import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
@@ -41,8 +41,6 @@ import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -50,155 +48,83 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({SpringRpcConfig.class,
         SpringSignerClientConfiguration.class})
-@EnableConfigurationProperties({
-        RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
-        RpcClientsConfig.SpringBackupManagerRpcChannelProperties.class,
-        RpcClientsConfig.SpringConfClientRpcChannelProperties.class,
-        RpcClientsConfig.SpringProxyRpcChannelProperties.class,
-        RpcClientsConfig.SpringOpMonitorRpcChannelProperties.class})
 class RpcClientsConfig {
 
     @Bean
+    IdentityHubProvisioningRpcChannelProperties identityHubProvisioningRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadIdentityHubProvisioningRpcChannelProperties(xRoadConfig);
+    }
+
+    @Bean
+    IdentityHubProvisioningRpcClient identityHubProvisioningRpcClient(RpcChannelFactory rpcChannelFactory,
+                                                                      IdentityHubProvisioningRpcChannelProperties channelProperties) {
+        return new IdentityHubProvisioningRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Bean
+    ControlPlaneProvisioningRpcChannelProperties controlPlaneProvisioningRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new XRoadControlPlaneProvisioningRpcChannelProperties(xRoadConfig);
+    }
+
+    @Bean
+    ControlPlaneProvisioningRpcClient controlPlaneProvisioningRpcClient(
+            RpcChannelFactory rpcChannelFactory, ControlPlaneProvisioningRpcChannelProperties channelProperties) {
+        return new ControlPlaneProvisioningRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Bean
+    EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorRpcChannelProperties(xRoadConfig);
+    }
+
+    @Bean
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
-                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) {
+                                   EnvMonitorRpcChannelProperties rpcChannelProperties) {
         return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
     }
 
-    @ConfigurationProperties(prefix = EnvMonitorRpcChannelProperties.PREFIX)
-    @Setter
-    static class SpringEnvMonitorRpcChannelProperties implements EnvMonitorRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
+    @Bean
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory, SpringConfClientRpcChannelProperties channelProperties) {
+    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory,
+                                            ConfClientRpcChannelProperties channelProperties) {
         return new ConfClientRpcClient(rpcChannelFactory, channelProperties);
     }
 
-    @Setter
-    @ConfigurationProperties(prefix = ConfClientRpcChannelProperties.PREFIX)
-    public static class SpringConfClientRpcChannelProperties implements ConfClientRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
+    @Bean
+    ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcChannelProperties(xRoadConfig);
     }
 
     @Bean
-    ProxyRpcClient proxyRpcClient(RpcChannelFactory rpcChannelFactory, SpringProxyRpcChannelProperties proxyRpcChannelProperties) {
+    ProxyRpcClient proxyRpcClient(RpcChannelFactory rpcChannelFactory,
+                                  ProxyRpcChannelProperties proxyRpcChannelProperties) {
         return new ProxyRpcClient(rpcChannelFactory, proxyRpcChannelProperties);
     }
 
-    @Setter
-    @ConfigurationProperties(prefix = ProxyRpcChannelProperties.PREFIX)
-    static class SpringProxyRpcChannelProperties implements ProxyRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
+    @Bean
+    AuxiliaryServiceRpcChannelProperties auxiliaryServiceRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new AuxiliaryServiceRpcChannelProperties(xRoadConfig);
     }
 
     @Bean
-    BackupManagerRpcClient backupManagerRpcClient(RpcChannelFactory rpcChannelFactory,
-                                                  SpringBackupManagerRpcChannelProperties backupManagerRpcChannelProperties) {
-        return new BackupManagerRpcClient(rpcChannelFactory, backupManagerRpcChannelProperties);
+    AuxiliaryServiceRpcClient auxiliaryServiceRpcClient(RpcChannelFactory rpcChannelFactory,
+                                                        AuxiliaryServiceRpcChannelProperties auxiliaryServiceRpcChannelProperties) {
+        return new AuxiliaryServiceRpcClient(rpcChannelFactory, auxiliaryServiceRpcChannelProperties);
     }
 
-    @Setter
-    @ConfigurationProperties(prefix = BackupManagerRpcChannelProperties.PREFIX)
-    static class SpringBackupManagerRpcChannelProperties implements BackupManagerRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
+    @Bean
+    OpMonitorRpcChannelProperties opMonitorRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new OpMonitorRpcChannelProperties(xRoadConfig);
     }
 
     @Bean
     public OpMonitorClient opMonitorClient(RpcChannelFactory rpcChannelFactory,
-                                           SpringOpMonitorRpcChannelProperties rpcChannelProperties) {
+                                           OpMonitorRpcChannelProperties rpcChannelProperties) {
         return new OpMonitorClient(rpcChannelFactory, rpcChannelProperties);
-    }
-
-    @Setter
-    @ConfigurationProperties(prefix = OpMonitorRpcChannelProperties.PREFIX)
-    static class SpringOpMonitorRpcChannelProperties implements OpMonitorRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
     }
 
 }

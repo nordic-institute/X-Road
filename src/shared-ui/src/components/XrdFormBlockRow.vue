@@ -25,8 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-row align="center">
-    <v-col :align-self="adjustAgainstContent ? 'end' : undefined" :class="{ 'xrd-adjust-against-content': adjustAgainstContent }">
+  <v-row class="align-center">
+    <v-col :class="{ 'xrd-adjust-against-content': adjustAgainstContent, 'align-self-end': adjustAgainstContent }">
       <slot />
     </v-col>
     <v-col v-if="!fullLength">

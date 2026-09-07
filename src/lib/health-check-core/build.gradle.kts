@@ -10,8 +10,11 @@ dependencies {
   api(libs.slf4j.api)
 
   implementation(project(":common:common-db"))
+  implementation(project(":common:common-core"))
   implementation(project(":lib:rpc-core"))
 
   compileOnly(libs.lombok)
   annotationProcessor(libs.lombok)
+
+  testImplementation(libs.assertj.core)
 }

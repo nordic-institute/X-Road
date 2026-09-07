@@ -14,6 +14,5 @@
         <mapping class="org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity"/>
         <mapping class="org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity"/>
         <mapping class="org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity"/>
-        <mapping class="org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity"/>
     </session-factory>
 </hibernate-configuration>

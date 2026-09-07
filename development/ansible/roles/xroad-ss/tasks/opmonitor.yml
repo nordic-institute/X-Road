@@ -1,0 +1,34 @@
+---
+# Operational-monitoring enablement for dev stacks (gated on
+# xroad_install_opmonitoring at the include site). xroad-opmonitor is not part
+# of the xroad-securityserver meta-package or the product installer's package
+# set, and the proxy-side addon defaults to disabled
+# (xroad.proxy.addon.op-monitor.enabled=false in ProxyProperties) — compose
+# enables the equivalent via XROAD_PROXY_ADDON_OP_MONITOR_ENABLED=true plus
+# RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS=1 so freshly logged records are
+# queryable within the e2e settle window.
+- name: install xroad-opmonitor
+  package:
+    name: xroad-opmonitor
+    state: present
+
+# The proxy-side addon flag is seeded by msglog-encryption.yml, gated on the same
+# xroad_install_opmonitoring. Config goes into configuration_properties: the
+# XRoadConfig DSL resolves DB overrides and packaged defaults only, never conf.d yaml.
+- name: seed op-monitor addon config
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.op-monitor.records-available-timestamp-offset-seconds
+      - "1"
+      - --yes
+  notify: restart xroad-proxy
+
+# deb postinst auto-starts the daemon on Ubuntu; the RHEL package does not.
+- name: ensure xroad-opmonitor is enabled and running
+  systemd:
+    name: xroad-opmonitor
+    state: started
+    enabled: true

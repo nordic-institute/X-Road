@@ -95,7 +95,7 @@ export function saveResponseAsFile(response: AxiosResponse, defaultFileName = 'c
   }
   const effectiveFileName = suggestedFileName === undefined ? defaultFileName : suggestedFileName;
   const blob = new Blob([response.data], {
-    type: response.headers['content-type'],
+    type: response.headers['content-type'] as string | undefined,
   });
 
   // Create a link to DOM and click it. This will trigger the browser to start file download.
@@ -124,6 +124,6 @@ export function isValidRestURL(str: string): boolean {
 
 // Read nonce from meta tag
 export function getNonce(): string | undefined {
-  const meta = document.querySelector('meta[name="csp-nonce"]');
-  return meta?.getAttribute('content') || undefined;
+  return document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.nonce || undefined;
+
 }

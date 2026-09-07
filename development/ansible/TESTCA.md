@@ -45,7 +45,7 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 (Ansible does these steps automatically)
 
 1. Install python3, acl, nginx-core, openssl, python3-pip, uwsgi, uwsgi-plugin-python3 on the target machine (`sudo apt install python3 acl nginx-core  openssl  python3-pip  uwsgi  uwsgi-plugin-python3`)
-2. Download acme2certifier for its github page (https://github.com/grindsa/acme2certifier/releases/download/0.35/acme2certifier_0.35-1_all.deb)
+2. Download acme2certifier for its github page (https://github.com/grindsa/acme2certifier/releases/download/0.42.1/acme2certifier_0.42.1-2_all.deb)
 3. Create the following users on the target machine:
     - `ca`
     - `ocsp`

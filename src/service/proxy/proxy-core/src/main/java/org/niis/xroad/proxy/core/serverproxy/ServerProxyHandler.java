@@ -29,7 +29,7 @@ import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.api.trace.Span;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
@@ -41,9 +41,9 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
+import org.niis.xroad.proxy.core.util.ServerSoapRequestContext;
 
 import java.io.IOException;
 
@@ -58,16 +58,17 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.P
 @Slf4j
 @RequiredArgsConstructor
 public class ServerProxyHandler extends HandlerBase {
-    private final MessageProcessorFactory messageProcessorFactory;
+    private final ServerRestMessageProcessor serverRestMessageProcessor;
+    private final ServerSoapMessageProcessor serverSoapMessageProcessor;
     private final ProxyProperties.ServerProperties serverProperties;
     private final ClientProxyVersionVerifier clientProxyVersionVerifier;
     private final GlobalConfProvider globalConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
 
     @Override
-    @WithSpan
     @ArchUnitSuppressed("NoVanillaExceptions")
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        Span.current().updateName("ServerProxy");
         OpMonitoringData opMonitoringData = new OpMonitoringData(PRODUCER, getEpochMillisecond());
 
         long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
@@ -86,9 +87,21 @@ public class ServerProxyHandler extends HandlerBase {
             globalConfProvider.verifyValidity();
 
             clientProxyVersionVerifier.check(request);
-            final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
-                    ResponseWrapper.of(response), opMonitoringData);
-            processor.process();
+
+            var jRequest = RequestWrapper.of(request);
+            var jResponse = ResponseWrapper.of(response);
+
+            if (VALUE_MESSAGE_TYPE_REST.equals(jRequest.getHeaders().get(HEADER_MESSAGE_TYPE))) {
+                Span.current().updateName("ServerProxy REST");
+                var ctx = new RestRequestContext(jRequest, jResponse, opMonitoringData);
+                boolean success = serverRestMessageProcessor.process(ctx);
+                opMonitoringData.setSucceeded(success);
+            } else {
+                Span.current().updateName("ServerProxy SOAP");
+                var ctx = new ServerSoapRequestContext(jRequest, jResponse, opMonitoringData);
+                boolean success = serverSoapMessageProcessor.process(ctx);
+                opMonitoringData.setSucceeded(success);
+            }
         } catch (Throwable e) { // We want to catch serious errors as well
             XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_SERVERPROXY_X);
 
@@ -107,16 +120,6 @@ public class ServerProxyHandler extends HandlerBase {
             PerformanceLogger.log(log, start, "Request handled");
         }
         return true;
-    }
-
-    private MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                        OpMonitoringData opMonitoringData) {
-
-        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
-            return messageProcessorFactory.createServerRestMessageProcessor(request, response, opMonitoringData);
-        } else {
-            return messageProcessorFactory.createServerSoapMessageProcessor(request, response, opMonitoringData);
-        }
     }
 
     @Override

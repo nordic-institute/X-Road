@@ -25,65 +25,54 @@
  */
 package org.niis.xroad.proxy.core.antidos;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+class TestConfiguration extends AntiDosConfiguration {
 
-@RequiredArgsConstructor
-@Getter
-class TestConfiguration implements AntiDosConfiguration {
+    private final double maxCpuLoad;
+    private final double maxHeapUsage;
+    private final int maxParallelConnections;
+    private final int minFreeFileHandles;
+    private final boolean enabled;
 
-    public static TestConfiguration of(int minFreeFileHandles, double maxCpuLoad) {
-        return new TestConfiguration() {
-            @Override
-            public double getMaxCpuLoad() {
-                return maxCpuLoad;
-            }
+    TestConfiguration(double maxCpuLoad, double maxHeapUsage, int maxParallelConnections,
+                      int minFreeFileHandles, boolean enabled) {
+        super(null);
+        this.maxCpuLoad = maxCpuLoad;
+        this.maxHeapUsage = maxHeapUsage;
+        this.maxParallelConnections = maxParallelConnections;
+        this.minFreeFileHandles = minFreeFileHandles;
+        this.enabled = enabled;
+    }
 
-            @Override
-            public double getMaxHeapUsage() {
-                return 1.1;
-            }
+    static TestConfiguration of(int minFreeFileHandles, double maxCpuLoad) {
+        return new TestConfiguration(maxCpuLoad, 1.1, 5000, minFreeFileHandles, true);
+    }
 
-            @Override
-            public int getMaxParallelConnections() {
-                return 5000;
-            }
-
-            @Override
-            public int getMinFreeFileHandles() {
-                return minFreeFileHandles;
-            }
-
-            @Override
-            public boolean enabled() {
-                return true;
-            }
-        };
+    static TestConfiguration defaults() {
+        return new TestConfiguration(0, 0, 0, 0, false);
     }
 
     @Override
     public double getMaxCpuLoad() {
-        return 0;
+        return maxCpuLoad;
     }
 
     @Override
     public double getMaxHeapUsage() {
-        return 0;
+        return maxHeapUsage;
     }
 
     @Override
     public int getMaxParallelConnections() {
-        return 0;
+        return maxParallelConnections;
     }
 
     @Override
     public int getMinFreeFileHandles() {
-        return 0;
+        return minFreeFileHandles;
     }
 
     @Override
     public boolean enabled() {
-        return false;
+        return enabled;
     }
-
 }

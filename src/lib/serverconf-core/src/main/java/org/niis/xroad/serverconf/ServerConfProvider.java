@@ -29,12 +29,14 @@ package org.niis.xroad.serverconf;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
@@ -159,6 +161,15 @@ public interface ServerConfProvider {
     boolean isSslAuthentication(ServiceId serviceId);
 
     /**
+     * @param clientId     the client identifier
+     * @param localGroupId the local group identifier
+     * @return true if the given client is associated with the specified local group on this security server
+     */
+    default boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return false;
+    }
+
+    /**
      * @return all members identifiers
      */
     List<ClientId.Conf> getMembers();
@@ -214,6 +225,11 @@ public interface ServerConfProvider {
      * @return list of endpoints
      */
     List<Endpoint> getServiceEndpoints(ServiceId serviceId);
+
+    /**
+     * @return access rights for the service across all subjects (may be empty, never null)
+     */
+    List<AccessRight> getServiceAccessRights(ServiceId serviceId);
 
     /**
      * Log serverconf statistics

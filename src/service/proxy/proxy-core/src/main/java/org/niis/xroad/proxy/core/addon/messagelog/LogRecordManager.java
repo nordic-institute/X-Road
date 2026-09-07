@@ -31,6 +31,7 @@ import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.AttachmentStream;
 
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -63,6 +64,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @ApplicationScoped
+@LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
 public final class LogRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;

@@ -29,9 +29,9 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.AbstractLogManager;
 import org.niis.xroad.messagelog.LogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
+import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Map;

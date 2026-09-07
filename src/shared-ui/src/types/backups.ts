@@ -24,9 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 export type BackupItem = {
   filename: string;
   local_conf_present?: boolean;
+  compatible?: boolean;
 };
 
 export interface BackupHandler {

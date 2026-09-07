@@ -102,7 +102,8 @@ const [description, descriptionAttrs] = defineField('description', {
 });
 
 const { loading, addSuccessMessage, showOrTranslateErrors } = useBasicForm(setFieldError, {
-  code: 'memberClassDto.code'
+  code: 'memberClassDto.code',
+  description: 'memberClassDto.description',
 });
 const { add, update } = useMemberClass();
 

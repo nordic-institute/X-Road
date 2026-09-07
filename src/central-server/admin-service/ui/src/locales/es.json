@@ -123,6 +123,7 @@
     "authenticationCertificateProfileId": "ID del perfil de certificado de autenticación",
     "certFile": "Certificado",
     "certProfile": "Información del perfil de certificado",
+    "dsTlsCertificateProfileId": "Id. de perfil de certificado DS TLS",
     "distinguishedName": "Nombre distinguido (DN)",
     "init": {
       "address": "Dirección del servidor central",
@@ -138,6 +139,7 @@
     "keyLabel": "Nombre amigable para la llave",
     "memberCode": "Código de miembro",
     "memberName": "Nombre de miembro",
+    "name": "Nombre",
     "securityServerAddress": "Dirección del servidor de seguridad",
     "serverCode": "Código de servidor",
     "serviceAddress": "Dirección del servidor central",
@@ -624,6 +626,23 @@
     "certProfileInputExplanation": "Nombre de clase totalmente calificado (FQDN) que implementa la interfaz ee.ria.xroad.common.certificateprofile.certificateProfileInfoprovider",
     "certificationServices": "Servicios de certificación",
     "defaultCsrFormat": "Formato CSR predeterminado",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "Agregar autoridad de certificación DS TLS",
+      "delete": {
+        "confirmationDialog": {
+          "message": "¿Estás seguro de que quieres eliminar la autoridad de certificación DS TLS \"{name}\"?",
+          "title": "¿Estás seguro?"
+        },
+        "success": "Autoridad de certificación DS TLS eliminada con éxito"
+      },
+      "dsTlsCertificateProfileIdExplanation": "Id. de perfil utilizado por algunos servidores ACME para conocer el tipo de uso del certificado al solicitar un certificado DS TLS.",
+      "dsTlsCertificationAuthorities": "Autoridades de Certificación DS TLS",
+      "dsTlsCertificationAuthority": "Autoridad de Certificación DS TLS",
+      "nameExplanation": "Un nombre libre que identifica esta autoridad de certificación, por ejemplo \"Let's Encrypt\".",
+      "settings": {
+        "title": "Configuración de la CA DS TLS"
+      }
+    },
     "timestampingService": {
       "addedSuccessfully": "Servicio de marca de tiempo agregado correctamente",
       "dialog": {

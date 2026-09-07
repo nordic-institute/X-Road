@@ -35,7 +35,7 @@
       </template>
       <template v-else>
         <v-card variant="flat" class="xrd diagnostic-card">
-          <v-card-title class="text-h5" data-test="diagnostics-ocsp-responders">
+          <v-card-title class="text-headline-medium" data-test="diagnostics-ocsp-responders">
             {{ $t('diagnostics.traffic.disabledTitle') }}
           </v-card-title>
           <v-card-text class="xrd-card-text">

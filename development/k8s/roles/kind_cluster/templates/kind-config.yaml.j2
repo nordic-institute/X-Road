@@ -1,0 +1,22 @@
+---
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: {{ kind_cluster_name }}
+nodes:
+  - role: control-plane
+{% if kind_node_image | default('') | length > 0 %}
+    image: {{ kind_node_image }}
+{% endif %}
+{% for _ in range(kind_worker_count) %}
+  - role: worker
+{% if kind_node_image | default('') | length > 0 %}
+    image: {{ kind_node_image }}
+{% endif %}
+{% endfor %}
+{% if containerd_config_patches | length > 0 %}
+containerdConfigPatches:
+{% for patch in containerd_config_patches %}
+  - |
+{{ patch | indent(4, true) }}
+{% endfor %}
+{% endif %}

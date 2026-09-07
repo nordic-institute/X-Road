@@ -29,25 +29,26 @@ package org.niis.xroad.common.properties.dbsource;
 
 import lombok.Getter;
 
-import static java.lang.Boolean.parseBoolean;
 import static java.lang.System.getenv;
 import static java.util.Optional.ofNullable;
 
+/**
+ * Connection details for reading {@code configuration_properties}, taken from the process environment.
+ * A {@code DB_CONFIG_SOURCE_URL} is what enables the source: a process that has no config database
+ * configured resolves from packaged defaults alone.
+ */
 @Getter
 public class DbSourceConfig {
 
     private static final String ENV_VAR_DB_URL = "DB_CONFIG_SOURCE_URL";
     private static final String ENV_VAR_DB_USERNAME = "DB_CONFIG_SOURCE_USERNAME";
     private static final String ENV_VAR_TABLE_NAME = "DB_CONFIG_SOURCE_TABLE_NAME";
-    private static final String ENV_VAR_ENABLED = "DB_CONFIG_SOURCE_ENABLED";
     private static final String ENV_VAR_DB_PASS = "DB_CONFIG_SOURCE_PASSWORD";
     private static final String ENV_VAR_DB_SCHEMA = "DB_CONFIG_SOURCE_SCHEMA";
 
     private static final String DEFAULT_TABLE_NAME = "configuration_properties";
-    private static final String DEFAULT_ENABLED = "false";
 
     private String appName;
-    private boolean enabled;
     private String url;
     private String username;
     private char[] password;
@@ -64,7 +65,6 @@ public class DbSourceConfig {
                 .orElse(null);
 
         config.tableName = ofNullable(getenv(ENV_VAR_TABLE_NAME)).orElse(DEFAULT_TABLE_NAME);
-        config.enabled = parseBoolean(ofNullable(getenv(ENV_VAR_ENABLED)).orElse(DEFAULT_ENABLED));
 
         ofNullable(getenv(ENV_VAR_DB_SCHEMA)).ifPresent(s -> config.schema = s);
 

@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.util.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -64,27 +65,38 @@ class LocalCopyWriter {
     }
 
     public void write(Collection<ConfigurationPart> configurationParts) {
+        createDirectory();
+
+        for (ConfigurationPart part : configurationParts) {
+            writePart(part);
+        }
+
+        writeFileList(configurationParts);
+        writeInstanceIdentifier();
+
+        deleteStaleConfigFiles(configurationParts);
+    }
+
+    private void createDirectory() {
         try {
             FileUtils.createDirectories(getTargetDir());
-
-            for (ConfigurationPart part : configurationParts) {
-                writePart(part);
-            }
-
-            writeFileList(configurationParts);
-            writeInstanceIdentifier();
-
-            deleteStaleConfigFiles(configurationParts);
         } catch (IOException e) {
-            throw XrdRuntimeException.systemInternalError("Failed to write local copy of configuration", e);
+            throw XrdRuntimeException.systemInternalError(
+                    "Failed to create directory for local copy of configuration", e);
         }
     }
 
-    private void writePart(ConfigurationPart configurationPart) throws IOException {
-        var filePath = getFilePath(configurationPart);
-        var metadataFilePath = metadataFilePath(filePath);
-        FileUtils.write(filePath, configurationPart.getData());
-        FileUtils.writeString(metadataFilePath, configurationMetadataJson());
+    private void writePart(ConfigurationPart configurationPart) {
+        try {
+            var filePath = getFilePath(configurationPart);
+            var metadataFilePath = metadataFilePath(filePath);
+            FileUtils.write(filePath, configurationPart.getData());
+            FileUtils.writeString(metadataFilePath, configurationMetadataJson());
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemInternalError(
+                    "Failed to write local copy of configuration part '%s'".formatted(configurationPart.getFilename()),
+                    e);
+        }
     }
 
     private Path getFilePath(ConfigurationPart configurationPart) {
@@ -100,22 +112,30 @@ class LocalCopyWriter {
                 instanceIdentifier, EXPIRE_TIME_FORMAT.format(confExpireTime), configurationVersion);
     }
 
-    private void writeFileList(Collection<ConfigurationPart> configurationParts) throws IOException {
+    private void writeFileList(Collection<ConfigurationPart> configurationParts) {
         var fileList = configurationParts.stream()
                 .map(this::getFilePath)
                 .map(Path::toAbsolutePath)
                 .map(Path::toString)
                 .sorted()
                 .collect(joining("\n"));
-
-        FileUtils.writeString(fileListPath(), fileList);
+        try {
+            FileUtils.writeString(fileListPath(), fileList);
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemInternalError(
+                    "Failed to write local copy of configuration file list", e);
+        }
     }
 
-    private void writeInstanceIdentifier() throws IOException {
-        FileUtils.writeString(instanceIdentifierPath(), instanceIdentifier);
+    private void writeInstanceIdentifier() {
+        try {
+            FileUtils.writeString(instanceIdentifierPath(), instanceIdentifier);
+        } catch (IOException e) {
+              throw XrdRuntimeException.systemInternalError("Failed to write local copy instance identifier", e);
+        }
     }
 
-    private void deleteStaleConfigFiles(Collection<ConfigurationPart> configurationParts) throws IOException {
+    private void deleteStaleConfigFiles(Collection<ConfigurationPart> configurationParts) {
         var validFileNames = configurationParts.stream()
                 .map(ConfigurationPart::getFilename)
                 .collect(toSet());
@@ -126,6 +146,9 @@ class LocalCopyWriter {
                     .filter(path -> !validFileNames.contains(path.getFileName().toString()))
                     .filter(Files::isRegularFile)
                     .forEach(this::deleteStaleConfigFile);
+        } catch (IOException e) {
+              throw XrdRuntimeException.systemInternalError(
+                      "Failed to clean up stale local copy configuration files", e);
         }
     }
 

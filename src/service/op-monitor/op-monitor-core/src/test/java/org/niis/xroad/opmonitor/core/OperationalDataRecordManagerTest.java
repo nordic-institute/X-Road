@@ -78,8 +78,8 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void storeAndQueryOperationalData() throws Exception {
-        OperationalDataRecord record = OBJECT_READER.readValue(
-                formatFullOperationalDataAsJson(), OperationalDataRecord.class);
+        OperationalDataRecord record = OBJECT_READER.forType(OperationalDataRecord.class)
+                .readValue(formatFullOperationalDataAsJson());
         operationalDataRecordManager.storeRecords(Collections.singletonList(record), 1474968979L);
 
         OperationalDataRecords result =
@@ -390,8 +390,8 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void stringTruncation() throws Exception {
-        OperationalDataRecord record = OBJECT_READER.readValue(
-                formatFullOperationalDataAsJson(), OperationalDataRecord.class);
+        OperationalDataRecord record = OBJECT_READER.forType(OperationalDataRecord.class)
+                .readValue(formatFullOperationalDataAsJson());
 
         record.setMessageIssue(LONG_STRING);
         record.setFaultString(LONG_STRING);

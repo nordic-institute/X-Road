@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
@@ -34,4 +35,9 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface SecurityServerIdMapper extends GenericUniDirectionalMapper<SecurityServerIdEntity, SecurityServerId> {
+
+    @Override
+    @Mapping(target = "serviceCode", ignore = true)
+    @Mapping(target = "serviceVersion", ignore = true)
+    SecurityServerId toTarget(SecurityServerIdEntity source);
 }

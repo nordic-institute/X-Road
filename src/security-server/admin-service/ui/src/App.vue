@@ -26,7 +26,7 @@
  -->
 <!-- This is the root component of the Vue app -->
 <template>
-  <XrdApp :login-view="loginView" :session-alive="sessionAlive" @logout="logout">
+  <XrdApp :login-view="loginView" :initial-user-view="initialUserView" @logout="logout">
     <router-view />
   </XrdApp>
 </template>
@@ -48,13 +48,12 @@ const userStore = useUser();
 const loginView = computed(() => {
   return route.name === RouteName.Login;
 });
-
-const sessionAlive = computed(() => userStore.sessionAlive === true);
+const initialUserView = computed(() => {
+  return route.name === RouteName.InitialAdminUser;
+});
 
 function logout() {
   userStore.logoutUser();
   router.replace({ name: RouteName.Login });
 }
 </script>
-
-<style lang="scss" scoped></style>

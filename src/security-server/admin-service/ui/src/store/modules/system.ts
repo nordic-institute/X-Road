@@ -28,14 +28,18 @@
 import { defineStore } from 'pinia';
 
 import {
+  AddressChangeData,
+  Anchor,
+  AuthProviderType,
+  AuthProviderTypeResponse,
+  EnableMaintenanceModeData,
   MaintenanceMode,
   NodeType,
   NodeTypeResponse,
-  VersionInfo,
-  AuthProviderType,
-  AuthProviderTypeResponse,
-  Anchor,
   SecurityServerAddressStatus,
+  SecurityServerConfigurableProperty,
+  SecurityServerPropertyUpdate,
+  VersionInfo,
 } from '@/openapi-types';
 import * as api from '@/util/api';
 import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
@@ -78,14 +82,13 @@ export const useSystem = defineStore('system', {
       this.$reset();
     },
     async fetchSecurityServerNodeType() {
-      return api.get<VersionInfo>('/system/version').then((res) => {
-        this.securityServerVersion = res.data;
+      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
+        this.securityServerNodeType = res.data.node_type;
       });
     },
     async fetchSecurityServerVersion() {
-      // Fetch tokens from backend
-      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
-        this.securityServerNodeType = res.data.node_type;
+      return api.get<VersionInfo>('/system/version').then((res) => {
+        this.securityServerVersion = res.data;
       });
     },
     async fetchAuthenticationProviderType() {
@@ -94,10 +97,11 @@ export const useSystem = defineStore('system', {
       });
     },
     async enableMaintenanceMode(message?: string) {
-      return api.put('/system/maintenance-mode/enable', { message });
+      const body: EnableMaintenanceModeData['body'] = { message };
+      return api.put('/system/maintenance-mode/enable', body);
     },
     async disableMaintenanceMode() {
-      return api.put('/system/maintenance-mode/disable', {});
+      return api.put('/system/maintenance-mode/disable', undefined);
     },
     async fetchMaintenanceModeState() {
       return api.get<MaintenanceMode>('/system/maintenance-mode').then((resp) => resp.data);
@@ -106,9 +110,14 @@ export const useSystem = defineStore('system', {
       return api.get<SecurityServerAddressStatus>('/system/server-address').then((resp) => resp.data);
     },
     async changeSecurityServerAddress(address: string) {
-      return api.put('/system/server-address', {
-        address,
-      });
+      const body: AddressChangeData['body'] = { address };
+      return api.put('/system/server-address', body);
+    },
+    async fetchConfigurableProperties() {
+      return api.get<SecurityServerConfigurableProperty[]>('/system/property').then((resp) => resp.data);
+    },
+    async updateConfigurableProperty(update: SecurityServerPropertyUpdate) {
+      return api.patch('/system/property', update);
     },
     async uploadAnchor(initMode: boolean, anchorFile: File) {
       const apiCall = initMode ? api.post : api.put;

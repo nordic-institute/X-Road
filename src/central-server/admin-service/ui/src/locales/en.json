@@ -16,6 +16,9 @@
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
     "description": "Use valid description characters only"
   },
+  "dsTlsCertificate": {
+    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending"
+  },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",
@@ -38,6 +41,12 @@
     "configuration_part_validator_not_found": "Configuration part validator not found",
     "csr_generation_failed": "CSR generation failed",
     "double_file_extension": "Double file extension is not allowed",
+    "ds_tls_certificate_expired": "The DataSpace TLS certificate has expired",
+    "ds_tls_certificate_not_configured": "No DataSpace TLS certificate has been provisioned yet",
+    "ds_tls_certificate_not_yet_valid": "The DataSpace TLS certificate is not yet valid",
+    "ds_tls_certificate_parse_failed": "Cannot read the DataSpace TLS certificate",
+    "ds_tls_key_certificate_mismatch": "The uploaded certificate does not match the DataSpace TLS key",
+    "ds_tls_key_not_generated": "Generate a DataSpace TLS key before requesting a CSR or uploading a certificate",
     "error_activating_signing_key": "Error activating signing key",
     "error_deleting_signing_key": "Error deleting signing key",
     "error_recreating_anchor": "Error re-creating anchor file",
@@ -124,6 +133,7 @@
     "authenticationCertificateProfileId": "Authentication certificate profile id",
     "certFile": "Certificate File",
     "certProfile": "Certificate Profile Info",
+    "dsTlsCertificateProfileId": "DS TLS certificate profile id",
     "init": {
       "address": "Central Server Address",
       "confirmPin": "Repeat PIN",
@@ -138,6 +148,7 @@
     "keyLabel": "Key friendly name",
     "memberCode": "Member Code",
     "memberName": "Member Name",
+    "name": "Name",
     "securityServerAddress": "Security server address",
     "serverCode": "Server code",
     "serviceAddress": "Central Server address",
@@ -583,7 +594,8 @@
       "backupAndRestore": "Backup And Restore",
       "globalResources": "Global Resources",
       "systemSettings": "System Settings",
-      "tlsCertificates": "TLS Certificates"
+      "tlsCertificates": "TLS Certificates",
+      "dsTlsCertificate": "DS TLS Certificate"
     }
   },
   "tlsCertificates": {
@@ -633,6 +645,23 @@
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Certification Services",
     "defaultCsrFormat": "Default CSR format",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "Add DS TLS certification authority",
+      "delete": {
+        "confirmationDialog": {
+          "message": "Are you sure you want to delete the DS TLS certification authority \"{name}\"?",
+          "title": "Are you sure?"
+        },
+        "success": "DS TLS certification authority deleted successfully"
+      },
+      "dsTlsCertificateProfileIdExplanation": "Profile ID used for some ACME servers to let them know the certificate usage type when ordering a DS TLS certificate.",
+      "dsTlsCertificationAuthorities": "DS TLS Certification Authorities",
+      "dsTlsCertificationAuthority": "DS TLS Certification Authority",
+      "nameExplanation": "A free-form name identifying this certification authority, for example \"Let's Encrypt\".",
+      "settings": {
+        "title": "DS TLS CA Settings"
+      }
+    },
     "timestampingService": {
       "addedSuccessfully": "Timestamping service added successfully",
       "dialog": {

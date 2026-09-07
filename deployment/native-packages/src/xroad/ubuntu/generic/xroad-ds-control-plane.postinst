@@ -1,0 +1,52 @@
+#!/bin/bash
+. /usr/share/debconf/confmodule
+
+# Temporary dev flow - copy admin credentials from xroad.properties to db.properties
+# This allows the application to use admin credentials for database access
+# Also updates JDBC URL with currentSchema for EDC compatibility
+# To be removed before release
+copy_admin_credentials_to_db_properties() {
+  local db_name="ds-control-plane"
+  local root_properties=/etc/xroad.properties
+  local db_properties=/etc/xroad/db.properties
+  
+  if [ -f "$root_properties" ] && [ -f "$db_properties" ]; then
+    admin_user=$(crudini --get "$root_properties" '' "${db_name}.database.admin_user" 2>/dev/null)
+    admin_pass=$(crudini --get "$root_properties" '' "${db_name}.database.admin_password" 2>/dev/null)
+    if [ -n "$admin_user" ]; then
+      crudini --set "$db_properties" '' "xroad.db.${db_name}.hibernate.connection.username" "$admin_user"
+      crudini --set "$db_properties" '' "xroad.db.${db_name}.hibernate.connection.password" "$admin_pass"
+      
+      # Update JDBC URL with currentSchema for EDC compatibility
+      current_url=$(crudini --get "$db_properties" '' "xroad.db.${db_name}.hibernate.connection.url" 2>/dev/null)
+      if [ -n "$current_url" ] && [[ "$current_url" != *"currentSchema"* ]]; then
+        # Get schema from hikari config or use db_name as default
+        schema=$(crudini --get "$db_properties" '' "xroad.db.${db_name}.hibernate.hikari.dataSource.currentSchema" 2>/dev/null)
+        schema="${schema%%,*}"  # Take first schema if comma-separated
+        schema="${schema:-$db_name}"
+        
+        if [[ "$current_url" == *"?"* ]]; then
+          new_url="${current_url}&currentSchema=${schema}"
+        else
+          new_url="${current_url}?currentSchema=${schema}"
+        fi
+        crudini --set "$db_properties" '' "xroad.db.${db_name}.hibernate.connection.url" "$new_url"
+      fi
+    fi
+  fi
+}
+
+if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then
+  RET=
+  db_get xroad-common/database-host || RET=""
+  db_stop
+
+  /usr/share/xroad/scripts/setup_ds_controlplane_db.sh "$RET"
+  
+  # Copy admin credentials after setup_db has created them
+  copy_admin_credentials_to_db_properties
+fi
+
+#DEBHELPER#
+
+exit 0

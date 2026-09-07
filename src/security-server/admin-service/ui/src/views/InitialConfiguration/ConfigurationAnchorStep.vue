@@ -27,7 +27,7 @@
 <template>
   <XrdWizardStep>
     <XrdFormBlock class="body-regular">
-      <v-row align="center" no-gutters>
+      <v-row class="align-center" gap="0">
         <v-col cols="auto">{{ $t('initialConfiguration.anchor.info') }}</v-col>
         <v-col>
           <UploadConfigurationAnchorDialog init-mode @uploaded="fetchConfigurationAnchor" />
@@ -36,7 +36,7 @@
     </XrdFormBlock>
     <v-slide-y-transition>
       <XrdFormBlock v-if="configurationAnchor" class="mt-6 body-regular">
-        <v-row align="center" no-gutters>
+        <v-row class="align-center" gap="0">
           <v-col class="font-weight-bold" cols="auto" sm="3">
             {{ $t('initialConfiguration.anchor.hash') }}
           </v-col>
@@ -44,7 +44,7 @@
             <XrdHashValue :value="configurationAnchor.hash" wrap-friendly />
           </v-col>
         </v-row>
-        <v-row class="mt-4" align="center" no-gutters>
+        <v-row class="mt-4 align-center" gap="0">
           <v-col class="font-weight-bold" cols="auto" sm="3">
             {{ $t('initialConfiguration.anchor.generated') }}
           </v-col>

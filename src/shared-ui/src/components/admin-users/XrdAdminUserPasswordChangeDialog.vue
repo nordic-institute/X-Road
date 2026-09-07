@@ -35,7 +35,7 @@
     @cancel="emit('cancel')"
   >
     <template #title>
-      <span class="text-h5" :data-test="`admin-user-row-${username}-change-password-dialog-title`">
+      <span class="text-headline-medium" :data-test="`admin-user-row-${username}-change-password-dialog-title`">
         {{ $t('adminUsers.table.action.changePassword.dialog.title', { username: username }) }}
       </span>
     </template>

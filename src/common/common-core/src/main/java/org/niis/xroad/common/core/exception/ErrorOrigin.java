@@ -33,8 +33,12 @@ public enum ErrorOrigin {
     OP_MONITOR,
     MONITOR,
     CONF_CLIENT,
-    BACKUP_MANAGER,
-    SIGNER;
+    AUXILIARY_SERVICE,
+    SIGNER,
+    DATASPACE,
+    DS_CONTROL_PLANE,
+    DS_IDENTITY_HUB,
+    DS_ISSUER_SERVICE;
 
     public String toPrefix() {
         return this.name().toLowerCase() + ".";

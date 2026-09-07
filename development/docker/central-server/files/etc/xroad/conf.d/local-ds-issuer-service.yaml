@@ -1,0 +1,5 @@
+edc:
+  hostname: ${XROAD_HOST}
+  statuslist:
+    callback:
+      address: https://${XROAD_HOST}:6187/statuslist

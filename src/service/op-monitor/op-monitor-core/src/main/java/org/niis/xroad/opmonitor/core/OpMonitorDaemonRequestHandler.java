@@ -33,8 +33,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
@@ -45,6 +43,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectWriter;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -195,7 +195,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
     private static byte[] getOkResponseBytes() {
         try {
             return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(MimeUtils.UTF8);
-        } catch (JsonProcessingException | UnsupportedEncodingException e) {
+        } catch (JacksonException | UnsupportedEncodingException e) {
             throw XrdRuntimeException.systemException(e);
         }
     }

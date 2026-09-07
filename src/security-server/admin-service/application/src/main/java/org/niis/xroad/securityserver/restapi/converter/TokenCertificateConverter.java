@@ -30,7 +30,6 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatusDto;
@@ -122,12 +121,7 @@ public class TokenCertificateConverter {
         if (info.getOcspBytes() == null || info.getOcspBytes().length == 0) {
             return CertificateOcspStatusDto.OCSP_RESPONSE_UNKNOWN;
         }
-        String ocspResponseStatus = null;
-        try {
-            ocspResponseStatus = OcspUtils.getOcspResponseStatus(info.getOcspBytes());
-        } catch (OcspUtils.OcspStatusExtractionException e) {
-            throw XrdRuntimeException.systemInternalError("extracting OCSP status failed", e);
-        }
+        String ocspResponseStatus = OcspUtils.getOcspResponseStatus(info.getOcspBytes());
         return switch (ocspResponseStatus) {
             case CertificateInfo.OCSP_RESPONSE_GOOD -> CertificateOcspStatusDto.OCSP_RESPONSE_GOOD;
             case CertificateInfo.OCSP_RESPONSE_SUSPENDED -> CertificateOcspStatusDto.OCSP_RESPONSE_SUSPENDED;

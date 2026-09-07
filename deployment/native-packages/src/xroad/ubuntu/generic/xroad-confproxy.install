@@ -1,7 +1,7 @@
 ../../../../src/xroad/common/confproxy/etc/* etc/
-../../../../../../src/service/configuration-proxy/configuration-proxy-application/scripts/* usr/share/xroad/scripts
-../../../../../../src/service/configuration-proxy/configuration-proxy-application/build/libs/configuration-proxy-1.0.jar usr/share/xroad/jlib/
-../../../../src/xroad/default-configuration/confproxy.ini etc/xroad/conf.d
-../../../../src/xroad/default-configuration/confproxy-logback.xml etc/xroad/conf.d
+../../../../src/xroad/common/confproxy/usr/* usr/
+../../../../../../src/service/configuration-proxy/configuration-proxy-cli/build/quarkus-app/* usr/share/xroad/jlib/configuration-proxy-cli/
+../../../../../../src/service/configuration-proxy/configuration-proxy-application/build/quarkus-app/* usr/share/xroad/jlib/configuration-proxy-application/
+../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
 ../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-confproxy
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-confproxy

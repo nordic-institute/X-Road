@@ -27,6 +27,8 @@ package org.niis.xroad.opmonitor.core;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys;
 import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
@@ -51,7 +53,8 @@ public class BaseTestUsingDB {
 
     private static final OpMonitorDbProperties OP_MONITOR_DB_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorDbProperties.class,
             HIBERNATE_PROPERTIES);
-    protected static final OpMonitorProperties OP_MONITOR_PROPERTIES = ConfigUtils.defaultConfiguration(OpMonitorProperties.class);
+    protected static final OpMonitorProperties OP_MONITOR_PROPERTIES = new OpMonitorProperties(
+            XRoadConfigBuilder.create().register(OpMonitorConfigKeys.instance()).build());
     protected static final OpMonitorDatabaseCtx DATABASE_CTX = new OpMonitorDatabaseCtx(OP_MONITOR_DB_PROPERTIES);
 
     protected OperationalDataRecordManager operationalDataRecordManager =

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="test-acme-rename-changelog.xml">
+
+    <!--
+        Stands in for configuration-properties/001-configuration-properties.xml, whose triggers and
+        partial indexes are PostgreSQL-only. Production has unique indexes on (property_key) for
+        scope-less rows and on (property_key, scope) otherwise; the rename must not violate them, and
+        every key involved here is scoped, so one unique constraint on (property_key, scope) models it.
+    -->
+    <changeSet author="test" id="test-configuration-properties-table">
+        <createTable tableName="configuration_properties">
+            <column name="id" autoIncrement="true" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="property_key" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="property_value" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scope" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addUniqueConstraint tableName="configuration_properties"
+                             columnNames="property_key, scope"
+                             constraintName="uniq_key_scope"/>
+    </changeSet>
+
+    <changeSet author="test" id="test-seed-stale-and-colliding-rows">
+        <insert tableName="configuration_properties">
+            <column name="property_key" value="xroad.proxy-ui-api.acme-certification-wait-attempts"/>
+            <column name="property_value" value="9"/>
+            <column name="scope" value="proxy-ui-api"/>
+        </insert>
+        <insert tableName="configuration_properties">
+            <column name="property_key" value="xroad.proxy-ui-api.acme-certification-wait-interval"/>
+            <column name="property_value" value="7"/>
+            <column name="scope" value="collision-scope"/>
+        </insert>
+        <insert tableName="configuration_properties">
+            <column name="property_key" value="xroad.proxy-ui-api.acme-certificate-wait-interval"/>
+            <column name="property_value" value="3"/>
+            <column name="scope" value="collision-scope"/>
+        </insert>
+        <insert tableName="configuration_properties">
+            <column name="property_key" value="xroad.proxy-ui-api.acme-renewal-interval"/>
+            <column name="property_value" value="3600"/>
+            <column name="scope" value="proxy-ui-api"/>
+        </insert>
+    </changeSet>
+
+    <include file="liquibase/serverconf/011-rename-acme-certificate-wait-properties.xml"/>
+
+</databaseChangeLog>

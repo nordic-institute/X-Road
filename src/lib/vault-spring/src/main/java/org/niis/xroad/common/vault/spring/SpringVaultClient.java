@@ -33,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 import org.springframework.vault.core.VaultKeyValueOperations;
@@ -40,10 +42,12 @@ import org.springframework.vault.core.VaultKeyValueOperations;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -93,6 +97,36 @@ public class SpringVaultClient implements VaultClient {
     @Override
     public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
         createTlsCredentials(MANAGEMENT_SERVICE_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public InternalSSLKey getConfigurationProxyTlsCredentials() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsTlsEnrollmentStatus() {
+        return readSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH).map(this::toDsTlsEnrollmentStatus);
+    }
+
+    @Override
+    public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        vaultClient.put(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
     }
 
     @Override
@@ -152,6 +186,40 @@ public class SpringVaultClient implements VaultClient {
     @Override
     public void deleteTokenPin(String tokenId) {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public void createAcmeAccountKey(String alias, AcmeAccountKey acmeAccountKey) {
+        var secret = new HashMap<String, String>();
+        try {
+            secret.put(PRIVATEKEY_KEY, toPem(acmeAccountKey.privateKey()));
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+        secret.put(PUBLICKEY_KEY, toPem(acmeAccountKey.publicKey()));
+        secret.put(EXPIRES_AT_KEY, acmeAccountKey.expiresAt().toString());
+        vaultClient.put(getAcmeAccountKeyPath(alias), secret);
+    }
+
+    @Override
+    public Optional<AcmeAccountKey> getAcmeAccountKey(String alias) {
+        var maybeSecret = readSecret(getAcmeAccountKeyPath(alias));
+        if (maybeSecret.isEmpty()) {
+            return Optional.empty();
+        }
+        var vaultResponse = maybeSecret.get();
+
+        try {
+            var privateKey = CryptoUtils.getPrivateKey(
+                    new ByteArrayInputStream(vaultResponse.get(PRIVATEKEY_KEY).toString().getBytes(StandardCharsets.UTF_8))
+            );
+            var publicKey = toPublicKey(vaultResponse.get(PUBLICKEY_KEY).toString());
+            var expiresAt = Instant.parse(vaultResponse.get(EXPIRES_AT_KEY).toString());
+
+            return Optional.of(new AcmeAccountKey(privateKey, publicKey, expiresAt));
+        } catch (IOException | GeneralSecurityException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private Optional<Map<String, Object>> readSecret(String path) {

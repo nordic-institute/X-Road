@@ -24,34 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.opmonitor.client;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-@SuppressWarnings("checkstyle:InterfaceIsType")
-@ConfigMapping(prefix = OpMonitorRpcChannelProperties.PREFIX)
-public interface OpMonitorRpcChannelProperties extends RpcChannelProperties {
-    String PREFIX = "xroad.common-rpc.channel.op-monitor";
+/** XRoadConfig-backed implementation of {@link OpMonitorRpcChannelProperties}. */
+public class OpMonitorRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "2081";
-    String DEFAULT_DEADLINE_AFTER = "60000";
+    public OpMonitorRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_HOST,
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_PORT,
+                CommonRpcConfigKeys.CHANNEL_OP_MONITOR_DEADLINE_AFTER);
+    }
 
-    @Override
-    @WithDefault(DEFAULT_HOST)
-    String host();
-
-    @Override
-    @WithDefault(DEFAULT_PORT)
-    int port();
+    public OpMonitorRpcChannelProperties() {
+        this(null);
+    }
 
     @Override
-    @WithName("deadline-after")
-    @WithDefault(DEFAULT_DEADLINE_AFTER)
-    int deadlineAfter();
-
+    public String toString() {
+        return "OpMonitorRpcChannelProperties(" + super.toString() + ")";
+    }
 }

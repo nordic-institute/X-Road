@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdApp :login-view="loginView" :session-alive="sessionAlive" @logout="logout">
+  <XrdApp :login-view="loginView" @logout="logout">
     <router-view />
   </XrdApp>
 </template>
@@ -48,8 +48,6 @@ const userStore = useUser();
 const loginView = computed(() => {
   return route.name === RouteName.Login;
 });
-
-const sessionAlive = computed(() => userStore.isSessionAlive === true);
 
 function logout() {
   userStore.logout();

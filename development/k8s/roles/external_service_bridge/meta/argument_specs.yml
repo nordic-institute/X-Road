@@ -1,0 +1,26 @@
+---
+argument_specs:
+  main:
+    short_description: Deploy one external-service-bridge Helm release
+    options:
+      security_server_namespace: {type: str, required: true}
+      kubeconfig_path: {type: path, required: true}
+      external_service_bridge_chart_repo: {type: str, required: false}
+      external_service_bridge_chart: {type: str, required: true}
+      external_service_bridge_chart_version: {type: str, required: false}
+      external_service_bridge_timeout: {type: str, default: 3m}
+      bridge_name:
+        type: str
+        required: true
+        description: Bridge logical name (e.g. xrd-cs, xrd-ca, xrd-ss0)
+      bridge_external_host:
+        type: str
+        required: true
+      bridge_ports:
+        type: list
+        elements: dict
+        required: true
+        options:
+          name: {type: str, required: true}
+          port: {type: int, required: true}
+          targetPort: {type: int, required: true}

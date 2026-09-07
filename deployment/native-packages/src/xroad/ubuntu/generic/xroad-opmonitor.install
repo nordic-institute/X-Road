@@ -1,6 +1,5 @@
 ../../../../src/xroad/common/op-monitor/etc/* etc
 ../../../../src/xroad/common/op-monitor/usr/* usr
-../../../../../../src/service/op-monitor/op-monitor-db/src/main/resources/liquibase/* usr/share/xroad/db/
 
 ../../../../../../src/service/op-monitor/op-monitor-application/build/quarkus-app/* usr/share/xroad/jlib/op-monitor/
 

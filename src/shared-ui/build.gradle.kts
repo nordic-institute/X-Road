@@ -62,26 +62,29 @@ tasks.register<RunPnpmTaskType>("build-pnpm-workspace") {
   args.set("run build-workspace")
 }
 
-tasks.register<RunPnpmTaskType>("checkFrontAudit") {
-  description = "Runs npm audit on frontend pnpm workspace."
+tasks.register<RunPnpmTaskType>("dependencyAuditFrontend") {
+  description = "Runs dependency security audit on frontend pnpm workspace."
   group = "verification"
 
   dependsOn(tasks.named("assembleFrontend"))
   args.set("run npx-check-audit")
 }
 
+// The "test" task below runs Vitest in browser mode via @vitest/browser-playwright, which needs the Playwright browser binaries on disk.
+tasks.register<RunPnpmTaskType>("installPlaywrightBrowsers") {
+  description = "Installs the Playwright browser binaries needed by Vitest browser-mode tests."
+  group = "verification"
+
+  dependsOn(tasks.named("installFrontend"))
+  args.set("exec playwright install chromium")
+}
+
 tasks.register<RunPnpmTaskType>("test") {
   description = "Runs frontend tests."
   group = "verification"
 
-  dependsOn(tasks.named("assembleFrontend"), tasks.named("build-pnpm-workspace"))
+  dependsOn(tasks.named("assembleFrontend"), tasks.named("build-pnpm-workspace"), tasks.named("installPlaywrightBrowsers"))
   args.set("run test-ss")
-}
-
-if (project.hasProperty("frontend-npm-audit")) {
-  tasks.assemble {
-    dependsOn(tasks.named("checkFrontAudit"))
-  }
 }
 
 tasks.register<RunPnpmTaskType>("checkFrontWorkspaceLicense") {

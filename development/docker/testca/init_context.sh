@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then

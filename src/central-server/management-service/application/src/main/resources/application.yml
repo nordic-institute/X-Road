@@ -1,6 +1,8 @@
 # shared properties for dev/prod runtime
 # test runtime has a separate application.properties
 spring:
+  application:
+    name: management-service
   config:
     import:
       - classpath:/xroad-common.yaml

@@ -33,10 +33,11 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
+import org.niis.xroad.confclient.common.domain.ReturnCode;
+import org.niis.xroad.confclient.common.service.ConfigurationClientService;
 
-import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
-import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
+import static org.niis.xroad.confclient.common.service.ConfigurationClientService.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.confclient.common.service.ConfigurationClientService.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,14 +46,13 @@ public class ConfClientCLIRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
-    private final ConfigurationClientActionExecutor executor;
+    private final ConfigurationClientService configurationClientService;
 
     /**
      * Main entry point of configuration client. Based on the arguments, the configuration client run:
      * 1) <anchor file> <configuration path> <conf version> -- in one-shot mode downloading the specified global configuration version;
      * 2) <anchor file> <configuration path> -- in one-shot mode downloading the current global configuration version;
      * 3) <anchor file> -- in validate mode.
-     *
      * @param args the arguments
      */
     public int run(String... args) throws ParseException {
@@ -60,21 +60,19 @@ public class ConfClientCLIRunner {
             CommandLine cmd = getCommandLine(args);
             String[] actualArgs = cmd.getArgs();
 
-            int result;
+            ReturnCode result = null;
             if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
                 // Run configuration client in one-shot mode downloading the specified global configuration version.
-                result = executor.download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2]));
+                result = configurationClientService.download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2]));
             } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
                 // Run configuration client in one-shot mode downloading the current global configuration version.
-                result = executor.download(actualArgs[0], actualArgs[1]);
+                result = configurationClientService.download(actualArgs[0], actualArgs[1]);
             } else if (actualArgs.length == 1) {
                 // Run configuration client in validate mode.
-                result = executor.validate(actualArgs[0], cmd);
-            } else {
-                result = 1;
+                result = configurationClientService.validate(actualArgs[0], cmd.hasOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE));
             }
 
-            return result;
+            return result == null ? 1 : result.getCode();
         } else {
             log.debug("No arguments given.");
         }

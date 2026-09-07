@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>DEV</instanceIdentifier>
+    <managementService>
+        <authCertRegServiceAddress>https://xrd-cs:4001/managementservice/</authCertRegServiceAddress>
+        <authCertRegServiceCert>MIIDuzCCAqOgAwIBAgIUC19IEh594aM5qUhbQNxwScjYos8wDQYJKoZIhvcNAQELBQAwFDESMBAGA1UEAxMJbG9jYWxob3N0MB4XDTI2MDIyNjEzNDIxOVoXDTM2MDIyNDEzNDI0OVowETEPMA0GA1UEAxMGeHJkLWNzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4vSUW0jvSgHSiDX9xmVeyYHzXqHMhCiCyvI6Y0Tim9eeoLUcq2Zb9FLeF/lbY698LSU8HR2s845IvK/BnxCui81q1BWOZHXfi6A9cA4JzrYinnQEgCawQwOd/gRnkGaUsBoe4dPQDPGJZsF1I5HLERIJ1VG408Om6zehMuDkLTgcHEBhwwgWiq5c0PJqYWQfeuOcfodZyvj4swc3AH+D+Ajc0SD9V1+mZB+gGz5Ek5AkkyGPqvJweDxI64eXssLvOKCCmGGTg9sV2LRIcUWfGZ/OqOzaXDZ3CrOErlqBRzjDsceL2/W1yq+bVTvPxQWniUINufww0s6oZyhSnjP5RQIDAQABo4IBBjCCAQIwDgYDVR0PAQH/BAQDAgOoMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAdBgNVHQ4EFgQUhaPy+xjYuq0YgJSz5z3AOzTicXwwHwYDVR0jBBgwFoAUCBxPe5oZzPzedocvEMgqp8GI5pIwQAYIKwYBBQUHAQEENDAyMDAGCCsGAQUFBzAChiRodHRwczovLzEyNy4wLjAuMTo4MjAwL3YxL3hyZC1wa2kvY2EwFwYDVR0RBBAwDoIGeHJkLWNzhwQKCgpyMDYGA1UdHwQvMC0wK6ApoCeGJWh0dHBzOi8vMTI3LjAuMC4xOjgyMDAvdjEveHJkLXBraS9jcmwwDQYJKoZIhvcNAQELBQADggEBAI2bbbZYLwwkRE9tCs3OazHirWqAzMtnmj/S/Il7dHKqZb1l9mCwSHLTy6dC6cVvRWaGdoiRmF++0tPyfl2cE8ixYOwyOehiDUVoMfd57q/4aDyIpGU6VHRjx/em7wqcgZyakJASWR+mLspVpeYLGUEMo8d+dFnei688fMwypO/7igeo+/y7iHsjY433OyXt9DiDF9FNB4SHKEXu000AOiQvDP7zQuUO0ndeEk0IxmapGKTDd2JFkZpBq4BWzIRdjgqrOunXHITTGKDEng1A3LtUFK2d4coutA9Wrh0kjDq25unTWf6z1DPsFQXThtHET0c5T0NEsh3f7TvNizuD9P4=</authCertRegServiceCert>
+        <managementRequestServiceProviderId ns2:objectType="SUBSYSTEM">
+            <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+            <ns2:memberClass>COM</ns2:memberClass>
+            <ns2:memberCode>1234</ns2:memberCode>
+            <ns2:subsystemCode>MANAGEMENT</ns2:subsystemCode>
+        </managementRequestServiceProviderId>
+    </managementService>
+    <timeStampingIntervalSeconds>60</timeStampingIntervalSeconds>
+</ns3:conf>

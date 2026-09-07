@@ -41,6 +41,14 @@ public class CurrentHAConfigStatus {
 
     private static final String XROAD_HA_NODE_NAME_DEFAULT = "node_0";
 
+    /**
+     * Deliberately read from the Spring {@code Environment} rather than the {@code XRoadConfig} DSL:
+     * the node name is per-node install-time identity written to {@code /etc/xroad/conf.d/local.yaml},
+     * and the packaged backup/restore scripts parse that same file for the same key
+     * ({@code _backup_restore_common.sh:check_central_ha_node_name}). The DSL resolves DB overrides and
+     * packaged defaults only, so moving this key there would leave the scripts and the application
+     * reading different values.
+     */
     @Value("${xroad.admin-service.ha-node-name}")
     private final String haNodeName;
 

@@ -44,12 +44,11 @@ public interface EncryptionConfig {
      * based on the configuration (GPG, Vault/BouncyCastle, or disabled).
      *
      * @param outputFile Path to the output file where encrypted data will be written
-     * @param tempFilesPath Path to temporary files directory (may be used by some implementations)
      * @return OutputStream that encrypts data
      * @throws IOException if stream creation fails
      * @throws UnsupportedOperationException if encryption is disabled
      */
-    OutputStream createEncryptionStream(Path outputFile, String tempFilesPath) throws IOException;
+    OutputStream createEncryptionStream(Path outputFile) throws IOException;
 
     /**
      * Gets encryption member information for diagnostics.

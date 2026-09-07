@@ -45,17 +45,16 @@ public class SinglePropertySetter extends BasePropertiesToDbMigrator {
         return Map.of(propertyKey, propertyValue);
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public static void main(String[] args) {
         validateParams(args);
-        new SinglePropertySetter(args[1], args[2])
-                .migrate("cmdline", args[0], args.length > 3 ? args[3] : null);
+        new SinglePropertySetter(args[1], args[2]).migrate("cmdline", args[0]);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private static void validateParams(String[] args) {
-        if (args.length != 3 && args.length != 4) {
-            logUsageAndThrow("Invalid number of arguments provided.");
+        if (args.length != 3) {
+            logUsageAndThrow("Invalid number of arguments provided. Rows are keyed by property_key alone; "
+                    + "a scope argument is no longer accepted.");
         }
         LegacyConfigMigrationCLI.validateFilePath(args[0], "DB properties file");
         if (StringUtils.isAnyBlank(args[1], args[2])) {
@@ -64,7 +63,7 @@ public class SinglePropertySetter extends BasePropertiesToDbMigrator {
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <db.properties file> <property key> <property value> [optional scope]");
+        log.error("Usage: <db.properties file> <property key> <property value>");
         log.error("  Example: /etc/xroad/db.properties xroad.proxy.batch-signing-enabled true ");
         throw new IllegalArgumentException(message);
     }

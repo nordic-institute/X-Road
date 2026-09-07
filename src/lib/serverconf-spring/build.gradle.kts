@@ -8,6 +8,6 @@ dependencies {
   api(project(":lib:serverconf-impl"))
   implementation(project(":lib:vault-spring"))
 
-  implementation("org.springframework.boot:spring-boot-starter")
+  implementation(libs.springBoot.starter)
 }
 

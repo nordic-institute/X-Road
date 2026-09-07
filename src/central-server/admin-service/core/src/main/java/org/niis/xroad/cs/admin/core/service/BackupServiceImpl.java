@@ -38,7 +38,6 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -108,16 +107,15 @@ public class BackupServiceImpl implements BackupService {
      */
     @Override
     public BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
-            throws UnhandledWarningsException, BadRequestException {
+            throws BadRequestException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
 
         if (!ignoreWarnings && backupRepository.fileExists(filename)) {
-            throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename));
+            throw new BadRequestException(
+                    new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename)));
         }
 
-        OffsetDateTime createdAt = backupRepository.writeBackupFile(filename, fileBytes);
-
-        return new BackupFile(filename, createdAt);
+        return backupRepository.writeBackupFile(filename, fileBytes);
     }
 
     /**

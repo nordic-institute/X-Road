@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.30
+Version: 1.33
 Doc. ID: IG-XLB
 
 
@@ -37,6 +37,9 @@ Doc. ID: IG-XLB
 | 06.05.2025 | 1.28    | Added more details about the soft token status check result caching                                                      | Petteri Kivimäki            |
 | 01.08.2025 | 1.29    | Fix a broken link                                                                                                        | Petteri Kivimäki            |
 | 25.02.2026 | 1.30    | Update PostgreSQL to version 15 on RHEL                                                                                  | Ričardas Bučiūnas           |
+| 02.03.2026 | 1.31    | Fix broken link                                                                                                          | Petteri Kivimäki            |
+| 22.04.2026 | 1.32    | Remove RHEL 8 and add RHEL 10 support                                                                                    | Eneli Reimets               |
+| 22.05.2026 | 1.33    | Added ACME HTTP challenge port clarification for secondaries                                                             | Mikk-Erik Bachmann          |
 
 ## Table of Contents
 
@@ -119,7 +122,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 |             Document Id              | Document                                                                                                                                   |
 | :----------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
-|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/tree/develop/ansible/ss_cluster/README.md) |
+|            \[SS-CLUSTER\]            | [Readme: Security Server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/blob/develop/development/ansible/ss_cluster/README.md) |
 |              \[IG-SS\]               | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md)                                     |
 |              \[UG-SS\]               | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md)                                                     |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)                                                                               |
@@ -295,7 +298,6 @@ In order to properly set up the data replication, the secondary nodes must be ab
       ```
 9. Start the X-Road services.
 
-
 ### 3.3 Secondary installation
 1. Install Security Server packages using the normal installation procedure. Alternatively you can also install only the packages
    required for secondary nodes. `xroad-proxy-ui-api` package can be omitted, but the admin graphical user interface
@@ -311,7 +313,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
 5. Set up SSH between the primary and the secondary (the secondary must be able to access `/etc/xroad` via ssh)
    * Create an SSH keypair for `xroad` user and copy the public key to authorized keys of the primary node
    (`/home/xroad-slave/.ssh/authorized_keys`)
-   > On RHEL 8, 9: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
+   > On RHEL 9, 10: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
       ```bash
       sudo -u xroad ssh-keygen -t ecdsa
       ```
@@ -319,7 +321,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the initial synchronization between the primary and the secondary.
    ```bash
-   sudo -u xroad rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/gpghome" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
+   sudo -u xroad rsync -e ssh -avz --delete --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --exclude "secret-store-client-token" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
    ```
    Where `<primary>` is the primary server's DNS or IP address.
 7. Configure the node type as `slave` in `/etc/xroad/conf.d/node.ini`.
@@ -359,6 +361,8 @@ In order to properly set up the data replication, the secondary nodes must be ab
     Improvements to API key handling in clustered setups will be included in later releases.
 
 11. It is possible to use the autologin-package with secondary nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
+
+12. Note about ACME: using ACME to order or renew certificates is not possible on secondaries, so the ACME HTTP-01 challenge port (typically TCP 80) does not need to be reachable here. Only the primary node responds to ACME challenges.
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
  to verify the setup.
@@ -468,7 +472,7 @@ Besides the health checks mentioned above, Proxy can also be configured to check
 ## 4. Database replication setup
 
 For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/current/high-availability.html).
-Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. RHEL 8 and 9 use PostgreSQL 15, Ubuntu 22.04 uses version 14, and Ubuntu 24.04 uses version 16.
+Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. RHEL 9 uses PostgreSQL 15, RHEL 10 uses PostgreSQL 16, Ubuntu 22.04 uses version 14, and Ubuntu 24.04 uses version 16.
 
 ### 4.1 Setting up TLS certificates for database authentication
 
@@ -567,7 +571,7 @@ exit
     # Init db
     sudo su postgres
     cd /tmp
-    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+    /usr/pgsql-15/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/15/serverconf/
     exit
     ```
 
@@ -644,6 +648,7 @@ Create a user named `serverconf` for local `serverconf` database access:
 
 ```bash
 sudo -u postgres psql -p 5433 -c "CREATE USER serverconf PASSWORD '<password>'";
+sudo -u postgres psql -p 5433 -c "CREATE USER serverconf_admin PASSWORD '<password>'";
 ```
 
 Copy the `serverconf` database from the default instance to the new instance:
@@ -666,7 +671,7 @@ Prerequisites:
 
 Go to the postgresql data directory:
  * RHEL: `/var/lib/pgsql/serverconf`
-    >**Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
+    >**Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/15/serverconf`.
  * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
@@ -791,7 +796,7 @@ Environment=MASTER=<primary_host>
 
 ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
 
-ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
+ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --exclude "secret-store-client-token" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
 WantedBy=xroad-proxy.service

@@ -142,6 +142,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     MEMBER_NAME_NOT_FOUND("member_name_not_found"),
     INVALID_MEMBER_CLASS(ERROR_INVALID_MEMBER_CLASS),
     INVALID_INSTANCE_IDENTIFIER(ERROR_INVALID_INSTANCE_IDENTIFIER),
+    INVALID_PROPERTY_VALUE("invalid_property_value"),
     INSTANCE_IDENTIFIER_NOT_FOUND("instance_identifier_not_found"),
 
     INVALID_CONNECTION_TYPE(ERROR_INVALID_CONNECTION_TYPE),
@@ -175,6 +176,7 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     INVALID_INIT_PARAMS(ERROR_INVALID_INIT_PARAMS),
     MISSING_PARAMETER(ERROR_MISSING_PARAMETER),
     SERVER_ALREADY_FULLY_INITIALIZED(ERROR_SERVER_ALREADY_FULLY_INITIALIZED),
+    INITIAL_ADMIN_USER_NOT_ALLOWED("initial_admin_user_not_allowed"),
 
     SOFTWARE_TOKEN_INIT_FAILED(ERROR_SOFTWARE_TOKEN_INIT_FAILED),
     MISSING_TOKEN_PASSWORD("missing_token_password"),
@@ -185,7 +187,9 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     DUPLICATE_LOCAL_GROUP_CODE(ERROR_DUPLICATE_LOCAL_GROUP_CODE),
     MISSING_MEMBER_ID("missing_member_id"),
 
-    ORPHANS_NOT_FOUND(ERROR_ORPHANS_NOT_FOUND);
+    ORPHANS_NOT_FOUND(ERROR_ORPHANS_NOT_FOUND),
+
+    INVALID_TEST_MAIL_RECIPIENT("invalid_test_mail_recipient");
 
     private final String code;
 

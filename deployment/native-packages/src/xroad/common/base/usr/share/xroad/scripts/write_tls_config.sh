@@ -41,15 +41,20 @@ EOF
   exit 1
 }
 
-# Split combined IP and DNS alternative names into separate lists
-# Input format: IP:1.1.1.1,DNS:example.com,IP:2.2.2.2,DNS:example.org
-# Output: Two space-separated values: "ip_list" "dns_list"
-split_ip_dns() {
-  local input="$1"
-  local ip_list dns_list
-  ip_list=$(echo "$input" | tr ',' '\n' | grep '^IP:' | cut -d: -f2 | paste -sd,)
-  dns_list=$(echo "$input" | tr ',' '\n' | grep '^DNS:' | cut -d: -f2 | paste -sd,)
-  echo "$ip_list" "$dns_list"
+# Extract the IP alternative names (IPv4 and IPv6) from a combined IP/DNS list.
+# Input format:
+#   IP:1.1.1.1,DNS:example.com,IP:2.2.2.2,DNS:example.org
+#   IP:10.0.2.15,IP:fd17:625c:f037:2:a00:27ff:fe7f:dfb6,DNS:example.org,DNS:example.org
+extract_ip_list() {
+  echo "$1" | tr ',' '\n' | grep '^IP:' | sed 's/^IP://' | paste -sd,
+}
+
+# Extract the DNS alternative names from a combined IP/DNS list.
+# Input format:
+#   IP:1.1.1.1,DNS:example.com,IP:2.2.2.2,DNS:example.org
+#   IP:10.0.2.15,IP:fd17:625c:f037:2:a00:27ff:fe7f:dfb6,DNS:example.org,DNS:example.org
+extract_dns_list() {
+  echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
 }
 
 # Write TLS certificate provisioning settings to configuration file
@@ -64,7 +69,9 @@ write_tls_settings() {
   local cn="$3"
   local altn="$4"
 
-  read ip_list dns_list < <(split_ip_dns "$altn")
+  local ip_list dns_list
+  ip_list=$(extract_ip_list "$altn")
+  dns_list=$(extract_dns_list "$altn")
 
   log "Writing ${module_name} TLS settings to ${config_file}"
   /usr/share/xroad/scripts/yaml_helper.sh set "$config_file" "xroad.${module_name}.tls.certificate-provisioning.common-name" "$cn"

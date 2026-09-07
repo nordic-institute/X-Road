@@ -106,9 +106,8 @@
 <script lang="ts" setup>
 import { ref, computed, watchEffect } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { KeyUsageType, PossibleAction, TokenCertificate } from '@/openapi-types';
+import { KeyUsageType, PossibleAction, TokenCertificate, PossibleActions } from '@/openapi-types';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
-import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { useUser } from '@/store/modules/user';
 import { XrdElevatedViewFixedWidth, XrdCertificate, XrdBtn, useNotifications, useHistory, XrdConfirmDialog } from '@niis/shared-ui';
 import { useRouter } from 'vue-router';

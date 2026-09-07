@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -43,7 +42,6 @@ import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 
@@ -59,7 +57,6 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
     private static final String MEMBER_CLASS = "memberClass";
     private static final String MEMBER_CODE = "memberCode";
     private static final String SUBSYSTEM_CODE = "subsystemCode";
-    private static final String SERVICE_VERSION = "serviceVersion";
     private static final String GROUP_CODE = "groupCode";
 
     public ClientIdEntity findOrCreateClientId(Session session, ClientId clientId) {
@@ -97,35 +94,6 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
         return list.isEmpty() ? null : list.getFirst();
     }
 
-    public ServiceIdEntity findServiceId(Session session, ServiceId example) {
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<ServiceIdEntity> query = cb.createQuery(ServiceIdEntity.class);
-        final Root<ServiceIdEntity> from = query.from(ServiceIdEntity.class);
-
-        Predicate pred = cb.and(
-                cb.equal(from.get(X_ROAD_INSTANCE), example.getXRoadInstance()),
-                cb.equal(from.get(MEMBER_CLASS), example.getMemberClass()),
-                cb.equal(from.get(MEMBER_CODE), example.getMemberCode()),
-                cb.equal(from.get("serviceCode"), example.getServiceCode()));
-        if (example.getSubsystemCode() == null) {
-            pred = cb.and(pred, cb.isNull(from.get(SUBSYSTEM_CODE)));
-        } else {
-            pred = cb.and(pred, cb.equal(from.get(SUBSYSTEM_CODE), example.getSubsystemCode()));
-        }
-        if (example.getServiceVersion() == null) {
-            pred = cb.and(pred, cb.isNull(from.get(SERVICE_VERSION)));
-        } else {
-            pred = cb.and(pred, cb.equal(from.get(SERVICE_VERSION), example.getServiceVersion()));
-        }
-
-        final List<ServiceIdEntity> list = session.createQuery(query.select(from).where(pred))
-                .setMaxResults(1)
-                .setCacheable(true)
-                .getResultList();
-
-        return list.isEmpty() ? null : list.getFirst();
-    }
-
     public SecurityServerIdEntity findSecurityServerId(Session session, SecurityServerId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<SecurityServerIdEntity> query = cb.createQuery(SecurityServerIdEntity.class);
@@ -136,7 +104,6 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
                 cb.equal(from.get(MEMBER_CLASS), example.getMemberClass()),
                 cb.equal(from.get(MEMBER_CODE), example.getMemberCode()),
                 cb.equal(from.get("serverCode"), example.getServerCode()));
-
 
         final List<SecurityServerIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
@@ -172,7 +139,6 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
         Predicate pred = cb.and(
                 cb.isNull(from.get(X_ROAD_INSTANCE)),
                 cb.equal(from.get(GROUP_CODE), example.getGroupCode()));
-
 
         final List<LocalGroupIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)

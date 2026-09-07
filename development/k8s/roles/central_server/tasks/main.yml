@@ -1,0 +1,42 @@
+---
+- name: Install/upgrade Central Server chart (non-blocking)
+  kubernetes.core.helm:
+    name: central-server
+    chart_ref: "{{ (central_server_chart_repo | length > 0) | ternary(central_server_chart_repo + '/' + central_server_chart, central_server_chart) }}"
+    chart_version: "{{ central_server_chart_version | default(omit, true) }}"
+    release_namespace: "{{ central_server_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    # wait=false + explicit polling below — same rationale as the security_server role: avoids a
+    # silent multi-minute hang and prints per-retry status under -vv while the monolithic CS dev
+    # image's own postgres/supervisord/nginx boot sequence runs.
+    wait: false
+    values: "{{ lookup('template', 'central-server-values.yaml.j2') | from_yaml }}"
+
+- name: Wait for Central Server Deployment to become Available
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: apps/v1
+    kind: Deployment
+    namespace: "{{ central_server_namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/instance=central-server"
+  register: cs_deployments
+  until: >-
+    (cs_deployments.resources | length > 0) and
+    (cs_deployments.resources
+     | map(attribute='spec.replicas', default=0)
+     | map('int') | sum) ==
+    (cs_deployments.resources
+     | map(attribute='status.availableReplicas', default=0)
+     | map('int') | sum)
+  retries: "{{ central_server_wait_retries }}"
+  delay: "{{ central_server_wait_delay }}"
+
+- name: Summarise pod readiness
+  ansible.builtin.debug:
+    msg: >-
+      {{ item.metadata.name }}: available {{ item.status.availableReplicas | default(0) }}/{{ item.status.replicas | default(0) }}
+  loop: "{{ cs_deployments.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"

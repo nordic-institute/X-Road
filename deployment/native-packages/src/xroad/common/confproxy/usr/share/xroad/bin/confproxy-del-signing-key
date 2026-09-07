@@ -1,0 +1,4 @@
+#!/bin/bash
+
+confproxy del-signing-key $@
+

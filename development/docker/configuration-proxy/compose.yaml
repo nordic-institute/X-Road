@@ -1,0 +1,186 @@
+services:
+  openbao:
+    image: ${OPENBAO_DEV_IMG}
+    pull_policy: always
+    environment:
+      - BAO_ADDR=http://0.0.0.0:8200
+      - BAO_TOKEN=${XROAD_SECRET_STORE_ROOT_TOKEN}
+      - XROAD_SECRET_STORE_TOKEN_OVERRIDE=${XROAD_SECRET_STORE_TOKEN:-}
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "sh", "-c", "bao secrets list -format=json | jq 'has(\"xrd-pki/\")' | grep -q true" ]
+    networks:
+      - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+  db-confproxy:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    environment:
+      - POSTGRES_PASSWORD=admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=confproxy
+    networks:
+      - xroad-network
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+
+        psql -U postgres -d confproxy -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'confproxy'
+            ) THEN
+              CREATE ROLE confproxy LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
+  db-confproxy-init:
+    image: ${DB_INIT_IMG}
+    pull_policy: always
+    environment:
+      - JDBC_URL=jdbc:postgresql://db-confproxy:5432/confproxy
+      - JDBC_USER=postgres
+      - JDBC_PASSWORD=admin_secret
+      - CHANGELOG=confproxy
+      - DEFAULT_SCHEMA_NAME=public
+      - PROP_DB_USER=confproxy
+    depends_on:
+      db-confproxy:
+        condition: service_healthy
+    networks:
+      - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+
+  signer:
+    image: ${SIGNER_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=signer
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-confproxy:5432/confproxy
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_USERNAME=confproxy
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_COMMON_GLOBAL_CONF_REFRESH_RATE=0
+      - XROAD_SIGNER_AUTOLOGIN_ENABLED=true
+      - XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=4321
+    ports:
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xroad-network
+    depends_on:
+      db-confproxy-init:
+        condition: service_completed_successfully
+      openbao:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 448M
+  configuration-proxy:
+    image: ${CONFIGURATION_PROXY_IMG}
+    pull_policy: always
+    environment:
+      - DEBUG=true
+      - XROAD_HOST=configuration-proxy
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SECRET_STORE_SCHEME=http
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-confproxy:5432/confproxy
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_USERNAME=confproxy
+      - XROAD_DB_CONFPROXY_HIBERNATE_CONNECTION_PASSWORD=secret
+
+      - XROAD_CONFIGURATION_PROXY_AUTO_INIT_SOFT_TOKEN=4321
+
+      - XROAD_CONFIGURATION_PROXY_ADDRESS=configuration-proxy-webserver
+    volumes:
+      - cp-confproxy:/etc/xroad/confproxy
+      - cp-public:/var/lib/xroad/public
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+    depends_on:
+      openbao:
+        condition: service_healthy
+      db-confproxy-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+
+  # Nginx sidecar serving signed global configuration over HTTP.
+  configuration-proxy-webserver:
+    image: ${NGINX_CP_IMG}
+    volumes:
+      - cp-public:/var/lib/xroad/public:ro
+    networks:
+      - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 16M
+        limits:
+          memory: 64M
+    depends_on:
+      configuration-proxy:
+        condition: service_healthy
+
+networks:
+  xroad-network:
+    driver: bridge
+
+volumes:
+  cp-confproxy:
+  cp-public:

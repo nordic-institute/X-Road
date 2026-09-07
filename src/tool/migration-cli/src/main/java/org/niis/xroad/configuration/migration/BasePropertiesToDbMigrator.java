@@ -36,13 +36,11 @@ import java.util.TreeMap;
 @Slf4j
 public abstract class BasePropertiesToDbMigrator {
 
+    static final String AUTO_CONFIRM_ENV = "XROAD_MIGRATION_AUTO_CONFIRM";
+
     abstract Map<String, String> loadProperties(String filePath);
 
     public void migrate(String filePath, String dbPropertiesPath) {
-        migrate(filePath, dbPropertiesPath, null);
-    }
-
-    public void migrate(String filePath, String dbPropertiesPath, String scope) {
         Map<String, String> properties = new TreeMap<>(loadProperties(filePath));
 
         if (log.isDebugEnabled()) {
@@ -51,7 +49,7 @@ public abstract class BasePropertiesToDbMigrator {
         }
 
         if (confirmProceed(properties)) {
-            saveToDb(properties, dbPropertiesPath, scope);
+            saveToDb(properties, dbPropertiesPath);
             log.info("Total values migrated to DB: {}", properties.size());
         } else {
             log.info("Skipping migration.");
@@ -59,20 +57,29 @@ public abstract class BasePropertiesToDbMigrator {
     }
 
     boolean confirmProceed(Map<String, String> properties) {
-        System.out.println("The following properties will be migrated to database (if value exists it will be OVERRIDDEN):");
-        properties.forEach((k, v) -> System.out.printf(" - %s%n", k));
+        log.info("The following properties will be migrated to database (if value exists it will be OVERRIDDEN):");
+        properties.forEach((k, _) -> log.info(" - {}", k));
+
+        if ("true".equalsIgnoreCase(readEnv(AUTO_CONFIRM_ENV))) {
+            log.info("Auto-confirm enabled ({}=true) — proceeding without interactive prompt", AUTO_CONFIRM_ENV);
+            return true;
+        }
 
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Proceed with migration? [y/N] ");
+        log.info("Proceed with migration? [y/N] ");
         String input = scanner.nextLine().trim();
         return "y".equalsIgnoreCase(input) || "yes".equalsIgnoreCase(input);
     }
 
-    void saveToDb(Map<String, String> properties, String dbPropertiesPath, String scope) {
+    String readEnv(String name) {
+        return System.getenv(name);
+    }
+
+    void saveToDb(Map<String, String> properties, String dbPropertiesPath) {
         try (DbRepository dbRepo = new DbRepository(dbPropertiesPath)) {
             properties.forEach((key, value) -> {
-                log.debug("Saving property {}={}, with scope [{}]", key, value, scope == null ? "" : scope);
-                dbRepo.saveProperty(String.valueOf(key), String.valueOf(value), scope);
+                log.debug("Saving property {}={}", key, value);
+                dbRepo.saveProperty(String.valueOf(key), String.valueOf(value));
             });
         }
     }

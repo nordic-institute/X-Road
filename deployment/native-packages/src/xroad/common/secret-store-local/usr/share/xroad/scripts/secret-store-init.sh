@@ -34,7 +34,11 @@ else
 fi
 
 # Check if sealed and unseal if needed
-if ! is_sealed; then
+if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
+if [ "$sealed_rc" -eq 2 ]; then
+  echo "Cannot determine OpenBao seal status; aborting" >&2
+  exit 1
+elif [ "$sealed_rc" -ne 0 ]; then
   echo "OpenBao is already unsealed"
 else
   echo "Unsealing OpenBao..."
@@ -44,7 +48,11 @@ else
       exit 1
     fi
 
-    if ! is_sealed; then
+    if is_sealed; then sealed_rc=0; else sealed_rc=$?; fi
+    if [ "$sealed_rc" -eq 2 ]; then
+      echo "Cannot verify seal status after unseal; aborting" >&2
+      exit 1
+    elif [ "$sealed_rc" -ne 0 ]; then
       echo "Successfully unsealed OpenBao"
       break
     fi
@@ -64,21 +72,34 @@ else
   }
 fi
 
-# Configure KV if needed
-if curl -s -k -H "X-Vault-Token: $BAO_TOKEN" "$BAO_ADDR/v1/sys/mounts" | jq -e 'has("xrd-secret/")' >/dev/null; then
-  echo "KV store already configured"
-else
-  echo "Configuring KV store..."
-  configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
-    echo "Failed to configure KV store" >&2
-    exit 1
-  }
-fi
+# Configure KV stores (xrd-secret KV v1 + xrd-ds-secret KV v2). configure_kv
+# is idempotent and provisions whichever mount is missing.
+echo "Configuring KV stores..."
+configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
+  echo "Failed to configure KV store" >&2
+  exit 1
+}
+
 
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
-if [ -f $CLIENT_TOKEN_FILE ]; then
-  echo "X-Road client token already exists"
-else
+
+regenerate_client_token=true
+if [ -f "$CLIENT_TOKEN_FILE" ]; then
+  EXISTING_TOKEN=$(cat "$CLIENT_TOKEN_FILE")
+  http_status=$(curl -s -k -o /dev/null -w "%{http_code}" \
+    --connect-timeout 5 --retry 3 --retry-delay 2 \
+    -H "X-Vault-Token: $EXISTING_TOKEN" \
+    "$BAO_ADDR/v1/auth/token/lookup-self")
+  if [ "$http_status" = "200" ]; then
+    echo "X-Road client token is valid"
+    regenerate_client_token=false
+  else
+    echo "Existing X-Road client token is invalid (HTTP $http_status), regenerating"
+    rm -f "$CLIENT_TOKEN_FILE"
+  fi
+fi
+
+if [ "$regenerate_client_token" = "true" ]; then
   echo "Generating X-Road client token.."
   # Use custom token ID if provided via environment variable (useful for dev/test)
   XROAD_SECRET_STORE_TOKEN_OVERRIDE="${XROAD_SECRET_STORE_TOKEN_OVERRIDE:-}"
@@ -87,9 +108,9 @@ else
     echo " Failed to create X-Road client token" >&2
     exit 1
   fi
-  echo "$CLIENT_TOKEN" > $CLIENT_TOKEN_FILE
-  chmod 640 $CLIENT_TOKEN_FILE
-  chown xroad:xroad $CLIENT_TOKEN_FILE
+  echo "$CLIENT_TOKEN" > "$CLIENT_TOKEN_FILE"
+  chmod 640 "$CLIENT_TOKEN_FILE"
+  chown xroad:xroad "$CLIENT_TOKEN_FILE"
 fi
 
 echo "OpenBao initialization completed successfully"

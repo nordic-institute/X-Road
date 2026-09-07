@@ -26,11 +26,17 @@
  */
 
 import { defineStore } from 'pinia';
-import { ServiceDescription, ServiceDescriptionUpdate } from '@/openapi-types';
+import {
+  AddClientServiceDescriptionData,
+  DisableServiceDescriptionData,
+  RefreshServiceDescriptionData,
+  ServiceDescription,
+  ServiceDescriptionUpdate,
+  ServiceType,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { sortServiceDescriptionServices } from '@/util/sorting';
-import { ServiceTypeEnum } from '@/domain';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
@@ -82,36 +88,36 @@ export const useServiceDescriptions = defineStore('service-descriptions', {
     },
     async refreshServiceDescription(serviceDescriptionId: string, ignoreWarnings = false) {
       const encodedId = encodePathParameter(serviceDescriptionId);
-      return api.put(`/service-descriptions/${encodedId}/refresh`, {
-        ignore_warnings: ignoreWarnings,
-      });
+      const body: RefreshServiceDescriptionData['body'] = { ignore_warnings: ignoreWarnings };
+      return api.put(`/service-descriptions/${encodedId}/refresh`, body);
     },
     async enableServiceDescription(serviceDescriptionId: string) {
       const encodedId = encodePathParameter(serviceDescriptionId);
-      return api.put(`/service-descriptions/${encodedId}/enable`, {});
+      return api.put(`/service-descriptions/${encodedId}/enable`, undefined);
     },
     async disableServiceDescription(serviceDescriptionId: string, notice: string) {
       const encodedId = encodePathParameter(serviceDescriptionId);
-      return api.put(`/service-descriptions/${encodedId}/disable`, {
-        disabled_notice: notice,
-      });
+      const body: DisableServiceDescriptionData['body'] = { disabled_notice: notice };
+      return api.put(`/service-descriptions/${encodedId}/disable`, body);
     },
     async saveWsdl(clientId: string, url: string, ignoreWarnings = false) {
       const encodedId = encodePathParameter(clientId);
-      return api.post(`/clients/${encodedId}/service-descriptions`, {
+      const body: AddClientServiceDescriptionData['body'] = {
         url,
-        type: ServiceTypeEnum.WSDL,
+        type: ServiceType.WSDL,
         ignore_warnings: ignoreWarnings,
-      });
+      };
+      return api.post(`/clients/${encodedId}/service-descriptions`, body);
     },
-    async saveRest(clientId: string, url: string, serviceCode: string, type: ServiceTypeEnum, ignoreWarnings = false) {
+    async saveRest(clientId: string, url: string, serviceCode: string, type: ServiceType, ignoreWarnings = false) {
       const encodedId = encodePathParameter(clientId);
-      return api.post(`/clients/${encodedId}/service-descriptions`, {
+      const body: AddClientServiceDescriptionData['body'] = {
         url,
         rest_service_code: serviceCode,
         type: type,
         ignore_warnings: ignoreWarnings,
-      });
+      };
+      return api.post(`/clients/${encodedId}/service-descriptions`, body);
     },
     async updateServiceDescription(serviceDescriptionId: string, update: ServiceDescriptionUpdate) {
       const encodedId = encodePathParameter(serviceDescriptionId);

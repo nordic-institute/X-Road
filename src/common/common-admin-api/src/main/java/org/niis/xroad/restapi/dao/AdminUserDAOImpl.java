@@ -46,4 +46,9 @@ public class AdminUserDAOImpl {
         return query.list();
     }
 
+    public long count(Session session) {
+        return session.createQuery("select count(u) from " + AdminUserEntity.class.getName() + " u", Long.class)
+                .getSingleResult();
+    }
+
 }

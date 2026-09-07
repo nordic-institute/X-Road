@@ -26,59 +26,61 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.confclient.common.config.ConfigurationClientConfig;
 
-@ConfigMapping(prefix = "xroad.configuration-client")
-public interface ConfigurationClientProperties {
+@RequiredArgsConstructor
+public class ConfigurationClientProperties implements ConfigurationClientConfig {
 
-    @WithName("update-interval")
-    @WithDefault("60")
-    int updateInterval();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("configuration-anchor-file")
-    @WithDefault("/etc/xroad/configuration-anchor.xml")
-    String configurationAnchorFile();
+    @Override
+    public String allowedFederations() {
+        return xRoadConfig.value(ConfClientConfigKeys.ALLOWED_FEDERATIONS);
+    }
 
-    @WithName("global-conf-dir")
-    @WithDefault("/etc/xroad/globalconf")
-    String globalConfDir();
+    @Override
+    public boolean globalConfHostnameVerification() {
+        return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_HOSTNAME_VERIFICATION);
+    }
 
-    @WithName("global-conf-hostname-verification")
-    @WithDefault("true")
-    boolean globalConfHostnameVerification();
+    @Override
+    public boolean globalConfTlsCertVerification() {
+        return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_TLS_CERT_VERIFICATION);
+    }
 
-    @WithName("global-conf-tls-cert-verification")
-    @WithDefault("true")
-    boolean globalConfTlsCertVerification();
+    @Override
+    public int downloaderConnectTimeout() {
+        return xRoadConfig.value(ConfClientConfigKeys.DOWNLOADER_CONNECT_TIMEOUT);
+    }
 
-    @WithName("configuration-anchor-storage")
-    @WithDefault("DB")
-    ConfigurationAnchorStorage configurationAnchorStorage();
+    @Override
+    public int downloaderReadTimeout() {
+        return xRoadConfig.value(ConfClientConfigKeys.DOWNLOADER_READ_TIMEOUT);
+    }
 
-    @WithName("downloader-connect-timeout")
-    @WithDefault("10000")
-    int downloaderConnectTimeout();
+    @Override
+    public String globalConfDir() {
+        return xRoadConfig.value(ConfClientConfigKeys.GLOBAL_CONF_DIR);
+    }
 
-    @WithName("downloader-read-timeout")
-    @WithDefault("30000")
-    int downloaderReadTimeout();
+    public int updateInterval() {
+        return xRoadConfig.value(ConfClientConfigKeys.UPDATE_INTERVAL);
+    }
 
-    @WithName("allowed-federations")
-    @WithDefault("NONE")
-    String allowedFederations();
+    public String configurationAnchorFile() {
+        return xRoadConfig.value(ConfClientConfigKeys.CONFIGURATION_ANCHOR_FILE);
+    }
 
-    enum ConfigurationAnchorStorage {
+    public ConfigurationAnchorStorage configurationAnchorStorage() {
+        return ConfigurationAnchorStorage.valueOf(xRoadConfig.value(ConfClientConfigKeys.CONFIGURATION_ANCHOR_STORAGE));
+    }
+
+    public enum ConfigurationAnchorStorage {
         FILE,
         DB
     }
 
-    /**
-     * A constant to describe the X-Road instances this security server federates with.
-     * {@link #CUSTOM} means a list of named, comma-separated X-Road instances to allow.
-     * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
-     * The configurations for those instances won't be downloaded.
-     */
-    enum AllowedFederationMode { ALL, NONE, CUSTOM }
 }

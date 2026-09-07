@@ -25,35 +25,41 @@
  */
 package org.niis.xroad.e2e;
 
-import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
+import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
-public class ConsoleE2ETestRunner extends BaseConsoleTestRunner {
+/**
+ * Fat-jar entry point for the e2e test suite.
+ */
+public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
 
     public static void main(String[] args) {
         new ConsoleE2ETestRunner().run();
     }
 
     @Override
-    protected String getTestClassName() {
-        return E2ETest.class.getName();
-    }
-
-    @Override
-    protected String[] getResourcesToExtract() {
+    protected String[] resourceFiles() {
         return new String[]{
                 "compose.aux.yaml",
                 "compose.main.yaml",
                 "compose.e2e.yaml",
+                "compose.e2e.ds.yaml",
                 "compose.ss-hsm.e2e.yaml",
                 "compose.ss-batch-signature-enabled.e2e.yaml",
                 "compose.ss-softtoken-signer-enabled.e2e.yaml",
                 "compose.ss-msglog-encryption.e2e.yaml",
+                "compose.ss-msglog.e2e.yaml",
+                "compose.ss-opmonitor.e2e.yaml",
                 ".env",
+                "container-files/",
                 "wiremock_mappings/",
                 "signer-with-hsm/",
                 "hurl/",
-                "gpg_keys/",
-                "msglog_encryption_config/"
+                "gpg_keys/"
         };
+    }
+
+    @Override
+    protected String phasedSuiteClassName() {
+        return E2eSuite.class.getName();
     }
 }

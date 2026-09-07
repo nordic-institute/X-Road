@@ -1,7 +1,16 @@
 ---
 cp_modules:
-  configuration-proxy:
+  confproxy-cli:
+    dir: service/configuration-proxy/configuration-proxy-cli
+    build: build
+    target: /usr/share/xroad/jlib/configuration-proxy-cli
+  confproxy:
     dir: service/configuration-proxy/configuration-proxy-application
     build: build
-    lib: configuration-proxy-1.0.jar
-    target: /usr/share/xroad/jlib
+    target: /usr/share/xroad/jlib/configuration-proxy-application
+    service: xroad-confproxy
+  configuration-client:
+    dir: service/configuration-client/configuration-client-application
+    build: build
+    target: /usr/share/xroad/jlib/configuration-client
+    service: xroad-confclient

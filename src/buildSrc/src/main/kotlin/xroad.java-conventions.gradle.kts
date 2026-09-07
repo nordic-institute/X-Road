@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
@@ -8,6 +9,17 @@ plugins {
   id("com.societegenerale.commons.plugin.gradle.ArchUnitGradlePlugin")
   id("xroad.java-config-conventions")
   id("xroad.module-conventions")
+}
+
+// EXCLUDE on non-service files suppresses duplicate META-INF/class warnings.
+plugins.withId("com.gradleup.shadow") {
+  tasks.withType<ShadowJar>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
+    filesNotMatching("META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+  }
 }
 
 val mockitoAgent = configurations.maybeCreate("mockitoAgent")

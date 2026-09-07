@@ -54,27 +54,22 @@ public class PropertiesToDbMigrator extends BasePropertiesToDbMigrator {
                 .collect(Collectors.toMap(k -> k, properties::getProperty));
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public static void main(String[] args) {
         validateParams(args);
-        if (args.length > 2) {
-            new PropertiesToDbMigrator().migrate(args[0], args[1], args[2]);
-        } else {
-            new PropertiesToDbMigrator().migrate(args[0], args[1]);
-        }
+        new PropertiesToDbMigrator().migrate(args[0], args[1]);
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private static void validateParams(String[] args) {
-        if (args.length != 2 && args.length != 3) {
-            logUsageAndThrow("Invalid number of arguments provided.");
+        if (args.length != 2) {
+            logUsageAndThrow("Invalid number of arguments provided. Rows are keyed by property_key alone; "
+                    + "a scope argument is no longer accepted.");
         }
         LegacyConfigMigrationCLI.validateFilePath(args[0], "properties input file");
         LegacyConfigMigrationCLI.validateFilePath(args[1], "DB properties file");
     }
 
     private static void logUsageAndThrow(String message) {
-        log.error("Usage: <input file> <db.properties file> [scope]");
+        log.error("Usage: <input file> <db.properties file>");
         throw new IllegalArgumentException(message);
     }
 

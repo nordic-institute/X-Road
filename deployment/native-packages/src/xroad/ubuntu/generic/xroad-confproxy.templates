@@ -1,3 +1,9 @@
+Template: xroad-common/database-host
+Type: string
+Default: 127.0.0.1:5432
+Description: Insert database server connection string
+ This will be used by the Configuration Proxy module to connect to the database host.
+
 Template: xroad-common/confproxy-subject
 Type: string
 Description: Insert TLS certificate subject name for Global configuration distribution over HTTPS [default=/CN=${HOST}]

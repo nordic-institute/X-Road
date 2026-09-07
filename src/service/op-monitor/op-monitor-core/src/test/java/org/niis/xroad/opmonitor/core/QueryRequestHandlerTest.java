@@ -51,7 +51,6 @@ import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -221,7 +220,7 @@ public class QueryRequestHandlerTest {
     }
 
     private static final class TestMetricsRegistry extends MetricRegistry {
-        TestMetricsRegistry(HealthDataMetrics healthDataMetrics) throws IOException {
+        TestMetricsRegistry(HealthDataMetrics healthDataMetrics) {
             healthDataMetrics.registerInitialMetrics(this,
                     () -> TEST_TIMESTAMP);
 
@@ -256,10 +255,9 @@ public class QueryRequestHandlerTest {
         }
 
         private OperationalDataRecord createRecord(ServiceId serviceId,
-                                                   boolean success) throws IOException {
-            OperationalDataRecord record = OBJECT_READER.readValue(
-                    formatFullOperationalDataAsJson(),
-                    OperationalDataRecord.class);
+                                                   boolean success) {
+            OperationalDataRecord record = OBJECT_READER.forType(OperationalDataRecord.class)
+                    .readValue(formatFullOperationalDataAsJson());
             record.setServiceXRoadInstance(serviceId.getXRoadInstance());
             record.setServiceMemberClass(serviceId.getMemberClass());
             record.setServiceMemberCode(serviceId.getMemberCode());

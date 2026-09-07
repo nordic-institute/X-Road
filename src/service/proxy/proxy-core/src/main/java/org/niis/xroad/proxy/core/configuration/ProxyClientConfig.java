@@ -49,16 +49,20 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerClientRequestProcessor;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerHandler;
+import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataClientRequestProcessor;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
-import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor;
 import org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory;
 import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.UnusableAddressTracker;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
 
 @Slf4j
 public class ProxyClientConfig {
@@ -68,36 +72,38 @@ public class ProxyClientConfig {
     @ApplicationScoped
     @Priority(1)
         // must be the last handler
-    AbstractClientProxyHandler clientSoapMessageHandler(ProxyProperties proxyProperties,
-                                                        MessageProcessorFactory messageProcessorFactory,
-                                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                        OpMonitoringBuffer opMonitoringBuffer) {
-        return new ClientSoapMessageHandler(messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
-                opMonitoringBuffer);
+    ClientSoapMessageHandler clientSoapMessageHandler(ClientSoapMessageProcessor clientSoapMessageProcessor,
+                                                      ProxyProperties proxyProperties,
+                                                      GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                      OpMonitoringBuffer opMonitoringBuffer,
+                                                      OpMonitoringDataHelper opMonitoringDataHelper) {
+        return new ClientSoapMessageHandler(clientSoapMessageProcessor, proxyProperties,
+                globalConfProvider, keyConfProvider, opMonitoringBuffer, opMonitoringDataHelper);
     }
 
     @ApplicationScoped
     @Priority(100)
     @LookupIfProperty(name = "xroad.proxy.addon.meta-services.enabled", stringValue = "true")
-    AbstractClientProxyHandler metadataHandler(MessageProcessorFactory messageProcessorFactory) {
-        return new MetadataHandler(messageProcessorFactory);
+    MetadataHandler metadataHandler(MetadataClientRequestProcessor metadataProcessor) {
+        return new MetadataHandler(metadataProcessor);
     }
 
     @ApplicationScoped
     @Priority(200)
     @LookupIfProperty(name = "xroad.proxy.message-log.enabled", stringValue = "true")
-    AbstractClientProxyHandler asicContainerHandler(MessageProcessorFactory messageProcessorFactory) {
-        return new AsicContainerHandler(messageProcessorFactory);
+    AsicContainerHandler asicContainerHandler(AsicContainerClientRequestProcessor asicProcessor) {
+        return new AsicContainerHandler(asicProcessor);
     }
 
     @ApplicationScoped
     @Priority(1000)
-    AbstractClientProxyHandler clientRestMessageHandler(ProxyProperties proxyProperties,
-                                                        MessageProcessorFactory messageProcessorFactory,
-                                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                        OpMonitoringBuffer opMonitoringBuffer) {
-        return new ClientRestMessageHandler(messageProcessorFactory, proxyProperties, globalConfProvider, keyConfProvider,
-                opMonitoringBuffer);
+    ClientRestMessageHandler clientRestMessageHandler(ClientRestMessageProcessor clientRestMessageProcessor,
+                                                      ProxyProperties proxyProperties,
+                                                      GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                      OpMonitoringBuffer opMonitoringBuffer,
+                                                      OpMonitoringDataHelper opMonitoringDataHelper) {
+        return new ClientRestMessageHandler(clientRestMessageProcessor, proxyProperties,
+                globalConfProvider, keyConfProvider, opMonitoringBuffer, opMonitoringDataHelper);
     }
 
     @ApplicationScoped
@@ -109,7 +115,8 @@ public class ProxyClientConfig {
         @Named(CLIENT_PROXY_HTTP_CLIENT)
         public CloseableHttpClient proxyHttpClient(ProxyProperties proxyProperties,
                                                    AuthTrustVerifier authTrustVerifier,
-                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
+                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory,
+                                                   UnusableAddressTracker unusableAddressTracker) {
             log.trace("createClient()");
 
             int timeout = proxyProperties.clientProxy().clientProxyTimeout();
@@ -121,7 +128,7 @@ public class ProxyClientConfig {
 
             HttpClientBuilder cb = HttpClients.custom();
             HttpClientConnectionManager connectionManager = getClientConnectionManager(proxyProperties,
-                    authTrustVerifier, reloadingSSLSocketFactory);
+                    authTrustVerifier, reloadingSSLSocketFactory, unusableAddressTracker);
             cb.setConnectionManager(connectionManager);
 
             if (proxyProperties.clientProxy().clientUseIdleConnectionMonitor()) {
@@ -149,14 +156,15 @@ public class ProxyClientConfig {
 
         private HttpClientConnectionManager getClientConnectionManager(ProxyProperties proxyProperties,
                                                                        AuthTrustVerifier authTrustVerifier,
-                                                                       ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
+                                                                       ReloadingSSLSocketFactory reloadingSSLSocketFactory,
+                                                                       UnusableAddressTracker unusableAddressTracker) {
             RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
             if (proxyProperties.sslEnabled()) {
                 sfr.register("https", createSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                        proxyProperties));
+                        proxyProperties, unusableAddressTracker));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
@@ -176,9 +184,10 @@ public class ProxyClientConfig {
 
         private SSLConnectionSocketFactory createSSLSocketFactory(AuthTrustVerifier authTrustVerifier,
                                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory,
-                                                                  ProxyProperties proxyProperties) {
+                                                                  ProxyProperties proxyProperties,
+                                                                  UnusableAddressTracker unusableAddressTracker) {
             return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
-                    proxyProperties);
+                    proxyProperties, unusableAddressTracker);
         }
     }
 

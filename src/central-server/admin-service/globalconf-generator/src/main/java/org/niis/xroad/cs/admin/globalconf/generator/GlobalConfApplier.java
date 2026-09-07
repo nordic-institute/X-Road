@@ -37,7 +37,7 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.niis.xroad.cs.admin.globalconf.generator.FileUtils.delete;
+import static org.niis.xroad.globalconf.util.FileUtils.delete;
 
 @Slf4j
 @RequiredArgsConstructor

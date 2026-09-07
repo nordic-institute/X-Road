@@ -4,15 +4,21 @@ updates:
     directory: "/src"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
     groups:
       spring-patch:
         applies-to: version-updates
         patterns:
           - "org.springframework.boot*"
           - "org.springframework.cloud*"
-          - "io.opentelemetry.instrumentation*"
           - "org.hibernate*"
           - "com.zaxxer:HikariCP"
+      opentelemetry-bundle:
+        applies-to: version-updates
+        patterns:
+          - "io.opentelemetry.instrumentation*"
+          - "io.opentelemetry.javaagent*"
       grpc-minor-patch:
         applies-to: version-updates
         update-types:
@@ -32,12 +38,17 @@ updates:
           - "org.springframework.boot*"
           - "org.springframework.cloud*"
           - "io.opentelemetry.instrumentation*"
+          - "io.opentelemetry.javaagent*"
           - "org.hibernate*"
           - "com.zaxxer:HikariCP"
+          - "org.eclipse.dataplane-core*"
+          - "org.eclipse.edc*"
   - package-ecosystem: "npm"
     directory: "/src"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
     groups:
       javascript-minor-patch:
         applies-to: version-updates
@@ -48,6 +59,8 @@ updates:
     directory: "/.github/workflows"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 3
     groups:
       actions-minor-patch:
         applies-to: version-updates

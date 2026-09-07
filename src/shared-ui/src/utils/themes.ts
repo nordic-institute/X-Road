@@ -44,10 +44,10 @@ export function createDarkTheme(appSpecific: Color, onAppSpecific: Color): XrdTh
     variables: {
       ...variables,
       'border-color': border,
-      'success-container-opacity': 0.15,
-      'info-container-opacity': 0.2,
-      'warning-container-opacity': 0.15,
-      'error-container-opacity': 0.2,
+      'success-container-opacity': '15%',
+      'info-container-opacity': '20%',
+      'warning-container-opacity': '15%',
+      'error-container-opacity': '20%',
     },
     colors: {
       /* Vuetify colors */
@@ -134,10 +134,10 @@ export function createLightTheme(appSpecific: Color, onAppSpecific: Color): XrdT
     variables: {
       ...variables,
       'border-color': border,
-      'success-container-opacity': 0.15,
-      'info-container-opacity': 0.15,
-      'warning-container-opacity': 0.15,
-      'error-container-opacity': 0.1,
+      'success-container-opacity': '15%',
+      'info-container-opacity': '15%',
+      'warning-container-opacity': '15%',
+      'error-container-opacity': '10%',
     },
     colors: {
       /* Vuetify colors */

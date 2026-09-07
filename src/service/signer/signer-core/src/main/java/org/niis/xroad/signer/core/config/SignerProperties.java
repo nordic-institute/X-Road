@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,80 +23,112 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.signer.core.config;
 
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.signer.common.config.SignerModuleConfig;
 
 import java.util.Map;
 
 import static java.lang.Math.max;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.CSR_SIGNATURE_DIGEST_ALGORITHM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.ENFORCE_TOKEN_PIN_POLICY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.KEY_LENGTH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.KEY_NAMED_CURVE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.MODULES;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.MODULE_MANAGER_UPDATE_INTERVAL;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_CACHE_PATH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_PRIORITIZATION_STRATEGY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_RESPONSE_RETRIEVAL_ACTIVE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.OCSP_RETRY_DELAY;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SELFSIGNED_CERT_DIGEST_ALGORITHM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SOFT_TOKEN_EC_SIGN_MECHANISM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.SOFT_TOKEN_RSA_SIGN_MECHANISM;
 
-@ConfigMapping(prefix = "xroad.signer")
-public interface SignerProperties {
-    int MIN_SIGNER_KEY_LENGTH = 2048;
+/** Signer core properties ({@code xroad.signer.*}). */
+@RequiredArgsConstructor
+public class SignerProperties {
 
-    @WithName("selfsigned-cert-digest-algorithm")
-    @WithDefault("SHA-512")
-    String selfsignedCertDigestAlgorithm();
+    private static final int MIN_SIGNER_KEY_LENGTH = 2048;
 
-    @WithName("csr-signature-digest-algorithm")
-    @WithDefault("SHA-256")
-    String csrSignatureDigestAlgorithm();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("enforce-token-pin-policy")
-    @WithDefault("false")
-    boolean enforceTokenPinPolicy();
+    /** @return digest algorithm for self-signed certificates */
+    public String selfsignedCertDigestAlgorithm() {
+        return xRoadConfig.value(SELFSIGNED_CERT_DIGEST_ALGORITHM);
+    }
 
-    @WithName("ocsp-response-retrieval-active")
-    @WithDefault("false")
-    boolean ocspResponseRetrievalActive();
+    /** @return digest algorithm for certificate signing requests */
+    public String csrSignatureDigestAlgorithm() {
+        return xRoadConfig.value(CSR_SIGNATURE_DIGEST_ALGORITHM);
+    }
 
-    @WithName("ocsp-retry-delay")
-    @WithDefault("60")
-    int ocspRetryDelay();
+    /** @return whether token PIN policy enforcement is active */
+    public boolean enforceTokenPinPolicy() {
+        return xRoadConfig.value(ENFORCE_TOKEN_PIN_POLICY);
+    }
 
-    @WithName("ocsp-cache-path")
-    @WithDefault("/var/cache/xroad/")
-    String ocspCachePath();
+    /** @return whether OCSP response retrieval is active */
+    public boolean ocspResponseRetrievalActive() {
+        return xRoadConfig.value(OCSP_RESPONSE_RETRIEVAL_ACTIVE);
+    }
 
-    @WithName("ocsp-prioritization-strategy")
-    @WithDefault("NONE")
-    ServicePrioritizationStrategy ocspPrioritizationStrategy();
+    /** @return OCSP retry delay in seconds */
+    public int ocspRetryDelay() {
+        return xRoadConfig.value(OCSP_RETRY_DELAY);
+    }
 
-    @WithName("module-manager-update-interval")
-    @WithDefault("60")
-    int moduleManagerUpdateInterval();
+    /** @return path to the OCSP response cache directory */
+    public String ocspCachePath() {
+        return xRoadConfig.value(OCSP_CACHE_PATH);
+    }
 
-    @WithName("soft-token-rsa-sign-mechanism")
-    @WithDefault("CKM_RSA_PKCS")
-    String softTokenRsaSignMechanism();
+    /** @return OCSP responder prioritization strategy */
+    public ServicePrioritizationStrategy ocspPrioritizationStrategy() {
+        return xRoadConfig.value(OCSP_PRIORITIZATION_STRATEGY);
+    }
 
-    @WithName("soft-token-ec-sign-mechanism")
-    @WithDefault("CKM_ECDSA")
-    String softTokenEcSignMechanism();
+    /** @return module-manager reload interval in seconds */
+    public int moduleManagerUpdateInterval() {
+        return xRoadConfig.value(MODULE_MANAGER_UPDATE_INTERVAL);
+    }
 
-    @WithName("soft-token-pin-keystore-algorithm")
-    @WithDefault("RSA")
-    String softTokenPinKeystoreAlgorithm();
+    /** @return RSA sign mechanism name for the software token */
+    public String softTokenRsaSignMechanism() {
+        return xRoadConfig.value(SOFT_TOKEN_RSA_SIGN_MECHANISM);
+    }
 
-    @WithName("key-length")
-    @WithDefault("2048")
-    int keyLength();
+    /** @return EC sign mechanism name for the software token */
+    public String softTokenEcSignMechanism() {
+        return xRoadConfig.value(SOFT_TOKEN_EC_SIGN_MECHANISM);
+    }
 
-    default int getKeyLength() {
+    /** @return keystore algorithm for the software token PIN */
+    public String softTokenPinKeystoreAlgorithm() {
+        return xRoadConfig.value(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
+    }
+
+    /** @return raw configured key length (may be below the minimum) */
+    public int keyLength() {
+        return xRoadConfig.value(KEY_LENGTH);
+    }
+
+    /** @return effective key length, clamped to at least {@value MIN_SIGNER_KEY_LENGTH} */
+    public int getKeyLength() {
         return max(MIN_SIGNER_KEY_LENGTH, keyLength());
     }
 
-    @WithName("key-named-curve")
-    @WithDefault("secp256r1")
-    String keyNamedCurve();
+    /** @return named curve for EC keys */
+    public String keyNamedCurve() {
+        return xRoadConfig.value(KEY_NAMED_CURVE);
+    }
 
-    @WithName("modules")
-    Map<String, ModuleProperties> modulesConfig();
-
+    /** @return hardware module configurations keyed by module UID */
+    public Map<String, SignerModuleConfig> modulesConfig() {
+        return xRoadConfig.value(MODULES);
+    }
 }

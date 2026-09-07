@@ -1,0 +1,31 @@
+---
+- name: Add CloudNativePG helm repo
+  kubernetes.core.helm_repository:
+    name: cnpg
+    repo_url: "{{ cnpg_chart_repo }}"
+
+- name: Install CloudNativePG operator
+  kubernetes.core.helm:
+    name: cnpg
+    chart_ref: "{{ cnpg_chart }}"
+    chart_version: "{{ cnpg_chart_version | default(omit, true) }}"
+    release_namespace: "{{ cnpg_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ cnpg_helm_wait_timeout }}"
+
+- name: Wait for Cluster CRD to be Established
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: clusters.postgresql.cnpg.io
+  register: cnpg_crd
+  until: >-
+    (cnpg_crd.resources | length > 0) and
+    (cnpg_crd.resources[0].status.conditions | default([])
+     | selectattr('type', 'equalto', 'Established')
+     | selectattr('status', 'equalto', 'True') | list | length > 0)
+  retries: 30
+  delay: 2

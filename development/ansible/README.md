@@ -52,8 +52,8 @@ While it is possible to define different variants for different security servers
 Playbook `xroad_init.yml` uses package repositories for X-Road installations.
 The default repository configurations are:
 
-* for Ubuntu 22.04 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb jammy-current main`
-* for RHEL 8 packages `https://artifactory.niis.org/xroad-release-rpm/rhel/8/current`.
+* for Ubuntu 24.04 DEB-packages `deb https://artifactory.niis.org/xroad-release-deb noble-current main`
+* for RHEL 9 packages `https://artifactory.niis.org/xroad-release-rpm/rhel/9/current`.
 
 The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for RHEL and Ubuntu.
 
@@ -189,7 +189,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modul
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 24.04 and RockyLinux 9 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `rhel_releasever` and `ubuntu_releasever`. Out of the box there is support for RHEL 8 and 9 based distro, and Ubuntu 22.04 and 24.04. Other versions may need additional tweaking of the Ansible scripts.
+By default `xroad_dev.yml` creates Ubuntu 24.04 and RockyLinux 9 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `rhel_releasever` and `ubuntu_releasever`. Out of the box there is support for RHEL 9 based distro, and Ubuntu 22.04 and 24.04. Other versions may need additional tweaking of the Ansible scripts.
 ## 5. Test CA, TSA, and OCSP
 
 While not themselves components provided by X-Road, certification and time stamping authorities are crucial to messaging within the system. More information on creating development-use CA, TSA and OCSP services [here.](TESTCA.md)

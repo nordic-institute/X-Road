@@ -27,7 +27,6 @@
 
 export * from './backups';
 export * from './basic-types';
-export * from './inject-provide';
 export * from './notifications';
 export * from './routing';
 export * from './theme';

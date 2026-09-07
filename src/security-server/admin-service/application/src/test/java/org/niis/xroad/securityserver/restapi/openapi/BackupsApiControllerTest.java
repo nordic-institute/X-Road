@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.backupmanager.proto.BackupInfo;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.common.core.exception.WarningDeviation;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -60,6 +60,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_FAILED;
@@ -92,8 +94,8 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Before
     public void setup() {
-        BackupInfo bf1 = new BackupInfo(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS));
-        BackupInfo bf2 = new BackupInfo(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS));
+        BackupInfo bf1 = new BackupInfo(BACKUP_FILE_1_NAME, ofEpochMilli(BACKUP_FILE_1_CREATED_AT_MILLIS), true);
+        BackupInfo bf2 = new BackupInfo(BACKUP_FILE_2_NAME, ofEpochMilli(BACKUP_FILE_2_CREATED_AT_MILLIS), true);
 
         doReturn(List.of(bf1, bf2)).when(backupService).listBackups();
         doReturn(false).when(tokenService).hasHardwareTokens();
@@ -200,8 +202,8 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
-    public void addBackup() throws Exception {
-        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now());
+    public void addBackup() {
+        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now(), true);
         when(backupService.generateBackup()).thenReturn(backupFile);
 
         ResponseEntity<BackupDto> response = backupsApiController.addBackup();
@@ -211,7 +213,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
-    public void addBackupFails() throws Exception {
+    public void addBackupFails() {
         doThrow(new InternalServerErrorException("")).when(backupService).generateBackup();
 
         try {
@@ -225,7 +227,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void uploadBackup() throws Exception {
-        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now());
+        BackupInfo backupFile = new BackupInfo(BACKUP_FILE_1_NAME, TimeUtils.now(), true);
 
         when(backupService.uploadBackup(anyString(), any(byte[].class), anyBoolean())).thenReturn(backupFile);
 
@@ -286,6 +288,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         TokensLoggedOutDto tokensLoggedOut = response.getBody();
         assertFalse(tokensLoggedOut.getHsmTokensLoggedOut());
+        verify(applicationRestarter).scheduleRestartIfNeeded();
     }
 
     @Test
@@ -297,6 +300,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         TokensLoggedOutDto tokensLoggedOut = response.getBody();
         assertTrue(tokensLoggedOut.getHsmTokensLoggedOut());
+        verify(applicationRestarter).scheduleRestartIfNeeded();
     }
 
     @Test
@@ -309,6 +313,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         } catch (InternalServerErrorException e) {
             assertEquals(BACKUP_FILE_NOT_FOUND.code(), e.getErrorDeviation().code());
         }
+        verify(applicationRestarter, never()).scheduleRestartIfNeeded();
     }
 
     @Test
@@ -322,5 +327,6 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         } catch (InternalServerErrorException e) {
             assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
         }
+        verify(applicationRestarter, never()).scheduleRestartIfNeeded();
     }
 }

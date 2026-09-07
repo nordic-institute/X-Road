@@ -26,7 +26,13 @@
  */
 
 import * as api from '@/util/api';
-import { CertificateDetails, ManagementServicesConfiguration, RegisterServiceProviderRequest, ServiceProviderId } from '@/openapi-types';
+import {
+  CertificateDetails,
+  GenerateCertificateRequestData,
+  ManagementServicesConfiguration,
+  RegisterServiceProviderRequest,
+  ServiceProviderId,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { saveResponseAsFile, buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
@@ -99,13 +105,14 @@ export const useManagementServices = defineStore('managementServices', {
         });
     },
     generateKey() {
-      return axios.post(`/management-services-configuration/certificate`, {}).catch((error) => {
+      return axios.post(`/management-services-configuration/certificate`, undefined).catch((error) => {
         throw error;
       });
     },
     async generateCsr(distinguishedName: string) {
+      const body: GenerateCertificateRequestData['body'] = { name: distinguishedName };
       return axios
-        .post(`/management-services-configuration/generate-csr`, { name: distinguishedName }, { responseType: 'json' })
+        .post(`/management-services-configuration/generate-csr`, body, { responseType: 'json' })
         .then((res) => {
           saveResponseAsFile(res, 'request.csr');
         })

@@ -27,26 +27,25 @@
 
 package org.niis.xroad.softtoken.signer.test;
 
-import org.niis.xroad.test.framework.core.BaseConsoleTestRunner;
+import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
 
-public class ConsoleIntTestRunner extends BaseConsoleTestRunner {
+public class ConsoleIntTestRunner extends AbstractConsoleApiTestRunner {
 
     public static void main(String[] args) {
         new ConsoleIntTestRunner().run();
     }
 
     @Override
-    protected String getTestClassName() {
-        return SoftTokenSignerIntTest.class.getName();
-    }
-
-    @Override
-    protected String[] getResourcesToExtract() {
+    protected String[] resourceFiles() {
         return new String[]{
                 "compose.intTest.yaml",
                 ".env",
-                "signer-container-files/",
-                "softtoken-signer-container-files/"
+                "signer-container-files/"
         };
+    }
+
+    @Override
+    protected String phasedSuiteClassName() {
+        return SoftTokenSignerIntTestSuite.class.getName();
     }
 }

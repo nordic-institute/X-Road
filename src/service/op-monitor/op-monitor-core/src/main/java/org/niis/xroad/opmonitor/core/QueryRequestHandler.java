@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.opmonitordaemon.message.ObjectFactory;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sun.istack.ByteArrayDataSource;
 import jakarta.activation.DataHandler;
 import jakarta.xml.bind.JAXBContext;
@@ -53,6 +52,7 @@ import org.glassfish.jaxb.runtime.api.AccessorException;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.xml.sax.SAXException;
+import tools.jackson.databind.ObjectWriter;
 
 import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;

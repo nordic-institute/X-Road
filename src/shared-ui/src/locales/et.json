@@ -128,7 +128,11 @@
         "confirmation": "Kas soovite kindlasti {file} taastada?",
         "title": "Kas olete kindel?"
       },
-      "success": "Konfiguratsioon {file} taastatud"
+      "incompatibleTooltip": "Selle varukoopia vorming ei ühildu selle serveri varunduse vorminguga",
+      "success": "Konfiguratsioon {file} taastatud",
+      "restarting": {
+        "message": "Konfiguratsioon on taastatud. Teenus taaskäivitub. Teid suunatakse sisselogimise lehele, kui teenus on saadaval."
+      }
     },
     "uploadBackup": {
       "button": "Lae varukoopia üles",
@@ -158,12 +162,18 @@
     "rsaExp": "RSA avaliku võtme eksponent",
     "rsaModulus": "RSA avaliku võtme moodul"
   },
+  "common": {
+    "restartingService": "Teenus taaskäivitub"
+  },
   "error_code": {
     "api_key_not_found": "API võtit ei leitud",
     "backup_file_not_found": "Varufaili ei leitud",
     "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
     "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
     "core": {
+      "op_monitor": {
+        "network_error": "Võrguühenduse viga: operatiivandmete jälgimine pole saadaval"
+      },
       "signer": {
         "cert_not_found": "Sertifikaati ei leitud",
         "key_not_found": "Võtit ei leitud",

@@ -30,6 +30,8 @@ import ee.ria.xroad.common.TestPortUtils;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,7 @@ import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 
 import java.time.Duration;
@@ -54,8 +57,11 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for SystemMetricsSensor
@@ -69,32 +75,14 @@ class SystemMetricsSensorTest {
 
     private static final RpcCredentialsConfigurer RPC_CREDENTIALS_CONFIGURER = new InsecureRpcCredentialsConfigurer();
 
-    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
-        @Override
-        public Duration certificateInfoSensorInterval() {
-            return Duration.ofDays(1);
-        }
+    private final EnvMonitorProperties envMonitorProperties = createEnvMonitorProperties();
 
-        @Override
-        public Duration diskSpaceSensorInterval() {
-            return Duration.ofSeconds(60);
-        }
-
-        @Override
-        public Duration execListingSensorInterval() {
-            return Duration.ofSeconds(60);
-        }
-
-        @Override
-        public Duration systemMetricsSensorInterval() {
-            return Duration.ofSeconds(1);
-        }
-
-        @Override
-        public boolean limitRemoteDataSet() {
-            return true;
-        }
-    };
+    private static EnvMonitorProperties createEnvMonitorProperties() {
+        var props = mock(EnvMonitorProperties.class);
+        when(props.systemMetricsSensorInterval()).thenReturn(Duration.ofSeconds(1));
+        when(props.limitRemoteDataSet()).thenReturn(true);
+        return props;
+    }
 
     @Spy
     private MetricRegistry metricRegistry = new MetricRegistry();
@@ -143,8 +131,11 @@ class SystemMetricsSensorTest {
             }
         };
 
+        Scheduler scheduler = mock(Scheduler.class);
+        when(scheduler.newJob(any())).thenReturn(mock(Scheduler.JobDefinition.class, RETURNS_SELF));
         SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(envMonitorProperties,
-                new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties);
+                new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties,
+                scheduler, mock(Scheduled.ApplicationNotRunning.class));
         systemMetricsSensor.afterPropertiesSet();
 
         response = StatsResp.newBuilder()

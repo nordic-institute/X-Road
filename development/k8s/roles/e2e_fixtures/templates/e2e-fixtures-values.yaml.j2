@@ -1,0 +1,31 @@
+---
+{% if (xroad_image_registry | length > 0) or (xroad_image_tag | length > 0) %}
+global:
+  image:
+{% if xroad_image_registry | length > 0 %}
+    registry: {{ xroad_image_registry }}
+{% endif %}
+{% if xroad_image_tag | length > 0 %}
+    tag: {{ xroad_image_tag }}
+{% endif %}
+{% endif %}
+
+hurl:
+  files:
+    setupHurl: |
+{{ lookup('file', hurl_setup_file) | indent(6, true) }}
+    varsEnv: |
+{{ lookup('file', hurl_vars_file) | indent(6, true) }}
+
+services:
+  isrest:
+    mappings:
+{% for f in isrest_mapping_files %}
+      {{ f | regex_replace('\.json$', '') }}: |
+{{ lookup('file', isrest_mappings_dir + '/' + f) | indent(8, true) }}
+{% endfor %}
+
+{% if (xroad_image_pull_secret | default('')) | length > 0 %}
+imagePullSecrets:
+  - {{ xroad_image_pull_secret }}
+{% endif %}

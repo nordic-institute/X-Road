@@ -61,6 +61,12 @@
           data-test="confirm-pin-input"
         />
       </XrdFormBlockRow>
+      <v-checkbox
+        v-model="enableAutologin"
+        data-test="enable-autologin-checkbox"
+        :label="$t('initialConfiguration.pin.enableAutologin')"
+        hide-details
+      />
     </XrdFormBlock>
 
     <template #footer>
@@ -73,7 +79,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -97,14 +103,16 @@ export default defineComponent({
     const componentConfig = veeDefaultFieldConfig();
     const [pinMdl, pinRef] = defineField('pin', componentConfig);
     const [confirmPinMdl, confirmPinRef] = defineField('confirmPin', componentConfig);
-    return { meta, values, pinRef, pinMdl, confirmPinRef, confirmPinMdl };
+    const userStore = useUser();
+    const enableAutologin = ref(Boolean(userStore.initializationStatus?.software_token_autologin_enabled));
+    return { meta, values, pinRef, pinMdl, confirmPinRef, confirmPinMdl, enableAutologin };
   },
   computed: {
     ...mapState(useUser, ['isEnforceTokenPolicyEnabled']),
   },
   methods: {
     done(): void {
-      this.$emit('done', this.values.pin);
+      this.$emit('done', { pin: this.values.pin, enableAutologin: this.enableAutologin });
     },
     previous(): void {
       this.$emit('previous');

@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: kind_cluster
+  namespace: niis
+  author: Nordic Institute for Interoperability Solutions
+  description: Provision a local KinD (Kubernetes in Docker) cluster for X-Road dev/test
+  license: MIT
+  min_ansible_version: "2.20"
+  platforms:
+    - name: MacOSX
+      versions: [any]
+    - name: Ubuntu
+      versions: [noble, resolute]
+    - name: EL
+      versions: ["8", "9", "10"]
+  galaxy_tags: [kubernetes, kind, xroad]
+dependencies: []

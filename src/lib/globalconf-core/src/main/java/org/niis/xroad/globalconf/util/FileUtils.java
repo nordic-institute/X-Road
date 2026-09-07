@@ -1,0 +1,110 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.globalconf.util;
+
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
+
+import static java.nio.file.attribute.PosixFilePermissions.asFileAttribute;
+import static org.apache.commons.io.FileUtils.moveDirectory;
+import static org.apache.commons.io.FileUtils.moveFile;
+
+@Slf4j
+@UtilityClass
+public class FileUtils {
+    private static final Set<PosixFilePermission> DIRECTORY_PERMISSIONS = PosixFilePermissions.fromString("rwxr-xr-x");
+    private static final Set<PosixFilePermission> FILE_PERMISSIONS = PosixFilePermissions.fromString("rw-r--r--");
+
+    public static void createDirectories(Path dir) throws IOException {
+        if (Files.exists(dir)) {
+            return;
+        }
+        var parent = dir.getParent();
+        if (parent != null && !Files.exists(parent)) {
+            createDirectories(parent);
+        }
+        createDirectory(dir);
+    }
+
+    public static void createDirectory(Path dir) throws IOException {
+        log.trace("createDirectory({})", dir);
+        Files.createDirectory(dir, asFileAttribute(DIRECTORY_PERMISSIONS));
+        // explicitly setting permissions, because attributes have no effect when process is running under umask
+        Files.setPosixFilePermissions(dir, DIRECTORY_PERMISSIONS);
+    }
+
+    public static void delete(Path target) throws IOException {
+        log.trace("Delete: {}", target);
+        if (Files.isDirectory(target)) {
+            org.apache.commons.io.FileUtils.deleteDirectory(target.toFile());
+        } else {
+            Files.deleteIfExists(target);
+        }
+    }
+
+    public static void write(Path path, byte[] data) throws IOException {
+        Files.write(path, data);
+        Files.setPosixFilePermissions(path, FILE_PERMISSIONS);
+    }
+
+    public static void writeString(Path path, String data) throws IOException {
+        Files.writeString(path, data);
+        Files.setPosixFilePermissions(path, FILE_PERMISSIONS);
+    }
+
+    public static Path createFile(Path path) throws IOException {
+        var file = Files.createFile(path);
+        Files.setPosixFilePermissions(file, FILE_PERMISSIONS);
+        return file;
+    }
+
+    public static Path atomicMoveIfPossible(Path from, Path to) throws IOException {
+        try {
+            return Files.move(from, to, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException e) {
+            if (Files.exists(to)) {
+                delete(to);
+            }
+            if (Files.isDirectory(from)) {
+                moveDirectory(from.toFile(), to.toFile());
+            } else {
+                moveFile(from.toFile(), to.toFile());
+            }
+            return to;
+        }
+    }
+
+}

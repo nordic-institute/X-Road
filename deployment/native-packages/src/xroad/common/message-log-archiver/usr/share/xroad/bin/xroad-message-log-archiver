@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "$(id -nu)" != "xroad" ]; then
+  echo this script must run under xroad user
+  exit 1
+fi
+
+. /etc/xroad/services/message-log-archiver.conf
+
+exec java ${XROAD_PARAMS} ${XROAD_MESSAGE_LOG_ARCHIVER_PARAMS} -jar /usr/share/xroad/jlib/message-log-archiver.jar "$@"

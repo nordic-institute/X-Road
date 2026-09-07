@@ -30,12 +30,12 @@ jobs:
       service_image_tag: ${{ steps.build-config.outputs.service_image_tag }}
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: start-measurement
           label: 'Build, unit tests and packaging'
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
@@ -49,20 +49,20 @@ jobs:
           free-disk-space: false
 
       - name: Cache SonarCloud packages
-        uses: actions/cache@v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Build, test and package code setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
           label: 'Build environment setup'
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -137,78 +137,139 @@ jobs:
           echo "  Build Number: ${BUILD_NUMBER}"
           echo "  Commit SHA: ${{ inputs.sha }}"
 
-      - name: Build and test source
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # Test execution is deferred to the job end (see "Run tests")
+      - name: Build source
         working-directory: ./src
         run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -Pfrontend-npm-audit --parallel -Dorg.gradle.workers.max=6 \
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel -Dorg.gradle.workers.max=6 \
           -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
           -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
-          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
+
+      - name: Build RHEL9 packages
+        working-directory: ./scripts
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: ./build-native-packages.sh -d -r rpm-el9 --package-only
+
+      - name: Upload RHEL9 packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-packages-rhel9
+          path: deployment/native-packages/build/rhel/9
+          compression-level: '0'
+
+      - name: Free RHEL9 packages
+        run: rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
+
+      - name: Build Ubuntu 24.04 (Noble) packages
+        working-directory: ./scripts
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: ./build-native-packages.sh -d -r noble --package-only
+
+      - name: Upload Ubuntu 24.04 (Noble) packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-packages-ubuntu24.04
+          path: deployment/native-packages/build/ubuntu24.04
+          compression-level: '0'
+
+      - name: Free Ubuntu 24.04 (Noble) packages
+        run: rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04
+
+      - name: Build Ubuntu 26.04 (Resolute) packages
+        working-directory: ./scripts
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: ./build-native-packages.sh -d -r resolute --package-only
+
+      - name: Upload Ubuntu 26.04 (Resolute) packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: lxd-packages-ubuntu26.04
+          path: deployment/native-packages/build/ubuntu26.04
+          compression-level: '0'
+
+      - name: Upload e2e-test
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: e2e-test-jar
+          path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
+          compression-level: '0'
+
+      # Everything the lxd e2e leg consumes (native packages + e2e-test-jar) is uploaded above this point.
+      - name: Write artifacts-ready marker
+        run: |
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/artifacts-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/artifacts-ready.env
+
+      - name: Upload artifacts-ready marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifacts-ready
+          path: ci-markers/artifacts-ready.env
+          compression-level: '0'
+
       - name: Build Security Server images
-        working-directory: ./deployment/security-server/images
+        working-directory: ./scripts/images
         env:
           IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
           IMAGE_TAG: ${{ env.SERVICE_IMAGE_TAG }}
         run: |
-          ./build-images.sh --platforms linux/amd64,linux/arm64 --push
+          ./build-security-server.sh --platforms linux/amd64,linux/arm64 --push
+          ./build-signer-with-hsm.sh --platforms linux/amd64,linux/arm64 --push
 
       - name: Upload signer-int-test
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: signer-int-test-jar
           path: src/service/signer/signer-int-test/build/libs/signer-int-test-1.0.jar
           compression-level: '0'
 
+      - name: Upload confproxy-int-test
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: confproxy-int-test-jar
+          path: src/service/configuration-proxy/configuration-proxy-int-test/build/libs/confproxy-int-test-1.0.jar
+          compression-level: '0'
+
       - name: Upload softtoken-signer-int-test
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: softtoken-signer-int-test-jar
           path: src/service/softtoken-signer/softtoken-signer-int-test/build/libs/softtoken-signer-int-test-1.0.jar
           compression-level: '0'
 
       - name: Upload opmonitor-int-test
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: opmonitor-int-test-jar
           path: src/service/op-monitor/op-monitor-int-test/build/libs/opmonitor-int-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload cs-admin-int-test
-        uses: actions/upload-artifact@v6
-        with:
-          name: cs-admin-int-test-jar
-          path: src/central-server/admin-service/int-test/build/libs/central-server-admin-int-test-1.0.jar
-          compression-level: '0'
-
       - name: Upload cs-management-int-test
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: cs-management-int-test-jar
           path: src/central-server/management-service/int-test/build/libs/central-server-management-int-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload ss-system-test
-        uses: actions/upload-artifact@v6
+      - name: Upload ss-api-test
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ss-system-test-jar
-          path: src/security-server/system-test/build/libs/security-server-system-test-1.0.jar
+          name: ss-api-test-jar
+          path: src/security-server/api-test/build/libs/security-server-api-test-1.0.jar
           compression-level: '0'
 
-      - name: Upload cs-system-test
-        uses: actions/upload-artifact@v6
+      - name: Upload cs-api-test
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: cs-system-test-jar
-          path: src/central-server/admin-service/ui-system-test/build/libs/central-server-system-test-1.0.jar
-          compression-level: '0'
-
-      - name: Upload e2e-test
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-test-jar
-          path: src/security-server/e2e-test/build/libs/e2e-test-1.0.jar
+          name: cs-api-test-jar
+          path: src/central-server/admin-service/api-test/build/libs/central-server-api-test-1.0.jar
           compression-level: '0'
 
       - name: Log storage after build
@@ -218,10 +279,69 @@ jobs:
           label: 'Storage After Build'
           show-build-dirs: 'true'
 
+      - name: Build, test and package code execution measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
+        with:
+          task: get-measurement
+          label: 'Build, unit tests and packaging'
+
+      - name: Build RHEL10 packages
+        working-directory: ./scripts
+        env:
+          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
+          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
+        run: |
+          ./build-native-packages.sh -d -r rpm-el10 --package-only
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/10
+
+      - name: Build and push Central Server dev image
+        working-directory: ./scripts/images
+        run: |
+          echo "🏗️ Building Central Server dev image:"
+          echo "  Registry: ${IMAGE_REGISTRY}"
+          echo "  Version: ${SERVICE_IMAGE_TAG}"
+          echo "  Branch: ${BRANCH_NAME}"
+
+          ./build-central-server.sh \
+            --environment ci \
+            --registry ${{ env.IMAGE_REGISTRY }} \
+            --version ${{ env.SERVICE_IMAGE_TAG }} \
+            --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu26.04 \
+            --platforms linux/amd64
+
+      - name: Build development images
+        working-directory: ./scripts/images
+        run: |
+          IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
+          IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
+            ./build-dev-infra.sh --push
+
+      - name: Write images-ready marker
+        run: |
+          mkdir -p ci-markers
+          echo "IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }}" > ci-markers/images-ready.env
+          echo "SERVICE_IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }}" >> ci-markers/images-ready.env
+
+      - name: Upload images-ready marker
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: images-ready
+          path: ci-markers/images-ready.env
+          compression-level: '0'
+
+      # `build`, not bare `test` as it triggers all the relevant tasks and previous build (w/o tests) is still cached.
+      - name: Run tests
+        working-directory: ./src
+        run: |
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
+          -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
+          -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
+
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: success() || failure()
         with:
           name: Unit and integration tests
@@ -230,70 +350,14 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Build, test and package code execution measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
-        with:
-          task: get-measurement
-          label: 'Build, unit tests and packaging'
-
-      - name: Build RHEL8 packages
-        working-directory: ./src
+      # Runs at the end, in parallel to e2e jobs.
+      - name: Sonar analysis
         env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: |
-          ./build_packages.sh -d -r rpm-el8 --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/8
-
-      - name: Build RHEL9 packages
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
         run: |
-          ./build_packages.sh -d -r rpm-el9 --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/rhel/9
-
-      - name: Build Ubuntu 22.04 (Jammy) packages
-        working-directory: ./src
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: |
-          ./build_packages.sh -d -r jammy --package-only
-          echo "Packages built successfully, removing packages.."
-          rm -rf ${{ github.workspace }}/deployment/native-packages/build/ubuntu22.04
-
-      - name: Build Ubuntu 24.04 (Noble) packages
-        working-directory: ./src
-        env:
-          IMAGE_REGISTRY: ${{ env.IMAGE_REGISTRY }}
-          IMAGE_TAG: ${{ env.PACKAGE_BUILDER_IMAGE_TAG }}
-        run: ./build_packages.sh -d -r noble --package-only
-
-      - name: Build and push Central Server dev image
-        working-directory: ./development/docker/central-server
-        run: |
-          echo "🏗️ Building Central Server dev image:"
-          echo "  Registry: ${IMAGE_REGISTRY}"
-          echo "  Version: ${SERVICE_IMAGE_TAG}"
-          echo "  Branch: ${BRANCH_NAME}"
-          
-          ./build-cs-dev-image.sh \
-            --environment ci \
-            --registry ${{ env.IMAGE_REGISTRY }} \
-            --version ${{ env.SERVICE_IMAGE_TAG }} \
-            --packages-path ${{ github.workspace }}/deployment/native-packages/build/ubuntu24.04 \
-            --platforms linux/amd64
-
-      - name: Build development images
-        working-directory: ./development/docker
-        run: |
-          IMAGE_REGISTRY=${{ env.IMAGE_REGISTRY }} \
-          IMAGE_TAG=${{ env.SERVICE_IMAGE_TAG }} \
-            ./build-dev-images.sh --push
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
+          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
 
       - name: Log storage after all packaging
         if: always()
@@ -303,18 +367,18 @@ jobs:
           show-packages: 'true'
 
       - name: Packaging and upload artifacts measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
           label: 'Packaging and upload artifacts'
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v5.2
+        uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: display-results
           display-badge: false
-          display-table: false
-          pr-comment: true
+          display-table: true
+          pr-comment: false
 
       - name: Log final storage
         if: always()

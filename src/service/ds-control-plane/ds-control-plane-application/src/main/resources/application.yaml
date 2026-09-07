@@ -6,21 +6,100 @@ quarkus:
       - xroad-common.yaml
       - xroad-logging.yaml
   log:
-    level: DEBUG
+    level: INFO
+    category:
+      "EDC-MONITOR":
+        level: DEBUG
+
+"%native":
+  quarkus:
+    config:
+      locations:
+        - xroad-common.yaml
+        - xroad-logging.yaml
+        - /etc/xroad/conf.d/local-tls.yaml
+        - /etc/xroad/conf.d/local.yaml
+        - /etc/xroad/conf.d/local-ds-control-plane.yaml
+        - /etc/xroad/db.properties
+    log:
+      console:
+        enabled: false
+      file:
+        enabled: true
+        path: /var/log/xroad/ds-control-plane.log
 
 web:
   http:
+    port: 8181
     protocol:
-      port: 8282
+      port: 8183
       path: /api/dsp
+      virtual: true
+    control:
+      port: 8184
+      path: /api/v1/control
+    signaling:
+      port: 8185
+
+xroad:
+  edc:
+    boot:
+      # Upstream DataPlaneSignalingApiExtension also mounts a data-plane registration REST controller;
+      # XRoadDataPlaneSignalingApiExtension replaces it with the transfer API only, since the in-process
+      # registrar (XRoadDataPlaneRegistrarExtension) is the sole DataPlaneInstanceStore writer.
+      # JettyExtension is also excluded: its jetty-core artifact is excluded from the runtime classpath
+      # entirely (see xroad.edc-owned-jetty-conventions), so this setting is defense in depth, not the
+      # only thing standing between it and boot.
+      # SqlContractNegotiationStoreExtension is excluded so XRoadContractNegotiationStoreExtension is the
+      # sole ContractNegotiationStore provider; its jar stays on the classpath (via ds-control-plane-db) so
+      # the delegate store class, dialect statements and schema DDL remain usable.
+      excluded-service-extensions: >-
+        org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
+        org.eclipse.edc.web.jetty.JettyExtension,
+        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension
+  ds:
+    rpc:
+      host: "0.0.0.0"
+      port: 5461
+  db:
+    serverconf:
+      hibernate:
+        hikari.dataSource.ApplicationName: ${quarkus.application.name}
+  dsp:
+    participant-context-id: ${HOSTNAME:localhost}
+    management-participant-context-id: ${xroad.dsp.participant-context-id}-mgmt
+  cp:
+    dataplane:
+      proxy:
+        id: "xroad-proxy"
+        url: "${XROAD_PROXY_DATAPLANE_URL:http://127.0.0.1:5590/full/api/v1/dataflows}"
+        enabled: true
+        allowed-source-types: http,https
+        allowed-transfer-types: Xrd-PULL
 
 edc:
-  participant:
-    id: participantContextId
-  dsp:
-    callback:
-      address: http://host.docker.internal:8282/api/dsp
-  hostname: host.docker.internal
+  hostname: ${HOSTNAME:localhost}
+  dataspace:
+    enable:
+      profiles:
+        # Every participant context served by this runtime may use every registered
+        # profile (X-Road registers a single default profile). Without this, EDC 0.18
+        # virtual DSP controllers require a per-participant edc.dataspace.profiles
+        # association and reject DSP requests with 404.
+        all: true
+  vault:
+    hashicorp:
+      url: "${XROAD_SECRET_STORE_SCHEME:https}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+      token: "${XROAD_SECRET_STORE_TOKEN}"
+      # EDC HashicorpVaultClient hardcodes a "data" segment between secretPath
+      # and folderPath/key (KV v2 semantics). The KV v2 mount path therefore
+      # IS the secretPath value; per-service partitioning lives under folder.
+      # New mount xrd-ds-secret/ is provisioned as KV v2 by secret-store-init.sh,
+      # separate from the KV v1 xrd-secret/ mount used by Quarkus services.
+      folder: ds
+      api:
+        secret:
+          path: /v1/xrd-ds-secret
   component:
     id: DSP-compatibility-test
   transfer:
@@ -34,14 +113,28 @@ edc:
             alias: public-key
   datasource:
     default:
-      url: jdbc:postgresql://localhost:5432/edc
-      user: edc
-      password: password
+      url: ${xroad.db.ds-control-plane.hibernate.connection.url}
+      user: ${xroad.db.ds-control-plane.hibernate.connection.username}
+      password: ${xroad.db.ds-control-plane.hibernate.connection.password}
   sql:
     schema:
       autocreate: true
+  participant:
+    did: "did:web:${HOSTNAME:localhost}%3A10100"
   iam:
-    oauth2:
-      jwks:
-        url: https://example.com/jwks
-      issuer: test-issuer
+    issuer:
+      id: "did:web:${HOSTNAME:localhost}%3A7183"
+    # trusted-issuer.issuer.id is declared here so the key is part of the property names
+    # QuarkusConfigBridge snapshots — an env var cannot introduce a hyphenated key on its own. The value
+    # comes from the X-Road key (EdcConfigKeys.TRUSTED_ISSUER_ID), which resolves from a stored override,
+    # an env var or conf.d. No fallback on purpose: an unset value fails startup naming both properties,
+    # whereas an empty DID would register a trusted issuer that rejects every credential.
+    trusted-issuer:
+      issuer:
+        id: ${xroad.edc.iam.trusted-issuer.issuer.id}
+    dcp:
+      scopes:
+        membership:
+          id: "membership-scope"
+          type: "DEFAULT"
+          value: "org.eclipse.dspace.dcp.vc.type:XRoadMembershipCredential:read"

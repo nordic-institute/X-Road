@@ -29,6 +29,7 @@ package org.niis.xroad.confclient.application;
 import io.quarkus.test.junit.QuarkusTestProfile;
 
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.String.join;
 
@@ -45,9 +46,13 @@ public class ConfClientCLITestProfile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
-                "quarkus.log.level", "INFO",
-                "xroad.common-rpc.use-tls", "false"
+                "quarkus.log.level", "INFO"
         );
+    }
+
+    @Override
+    public Set<Class<?>> getEnabledAlternatives() {
+        return Set.of(CliTestXRoadConfig.class);
     }
 
 }

@@ -29,29 +29,25 @@ dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     fun getConfig(name: String): String? =
-        System.getenv(name) ?: providers.gradleProperty(name).orNull
+      System.getenv(name) ?: providers.gradleProperty(name).orNull
 
     val mavenUrl = getConfig("XROAD_MIRROR_MAVEN_URL")
-    val username = getConfig("XROAD_MIRROR_USERNAME")
-    val token = getConfig("XROAD_MIRROR_TOKEN")
+    val mirrorUsername = getConfig("XROAD_MIRROR_USERNAME")
+    val mirrorToken = getConfig("XROAD_MIRROR_TOKEN")
 
-    if (!mavenUrl.isNullOrBlank() && !username.isNullOrBlank() && !token.isNullOrBlank()) {
+    if (!mavenUrl.isNullOrBlank() && !mirrorUsername.isNullOrBlank() && !mirrorToken.isNullOrBlank()) {
       maven {
         name = "Mirror"
         url = uri(mavenUrl)
         credentials {
-          this.username = username
-          password = token
+          username = mirrorUsername
+          password = mirrorToken
         }
       }
     } else {
       mavenCentral()
     }
     mavenLocal()
-    maven {
-      //TODO Remove once EDC-V artifacts are in Maven Central
-      url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-    }
   }
 }
 
@@ -74,8 +70,14 @@ include("common:common-pgp")
 
 // Lib projects
 include("lib")
+include("lib:acme-core")
+include("lib:acme-spring")
 include("lib:asic-core")
 include("lib:bootstrap-edc-quarkus")
+include("lib:edc-rpc")
+include("lib:edc-jetty-tls")
+include("lib:edc-tls-reload")
+include("lib:edc-tls-trust")
 include("lib:globalconf-impl")
 include("lib:globalconf-core")
 include("lib:globalconf-spring")
@@ -95,15 +97,17 @@ include("lib:vault-core")
 include("lib:vault-spring")
 include("lib:vault-quarkus")
 include("lib:health-check-core")
+include("lib:ds-identity-core")
 
 // Service projects
 include("service")
 
-include("service:backup-manager:backup-manager-application")
-include("service:backup-manager:backup-manager-rpc-client")
-include("service:backup-manager:backup-manager-core")
+include("service:auxiliary-service:auxiliary-service-application")
+include("service:auxiliary-service:auxiliary-service-rpc-client")
+include("service:auxiliary-service:auxiliary-service-core")
 
 include("service:configuration-client:configuration-client-application")
+include("service:configuration-client:configuration-client-common")
 include("service:configuration-client:configuration-client-core")
 include("service:configuration-client:configuration-client-model")
 include("service:configuration-client:configuration-client-rpc-client")
@@ -112,6 +116,11 @@ include("service:softtoken-signer:softtoken-signer-application")
 include("service:softtoken-signer:softtoken-signer-int-test")
 
 include("service:configuration-proxy:configuration-proxy-application")
+include("service:configuration-proxy:configuration-proxy-cli")
+include("service:configuration-proxy:configuration-proxy-common")
+include("service:configuration-proxy:configuration-proxy-core")
+include("service:configuration-proxy:configuration-proxy-jpa")
+include("service:configuration-proxy:configuration-proxy-int-test")
 
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
@@ -129,6 +138,7 @@ include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
 include("service:proxy:proxy-rpc-client")
 include("service:proxy:proxy-monitoring-api")
+include("service:proxy:proxy-dsp-core")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
@@ -140,18 +150,45 @@ include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
 include("service:signer:signer-int-test")
 
+include("service:message-log-archiver")
+include("service:message-log-archiver:message-log-archiver-cli")
+include("service:message-log-archiver:message-log-archiver-core")
+
 include("service:ds-control-plane")
 include("service:ds-control-plane:ds-control-plane-application")
+include("service:ds-control-plane:ds-control-plane-db")
 include("service:ds-control-plane:ds-ext-sample")
-include("service:ds-data-plane")
-include("service:ds-data-plane:ds-data-plane-application")
+include("service:ds-control-plane:ds-xroad-control-plane-policy")
+include("service:ds-control-plane:ds-control-plane-tasks-store-poll-executor")
+include("service:ds-control-plane:ds-xroad-catalog")
+include("service:ds-control-plane:ds-xroad-dataplane-registrar")
+include("service:ds-control-plane:ds-xroad-dataplane-signaling-api")
+include("service:ds-control-plane:ds-xroad-asset-access-api")
+include("service:ds-control-plane:ds-xroad-asset-access-protocol")
+include("service:ds-control-plane:ds-xroad-provisioning-protocol")
+include("service:ds-control-plane:ds-xroad-provisioning-api")
+include("service:ds-control-plane:ds-xroad-contract-negotiation-store")
+include("service:ds-identity-hub")
+include("service:ds-identity-hub:ds-identity-hub-application")
+include("service:ds-identity-hub:ds-identity-hub-xroad-claim")
+include("service:ds-identity-hub:ds-identity-hub-customization")
+include("service:ds-identity-hub:ds-identity-hub-db")
+include("service:ds-identity-hub:ds-identity-hub-provisioning-protocol")
+include("service:ds-identity-hub:ds-identity-hub-provisioning-api")
+include("service:ds-issuer-service")
+include("service:ds-issuer-service:ds-issuer-service-application")
+include("service:ds-issuer-service:ds-issuer-service-customization")
+include("service:ds-issuer-service:ds-issuer-service-provisioning-protocol")
+include("service:ds-issuer-service:ds-issuer-service-provisioning-api")
 
 // Tool projects
 include("tool")
 include("tool:asic-verifier-cli")
 include("tool:migration-cli")
 include("tool:messagelog-archive-verifier")
-include("tool:test-framework-core")
+include("tool:api-test-core")
+include("tool:liquibase-executor")
+include("tool:otel-javaagent-dist")
 
 // Main projects
 include("shared-ui")
@@ -166,8 +203,7 @@ include("central-server:admin-service:application")
 include("central-server:admin-service:ui")
 include("central-server:admin-service:infra-jpa")
 include("central-server:admin-service:globalconf-generator")
-include("central-server:admin-service:ui-system-test")
-include("central-server:admin-service:int-test")
+include("central-server:admin-service:api-test")
 include("central-server:admin-service:api-client")
 
 include("central-server:management-service")
@@ -183,12 +219,8 @@ include("security-server")
 include("security-server:openapi-model")
 include("security-server:admin-service")
 include("security-server:admin-service:application")
-include("security-server:admin-service:infra-jpa")
 include("security-server:admin-service:ui")
-include("security-server:admin-service:message-log-archiver")
-include("security-server:admin-service:message-log-archiver-api")
-include("security-server:admin-service:management-rpc-client")
-include("security-server:system-test")
+include("security-server:api-test")
 include("security-server:e2e-test")
 
 // Tests

@@ -32,15 +32,19 @@ X-Road Data Exchange Layer is a standardised, cohesive, collaborative, interoper
 
 See [X-Road product website](https://x-road.global) for more information about X-Road.
 
+X-Road Governance Authorities and Operators can register their X-Road ecosystem with NIIS. More information about X-Road Product Registration is available on the [X-Road website](https://x-road.global/xroad-product-registration).
+
 ## Development of X-Road
 
-X-Road development model and all the related documentation is published and
-maintained in the [X-Road Development](https://github.com/nordic-institute/X-Road-development/)
-GitHub repository.
+X-Road development model is described on the [X-Road website](https://x-road.global/development-model).
 
 **How to contribute?**
 
 Guidelines for the X-Road contributors are available [here](CONTRIBUTING.md).
+
+**X-Road 8 "Spaceship"**
+
+[X-Road 8 "Spaceship"](https://x-road.global/spaceship) is the next major version of X-Road. The first production release is scheduled for December 2026. X-Road 8 is already available for testing with the [X-Road 8.0.0 Beta 2 release](https://nordic-institute.atlassian.net/wiki/spaces/XRDKB/pages/1909587969/X-Road+v8.0.0-beta2+Release+Notes).
 
 ## X-Road installation
 

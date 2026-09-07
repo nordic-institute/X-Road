@@ -28,7 +28,7 @@
   <XrdCard id="configuration-parts" title="globalConf.cfgParts.title">
     <v-data-table
       class="xrd"
-      item-value="content_identifier"
+      item-value="key"
       hide-default-footer
       :loading="loading"
       :headers="headers"

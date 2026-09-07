@@ -85,14 +85,6 @@ public abstract class XRoadIdEntity extends AuditableEntity implements ee.ria.xr
     @Setter(AccessLevel.PROTECTED)
     private String subsystemCode;
 
-    @Column(name = "service_version")
-    @Setter(AccessLevel.PROTECTED)
-    private String serviceVersion;
-
-    @Column(name = "service_code")
-    @Setter(AccessLevel.PROTECTED)
-    private String serviceCode;
-
     @Column(name = "group_code")
     @Setter(AccessLevel.PROTECTED)
     private String groupCode;

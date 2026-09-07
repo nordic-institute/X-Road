@@ -30,6 +30,7 @@
     :user-name="username"
     :admin-users-handler="adminHandler"
     :database-based-authentication="dbBasedAuth"
+    min-height="700"
     @logout="doLogout"
   />
 </template>

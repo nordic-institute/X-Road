@@ -26,13 +26,13 @@
 package ee.ria.xroad.common.util;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
 
 import java.time.OffsetDateTime;
 
@@ -42,7 +42,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * Unit tests for {@link ee.ria.xroad.common.util.JsonUtils}
  */
-public class JsonUtilsTest {
+class JsonUtilsTest {
 
     private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter(true);
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
@@ -63,10 +63,10 @@ public class JsonUtilsTest {
      * Ensure excluded field is not serialized.
      */
     @Test
-    public void testIgnoresTabsInContentType() throws Exception {
+    void testIgnoresTabsInContentType() {
         final Foo foo = new Foo(100, 200, TimeUtils.offsetDateTimeNow(), null);
         final String json = OBJECT_WRITER.writeValueAsString(foo);
-        final Foo foo2 = OBJECT_READER.readValue(json, Foo.class);
+        final Foo foo2 = OBJECT_READER.forType(Foo.class).readValue(json);
 
         assertEquals(foo.a, foo2.a);
         assertEquals(foo.offsetDateTime, foo2.offsetDateTime);

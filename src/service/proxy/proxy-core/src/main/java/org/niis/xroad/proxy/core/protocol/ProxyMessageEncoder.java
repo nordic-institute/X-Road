@@ -71,6 +71,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     private final Signer signer = new Signer();
 
     private final String topBoundary;
+    @Getter
     private final String attachmentBoundary;
 
     private int attachmentNo = 0;
@@ -114,6 +115,22 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      */
     public ProxyMessageEncoder(OutputStream out, DigestAlgorithm hashAlgoId, String topBoundary)
             throws IllegalArgumentException {
+        this(out, hashAlgoId, topBoundary, "xatt" + randomBoundary());
+    }
+
+    /**
+     * Creates the encoder instance with externally provided boundaries, so that a previously
+     * encoded message can be reproduced byte-identically (e.g. when replaying a request
+     * towards another security server).
+     *
+     * @param out                Writer that will receive the encoded message.
+     * @param hashAlgoId         hash algorithm id used when hashing parts
+     * @param topBoundary        the top-level MIME boundary
+     * @param attachmentBoundary the nested attachment part MIME boundary
+     * @throws IllegalArgumentException if hashAlgoId is null
+     */
+    public ProxyMessageEncoder(OutputStream out, DigestAlgorithm hashAlgoId, String topBoundary, String attachmentBoundary)
+            throws IllegalArgumentException {
         this.hashAlgoId = hashAlgoId;
 
         if (hashAlgoId == null) {
@@ -122,7 +139,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         }
 
         this.topBoundary = topBoundary;
-        attachmentBoundary = "xatt" + randomBoundary();
+        this.attachmentBoundary = attachmentBoundary;
         mpEncoder = new MultipartEncoder(out, topBoundary);
     }
 

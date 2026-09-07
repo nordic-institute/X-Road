@@ -26,7 +26,7 @@
  -->
 <template>
   <div>
-    <v-chip v-if="statusStyle" class="xrd" density="compact" variant="flat" :class="[statusStyle.bgColor]">
+    <v-chip v-if="statusStyle" class="xrd" variant="flat" size="small" :class="[statusStyle.bgColor]">
       <template #prepend>
         <XrdStatusIcon class="mr-1 ml-n1" :status="statusStyle.status" />
       </template>

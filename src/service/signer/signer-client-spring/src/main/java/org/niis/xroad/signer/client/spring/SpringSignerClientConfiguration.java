@@ -26,23 +26,25 @@
  */
 package org.niis.xroad.signer.client.spring;
 
-import lombok.Setter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import(SpringRpcConfig.class)
-@EnableConfigurationProperties(SpringSignerClientConfiguration.SpringSignerRpcChannelProperties.class)
 public class SpringSignerClientConfiguration {
+
+    @Bean
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcChannelProperties(xRoadConfig);
+    }
 
     @Bean
     SignerRpcClient signerRpcClient(RpcChannelFactory rpcChannelFactory, SignerRpcChannelProperties signerRpcChannelProperties) {
@@ -52,28 +54,5 @@ public class SpringSignerClientConfiguration {
     @Bean
     SignerSignClient signerSignClient(RpcChannelFactory rpcChannelFactory, SignerRpcChannelProperties signerRpcChannelProperties) {
         return new SignerSignRpcClient(rpcChannelFactory, signerRpcChannelProperties);
-    }
-
-    @Setter
-    @ConfigurationProperties(prefix = SignerRpcChannelProperties.PREFIX)
-    public static class SpringSignerRpcChannelProperties implements SignerRpcChannelProperties {
-        private String host = DEFAULT_HOST;
-        private int port = Integer.parseInt(DEFAULT_PORT);
-        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-
-        @Override
-        public String host() {
-            return host;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
-
-        @Override
-        public int deadlineAfter() {
-            return deadlineAfter;
-        }
     }
 }

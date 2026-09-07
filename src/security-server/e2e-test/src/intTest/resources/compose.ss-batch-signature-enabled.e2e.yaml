@@ -1,4 +1,29 @@
 services:
+  config-seed-batchsig:
+    image: ${POSTGRES_DEV_IMG:-postgres-dev}
+    pull_policy: always
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until pg_isready -h db-serverconf -U postgres; do sleep 1; done
+        PGPASSWORD=secret psql -h db-serverconf -U serverconf -d serverconf -v ON_ERROR_STOP=1 <<'SQL'
+        INSERT INTO configuration_properties (property_key, property_value, created_at, updated_at) VALUES
+        ('xroad.proxy.batch-signing-enabled', 'true', now(), now())
+        ON CONFLICT DO NOTHING;
+        SQL
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
+
   proxy:
-    environment:
-      - XROAD_PROXY_BATCH_SIGNING_ENABLED=true
+    depends_on:
+      config-seed-batchsig:
+        condition: service_completed_successfully

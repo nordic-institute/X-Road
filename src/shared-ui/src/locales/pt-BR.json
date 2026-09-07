@@ -129,6 +129,7 @@
         "confirmation": "Tem certeza que deseja restaurar do backup {file}?",
         "title": "Tem certeza?"
       },
+      "incompatibleTooltip": "O formato deste backup não é compatível com o formato de backup deste servidor",
       "success": "Configuração restaurada do backup {file}"
     },
     "uploadBackup": {
@@ -165,6 +166,9 @@
     "backup_generation_failed": "Falha ao gerar backup",
     "backup_restore_interrupted": "Restauração de backup interrompida",
     "core": {
+      "op_monitor": {
+        "network_error": "Erro de rede: o monitoramento de dados operacionais não está disponível"
+      },
       "signer": {
         "cert_not_found": "Certificado não encontrado",
         "key_not_found": "Chave não encontrada",

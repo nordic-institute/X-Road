@@ -29,28 +29,54 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import io.quarkus.vault.VaultKVSecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
 import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
+import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
+import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.signature.SimpleSigner;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -68,6 +94,117 @@ import static java.util.Arrays.stream;
 class ProxyConfig {
 
     @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .register(CommonRpcConfigKeys.instance())
+                .register(ProxyConfigKeys.instance())
+                .register(MessageLogEncryptionConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
+                .register(ServerConfConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .dbOverrides(appName)
+                .build();
+    }
+
+    @ApplicationScoped
+    ServerConfCommonProperties serverConfCommonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadServerConfProperties(xRoadConfig);
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ConfClientRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    CommonProperties commonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadConfigCommonProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    AntiDosConfiguration antiDosConfiguration(XRoadConfig xRoadConfig) {
+        return new AntiDosConfiguration(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyRpcServerProperties proxyRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyHealthCheckProperties proxyHealthCheckProperties(XRoadConfig xRoadConfig) {
+        return new ProxyHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyMessageLogProperties proxyMessageLogProperties(XRoadConfig xRoadConfig) {
+        return new ProxyMessageLogProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyProperties proxyProperties(XRoadConfig xRoadConfig) {
+        return new ProxyProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyTlsProperties proxyTlsProperties(XRoadConfig xRoadConfig) {
+        return new ProxyTlsProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyProperties.ClientProxyProperties clientProxyProperties(ProxyProperties proxyProperties) {
+        return proxyProperties.clientProxy();
+    }
+
+    @ApplicationScoped
+    ProxyProperties.Addon addonProperties(ProxyProperties proxyProperties) {
+        return proxyProperties.addon();
+    }
+
+    @ApplicationScoped
+    ProxyProperties.OcspResponderProperties ocspResponderProperties(XRoadConfig xRoadConfig) {
+        return new ProxyProperties.OcspResponderProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
     VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
         return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
     }
@@ -83,8 +220,8 @@ class ProxyConfig {
         return vaultClient;
     }
 
-    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient) throws CertificateException,
-            IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient)
+            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         try {
             vaultClient.getInternalTlsCredentials();
         } catch (Exception e) {
@@ -106,7 +243,7 @@ class ProxyConfig {
                                               ProxyProperties proxyProperties,
                                               VaultClient vaultClient)
                 throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
-                InvalidKeySpecException, KeyManagementException {
+                       InvalidKeySpecException, KeyManagementException {
 
             if (proxyProperties.addon().opMonitor().enabled()) {
                 log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");

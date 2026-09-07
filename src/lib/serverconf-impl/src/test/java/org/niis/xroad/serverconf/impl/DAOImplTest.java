@@ -40,7 +40,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
@@ -134,13 +133,13 @@ public class DAOImplTest {
      */
     @Test
     public void getServiceByIdentifier() {
-        ServiceIdEntity id = TestUtil.createTestServiceIdEntity(TestUtil.client(1), TestUtil.service(1, 1),
+        ServiceId id = TestUtil.createTestServiceId(TestUtil.client(1), TestUtil.service(1, 1),
                 TestUtil.SERVICE_VERSION);
         ServiceEntity service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
         assertNotNull(service.getServiceDescription());
         assertNotNull(service.getServiceDescription().getClient());
-        assertEquals(id, ServiceIdEntity.create(
+        assertEquals(id, ServiceId.Conf.create(
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
@@ -161,7 +160,6 @@ public class DAOImplTest {
 
         assertTrue(acl.get(0).getSubjectId() instanceof ClientId);
         assertTrue(acl.get(1).getSubjectId() instanceof ClientId);
-        assertTrue(acl.get(2).getSubjectId() instanceof ServiceId);
         assertTrue(acl.get(3).getSubjectId() instanceof LocalGroupId);
     }
 
@@ -201,7 +199,7 @@ public class DAOImplTest {
         session.remove(serviceDescription);
 
         Assert.assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescriptions().size());
-        assertNull(session.get(ServiceDescriptionEntity.class, serviceDescriptionId));
+        assertNull(session.find(ServiceDescriptionEntity.class, serviceDescriptionId));
     }
 
     /**

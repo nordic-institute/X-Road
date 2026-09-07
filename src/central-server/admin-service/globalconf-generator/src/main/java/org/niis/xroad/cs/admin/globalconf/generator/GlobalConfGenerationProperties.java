@@ -24,44 +24,51 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.cs.admin.api.service.config.GlobalConfigDirectories;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-import static ee.ria.xroad.common.GlobalConfVersion.CURRENT_VERSION;
 import static ee.ria.xroad.common.GlobalConfVersion.MINIMUM_SUPPORTED_VERSION;
 
-@Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "xroad.admin-service.global-conf-generator")
-@Getter
-@Setter
-
+/**
+ * Global configuration generation directories and version floor ({@code xroad.admin-service.global-conf-generator.*}),
+ * resolved through {@link XRoadConfig}.
+ */
 public class GlobalConfGenerationProperties implements GlobalConfigDirectories {
-    private String internalDirectory;
-    private String externalDirectory;
-    private String generatedConfDir;
-    @Min(1)
-    @Max(CURRENT_VERSION)
-    private int minimumGlobalConfigurationVersion;
+
+    private final XRoadConfig config;
+
+    public GlobalConfGenerationProperties(XRoadConfig config) {
+        this.config = config;
+    }
+
+    @Override
+    public String getInternalDirectory() {
+        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_INTERNAL_DIRECTORY);
+    }
+
+    @Override
+    public String getExternalDirectory() {
+        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_EXTERNAL_DIRECTORY);
+    }
+
+    public String getGeneratedConfDir() {
+        return config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_GENERATED_CONF_DIR);
+    }
 
     /**
-     * Get the minimum global configuration version, but never lower than the minimum supported version.
-     * @return minimum global configuration version
+     * @return the minimum global configuration version, but never lower than the minimum supported version
      */
     public int getMinimumGlobalConfigurationVersion() {
-        return Integer.max(minimumGlobalConfigurationVersion, MINIMUM_SUPPORTED_VERSION);
+        return Integer.max(config.value(CsAdminServiceConfigKeys.GLOBAL_CONF_GENERATOR_MINIMUM_GLOBAL_CONFIGURATION_VERSION),
+                MINIMUM_SUPPORTED_VERSION);
     }
 
     public String getTmpInternalDirectory() {
-        return internalDirectory + ".tmp";
+        return getInternalDirectory() + ".tmp";
     }
 
     public String getTmpExternalDirectory() {
-        return externalDirectory + ".tmp";
+        return getExternalDirectory() + ".tmp";
     }
-
 }

@@ -26,24 +26,30 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 
-@Configuration
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "xroad.admin-service.management-requests")
+/**
+ * Admin-service management-request auto-approval toggles ({@code xroad.admin-service.management-requests.*}),
+ * resolved through {@link XRoadConfig}.
+ */
 public class ManagementServiceConfigProperties {
 
-    /** whether automatic approval of auth cert registration requests is enabled, 'false' by default. */
-    private boolean autoApproveAuthCertRegRequests;
+    private final XRoadConfig config;
 
-    /** whether automatic approval of client registration requests is enabled, 'false' by default. */
-    private boolean autoApproveClientRegRequests;
+    public ManagementServiceConfigProperties(XRoadConfig config) {
+        this.config = config;
+    }
 
-    /** whether automatic approval of owner change requests is enabled, 'false' by default. */
-    private boolean autoApproveOwnerChangeRequests;
+    public boolean isAutoApproveAuthCertRegRequests() {
+        return config.value(CsAdminServiceConfigKeys.MANAGEMENT_REQUESTS_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS);
+    }
 
+    public boolean isAutoApproveClientRegRequests() {
+        return config.value(CsAdminServiceConfigKeys.MANAGEMENT_REQUESTS_AUTO_APPROVE_CLIENT_REG_REQUESTS);
+    }
+
+    public boolean isAutoApproveOwnerChangeRequests() {
+        return config.value(CsAdminServiceConfigKeys.MANAGEMENT_REQUESTS_AUTO_APPROVE_OWNER_CHANGE_REQUESTS);
+    }
 }

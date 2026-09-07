@@ -35,7 +35,7 @@ import java.util.List;
 public class EnvironmentValidator {
     private static final Path OLD_STYLE_LOCAL_INI_PATH = Paths.get("/etc/xroad/local.ini");
     private static final Path LOCAL_INI_PATH = Paths.get("/etc/xroad/conf.d/local.ini");
-    private static final Path DATABASE_PROPERTIES_PATH = Paths.get("/etc/xroad/database.properties");
+    private static final Path DATABASE_PROPERTIES_PATH = Paths.get("/etc/xroad/db.properties");
 
     public void run() {
 

@@ -31,7 +31,7 @@ public class GlobalConfVersion {
     /**
      * Current version number of the global configuration
      **/
-    public static final int CURRENT_VERSION = 6;
+    public static final int CURRENT_VERSION = 7;
 
     /**
      * Minimum supported version number of the global configuration

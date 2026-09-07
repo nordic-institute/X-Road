@@ -25,23 +25,44 @@
  */
 package org.niis.xroad.opmonitor.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-import org.niis.xroad.common.vault.quarkus.config.QuarkusCertificateProvisioningProperties;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.vault.config.CertificateProvisioningConfig;
+import org.niis.xroad.common.vault.config.CertificateProvisioningProperties;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
-@ConfigMapping(prefix = "xroad.op-monitor.tls")
-public interface OpMonitorTlsProperties {
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CERT_PROVISIONING_ALT_NAMES;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CERT_PROVISIONING_COMMON_NAME;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CERT_PROVISIONING_ISSUANCE_ROLE_NAME;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CERT_PROVISIONING_SECRET_STORE_PKI_PATH;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CERT_PROVISIONING_TTL;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.TLS_CLIENT_CERTIFICATE_REFRESH_INTERVAL;
 
-    String DEFAULT_CLIENT_CERTIFICATE_REFRESH_INTERVAL = "0S";
+@RequiredArgsConstructor
+public class OpMonitorTlsProperties {
 
-    @WithName("certificate-provisioning")
-    QuarkusCertificateProvisioningProperties certificateProvisioning();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("client-certificate-refresh-interval")
-    @WithDefault(DEFAULT_CLIENT_CERTIFICATE_REFRESH_INTERVAL)
-    Duration clientCertificateRefreshInterval();
+    public CertificateProvisioningProperties certificateProvisioning() {
+        return new CertificateProvisioningConfig(
+                xRoadConfig.value(CERT_PROVISIONING_ISSUANCE_ROLE_NAME),
+                xRoadConfig.value(CERT_PROVISIONING_COMMON_NAME),
+                toList(xRoadConfig.value(CERT_PROVISIONING_ALT_NAMES)),
+                toList(xRoadConfig.value(CERT_PROVISIONING_IP_SUBJECT_ALT_NAMES)),
+                xRoadConfig.value(CERT_PROVISIONING_TTL),
+                xRoadConfig.value(CERT_PROVISIONING_SECRET_STORE_PKI_PATH));
+    }
+
+    public Duration clientCertificateRefreshInterval() {
+        return xRoadConfig.value(TLS_CLIENT_CERTIFICATE_REFRESH_INTERVAL);
+    }
+
+    private static List<String> toList(String[] values) {
+        return Arrays.stream(values).filter(value -> !value.isBlank()).toList();
+    }
 
 }

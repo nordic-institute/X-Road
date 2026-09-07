@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: cloudnative_pg
+  namespace: niis
+  author: Nordic Institute for Interoperability Solutions
+  description: Install CloudNativePG operator and provision PostgreSQL Clusters for X-Road
+  license: MIT
+  min_ansible_version: "2.20"
+  platforms:
+    - name: MacOSX
+      versions: [any]
+    - name: Ubuntu
+      versions: [noble, resolute]
+    - name: EL
+      versions: ["8", "9", "10"]
+  galaxy_tags: [kubernetes, postgresql, cloudnative-pg, xroad]
+dependencies: []

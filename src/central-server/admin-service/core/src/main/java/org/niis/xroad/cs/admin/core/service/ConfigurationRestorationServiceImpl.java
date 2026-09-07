@@ -51,6 +51,7 @@ import java.io.File;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.BACKUP_RESTORATION_INTERRUPTED;
 
 /**
  * service class for restoring security server configuration from a backup
@@ -77,12 +78,10 @@ public class ConfigurationRestorationServiceImpl implements ConfigurationRestora
      * Restores the security server configuration from a backup. Any tokens that are not software tokens are logged
      * out by the current restore script.
      * @param fileName name of the backup file
-     * @throws InterruptedException         execution of the restore script was interrupted
      * @throws InternalServerErrorException if the restore script fails or does not execute
      */
     @Override
-    public synchronized void restoreFromBackup(String fileName) throws
-                                                                InterruptedException, InternalServerErrorException {
+    public synchronized void restoreFromBackup(String fileName) throws InternalServerErrorException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(fileName));
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
@@ -111,6 +110,9 @@ public class ConfigurationRestorationServiceImpl implements ConfigurationRestora
 
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
             throw new InternalServerErrorException(e, BACKUP_RESTORATION_FAILED.build());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new InternalServerErrorException(e, BACKUP_RESTORATION_INTERRUPTED.build());
         } finally {
             eventPublisher.publishEvent(BackupRestoreEvent.END);
             apiKeyService.clearApiKeyCaches();

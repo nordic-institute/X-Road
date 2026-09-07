@@ -26,16 +26,14 @@
 package ee.ria.xroad.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -67,9 +65,9 @@ public final class AuditLogger {
     private static final ObjectWriter JSON_WRITER;
 
     static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        JSON_WRITER = mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS)
+        JSON_WRITER = JsonMapper.builder()
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(JsonInclude.Include.ALWAYS, JsonInclude.Include.ALWAYS))
+                .build()
                 .writer()
                 .with(JsonWriteFeature.ESCAPE_NON_ASCII);
     }
@@ -174,9 +172,9 @@ public final class AuditLogger {
         String result;
         try {
             result = JSON_WRITER.writeValueAsString(message);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Could not serialize audit message map", e);
-            throw new UncheckedIOException(e);
+            throw e;
         }
         return result;
     }

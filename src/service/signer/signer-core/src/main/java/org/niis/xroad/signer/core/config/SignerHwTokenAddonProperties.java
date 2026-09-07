@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,36 +25,51 @@
  */
 package org.niis.xroad.signer.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
-@ConfigMapping(prefix = "xroad.signer.addon.hwtoken")
-public interface SignerHwTokenAddonProperties {
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_MAX_IDLE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_MAX_TOTAL;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_POOL_MIN_IDLE;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.HWTOKEN_SESSION_ACQUIRE_TIMEOUT;
 
-    @WithName("enabled")
-    @WithDefault("false")
-    boolean enabled();
+/** Hardware-token addon properties ({@code xroad.signer.addon.hwtoken.*}). */
+@RequiredArgsConstructor
+public class SignerHwTokenAddonProperties {
 
-    @WithName("session-pool-enabled")
-    @WithDefault("false")
-    boolean poolEnabled();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("session-pool-max-total")
-    @WithDefault("10")
-    int poolMaxTotal();
+    /** @return whether the hardware-token addon is enabled */
+    public boolean enabled() {
+        return xRoadConfig.value(HWTOKEN_ENABLED);
+    }
 
-    @WithName("session-pool-min-idle")
-    @WithDefault("2")
-    int poolMinIdle();
+    /** @return whether the session pool is enabled */
+    public boolean poolEnabled() {
+        return xRoadConfig.value(HWTOKEN_POOL_ENABLED);
+    }
 
-    @WithName("session-pool-max-idle")
-    @WithDefault("5")
-    int poolMaxIdle();
+    /** @return maximum total sessions in the pool */
+    public int poolMaxTotal() {
+        return xRoadConfig.value(HWTOKEN_POOL_MAX_TOTAL);
+    }
 
-    @WithName("session-acquire-timeout")
-    @WithDefault("15S")
-    Duration sessionAcquireTimeout();
+    /** @return minimum number of idle sessions in the pool */
+    public int poolMinIdle() {
+        return xRoadConfig.value(HWTOKEN_POOL_MIN_IDLE);
+    }
+
+    /** @return maximum number of idle sessions in the pool */
+    public int poolMaxIdle() {
+        return xRoadConfig.value(HWTOKEN_POOL_MAX_IDLE);
+    }
+
+    /** @return timeout for acquiring a session from the pool */
+    public Duration sessionAcquireTimeout() {
+        return xRoadConfig.value(HWTOKEN_SESSION_ACQUIRE_TIMEOUT);
+    }
 }

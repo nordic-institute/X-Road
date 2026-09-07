@@ -6,5 +6,7 @@ dependencies {
   implementation(platform(libs.springBoot.bom))
 
   api(project(":lib:properties-core"))
-  implementation("org.springframework.boot:spring-boot-starter")
+  implementation(libs.springBoot.starter)
+
+  testImplementation(libs.springBoot.starterTest)
 }

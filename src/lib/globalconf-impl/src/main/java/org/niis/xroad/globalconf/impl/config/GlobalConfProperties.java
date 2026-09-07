@@ -27,31 +27,18 @@
 
 package org.niis.xroad.globalconf.impl.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-
 import java.time.Duration;
 
-import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.MAPPING_PREFIX;
-
-@ConfigMapping(prefix = MAPPING_PREFIX)
 public interface GlobalConfProperties {
     String MAPPING_PREFIX = "xroad.common-global-conf";
     String DEFAULT_SOURCE = "FILESYSTEM";
     String DEFAULT_RATE_INTERVAL = "60S";
     String DEFAULT_GLOBALCONF_DIR = "/etc/xroad/globalconf";
 
-    @WithName("source")
-    @WithDefault(DEFAULT_SOURCE)
     GlobalConfSource source();
 
-    @WithName("refresh-rate")
-    @WithDefault(DEFAULT_RATE_INTERVAL)
     Duration refreshRate();
 
-    @WithName("configuration-path")
-    @WithDefault(DEFAULT_GLOBALCONF_DIR)
     String configurationPath();
 
     enum GlobalConfSource {

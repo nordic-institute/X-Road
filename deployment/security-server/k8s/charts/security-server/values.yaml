@@ -3,33 +3,72 @@ global:
     registry: artifactory.niis.org/xroad8-snapshot-image
     tag: 8.0.0-beta2-SNAPSHOT
     pullPolicy: IfNotPresent
+  # Extra annotations applied to every X-Road service pod (spec.template.metadata.annotations).
+  # Used e.g. for prometheus.io/scrape style annotations consumed by service-discovery
+  # collectors (Prometheus, Netdata go.d/prometheus, etc.).
+  extraPodAnnotations: {}
 
 init:
+  imageName: ss-db-init
   securityContext:
     runAsUser: 1001
   serverconf:
-    imageName: ss-db-serverconf-init
     host: "db-serverconf"
     port: "5432"
     database: "serverconf"
     username: "serverconf"
     schema: "public"
-    proxyUiSuperuser: "xrd"
-#    proxyUiSuperuserPassword:
   messagelog:
-    imageName: ss-db-messagelog-init
     host: "db-messagelog"
     port: "5432"
     database: "messagelog"
     username: "messagelog"
     schema: "public"
   opmonitor:
-    imageName: ss-db-opmonitor-init
     host: "db-opmonitor"
     port: "5432"
     database: "op-monitor"
     username: "opmonitor"
     schema: "public"
+    changelogName: "op-monitor"
+
+
+# Non-default xroad.* runtime config, seeded into the serverconf
+# configuration_properties table by the config-seed hook Job — the XRoadConfig
+# DSL resolves DB overrides and packaged defaults only; pod env vars carrying
+# xroad.* keys are ignored. Consuming services declare a
+# `{type: serverconfProperty, key: ...}` wait so they start after the seed.
+configSeed:
+  properties:
+    - key: xroad.proxy-ui-api.proxy-server-url
+      value: https://proxy:8443
+    - key: xroad.proxy.addon.op-monitor.connection.scheme
+      value: https
+    # dsp.participantContextId, when set, overrides the value of this row and
+    # the dataspace.participant-id row below (see templates/init/config-seed-job.yaml).
+    - key: xroad.proxy.dsp.participant-context-id
+      value: security-server
+    # ds-identity-hub gates its startup on this row (waits), so the default
+    # seed must carry it or enabling the ds services deadlocks their pods.
+    - key: xroad.proxy-ui-api.dataspace.participant-id
+      value: security-server
+    - key: xroad.op-monitor.scheme
+      value: https
+    # A signer serving a Security Server retrieves OCSP responses periodically.
+    # The native packages activate this through the ss quarkus profile, but the
+    # containerized profile cannot know which product the signer serves.
+    - key: xroad.signer.ocsp-response-retrieval-active
+      value: "true"
+    # configuration-client gates its startup on this row (waits) so it never boots against
+    # the packaged 60s poll default before the seed Job commits — see its `waits:` entry
+    # below. Value matches ConfClientConfigKeys.UPDATE_INTERVAL's packaged default.
+    - key: xroad.configuration-client.update-interval
+      value: "60"
+    # ds-control-plane gates its startup on this row (waits) so it never boots against
+    # the packaged 60s default before the seed Job commits. Value matches
+    # XRoadServerConfCatalogExtension's packaged default.
+    - key: xroad.dsp.catalog.cache.ttl-seconds
+      value: "60"
 
 imagePullSecrets: []
 
@@ -60,6 +99,10 @@ serviceAccount:
 
 services:
   configuration-client:
+    waits:
+      - type: serverconfProperty
+        key: xroad.configuration-client.update-interval
+    otelServiceName: xroad-confclient
     imageName: ss-configuration-client
     resources:
       requests:
@@ -80,13 +123,11 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=100m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
       XROAD_HOST: "configuration-client"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL: "60"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -101,12 +142,16 @@ services:
         key: "password"
 
   signer:
+    waits:
+      - type: serverconfProperty
+        key: xroad.signer.ocsp-response-retrieval-active
+    otelServiceName: xroad-signer
     imageName: ss-signer
     resources:
       requests:
-        memory: 192Mi
+        memory: 256Mi
       limits:
-        memory: 512Mi
+        memory: 896Mi
     ports:
       - port: 4099
         name: http
@@ -121,14 +166,12 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx64m -XX:MaxMetaspaceSize=128m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "signer"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -141,7 +184,28 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
+    # /var/lib/softhsm/tokens is SoftHSM2's PKCS#11 token store — used only when the
+    # dev/e2e overlay swaps this image to ss-signer-with-hsm. The plain ss-signer image
+    # has no softhsm2 and keeps software-token keys in the serverconf DB, not on disk.
+    # The mount and PVC stay unconditional only so the chart itself is HSM-agnostic.
+    # RWO claim + singleton service -> Recreate, so a RollingUpdate can't have both
+    # pods mount it at once.
+    # TODO: before production go-live, reconsider gating this mount/PVC behind a toggle;
+    # redeploy over an already-populated token volume is also still unverified.
+    strategy:
+      type: Recreate
+    volumeMounts:
+      - mountPath: /var/lib/softhsm/tokens
+        name: signer-tokens
+    volumes:
+      - name: signer-tokens
+        persistentVolumeClaim:
+          claimName: signer-tokens-pvc
   proxy:
+    waits:
+      - type: serverconfProperty
+        key: xroad.proxy.dsp.participant-context-id
+    otelServiceName: xroad-proxy
     imageName: ss-proxy
     resources:
       requests:
@@ -149,7 +213,7 @@ services:
       limits:
         memory: 1Gi
     ports:
-      - port: 4099
+      - port: 5588
         name: http
       - port: 5567
         name: grpc
@@ -161,30 +225,27 @@ services:
         name: proxy-http
       - port: 8443
         name: proxy-https
+      - port: 5590
+        name: dsp-dataflow
     readinessProbe:
       path: "/q/health/ready"
       scheme: "HTTP"
     livenessProbe:
       path: "/q/health/live"
       scheme: "HTTP"
+      initialDelaySeconds: 120
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx512m -XX:MaxMetaspaceSize=140m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=192m
       XROAD_HOST: "proxy"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
-      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
-      XROAD_COMMON_RPC_CHANNEL_MANAGEMENT_HOST: "proxy-ui-api"
-      XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_HOST: "op-monitor"
-      XROAD_PROXY_ADDON_OP_MONITOR_CONNECTION_SCHEME: https
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -201,6 +262,10 @@ services:
         secretName: "db-serverconf"
         key: "password"
   proxy-ui-api:
+    waits:
+      - type: serverconfProperty
+        key: xroad.proxy-ui-api.proxy-server-url
+    otelServiceName: xroad-ss-admin-service
     imageName: ss-proxy-ui-api
     resources:
       requests:
@@ -217,23 +282,16 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx256m -XX:MaxMetaspaceSize=200m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=240m
       DEBUG_PORT: "9999"
       XROAD_HOST: "proxy-ui-api"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
-      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
-      XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy"
-      XROAD_COMMON_RPC_CHANNEL_BACKUP_MANAGER_HOST: "backup-manager"
-      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
       XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      XROAD_PROXY_UI_API_PROXY_SERVER_URL: "https://proxy:8443"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -250,6 +308,7 @@ services:
         secretName: "db-serverconf"
         key: "password"
   monitor:
+    otelServiceName: xroad-monitor
     imageName: ss-monitor
     resources:
       requests:
@@ -259,6 +318,8 @@ services:
     ports:
       - port: 4099
         name: http
+      - port: 2552
+        name: grpc
     debugPort: 9999
     readinessProbe:
       path: "/q/health/ready"
@@ -269,18 +330,13 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx128m -XX:MaxMetaspaceSize=120m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=160m
       DEBUG_PORT: "9999"
       XROAD_HOST: "monitor"
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
-      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
-      XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy"
-      XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -294,7 +350,11 @@ services:
         secretName: "db-serverconf"
         key: "password"
   op-monitor:
+    waits:
+      - type: serverconfProperty
+        key: xroad.op-monitor.scheme
     enabled: false
+    otelServiceName: xroad-opmonitor
     imageName: ss-op-monitor
     resources:
       requests:
@@ -316,17 +376,13 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      JAVA_OPTS: -Xmx350m -XX:MaxMetaspaceSize=120m
+      JAVA_OPTS: -XX:MaxMetaspaceSize=120m
       DEBUG_PORT: "9999"
       XROAD_HOST: "op-monitor"
-      XROAD_OP_MONITOR_LISTEN_ADDRESS: 0.0.0.0
-      XROAD_OP_MONITOR_SCHEME: https
       XROAD_SECRET_STORE_HOST: "openbao"
-      XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-opmonitor:5432/op-monitor"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_USERNAME: "opmonitor"
       XROAD_DB_OP_MONITOR_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      DB_CONFIG_SOURCE_ENABLED: "true"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -339,8 +395,9 @@ services:
       - name: "DB_CONFIG_SOURCE_PASSWORD"
         secretName: "db-serverconf"
         key: "password"
-  backup-manager:
-    imageName: ss-backup-manager
+  auxiliary-service:
+    otelServiceName: xroad-auxiliary
+    imageName: ss-auxiliary-service
     resources:
       requests:
         memory: 256Mi
@@ -350,7 +407,10 @@ services:
       extraRules:
         - apiGroups: ["batch"]
           resources: ["jobs"]
-          verbs: ["create", "get", "list", "watch"]
+          verbs: ["create", "get", "list", "watch", "delete"]
+        - apiGroups: [ "" ]
+          resources: [ "pods/log" ]
+          verbs: [ "get" ]
         - apiGroups: [ "apps" ]
           resources: [ "deployments","deployments/scale" ]
           verbs: [ "get", "list", "update", "watch", "patch" ]
@@ -371,8 +431,8 @@ services:
     skipDefaultMounts:
       - /var/lib/xroad
     env:
-      JAVA_OPTS: -Xmx50m -XX:MaxMetaspaceSize=64m
-      XROAD_HOST: "backup-manager"
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
+      XROAD_HOST: "auxiliary-service"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_SERVERCONF_DB_HOST: "db-serverconf"
       XROAD_SERVERCONF_DB_PORT: "5432"
@@ -384,10 +444,7 @@ services:
       XROAD_OPENBAO_DB_DATABASE: "openbao"
       XROAD_OPENBAO_DB_SCHEMA: "public"
       XROAD_OPENBAO_DB_USER: "openbao"
-      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-serverconf-init:8.0.0-beta2"
-      SERVERCONF_INITIALIZED_WITH_PROXY_UI_SUPERUSER: "false"
-      PROXY_UI_SUPERUSER: "xrd"
-      DB_CONFIG_SOURCE_ENABLED: "true"
+      SERVERCONF_INIT_IMAGE: "artifactory.niis.org/xroad8-snapshot-image/ss-db-init:8.0.0-beta2"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
     envFromSecrets:
@@ -411,6 +468,11 @@ services:
         name: backups-volume
       - mountPath: /etc/xroad/gpghome
         name: gpg-key-volume
+      - mountPath: /etc/xroad/job-templates
+        name: job-templates
+        readOnly: true
+      - mountPath: /var/lib/xroad/messagelog-archives
+        name: message-log-archives-volume
     volumes:
       - name: backups-volume
         persistentVolumeClaim:
@@ -418,6 +480,324 @@ services:
       - name: gpg-key-volume
         persistentVolumeClaim:
           claimName: gpg-keys-pvc
+      - name: job-templates
+        configMap:
+          name: message-log-archiver-job-template
+      - name: message-log-archives-volume
+        persistentVolumeClaim:
+          claimName: message-log-archives-pvc
+
+  # Split-out soft-token signing process (compose's `softtoken-signer` service). Not a token
+  # type — a separate signing process. When the channel is enabled, `SignerSignRpcClient.sign()`
+  # routes soft-token-based keys to it over gRPC instead of signing them co-located in `signer`.
+  # Off by default (replicas: 0, the chart's existing off-switch for optional
+  # workloads — see ds-control-plane/ds-identity-hub/ds-issuer-service below), so existing
+  # deployers and every non-toggled release render unchanged.
+  # TODO: before production go-live, reconsider whether this test-support service definition
+  # belongs in the chart's default values at all, or should move to the dev/e2e values overlay.
+  softtoken-signer:
+    otelServiceName: xroad-softtoken-signer
+    imageName: ss-softtoken-signer
+    replicas: 0
+    resources:
+      requests:
+        memory: 128Mi
+      limits:
+        memory: 384Mi
+    ports:
+      - port: 4099
+        name: http
+      - port: 5561
+        name: grpc
+    debugPort: 9999
+    readinessProbe:
+      path: "/q/health/ready"
+      scheme: "HTTP"
+    livenessProbe:
+      path: "/q/health/live"
+      scheme: "HTTP"
+    serviceAccount:
+      annotations: { }
+    env:
+      JAVA_OPTS: -XX:MaxMetaspaceSize=128m
+      XROAD_HOST: "softtoken-signer"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      XROAD_SOFTTOKEN_SIGNER_RPC_LISTEN_ADDRESS: "0.0.0.0"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+
+  ds-control-plane:
+    imageName: ds-control-plane
+    replicas: 0
+    resources:
+      requests:
+        memory: "256M"
+      limits:
+        memory: "640M"
+    ports:
+      - port: 8181
+        name: http
+      - port: 8183
+        name: dsp
+      - port: 8184
+        name: control
+      - port: 8185
+        name: signaling
+      - port: 5461
+        name: asset-access
+      - port: 4099
+        name: health
+      - port: 9999
+        name: debug
+    readinessProbe:
+      path: "/q/health"
+      port: 4099
+      scheme: "HTTP"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 40
+    livenessProbe:
+      path: "/q/health"
+      port: 4099
+      scheme: "HTTP"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 40
+    serviceAccount:
+      annotations: {}
+    env:
+      HOSTNAME: "ds-control-plane"
+      XROAD_HOST: "ds-control-plane"
+      XROAD_DSP_PARTICIPANT_CONTEXT_ID: "security-server"
+      # Feeds edc.iam.trusted-issuer.issuer.id, which the packaged application.yaml interpolates from
+      # this X-Road key. The EDC key cannot be set by an env var directly: EDC reads it through
+      # QuarkusConfigBridge, which snapshots config.getPropertyNames(), and SmallRye enumerates an env
+      # var with dots in place of every underscore — so a hyphenated key never matches.
+      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:ds-issuer-service%3A10100:issuer"
+      XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
+      XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME: "ds_control_plane"
+      EDC_IAM_DID_WEB_USE_HTTPS: "false"
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-ds-control-plane"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+    # DSP-scoped initContainer wait chain. Each entry is dispatched by
+    # `xroad.dsp.waits.render` to a typed helper (postgres | tcp |
+    # serverconfProperty). Keep ordering meaningful — waits run sequentially.
+    waits:
+      - type: postgres
+        host: db-ds-control-plane
+        name: wait-db
+      - type: tcp
+        host: configuration-client
+        port: 4099
+        name: wait-config-client
+      - type: tcp
+        host: ds-identity-hub
+        port: 7185
+        name: wait-identity-hub
+      - type: serverconfProperty
+        key: xroad.dsp.catalog.cache.ttl-seconds
+
+  ds-identity-hub:
+    imageName: ds-identity-hub
+    replicas: 0
+    resources:
+      requests:
+        memory: 256Mi
+      limits:
+        memory: 896Mi
+    ports:
+      - port: 7181
+        name: health
+      - port: 7182
+        name: identity
+      - port: 7183
+        name: did
+      - port: 7184
+        name: sts
+      - port: 7185
+        name: creds
+      - port: 5460
+        name: provisioning
+      - port: 9999
+        name: debug
+    readinessProbe:
+      path: "/api/check/health"
+      port: 7181
+      scheme: "HTTP"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 40
+    livenessProbe:
+      path: "/api/check/health"
+      port: 7181
+      scheme: "HTTP"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 40
+    serviceAccount:
+      annotations: {}
+    env:
+      HOSTNAME: "ds-identity-hub"
+      XROAD_HOST: "ds-identity-hub"
+      XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer"
+      EDC_IH_DID_PUBLIC_HOSTNAME: "ds-identity-hub"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      # The shared gRPC provisioning server resolves xroad.common-rpc.use-tls (and the
+      # cert-provisioning config behind it) through the DSL; without the DB config source
+      # it falls back to packaged defaults, starts plaintext, and the admin-service TLS
+      # client times out against it.
+      DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+      DB_CONFIG_SOURCE_USERNAME: "serverconf"
+      XROAD_HOST: "ds-identity-hub"
+      XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub"
+      XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME: "ds_identity_hub"
+      EDC_IAM_DID_WEB_USE_HTTPS: "false"
+      DEBUG: "true"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-ds-identity-hub"
+        key: "password"
+      - name: "DB_CONFIG_SOURCE_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+    waits:
+      - type: serverconfProperty
+        key: xroad.proxy-ui-api.dataspace.participant-id
+      - type: postgres
+        host: db-ds-identity-hub
+        name: wait-db
+
+  ds-issuer-service:
+    imageName: ds-issuer-service
+    replicas: 0
+    resources:
+      requests:
+        memory: "256M"
+      limits:
+        memory: "640M"
+    ports:
+      - port: 6181
+        name: health
+      - port: 6183
+        name: did
+      - port: 6184
+        name: sts
+      - port: 6185
+        name: issuance
+      - port: 6187
+        name: statuslist
+      - port: 9999
+        name: debug
+    readinessProbe:
+      path: "/api/check/health"
+      port: 6181
+      scheme: "HTTP"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 40
+    livenessProbe:
+      path: "/api/check/health"
+      port: 6181
+      scheme: "HTTP"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 40
+    serviceAccount:
+      annotations: {}
+    env:
+      HOSTNAME: "ds-issuer-service"
+      XROAD_SECRET_STORE_HOST: "openbao"
+      XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service"
+      XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME: "ds_issuer_service"
+      EDC_IAM_DID_WEB_USE_HTTPS: "false"
+      DEBUG: "true"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-ds-issuer-service"
+        key: "password"
+    waits:
+      - type: postgres
+        host: db-ds-issuer-service
+        name: wait-db
+
+messageLogArchiver:
+  ttlSecondsAfterFinished: 172800 # 48 hours
+  activeDeadlineSeconds: 21600 # 6 hours
+  imageName: ss-message-log-archiver
+  env:
+    JAVA_OPTS: "-XX:MaxMetaspaceSize=160m -XX:+ExitOnOutOfMemoryError"
+    XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog:5432/messagelog"
+    XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
+    XROAD_SECRET_STORE_HOST: "openbao"
+    DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
+    DB_CONFIG_SOURCE_USERNAME: "serverconf"
+  envFromSecrets:
+    - name: "XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD"
+      secretName: "db-messagelog"
+      key: "password"
+    - name: "XROAD_SECRET_STORE_TOKEN"
+      secretName: "xroad-token"
+      key: "XROAD_SECRET_STORE_TOKEN"
+    - name: "DB_CONFIG_SOURCE_PASSWORD"
+      secretName: "db-serverconf"
+      key: "password"
+  volumeMounts:
+    - mountPath: /var/lib/xroad
+      name: archive-volume
+  volumes:
+    - name: archive-volume
+      persistentVolumeClaim:
+        claimName: message-log-archives-pvc
+  # Additive counterparts to volumes/volumeMounts above (see
+  # templates/message-log-archiver-job-configmap.yaml) — appended rather than
+  # replacing them, since a Helm values override replaces a list wholesale and
+  # archive-volume must survive any e2e/dev overlay that also needs a mount here.
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# Messagelog DB + archive encryption, projected as a single Quarkus config
+# file (application.yaml) into the proxy and message-log-archiver containers
+# via their extraVolumes/extraVolumeMounts. See
+# MessageLogEncryptionProperties (lib/messagelog-core) for the config
+# contract this feeds. Off by default — no ConfigMap, no mounts.
+messageLogEncryption:
+  enabled: false
+  applicationYaml: ""
+
+# OpenBao (secret store) TLS trust. When caSecretName is set, every workload
+# whose env carries XROAD_SECRET_STORE_HOST gets the CA mounted and trusted —
+# the rule lives in services/all.yaml. Empty: no mount, no trust env.
+secretStore:
+  tls:
+    caSecretName: ""
+    caSecretKey: "tls.crt"
 
 persistentVolumeClaims:
   backups-pvc:
@@ -426,6 +806,21 @@ persistentVolumeClaims:
   gpg-keys-pvc:
     accessMode: ReadWriteOnce
     storage: 128Mi
+  message-log-archives-pvc:
+    accessMode: ReadWriteOnce
+    storage: 1Gi
+  # Sized like gpg-keys-pvc, not the 1Gi archive claims — the token directory
+  # holds a handful of keys and certs. Mounted by the signer service below.
+  signer-tokens-pvc:
+    accessMode: ReadWriteOnce
+    storage: 128Mi
+
+jvmHeap:
+  maxRAMPercentage: 60.0
+  # Cap glibc malloc arenas fleet-wide: these JVMs are small-heap/large-native
+  # (netty direct buffers, per-thread arenas) and default 8×cores arenas bloat RSS.
+  # Per-service env can override (e.g. set "" to disable for a throughput-sensitive svc).
+  mallocArenaMax: 2
 
 jvmMetrics:
   enabled: false
@@ -436,3 +831,52 @@ jvmMetrics:
       lowercaseOutputLabelNames: true
       rules:
         - pattern: ".*"
+
+otel:
+  enabled: false
+  # Optional node suffix for dev environments where multiple SS instances share one Jaeger backend (e.g. ss2).
+  nodeId: ""
+  # OTLP endpoint. Must match `protocol`: gRPC defaults to :4317, http/protobuf to :4318.
+  endpoint: ""
+  protocol: grpc
+  sampler: parentbased_always_on
+  resourceAttributes:
+    serviceNamespace: xroad
+    deploymentEnvironment: k8s-dev
+
+# PostgreSQL image used by DSP wait-gate initContainers (`xroad.dsp.wait.*`
+# helpers shell into this image for `pg_isready` / `psql`). The DB clusters
+# themselves are provisioned externally — in the ansible dev stack by the
+# cloudnative_pg role, in production by whatever operator owns DSP state.
+# Required only when any ds-* service has replicas > 0; when DSP is off,
+# `xroad.dsp.enabled` short-circuits all DSP-scoped resources.
+postgres:
+  image: ""
+
+# participantContextId, when non-empty, overrides the per-release DSP
+# participant-context identifier everywhere the chart carries it: the
+# ds-control-plane service's XROAD_DSP_PARTICIPANT_CONTEXT_ID env (see
+# templates/_configmap.tpl's `xroad.configmap.env`) and the two configSeed
+# rows the proxy and ds-identity-hub gate their startup on
+# (xroad.proxy.dsp.participant-context-id,
+# xroad.proxy-ui-api.dataspace.participant-id — see
+# templates/init/config-seed-job.yaml). Left empty by default so a standalone
+# `helm install` with no overrides keeps the "security-server" defaults
+# unchanged; set it (e.g. per Security Server Helm release) to give distinct
+# releases distinct identifiers instead of conflating them on the same value.
+dsp:
+  participantContextId: ""
+
+# Wait-gate initContainer resources + retry tunables. Conservative defaults
+# so wait-gate Pods are not BestEffort QoS (first-OOM-kill target).
+# maxAttempts × periodSeconds = total wait cap (default 120 × 2s = 240s).
+waitGate:
+  maxAttempts: 120
+  periodSeconds: 2
+  resources:
+    requests:
+      cpu: "10m"
+      memory: "16Mi"
+    limits:
+      cpu: "100m"
+      memory: "64Mi"

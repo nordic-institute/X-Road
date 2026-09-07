@@ -25,14 +25,21 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdBtn
-    v-if="canBackup"
-    data-test="backup-restore"
-    variant="text"
-    color="tertiary"
-    text="action.restore"
-    @click="showConfirmation = true"
-  />
+  <v-tooltip v-if="canBackup" :disabled="compatible">
+    <template #activator="{ props: tooltipProps }">
+      <span v-bind="tooltipProps">
+        <XrdBtn
+          data-test="backup-restore"
+          variant="text"
+          color="tertiary"
+          text="action.restore"
+          :disabled="!compatible"
+          @click="showConfirmation = true"
+        />
+      </span>
+    </template>
+    {{ $t('backup.restoreFromBackup.incompatibleTooltip') }}
+  </v-tooltip>
   <XrdConfirmDialog
     v-if="showConfirmation && canBackup"
     :loading="restoring"
@@ -45,64 +52,52 @@
   />
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { PropType, ref } from 'vue';
 
 import { useNotifications } from '../../composables';
 import { BackupHandler } from '../../types';
 
 import { XrdBtn, XrdConfirmDialog } from '../../components';
 
-export default defineComponent({
-  components: {
-    XrdBtn,
-    XrdConfirmDialog,
+const props = defineProps({
+  canBackup: {
+    type: Boolean,
+    required: true,
   },
-  props: {
-    canBackup: {
-      type: Boolean,
-      required: true,
-    },
-    filename: {
-      type: String,
-      required: true,
-    },
-    backupHandler: {
-      type: Object as PropType<BackupHandler>,
-      required: true,
-    },
+  filename: {
+    type: String,
+    required: true,
   },
-  emits: ['refresh-backups'],
-  setup() {
-    const { addError, addSuccessMessage } = useNotifications();
-    return { addError, addSuccessMessage };
+  backupHandler: {
+    type: Object as PropType<BackupHandler>,
+    required: true,
   },
-  data() {
-    return {
-      showConfirmation: false,
-      restoring: false,
-    };
-  },
-  computed: {},
-  methods: {
-    restoreFromBackup() {
-      this.restoring = true;
-      this.backupHandler
-        .restore(this.filename)
-        .then(() =>
-          this.addSuccessMessage('backup.restoreFromBackup.success', {
-            file: this.filename,
-          }),
-        )
-        .then(() => this.$emit('refresh-backups'))
-        .catch((error) => this.addError(error))
-        .finally(() => {
-          this.showConfirmation = false;
-          this.restoring = false;
-        });
-    },
+  compatible: {
+    type: Boolean,
+    default: true,
   },
 });
+
+const { addError, addSuccessMessage } = useNotifications();
+
+const showConfirmation = ref(false);
+const restoring = ref(false);
+
+async function restoreFromBackup() {
+  restoring.value = true;
+  return props.backupHandler
+    .restore(props.filename)
+    .then(() =>
+      addSuccessMessage('backup.restoreFromBackup.success', {
+        file: props.filename,
+      }),
+    )
+    .catch((error) => addError(error))
+    .finally(() => {
+      showConfirmation.value = false;
+      restoring.value = false;
+    });
+}
 </script>
 
-<style lang="scss" scoped></style>

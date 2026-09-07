@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -41,12 +40,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -78,7 +80,7 @@ import static org.mockito.Mockito.when;
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class OpMonitoringBufferImplTest {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @Mock
     private CloseableHttpClient httpClient;
@@ -134,9 +136,9 @@ class OpMonitoringBufferImplTest {
         });
 
         ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties =
-                ConfigUtils.initConfiguration(ProxyProperties.Addon.class, Map.of(
+                new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(Map.of(
                         "xroad.proxy.addon.op-monitor.buffer.size", "10000"
-                )).opMonitor();
+                )).build()).addon().opMonitor();
 
         final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties);
         int requestCount = 30_000;
@@ -172,9 +174,9 @@ class OpMonitoringBufferImplTest {
     @Test
     void bufferOverflow() throws Exception {
         ProxyProperties.Addon.ProxyAddonOpMonitorProperties opMonitorProperties =
-                ConfigUtils.initConfiguration(ProxyProperties.Addon.class, Map.of(
+                new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(Map.of(
                         "xroad.proxy.addon.op-monitor.buffer.size", "2"
-                )).opMonitor();
+                )).build()).addon().opMonitor();
 
         final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorProperties) {
             @Override
@@ -214,9 +216,9 @@ class OpMonitoringBufferImplTest {
         var serverConfProvider = mock(ServerConfProvider.class);
         var vaultTlsCredentialsProvider = mock(VaultClient.class);
         new OpMonitoringBufferImpl(serverConfProvider,
-                ConfigUtils.initConfiguration(ProxyProperties.Addon.class, Map.of(
+                new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).overrides(Map.of(
                         "xroad.proxy.addon.op-monitor.buffer.size", "0"
-                )).opMonitor(),
+                )).build()).addon().opMonitor(),
                 vaultTlsCredentialsProvider, false);
         verifyNoInteractions(serverConfProvider);
     }

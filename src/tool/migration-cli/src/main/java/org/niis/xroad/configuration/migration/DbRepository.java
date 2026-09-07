@@ -44,10 +44,7 @@ public class DbRepository implements AutoCloseable {
 
     private static final String UPSERT_KEY_VALUE =
             "INSERT INTO configuration_properties(property_key, property_value) VALUES (?, ?) "
-                    + " ON CONFLICT (property_key) WHERE scope IS NULL DO UPDATE SET property_value = EXCLUDED.property_value";
-    private static final String UPSERT_KEY_VALUE_SCOPE =
-            "INSERT INTO configuration_properties(property_key, property_value, scope) VALUES (?, ?, ?) "
-                    + " ON CONFLICT (property_key, scope) WHERE scope IS NOT NULL DO UPDATE SET property_value = EXCLUDED.property_value";
+                    + " ON CONFLICT (property_key) DO UPDATE SET property_value = EXCLUDED.property_value";
 
     private static final String UPSERT_CONFIGURATION_ANCHOR =
             "INSERT INTO configuration_client(name, content) VALUES ('configuration-anchor', ?) "
@@ -82,17 +79,10 @@ public class DbRepository implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public void saveProperty(String key, String value, String scope) {
-        boolean withScope = StringUtils.isNotBlank(scope);
-
-        String sql = withScope ? UPSERT_KEY_VALUE_SCOPE : UPSERT_KEY_VALUE;
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+    public void saveProperty(String key, String value) {
+        try (PreparedStatement statement = connection.prepareStatement(UPSERT_KEY_VALUE)) {
             statement.setString(1, key);
             statement.setString(2, value);
-            if (withScope) {
-                statement.setString(3, scope);
-            }
             statement.executeUpdate();
         } catch (Exception e) {
             throw new MigrationException("Failed to save configuration property %s".formatted(key), e);

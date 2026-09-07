@@ -37,6 +37,15 @@ import org.junit.Test;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusResponse;
@@ -63,6 +72,9 @@ import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +82,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -99,6 +113,37 @@ import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
         properties = {"spring.main.lazy-initialization=true"})
 @WithMockUser(authorities = {"DIAGNOSTICS"})
 public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
+
+    private static final int UNBOUND_PROXY_PORT = pickClosedPort();
+
+    /** Supplies the test proxy-server-url via the XRoadConfig resolver (AdminServiceProperties no longer reads the Spring env). */
+    @TestConfiguration
+    static class ProxyServerUrlConfig {
+        @Bean
+        @Primary
+        XRoadConfig proxyServerUrlXRoadConfig() {
+            return XRoadConfigBuilder.create()
+                    .register(CommonRpcConfigKeys.instance())
+                    .register(CommonConfigKeys.instance())
+                    .register(AdminServiceConfigKeys.instance())
+                    .register(OcspVerifierConfigKeys.instance())
+                    .register(GlobalConfConfigKeys.instance())
+                    .register(ServerConfConfigKeys.instance())
+                    .register(DataspaceConfigKeys.instance())
+                    .overrides(Map.of(
+                            "xroad.proxy-ui-api.proxy-server-url", "https://localhost:" + UNBOUND_PROXY_PORT,
+                            "xroad.common-rpc.use-tls", "false"))
+                    .build();
+        }
+    }
+
+    private static int pickClosedPort() {
+        try (ServerSocket s = new ServerSocket(0)) {
+            return s.getLocalPort();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to allocate an ephemeral port", e);
+        }
+    }
 
     private static final OffsetDateTime PREVIOUS_UPDATE = TimeUtils.offsetDateTimeNow().with(LocalTime.of(10, 42));
     private static final OffsetDateTime NEXT_UPDATE = PREVIOUS_UPDATE.plusHours(1);
@@ -133,14 +178,14 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getBackupEncryptionDiagnostics() {
-        when(backupManagerRpcClient.getEncryptionStatus()).thenReturn(
+        when(auxiliaryServiceRpcClient.getEncryptionStatus()).thenReturn(
                 new BackupEncryptionStatusDiagnostics(true, List.of("keyid")));
         ResponseEntity<BackupEncryptionStatusDto> response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getBackupEncryptionStatus());
         assertEquals(1, response.getBody().getBackupEncryptionKeys().size());
 
-        when(backupManagerRpcClient.getEncryptionStatus()).thenReturn(
+        when(auxiliaryServiceRpcClient.getEncryptionStatus()).thenReturn(
                 new BackupEncryptionStatusDiagnostics(false, List.of()));
         response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -579,7 +624,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(DiagnosticStatusClassDto.FAIL, connectionStatusDto.getStatusClass());
         assertEquals("network_error", connectionStatusDto.getError().getCode());
         assertThat(connectionStatusDto.getError().getMetadata().getFirst())
-                .contains("Connect to localhost:8443")
+                .contains("Connect to localhost:" + UNBOUND_PROXY_PORT)
                 .contains("Connection refused");
     }
 

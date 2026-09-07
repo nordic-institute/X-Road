@@ -1,6 +1,6 @@
 plugins {
   id("com.google.protobuf")
-  java
+  id("xroad.java-config-conventions")
 }
 
 val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs")

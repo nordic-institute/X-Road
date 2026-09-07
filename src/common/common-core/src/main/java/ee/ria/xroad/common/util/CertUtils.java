@@ -230,6 +230,23 @@ public final class CertUtils {
         return getRDNValue(x500name, BCStyle.SERIALNUMBER);
     }
 
+    /**
+     * Checks if this certificate is an authentication certificate.
+     * The certificate is an authentication certificate, if it has ExtendedKeyUsage extension which contains
+     * <pre>ClientAuthentication</pre> or if it has keyUsage extension which has <pre>digitalSignature</pre>,
+     * <pre>keyEncipherment</pre> or <pre>dataEncipherment</pre> bit set.
+     *
+     * @param cert certificate to check
+     * @return boolean
+     * @throws XrdRuntimeException with {@code CertificateParsingException} if the cert has no keyUsage extension
+     */
+    public static boolean isAuthCertOrThrow(X509Certificate cert) {
+        try {
+            return isAuthCert(cert);
+        } catch (CertificateParsingException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
 
     /**
      * Checks if this certificate is an authentication certificate.

@@ -1,0 +1,17 @@
+---
+
+- name: Enable PostgreSQL 15 module (RHEL 9 only)
+  become: true
+  command: dnf module enable postgresql:15 -y
+  when:
+    - ansible_facts['distribution_major_version'] | int == 9
+
+- name: Ensure tar, ca-certificates, curl and Java 25 are present
+  become: true
+  dnf:
+    name:
+      - tar
+      - ca-certificates
+      - curl
+      - java-25-openjdk-headless
+    state: present

@@ -39,8 +39,7 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +53,6 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.confclient.proto.CheckAndGetConnectionStatusRequest;
@@ -73,6 +71,9 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -232,12 +233,12 @@ public class DiagnosticConnectionService {
 
                     try (CloseableHttpResponse response = proxyHttpClient.execute(request)) {
                         if (response.getStatusLine().getStatusCode() != HTTP_200) {
-                            ObjectMapper mapper = new ObjectMapper();
+                            ObjectMapper mapper = JsonMapper.builder().build();
                             String body = EntityUtils.toString(response.getEntity());
                             JsonNode json = mapper.readTree(body);
 
-                            String errorCode = json.has("type") ? json.get("type").asText() : "Error";
-                            String details = json.has("message") ? json.get("message").asText() : body;
+                            String errorCode = json.has("type") ? json.get("type").asString() : "Error";
+                            String details = json.has("message") ? json.get("message").asString() : body;
 
                             return ConnectionStatus.error(errorCode, List.of(details));
                         }
@@ -275,7 +276,7 @@ public class DiagnosticConnectionService {
     }
 
     @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
-    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws NoSuchAlgorithmException, KeyManagementException {
+    private CloseableHttpClient createProxyHttpClientWithInternalKey() {
         TrustManager trustManager = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -296,11 +297,14 @@ public class DiagnosticConnectionService {
         return createHttpClient(new KeyManager[] {new ClientSslKeyManager(serverConfProvider)}, new TrustManager[] {trustManager});
     }
 
-    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers)
-            throws NoSuchAlgorithmException, KeyManagementException {
-
-        SSLContext sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        sslContext.init(keyManagers, trustManagers, new SecureRandom());
+    private CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers) {
+        SSLContext sslContext;
+        try {
+            sslContext = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+            sslContext.init(keyManagers, trustManagers, new SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
 
         SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
 
@@ -363,8 +367,7 @@ public class DiagnosticConnectionService {
     }
 
     private static SoapMessageImpl buildListMethodsSoapMessage(ClientId clientId, ClientId targetClientId,
-                                                               SecurityServerId securityServerId)
-            throws IllegalAccessException, SOAPException, JAXBException, IOException {
+                                                               SecurityServerId securityServerId) {
 
         SoapHeader header = new SoapHeader();
         header.setClient(clientId);
@@ -381,8 +384,11 @@ public class DiagnosticConnectionService {
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);
         builder.setRpcEncoded(false);
-
-        return builder.build();
+        try {
+            return builder.build();
+        } catch (IllegalAccessException | SOAPException | JAXBException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
     }
 
     private static String getRestPath(ClientId clientId) {

@@ -26,20 +26,21 @@
  */
 package org.niis.xroad.signer.softtoken.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
 import java.time.Duration;
 
-/**
- * Configuration properties for softtoken-signer keys' synchronization from signer.
- */
-@ConfigMapping(prefix = "xroad.softtoken-signer.keys")
-public interface SoftTokenSignerKeysProperties {
+import static org.niis.xroad.signer.softtoken.config.SoftTokenSignerConfigKeys.KEYS_SYNC_RATE;
 
-    @WithName("sync-rate")
-    @WithDefault("30S")
-    Duration syncRate();
+/** Configuration properties for softtoken-signer keys synchronization from signer. */
+@RequiredArgsConstructor
+public class SoftTokenSignerKeysProperties {
 
+    private final XRoadConfig xRoadConfig;
+
+    /** @return rate at which keys are synchronized from signer */
+    public Duration syncRate() {
+        return xRoadConfig.value(KEYS_SYNC_RATE);
+    }
 }

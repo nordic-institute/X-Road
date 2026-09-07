@@ -43,7 +43,7 @@ public class DevicesIniToDbMigrator extends BasePropertiesToDbMigrator {
     public static void main(String[] args) {
         validateParams(args);
 
-        new DevicesIniToDbMigrator().migrate(args[0], args[1], "signer");
+        new DevicesIniToDbMigrator().migrate(args[0], args[1]);
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

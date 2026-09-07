@@ -16,7 +16,7 @@ cp.mydomain.com ansible_ssh_user=ubuntu
 
 #certification authority, time stamping authority and ocsp service server (ubuntu)
 [ca_servers]
-ca.mydomain.com ansible_ssh_user=ubuntu
+ca.mydomain.com ansible_ssh_user=ubuntu ubuntu_releasever=noble
 
 #a custom super group for overriding variable defaults
 [example:children]

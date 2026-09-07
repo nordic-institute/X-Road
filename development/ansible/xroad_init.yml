@@ -15,10 +15,17 @@
         msg: "Variant '{{ variant }}' does not support RHEL-servers"
       when:
         - (variant is defined and variant == "ee")
-        - ansible_os_family == "RedHat"
+        - ansible_facts['os_family'] == "RedHat"
+
+- hosts: ca_servers
+  become: true
+  become_user: root
+  roles:
+    - role: xroad-ca
+      tags: ["ca"]
 
 - hosts: cs_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - xroad-cs
@@ -30,7 +37,7 @@
     - vars_files/base.yml
 
 - hosts: cp_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - xroad-cp
@@ -38,10 +45,11 @@
     - cp
   vars_files:
     - vars_files/remote_repo.yml
+    - vars_files/cp_database.yml
     - vars_files/base.yml
 
 - hosts: ss_servers
-  become: yes
+  become: true
   become_user: root
   roles:
     - xroad-ss
@@ -51,10 +59,3 @@
     - vars_files/remote_repo.yml
     - vars_files/ss_database.yml
     - vars_files/base.yml
-
-- hosts: ca_servers
-  become: yes
-  become_user: root
-  roles:
-    - role: xroad-ca
-      tags: [ 'ca' ]

@@ -126,6 +126,14 @@ tasks.register("xjc") {
         "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v6/shared-parameters.xsd",
         "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
       )
+
+      // Generate classes for federateable global external conf v7
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v7",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v7/shared-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
     }
   }
 }

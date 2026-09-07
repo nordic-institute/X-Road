@@ -25,25 +25,32 @@
  */
 package org.niis.xroad.signer.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@ConfigMapping(prefix = "xroad.signer.rpc")
-public interface SignerRpcServerProperties extends RpcServerProperties {
-    @WithName("enabled")
-    @WithDefault("true")
-    @Override
-    boolean enabled();
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.RPC_ENABLED;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.RPC_LISTEN_ADDRESS;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.RPC_PORT;
 
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
-    @Override
-    String listenAddress();
+/** Signer RPC server properties ({@code xroad.signer.rpc.*}). */
+@RequiredArgsConstructor
+public class SignerRpcServerProperties implements RpcServerProperties {
 
-    @WithName("port")
-    @WithDefault("5560")
+    private final XRoadConfig xRoadConfig;
+
     @Override
-    int port();
+    public boolean enabled() {
+        return xRoadConfig.value(RPC_ENABLED);
+    }
+
+    @Override
+    public String listenAddress() {
+        return xRoadConfig.value(RPC_LISTEN_ADDRESS);
+    }
+
+    @Override
+    public int port() {
+        return xRoadConfig.value(RPC_PORT);
+    }
 }

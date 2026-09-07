@@ -1,4 +1,15 @@
 ---
+- name: copy CP container configuration files
+  copy:
+    src: "files/cp/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['cp_servers']
+  tags: dev-configuration
+
 - name: copy CS container configuration files
   copy:
     src: "files/cs/"
@@ -21,25 +32,80 @@
   when: inventory_hostname in groups['ss_servers']
   tags: dev-configuration
 
+# The SS conf.d entries below are per-host renders (templates), not part of the
+# files/ss/ tree copied above, so that copy no longer creates /etc/xroad/conf.d.
+# This play runs before the package creates it, so create it explicitly here.
+- name: ensure /etc/xroad/conf.d exists for per-host SS renders
+  file:
+    path: /etc/xroad/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: inventory_hostname in groups['ss_servers']
+  tags: dev-configuration
+
+- name: render per-host OTEL config
+  template:
+    src: "otel.conf.j2"
+    dest: "/etc/xroad/conf.d/otel.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: inventory_hostname in groups['ss_servers']
+  tags: dev-configuration
+
+# Per-host (not static): proxy-ui-api's dataspace provisioning block needs this
+# SS's own inventory_hostname for identity-hub-url/participant-id, so it can't
+# live in the plain files/ss/ tree above like the rest of the dev config.
+#
+# owner/group root (not xroad): this play runs before xroad-base creates the
+# xroad user/group (that happens during the CS/SS install plays further down),
+# same reasoning as the plain copy tasks above.
+- name: render per-host SS local.yaml (dev config + dataspace provisioning)
+  template:
+    src: "ss-local.yaml.j2"
+    dest: "/etc/xroad/conf.d/local.yaml"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: inventory_hostname in groups['ss_servers']
+  tags: dev-configuration
+
 - name: Install and configure Mailpit
   when: inventory_hostname in groups['cs_servers']
   block:
-    - name: Download and run Mailpit installation script
-      shell: curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
-      args:
+# Deliberately NOT the upstream install.sh: it resolves the latest release via the GitHub
+# API, and anonymous API calls from shared CI runner IPs get rate-limited ("Unable to
+# determine the latest version"). The releases/latest/download/ URL is a plain web redirect
+# with no such limit and needs no token.
+    - name: Download and extract Mailpit
+      vars:
+        mailpit_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
+      unarchive:
+        src: "https://github.com/axllent/mailpit/releases/latest/download/mailpit-linux-{{ mailpit_arch }}.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        include:
+          - mailpit
         creates: /usr/local/bin/mailpit
+        mode: "0755"
+      register: mailpit_install
+      retries: 3
+      delay: 15
+      until: mailpit_install is succeeded
 
     - name: Create Mailpit config directory
       file:
         path: /etc/mailpit
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: Create auth file
       copy:
         dest: /etc/mailpit/auth.txt
         content: "testusername:testpassword"
-        mode: '0644'
+        mode: "0644"
 
     - name: Generate TLS certificates
       shell: |
@@ -55,7 +121,7 @@
     - name: Set TLS cert permissions
       file:
         path: "{{ item }}"
-        mode: '0644'
+        mode: "0644"
       loop:
         - /etc/mailpit/cert.pem
         - /etc/mailpit/key.pem
@@ -81,17 +147,17 @@
 
           [Install]
           WantedBy=multi-user.target
-        mode: '0644'
+        mode: "0644"
 
     - name: Reload systemd daemon
       systemd:
-        daemon_reload: yes
+        daemon_reload: true
 
     - name: Enable and start Mailpit service
       systemd:
         name: mailpit
         state: started
-        enabled: yes
+        enabled: true
   tags:
     - dev-configuration
     - mailpit

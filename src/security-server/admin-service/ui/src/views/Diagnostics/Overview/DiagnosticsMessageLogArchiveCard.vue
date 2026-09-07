@@ -138,7 +138,7 @@ export default defineComponent({
   :deep(.v-card-title),
   :deep(.v-card-text),
   :deep(.v-table__wrapper) {
-    background-color: rgba(var(--v-theme-on-surface-variant), 0.08) !important;
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface-variant)) 8%, transparent) !important;
   }
 
   :deep(.component-title-text),

@@ -17,6 +17,20 @@ Generate volume name from path (e.g., /var/log/xroad -> var-log-xroad)
 
 
 {{/*
+softtoken-signer feature gate — non-empty when services.softtoken-signer.replicas > 0.
+Mirrors xroad.dsp.enabled's replicas-driven pattern (templates/dsp/_helpers.tpl): the workload's
+own render (services/all.yaml's generic replicas>0 skip) and the proxy consumer env
+(_configmap.tpl) both read this single value, so they cannot drift behind two separate toggles.
+
+Call shape:
+  {{- if include "xroad.softtokenSigner.enabled" . }} ... {{- end }}
+*/}}
+{{- define "xroad.softtokenSigner.enabled" -}}
+{{- $svc := index (.Values.services | default dict) "softtoken-signer" | default dict -}}
+{{- if gt (int ($svc.replicas | default 0)) 0 }}true{{ end -}}
+{{- end }}
+
+{{/*
 Service template
 */}}
 {{- define "xroad.service" -}}
@@ -58,6 +72,13 @@ spec:
 Deployment template
 */}}
 {{- define "xroad.deployment" -}}
+{{- $replicas := 1 -}}
+{{- if hasKey .config "replicas" -}}{{- $replicas = .config.replicas | int -}}{{- end -}}
+{{- if gt $replicas 0 -}}
+{{- if not .config.image -}}
+{{- $_ := required (printf "services.%s.imageName required when replicas>0 (unless services.%s.image is set)" .service .service) .config.imageName -}}
+{{- end -}}
+{{- end -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -66,7 +87,11 @@ metadata:
     {{- include "xroad.labels" .root | nindent 4 }}
     app: xroad-{{ .service }}
 spec:
-  replicas: 1
+  replicas: {{ $replicas | int }}
+  {{- if .config.strategy }}
+  strategy:
+    {{- toYaml .config.strategy | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: xroad-{{ .service }}
@@ -75,6 +100,10 @@ spec:
       labels:
         {{- include "xroad.labels" .root | nindent 8 }}
         app: xroad-{{ .service }}
+      {{- with .root.Values.global.extraPodAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       securityContext:
         {{- toYaml .root.Values.securityContext.pod | nindent 8 }}
@@ -91,10 +120,20 @@ spec:
         - name: {{ . }}
         {{- end }}
       {{- end }}
+      {{- if .config.initContainers }}
+      initContainers:
+        {{- range .config.initContainers }}
+        {{- . | nindent 8 }}
+        {{- end }}
+      {{- end }}
       containers:
         - name: {{ .service }}
-          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          image: {{ if .config.image }}{{ .config.image | quote }}{{ else }}{{ printf "%s/%s:%s" .root.Values.global.image.registry .config.imageName .root.Values.global.image.tag | quote }}{{ end }}
           imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
+          {{- if .config.command }}
+          command:
+            {{- toYaml .config.command | nindent 12 }}
+          {{- end }}
           securityContext:
             {{- toYaml .root.Values.securityContext.container | nindent 12 }}
           ports:
@@ -125,7 +164,7 @@ spec:
             - name: {{ .name }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secretName }}
+                  name: {{ if .releaseNamePrefix }}{{ $.root.Release.Name }}-{{ .secretName }}{{ else }}{{ .secretName }}{{ end }}
                   key: {{ .key }}
             {{- end }}
           volumeMounts:
@@ -153,13 +192,13 @@ spec:
           readinessProbe:
             httpGet:
               path: {{ .config.readinessProbe.path }}
-              port: {{ (index .config.ports 0).port }}
-              scheme: {{ .config.readinessProbe.scheme }}
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 1
+              port: {{ .config.readinessProbe.port | default (index .config.ports 0).port }}
+              scheme: {{ .config.readinessProbe.scheme | default "HTTP" }}
+            initialDelaySeconds: {{ .config.readinessProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .config.readinessProbe.periodSeconds | default 5 }}
+            timeoutSeconds: {{ .config.readinessProbe.timeoutSeconds | default 1 }}
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: {{ .config.readinessProbe.failureThreshold | default 3 }}
           {{- if .config.livenessProbe }}
           livenessProbe:
             httpGet:
@@ -194,6 +233,10 @@ spec:
         - name: {{ .name }}
           persistentVolumeClaim:
             claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ $.root.Release.Name }}-{{ .configMap.name }}
         {{- else }}
         - {{ toYaml . | nindent 10 }}
         {{- end }}
@@ -205,6 +248,10 @@ spec:
         - name: {{ .name }}
           persistentVolumeClaim:
             claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ $.root.Release.Name }}-{{ .configMap.name }}
         {{- else }}
         - {{ toYaml . | nindent 10 }}
         {{- end }}

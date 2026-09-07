@@ -1,0 +1,104 @@
+---
+# Full base topology: kind cluster + Central Server chart + two Security Server chart
+# releases (ss0/ss1, each with its own serverconf/messagelog/opmonitor Postgres + OpenBao)
+# + e2e-fixtures chart (test CA, mock IS, mailpit, hurl bootstrap incl. DS TLS provisioning) —
+# same playbooks/site.yml, roles and charts as inventory/e2e, differing only in the values
+# below. DSP is on. No LXD dependency: everything runs in-cluster.
+
+cluster_provider: kind
+kind_cluster_name: xroad-dev-cluster
+kind_worker_count: 2
+kubeconfig_path: "{{ lookup('env', 'HOME') }}/.kube/config"
+
+# Retained as the single-instance fallback the OpenBao/Security Server loops default to when
+# security_server_instances isn't set — unused here since dev always sets that list, kept
+# defined to satisfy site.yml's pre_tasks assert.
+security_server_namespace: ss0
+monitoring_namespace: ss-monitoring
+
+central_server_namespace: cs
+e2e_fixtures_namespace: cs
+central_server_enabled: true
+e2e_fixtures_enabled: true
+
+xroad_image_registry: "localhost:5555"
+xroad_image_tag: "latest"
+serverconf_init_image: "localhost:5555/ss-db-init:latest"
+jvm_metrics_enabled: true
+
+charts_root: "{{ playbook_dir }}/../../../deployment/security-server/k8s/charts"
+
+openbao_init_chart_repo: ""
+openbao_init_chart: "{{ charts_root }}/openbao-init"
+openbao_init_chart_version: ""
+
+security_server_chart_repo: ""
+security_server_chart: "{{ charts_root }}/security-server"
+security_server_chart_version: ""
+
+central_server_chart_repo: ""
+central_server_chart: "{{ playbook_dir }}/../../../deployment/central-server/k8s/charts/central-server"
+central_server_chart_version: ""
+
+e2e_fixtures_chart_repo: ""
+e2e_fixtures_chart: "{{ playbook_dir }}/../charts/e2e-fixtures"
+e2e_fixtures_chart_version: ""
+
+postgres_image: "ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie"
+
+openbao_chart_repo: "https://openbao.github.io/openbao-helm"
+openbao_chart: "openbao/openbao"
+openbao_chart_version: "0.25.6"
+
+prometheus_chart_repo: "https://prometheus-community.github.io/helm-charts"
+prometheus_chart: "prometheus-community/kube-prometheus-stack"
+prometheus_chart_version: "80.4.1"
+
+containerd_config_patches:
+  - |
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5555"]
+      endpoint = ["http://host.docker.internal:5555"]
+
+external_service_host: host.docker.internal
+
+# No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
+external_service_bridges: []
+
+# The Issuer Service is co-located in the Central Server dev image (port 6183), reached
+# cross-namespace — same as e2e.
+trusted_issuer_host: central-server.cs
+
+# Two Security Server chart releases in separate namespaces, mirroring e2e's ss0/ss1 topology.
+# ss0 enables the softtoken-signer split (security_server role's softtoken_signer_enabled var)
+# and ss1 enables the signer image override toggle (signer_hsm_enabled): the shared hurl
+# bootstrap (e2e_fixtures role) needs ss1 to expose a pkcs11 HARDWARE token regardless of
+# which inventory runs it. Mirrors e2e's split so dev and e2e stay converged.
+security_server_instances:
+  - namespace: ss0
+    dsp_participant_context_id: xrd-ss0
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss0"
+    softtoken_signer_enabled: true
+  - namespace: ss1
+    dsp_participant_context_id: xrd-ss1
+    openbao_tls_dir: "{{ playbook_dir }}/../.state/openbao-tls-ss1"
+    signer_hsm_enabled: true
+
+deploy_prometheus: true
+deploy_netdata: true
+
+openbao_ha_replicas: 2
+openbao_tls_mode: self_signed
+
+# ss1 forwards to the same local host (localhost) as ss0, so it needs its own local ports —
+# ss1's are ss0's + 1, same scheme as inventory/e2e.
+port_forwards:
+  - {name: proxy-ui-api, namespace: ss0, resource: svc/proxy-ui-api, ports: "4000:4000"}
+  - {name: proxy-http, namespace: ss0, resource: svc/proxy, ports: "5500:5500"}
+  - {name: proxy-ocsp, namespace: ss0, resource: svc/proxy, ports: "5577:5577"}
+  - {name: proxy-8080, namespace: ss0, resource: svc/proxy, ports: "8080:8080"}
+  - {name: proxy-8443, namespace: ss0, resource: svc/proxy, ports: "8443:8443"}
+  - {name: ss1-proxy-ui-api, namespace: ss1, resource: svc/proxy-ui-api, ports: "4001:4000"}
+  - {name: ss1-proxy-http, namespace: ss1, resource: svc/proxy, ports: "5501:5500"}
+  - {name: ss1-proxy-ocsp, namespace: ss1, resource: svc/proxy, ports: "5578:5577"}
+  - {name: ss1-proxy-8080, namespace: ss1, resource: svc/proxy, ports: "8081:8080"}
+  - {name: ss1-proxy-8443, namespace: ss1, resource: svc/proxy, ports: "8444:8443"}

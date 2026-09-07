@@ -86,7 +86,7 @@ public class AttachmentBig extends MessageTestCase {
     }
 
     @Override
-    protected int getClientTimeout() {
+    public int getClientTimeout() {
         // This test may take a long time.
         return 300000;
     }

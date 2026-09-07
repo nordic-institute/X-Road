@@ -5,9 +5,11 @@ plugins {
 
 dependencies {
   intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":tool:test-framework-core"))
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":service:signer:signer-client"))
-  intTestImplementation(project(":service:softtoken-signer:softtoken-signer-application"))
+  intTestImplementation(project(":service:softtoken-signer:softtoken-signer-application")) {
+    exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
+  }
   intTestImplementation(project(":common:common-core"))
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:properties-core"))
@@ -19,7 +21,7 @@ intTestComposeEnv {
 
   images(
     "OPENBAO_DEV_IMG" to "openbao-dev",
-    "SERVERCONF_INIT_IMG" to "ss-db-serverconf-init",
+    "DB_INIT_IMG" to "ss-db-init",
     "SIGNER_IMG" to "ss-signer",
     "SOFTTOKEN_SIGNER_IMG" to "ss-softtoken-signer"
   )
@@ -43,6 +45,8 @@ tasks.register<Test>("intTest") {
   testClassesDirs = sourceSets["intTest"].output.classesDirs
   classpath = sourceSets["intTest"].runtimeClasspath
 
+  include("**/*IntTest.class")
+
   testLogging {
     showStackTraces = true
     showExceptions = true
@@ -53,8 +57,4 @@ tasks.register<Test>("intTest") {
 
 tasks.named<Checkstyle>("checkstyleIntTest") {
   dependsOn(provider { tasks.named("generateIntTestEnv") })
-}
-
-archUnit {
-  setSkip(true)
 }

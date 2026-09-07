@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,69 +23,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.signer.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_HASH_LENGTH;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_ITERATIONS;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_MEMORY_KB;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_PARALLELISM;
+import static org.niis.xroad.signer.common.config.SignerConfigKeys.PIN_HASHER_SALT_LENGTH;
 
 /**
- * Configuration properties for Argon2 password hashing algorithm used in PIN hashing.
- * <p>
- * The parameters can be tuned to balance between security and performance:
- * - Higher values increase security but also increase computation time and memory usage
- * - Lower values improve performance but may reduce security
+ * Argon2 PIN-hashing parameters ({@code xroad.signer.pin-hasher.*}).
+ *
+ * <p>Higher values increase security at the cost of CPU/memory; lower values improve performance.
  */
-@ConfigMapping(prefix = "xroad.signer.pin-hasher")
-public interface SoftwarePinHasherProperties {
-    /**
-     * Number of iterations to perform.
-     * <p>
-     * Increasing this value increases the time required to compute the hash.
-     * Each iteration makes the hash more resistant to brute-force attacks.
-     *
-     * @return number of iterations (default: 3)
-     */
-    @WithName("iterations")
-    @WithDefault("4")
-    int iterations();
+@RequiredArgsConstructor
+public class SoftwarePinHasherProperties {
+
+    private final XRoadConfig xRoadConfig;
 
     /**
-     * Amount of memory to use in kilobytes.
-     * <p>
-     * This parameter determines the memory hardness of the algorithm.
-     * Higher values make the algorithm more resistant to GPU-based attacks
-     * but require more memory during computation.
+     * Number of Argon2 iterations.
      *
-     * @return memory usage in kilobytes (default: 12)
+     * @return number of iterations
      */
-    @WithName("memory-kb")
-    @WithDefault("19456")
-    int memoryKb();
+    public int iterations() {
+        return xRoadConfig.value(PIN_HASHER_ITERATIONS);
+    }
+
+    /**
+     * Memory usage in kilobytes.
+     *
+     * @return memory in kilobytes
+     */
+    public int memoryKb() {
+        return xRoadConfig.value(PIN_HASHER_MEMORY_KB);
+    }
 
     /**
      * Degree of parallelism.
-     * <p>
-     * This parameter determines how many parallel threads can be used for computation.
-     * Higher values allow better utilization of multi-core systems but may increase
-     * the total memory usage.
      *
-     * @return degree of parallelism (default: 4)
+     * @return parallelism
      */
-    @WithName("parallelism")
-    @WithDefault("4")
-    int parallelism();
+    public int parallelism() {
+        return xRoadConfig.value(PIN_HASHER_PARALLELISM);
+    }
 
     /**
      * Length of the generated hash in bytes.
-     * <p>
-     * This determines the size of the output hash. A longer hash provides
-     * more security but requires more storage space.
      *
-     * @return hash length in bytes (default: 32)
+     * @return hash length in bytes
      */
-    @WithName("hash-length")
-    @WithDefault("32")
-    int hashLength();
+    public int hashLength() {
+        return xRoadConfig.value(PIN_HASHER_HASH_LENGTH);
+    }
+
+    /**
+     * Length of the random per-hash salt in bytes.
+     * <p>
+     * Each PIN is hashed with a freshly generated salt of this length, so the same PIN
+     * produces unrelated hashes across tokens and installations.
+     *
+     * @return salt length in bytes
+     */
+    public int saltLength() {
+        return xRoadConfig.value(PIN_HASHER_SALT_LENGTH);
+    }
 }

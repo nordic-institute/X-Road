@@ -187,11 +187,6 @@ tasks.jar {
   enabled = false
 }
 
-// Connect build to shadowJar
-tasks.build {
-  dependsOn(tasks.named("shadowJar"))
-}
-
 // Configure shadowJar with common settings
 afterEvaluate {
   if (intTestShadowJar.archiveBaseName.isNotEmpty() && intTestShadowJar.mainClass.isNotEmpty()) {
@@ -208,11 +203,10 @@ afterEvaluate {
       from("${layout.buildDirectory.get().asFile}/resources/intTest/.env") {
         into("")
       }
-      from(sourceSets["intTest"].runtimeClasspath.filter { it.name.endsWith(".jar") })
+      // Let Shadow bundle all intTest dependencies (jars + project class dirs)
+      configurations = listOf(project.configurations["intTestRuntimeClasspath"])
 
       mergeServiceFiles()
-      exclude("**/module-info.class")
-
       manifest {
         attributes(
           "Main-Class" to intTestShadowJar.mainClass.first()
@@ -225,6 +219,85 @@ afterEvaluate {
       }
       dependsOn(tasks.named("intTestClasses"))
       dependsOn(tasks.named("processIntTestResources"))
+    }
+  }
+}
+
+/**
+ * Extension for configuring the phased api-test intTest task shared by CS and SS api-test modules.
+ * Set phasedSuiteClass to opt in; leave blank to register the intTest task manually in the build script.
+ */
+abstract class IntTestPhasedSuiteExtension {
+  var phasedSuiteClass: String = ""
+  var productName: String = ""
+}
+
+val intTestPhasedSuite = project.extensions.create<IntTestPhasedSuiteExtension>("intTestPhasedSuite")
+
+afterEvaluate {
+  if (intTestPhasedSuite.phasedSuiteClass.isNotBlank()) {
+    tasks.register<Test>("intTest") {
+      dependsOn(provider { tasks.named("generateIntTestEnv") })
+      if (tasks.names.contains("copyMainComposeFile")) {
+        dependsOn(tasks.named("copyMainComposeFile"))
+      }
+
+      description = "Runs the full phased ${intTestPhasedSuite.productName} API test suite " +
+          "(non-destructive parallel first, destructive serial last). " +
+          "Pass --tests <pattern> to run a single class/method directly (IDE-friendly); " +
+          "the stack still boots via @ExtendWith."
+      group = "verification"
+
+      testClassesDirs = sourceSets["intTest"].output.classesDirs
+      classpath = sourceSets["intTest"].runtimeClasspath
+
+      useJUnitPlatform()
+
+      val suiteClass = intTestPhasedSuite.phasedSuiteClass
+      val singleTestFromCli = gradle.startParameter.taskRequests.any { request ->
+        request.args.any { it == "--tests" || it.startsWith("--tests=") }
+      }
+      include(if (singleTestFromCli) "**/*Test.class" else "**/$suiteClass.class")
+      doFirst {
+        val testFilter = filter as org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+        val patterns = testFilter.commandLineIncludePatterns + testFilter.includePatterns
+        val targetsSuite = patterns.any { it.substringBefore('*').trimEnd('.').substringAfterLast('.') == suiteClass }
+        when {
+          // Naming the suite via --tests (e.g. the IDE gutter run on the suite class) must behave like the
+          // unfiltered run: select the suite class and drop the test-name filter. Otherwise Gradle matches the
+          // filter against the suite's nested scenario classes by their own names and strips every one of them.
+          targetsSuite -> {
+            setIncludes(setOf("**/$suiteClass.class"))
+            testFilter.setCommandLineIncludePatterns(emptyList())
+            testFilter.setIncludePatterns()
+          }
+          patterns.isNotEmpty() -> setIncludes(setOf("**/*Test.class"))
+        }
+      }
+
+      maxParallelForks = 1
+      setForkEvery(0)
+
+      systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+      project.findProperty("apiTestFailFastThreshold")?.let {
+        systemProperty("test-framework.fail-fast.threshold", it.toString())
+      }
+
+      maxHeapSize = "256m"
+
+      testLogging {
+        showStackTraces = true
+        showExceptions = true
+        showCauses = true
+        showStandardStreams = true
+      }
+    }
+
+    tasks.named<Checkstyle>("checkstyleIntTest") {
+      dependsOn(provider { tasks.named("generateIntTestEnv") })
+      if (tasks.names.contains("copyMainComposeFile")) {
+        dependsOn(tasks.named("copyMainComposeFile"))
+      }
     }
   }
 }

@@ -41,10 +41,10 @@
           data-test="csr-certification-service-select"
           item-title="name"
           item-value="name"
-          @update:model-value="onCertServiceChange"
           class="xrd"
           :items="filteredServiceList"
           :label="$t('csr.certificationService')"
+          @update:model-value="onCertServiceChange"
         />
       </XrdFormBlockRow>
 
@@ -146,10 +146,8 @@ export default defineComponent({
     ...mapWritableState(useCsr, ['csrFormat', 'certificationService']),
     ...mapState(useAddClient, ['selectedMemberId']),
     isCsrFormatReadOnly(): boolean {
-      return !!this.filteredServiceList.find(
-        (certificateAuthority) =>
-          certificateAuthority.name == this.values.certificationService,
-      )?.default_csr_format;
+      return !!this.filteredServiceList.find((certificateAuthority) => certificateAuthority.name == this.values.certificationService)
+        ?.default_csr_format;
     },
   },
 

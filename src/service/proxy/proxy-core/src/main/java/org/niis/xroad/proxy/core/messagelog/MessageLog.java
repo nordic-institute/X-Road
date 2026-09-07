@@ -34,11 +34,11 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.messagelog.AbstractLogManager;
 import org.niis.xroad.messagelog.MessageRecord;
 import org.niis.xroad.messagelog.RestLogMessage;
 import org.niis.xroad.messagelog.SoapLogMessage;
 import org.niis.xroad.messagelog.TimestampRecord;
+import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
 
 import java.util.List;
 import java.util.Map;

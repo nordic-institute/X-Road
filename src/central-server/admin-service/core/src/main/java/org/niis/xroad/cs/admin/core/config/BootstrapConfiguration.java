@@ -28,8 +28,9 @@ package org.niis.xroad.cs.admin.core.config;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
-import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.common.vault.NoopVaultKeyClient;
 import org.niis.xroad.common.vault.VaultKeyClient;
@@ -42,10 +43,14 @@ import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.annotation.Order;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.vault.core.VaultTemplate;
 
 @Import({SpringGlobalConfConfig.class,
@@ -56,6 +61,8 @@ import org.springframework.vault.core.VaultTemplate;
 })
 @Configuration
 public class BootstrapConfiguration {
+
+    private static final int IP_THROTTLING_FILTER_ORDER = AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3;
 
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
@@ -68,12 +75,13 @@ public class BootstrapConfiguration {
     }
 
     @Bean
-    @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER + 3)
-    @ConditionalOnProperty(
-            value = "xroad.admin-service.rate-limit-enabled",
-            havingValue = "true", matchIfMissing = true)
-    public Filter ipThrottlingFilter(AdminServiceProperties properties) {
-        return new IpThrottlingFilter(properties);
+    @Conditional(RateLimitEnabledCondition.class)
+    public FilterRegistrationBean<IpThrottlingFilter> ipThrottlingFilter(AdminServiceProperties properties) {
+        var filter = new IpThrottlingFilter(properties);
+        var bean = new FilterRegistrationBean<>(filter);
+        bean.setOrder(IP_THROTTLING_FILTER_ORDER);
+        bean.addUrlPatterns(IpThrottlingFilter.ADMIN_UI_PATTERNS);
+        return bean;
     }
 
     @Bean
@@ -87,5 +95,17 @@ public class BootstrapConfiguration {
     VaultKeyClient noopVaultKeyClient() {
         return new NoopVaultKeyClient();
     }
-}
 
+    static class RateLimitEnabledCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), CsAdminServiceConfigKeys.instance());
+            if (!config.value(CsAdminServiceConfigKeys.RATE_LIMIT_ENABLED)) {
+                return false;
+            }
+            return config.value(CsAdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_SECOND) > 0
+                    || config.value(CsAdminServiceConfigKeys.RATE_LIMIT_REQUESTS_PER_MINUTE) > 0;
+        }
+    }
+}

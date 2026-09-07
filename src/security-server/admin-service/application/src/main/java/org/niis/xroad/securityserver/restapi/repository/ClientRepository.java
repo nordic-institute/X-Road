@@ -106,7 +106,7 @@ public class ClientRepository extends AbstractRepository<ClientEntity> {
     public ClientEntity getClientByEndpointId(Long id)
             throws EndpointNotFoundException, ClientNotFoundException {
         Session session = this.persistenceUtils.getCurrentSession();
-        EndpointEntity endpointEntity = session.get(EndpointEntity.class, id);
+        EndpointEntity endpointEntity = session.find(EndpointEntity.class, id);
 
         if (endpointEntity == null) {
             throw new EndpointNotFoundException(id);

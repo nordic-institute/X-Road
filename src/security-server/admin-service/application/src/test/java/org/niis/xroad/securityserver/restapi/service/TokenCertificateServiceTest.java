@@ -36,18 +36,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.niis.xroad.common.acme.AcmeKeyPurpose;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.securityserver.restapi.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -63,7 +63,7 @@ import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -199,9 +199,6 @@ public class TokenCertificateServiceTest {
 
     @MockitoBean
     ServerConfDatabaseCtx databaseCtx;
-
-    @MockitoBean
-    MessageLogDatabaseCtx messageLogDatabaseCtx;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
@@ -475,7 +472,7 @@ public class TokenCertificateServiceTest {
                 .thenReturn(new SignerRpcClient.GeneratedCertRequestInfo(null, CertificateTestUtils.getMockSignCsrBytes(),
                         null, null, null));
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
-        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         when(globalConfProvider.getApprovedCA(any(), any()))
                 .thenReturn(approvedCa("testca", false, "ee.test.Profile"));
@@ -627,7 +624,7 @@ public class TokenCertificateServiceTest {
     public void orderAcmeCertificate() throws Exception {
         byte[] csrBytes = CertificateTestUtils.getMockSignCsrBytes();
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
-        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         when(signerRpcClient.regenerateCertRequest(any(), any()))
                 .thenReturn(new SignerRpcClient.GeneratedCertRequestInfo(null, csrBytes, null, null, null));
@@ -638,10 +635,11 @@ public class TokenCertificateServiceTest {
         tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageInfo.SIGNING);
         verify(acmeService).orderCertificateFromACMEServer("common name",
                 "ss0",
-                KeyUsageInfo.SIGNING,
+                AcmeKeyPurpose.SIGNING,
                 acmeCA,
                 client.asEncodedId(),
-                csrBytes);
+                csrBytes,
+                List.of());
         verify(signerRpcClient).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
                 client.getMemberId(),

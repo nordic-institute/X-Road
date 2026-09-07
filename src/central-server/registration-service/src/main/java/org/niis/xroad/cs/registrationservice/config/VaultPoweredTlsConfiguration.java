@@ -26,30 +26,53 @@
  */
 package org.niis.xroad.cs.registrationservice.config;
 
-import org.niis.xroad.common.managementservice.ManagementServiceSslBundleRegistrar;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.managementservice.AbstractManagementServiceSslBundleRegistrar;
 import org.niis.xroad.common.vault.VaultClient;
-import org.niis.xroad.common.vault.VaultKeyClient;
-import org.niis.xroad.common.vault.spring.SpringVaultKeyClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.vault.core.VaultTemplate;
+
+import static io.github.resilience4j.core.IntervalFunction.ofExponentialBackoff;
 
 @ConditionalOnProperty(name = "server.ssl.enabled", havingValue = "true")
 @Configuration
 public class VaultPoweredTlsConfiguration {
 
-    @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = ManagementServiceSslBundleRegistrar.BUNDLE_NAME)
-    VaultKeyClient vaultKeyClient(VaultTemplate vaultTemplate, RegistrationServiceTlsProperties properties) {
-        return new SpringVaultKeyClient(vaultTemplate, properties.getCertificateProvisioning());
-    }
+    private static final String RETRY_INSTANCE_NAME = "registrationServiceVaultRetry";
 
     @Bean
-    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = ManagementServiceSslBundleRegistrar.BUNDLE_NAME)
-    public SslBundleRegistrar vaultSslBundleRegistrar(VaultKeyClient vaultKeyClient, VaultClient vaultClient) {
-        return new ManagementServiceSslBundleRegistrar(vaultKeyClient, vaultClient);
+    @ConditionalOnProperty(name = "server.ssl.bundle", havingValue = AbstractManagementServiceSslBundleRegistrar.BUNDLE_NAME)
+    public SslBundleRegistrar vaultSslBundleRegistrar(VaultClient vaultClient, RegistrationServiceProperties properties) {
+        return new RegistrationServiceSslBundleRegistrar(vaultClient, createRetryInstance(properties.getVaultRetry()));
+    }
+
+    private static Retry createRetryInstance(RegistrationServiceProperties.VaultRetry properties) {
+        var retryInterval = ofExponentialBackoff(
+                properties.getRetryDelay(),
+                properties.getRetryExponentialBackoffMultiplier());
+
+        var retryConfig = RetryConfig.custom()
+                .maxAttempts(properties.getRetryMaxAttempts() + 1)
+                .intervalFunction(retryInterval)
+                .retryOnException(VaultPoweredTlsConfiguration::isRetryableError)
+                .failAfterMaxAttempts(true)
+                .build();
+
+        return RetryRegistry.of(retryConfig).retry(RETRY_INSTANCE_NAME, retryConfig);
+    }
+
+    private static boolean isRetryableError(Throwable throwable) {
+        if (throwable instanceof XrdRuntimeException ex) {
+            ErrorCode errorCode = ErrorCode.fromCode(ex.getErrorCode());
+            return ErrorCode.MISSING_SECRET.equals(errorCode);
+        }
+        return false;
     }
 
 }

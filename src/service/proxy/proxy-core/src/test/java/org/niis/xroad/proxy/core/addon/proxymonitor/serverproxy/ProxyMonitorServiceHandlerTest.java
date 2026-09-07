@@ -134,9 +134,7 @@ public class ProxyMonitorServiceHandlerTest {
         when(mockProxyMessage.getSoap()).thenReturn(mockSoap);
 
         // execution & verification
-        handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
-
-        assertThat("Should not need a verification", handlerToTest.shouldVerifyAccess(), is(false));
+        assertThat("Should not need a verification", handlerToTest.shouldVerifyAccess(mockProxyMessage), is(false));
     }
 
     @Test
@@ -156,10 +154,8 @@ public class ProxyMonitorServiceHandlerTest {
 
         when(mockProxyMessage.getSoap()).thenReturn(mockSoap);
 
-        handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
-
         // execution & verification
-        assertThat("Should not need a verification", handlerToTest.shouldVerifyAccess(), is(false));
+        assertThat("Should not need a verification", handlerToTest.shouldVerifyAccess(mockProxyMessage), is(false));
     }
 
     @Test
@@ -170,7 +166,7 @@ public class ProxyMonitorServiceHandlerTest {
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider,
                 mockMonitorClient);
 
-        // the allowed monitoring client from test resources monitoring metricNames
+        // the non-allowed client
         final ClientId.Conf nonAllowedClient = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "COM",
                 "justSomeClient");
 
@@ -179,11 +175,9 @@ public class ProxyMonitorServiceHandlerTest {
 
         when(mockProxyMessage.getSoap()).thenReturn(mockSoap);
 
-        handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
-
         // execution
 
-        var ce = assertThrows(XrdRuntimeException.class, handlerToTest::shouldVerifyAccess);
+        var ce = assertThrows(XrdRuntimeException.class, () -> handlerToTest.shouldVerifyAccess(mockProxyMessage));
 
         assertEquals(ACCESS_DENIED.code(), ce.getErrorCode());
         assertTrue(ce.getMessage().contains("Request is not allowed"));

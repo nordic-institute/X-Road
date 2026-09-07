@@ -1,0 +1,5 @@
+apiVersion: v2
+name: xroad-common
+description: Shared Helm template helpers for X-Road charts
+type: library
+version: 0.1.0

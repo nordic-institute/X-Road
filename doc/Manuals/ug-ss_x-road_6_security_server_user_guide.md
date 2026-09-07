@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.106  
+Version: 2.109
 Doc. ID: UG-SS
 
 ---
@@ -135,6 +135,10 @@ Doc. ID: UG-SS
 | 07.12.2025 | 2.104   | Added notes about CSR format preselection                                                                                                                                                                                                                                                                                                                                                                   | Madis Loitmaa        |
 | 15.12.2025 | 2.105   | Added information about the handling of the ACME account keystore password                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann   |
 | 29.01.2026 | 2.106   | Added information on how to delete a subsystem from the Security Server                                                                                                                                                                                                                                                                                                                                     | Raido Kaju           |
+| 02.03.2026 | 2.107   | Fix broken link                                                                                                                                                                                                                                                                                                                                                                                             | Petteri Kivimäki     |
+| 13.05.2026 | 2.108   | Correct tab placement for managing services                                                                                                                                                                                                                                                                                                                                                                 | Urmet Jänes          |
+| 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
+| 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -363,7 +367,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 11. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-12. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+12. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/service/proxy/proxy-monitoring-api/src/main/resources/monitoring.xsd).
 
 13. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -1109,7 +1113,7 @@ Security Server client subsystem can be disabled only in "Registered" state.
 
 To disable client subsystem, follow these steps.
 
-1.  In the **CLIENTS** view click the name of the client you wish to disable.
+1.  In the **CLIENTS** view click the name of the subsystem you wish to disable.
 
 2.  In the window that opens, click **DISABLE** and then click **YES** in the confirmation dialog.
 
@@ -1123,7 +1127,7 @@ Security Server client subsystem can be enabled only in "Disabled" state.
 
 To enable client subsystem, follow these steps.
 
-1.  In the **CLIENTS** view click the name of the client you wish to enable.
+1.  In the **CLIENTS** view click the name of the subsystem you wish to enable.
 
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
 
@@ -1375,9 +1379,9 @@ When a new WSDL file is added, the Security Server reads service information fro
 
 **To add a WSDL**, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add WSDL to and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem for which you wish to add WSDL to and click the **SERVICES** tab.
 
-3.  Click **ADD WSDL**, enter the WSDL address in the dialog that opens and click **ADD**. Once the window is closed, the WSDL and the information about the services it contains are added to the client. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
+3.  Click **ADD WSDL**, enter the WSDL address in the dialog that opens and click **ADD**. Once the window is closed, the WSDL and the information about the services it contains are added to the client subsystem. By default, the WSDL is added in disabled state (see [6.3](#63-enabling-and-disabling-a-service-description)).
 
 **To see a list of services contained in the WSDL**
 
@@ -1389,7 +1393,7 @@ After a new REST service is added, the Security Server displays text "REST" and 
 
 **To add a REST service**, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client for which you wish to add REST service to and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem for which you wish to add REST service to and click the **SERVICES** tab.
 
 3.  Click **ADD REST**. Select whether the URL type is "REST API Base Path" or "OpenAPI 3 Description". Enter the url and service code in the window that opens and click **ADD**.
 
@@ -1407,7 +1411,7 @@ Upon refreshing, the Security Server reloads the service description file from t
 
 To refresh the service description, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to refresh and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to refresh and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of the WSDL or REST to be refreshed and click the **Refresh** button.
 
@@ -1428,7 +1432,7 @@ If a service description is enabled, the services described there become accessi
 
 To **enable** or **disable** a service description, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2. Click the switch icon on the same row with service WSDL or REST service you wish to enable or disable
 
@@ -1441,7 +1445,7 @@ To **enable** or **disable** a service description, follow these steps.
 
 To change the service description address, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2. Click the link text containing the type of the service and its url in paranthesis
 
@@ -1456,7 +1460,7 @@ When a service description is deleted, all information related to the services d
 
 To delete a service description, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2. Click the link text containing the type of the service and its url in paranthesis.
 
@@ -1478,7 +1482,7 @@ Service parameters are
 
 To change service parameters, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a REST or WSDL service and in the list that is displayed click the service code which you wish to edit.
 
@@ -1495,7 +1499,7 @@ When URL type of the REST service is an OpenAPI 3 description, endpoints are par
 
 To create API endpoint manually, follow these steps
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
@@ -1546,7 +1550,7 @@ In general, a REST service usually has multiple endpoints. When access rights ar
 
 To change the access rights to a **service**, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a service and click the service code that is displayed.
 
@@ -1558,7 +1562,7 @@ To change the access rights to a **service**, follow these steps.
 
 To change access rights to an **endpoint**, follow there steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICES** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICES** tab.
 
 2.  Click the arrow symbol in front of a REST service and click the service code that is displayed.
 
@@ -1573,11 +1577,11 @@ To change access rights to an **endpoint**, follow there steps.
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-The service client view (**CLIENTS** -&gt; **SERVICE CLIENTS**) displays all the service level access rights subjects of the services mediated by this Security Server client. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
+The service client view (**CLIENTS** -&gt; **CLIENT SUBSYSTEM** -&gt; **SERVICE CLIENTS**) displays all the service level access rights subjects of the services mediated by this Security Server client subsystem. In other words, if an X-Road subsystem or group has been granted a service level access right to a service of this client subsystem, then the subject is shown in this view. Subjects that have been granted an endpoint level access right to a REST service, are not shown in the view.
 
 To add a service client, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem you wish to view and click the **SERVICE CLIENTS** tab.
 
 2.  Click **ADD SUBJECT**. In the following wizard that opens
 
@@ -1594,7 +1598,7 @@ The subject is added to the list of service clients, after which the service cli
 
 To change the service client's access rights, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client containing service you wish to view and click the **SERVICE CLIENTS** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem containing the service you wish to view and click the **SERVICE CLIENTS** tab.
 
 2.  In the view that opens click the name of a subject (a subsystem, or a local or global group) whose access rights you want to change
 
@@ -1618,9 +1622,9 @@ A local access rights group can be created for a Security Server client in order
 
 **Access rights:** [Service Administrator](#xroad-service-administrator)
 
-To create a local group for a Security Server client, follow these steps.
+To create a local group for a Security Server client subsystem, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab. In the view that opens, a list of the client's local groups is displayed.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem and click the **LOCAL GROUPS** tab. In the view that opens, a list of the client subsystem's local groups is displayed.
 
 2.  To create a new group, click **ADD GROUP**. In the view that opens, enter the code and description for the new group and click **ADD**.
 
@@ -1631,7 +1635,7 @@ To create a local group for a Security Server client, follow these steps.
 
 To **view the members** of a local group, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem and click the **LOCAL GROUPS** tab.
 
 2.  In the view that opens click the code of the group you wish to edit.
 
@@ -1650,11 +1654,11 @@ To **remove members** from a local group, click **Remove** on the corresponding 
 
 To change the description of a local group, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem and click the **LOCAL GROUPS** tab.
 
 2.  In the view that opens click the code of the group you wish to edit.
 
-3.  In the group´s detail view change the description. The description is saved when the input field loses focus.
+3.  In the group´s detail view, change the description. The description is saved when the input field loses focus.
 
 
 ### 8.4 Deleting a Local Group
@@ -1665,9 +1669,9 @@ To change the description of a local group, follow these steps.
 
 To delete a local group, follow these steps.
 
-1.  Navigate to **CLIENTS** tab, click the name of the client and click the **LOCAL GROUPS** tab.
+1.  Navigate to **CLIENTS** tab, click the name of the client subsystem and click the **LOCAL GROUPS** tab.
 
-2.  In the view that opens click the code of the group you wish to delete.
+2.  In the view that opens, click the code of the group you wish to delete.
 
 3.  In the group detail view, click **DELETE** and confirm the deletion by clicking **YES** in the dialog that opens.
 
@@ -3602,6 +3606,8 @@ Authentication and sign certificates issued by a CA that supports ACME can be au
 
 The Security Server runs an automatic renewal job periodically and tries to renew certificates ready for renewal. If the server supports the ACME ARI extension (\[[ACME-ARI](#Ref_ACME-ARI)\]), the time when a certificate is ready for renewal is determined by the ACME server. Otherwise, the time is defined by the `proxy-ui-api.acme-renewal-time-before-expiration-date` system property. The default value of the property is 14 days, which means that the Security Server starts trying to renew a certificate 14 days before it expires. The renewal job configuration can be managed by the `proxy-ui-api.acme-renewal-*` configuration properties.
 
+In a clustered Security Server setup, the automatic certificate renewal job runs only on the primary node. Secondary nodes skip the job to avoid parallel renewal attempts. Renewed certificates and keys reach the secondaries through the regular cluster state replication.
+
 The renewal status of ACME supported certificates can be seen on the Keys and certificates page:
 * **"N/A"** - certificate is not `REGISTERED` or not issued by ACME supported CA and therefore, it is ignored by the automatic certificate renewal job.
 * **"Renewal in progress"** - Renewal has started, but is not yet finished. Once the new certificate is registered and enabled, this certificate can be removed.
@@ -3667,7 +3673,8 @@ This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
-2. `account-keystore-password` -  the password for the ACME Server account PKCS #12 keystore. The password is populated automatically by the Security Server when communicating with the ACME Server. When ACME is used for the first time, the keystore is generated automatically using this password. If the value of this property is left empty, the Security Server generates a random password and stores it in the acme.yml file. If the value of this property is not empty, the provided value is used as the password for the generated keystore file.
+
+The ACME account key pair itself is generated automatically by the Security Server the first time ACME is used for a given member, and is stored in OpenBao together with a rotation timestamp; no keystore or password needs to be configured or managed by the administrator.
 
 **Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
 
@@ -3704,11 +3711,6 @@ eab-credentials:
         'EU:GOV:9090909-1':
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
-
-# This is the password for the PKCS #12 keystore of the ACME Server account. The password is populated automatically by the Security Server.
-# Keystore is at /etc/xroad/ssl/acme.p12
-account-keystore-password:
-
 ```
 
 ## 25 Migrating to EC Based Authentication and Signing Certificates

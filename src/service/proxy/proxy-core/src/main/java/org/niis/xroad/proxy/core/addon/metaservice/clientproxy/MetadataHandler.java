@@ -29,53 +29,46 @@ package org.niis.xroad.proxy.core.addon.metaservice.clientproxy;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.proxy.core.util.MessageProcessorFactory;
+import org.niis.xroad.proxy.core.addon.AddonHandlerBase;
+import org.niis.xroad.proxy.core.util.AddonRequestContext;
+
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
-/**
- * MetadataHandler
- */
 @Slf4j
-public class MetadataHandler extends AbstractClientProxyHandler {
+@RequiredArgsConstructor
+public class MetadataHandler extends AddonHandlerBase {
 
-    /**
-     * Constructor
-     */
-    public MetadataHandler(MessageProcessorFactory messageProcessorFactory) {
-        super(messageProcessorFactory, false, null);
-    }
+    private final MetadataClientRequestProcessor processor;
 
     @Override
-    protected MessageProcessorBase createRequestProcessor(RequestWrapper request,
-                                                          ResponseWrapper response,
-                                                          OpMonitoringData opMonitoringData) {
+    protected Optional<AddonRequestContext> createRequestContext(RequestWrapper request, ResponseWrapper response) {
         var target = getTarget(request);
-        log.trace("createRequestProcessor({})", target);
-
-        // opMonitoringData is null, do not use it.
+        log.trace("createRequestContext({})", target);
 
         if (!isGetRequest(request)) {
-            return null;
+            return Optional.empty();
         }
 
         if (target == null) {
             throw XrdRuntimeException.systemException(INVALID_REQUEST, "Target must not be null");
         }
 
-        MetadataClientRequestProcessor processor = messageProcessorFactory
-                .createMetadataClientRequestProcessor(request, response, target);
-        if (processor.canProcess()) {
-            log.trace("Processing with MetadataClientRequestProcessor");
-            return processor;
-        }
-        return null;
+        return processor.canProcess(target)
+                ? Optional.of(new AddonRequestContext(target, request, response))
+                : Optional.empty();
+    }
+
+    @Override
+    @ArchUnitSuppressed("NoVanillaExceptions")
+    protected void processRequest(AddonRequestContext ctx) throws Exception {
+        processor.process(ctx);
     }
 
 }

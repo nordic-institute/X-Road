@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.google.protobuf.ByteString;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.monitor.core.CertificateInfoSensor.CertificateInfoCollector;
 import org.niis.xroad.monitor.core.CertificateInfoSensor.TokenExtractor;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -49,7 +52,6 @@ import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -80,35 +82,11 @@ class CertificateInfoSensorTest {
 
     private CertificateInfoSensor certificateInfoSensor;
 
-    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
-        @Override
-        public Duration certificateInfoSensorInterval() {
-            return Duration.ofDays(1);
-        }
-
-        @Override
-        public Duration diskSpaceSensorInterval() {
-            return Duration.ofSeconds(60);
-        }
-
-        @Override
-        public Duration execListingSensorInterval() {
-            return Duration.ofSeconds(60);
-        }
-
-        @Override
-        public Duration systemMetricsSensorInterval() {
-            return Duration.ofSeconds(5);
-        }
-
-        @Override
-        public boolean limitRemoteDataSet() {
-            return true;
-        }
-    };
+    private EnvMonitorProperties envMonitorProperties;
 
     @BeforeEach
     void init() throws Exception {
+        envMonitorProperties = mock(EnvMonitorProperties.class);
         metrics = new MetricRegistry();
         MetricRegistryHolder.getInstance().setMetrics(metrics);
 
@@ -129,8 +107,8 @@ class CertificateInfoSensorTest {
 
         var serverConfProvider = new EmptyServerConf();
 
-        certificateInfoSensor = new CertificateInfoSensor(envMonitorProperties, serverConfProvider,
-                mock(SignerRpcClient.class));
+        certificateInfoSensor = new CertificateInfoSensor(mock(Scheduler.class), envMonitorProperties,
+                mock(Scheduled.ApplicationNotRunning.class), serverConfProvider, mock(SignerRpcClient.class));
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

@@ -80,6 +80,10 @@ public class AdminUserService {
                 .toList();
     }
 
+    public long count() {
+        return userRepository.count();
+    }
+
     public void create(AdminUser adminUser) {
         auditLog(adminUser.getUsername(), adminUser.getRoles());
 

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,37 +32,41 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-/**
- * Test to verify MessageProcessorBase behavior
- */
-public class IdentifierValidatorTest {
+class IdentifierValidatorTest {
 
     @Test
-    public void testCheckIdentifierValid() {
-        final ServiceId valid = ServiceId.Conf.create("TEST", "CLASS", "CO DE", null, "SERVICE");
-        assertTrue(IdentifierValidator.checkIdentifier(valid));
+    void testCheckIdentifierValid() {
+        final ServiceId valid = ServiceId.Conf.create("TEST", "CLASS", "CODE", null, "SERVICE");
+        assertTrue(IdentifierValidator.isValid(valid));
     }
 
-    @Test
-    public void testCheckIdentifierInvalid() {
-        final XRoadId[] cases = {
-                ClientId.Conf.create("TEST", "CLASS", "CO\tDE"),
-                SecurityServerId.Conf.create("TEST", "CLASS", "MEMBER", "SER:VER"),
-                ServiceId.Conf.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
-                ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
-        };
-        for (XRoadId id : cases) {
-            assertFalse(IdentifierValidator.checkIdentifier(id));
-        }
+    @ParameterizedTest
+    @MethodSource("invalidIdentifiers")
+    void testCheckIdentifierInvalid(XRoadId id) {
+        assertFalse(IdentifierValidator.isValid(id));
+    }
 
+    private static Stream<Arguments> invalidIdentifiers() {
+        return Stream.of(
+                Arguments.of(ClientId.Conf.create("TEST", "CLASS", "CO\tDE")),
+                Arguments.of(SecurityServerId.Conf.create("TEST", "CLASS", "MEMBER", "SER:VER")),
+                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "CO DE", null, "SERVICE")),
+                Arguments.of(ServiceId.Conf.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE")),
+                Arguments.of(ServiceId.Conf.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE")),
+                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE")),
+                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE")),
+                Arguments.of(ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"))
+        );
     }
 
 }

@@ -37,7 +37,7 @@
       <v-card class="bg-surface-container-lowest xrd-rounded-12" data-test="dialog-simple">
         <template #title>
           <slot name="title">
-            <span class="dialog-title font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
+            <span class="title-container font-weight-bold" data-test="dialog-title">{{ title ? $t(title) : translatedTitle }}</span>
           </slot>
         </template>
         <template #append>

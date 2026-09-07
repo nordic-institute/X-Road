@@ -27,19 +27,12 @@
 
 package org.niis.xroad.common.properties;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-
-import static org.niis.xroad.common.properties.CommonProperties.PREFIX;
-
-@ConfigMapping(prefix = PREFIX)
+/**
+ * Common configuration ({@code xroad.common.*}) consumed across services. Kept framework-neutral
+ * here (no DSL dependency) so it can be implemented either by an {@code XRoadConfig}-backed adapter
+ * (migrated services) or a SmallRye {@code @ConfigMapping} (services not yet migrated).
+ */
 public interface CommonProperties {
-    String PREFIX = "xroad.common";
-    String DEFAULT_TEMP_FILES_PATH = "/var/tmp/xroad/";
 
-    @WithName("temp-files-path")
-    @WithDefault(DEFAULT_TEMP_FILES_PATH)
     String tempFilesPath();
-
 }

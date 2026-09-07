@@ -1,0 +1,6 @@
+dependencies:
+- name: xroad-common
+  repository: file://../xroad-common
+  version: 0.1.0
+digest: sha256:bddedb15b700a4c450cc6e94ace8e437930872c3d67ab54eca642878ccf223e1
+generated: "2026-05-11T06:07:59.514678212Z"

@@ -35,18 +35,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
@@ -54,6 +59,8 @@ import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SECRET;
 @Slf4j
 @RequiredArgsConstructor
 public class QuarkusVaultClient implements VaultClient {
+
+    private static final int HTTP_NOT_FOUND = 404;
 
     private final VaultKVSecretEngine kvSecretEngine;
 
@@ -95,6 +102,36 @@ public class QuarkusVaultClient implements VaultClient {
     @Override
     public void createManagementServiceTlsCredentials(InternalSSLKey internalSSLKey) {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public InternalSSLKey getConfigurationProxyTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createTlsCredentials(CONFIGURATION_PROXY_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public InternalSSLKey getDsHttpsTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return getTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH);
+    }
+
+    @Override
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) throws IOException, CertificateEncodingException {
+        createTlsCredentials(DS_HTTPS_TLS_CREDENTIALS_PATH, internalSSLKey);
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsTlsEnrollmentStatus() {
+        return readSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH).map(this::toDsTlsEnrollmentStatus);
+    }
+
+    @Override
+    public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        kvSecretEngine.writeSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH, toDsTlsEnrollmentStatusSecret(status));
     }
 
     @Override
@@ -162,6 +199,48 @@ public class QuarkusVaultClient implements VaultClient {
         kvSecretEngine.deleteSecret(path);
     }
 
+
+    @Override
+    public void createAcmeAccountKey(String alias, AcmeAccountKey acmeAccountKey) {
+        var secret = new HashMap<String, String>();
+        try {
+            secret.put(PRIVATEKEY_KEY, toPem(acmeAccountKey.privateKey()));
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+        secret.put(PUBLICKEY_KEY, toPem(acmeAccountKey.publicKey()));
+        secret.put(EXPIRES_AT_KEY, acmeAccountKey.expiresAt().toString());
+        kvSecretEngine.writeSecret(getAcmeAccountKeyPath(alias), secret);
+    }
+
+    @Override
+    public Optional<AcmeAccountKey> getAcmeAccountKey(String alias) {
+        var maybeSecret = readSecret(getAcmeAccountKeyPath(alias));
+        if (maybeSecret.isEmpty()) {
+            return Optional.empty();
+        }
+        var vaultResponse = maybeSecret.get();
+
+        try {
+            var privateKey = CryptoUtils.getPrivateKey(
+                    new ByteArrayInputStream(vaultResponse.get(PRIVATEKEY_KEY).getBytes(StandardCharsets.UTF_8))
+            );
+            var publicKey = toPublicKey(vaultResponse.get(PUBLICKEY_KEY));
+            var expiresAt = Instant.parse(vaultResponse.get(EXPIRES_AT_KEY));
+
+            return Optional.of(new AcmeAccountKey(privateKey, publicKey, expiresAt));
+        } catch (IOException | GeneralSecurityException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    /**
+     * A 404 means the path genuinely has no secret and maps to {@link Optional#empty()}, matching
+     * {@link org.niis.xroad.common.vault.spring.SpringVaultClient}'s contract where the underlying client
+     * itself returns {@code null} for a missing secret. Every other status (auth failure, vault sealed,
+     * network/5xx errors) is an infrastructure failure, not a missing secret, and must propagate so callers
+     * can tell "not provisioned yet" apart from "could not reach vault".
+     */
     private Optional<Map<String, String>> readSecret(String path) {
         if (kvSecretEngine == null) {
             throw new IllegalStateException("Vault KV Secret Engine is not initialized. Check configuration.");
@@ -173,10 +252,13 @@ public class QuarkusVaultClient implements VaultClient {
                 return Optional.empty();
             }
             return Optional.of(vaultResponse);
-        } catch (VaultClientException vaultResponse) {
-            log.warn("Failed to read secret from Vault at path {}: {} status {}",
-                    path, vaultResponse.getMessage(), vaultResponse.getStatus());
-            return Optional.empty();
+        } catch (VaultClientException e) {
+            if (Objects.equals(e.getStatus(), HTTP_NOT_FOUND)) {
+                log.debug("No secret found in Vault at path {}", path);
+                return Optional.empty();
+            }
+            log.warn("Failed to read secret from Vault at path {}: {} status {}", path, e.getMessage(), e.getStatus());
+            throw e;
         }
     }
 

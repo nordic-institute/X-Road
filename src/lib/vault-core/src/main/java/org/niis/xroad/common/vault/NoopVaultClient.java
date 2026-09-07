@@ -74,6 +74,36 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
+    public InternalSSLKey getConfigurationProxyTlsCredentials() {
+        return new InternalSSLKey(null, new X509Certificate[]{});
+    }
+
+    @Override
+    public void createConfigurationProxyTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public InternalSSLKey getDsHttpsTlsCredentials() {
+        return new InternalSSLKey(null, new X509Certificate[]{});
+    }
+
+    @Override
+    public void createDsHttpsTlsCredentials(InternalSSLKey internalSSLKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public Optional<DsTlsEnrollmentStatus> getDsTlsEnrollmentStatus() {
+        return Optional.empty();
+    }
+
+    @Override
+    public void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         throw new UnsupportedOperationException("Not supported");
     }
@@ -116,5 +146,15 @@ public class NoopVaultClient implements VaultClient {
     @Override
     public void deleteTokenPin(String tokenId) {
         throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void createAcmeAccountKey(String alias, AcmeAccountKey acmeAccountKey) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public Optional<AcmeAccountKey> getAcmeAccountKey(String alias) {
+        return Optional.empty();
     }
 }

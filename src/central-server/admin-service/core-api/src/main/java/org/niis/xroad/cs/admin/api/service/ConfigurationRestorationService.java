@@ -27,7 +27,6 @@ package org.niis.xroad.cs.admin.api.service;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 
 public interface ConfigurationRestorationService {
-    void restoreFromBackup(String fileName) throws
-                                            InterruptedException, InternalServerErrorException;
+    void restoreFromBackup(String fileName) throws InternalServerErrorException;
 
 }

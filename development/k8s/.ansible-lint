@@ -1,0 +1,10 @@
+---
+profile: production
+exclude_paths:
+  - .state/
+  - collections/
+skip_list:
+  - role-name              # role names use snake_case, not strict-role-name regex
+  - fqcn[action-core]      # allow ansible.builtin short names in scripts glue
+use_default_rules: true
+verbosity: 1

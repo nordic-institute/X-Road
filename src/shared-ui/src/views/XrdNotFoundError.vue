@@ -28,7 +28,7 @@
 <template>
   <XrdErrorPage data-test="404-view" title="404.topTitle">
     <v-container class="mx-auto" max-width="800">
-      <v-row class="xrd-error-view" no-gutters align="center">
+      <v-row class="xrd-error-view align-center" gap="0">
         <!-- Fixed width column -->
         <v-col class="xrd-error-info">
           <div class="xrd-error-info-text">

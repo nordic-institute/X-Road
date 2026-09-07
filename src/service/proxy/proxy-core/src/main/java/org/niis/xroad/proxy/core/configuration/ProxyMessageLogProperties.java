@@ -29,157 +29,130 @@ package org.niis.xroad.proxy.core.configuration;
 import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-import org.niis.xroad.messagelog.MessageLogArchivalProperties;
-import org.niis.xroad.messagelog.MessageLogDatabaseEncryptionProperties;
-import org.niis.xroad.messagelog.archive.GroupingStrategy;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-@ConfigMapping(prefix = "xroad.proxy.message-log")
-public interface ProxyMessageLogProperties {
-    @WithName("enabled")
-    @WithDefault("true")
-    boolean enabled();
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_DISABLED_BODY_LOGGING_LOCAL_PRODUCER_SUBSYSTEMS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_DISABLED_BODY_LOGGING_REMOTE_PRODUCER_SUBSYSTEMS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_ENABLED;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_ENABLED_BODY_LOGGING_LOCAL_PRODUCER_SUBSYSTEMS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_ENABLED_BODY_LOGGING_REMOTE_PRODUCER_SUBSYSTEMS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_HASH_ALGO_ID;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_MAX_LOGGABLE_MESSAGE_BODY_SIZE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_MESSAGE_BODY_LOGGING;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPER_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPER_CLIENT_READ_TIMEOUT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPER_RECORDS_LIMIT;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPER_RETRY_DELAY;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.MESSAGE_LOG_TRUNCATED_BODY_ALLOWED;
 
-    @WithName("archiver")
-    ArchiverProperties archiver();
+/** Proxy message-log configuration ({@code xroad.proxy.message-log.*}). */
+@RequiredArgsConstructor
+public class ProxyMessageLogProperties {
 
-    @WithName("database-encryption")
-    DatabaseEncryptionProperties databaseEncryption();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("timestamper")
-    TimestamperProperties timestamper();
+    /** @return whether message logging is enabled */
+    public boolean enabled() {
+        return xRoadConfig.value(MESSAGE_LOG_ENABLED);
+    }
 
-    @WithName("message-body-logging")
-    @WithDefault("true")
-    boolean messageBodyLogging();
+    /** @return timestamper sub-group */
+    public TimestamperProperties timestamper() {
+        return new TimestamperProperties(xRoadConfig);
+    }
 
-    @WithName("max-loggable-message-body-size")
-    @WithDefault("10485760")
-    long maxLoggableMessageBodySize();
+    /** @return whether message body logging is enabled */
+    public boolean messageBodyLogging() {
+        return xRoadConfig.value(MESSAGE_LOG_MESSAGE_BODY_LOGGING);
+    }
 
-    @WithName("truncated-body-allowed")
-    @WithDefault("false")
-    boolean truncatedBodyAllowed();
+    /** @return maximum loggable message body size in bytes */
+    public long maxLoggableMessageBodySize() {
+        return xRoadConfig.value(MESSAGE_LOG_MAX_LOGGABLE_MESSAGE_BODY_SIZE);
+    }
 
-    @WithName("hash-algo-id")
-    @WithDefault("SHA-512")
-    String hashAlgoIdStr();
+    /** @return whether truncated body is allowed */
+    public boolean truncatedBodyAllowed() {
+        return xRoadConfig.value(MESSAGE_LOG_TRUNCATED_BODY_ALLOWED);
+    }
 
-    @WithName("timestamping-prioritization-strategy")
-    @WithDefault("NONE")
-    ServicePrioritizationStrategy timestampingPrioritizationStrategy();
+    /** @return hash algorithm identifier string */
+    public String hashAlgoIdStr() {
+        return xRoadConfig.value(MESSAGE_LOG_HASH_ALGO_ID);
+    }
 
-    @WithName("enabled-body-logging-local-producer-subsystems")
-    @WithDefault("")
-    Optional<String> enabledBodyLoggingLocalProducerSubsystems();
+    /** @return timestamping prioritization strategy */
+    public ServicePrioritizationStrategy timestampingPrioritizationStrategy() {
+        return ServicePrioritizationStrategy.valueOf(xRoadConfig.value(MESSAGE_LOG_TIMESTAMPING_PRIORITIZATION_STRATEGY));
+    }
 
-    @WithName("enabled-body-logging-remote-producer-subsystems")
-    @WithDefault("")
-    Optional<String> enabledBodyLoggingRemoteProducerSubsystems();
+    /** @return optional filter for enabled body logging on local producer subsystems */
+    public Optional<String> enabledBodyLoggingLocalProducerSubsystems() {
+        return Optional.ofNullable(xRoadConfig.value(MESSAGE_LOG_ENABLED_BODY_LOGGING_LOCAL_PRODUCER_SUBSYSTEMS));
+    }
 
-    @WithName("disabled-body-logging-local-producer-subsystems")
-    @WithDefault("")
-    Optional<String> disabledBodyLoggingLocalProducerSubsystems();
+    /** @return optional filter for enabled body logging on remote producer subsystems */
+    public Optional<String> enabledBodyLoggingRemoteProducerSubsystems() {
+        return Optional.ofNullable(xRoadConfig.value(MESSAGE_LOG_ENABLED_BODY_LOGGING_REMOTE_PRODUCER_SUBSYSTEMS));
+    }
 
-    @WithName("disabled-body-logging-remote-producer-subsystems")
-    @WithDefault("")
-    Optional<String> disabledBodyLoggingRemoteProducerSubsystems();
+    /** @return optional filter for disabled body logging on local producer subsystems */
+    public Optional<String> disabledBodyLoggingLocalProducerSubsystems() {
+        return Optional.ofNullable(xRoadConfig.value(MESSAGE_LOG_DISABLED_BODY_LOGGING_LOCAL_PRODUCER_SUBSYSTEMS));
+    }
 
-    default DigestAlgorithm hashAlg() {
+    /** @return optional filter for disabled body logging on remote producer subsystems */
+    public Optional<String> disabledBodyLoggingRemoteProducerSubsystems() {
+        return Optional.ofNullable(xRoadConfig.value(MESSAGE_LOG_DISABLED_BODY_LOGGING_REMOTE_PRODUCER_SUBSYSTEMS));
+    }
+
+    /** @return digest algorithm derived from the hash algo ID string */
+    public DigestAlgorithm hashAlg() {
         return Optional.ofNullable(hashAlgoIdStr())
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }
 
-    interface DatabaseEncryptionProperties extends MessageLogDatabaseEncryptionProperties {
-        @WithName("enabled")
-        @WithDefault("false")
-        boolean enabled();
+    /** Timestamper sub-configuration ({@code xroad.proxy.message-log.timestamper.*}). */
+    @RequiredArgsConstructor
+    public static class TimestamperProperties {
 
-        @WithName("key-id")
-        @WithDefault("default")
-        String keyId();
-    }
+        private final XRoadConfig xRoadConfig;
 
-    interface ArchiverProperties extends MessageLogArchivalProperties {
+        /** @return timestamper client connection timeout in milliseconds */
+        public int clientConnectTimeout() {
+            return xRoadConfig.value(MESSAGE_LOG_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT);
+        }
 
-        @WithName("encryption-enabled")
-        @WithDefault("false")
-        boolean encryptionEnabled();
+        /** @return timestamper client read timeout in milliseconds */
+        public int clientReadTimeout() {
+            return xRoadConfig.value(MESSAGE_LOG_TIMESTAMPER_CLIENT_READ_TIMEOUT);
+        }
 
-        @WithName("archive-interval")
-        @WithDefault("0 0 0/6 1/1 * ?")
-        String archiveInterval();
+        /** @return whether to timestamp immediately */
+        public boolean timestampImmediately() {
+            return xRoadConfig.value(MESSAGE_LOG_TIMESTAMPER_TIMESTAMP_IMMEDIATELY);
+        }
 
-        @WithName("clean-interval")
-        @WithDefault("0 0 0/12 1/1 * ?")
-        String cleanInterval();
+        /** @return maximum number of records per timestamping batch */
+        public int recordsLimit() {
+            return xRoadConfig.value(MESSAGE_LOG_TIMESTAMPER_RECORDS_LIMIT);
+        }
 
-        @WithName("clean-transaction-batch-size")
-        @WithDefault("10000")
-        int cleanTransactionBatchSize();
+        /** @return delay in seconds before retrying a failed timestamp request */
+        public int retryDelay() {
+            return xRoadConfig.value(MESSAGE_LOG_TIMESTAMPER_RETRY_DELAY);
+        }
 
-        @WithName("clean-keep-records-for")
-        @WithDefault("30")
-        int cleanKeepRecordsFor();
-
-        @WithName("max-filesize")
-        @WithDefault("33554432")
-        int maxFilesize();
-
-        @WithName("default-key-id")
-        Optional<String> defaultKeyId();
-
-        @WithName("grouping-strategy")
-        @WithDefault("NONE")
-        GroupingStrategy groupingStrategy();
-
-        @WithName("grouping-keys")
-        @WithDefault("")
-        Map<String, Set<String>> grouping();
-
-        @WithName("transaction-batch-size")
-        @WithDefault("10000")
-        int transactionBatchSize();
-
-        @WithName("archive-path")
-        @WithDefault("/var/lib/xroad")
-        String archivePath();
-
-        @WithName("archive-transfer-command")
-        Optional<String> archiveTransferCommand();
-    }
-
-    interface TimestamperProperties {
-        @WithName("client-connect-timeout")
-        @WithDefault("20000")
-        int clientConnectTimeout();
-
-        @WithName("client-read-timeout")
-        @WithDefault("60000")
-        int clientReadTimeout();
-
-        @WithName("timestamp-immediately")
-        @WithDefault("false")
-        boolean timestampImmediately();
-
-        @WithName("records-limit")
-        @WithDefault("10000")
-        int recordsLimit();
-
-        @WithName("retry-delay")
-        @WithDefault("60")
-        int retryDelay();
-
-        @WithName("acceptable-timestamp-failure-period")
-        @WithDefault("14400")
-        int acceptableTimestampFailurePeriod();
-
+        /** @return acceptable timestamp failure period in seconds */
+        public int acceptableTimestampFailurePeriod() {
+            return xRoadConfig.value(MESSAGE_LOG_TIMESTAMPER_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD);
+        }
     }
 }

@@ -141,7 +141,7 @@ export default defineComponent({
     save(evt: Event, handler: DialogSaveHandler): void {
       this.adding = true;
       this.addEndpoint(this.serviceId, {
-        method: this.values.method as Endpoint.method,
+        method: this.values.method as Endpoint['method'],
         path: this.values.path,
         service_code: this.serviceCode,
       })

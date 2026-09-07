@@ -28,7 +28,7 @@ package org.niis.xroad.signer.core.model;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.time.Instant;

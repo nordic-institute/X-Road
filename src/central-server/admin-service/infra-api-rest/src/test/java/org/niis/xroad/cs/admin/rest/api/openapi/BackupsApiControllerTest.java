@@ -48,8 +48,9 @@ class BackupsApiControllerTest {
     private ConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
 
     @Test
-    void addBackupShouldHandleInterruptedException() throws InterruptedException {
-        when(centralServerConfigurationBackupGenerator.generateBackup()).thenThrow(new InterruptedException());
+    void addBackupShouldHandleInterruptedException() {
+        when(centralServerConfigurationBackupGenerator.generateBackup())
+                .thenThrow(new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build()));
         var error = assertThrowsExactly(InternalServerErrorException.class, backupsApiController::addBackup);
         Assertions.assertThat(error.getErrorDeviation().code()).isEqualTo(BACKUP_GENERATION_INTERRUPTED.code());
     }

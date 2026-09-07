@@ -1,0 +1,18 @@
+---
+- name: restart xroad-proxy
+  become: true
+  service:
+    name: xroad-proxy
+    state: restarted
+
+- name: restart xroad-confclient
+  become: true
+  service:
+    name: xroad-confclient
+    state: restarted
+
+- name: restart xroad-auxiliary-service
+  become: true
+  service:
+    name: xroad-auxiliary-service
+    state: restarted

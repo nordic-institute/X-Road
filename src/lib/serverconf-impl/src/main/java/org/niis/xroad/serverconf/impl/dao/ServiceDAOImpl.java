@@ -37,7 +37,6 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
@@ -82,7 +81,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
      * @param serviceProviderId the service provider
      * @return services of the specified service provider
      */
-    public List<ServiceIdEntity> getServices(Session session, ClientId serviceProviderId) {
+    public List<ServiceId.Conf> getServices(Session session, ClientId serviceProviderId) {
         return getServicesByDescriptionType(session, serviceProviderId);
     }
 
@@ -94,14 +93,14 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
      * @return services of the specified service provider
      */
     @SuppressWarnings("squid:S1192")
-    public List<ServiceIdEntity> getServicesByDescriptionType(Session session,
+    public List<ServiceId.Conf> getServicesByDescriptionType(Session session,
                                                               ClientId serviceProviderId, DescriptionType... descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Tuple> tq = builder.createTupleQuery();
         Root<ServiceEntity> root = tq.from(ServiceEntity.class);
         Join<ServiceEntity, ServiceDescriptionEntity> joinServiceDescription = root.join("serviceDescription");
         Join<ServiceDescriptionEntity, ClientEntity> joinClient = joinServiceDescription.join("client");
-        tq.multiselect(root.get("serviceCode"), root.get("serviceVersion"));
+        tq.select(builder.tuple(root.get("serviceCode"), root.get("serviceVersion")));
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(joinClient.get("identifier").<String>get("xRoadInstance"),
                 serviceProviderId.getXRoadInstance()));
@@ -120,9 +119,9 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
         }
         tq.where(predicates.toArray(new Predicate[]{}));
         List<Tuple> resultList = session.createQuery(tq).getResultList();
-        List<ServiceIdEntity> services = new ArrayList<>();
+        List<ServiceId.Conf> services = new ArrayList<>();
         for (Tuple tuple : resultList) {
-            services.add(ServiceIdEntity.create(serviceProviderId, (String) tuple.get(0),
+            services.add(ServiceId.Conf.create(serviceProviderId, (String) tuple.get(0),
                     (String) tuple.get(1)));
         }
         return services;

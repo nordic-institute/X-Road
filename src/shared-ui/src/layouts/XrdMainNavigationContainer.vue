@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-navigation-drawer class="xrd-rail-nav px-1" width="96" permanent>
+  <v-navigation-drawer class="xrd-rail-nav px-1 py-6" :style="style" width="96" permanent>
     <v-list-item class="xrd xrd-rail-item-logo mx-1 opacity-100" density="compact" variant="plain" to="/" rounded>
       <v-img class="ma-auto mb-3" width="48px" :src="logo" />
     </v-list-item>
@@ -47,13 +47,15 @@ import { computed } from 'vue';
 import { useThemeHelper } from '../composables';
 import { XrdThemeSwitcher } from '../components';
 
+const props = defineProps({ minHeight: { type: [Number, String], default: 700 } });
+
 const { isDark } = useThemeHelper();
 
 const logo = computed(() => (isDark.value ? _logoDark : _logoLight));
+const style = computed(() => `min-height: ${props.minHeight}px`);
 </script>
 <style lang="scss" scoped>
 .xrd-rail-nav {
-  padding: 24px 8px;
   border-right-width: 0;
 
   //eslint-disable-next-line vue-scoped-css/no-unused-selector

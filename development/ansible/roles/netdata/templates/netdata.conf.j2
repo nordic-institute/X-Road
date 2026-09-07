@@ -1,0 +1,15 @@
+{{ ansible_managed | comment }}
+[global]
+  update every = 2
+  anonymous statistics = no
+
+[db]
+  mode = dbengine
+  storage tiers = 2
+
+[plugin:cloud]
+  enabled = no
+
+[web]
+  default port = {{ netdata_port }}
+  bind to = 0.0.0.0

@@ -26,10 +26,7 @@
  */
 
 @use 'vuetify/settings' with (
-  $layers: false,
-
   $table-row-height: 56px,
-  $button-text-transform: none,
   $field-outline-opacity: .4,
   $ripple-animation-visible-opacity: .24,
   $body-font-family: ('Open Sans Variable', sans-serif),

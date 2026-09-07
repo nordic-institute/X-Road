@@ -10,4 +10,4 @@
 
 ./migrate-ini-cfg.sh \
 $XROAD_HOME/deployment/native-packages/src/xroad/default-configuration/confproxy.ini \
-$XROAD_HOME/src/service/configuration-proxy/configuration-proxy-application/src/main/resources/confproxy.yaml
+$XROAD_HOME/src/service/configuration-proxy/configuration-proxy-cli/src/main/resources/confproxy.yaml

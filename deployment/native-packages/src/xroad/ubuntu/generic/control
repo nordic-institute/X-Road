@@ -15,7 +15,7 @@ Description: Monitoring client configuration for X-Road central
 Package: xroad-centralserver
 Conflicts: xroad-securityserver
 Architecture: all
-Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version}), xroad-center-registration-service (=${binary:Version}), xroad-center-management-service (=${binary:Version})
+Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version}), xroad-center-registration-service (=${binary:Version}), xroad-center-management-service (=${binary:Version}), xroad-ds-issuer-service (=${binary:Version})
 Description: X-Road central server
  This is meta-package of X-Road central server.
 
@@ -30,7 +30,7 @@ Description: X-Road central server
 Package: xroad-base
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.7.2)
-Depends: ${misc:Depends}, openjdk-21-jre-headless | java21-runtime-headless | java21-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent, bc, python3, python3-yaml
+Depends: ${misc:Depends}, openjdk-25-jre-headless | java25-runtime-headless | java25-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent, bc, python3, python3-yaml
 Description: X-Road base components
  X-Road base components and utilities
 
@@ -58,24 +58,24 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-auxiliary-service (=${binary:Version}), xroad-message-log-archiver (=${binary:Version}), xroad-ds-control-plane (=${binary:Version}), xroad-ds-identity-hub (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
 Package: xroad-proxy
-Conflicts: xroad-center, xroad-confproxy, xroad-addon-messagelog
+Conflicts: xroad-center, xroad-confproxy, xroad-addon-messagelog, xroad-addon-metaservices, xroad-addon-proxymonitor, xroad-addon-wsdlvalidator, xroad-addon-opmonitoring
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
+Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-25-jre-headless | java25-runtime-headless | java25-runtime
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
-Replaces: xroad-addon-messagelog
+Replaces: xroad-addon-messagelog, xroad-addon-metaservices, xroad-addon-proxymonitor, xroad-addon-wsdlvalidator, xroad-addon-opmonitoring
 Description: X-Road security server
  X-Road security server programs and utilities
 
 Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
-Pre-Depends: xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
@@ -133,13 +133,13 @@ Description: X-Road proxy UI REST API
 Package: xroad-database-local
 Architecture: all
 Conflicts: xroad-database-remote
-Depends: xroad-base (=${binary:Version}), postgresql, postgresql-contrib
+Depends: xroad-base (=${binary:Version}), postgresql (>= 15), postgresql-contrib (>= 15)
 Description: Meta-package for X-Road local database dependencies
 
 Package: xroad-database-remote
 Architecture: all
 Conflicts: xroad-database-local
-Depends: xroad-base (=${binary:Version}), postgresql-client
+Depends: xroad-base (=${binary:Version}), postgresql-client (>= 15)
 Description: Meta-package for X-Road remote database dependencies
 
 Package: xroad-center-registration-service
@@ -160,7 +160,7 @@ Package: xroad-secret-store-local
 Architecture: all
 Conflicts: xroad-secret-store-remote
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
-Depends: jq, gpg, bao (>= 2.0.0), xroad-base (=${binary:Version})
+Depends: jq, gpg, openbao (<< 2.6.0), xroad-base (=${binary:Version})
 Description: Meta-package for X-Road local secret store dependencies
  
 Package: xroad-secret-store-remote
@@ -168,10 +168,35 @@ Architecture: all
 Conflicts: xroad-secret-store-local
 Description: Meta-package for X-Road remote secret store dependencies
 
-Package: xroad-backup-manager
+Package: xroad-auxiliary-service
 Architecture: all
 Replaces: xroad-proxy (<< 7.9.0)
 Breaks: xroad-proxy (<< 7.9.0)
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
-Description: X-Road backup manager
- X-Road backup manager
+Description: X-Road auxiliary service
+ X-Road auxiliary service
+
+Package: xroad-message-log-archiver
+Architecture: all
+Replaces: xroad-addon-messagelog (<< 8.0.0)
+Breaks: xroad-addon-messagelog (<< 8.0.0)
+Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Description: X-Road message log archiver
+ X-Road message log archiver and cleanup CLI application
+
+Package: xroad-ds-control-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Control Plane
+
+Package: xroad-ds-identity-hub
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version})
+Description: X-Road DS Identity Hub
+
+Package: xroad-ds-issuer-service
+Architecture: all
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
+Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
+Description: X-Road DS Issuer Service
+ X-Road Data Space Issuer Service component for the Central Server.

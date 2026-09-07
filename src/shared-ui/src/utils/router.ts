@@ -24,27 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import {
-  createRouter,
-  createWebHashHistory,
-  NavigationGuardNext,
-  RouteLocationNormalized,
-  RouteLocationNormalizedLoaded,
-  Router,
-} from 'vue-router';
+import { createRouter, createWebHashHistory, RouteLocationNormalized, RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
 import { useNotifications } from '../composables';
-import { useHistory } from '../stores';
+import { useAppState, useHistory } from '../stores';
 import { XrdLocation, XrdRoute } from '../types';
 
 interface Config {
   loginRouteName: string;
+  initAdminRouteName?: string;
   initialisationRouteName: string;
   forbiddenRouteName: string;
   isAuthenticated: () => boolean;
-  isSessionAlive: () => boolean;
   isServerInitialized: () => boolean;
+  isAdminUserCreationRequired?: () => Promise<boolean>;
   hasAnyOfPermissions: (permissions: string[]) => boolean;
+  /**
+   * Optional escape hatch for routes that should be reachable without authentication
+   * (e.g. initial admin user creation during a fresh server bootstrap). Defaults to false.
+   */
   routes: XrdRoute[];
 }
 
@@ -61,25 +59,35 @@ export function createXrdRouter(config: Config): Router {
     push(to);
   });
 
-  router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+  router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized) => {
     // Going to login
     if (to.name === config.loginRouteName) {
-      next();
+
+      if (config.initAdminRouteName && config.isAdminUserCreationRequired) {
+        const creationRequired = await config.isAdminUserCreationRequired();
+
+        if (creationRequired) {
+          return {
+            name: config.initAdminRouteName,
+          }
+        }
+      }
       return;
     }
 
     // Pinia stores
     const notifications = useNotifications();
+    const appState = useAppState();
 
     // User is allowed to access any other view than login only after authenticated information has been fetched
     // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
     // user to be redirected to a view that contains api calls (s)he is not allowed.
-    if (config.isSessionAlive() && config.isAuthenticated()) {
+    if (appState.isSessionAlive() && config.isAuthenticated()) {
       // Server is not initialized
-      if (!config.isServerInitialized() && to.name != config.initialisationRouteName && from.name != config.initialisationRouteName) {
-        next({
+      if (!config.isServerInitialized() && to.name != config.initialisationRouteName) {
+        return {
           name: config.initialisationRouteName,
-        });
+        };
       } else {
         // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
         if (from.name !== config.initialisationRouteName) {
@@ -89,22 +97,21 @@ export function createXrdRouter(config: Config): Router {
       Check permissions here
       */
 
-        if (!to?.meta?.permissions) {
-          next();
-        } else if (config.hasAnyOfPermissions(to.meta.permissions)) {
-          // This route is allowed
-          next();
+        if (!to?.meta?.permissions || config.hasAnyOfPermissions(to.meta.permissions)) {
+          return;
         } else {
           // This route is not allowed
-          next({
+          return {
             name: config.forbiddenRouteName,
-          });
+          };
         }
       }
+    } else if (to.name === config.initAdminRouteName && config.isAdminUserCreationRequired && (await config.isAdminUserCreationRequired())) {
+      return;
     } else {
-      next({
+      return {
         name: config.loginRouteName,
-      });
+      };
     }
   });
 

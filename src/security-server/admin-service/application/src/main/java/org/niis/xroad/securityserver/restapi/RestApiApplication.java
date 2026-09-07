@@ -27,12 +27,13 @@ package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.Version;
 
+import org.niis.xroad.globalconf.spring.GlobalConfBeanLookup;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.globalconf.spring.SpringOcspVerifierConfig;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.server.servlet.context.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
 
@@ -42,6 +43,7 @@ import org.springframework.context.annotation.Import;
 @Import({
         SpringGlobalConfConfig.class,
         SpringOcspVerifierConfig.class,
+        GlobalConfBeanLookup.class,
         ServerConfBeanConfig.class})
 @ServletComponentScan
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",

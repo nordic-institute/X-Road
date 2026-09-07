@@ -267,6 +267,9 @@ extract_to_tmp_restore_dir () {
         mv ${RESTORE_DIR}/etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env.restored
         cp /etc/openbao/openbao.env ${RESTORE_DIR}/etc/openbao/openbao.env
     fi
+
+    chown openbao:xroad ${RESTORE_DIR}/etc/openbao/openbao.env
+    chmod 640 ${RESTORE_DIR}/etc/openbao/openbao.env
   fi
 
   # reset permissions of all files to fixed, "safe" values

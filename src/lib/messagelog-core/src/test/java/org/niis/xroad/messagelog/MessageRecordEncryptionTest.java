@@ -600,8 +600,8 @@ class MessageRecordEncryptionTest {
 
     // Helper methods
 
-    private MessageLogDatabaseEncryptionProperties mockProperties(boolean enabled, String keyId) {
-        var properties = mock(MessageLogDatabaseEncryptionProperties.class);
+    private MessageLogEncryptionProperties.DbEncryptionConfig mockProperties(boolean enabled, String keyId) {
+        var properties = mock(MessageLogEncryptionProperties.DbEncryptionConfig.class);
         when(properties.enabled()).thenReturn(enabled);
         when(properties.keyId()).thenReturn(keyId);
         return properties;

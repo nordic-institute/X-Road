@@ -1,5 +1,5 @@
 ---
-#Default variant, used if none defined in group_vars/all/vars.yml or in other higher precedence configuration
+# Default variant, used if none defined in group_vars/all/vars.yml or in other higher precedence configuration
 variant: vanilla
 
 #Defines the security server "variant package", a meta-package that delivers variant override configuration and

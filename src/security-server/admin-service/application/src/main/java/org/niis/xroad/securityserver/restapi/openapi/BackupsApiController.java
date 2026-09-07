@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.backupmanager.proto.BackupInfo;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -40,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupExtDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
+import org.niis.xroad.securityserver.restapi.service.ApplicationRestarter;
 import org.niis.xroad.securityserver.restapi.service.SecurityServerBackupService;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.springframework.core.io.Resource;
@@ -70,6 +71,7 @@ public class BackupsApiController implements BackupsApi {
     private final BackupConverter backupConverter;
     private final SecurityServerBackupService backupService;
     private final TokenService tokenService;
+    private final ApplicationRestarter applicationRestarter;
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
@@ -114,6 +116,7 @@ public class BackupsApiController implements BackupsApi {
         BackupExtDto backupExt = new BackupExtDto();
         backupExt.setFilename(backupFile.name());
         backupExt.setCreatedAt(backupFile.createdAt().atOffset(ZoneOffset.UTC));
+        backupExt.setCompatible(backupFile.compatible());
         backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
         return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
     }
@@ -145,6 +148,7 @@ public class BackupsApiController implements BackupsApi {
         } catch (NotFoundException e) {
             throw new InternalServerErrorException(e);
         }
+        applicationRestarter.scheduleRestartIfNeeded();
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }
 

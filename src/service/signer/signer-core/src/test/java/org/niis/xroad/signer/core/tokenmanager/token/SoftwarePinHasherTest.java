@@ -27,22 +27,33 @@
 
 package org.niis.xroad.signer.core.tokenmanager.token;
 
+import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
+import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
 import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SoftwarePinHasherTest {
+
+    private static final int SALT_LENGTH = 16;
+    private static final int HASH_LENGTH = 32;
 
     private SoftwarePinHasher softwarePinHasher;
 
     @BeforeEach
     void setUp() {
-        softwarePinHasher = new SoftwarePinHasher(ConfigUtils.defaultConfiguration(SoftwarePinHasherProperties.class));
-        softwarePinHasher.init();
+        softwarePinHasher = new SoftwarePinHasher(new SoftwarePinHasherProperties(
+                XRoadConfigBuilder.create().register(SignerConfigKeys.instance()).build()));
     }
 
     @Test
@@ -50,7 +61,48 @@ class SoftwarePinHasherTest {
         byte[] hash = softwarePinHasher.hashPin("1234".toCharArray());
 
         assertNotNull(hash);
-        assertEquals(32, hash.length, "Hash length should be 32 bytes");
+        assertEquals(SALT_LENGTH + HASH_LENGTH, hash.length, "Hash length should be salt length + hash length");
+    }
+
+    @Test
+    void hashPinSaltApplied() {
+        byte[] hash1 = softwarePinHasher.hashPin("1234".toCharArray());
+        byte[] hash2 = softwarePinHasher.hashPin("1234".toCharArray());
+
+        assertFalse(Arrays.equals(hash1, hash2), "Same PIN should produce different salted hashes");
+        assertEquals(SALT_LENGTH + HASH_LENGTH, hash1.length, "Hash length should be salt length + hash length");
+    }
+
+    @Test
+    void verifyPinShouldSucceedForCorrectPin() {
+        byte[] hash = softwarePinHasher.hashPin("1234".toCharArray());
+
+        assertTrue(softwarePinHasher.verifyPin("1234".toCharArray(), hash));
+        assertFalse(softwarePinHasher.verifyPin("4321".toCharArray(), hash));
+    }
+
+    @Test
+    void verifyPinShouldSupportLegacyUnsaltedHash() {
+        byte[] legacyHash = rawArgon2Hash();
+
+        assertEquals(HASH_LENGTH, legacyHash.length);
+        assertTrue(softwarePinHasher.verifyPin("1234".toCharArray(), legacyHash));
+        assertFalse(softwarePinHasher.verifyPin("4321".toCharArray(), legacyHash));
+    }
+
+    private byte[] rawArgon2Hash() {
+        Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+                .withIterations(4)
+                .withMemoryAsKB(19456)
+                .withParallelism(4)
+                .build();
+        byte[] pinBytes = "1234".getBytes(StandardCharsets.UTF_8);
+        byte[] hash = new byte[SoftwarePinHasherTest.HASH_LENGTH];
+
+        var generator = new Argon2BytesGenerator();
+        generator.init(params);
+        generator.generateBytes(pinBytes, hash);
+        return hash;
     }
 
 }

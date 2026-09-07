@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.backupmanager.proto.BackupInfo;
+import org.niis.xroad.auxiliaryservice.proto.BackupInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class BackupConverter {
 
     public BackupDto convert(BackupInfo backupInfo) {
-        return new BackupDto(backupInfo.name(), backupInfo.createdAt().atOffset(ZoneOffset.UTC));
+        return new BackupDto(backupInfo.name(), backupInfo.createdAt().atOffset(ZoneOffset.UTC), backupInfo.compatible());
     }
 
     public Set<BackupDto> convert(Collection<BackupInfo> backupDto) {

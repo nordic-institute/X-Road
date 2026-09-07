@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.mail.MailNotificationProperties;
 import org.niis.xroad.securityserver.restapi.mail.MailService;
@@ -38,10 +39,12 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CertUtils.isSigningCert;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_TEST_MAIL_RECIPIENT;
 
 @RequiredArgsConstructor
 @Component
@@ -173,10 +176,55 @@ public class MailNotificationHelper {
         }
     }
 
+    public void sendDsTlsAcmeSuccessNotification(String hostname, boolean isRenewal) {
+        if (adminServiceProperties.getDataspace().isTlsCertificateRenewalSuccessNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_title",
+                    new String[]{isRenewal ? "renewal" : "enrollment"});
+            String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_content",
+                    new String[]{hostname, isRenewal ? "renewed" : "enrolled"});
+            sendToDsTlsNotificationContacts(title, content);
+        }
+    }
+
+    public void sendDsTlsAcmeFailureNotification(String hostname, String errorDescription) {
+        if (adminServiceProperties.getDataspace().isTlsCertificateRenewalFailureNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_title");
+            String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_content",
+                    new String[]{hostname, errorDescription});
+            sendToDsTlsNotificationContacts(title, content);
+        }
+    }
+
+    private void sendToDsTlsNotificationContacts(String title, String content) {
+        List<String> contacts = adminServiceProperties.getDataspace().getTlsCertificateNotificationContacts();
+        if (contacts != null) {
+            contacts.forEach(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
+    /**
+     * Resolves the ACME account contact email configured for the given member, if any.
+     */
+    public List<String> getAcmeContacts(String memberId) {
+        return Optional.ofNullable(mailNotificationProperties.getContacts())
+                .map(contacts -> contacts.get(memberId))
+                .map(List::of)
+                .orElse(List.of());
+    }
+
     public void sendTestMail(String recipientAddress, String securityServerId) {
+        verifyRecipientIsConfiguredContact(recipientAddress);
         mailService.sendTestMail(recipientAddress,
                 notificationMessageSourceAccessor.getMessage("test_mail_title", new String[]{securityServerId}),
                 notificationMessageSourceAccessor.getMessage("test_mail_content", new String[]{securityServerId}));
+    }
+
+    private void verifyRecipientIsConfiguredContact(String recipientAddress) {
+        var contacts = mailNotificationProperties.getContacts();
+        boolean isConfiguredContact = contacts != null && contacts.containsValue(recipientAddress);
+        if (!isConfiguredContact) {
+            throw new BadRequestException(INVALID_TEST_MAIL_RECIPIENT.build());
+        }
     }
 
 }

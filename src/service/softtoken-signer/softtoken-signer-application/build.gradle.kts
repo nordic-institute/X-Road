@@ -12,8 +12,14 @@ dependencies {
   implementation(project(":service:signer:signer-common"))
   implementation(project(":lib:rpc-quarkus"))
   implementation(project(":lib:properties-quarkus"))
+  implementation(project(":lib:properties-core"))
 
-  implementation(libs.quarkus.extension.systemd.notify)
   implementation(libs.smallrye.config.core)
   implementation(libs.bundles.quarkus.containerized)
+
+  testImplementation(libs.assertj.core)
+}
+
+tasks.jar {
+  enabled = true
 }

@@ -33,7 +33,7 @@ xroad:
           "DEV/COM/4321": 8A4BB80EEE081BDE,E93952B01C2D2EA5
 ```
 
-GPG keys generated on Ubuntu 24.04 using the following commands:
+GPG keys generated on Ubuntu 26.04 using the following commands:
 ```bash
 gpg --homedir gpg --quick-generate-key key1 rsa4096 default never
 gpg --homedir gpg --quick-generate-key key2 rsa4096 default never

@@ -61,6 +61,8 @@ export const tabs: Tab[] = [
       Permissions.VIEW_APPROVED_TSAS,
       Permissions.VIEW_APPROVED_CA_DETAILS,
       Permissions.VIEW_APPROVED_TSA_DETAILS,
+      Permissions.VIEW_APPROVED_DS_TLS_CAS,
+      Permissions.VIEW_APPROVED_DS_TLS_CA_DETAILS,
     ],
   },
   {

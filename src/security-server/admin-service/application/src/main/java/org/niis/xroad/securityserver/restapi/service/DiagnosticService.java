@@ -28,13 +28,13 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.HeapMemoryStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
+import org.niis.xroad.auxiliaryservice.proto.AuxiliaryServiceRpcClient;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.ErrorDeviation;
 import org.niis.xroad.common.rpc.mapper.DiagnosticStatusMapper;
@@ -73,7 +73,7 @@ public class DiagnosticService {
     private final ConfClientRpcClient confClientRpcClient;
     private final SignerRpcClient signerRpcClient;
     private final ProxyRpcClient proxyRpcClient;
-    private final BackupManagerRpcClient backupManagerRpcClient;
+    private final AuxiliaryServiceRpcClient auxiliaryServiceRpcClient;
     private final OpMonitorClient opMonitorClient;
 
     /**
@@ -160,7 +160,7 @@ public class DiagnosticService {
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
         try {
-            return backupManagerRpcClient.getEncryptionStatus();
+            return auxiliaryServiceRpcClient.getEncryptionStatus();
         } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
@@ -182,9 +182,9 @@ public class DiagnosticService {
     /**
      * Query proxy memory usage from admin port over HTTP.
      *
-     * @return ProxyMemory
+     * @return HeapMemoryStatus
      */
-    public ProxyMemory queryProxyMemoryUsage() {
+    public HeapMemoryStatus queryProxyMemoryUsage() {
         try {
             return proxyRpcClient.getProxyMemoryStatus();
         } catch (Exception e) {

@@ -30,15 +30,12 @@ import org.junit.Test;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
@@ -46,32 +43,40 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.addApiKeyAuth
 /**
  * test user api with real rest requests
  *
- * If data source is altered with TestRestTemplate (e.g. POST, PUT or DELETE) in this test class,
+ * If data source is altered with WebTestClient (e.g. POST, PUT or DELETE) in this test class,
  * please remember to mark the context dirty with the following annotation:
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
  */
 public class UserApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    TestRestTemplate restTemplate;
+    WebTestClient webTestClient;
+
+    private WebTestClient client;
 
     @Before
     public void setup() {
-        addApiKeyAuthorizationHeader(restTemplate);
+        client = addApiKeyAuthorizationHeader(webTestClient);
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testGetUser() {
-        ResponseEntity<User> response = restTemplate.getForEntity("/api/v1/user", User.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("api-key-1", response.getBody().getUsername());
+        User user = client.get().uri("/api/v1/user")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(User.class)
+                .returnResult()
+                .getResponseBody();
 
-        assertFalse(response.getBody().getRoles().isEmpty());
+        assert user != null;
+        org.junit.Assert.assertEquals("api-key-1", user.getUsername());
+
+        assertFalse(user.getRoles().isEmpty());
         List<String> allRoleNames = Arrays.stream(Role.values())
                 .map(Role::getGrantedAuthorityName).toList();
 
-        assertTrue(allRoleNames.containsAll(response.getBody().getRoles()));
-        assertTrue(response.getBody().getPermissions().contains("VIEW_CLIENTS"));
+        assertTrue(allRoleNames.containsAll(user.getRoles()));
+        assertTrue(user.getPermissions().contains("VIEW_CLIENTS"));
     }
 }

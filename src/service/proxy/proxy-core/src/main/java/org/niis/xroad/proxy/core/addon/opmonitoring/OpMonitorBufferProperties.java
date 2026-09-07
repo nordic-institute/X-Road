@@ -27,29 +27,39 @@
 
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-public interface OpMonitorBufferProperties {
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_CONNECTION_TIMEOUT_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_MAX_RECORDS_IN_MESSAGE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_SENDING_INTERVAL_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_SIZE;
+import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.ADDON_OP_MONITOR_BUFFER_SOCKET_TIMEOUT_SECONDS;
 
-    @WithName("size")
-    @WithDefault("20000")
-    int size();
 
-    @WithName("max-records-in-message")
-    @WithDefault("100")
-    int maxRecordsInMessage();
+@RequiredArgsConstructor
+public class OpMonitorBufferProperties {
 
-    @WithName("sending-interval-seconds")
-    @WithDefault("5")
-    long sendingIntervalSeconds();
+    private final XRoadConfig xroadConfig;
 
-    @WithName("socket-timeout-seconds")
-    @WithDefault("60")
-    int socketTimeoutSeconds();
+    public int size() {
+        return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_SIZE);
+    }
 
-    @WithName("connection-timeout-seconds")
-    @WithDefault("50")
-    int connectionTimeoutSeconds();
+    public int maxRecordsInMessage() {
+        return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_MAX_RECORDS_IN_MESSAGE);
+    }
+
+    public long sendingIntervalSeconds() {
+        return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_SENDING_INTERVAL_SECONDS);
+    }
+
+    public int socketTimeoutSeconds() {
+        return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_SOCKET_TIMEOUT_SECONDS);
+    }
+
+    public int connectionTimeoutSeconds() {
+        return xroadConfig.value(ADDON_OP_MONITOR_BUFFER_CONNECTION_TIMEOUT_SECONDS);
+    }
 
 }

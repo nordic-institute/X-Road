@@ -40,6 +40,7 @@ import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
@@ -173,6 +174,11 @@ public class EmptyServerConf implements ServerConfProvider {
         e.setPath("/");
         endpoints.add(e);
         return endpoints;
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return emptyList();
     }
 
     @Override

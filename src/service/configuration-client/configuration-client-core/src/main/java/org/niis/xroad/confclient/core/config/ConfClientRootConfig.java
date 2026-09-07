@@ -25,38 +25,95 @@
  */
 package org.niis.xroad.confclient.core.config;
 
+import io.smallrye.config.SmallRyeConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
-import org.niis.xroad.common.properties.CommonProperties;
-import org.niis.xroad.confclient.core.ConfigurationClient;
-import org.niis.xroad.confclient.core.ConfigurationDownloader;
-import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepository;
-import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryImpl;
-import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryNoopImpl;
-import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
-import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ConfClientConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
+import org.niis.xroad.confclient.common.config.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.common.globalconf.FileBasedProvider;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepository;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepositoryImpl;
+import org.niis.xroad.confclient.common.repository.GlobalConfSourceLocationRepositoryNoopImpl;
+import org.niis.xroad.confclient.common.service.ConfigurationClient;
+import org.niis.xroad.confclient.common.service.ConfigurationClientService;
+import org.niis.xroad.confclient.common.service.ConfigurationDownloader;
+import org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer;
 import org.niis.xroad.confclient.core.globalconf.DBBasedProvider;
-import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import javax.sql.DataSource;
 
+import static org.niis.xroad.common.properties.config.keys.CommonConfigKeys.TEMP_FILES_PATH;
+
 public class ConfClientRootConfig {
 
     @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return configBuilder()
+                .dbOverrides(appName)
+                .build();
+    }
+
+    public static XRoadConfigBuilder configBuilder() {
+        return XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
+                .register(CommonConfigKeys.instance())
+                .register(ConfClientConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
+                .deploymentMode(deploymentMode());
+    }
+
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
+    }
+
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfigurationClientRpcServerProperties configurationClientRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new ConfigurationClientRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ConfigurationClientProperties configurationClientProperties(XRoadConfig xRoadConfig) {
+        return new ConfigurationClientProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
     ConfigurationAnchorProvider configurationAnchorProvider(ConfigurationClientProperties configurationClientProperties,
-                                                            CommonProperties commonProperties,
+                                                            XRoadConfig xRoadConfig,
                                                             Provider<DataSource> dataSource) {
         return switch (configurationClientProperties.configurationAnchorStorage()) {
             case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile(),
-                    commonProperties.tempFilesPath());
+                    xRoadConfig.value(TEMP_FILES_PATH));
             case DB -> new DBBasedProvider(dataSource.get());
         };
     }
 
     @ApplicationScoped
     GlobalConfSourceLocationRepository globalConfSourceLocationRepository(Provider<DataSource> dataSource) {
-        if (dataSource.get() != null) {
+        var dataSourceActive = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.datasource.active", Boolean.class)
+                .orElse(true);
+        if (dataSourceActive && dataSource.get() != null) {
             return new GlobalConfSourceLocationRepositoryImpl(dataSource.get());
         }
         return new GlobalConfSourceLocationRepositoryNoopImpl();
@@ -77,6 +134,21 @@ public class ConfClientRootConfig {
     @ApplicationScoped
     FSGlobalConfValidator fsGlobalConfValidator() {
         return new FSGlobalConfValidator();
+    }
+
+    @ApplicationScoped
+    HttpUrlConnectionConfigurer httpUrlConnectionConfigurer(ConfigurationClientProperties configurationClientProperties) {
+        return new HttpUrlConnectionConfigurer(configurationClientProperties);
+    }
+
+    @ApplicationScoped
+    ConfigurationClientService configurationClientService(HttpUrlConnectionConfigurer httpUrlConnectionConfigurer,
+                                                          ConfigurationClientProperties configurationClientProperties,
+                                                          XRoadConfig xRoadConfig) {
+        return new ConfigurationClientService(
+                httpUrlConnectionConfigurer,
+                configurationClientProperties,
+                () -> xRoadConfig.value(TEMP_FILES_PATH));
     }
 
 }

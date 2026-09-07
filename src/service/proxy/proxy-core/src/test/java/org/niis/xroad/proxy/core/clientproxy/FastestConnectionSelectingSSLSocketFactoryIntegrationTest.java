@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -44,6 +43,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
@@ -67,9 +68,9 @@ import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Map;
 
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
-import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -103,33 +104,10 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         GlobalConfProvider globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
         CertHashBasedOcspResponderClient ocspResponderClient = new CertHashBasedOcspResponderClient(
-                new ProxyProperties.OcspResponderProperties() {
-
-                    @Override
-                    public String listenAddress() {
-                        return "0.0.0.0";
-                    }
-
-                    @Override
-                    public int port() {
-                        return 5577;
-                    }
-
-                    @Override
-                    public int clientConnectTimeout() {
-                        return 20000;
-                    }
-
-                    @Override
-                    public int clientReadTimeout() {
-                        return 30000;
-                    }
-
-                    @Override
-                    public String jettyConfigurationFile() {
-                        return "src/test/ocsp-responder.xml";
-                    }
-                });
+                new ProxyProperties.OcspResponderProperties(XRoadConfigBuilder.create()
+                        .register(ProxyConfigKeys.instance())
+                        .overrides(Map.of("xroad.proxy.ocsp-responder.jetty-configuration-file", "src/test/ocsp-responder.xml"))
+                        .build()));
         authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider,
                 new CertHelper(globalConfProvider, new OcspVerifierFactory()));
 
@@ -208,13 +186,14 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
+        var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create().register(ProxyConfigKeys.instance()).build());
         return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory(),
-                defaultConfiguration(ProxyProperties.class));
+                proxyProperties, new UnusableAddressTracker(proxyProperties));
     }
 
     static class NoopTrustManager implements X509TrustManager {

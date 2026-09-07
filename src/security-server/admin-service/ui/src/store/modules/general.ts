@@ -41,7 +41,7 @@ export const useGeneral = defineStore('general', {
   },
 
   actions: {
-    fetchMemberClasses() {
+    async fetchMemberClasses() {
       return api
         .get<string[]>('/member-classes')
         .then((res) => {
@@ -52,7 +52,7 @@ export const useGeneral = defineStore('general', {
         });
     },
 
-    fetchMemberClassesForCurrentInstance() {
+    async fetchMemberClassesForCurrentInstance() {
       return api
         .get<string[]>('/member-classes?current_instance=true')
         .then((res) => {
@@ -63,7 +63,7 @@ export const useGeneral = defineStore('general', {
         });
     },
 
-    fetchMemberName(memberClass: string, memberCode: string) {
+    async fetchMemberName(memberClass: string, memberCode: string) {
       // this is currently an inline schema and is not automatically generated to a typescript type
       return api
         .get<MemberName>(`/member-names?member_class=${memberClass}&member_code=${memberCode}`)
@@ -75,7 +75,7 @@ export const useGeneral = defineStore('general', {
         });
     },
 
-    fetchXRoadInstances() {
+    async fetchXRoadInstances() {
       return api
         .get('/xroad-instances')
         .then((res) => {

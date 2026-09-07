@@ -145,6 +145,10 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     GLOBAL_CONF_SIGNATURE_VERIFICATION_FAILURE("global_conf_signature_verification_failure"),
     GLOBAL_CONF_PARSING_DOWNLOADED_CONF_DIRECTORY_FAILURE("global_conf_parsing_downloaded_conf_directory_failure"),
     GLOBAL_CONF_PART_INVALID_INSTANCE_IDENTIFIER("global_conf_part_invalid_instance_identifier"),
+    GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER("global_conf_part_blank_instance_identifier"),
+    GLOBAL_CONF_PART_RESERVED_FILE_NAME("global_conf_part_reserved_file_name"),
+    GLOBAL_CONF_PART_DUPLICATE_TARGET("global_conf_part_duplicate_target"),
+    GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION("global_conf_part_invalid_content_location"),
     GLOBAL_CONF_PART_DOWNLOAD_FAILURE("global_conf_part_download_failure"),
     GLOBAL_CONF_PART_DOWNLOADED_FILE_INTEGRITY_FAILURE("global_conf_part_downloaded_file_integrity_failure"),
     GLOBAL_CONF_PART_DOWNLOADED_HASH_FAILURE("global_conf_part_downloaded_hash_failure"),
@@ -305,7 +309,32 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     PGP_ENCODE_FAILED("pgp_encode_failed"),
     PGP_ENCRYPTION_KEYS_MISSING("pgp_encryption_keys_missing"),
 
-    TOKEN_PIN_MISSING("token_pin_missing");
+    TOKEN_PIN_MISSING("token_pin_missing"),
+
+    // ===== DATASPACE / DSP =====
+    DSP_CATALOG_FETCH_FAILED("dsp_catalog_fetch_failed"),
+    DSP_CATALOG_PARSE_FAILED("dsp_catalog_parse_failed"),
+    DSP_DATASET_NOT_FOUND("dsp_dataset_not_found"),
+    DSP_OFFERS_NOT_FOUND("dsp_offers_not_found"),
+    DSP_PULL_DISTRIBUTION_MISSING("dsp_pull_distribution_missing"),
+    DSP_PARTICIPANT_CONTEXT_FAILED("dsp_participant_context_failed"),
+    DSP_DATAADDRESS_INVALID("dsp_dataaddress_invalid"),
+    DSP_ACQUISITION_TIMEOUT("dsp_acquisition_timeout"),
+    DSP_NEGOTIATION_FAILED("dsp_negotiation_failed"),
+    DSP_TRANSFER_FAILED("dsp_transfer_failed"),
+    DSP_ACQUISITION_FAILED("dsp_acquisition_failed"),
+    DSP_PROVISIONING_FAILED("dsp_provisioning_failed"),
+    DSP_PARTICIPANT_IDENTIFIER_MISMATCH("dsp_participant_identifier_mismatch"),
+    DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED("dsp_participant_scheme_version_unsupported"),
+    DSP_PARTICIPANT_DID_DRIFT("dsp_participant_did_drift"),
+
+    // ===== DS TLS CERTIFICATE ERRORS =====
+    DS_TLS_KEY_NOT_GENERATED("ds_tls_key_not_generated"),
+    DS_TLS_CERTIFICATE_PARSE_FAILED("ds_tls_certificate_parse_failed"),
+    DS_TLS_CERTIFICATE_NOT_YET_VALID("ds_tls_certificate_not_yet_valid"),
+    DS_TLS_CERTIFICATE_EXPIRED("ds_tls_certificate_expired"),
+    DS_TLS_KEY_CERTIFICATE_MISMATCH("ds_tls_key_certificate_mismatch"),
+    DS_TLS_CERTIFICATE_NOT_CONFIGURED("ds_tls_certificate_not_configured");
 
     private final String code;
 

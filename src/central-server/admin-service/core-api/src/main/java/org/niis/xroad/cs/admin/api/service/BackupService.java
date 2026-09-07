@@ -27,7 +27,6 @@ package org.niis.xroad.cs.admin.api.service;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.dto.BackupFile;
-import org.niis.xroad.restapi.service.UnhandledWarningsException;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,8 +38,7 @@ public interface BackupService {
 
     byte[] readBackupFile(String filename) throws NotFoundException;
 
-    BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
-            throws UnhandledWarningsException, BadRequestException;
+    BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes) throws BadRequestException;
 
     Optional<BackupFile> getBackup(String filename);
 }

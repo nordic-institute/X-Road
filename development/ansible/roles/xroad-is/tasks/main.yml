@@ -1,4 +1,9 @@
 ---
+- name: Detect cached-image marker
+  stat:
+    path: /etc/xroad-cached-image
+  register: cache_marker
+
 - include_tasks: setup-nginx.yml
   tags:
     - setup-is-nginx

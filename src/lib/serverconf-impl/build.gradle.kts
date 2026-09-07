@@ -8,11 +8,13 @@ plugins {
 dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":lib:vault-core"))
+  implementation(project(":lib:ds-identity-core"))
   api(project(":common:common-db"))
   api(project(":common:common-db-identifiers"))
   api(project(":lib:serverconf-core"))
   api(project(":lib:globalconf-impl"))
 
+  annotationProcessor(libs.hibernate.jpamodelgen)
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 

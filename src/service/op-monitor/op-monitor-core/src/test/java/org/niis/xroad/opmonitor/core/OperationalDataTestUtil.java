@@ -29,8 +29,8 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.fasterxml.jackson.databind.ObjectReader;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import tools.jackson.databind.ObjectReader;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -120,8 +120,8 @@ final class OperationalDataTestUtil {
         OperationalDataRecord record;
 
         for (int i = 0; i < count; i++) {
-            record = OBJECT_READER.readValue(formatFullOperationalDataAsJson(),
-                    OperationalDataRecord.class);
+            record = OBJECT_READER.forType(OperationalDataRecord.class)
+                    .readValue(formatFullOperationalDataAsJson());
             record.setMonitoringDataTs(monitoringDataTs);
 
             records.add(record);
@@ -133,8 +133,8 @@ final class OperationalDataTestUtil {
     static void storeFullOperationalDataRecord(long monitoringDataTs,
                                                ClientId client, ClientId serviceProvider,
                                                OperationalDataRecordManager operationalDataRecordManager) throws Exception {
-        OperationalDataRecord record = OBJECT_READER.readValue(
-                formatFullOperationalDataAsJson(), OperationalDataRecord.class);
+        OperationalDataRecord record = OBJECT_READER.forType(OperationalDataRecord.class)
+                .readValue(formatFullOperationalDataAsJson());
 
         record.setMonitoringDataTs(monitoringDataTs);
 

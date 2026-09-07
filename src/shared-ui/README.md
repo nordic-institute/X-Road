@@ -26,3 +26,22 @@ This package is automatically built as part of pnpm workspace.
 ```sh
 pnpm run lint
 ```
+
+## API call conventions
+
+### Typing mutation request bodies
+
+Always type JSON mutation request bodies via the operation's generated `*Data['body']` type from `src/openapi-types/types.gen.ts`:
+
+```ts
+// Good — body is typed against the OpenAPI contract
+const body: RefreshServiceDescriptionData['body'] = { ignore_warnings: true };
+api.put(`/service-descriptions/${id}/refresh`, body);
+
+// Bad — inline object literal bypasses the type check
+api.put(`/service-descriptions/${id}/refresh`, { ignore_warnings: true });
+```
+
+A shared ESLint rule (`local/no-inline-api-body`) enforces this: passing an inline object literal as the 2nd argument to `api.post`, `api.put`, or `api.patch` is a build error. Operations with no request body (`body?: never`) should pass `undefined`.
+
+Multipart `formData` calls are exempt from this rule.

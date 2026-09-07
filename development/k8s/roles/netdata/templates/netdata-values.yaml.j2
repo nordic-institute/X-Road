@@ -1,0 +1,32 @@
+---
+parent:
+  database:
+    persistence: true
+    volumesize: 5Gi
+  alarms:
+    enabled: true
+  claiming:
+    enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+child:
+  claiming:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 300Mi
+service:
+  type: ClusterIP
+rbac:
+  create: true
+sd:
+  enabled: true

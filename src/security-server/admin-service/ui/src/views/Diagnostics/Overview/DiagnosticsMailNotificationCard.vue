@@ -82,7 +82,7 @@
             <div v-for="recipient in mailNotificationStatus.recipients_emails" :key="recipient" class="recipient-wrapper">
               {{ recipient }}
               <XrdBtn
-                v-if="mailNotificationStatus.configuration_present"
+                v-if="mailNotificationStatus.configuration_present && canSendTestMail"
                 variant="text"
                 text="diagnostics.mailNotificationConfiguration.sentTestMail"
                 data-test="send-test-mail"
@@ -113,9 +113,11 @@
 <script lang="ts">
 import { mapActions, mapState } from 'pinia';
 import { useMail } from '@/store/modules/mail';
+import { useUser } from '@/store/modules/user';
 import { defineComponent } from 'vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
 import { MailNotificationType } from '@/openapi-types';
+import { Permissions } from '@/global';
 import { XrdCard, XrdStatusIcon, XrdStatusChip, useNotifications, XrdBtn } from '@niis/shared-ui';
 
 type TestMailStatuses = {
@@ -152,7 +154,11 @@ export default defineComponent({
     mailNotificationStatusText() {
       return this.$t(`diagnostics.mailNotificationConfiguration.confStatus.${this.mailNotificationStatus.configuration_present}`);
     },
+    canSendTestMail() {
+      return this.hasPermission(Permissions.SEND_TEST_MAIL);
+    },
     ...mapState(useMail, ['mailNotificationStatus']),
+    ...mapState(useUser, ['hasPermission']),
   },
   created() {
     this.fetchMailNotificationStatus().catch((error) => {
@@ -171,7 +177,7 @@ export default defineComponent({
       return this.$t(`diagnostics.mailNotificationConfiguration.enabled.${this.isEnabledType(mailNotificationType)}`);
     },
     sendTestMailNotification(recipient: string) {
-      this.sendTestMail(recipient.substring(recipient.indexOf(' ')))
+      this.sendTestMail(recipient.substring(recipient.lastIndexOf(' ') + 1))
         .then((resp) => {
           this.testMailStatuses = {
             ...this.testMailStatuses,

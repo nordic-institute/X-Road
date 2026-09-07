@@ -1,0 +1,162 @@
+---
+# TEMPORARY (dataspaces dev): everything in this file is a workaround for the fact
+# that xroad-* packages auto-start EDC systemd units (ds-identity-hub,
+# ds-control-plane, xroad-proxy) before their runtime configs are on disk,
+# causing crash-loop / StartLimitBurst. Pre-seeding here lets every service
+# boot cleanly.
+#
+# Remove this file (and the `include_tasks: pre-ss-install.yml` line in main.yml)
+# once upstream packaging ships debconf preseeds or cloud-init hooks for:
+#   - ds-control-plane:  participant-context-id
+#   - xroad-proxy:       dsp.participant-context-id
+# AND the packages no longer start the units unconditionally during postinst.
+
+# xroad user/group are already created by the xroad-base role (meta dependency
+# of xroad-ss) before this file runs.
+
+# ---------------------------------------------------------------------------
+# 1. /etc/xroad/conf.d — config dir. xroad-common creates this during install;
+#    we need it earlier so we can drop YAML preseed files before any package
+#    auto-starts a unit. dpkg leaves pre-existing dirs intact (not a conffile).
+#
+# TEMPORARY (dataspaces dev): remove once packages ship the config stubs.
+# ---------------------------------------------------------------------------
+- name: ensure /etc/xroad/conf.d exists for preseeded configs
+  file:
+    path: /etc/xroad/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+# ---------------------------------------------------------------------------
+# 2. Vault CA for the control-plane's and identity-hub's own EDC/Hashicorp
+#    vault client, mirroring the Issuer Service drop-in in
+#    xroad-cs/tasks/pre-cs-install.yml: the DS TLS trust replaces JVM defaults
+#    on the shared EDC OkHttp client, so OpenBao's self-signed cert must be
+#    handed to it through QUARKUS_VAULT_TLS_CA_CERT (read via plain
+#    System.getenv in VaultEndpointTrust — not subject to the
+#    QuarkusConfigBridge env-var limitation noted below).
+#
+#    Points at the installed system copy (644, world-readable) rather than
+#    /opt/openbao/tls/tls.crt itself (640, openbao:openbao only) to avoid a
+#    second permissions dependency. The copy's location is distro specific —
+#    xroad-secret-store-local's Debian postinst installs it under
+#    /usr/local/share/ca-certificates, the RPM %post under
+#    /etc/pki/ca-trust/source/anchors — so the path follows os_family.
+# ---------------------------------------------------------------------------
+- name: create systemd drop-in dirs for QUARKUS_VAULT_TLS_CA_CERT
+  file:
+    path: "/etc/systemd/system/{{ item }}.service.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: &ss_vault_tls_ca_units
+    - xroad-ds-control-plane
+    - xroad-ds-identity-hub
+
+- name: set QUARKUS_VAULT_TLS_CA_CERT for the control-plane's and identity-hub's EDC vault clients
+  copy:
+    dest: "/etc/systemd/system/{{ item }}.service.d/vault-tls-ca.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Service]
+      Environment=QUARKUS_VAULT_TLS_CA_CERT={{ openbao_system_ca_cert }}
+  vars:
+    openbao_system_ca_cert: >-
+      {{ '/etc/pki/ca-trust/source/anchors/openbao.crt'
+         if ansible_facts['os_family'] == 'RedHat'
+         else '/usr/local/share/ca-certificates/openbao.crt' }}
+  loop: *ss_vault_tls_ca_units
+  register: ss_vault_tls_ca_dropins
+
+- name: reload systemd after the vault CA drop-ins
+  systemd:
+    daemon_reload: true
+  when: ss_vault_tls_ca_dropins is changed
+
+# ---------------------------------------------------------------------------
+# 3. xroad.proxy.dsp.* and xroad.proxy-ui-api.dataspace.* runtime config moved
+#    to the configuration_properties DB override layer (the XRoadConfig DSL
+#    does not read conf.d yaml) — see seed-config-properties.yml, which runs
+#    after install once the serverconf database exists.
+# ---------------------------------------------------------------------------
+# 4. DS identity-hub runtime overrides. EDC's QuarkusConfigBridge only sees
+#    enumerable SmallRye sources (yaml/properties files); env-vars never reach
+#    EDC's @Setting resolution. These must exist before the unit's first start.
+#
+#    xroad.edc.web.https.trust.reload-interval-seconds: registration of the DS TLS CA (setup.hurl)
+#    happens well after this unit's first boot — the fail-closed outbound trust extension only picks
+#    it up on its next reload cycle. Shortened here (default 60s) so CI's did.json-style polling
+#    windows aren't spent waiting on a slow-by-default reload; not a production concern, since real
+#    deployments provision the CA before ds-* traffic flows.
+#
+# TEMPORARY (dataspaces dev): remove once xroad-ds-identity-hub debconf ships
+#   this config as an answerable question.
+# ---------------------------------------------------------------------------
+- name: preseed ds-identity-hub runtime overrides
+  copy:
+    dest: /etc/xroad/conf.d/local-ds-identity-hub.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      xroad:
+        edc:
+          web:
+            https:
+              trust:
+                reload-interval-seconds: 5
+
+# ---------------------------------------------------------------------------
+# 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
+#
+# TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
+#   participant-context-id, trusted-issuer.id, sts.oauth.token.url and
+#   dsp.callback.address config.
+# ---------------------------------------------------------------------------
+- name: preseed ds-control-plane runtime overrides
+  copy:
+    dest: /etc/xroad/conf.d/local-ds-control-plane.yaml
+    owner: xroad
+    group: xroad
+    mode: "0640"
+    content: |
+      edc:
+        # TODO: EDC's DspApiBaseConfigurationExtension.defaultWebhookAddress() hardcodes
+        # http:// and uses Hostname.get() — which is "localhost" inside the systemd unit
+        # because HOSTNAME isn't exported to the JVM. Both defects need to be addressed
+        # properly (upstream patch or proper hostname propagation + scheme override).
+        # For now pin the callback address explicitly so contract-agreement POSTs go to
+        # the right host over TLS.
+        dsp:
+          callback:
+            address: "https://{{ inventory_hostname }}.lxd:8183/api/dsp/%s"
+        iam:
+          credential:
+            revocation:
+              cache:
+                validity: 1
+          sts:
+            oauth:
+              token:
+                url: "https://{{ inventory_hostname }}.lxd:7184/api/sts/token"
+      xroad:
+        dsp:
+          participant-context-id: "{{ inventory_hostname }}.lxd"
+        # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged application.yaml.
+        # The EDC key is hyphenated, so it can only be reached through an X-Road key the yaml declares
+        # (see EdcConfigKeys.TRUSTED_ISSUER_ID); the interpolation has no fallback, so this must be set.
+        edc:
+          iam:
+            trusted-issuer:
+              issuer:
+                id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
+          web:
+            https:
+              trust:
+                # See the identical setting in local-ds-identity-hub.yaml for why this is shortened.
+                reload-interval-seconds: 5

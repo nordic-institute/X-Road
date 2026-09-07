@@ -12,9 +12,6 @@ configurations {
     isCanBeConsumed = false
     isCanBeResolved = true
   }
-  create("liquibaseLibs") {
-    apply(plugin = "base")
-  }
 }
 
 dependencies {
@@ -32,7 +29,8 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-api-throttling")))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
+  testImplementation(libs.springBoot.starterWebmvcTest)
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.liquibase:liquibase-core")
 }
@@ -75,15 +73,3 @@ tasks.bootJar {
   }
 }
 
-tasks.register<Copy>("moveLiquibaseLibs") {
-  doFirst {
-    mkdir(layout.buildDirectory.dir("libs"))
-  }
-
-  from(configurations["liquibaseLibs"])
-  into(layout.buildDirectory.dir("libs"))
-}
-
-tasks.build {
-  dependsOn(tasks.named("moveLiquibaseLibs"))
-}

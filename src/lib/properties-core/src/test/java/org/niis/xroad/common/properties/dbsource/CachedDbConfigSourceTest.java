@@ -38,7 +38,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,58 +61,58 @@ public class CachedDbConfigSourceTest {
         try (var connection = ds.getConnection();
              var statement = connection.createStatement()) {
 
+            // key-only schema: property_key is globally unique, no scope column
             statement.execute(
                     "CREATE TABLE config ( "
                             + " id bigint PRIMARY KEY, "
-                            + " property_key VARCHAR(512) NOT NULL, "
+                            + " property_key VARCHAR(512) NOT NULL UNIQUE, "
                             + " property_value VARCHAR(512) NOT NULL, "
-                            + " scope VARCHAR(255), "
                             + " created_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, "
                             + " updated_at TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL) "
             );
 
-            statement.execute("insert into config values (1, 'test.key', 'value for all', null, now(), now())");
-            statement.execute("insert into config values (2, 'test.key', 'value for signer', 'signer', now(), now())");
-            statement.execute("insert into config values (3, 'test.signer.key', 'value for signer', 'signer', now(), now())");
-            statement.execute("insert into config values (4, 'test.app.key', 'value for test-app', 'test-app', now(), now())");
-            statement.execute("insert into config values (5, 'global.key', 'global value', null, now(), now())");
+            statement.execute("insert into config values (1, 'test.key', 'a value', now(), now())");
+            statement.execute("insert into config values (2, 'test.signer.key', 'signer value', now(), now())");
+            statement.execute("insert into config values (3, 'test.app.key', 'app value', now(), now())");
+            statement.execute("insert into config values (4, 'global.key', 'global value', now(), now())");
         }
 
     }
 
     @Test
-    void testSignerProperties() {
-        DbSourceConfig config = mockConfig("signer");
-        CachedDbConfigSource configSource = new CachedDbConfigSource(config);
+    void allPropertiesAreResolvedByKeyRegardlessOfAppName() {
+        Map<String, String> properties = new CachedDbConfigSource(mockConfig("signer")).getProperties();
 
-        Map<String, String> properties = configSource.getProperties();
-
-        assertEquals(3, properties.size());
-        assertTrue(properties.containsKey("test.signer.key"));
-        assertTrue(properties.containsKey("global.key"));
-        assertEquals("value for signer", properties.get("test.key"));
+        assertEquals(4, properties.size());
+        assertEquals("a value", properties.get("test.key"));
+        assertEquals("signer value", properties.get("test.signer.key"));
+        assertEquals("app value", properties.get("test.app.key"));
+        assertEquals("global value", properties.get("global.key"));
     }
 
     @Test
-    void testOtherAppProperties() {
-        DbSourceConfig config = mockConfig("otherApp");
-        CachedDbConfigSource configSource = new CachedDbConfigSource(config);
+    void appNameDoesNotFilterTheResolvedProperties() {
+        Map<String, String> forSigner = new CachedDbConfigSource(mockConfig("signer")).getProperties();
+        Map<String, String> forOtherApp = new CachedDbConfigSource(mockConfig("otherApp")).getProperties();
 
-        Map<String, String> properties = configSource.getProperties();
-
-        assertEquals(2, properties.size());
-        assertEquals("value for all", properties.get("test.key"));
-        assertTrue(properties.containsKey("global.key"));
+        assertEquals(forSigner, forOtherApp);
     }
 
     @Test
     void singleProperty() {
-        DbSourceConfig config = mockConfig("test-app");
-        CachedDbConfigSource configSource = new CachedDbConfigSource(config);
+        CachedDbConfigSource configSource = new CachedDbConfigSource(mockConfig("test-app"));
 
-        assertEquals("value for test-app", configSource.getValue("test.app.key"));
-        assertEquals("value for all", configSource.getValue("test.key"));
-        assertNull(configSource.getValue("test.signer.key"));
+        assertEquals("app value", configSource.getValue("test.app.key"));
+        assertEquals("a value", configSource.getValue("test.key"));
+        assertNull(configSource.getValue("missing.key"));
+    }
+
+    @Test
+    void queryFailureAfterConnectFailsFastInsteadOfServingDefaults() {
+        DbSourceConfig config = mockConfig("test-app");
+        when(config.getTableName()).thenReturn("missing_table");
+
+        assertThrows(IllegalStateException.class, () -> new CachedDbConfigSource(config));
     }
 
     private DbSourceConfig mockConfig(String appName) {
@@ -123,7 +123,6 @@ public class CachedDbConfigSourceTest {
 
         when(config.getAppName()).thenReturn(appName);
         when(config.getTableName()).thenReturn("config");
-        when(config.isEnabled()).thenReturn(true);
 
         return config;
     }

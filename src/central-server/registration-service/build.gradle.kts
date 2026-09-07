@@ -39,20 +39,23 @@ dependencies {
     exclude( module = "spring-boot-starter-tomcat")
   }
 
-  implementation("org.springframework.boot:spring-boot-starter-web") {
+  implementation(libs.springBoot.starterWeb) {
     exclude(module = "spring-boot-starter-tomcat")
   }
 
-  implementation("org.springframework.boot:spring-boot-starter-jetty")
-  implementation("org.springframework.boot:spring-boot-starter-security")
+  implementation(libs.springBoot.starterJetty)
+  implementation(libs.springBoot.starterSecurity)
+  implementation(project(":common:common-db"))
   implementation(project(":lib:properties-spring"))
   implementation(libs.jakarta.validationApi)
   implementation(libs.bucket4j.core)
   implementation(libs.logback.classic)
+  implementation(libs.resilience4j.retry)
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":common:common-management-request")))
   testImplementation(testFixtures(project(":common:common-api-throttling")))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
+  testImplementation(libs.springBoot.starterWebmvcTest)
   testImplementation(libs.wiremock.standalone)
 }

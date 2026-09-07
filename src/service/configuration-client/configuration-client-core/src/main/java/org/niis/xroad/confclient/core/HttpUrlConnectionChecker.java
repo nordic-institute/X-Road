@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.confclient.common.service.FederationConfigurationSourceFilter;
 
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -48,7 +49,7 @@ public class HttpUrlConnectionChecker {
     private static final String HTTPS = "https";
     private static final Integer PORT_80 = 80;
     private static final Integer PORT_443 = 443;
-    private final HttpUrlConnectionConfigurer httpUrlConnectionConfigurer;
+    private final org.niis.xroad.confclient.common.service.HttpUrlConnectionConfigurer httpUrlConnectionConfigurer;
 
     public List<ConnectionStatus> getConnectionStatuses(String localInstance, String instance, String address, String directory,
             String allowedFederations) {

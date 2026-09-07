@@ -49,7 +49,7 @@
         </v-stepper-window-item>
 
         <v-stepper-window-item :value="memberStep">
-          <OwnerMemberStep :value="memberStep" @previous="previousStep" @done="nextStep" />
+          <OwnerMemberStep :value="memberStep" :show-previous-button="hasAnchorStep" @previous="previousStep" @done="nextStep" />
         </v-stepper-window-item>
         <v-stepper-window-item :value="pinStep">
           <TokenPinStep :save-busy="pinSaveBusy" @previous="previousStep" @done="tokenPinReady" />
@@ -116,6 +116,9 @@ export default defineComponent({
     anchorStep() {
       return this.isAnchorImported ? 0 : 1;
     },
+    hasAnchorStep() {
+      return this.anchorStep > 0;
+    },
     memberStep() {
       return this.anchorStep + 1;
     },
@@ -125,20 +128,28 @@ export default defineComponent({
   },
 
   created() {
-    this.fetchInitializationStatus().catch((error) => {
-      this.addError(error);
-    });
+    this.fetchInitializationStatus()
+      .then(() => {
+        // The current security server only exists once the owner member is set up.
+        if (this.isServerOwnerInitialized || this.isServerCodeInitialized) {
+          return this.fetchCurrentSecurityServer();
+        }
+      })
+      .catch((error) => {
+        this.addError(error);
+      });
   },
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
     ...mapActions(useUser, ['setInitializationStatus', 'fetchInitializationStatus', 'fetchCurrentSecurityServer']),
     ...mapActions(useInitializeServer, ['initializeServer']),
-    tokenPinReady(pin: string): void {
+    tokenPinReady(payload: { pin: string; enableAutologin: boolean }): void {
       this.pinSaveBusy = true;
 
       this.requestPayload = {
-        software_token_pin: pin,
+        software_token_pin: payload.pin,
         ignore_warnings: false,
+        enable_software_token_autologin: payload.enableAutologin,
       };
 
       // If owner member is not already set up add it

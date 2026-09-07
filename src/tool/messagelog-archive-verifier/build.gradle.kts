@@ -22,8 +22,4 @@ tasks {
     archiveClassifier.set("")
     from(rootProject.file("LICENSE.txt"))
   }
-
-  build {
-    dependsOn(shadowJar)
-  }
 }

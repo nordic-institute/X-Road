@@ -53,11 +53,14 @@ import SubsystemView from '@/views/Clients/SubsystemView.vue';
 import ClientTlsCertificateView from '@/views/Clients/InternalServers/TlsCertificate/ClientTlsCertificateView.vue';
 import DiagnosticsView from '@/views/Diagnostics/DiagnosticsView.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
+import InitialAdminUserView from '@/views/InitialAdminUser/InitialAdminUserView.vue';
 import InitialConfigurationView from '@/views/InitialConfiguration/InitialConfigurationView.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
 import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKeysView.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
+import DsTlsCertificateView from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateView.vue';
+import DsTlsCertificateDetails from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateDetails.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
@@ -105,6 +108,14 @@ const routes: RouteRecordRaw[] = [
         meta: { permissions: [Permissions.INIT_CONFIG] },
       },
       {
+        name: RouteName.InitialAdminUser,
+        path: '/initial-admin-user',
+        components: {
+          default: InitialAdminUserView,
+          navigation: XrdMainNavigationContainer,
+        },
+      },
+      {
         name: RouteName.Keys,
         path: '/keys',
         components: {
@@ -139,6 +150,13 @@ const routes: RouteRecordRaw[] = [
             component: SSTlsCertificate,
             props: true,
             meta: { permissions: [Permissions.VIEW_INTERNAL_TLS_CERT] },
+          },
+          {
+            name: RouteName.DsTlsCertificate,
+            path: 'ds-tls-cert',
+            component: DsTlsCertificateView,
+            props: true,
+            meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
           },
         ],
       },
@@ -494,6 +512,16 @@ const routes: RouteRecordRaw[] = [
           navigation: XrdMainNavigationContainer,
         },
         props: { default: true },
+      },
+      {
+        name: RouteName.DsTlsCertificateDetails,
+        path: '/ds-tls-certificate-details',
+        components: {
+          default: DsTlsCertificateDetails,
+          navigation: XrdMainNavigationContainer,
+        },
+        props: { default: true },
+        meta: { permissions: [Permissions.VIEW_DS_TLS_CERT] },
       },
       {
         path: '/not-found',

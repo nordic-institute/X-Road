@@ -27,60 +27,69 @@
 
 package org.niis.xroad.opmonitor.core.config;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.properties.config.XRoadConfig;
 
-import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.CLEAN_INTERVAL;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.HEALTH_STATISTICS_PERIOD_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.KEEP_RECORDS_FOR_DAYS;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.LISTEN_ADDRESS;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.MAX_RECORDS_IN_PAYLOAD;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.PORT;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.SCHEME;
+import static org.niis.xroad.common.properties.config.keys.OpMonitorConfigKeys.XROAD_TLS_CIPHERS;
 
-@ConfigMapping(prefix = "xroad.op-monitor")
-public interface OpMonitorProperties {
-    String DEFAULT_MAX_RECORDS_IN_PAYLOAD = "10000";
+@RequiredArgsConstructor
+public class OpMonitorProperties {
+    private static final String DEFAULT_MAX_RECORDS_IN_PAYLOAD = "10000";
 
-    @WithName("listen-address")
-    @WithDefault("localhost")
-    String listenAddress();
+    private final XRoadConfig xRoadConfig;
 
-    @WithName("port")
-    @WithDefault("2080")
-    int port();
+    public String listenAddress() {
+        return xRoadConfig.value(LISTEN_ADDRESS);
+    }
 
-    @WithName("scheme")
-    @WithDefault("http")
-    String scheme();
+    public int port() {
+        return xRoadConfig.value(PORT);
+    }
 
-    @WithName("xroad-tls-ciphers")
-    @WithDefault(DEFAULT_XROAD_SSL_CIPHER_SUITES_STRING)
-    String[] xroadTlsCiphers();
+    public String scheme() {
+        return xRoadConfig.value(SCHEME);
+    }
+
+    public String[] xroadTlsCiphers() {
+        return xRoadConfig.value(XROAD_TLS_CIPHERS);
+    }
 
     /**
      * The period in days for keeping operational data records in the database.
      *
      * @return number of days
      */
-    @WithName("keep-records-for-days")
-    @WithDefault("7")
-    int keepRecordsForDays();
+    public int keepRecordsForDays() {
+        return xRoadConfig.value(KEEP_RECORDS_FOR_DAYS);
+    }
 
     /**
      * The time interval as a Cron expression for running the data cleanup operation.
      *
      * @return cron expression
      */
-    @WithName("clean-interval")
-    @WithDefault("0 0 0/12 1/1 * ? *")
-    String cleanInterval();
+    public String cleanInterval() {
+        return xRoadConfig.value(CLEAN_INTERVAL);
+    }
 
     /**
      * The maximum records in the get operational data response payload.
      *
      * @return max records count
      */
-    @WithName("max-records-in-payload")
-    @WithDefault(DEFAULT_MAX_RECORDS_IN_PAYLOAD)
-    int maxRecordsInPayload();
+    public int maxRecordsInPayload() {
+        return xRoadConfig.value(MAX_RECORDS_IN_PAYLOAD);
+    }
 
-    default int getMaxRecordsInPayload() {
+    public int getMaxRecordsInPayload() {
         int maxRecords = maxRecordsInPayload();
         if (maxRecords < 1) {
             return Integer.parseInt(DEFAULT_MAX_RECORDS_IN_PAYLOAD);
@@ -93,17 +102,17 @@ public interface OpMonitorProperties {
      *
      * @return offset in seconds
      */
-    @WithName("records-available-timestamp-offset-seconds")
-    @WithDefault("60")
-    int recordsAvailableTimestampOffsetSeconds();
+    public int recordsAvailableTimestampOffsetSeconds() {
+        return xRoadConfig.value(RECORDS_AVAILABLE_TIMESTAMP_OFFSET_SECONDS);
+    }
 
     /**
      * The period in seconds that is used for gathering health statistics about services.
      *
      * @return period in seconds
      */
-    @WithName("health-statistics-period-seconds")
-    @WithDefault("600")
-    int healthStatisticsPeriodSeconds();
+    public int healthStatisticsPeriodSeconds() {
+        return xRoadConfig.value(HEALTH_STATISTICS_PERIOD_SECONDS);
+    }
 
 }

@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.proxy.core.util;
 
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -40,7 +42,6 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.io.IOException;
@@ -63,6 +64,9 @@ import java.util.List;
 public final class CertHashBasedOcspResponderClient {
 
     public static final String SHA_256_CERT_PARAM = "cert_hash";
+    // Legacy SHA-1 hash parameter, kept so X-Road 8.x clients can fetch OCSP responses from 7.x security servers
+    // whose responder only recognises this parameter name. Remove once 7.x interop is no longer required.
+    static final String SHA_1_CERT_PARAM = "cert";
     private static final String METHOD = "GET";
 
     private static final List<Integer> VALID_RESPONSE_CODES = Arrays.asList(
@@ -76,10 +80,9 @@ public final class CertHashBasedOcspResponderClient {
      * @param providerAddress URL of the OCSP response provider
      * @param certificates    certificates for which to get the responses
      * @return list of OCSP response objects
-     * @throws Exception if I/O errors occurred
      */
     public List<OCSPResp> getOcspResponsesFromServer(String providerAddress, List<X509Certificate> certificates)
-            throws CertificateEncodingException, URISyntaxException, IOException, OperatorCreationException, OCSPException {
+            throws CertificateEncodingException, URISyntaxException, IOException, OCSPException {
         URL url = createUrl(providerAddress, certificates);
         return getOcspResponsesFromServer(url);
     }
@@ -136,16 +139,28 @@ public final class CertHashBasedOcspResponderClient {
         return responses;
     }
 
-    private URL createUrl(String providerAddress, List<X509Certificate> certificates)
-            throws URISyntaxException, IOException, CertificateEncodingException, OperatorCreationException {
+    URL createUrl(String providerAddress, List<X509Certificate> certificates)
+            throws URISyntaxException, IOException, CertificateEncodingException {
         String[] sha256Hashes = CertUtils.getHashes(certificates);
+        String[] sha1Hashes = getSha1Hashes(certificates);
 
         var uriBuilder = new URIBuilder().setScheme("http").setHost(providerAddress).setPort(ocspResponderProperties.port());
+        // Send both parameter names so 7.x responders (only recognise "cert") and 8.x responders
+        // (recognise "cert_hash") can both serve the request. Drop the SHA-1 parameter once 7.x interop is gone.
+        Arrays.stream(sha1Hashes).forEach(hash -> uriBuilder.addParameter(SHA_1_CERT_PARAM, hash));
         Arrays.stream(sha256Hashes).forEach(hash -> uriBuilder.addParameter(SHA_256_CERT_PARAM, hash));
         var uri = uriBuilder.build();
 
         log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(sha256Hashes), uri.getHost());
 
         return uri.toURL();
+    }
+
+    private static String[] getSha1Hashes(List<X509Certificate> certs) throws CertificateEncodingException, IOException {
+        String[] hashes = new String[certs.size()];
+        for (int i = 0; i < certs.size(); i++) {
+            hashes[i] = Digests.hexDigest(DigestAlgorithm.SHA1, certs.get(i).getEncoded());
+        }
+        return hashes;
     }
 }

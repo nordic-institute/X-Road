@@ -36,11 +36,14 @@ import org.niis.xroad.common.CostType;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
-import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -56,7 +59,6 @@ import org.niis.xroad.serverconf.model.DescriptionType;
 import java.util.Date;
 import java.util.Map;
 
-import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
 /**
@@ -118,7 +120,8 @@ public final class TestUtil {
             "xroad.db.serverconf.hibernate.hbm2ddl.auto", "create-drop"
     );
     static ServerConfDbProperties serverConfDbProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
-    static ServerConfCommonProperties serverConfProperties = defaultConfiguration(ServerConfCommonProperties.class);
+    static ServerConfCommonProperties serverConfProperties = new XRoadServerConfProperties(
+            XRoadConfigBuilder.create().register(ServerConfConfigKeys.instance()).build());
 
     private TestUtil() {
     }
@@ -150,7 +153,7 @@ public final class TestUtil {
         });
     }
 
-    static void cleanDB(DatabaseCtx ctx) throws Exception {
+    static void cleanDB(DatabaseCtx ctx) {
         ctx.doInTransaction(session -> {
             var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
@@ -247,10 +250,9 @@ public final class TestUtil {
             session.persist(cl);
             client.getAccessRights().add(createAccessRight(endpoint, cl));
 
-            ServiceIdEntity se = ServiceIdEntity.create("XX", "memberClass",
-                    "memberCode" + i, "subsystemCode", "serviceCode" + i);
-            session.persist(se);
-            client.getAccessRights().add(createAccessRight(endpoint, se));
+            SubsystemIdEntity sub = SubsystemIdEntity.create("XX", "memberClass", "memberCode" + i, "subsystemCode");
+            session.persist(sub);
+            client.getAccessRights().add(createAccessRight(endpoint, sub));
 
             LocalGroupIdEntity lg = LocalGroupIdEntity.create("testGroup" + i);
             session.persist(lg);
@@ -317,11 +319,6 @@ public final class TestUtil {
 
     static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode, String serviceVerison) {
         return ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
-                serviceCode, serviceVerison);
-    }
-
-    static ServiceIdEntity createTestServiceIdEntity(String memberCode, String serviceCode, String serviceVerison) {
-        return ServiceIdEntity.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode, serviceVerison);
     }
 

@@ -36,4 +36,5 @@ import java.time.OffsetDateTime;
 public class BackupFile {
     String filename;
     OffsetDateTime createdAt;
+    boolean compatible;
 }

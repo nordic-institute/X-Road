@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.management.application.configuration;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -39,11 +39,10 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@ArchUnitSuppressed("NoVanillaExceptions")
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
                 .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.NEVER))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -51,6 +50,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/managementservice/manage", "/managementservice/manage/").permitAll()
                         .anyRequest().denyAll())
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler((_, res, _) ->
+                                res.setStatus(HttpServletResponse.SC_FORBIDDEN))
+                        .authenticationEntryPoint((_, res, _) ->
+                                res.setStatus(HttpServletResponse.SC_FORBIDDEN))
+                )
                 .headers(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

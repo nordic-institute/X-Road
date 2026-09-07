@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +44,7 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import tools.jackson.databind.ObjectReader;
 
 import java.io.IOException;
 import java.net.URI;
@@ -133,7 +133,7 @@ public class OpMonitoringDaemonSender {
             StoreOpMonitoringDataResponse response;
 
             try {
-                response = OBJECT_READER.readValue(responseJson, StoreOpMonitoringDataResponse.class);
+                response = OBJECT_READER.forType(StoreOpMonitoringDataResponse.class).readValue(responseJson);
             } catch (Exception e) {
                 throw new Exception("Received invalid response: " + responseJson);
             }

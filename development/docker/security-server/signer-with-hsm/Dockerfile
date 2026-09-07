@@ -5,7 +5,7 @@ FROM ${BASE_SIGNER_IMAGE}
 USER root
 
 RUN apt-get -qq update \
-  && apt-get -qq install --no-install-recommends curl softhsm2 opensc sudo \
+  && apt-get -qq install --no-install-recommends curl softhsm2 opensc sudo postgresql-client \
   && apt-get -qq clean
 
 RUN mkdir -p /var/lib/softhsm/tokens/ && \

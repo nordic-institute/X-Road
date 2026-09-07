@@ -29,7 +29,8 @@ dependencies {
   implementation("org.yaml:snakeyaml")
 
   testImplementation(project(":common:common-test"))
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.springBoot.starterTest)
+  testImplementation(libs.systemStubs)
 
   xjc(libs.bundles.jaxb)
 }
@@ -44,17 +45,13 @@ tasks.jar {
 
 tasks.shadowJar {
   archiveClassifier.set("")
-  exclude("**/module-info.class")
+
   from(rootProject.file("LICENSE.txt"))
   mergeServiceFiles()
 }
 
 tasks.jar {
   enabled = false
-}
-
-tasks.build {
-  dependsOn(tasks.shadowJar)
 }
 
 val createDirs by tasks.registering {

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Color, createXrdVuetify } from '@niis/shared-ui';
+import { Color, createXrdVuetify } from '@niis/shared-ui'; //Keep at the top
 
 import '@/assets/styles.css';
 

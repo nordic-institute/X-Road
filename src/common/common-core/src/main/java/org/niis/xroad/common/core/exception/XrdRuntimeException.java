@@ -34,6 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.xml.sax.SAXException;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -223,6 +225,7 @@ public sealed class XrdRuntimeException extends RuntimeException
             case SocketException ignored -> ErrorCode.NETWORK_ERROR;
             case UnknownServiceException ignored -> ErrorCode.NETWORK_ERROR;
             case UnresolvedAddressException ignored -> ErrorCode.NETWORK_ERROR;
+            case SSLHandshakeException ignored -> ErrorCode.SSL_AUTH_FAILED;
             case IOException ignored -> ErrorCode.IO_ERROR;
             case SQLException ignored -> ErrorCode.DATABASE_ERROR;
             case CertificateException ignored -> ErrorCode.INCORRECT_CERTIFICATE;

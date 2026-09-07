@@ -53,7 +53,7 @@ setup_mirror() {
 
     # 4. Configure APT Sources as OVERLAY (Keep original sources)
     # -------------------------------------------------------------------------
-    CODENAME="noble" # Default
+    CODENAME="resolute" # Default
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         if [ -n "$VERSION_CODENAME" ]; then

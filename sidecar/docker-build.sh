@@ -69,9 +69,9 @@ build_variant() {
 
 # Ensure latest ubuntu image is used as base
 if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
-  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:24.04"
+  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:26.04"
 else
-  docker pull ubuntu:24.04
+  docker pull ubuntu:26.04
 fi
 
 build "$dir/slim/Dockerfile" "-slim"

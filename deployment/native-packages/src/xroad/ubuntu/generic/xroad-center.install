@@ -8,5 +8,4 @@
 ../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-center
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-center
 ../../../../../../src/central-server/admin-service/application/build/libs/centralserver-admin-service-1.0.jar /usr/share/xroad/jlib/
-../../../../../../src/central-server/admin-service/infra-jpa/build/resources/main/liquibase/* /usr/share/xroad/db/
 
