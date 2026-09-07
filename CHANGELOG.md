@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.6.5 - 2026-09-04
+## 7.6.5 - 2026-09-07
 - XRDDEV-3262: Fix an issue with signature MIME part remaining unbounded.
 - XRDDEV-3263: Fix a hash chain verification-related security vulnerability affecting local/offline signature verification.
 - XRDDEV-3264: Fix an issue where cached certificate was trusted without checking configuration source.
