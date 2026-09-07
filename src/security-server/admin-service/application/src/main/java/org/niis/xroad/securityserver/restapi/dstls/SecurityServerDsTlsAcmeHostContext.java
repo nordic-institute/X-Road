@@ -26,9 +26,7 @@
 package org.niis.xroad.securityserver.restapi.dstls;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
-import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.stereotype.Component;
@@ -41,11 +39,11 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * The Security Server's own {@link DsTlsAcmeHostContext}: the public hostname comes from the configured
- * DataSpace IdentityHub URL, the ACME account/EAB alias is the fixed {@value #DS_TLS_ACME_ALIAS}, outcomes are
- * reported via email through {@link MailNotificationHelper}, and scheduling is active whenever DataSpace is
- * enabled and this isn't a secondary cluster node.
+ * DataSpace IdentityHub URL, the ACME account/EAB alias is the fixed {@value #DS_TLS_ACME_ALIAS}, and outcomes
+ * are reported via email through {@link MailNotificationHelper}. Whether the renewal scheduler runs at all is a
+ * separate, bean-wiring-time decision made by {@link DsTlsAcmeCertificateRenewalSchedulingConfig}, not this
+ * class.
  */
-@Slf4j
 @Component
 @RequiredArgsConstructor
 class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
@@ -89,19 +87,6 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
     @Override
     public List<String> getAccountContacts() {
         return requireNonNullElse(adminServiceProperties.getDataspace().getTlsCertificateContacts(), NO_CONTACTS);
-    }
-
-    @Override
-    public boolean isSchedulingActive() {
-        boolean dataspaceEnabled = adminServiceProperties.getDataspace().isEnabled();
-        if (!dataspaceEnabled) {
-            log.info("DataSpace feature is not enabled, DS TLS ACME certificate renewal job auto-scheduling disabled");
-        }
-        if (NodeProperties.isSecondaryNode()) {
-            log.info("This is a secondary cluster node, DS TLS ACME certificate renewal job auto-scheduling disabled");
-            return false;
-        }
-        return dataspaceEnabled;
     }
 
     @Override

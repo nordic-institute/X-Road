@@ -66,11 +66,6 @@ public interface DsTlsAcmeHostContext {
     }
 
     /**
-     * @return {@code true} if the DS TLS ACME renewal scheduler should currently be running
-     */
-    boolean isSchedulingActive();
-
-    /**
      * Called after a cycle successfully enrolls or renews the DS TLS certificate.
      */
     void notifyEnrollmentSuccess(String hostname, boolean isRenewal);

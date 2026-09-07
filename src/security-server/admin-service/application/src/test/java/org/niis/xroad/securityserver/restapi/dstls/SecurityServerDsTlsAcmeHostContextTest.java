@@ -30,12 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.util.List;
 
@@ -44,13 +40,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
-@ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
+@ExtendWith(MockitoExtension.class)
 class SecurityServerDsTlsAcmeHostContextTest {
-
-    @SystemStub
-    private final EnvironmentVariables variables = new EnvironmentVariables();
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -117,38 +109,6 @@ class SecurityServerDsTlsAcmeHostContextTest {
         when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
 
         assertThat(hostContext.getAccountContacts()).containsExactly("dstls@example.org");
-    }
-
-    @Test
-    void isSchedulingActiveShouldBeFalseWhenDataSpaceIsDisabled() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.PRIMARY.name());
-        when(dataspace.isEnabled()).thenReturn(false);
-
-        assertThat(hostContext.isSchedulingActive()).isFalse();
-    }
-
-    @Test
-    void isSchedulingActiveShouldBeFalseOnASecondaryNode() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.SECONDARY.name());
-        lenient().when(dataspace.isEnabled()).thenReturn(true);
-
-        assertThat(hostContext.isSchedulingActive()).isFalse();
-    }
-
-    @Test
-    void isSchedulingActiveShouldBeTrueOnAPrimaryNodeWhenDataSpaceIsEnabled() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.PRIMARY.name());
-        when(dataspace.isEnabled()).thenReturn(true);
-
-        assertThat(hostContext.isSchedulingActive()).isTrue();
-    }
-
-    @Test
-    void isSchedulingActiveShouldBeTrueOnAStandaloneNodeWhenDataSpaceIsEnabled() {
-        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.STANDALONE.name());
-        when(dataspace.isEnabled()).thenReturn(true);
-
-        assertThat(hostContext.isSchedulingActive()).isTrue();
     }
 
     @Test
