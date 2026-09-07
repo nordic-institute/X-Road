@@ -38,8 +38,32 @@ services:
           memory: 1536M
         limits:
           memory: 6144M
+    # Declared statically here (container creation time), not attached afterwards via the Docker API,
+    # so every alias resolves as soon as the container exists rather than only once the sidecar's slow
+    # cold start finishes. The one container answers to every alias the multi-container stack spreads
+    # across its ui, proxy, signer, configuration-client, ds-control-plane and ds-identity-hub services,
+    # plus the xrd-<name> messaging alias the proxy alone carries there. The ds-control-plane/
+    # ds-identity-hub aliases matter even though compose-mode DSP assertions self-skip: dataspace
+    # asset-access acquisition is the actual wire mechanism message exchange and management requests
+    # negotiate over, so a counterparty resolving those hostnames is required for any cross-SS call to
+    # reach the sidecar, not only for DSP-specific test scenarios.
+    networks:
+      xroad-network:
+        aliases:
+          - ${SS_NAME:-ss0}-ui
+          - ${SS_NAME:-ss0}-proxy
+          - ${SS_NAME:-ss0}-signer
+          - ${SS_NAME:-ss0}-configuration-client
+          - ${SS_NAME:-ss0}-ds-control-plane
+          - ${SS_NAME:-ss0}-ds-identity-hub
+          - xrd-${SS_NAME:-ss0}
 
 volumes:
   ds-https-keystore:
     external: true
     name: e2e-ds-https-keystore
+
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true
