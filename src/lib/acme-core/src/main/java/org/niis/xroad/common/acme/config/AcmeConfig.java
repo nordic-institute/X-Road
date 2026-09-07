@@ -30,7 +30,7 @@ package org.niis.xroad.common.acme.config;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
-public interface AcmeConfig extends AcmeSchedulingConfig {
+public interface AcmeConfig extends AcmeChallengeProperties, AcmeSchedulingProperties {
 
     Pattern ACME_CHALLENGE_TOKEN_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
 

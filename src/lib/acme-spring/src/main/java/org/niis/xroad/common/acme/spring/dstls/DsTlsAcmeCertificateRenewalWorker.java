@@ -46,7 +46,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 /**
  * Enrolls and continuously renews a product's own DS TLS certificate via ACME, once DS TLS ACME enrollment is
  * enabled (per {@link DsTlsAcmeHostContext}) and a governing authority has designated an ACME-capable CA for DS
- * TLS in globalconf.
+ * TLS, per {@link DsTlsAcmeHostContext#getDsTlsCertificationAuthorities()}.
  * <p>
  * Entirely parallel to the member auth/sign {@code AcmeCertificateRenewalWorker}: signer-free, in-process key
  * generation, no {@code KeyUsageInfo}, no member id. Runs on its own {@link CertificateRenewalScheduler}
@@ -110,7 +110,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
      * @return {@code true} on success (including a skipped or not-yet-due cycle), {@code false} on a real failure
      */
     private boolean runCycle(String hostname) {
-        List<ApprovedDsTlsCaInfo> acmeCapableCas = globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier())
+        List<ApprovedDsTlsCaInfo> acmeCapableCas = hostContext.getDsTlsCertificationAuthorities()
                 .stream()
                 .filter(ca -> isNotBlank(ca.getAcmeServerDirectoryUrl()))
                 .toList();

@@ -72,6 +72,17 @@ public final class DataspaceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue("https://example.com/schema/XRoadMembershipCredential.json")
             .build();
 
+    /**
+     * {@code xroad.dataspace.issuer.acme-renewal-active} — the Central Server's own explicit kill-switch for
+     * the co-located Issuer Service's DS TLS certificate ACME renewal scheduler. Central Server has no
+     * DataSpace-enabled-style feature flag to gate on: {@code xroad-ds-issuer-service} is an unconditional
+     * dependency of the Central Server package, not an opt-in feature.
+     */
+    public static final ConfigKey<Boolean> ISSUER_ACME_RENEWAL_ACTIVE = ISSUER
+            .bool("acme-renewal-active")
+            .withDefaultValue(true)
+            .build();
+
     /** {@code xroad.dataspace.issuer-provisioning.rpc.host}. */
     public static final ConfigKey<String> ISSUER_PROVISIONING_RPC_HOST = ISSUER_PROVISIONING_RPC
             .string("host")

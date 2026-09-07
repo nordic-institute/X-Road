@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.common.acme.spring.dstls;
 
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+
 import java.util.List;
 
 /**
@@ -41,6 +43,15 @@ public interface DsTlsAcmeHostContext {
      *     underlying configuration is present but malformed.
      */
     String getPublicHostname();
+
+    /**
+     * @return every DS TLS certification authority this product currently has approved/designated. The shared
+     *     worker filters this list down to the ACME-capable entries (those with a non-blank ACME directory
+     *     URL) and applies the zero/one/many designation rules itself — this method only supplies the raw,
+     *     product-specific data source (globalconf distribution for the Security Server, a directly-read
+     *     database table for the Central Server).
+     */
+    List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities();
 
     /**
      * @return the raw, possibly-unparseable configuration value {@link #getPublicHostname()} resolves from,

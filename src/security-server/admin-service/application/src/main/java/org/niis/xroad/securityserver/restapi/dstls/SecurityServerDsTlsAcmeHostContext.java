@@ -27,6 +27,8 @@ package org.niis.xroad.securityserver.restapi.dstls;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.stereotype.Component;
@@ -54,6 +56,7 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
 
     private final AdminServiceProperties adminServiceProperties;
     private final MailNotificationHelper mailNotificationHelper;
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * @return the host component of the configured DataSpace IdentityHub URL, or {@code null} when DataSpace
@@ -77,6 +80,15 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
     @Override
     public String getConfiguredHostnameSource() {
         return adminServiceProperties.getDataspace().getIdentityHubUrl();
+    }
+
+    /**
+     * @return every DS TLS certification authority approved in globalconf — the same source
+     *     {@code CertificateAuthorityService} and the DS TLS trust manager already read.
+     */
+    @Override
+    public List<ApprovedDsTlsCaInfo> getDsTlsCertificationAuthorities() {
+        return List.copyOf(globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier()));
     }
 
     @Override

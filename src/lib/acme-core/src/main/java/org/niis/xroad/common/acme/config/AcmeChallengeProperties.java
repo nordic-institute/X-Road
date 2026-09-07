@@ -28,12 +28,12 @@
 package org.niis.xroad.common.acme.config;
 
 /**
- * The generic subset of ACME configuration the shared certificate renewal scheduler and HTTP-01 challenge
- * listener consume, independent of which certificate flow (member auth/sign, DS TLS, ...) is being renewed.
- * {@link AcmeConfig} extends this with the full auth/sign-member-certificate configuration surface; a consumer
- * that only schedules renewals or serves challenges (e.g. DS TLS) can implement this narrower interface alone.
+ * The subset of ACME configuration the shared HTTP-01 challenge listener ({@code AcmeChallengerConfig},
+ * {@code AcmeChallengeFilter}) consumes, independent of which certificate flow is being renewed or whether
+ * a scheduler is even involved. {@link AcmeConfig} extends this with the full auth/sign-member-certificate
+ * configuration surface; a consumer that only serves challenges can implement this narrower interface alone.
  */
-public interface AcmeSchedulingConfig {
+public interface AcmeChallengeProperties {
 
     /**
      * whether the service should listen on acme challenge port (default 80) for incoming requests
@@ -43,12 +43,12 @@ public interface AcmeSchedulingConfig {
     int getAcmeChallengePort();
 
     /**
-     * ACME certificate renewal retry delay in seconds
+     * @return the network address the ACME challenge listener binds to, or {@code null} to bind every
+     *     interface (the default). Bind every interface when this listener is itself the public-facing
+     *     HTTP-01 endpoint; a product that fronts it with its own reverse proxy should return a loopback
+     *     address instead, so the port is reachable only through that proxy, never directly.
      */
-    int getAcmeRenewalRetryDelay();
-
-    /**
-     * ACME certificate renewal job interval in seconds
-     */
-    int getAcmeRenewalInterval();
+    default String getAcmeChallengeBindAddress() {
+        return null;
+    }
 }

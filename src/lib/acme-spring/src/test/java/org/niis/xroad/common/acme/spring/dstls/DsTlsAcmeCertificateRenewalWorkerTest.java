@@ -84,7 +84,6 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     @BeforeEach
     void setUp() {
         lenient().when(globalConfProvider.isValid()).thenReturn(true);
-        lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
         lenient().when(dsTlsCertificateService.recordAcmeOutcome(any())).thenReturn(true);
         worker = new DsTlsAcmeCertificateRenewalWorker(globalConfProvider, dsTlsCertificateService, dsTlsAcmeService, hostContext);
     }
@@ -142,7 +141,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     @Test
     void executeShouldSkipWithoutRecordingAnErrorWhenNoAcmeCapableCaIsDesignated() {
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(
                 dsTlsCaInfo("Manual-only CA", null)));
 
         worker.execute(scheduler);
@@ -157,7 +156,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     @Test
     void executeShouldFailClosedWhenMoreThanOneAcmeCapableCaIsDesignated() {
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(
                 dsTlsCaInfo("CA one", "http://ca-one:8887"),
                 dsTlsCaInfo("CA two", "http://ca-two:8887")));
 
@@ -176,7 +175,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldEnrollAFreshCertificateWhenNoneIsStoredYet() throws Exception {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
 
         X509Certificate newCert = selfSignedCertificate(generateRsaKeyPair());
@@ -201,7 +200,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldTransparentlyReplaceAManuallyUploadedCertificateWhenDueForRenewal() throws Exception {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
 
         X509Certificate currentCertificate = selfSignedCertificate(generateRsaKeyPair());
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, currentCertificate));
@@ -225,7 +224,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldDoNothingWhenTheCurrentCertificateIsNotYetDue() throws Exception {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
 
         X509Certificate currentCertificate = selfSignedCertificate(generateRsaKeyPair());
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, currentCertificate));
@@ -246,7 +245,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldRecordTheErrorAndFailWithoutTouchingTheServedCertificateWhenEnrollmentFails() {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
         when(dsTlsAcmeService.enroll(any(), any(), any())).thenThrow(new IllegalStateException("CA unreachable"));
 
@@ -263,7 +262,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldNotSendASecondFailureNotificationWhenTheErrorIsUnchanged() {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
         when(dsTlsAcmeService.enroll(any(), any(), any())).thenThrow(new IllegalStateException("CA unreachable"));
         when(dsTlsCertificateService.recordAcmeOutcome("CA unreachable")).thenReturn(false);
@@ -279,7 +278,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
     void executeShouldGenerateAFreshKeyPairForEveryEnrollment() throws Exception {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
-        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
         when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(false, null));
         when(dsTlsAcmeService.enroll(any(), any(), any())).thenReturn(List.of(selfSignedCertificate(generateRsaKeyPair())));
         when(dsTlsAcmeService.getNextRenewalTime(any(), any())).thenReturn(Instant.now().plus(60, ChronoUnit.DAYS));

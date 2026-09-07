@@ -40,6 +40,7 @@ import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Service;
@@ -69,6 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final AdminServiceProperties adminServiceProperties;
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalConfGenerationStatusService globalConfGenerationStatus;
+    private final DsTlsCertificateService dsTlsCertificateService;
 
     @Override
     public Set<AlertInfo> getAlerts() {
@@ -89,7 +91,20 @@ public class NotificationServiceImpl implements NotificationService {
                 alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_EXTERNAL, tokens));
             }
         }
+        alerts.addAll(checkDsTlsAcmeEnrollment());
         return alerts;
+    }
+
+    /**
+     * Surfaces a failing DS TLS ACME enrollment/renewal attempt. The shared ACME worker already records the
+     * current error (or clears it on recovery) via {@code DsTlsCertificateService.recordAcmeOutcome}
+     * regardless of any outcome-notification hook, so polling that recorded state here is enough to alert on
+     * it — no separate push/event mechanism is needed. Not gated on {@code isInitialized(tokens)}: the DS TLS
+     * certificate is unrelated to the signer/globalconf bootstrap state that gate checks.
+     */
+    private Set<AlertInfo> checkDsTlsAcmeEnrollment() {
+        String lastError = dsTlsCertificateService.getEnrollmentStatus().lastError();
+        return lastError == null ? Set.of() : Set.of(new AlertInfo("status.dataspace_tls_acme.failing", lastError));
     }
 
     private boolean isInitialized(List<TokenInfo> tokens) {

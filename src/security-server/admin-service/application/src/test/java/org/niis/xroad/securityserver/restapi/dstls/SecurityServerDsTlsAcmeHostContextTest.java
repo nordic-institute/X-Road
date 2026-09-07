@@ -30,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 
@@ -50,13 +52,15 @@ class SecurityServerDsTlsAcmeHostContextTest {
     private AdminServiceProperties.Dataspace dataspace;
     @Mock
     private MailNotificationHelper mailNotificationHelper;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private SecurityServerDsTlsAcmeHostContext hostContext;
 
     @BeforeEach
     void setUp() {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        hostContext = new SecurityServerDsTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper);
+        hostContext = new SecurityServerDsTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper, globalConfProvider);
     }
 
     @Test
@@ -109,6 +113,15 @@ class SecurityServerDsTlsAcmeHostContextTest {
         when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
 
         assertThat(hostContext.getAccountContacts()).containsExactly("dstls@example.org");
+    }
+
+    @Test
+    void getDsTlsCertificationAuthoritiesShouldReturnTheOnesApprovedInGlobalconf() {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, null);
+        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+
+        assertThat(hostContext.getDsTlsCertificationAuthorities()).containsExactly(caInfo);
     }
 
     @Test
