@@ -2,7 +2,7 @@
 
 **X-ROAD 8**
 
-Version: 0.12  
+Version: 0.13  
 Doc. ID:  TA-TERMS
 
 ## Version history
@@ -21,6 +21,7 @@ Doc. ID:  TA-TERMS
 | 11.11.2025 | 0.10    | Drop JMX                                                                                                                                                         | Justas Samuolis  |
 | 27.02.2026 | 0.11    | Dataspace-aligned terminology, simplified model                                                                                                                  | Petteri Kivimäki |
 | 03.07.2026 | 0.12    | Rename Participant Agent to Connector; add Decentralized Claims Protocol                                                                                         | Petteri Kivimäki |
+| 07.09.2026 | 0.13    | Align terminology with the latest changes in dataspace standards and specifications, add additional terms                                                        | Petteri Kivimäki |
 ## Table of Contents
 
 <!-- toc -->
@@ -45,18 +46,23 @@ visit http://creativecommons.org/licenses/by-sa/3.0/
 
 ## 1 Dataspace
 
+### Environment
+
+Context determining the setting and circumstances of all influences upon a system.
+
 ### Dataspace
 
-A governance framework and supporting technical services that enable
-trusted data sharing between Participants based on agreed policies,
-semantic models, protocols and processes.
+Environment enabling trusted Data Sharing between participating parties, 
+based on an agreed Governance Framework, along with an agreed set of 
+Policies, semantic models, standardized protocols, processes, and 
+facilitating services.
 
 In X-Road context, a Dataspace replaces the concept previously known as
 an X-Road instance.
 
 ### Federation
 
-Interconnection between two or more dataspaces enabling cross-dataspace
+Interconnection between two or more Dataspaces enabling cross-dataspace
 data sharing.
 
 ## 2 Governance and Roles
@@ -74,10 +80,14 @@ behalf of the Governance Authority.
 Operational responsibilities may be delegated, but governance control
 remains with the Governance Authority.
 
+### Governance
+
+Human-based system comprising directing, overseeing and accountability.
+
 ### Governance Framework
 
-Strategies, policies and decision-making structures through which
-Dataspace governance operates.
+Strategies, policies, decision-making structures and accountabilities 
+through which the Dataspace Governance arrangements operate.
 
 ### Trust Framework
 
@@ -179,6 +189,10 @@ Data or a technical service that can be shared by a Participant.
 
 This replaces the former concept of dataservice.
 
+### Data Sharing
+
+Access to the same data by more than one authorized entity.
+
 ### Policy
 
 A set of rules, duties and obligations defining the terms of use for a
@@ -200,8 +214,8 @@ Agreement.
 
 ### Transfer Process
 
-Interactions between Provider and Consumer that give access to a Dataset
-under an Agreement.
+A set of interactions between a Provider and Consumer that give access
+to a Dataset under the terms of an Agreement.
 
 ### Dataspace Protocol
 
@@ -275,6 +289,16 @@ on a Connector to consume and/or provide Datasets.
 
 Subsystem is an X-Road-specific concept and has no direct dataspace
 equivalent.
+
+### Catalog
+
+In the context of DSP, a Catalog is a collection of entries representing
+Offers that are advertised by a Provider.
+
+In the broader context of a Dataspace, a Catalog is a service that enables
+Participants to discover and explore Datasets, services, and other resources
+available within one or more Dataspaces. A Catalog may provide a
+human-facing web portal, machine-readable APIs, or both.
 
 ## 7 Identifier Structure
 
@@ -368,6 +392,9 @@ Connector Identifier = Participant Identifier + Connector Code
 
 ## 8 Technical Terms
 
+**API** -- Application Programming Interface\
 **CA** -- Certification Authority\
+**DCP** -- Decentralised Claims Protocol\
+**DSP** -- Dataspace Protocol\
 **OCSP** -- Online Certificate Status Protocol\
 **TSA** -- Timestamping Authority
