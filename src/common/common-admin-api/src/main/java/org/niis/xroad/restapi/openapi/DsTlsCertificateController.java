@@ -27,11 +27,14 @@
 package org.niis.xroad.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.DsTlsCertificateDetailsConverter;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
+import org.niis.xroad.restapi.openapi.model.DsTlsCertificateEnrollmentStatus;
+import org.niis.xroad.restapi.openapi.model.DsTlsCertificateEnrollmentStatus.EnrollmentMethodEnum;
 import org.niis.xroad.restapi.openapi.model.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
@@ -43,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.cert.X509Certificate;
+import java.time.ZoneOffset;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_DS_TLS_CSR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_DS_TLS_KEY;
@@ -74,6 +78,23 @@ public class DsTlsCertificateController implements DsTlsCertificateApi {
         var response = new DsTlsCertificateStatus(status.keyGenerated())
                 .certificate(status.certificateAcquired() ? certificateDetailsConverter.convert(status.certificate()) : null);
         return ok(response);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_DS_TLS_CERT')")
+    public ResponseEntity<DsTlsCertificateEnrollmentStatus> getDsTlsCertificateEnrollmentStatus() {
+        DsTlsEnrollmentStatus status = dsTlsCertificateService.getEnrollmentStatus();
+        return ok(toDto(status));
+    }
+
+    private DsTlsCertificateEnrollmentStatus toDto(DsTlsEnrollmentStatus status) {
+        var dto = new DsTlsCertificateEnrollmentStatus(
+                status.configured() ? EnrollmentMethodEnum.valueOf(status.method().name()) : EnrollmentMethodEnum.NONE);
+        if (status.nextRenewalTime() != null) {
+            dto.setNextRenewalTime(status.nextRenewalTime().atOffset(ZoneOffset.UTC));
+        }
+        dto.setLastError(status.lastError());
+        return dto;
     }
 
     @Override
