@@ -488,6 +488,9 @@
     "unregistered": "No registrado"
   },
   "status": {
+    "dataspace_tls_acme": {
+      "failing": "Falla en la inscripción o renovación ACME del certificado DS TLS: {0}"
+    },
     "global_conf_generation": {
       "failing": "Falla en la generación de la configuración global desde {0}",
       "global_conf_expired": "Expiró la configuración global",

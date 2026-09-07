@@ -483,6 +483,9 @@
     "unregistered": "Hasaba alynmadyk"
   },
   "status": {
+    "dataspace_tls_acme": {
+      "failing": "DS TLS şahadatnamasynyň ACME arkaly hasaba alynmagy ýa-da täzelenmegi amala aşmady, sebäbi {0}"
+    },
     "global_conf_generation": {
       "failing": "Global konfigurasiýanyň emele gelmegi amala aşmady, sebäbi {0}",
       "global_conf_expired": "Global konfigurasiýanyň möhleti tamamlandy",

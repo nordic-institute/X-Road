@@ -483,6 +483,9 @@
     "unregistered": "Не зарегистрировано"
   },
   "status": {
+    "dataspace_tls_acme": {
+      "failing": "Регистрация или продление сертификата DS TLS через ACME не удались: {0}"
+    },
     "global_conf_generation": {
       "failing": "Создание глобальной конфигурации не удалось с {0}",
       "global_conf_expired": "Срок действия глобальной конфигурации истек",

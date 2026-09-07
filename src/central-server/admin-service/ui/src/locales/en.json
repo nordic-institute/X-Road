@@ -506,6 +506,9 @@
     "unregistered": "Unregistered"
   },
   "status": {
+    "dataspace_tls_acme": {
+      "failing": "DS TLS certificate ACME enrollment or renewal failing: {0}"
+    },
     "global_conf_generation": {
       "failing": "Global configuration generation failing since {0}",
       "global_conf_expired": "Global configuration expired",
