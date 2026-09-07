@@ -484,7 +484,8 @@
   },
   "status": {
     "dataspace_tls_acme": {
-      "failing": "DS TLS şahadatnamasynyň ACME arkaly hasaba alynmagy ýa-da täzelenmegi amala aşmady, sebäbi {0}"
+      "enrollment_failing": "DS TLS şahadatnamasynyň ACME arkaly hasaba alynmagy amala aşmady, sebäbi {0}",
+      "renewal_failing": "DS TLS şahadatnamasynyň ACME arkaly täzelenmegi amala aşmady, sebäbi {0}"
     },
     "global_conf_generation": {
       "failing": "Global konfigurasiýanyň emele gelmegi amala aşmady, sebäbi {0}",

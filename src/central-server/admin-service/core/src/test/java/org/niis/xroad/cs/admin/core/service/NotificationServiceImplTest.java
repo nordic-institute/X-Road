@@ -36,6 +36,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
@@ -202,7 +203,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsDsTlsAcmeFailing() {
+    void getAlertsDsTlsAcmeEnrollmentFailing() {
         mockInitialized(true, true);
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
@@ -217,7 +218,27 @@ class NotificationServiceImplTest {
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
         assertThat(alerts).hasSize(1)
-                .contains(new AlertInfo("status.dataspace_tls_acme.failing", "CA unreachable"));
+                .contains(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
+    }
+
+    @Test
+    void getAlertsDsTlsAcmeRenewalFailing() {
+        mockInitialized(true, true);
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
+        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
+        confSigningKey.setKeyIdentifier("id");
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
+        when(dsTlsCertificateService.getEnrollmentStatus())
+                .thenReturn(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), "CA unreachable"));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(1)
+                .contains(new AlertInfo("status.dataspace_tls_acme.renewal_failing", "CA unreachable"));
     }
 
     @Test
@@ -229,7 +250,7 @@ class NotificationServiceImplTest {
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
-        assertThat(alerts).containsExactly(new AlertInfo("status.dataspace_tls_acme.failing", "CA unreachable"));
+        assertThat(alerts).containsExactly(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
     }
 
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {

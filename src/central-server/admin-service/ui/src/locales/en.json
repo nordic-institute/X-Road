@@ -507,7 +507,8 @@
   },
   "status": {
     "dataspace_tls_acme": {
-      "failing": "DS TLS certificate ACME enrollment or renewal failing: {0}"
+      "enrollment_failing": "DS TLS certificate ACME enrollment failing: {0}",
+      "renewal_failing": "DS TLS certificate ACME renewal failing: {0}"
     },
     "global_conf_generation": {
       "failing": "Global configuration generation failing since {0}",

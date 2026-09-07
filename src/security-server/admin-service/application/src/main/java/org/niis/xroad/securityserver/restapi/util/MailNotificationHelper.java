@@ -186,11 +186,12 @@ public class MailNotificationHelper {
         }
     }
 
-    public void sendDsTlsAcmeFailureNotification(String hostname, String errorDescription) {
+    public void sendDsTlsAcmeFailureNotification(String hostname, boolean isRenewal, String errorDescription) {
         if (adminServiceProperties.getDataspace().isTlsCertificateRenewalFailureNotificationEnabled()) {
-            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_title");
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_title",
+                    new String[]{isRenewal ? "renewal" : "enrollment"});
             String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_content",
-                    new String[]{hostname, errorDescription});
+                    new String[]{isRenewal ? "renewal" : "enrollment", hostname, errorDescription});
             sendToDsTlsNotificationContacts(title, content);
         }
     }

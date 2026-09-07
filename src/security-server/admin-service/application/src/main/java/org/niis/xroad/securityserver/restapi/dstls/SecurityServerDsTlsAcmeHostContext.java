@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,7 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
     private final AdminServiceProperties adminServiceProperties;
     private final MailNotificationHelper mailNotificationHelper;
     private final GlobalConfProvider globalConfProvider;
+    private final DsTlsCertificateService dsTlsCertificateService;
 
     /**
      * @return the host component of the configured DataSpace IdentityHub URL, or {@code null} when DataSpace
@@ -108,6 +110,7 @@ class SecurityServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
 
     @Override
     public void notifyEnrollmentFailure(String hostname, String errorDescription) {
-        mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, errorDescription);
+        boolean isRenewal = dsTlsCertificateService.getEnrollmentStatus().method() != null;
+        mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, isRenewal, errorDescription);
     }
 }

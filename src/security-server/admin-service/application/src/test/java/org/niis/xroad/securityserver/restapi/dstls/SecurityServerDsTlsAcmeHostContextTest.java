@@ -30,8 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 
@@ -54,13 +57,16 @@ class SecurityServerDsTlsAcmeHostContextTest {
     private MailNotificationHelper mailNotificationHelper;
     @Mock
     private GlobalConfProvider globalConfProvider;
+    @Mock
+    private DsTlsCertificateService dsTlsCertificateService;
 
     private SecurityServerDsTlsAcmeHostContext hostContext;
 
     @BeforeEach
     void setUp() {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        hostContext = new SecurityServerDsTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper, globalConfProvider);
+        hostContext = new SecurityServerDsTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper, globalConfProvider,
+                dsTlsCertificateService);
     }
 
     @Test
@@ -132,9 +138,21 @@ class SecurityServerDsTlsAcmeHostContextTest {
     }
 
     @Test
-    void notifyEnrollmentFailureShouldDelegateToMailNotificationHelper() {
+    void notifyEnrollmentFailureShouldReportAnEnrollmentFailureWhenNoCertificateIsStoredYet() {
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "boom"));
+
         hostContext.notifyEnrollmentFailure("ds.example.org", "boom");
 
-        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification("ds.example.org", "boom");
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification("ds.example.org", false, "boom");
+    }
+
+    @Test
+    void notifyEnrollmentFailureShouldReportARenewalFailureWhenACertificateIsAlreadyStored() {
+        when(dsTlsCertificateService.getEnrollmentStatus())
+                .thenReturn(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "boom"));
+
+        hostContext.notifyEnrollmentFailure("ds.example.org", "boom");
+
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification("ds.example.org", true, "boom");
     }
 }

@@ -31,21 +31,38 @@ import { renderRoute } from '../setup/render-route';
 import { specHttp } from '../setup/spec-http';
 
 describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
-  it('a failing DS TLS ACME enrollment/renewal renders a readable message, not the raw i18n key', async () => {
+  it('a failing DS TLS ACME enrollment renders a distinct readable message, not the raw i18n key', async () => {
     await renderRoute('/members', {
       msw: [
         specHttp.untyped.get('/api/v1/notifications/alerts', () =>
-          HttpResponse.json([{ errorCode: 'status.dataspace_tls_acme.failing', metadata: ['CA unreachable'] }]),
+          HttpResponse.json([
+            { errorCode: 'status.dataspace_tls_acme.enrollment_failing', metadata: ['CA unreachable'] },
+          ]),
         ),
       ],
     });
 
     await expect
-      .element(page.getByText('DS TLS certificate ACME enrollment or renewal failing: CA unreachable'))
+      .element(page.getByText('DS TLS certificate ACME enrollment failing: CA unreachable'))
       .toBeVisible();
 
     // The raw i18n key must never be what actually renders on screen.
-    await expect.element(page.getByText('status.dataspace_tls_acme.failing')).not.toBeInTheDocument();
+    await expect.element(page.getByText('status.dataspace_tls_acme.enrollment_failing')).not.toBeInTheDocument();
+  });
+
+  it('a failing DS TLS ACME renewal renders a distinct readable message, not the raw i18n key', async () => {
+    await renderRoute('/members', {
+      msw: [
+        specHttp.untyped.get('/api/v1/notifications/alerts', () =>
+          HttpResponse.json([{ errorCode: 'status.dataspace_tls_acme.renewal_failing', metadata: ['CA unreachable'] }]),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByText('DS TLS certificate ACME renewal failing: CA unreachable')).toBeVisible();
+
+    // The raw i18n key must never be what actually renders on screen.
+    await expect.element(page.getByText('status.dataspace_tls_acme.renewal_failing')).not.toBeInTheDocument();
   });
 
   it('a successful enrollment/renewal (no recorded error) shows no DS TLS ACME alert', async () => {
@@ -53,8 +70,7 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
       msw: [specHttp.untyped.get('/api/v1/notifications/alerts', () => HttpResponse.json([]))],
     });
 
-    await expect
-      .element(page.getByText('DS TLS certificate ACME enrollment or renewal failing', { exact: false }))
-      .not.toBeInTheDocument();
+    await expect.element(page.getByText('DS TLS certificate ACME enrollment failing', { exact: false })).not.toBeInTheDocument();
+    await expect.element(page.getByText('DS TLS certificate ACME renewal failing', { exact: false })).not.toBeInTheDocument();
   });
 });

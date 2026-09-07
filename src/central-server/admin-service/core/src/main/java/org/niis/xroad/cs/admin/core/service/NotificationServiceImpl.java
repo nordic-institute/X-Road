@@ -103,8 +103,15 @@ public class NotificationServiceImpl implements NotificationService {
      * certificate is unrelated to the signer/globalconf bootstrap state that gate checks.
      */
     private Set<AlertInfo> checkDsTlsAcmeEnrollment() {
-        String lastError = dsTlsCertificateService.getEnrollmentStatus().lastError();
-        return lastError == null ? Set.of() : Set.of(new AlertInfo("status.dataspace_tls_acme.failing", lastError));
+        var enrollmentStatus = dsTlsCertificateService.getEnrollmentStatus();
+        String lastError = enrollmentStatus.lastError();
+        if (lastError == null) {
+            return Set.of();
+        }
+        String errorCode = enrollmentStatus.method() == null
+                ? "status.dataspace_tls_acme.enrollment_failing"
+                : "status.dataspace_tls_acme.renewal_failing";
+        return Set.of(new AlertInfo(errorCode, lastError));
     }
 
     private boolean isInitialized(List<TokenInfo> tokens) {
