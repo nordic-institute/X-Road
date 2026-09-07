@@ -1,10 +1,8 @@
 Template: xroad-common/dataspace-issuer-host
 Type: string
 Description: Insert dataspace issuer host [default=${DEFAULT}]
- This is the federation-visible name under which this Central Server publishes its dataspace Issuer DID.
+ This is the externally visible name under which this Central Server publishes its dataspace Issuer DID.
  .
- It is often a public hostname or a load balancer name reachable by Security Servers and other federation participants, not necessarily this machine's own hostname.
- .
- Changing this value after credentials have been issued requires re-issuing them.
+ It can be a public hostname or a load balancer name reachable by Security Servers, not necessarily this machine's own hostname.
  .
  Suggested default: ${DEFAULT}
