@@ -39,7 +39,7 @@ container (embedded PostgreSQL, embedded OpenBao, every service under supervisor
 
 | `-Pe2e.ss0-stack` | ss0 shape |
 |--------------------|-----------|
-| `multi-container` (default) | Today's ~17-container per-service stack |
+| `default` | Today's ~17-container per-service stack |
 | `sidecar` | One `xroad-security-server-sidecar` container |
 
 The sidecar image is built from tree-built Ubuntu DEBs, not published packages. From

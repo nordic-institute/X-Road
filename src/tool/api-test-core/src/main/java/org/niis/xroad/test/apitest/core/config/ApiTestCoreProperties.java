@@ -55,13 +55,18 @@ public interface ApiTestCoreProperties {
     String envMode();
 
     /**
-     * Stack shape ss0 boots in {@code compose} env-mode: {@code multi-container} (the per-service
-     * stack, the default) or {@code sidecar} (one full-sidecar container in place of it). Ignored in
-     * {@code lxd}/{@code k8s} env-mode, which manage ss0's shape independently of this switch.
+     * Stack shape ss0 boots in {@code compose} env-mode: {@code default} (the per-service
+     * multi-container stack) or {@code sidecar} (one full-sidecar container in place of it). Ignored
+     * in {@code lxd}/{@code k8s} env-mode, which manage ss0's shape independently of this switch.
      */
-    @WithDefault("multi-container")
+    @WithDefault("default")
     @WithName("ss0-stack")
-    String ss0Stack();
+    Ss0Stack ss0Stack();
+
+    enum Ss0Stack {
+        DEFAULT,
+        SIDECAR
+    }
 
     @WithName("allure")
     Allure allure();

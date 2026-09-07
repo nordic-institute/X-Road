@@ -216,14 +216,11 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     }
 
     private AbstractSsStack buildSs0Stack(ApiTestCoreProperties coreProperties) {
-        var variant = coreProperties.ss0Stack();
-        return switch (variant) {
-            case "multi-container" -> new SsStackSetup(coreProperties, "ss0",
+        return switch (coreProperties.ss0Stack()) {
+            case DEFAULT -> new SsStackSetup(coreProperties, "ss0",
                     Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER,
                             SsStackSetup.Feature.OP_MONITOR));
-            case "sidecar" -> new SidecarSsStackSetup(coreProperties, "ss0");
-            default -> throw new IllegalArgumentException(
-                    "Unknown ss0-stack variant: " + variant + " — expected 'multi-container' or 'sidecar'");
+            case SIDECAR -> new SidecarSsStackSetup(coreProperties, "ss0");
         };
     }
 

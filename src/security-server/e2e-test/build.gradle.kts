@@ -64,7 +64,7 @@ val copyComposeFiles by tasks.registering(Copy::class) {
 }
 
 val e2eEnvMode = providers.gradleProperty("e2e.env-mode").getOrElse("compose")
-val e2eSs0Stack = providers.gradleProperty("e2e.ss0-stack").getOrElse("multi-container")
+val e2eSs0Stack = providers.gradleProperty("e2e.ss0-stack").getOrElse("default")
 
 tasks.register<Test>("e2eTest") {
   // Only the harness-managed compose stack needs the generated env and copied compose files. Pre-provisioned
@@ -79,7 +79,7 @@ tasks.register<Test>("e2eTest") {
       "-Pe2e.env-mode (default 'compose': harness-boots the shared aux/ss0/ss1 stack via the " +
       "LauncherSessionListener SPI; 'lxd': attaches to a pre-provisioned LXD environment; 'k8s': " +
       "attaches to a pre-provisioned kind cluster). In 'compose' mode, -Pe2e.ss0-stack selects ss0's " +
-      "stack shape (default 'multi-container': today's per-service stack; 'sidecar': one full-sidecar " +
+      "stack shape ('default': today's per-service stack; 'sidecar': one full-sidecar " +
       "container in its place), ignored otherwise. " +
       "Pass --tests <pattern> to run a single class/method directly (IDE-friendly)."
   group = "verification"
