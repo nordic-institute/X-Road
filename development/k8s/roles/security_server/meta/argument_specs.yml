@@ -23,7 +23,6 @@ argument_specs:
       messagelog_archive_cron: {type: str, default: ""}
       messagelog_clean_cron: {type: str, default: ""}
       messagelog_encryption_config: {type: str, default: ""}
-      ds_truststore_key: {type: str, default: cacerts}
       dsp_participant_context_id: {type: str, default: ""}
       signer_hsm_enabled: {type: bool, default: false}
       signer_hsm_image: {type: str, default: ss-signer-with-hsm}

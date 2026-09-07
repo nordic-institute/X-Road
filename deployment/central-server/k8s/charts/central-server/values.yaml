@@ -67,13 +67,3 @@ services:
       # Same fix as the compose e2e cs container (compose.aux.yaml); the
       # security-server chart covers its services via secretStore.tls instead.
       QUARKUS_VAULT_TLS_CA_CERT: "/usr/local/share/ca-certificates/openbao.crt"
-    # Issuer Service HTTPS keystore (provisioned by the ds-https-keystore chart);
-    # without it the Issuer Service crash-loops and CS init fails.
-    volumeMounts:
-      - name: ds-https-keystore
-        mountPath: /etc/xroad/ds-ssl
-        readOnly: true
-    volumes:
-      - name: ds-https-keystore
-        secret:
-          secretName: ds-https-keystore

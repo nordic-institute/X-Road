@@ -201,6 +201,60 @@ certificate: file,{{ds_tls_ca_file}};
 
 HTTP 201
 
+# Provision the Central Server's DS TLS certificate through the admin API (the slice the
+# co-located Issuer Service serves from OpenBao): generate the server-side key, fetch a
+# DN-only CSR, sign it at the test CA with this environment's SAN list (the CA attaches
+# SANs from order metadata — the CSR carries none by design), and upload the certificate.
+# The ds-* processes wait at startup on the empty vault slot until this lands; every
+# ds-* convergence gate below runs after it.
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/key
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 201
+
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/csr
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "name": "{{cs_ds_tls_dn}}"
+}
+
+HTTP 200
+
+[Captures]
+cs_ds_tls_csr: body
+
+# Sign the DS TLS CSR (note that the test CA needs filename so we can't just send it under
+# [FormMultiPart] as we do with the other requests)
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: cs_ds_tls_cert.pem
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+auth
+--certboundary
+Content-Disposition: form-data; name="san"
+
+{{cs_ds_tls_san}}
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="ds-tls.csr.pem"
+
+{{cs_ds_tls_csr}}
+--certboundary--
+```
+
+HTTP 200
+
+POST https://{{cs_host}}:4000/api/v1/ds-tls-certificate/certificate
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+[MultipartFormData]
+certificate: file,cs_ds_tls_cert.pem;
+
+HTTP 200
+
 
 # Download global configuration anchor from Central Server
 GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
@@ -268,6 +322,56 @@ Content-Type: application/json
 }
 
 HTTP *
+
+# Provision SS0's DS TLS certificate through the admin API — same key/CSR/sign/upload flow
+# as the Central Server block above; the SAN list is this server's environment-supplied
+# ds-* host names. Runs as early as possible so the waiting ds-* services converge
+# well before the DSP readiness gates at the end.
+POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/key
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 201
+
+POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/csr
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+Content-Type: application/json
+{
+  "name": "{{ss0_ds_tls_dn}}"
+}
+
+HTTP 200
+
+[Captures]
+ss0_ds_tls_csr: body
+
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss0_ds_tls_cert.pem
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+auth
+--certboundary
+Content-Disposition: form-data; name="san"
+
+{{ss0_ds_tls_san}}
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="ds-tls.csr.pem"
+
+{{ss0_ds_tls_csr}}
+--certboundary--
+```
+
+HTTP 200
+
+POST https://{{ss0_host}}:4000/api/v1/ds-tls-certificate/certificate
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+[MultipartFormData]
+certificate: file,ss0_ds_tls_cert.pem;
+
+HTTP 200
 
 # Get the CA name
 GET https://{{ss0_host}}:4000/api/v1/certificate-authorities
@@ -645,6 +749,53 @@ Content-Type: application/json
 }
 
 HTTP *
+
+# Provision SS1's DS TLS certificate through the admin API — same flow as SS0 above.
+POST https://{{ss1_host}}:4000/api/v1/ds-tls-certificate/key
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 201
+
+POST https://{{ss1_host}}:4000/api/v1/ds-tls-certificate/csr
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "name": "{{ss1_ds_tls_dn}}"
+}
+
+HTTP 200
+
+[Captures]
+ss1_ds_tls_csr: body
+
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+[Options]
+output: ss1_ds_tls_cert.pem
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+auth
+--certboundary
+Content-Disposition: form-data; name="san"
+
+{{ss1_ds_tls_san}}
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="ds-tls.csr.pem"
+
+{{ss1_ds_tls_csr}}
+--certboundary--
+```
+
+HTTP 200
+
+POST https://{{ss1_host}}:4000/api/v1/ds-tls-certificate/certificate
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+[MultipartFormData]
+certificate: file,ss1_ds_tls_cert.pem;
+
+HTTP 200
 
 # Add auth key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs

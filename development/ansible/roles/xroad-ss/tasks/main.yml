@@ -1,9 +1,9 @@
 ---
 # TEMPORARY (dataspaces dev): pre-install preseed runs before any xroad-*
-# package starts a systemd unit. Puts DS runtime configs, TLS keystore, and
-# xrd-ca in the system trust store on disk BEFORE the package postinst fires.
-# Remove this include (and pre-ss-install.yml) once upstream packaging ships
-# debconf preseeds for ds-* services and stops auto-starting units in postinst.
+# package starts a systemd unit. Puts the DS runtime configs on disk BEFORE the
+# package postinst fires. Remove this include (and pre-ss-install.yml) once
+# upstream packaging ships debconf preseeds for ds-* services and stops
+# auto-starting units in postinst.
 - include_tasks: pre-ss-install.yml
 
 - include_tasks: install.yml
@@ -11,5 +11,3 @@
 - include_tasks: postinstall.yml
 
 - include_tasks: seed-config-properties.yml
-
-- include_tasks: post-ss-install.yml

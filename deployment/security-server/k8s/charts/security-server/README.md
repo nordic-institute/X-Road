@@ -189,8 +189,8 @@ config's `env` for `XROAD_SECRET_STORE_HOST`), not a hardcoded list —
 future workloads that set that env var inherit the fan-out automatically.
 The mount/env are additive (`extraVolumes`/`extraVolumeMounts` concat,
 `env` dict merge), so they layer over whatever a workload already carries
-(the `ds-https` keystore mount, the messagelog-encryption config mount)
-rather than replacing it.
+(the messagelog-encryption config mount, for example) rather than
+replacing it.
 
 ## 9. Chart version discipline
 

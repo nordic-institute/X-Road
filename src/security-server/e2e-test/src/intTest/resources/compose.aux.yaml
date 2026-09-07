@@ -28,11 +28,7 @@ services:
     networks:
       - xroad-network
     volumes:
-      - ds-https-keystore:/etc/xroad/ds-ssl:ro
       - ./container-files/etc/xroad/db-config-seed/50-e2e.properties:/etc/xroad/db-config-seed/50-e2e.properties:ro
-    depends_on:
-      ds-https-keystore-init:
-        condition: service_completed_successfully
   testca:
     image: ${CA_IMG}
     pull_policy: always
@@ -109,60 +105,6 @@ services:
       - xroad-network
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
-  ds-https-keystore-init:
-    image: eclipse-temurin:21-jre-alpine
-    entrypoint: [ "sh", "-c" ]
-    command:
-      - |
-        set -euo pipefail
-        cd /keystore
-        if [ -f ds-https.p12 ] && [ -f cacerts ]; then
-          echo "ds-https keystore files already present"
-        else
-          apk add --no-cache openssl
-          openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
-            -keyout ds-https-key.pem -out ds-https-cert.pem \
-            -subj "/CN=xrd-ds" \
-            -addext "subjectAltName=DNS:cs,DNS:ds-issuer-service,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:ss0-ds-identity-hub,DNS:ss1-ds-identity-hub,DNS:ss0-ds-control-plane,DNS:ss1-ds-control-plane,DNS:xrd-ss0,DNS:xrd-ss1,DNS:localhost"
-          openssl pkcs12 -export -out ds-https.p12 -inkey ds-https-key.pem -in ds-https-cert.pem \
-            -name ds-https -password pass:changeit
-          cp /opt/java/openjdk/lib/security/cacerts cacerts
-          chmod u+w cacerts
-          keytool -import -trustcacerts -noprompt -alias ds-https -file ds-https-cert.pem \
-            -keystore cacerts -storepass changeit
-        fi
-        # Outside the reuse guard: the shared volume can hold key files written
-        # root-0600 by older init runs, unreadable by the xroad user in the cs container.
-        chmod 0644 ds-https.p12 cacerts ds-https-cert.pem ds-https-key.pem
-        # Stopgap until real DS TLS certificate provisioning covers this stack: the owned
-        # Jetty module reads the DS TLS certificate from OpenBao, not from these files —
-        # seed the same key/cert generated above into tls/ds-https so ds-* services (and
-        # the co-located Issuer Service in the cs container) don't fail closed.
-        apk add --no-cache curl jq
-        PAYLOAD=$$(jq -n --rawfile cert ds-https-cert.pem --rawfile key ds-https-key.pem \
-          '{certificate: $$cert, privateKey: $$key}')
-        curl -fsS -X POST \
-          -H "X-Vault-Token: ${XROAD_SECRET_STORE_TOKEN}" \
-          -H "Content-Type: application/json" \
-          --data "$$PAYLOAD" \
-          "http://openbao:8200/v1/xrd-secret/tls/ds-https" >/dev/null
-        echo "Wrote ds-https certificate to OpenBao at tls/ds-https"
-    environment:
-      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
-    networks:
-      - xroad-network
-    volumes:
-      - ds-https-keystore:/keystore
-    depends_on:
-      openbao:
-        condition: service_healthy
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 256M
-
   hurl:
     build:
         context: hurl
@@ -175,7 +117,6 @@ services:
       --variable ss0_proxy=${PROXY_0}
       --variable ss1_proxy=${PROXY_1}
       --variable is_host=cs
-      --variable ds_tls_ca_file=ds/ds-https-cert.pem
       --file-root /hurl-files
       /hurl-src/setup.hurl
       --very-verbose
@@ -191,9 +132,6 @@ services:
       - xroad-network
     volumes:
       - ca-volume:/hurl-files/ca
-      # Same self-signed cert ds-https-keystore-init generates and every ds-* container serves (there
-      # is no separate issuing CA in this environment): registered as its own DS TLS CA trust anchor.
-      - ds-https-keystore:/hurl-files/ds:ro
     depends_on:
       cs:
         condition: service_healthy
@@ -205,8 +143,6 @@ services:
         condition: service_healthy
       isrest:
         condition: service_healthy
-      ds-https-keystore-init:
-        condition: service_completed_successfully
 
   openbao:
     image: ${OPENBAO_DEV_IMG}
@@ -230,9 +166,6 @@ services:
 
 volumes:
   ca-volume:
-  ds-https-keystore:
-    external: true
-    name: e2e-ds-https-keystore
 networks:
   xroad-network:
     name: xroad-network

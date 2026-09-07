@@ -21,16 +21,9 @@ services:
       # ds-control-plane builds its own self-callback URL (used even for a same-SS negotiation,
       # e.g. the management Security Server registering its own clients) from this address. Without
       # it, it falls back to the container's own auto-assigned Docker hostname, which is not in the
-      # shared DS-HTTPS certificate's SAN list, so the callback's TLS handshake fails.
+      # provisioned DS TLS certificate's SAN list, so the callback's TLS handshake fails.
       - EDC_DSP_CALLBACK_ADDRESS=https://ss0-ds-control-plane:8183/api/dsp/%s
-      # Same shared, self-signed DS-HTTPS certificate ds-https-keystore-init distributes to every
-      # other ds-* container in this environment: seeding it here (rather than the sidecar's own
-      # placeholder) is what lets ss1/CS trust sidecar-ss0's dataspace listeners, and lets
-      # sidecar-ss0 trust theirs back, since a self-signed certificate is its own trust anchor.
-      - XROAD_DS_HTTPS_CERT_FILE=/etc/xroad/ds-https-shared/ds-https-cert.pem
-      - XROAD_DS_HTTPS_KEY_FILE=/etc/xroad/ds-https-shared/ds-https-key.pem
     volumes:
-      - ds-https-keystore:/etc/xroad/ds-https-shared:ro
       - ./container-files/etc/xroad/entrypoint.d:/etc/xroad/entrypoint.d:ro
     deploy:
       resources:
@@ -57,11 +50,6 @@ services:
           - ${SS_NAME:-ss0}-ds-control-plane
           - ${SS_NAME:-ss0}-ds-identity-hub
           - xrd-${SS_NAME:-ss0}
-
-volumes:
-  ds-https-keystore:
-    external: true
-    name: e2e-ds-https-keystore
 
 networks:
   xroad-network:

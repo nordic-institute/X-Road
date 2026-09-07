@@ -282,8 +282,7 @@ configure_kv "$BAO_ADDR" "$BAO_TOKEN" || {
 }
 
 if dpkg -s xroad-ds-control-plane &>/dev/null || dpkg -s xroad-ds-identity-hub &>/dev/null; then
-  log "Seeding DS-HTTPS TLS certificate"
-  seed_ds_https_placeholder_cert "$BAO_ADDR" "$BAO_TOKEN" || {
+  seed_ds_https_supplied_cert "$BAO_ADDR" "$BAO_TOKEN" || {
     warn "Failed to seed DS-HTTPS TLS certificate"
     exit 1
   }

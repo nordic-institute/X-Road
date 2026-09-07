@@ -256,17 +256,15 @@ configure_kv() {
 
 # xroad-ds-control-plane and xroad-ds-identity-hub replace EDC's own Jetty
 # extension with one that serves every HTTP(S) port on the JVM from a single
-# keystore read from xrd-secret/tls/ds-https, with no fallback: an empty path
-# is a hard boot failure (DsHttpsKeyStoreLoader). Every other deployment mode
-# provisions that path from a real CA (a shared dev CA in the LXD ansible
-# roles, ACME/manual CSR upload via the admin API in production); the sidecar
-# has none of that infrastructure, so by default this mints a self-signed
-# placeholder purely so the service starts. An operator can supply a real
-# certificate instead via XROAD_DS_HTTPS_CERT_FILE/XROAD_DS_HTTPS_KEY_FILE
-# (PEM files, e.g. bind-mounted into the container); when set, that material
-# is seeded here instead of a placeholder, and trust_ds_https_supplied_cert
-# below makes the sidecar's own outbound dataspace calls trust it too.
-seed_ds_https_placeholder_cert() {
+# keystore read from xrd-secret/tls/ds-https. Like every other deployment
+# mode, the sidecar leaves the slot empty until a certificate is provisioned
+# through the admin API; the ds services wait in-process for the material
+# (InitialMaterialWait). An operator can instead supply it up front via
+# XROAD_DS_HTTPS_CERT_FILE/XROAD_DS_HTTPS_KEY_FILE (PEM files, e.g.
+# bind-mounted into the container); when set, it is seeded here before
+# services start, and trust_ds_https_supplied_cert below makes the sidecar's
+# own outbound dataspace calls trust it too.
+seed_ds_https_supplied_cert() {
   local addr="${1:-$BAO_ADDR}"
   local token="${2:-$BAO_TOKEN}"
 
@@ -276,50 +274,24 @@ seed_ds_https_placeholder_cert() {
     return 0
   fi
 
-  if [ -n "${XROAD_DS_HTTPS_CERT_FILE:-}" ] || [ -n "${XROAD_DS_HTTPS_KEY_FILE:-}" ]; then
-    if [ ! -s "${XROAD_DS_HTTPS_CERT_FILE:-}" ] || [ ! -s "${XROAD_DS_HTTPS_KEY_FILE:-}" ]; then
-      echo "[OPENBAO] XROAD_DS_HTTPS_CERT_FILE and XROAD_DS_HTTPS_KEY_FILE must both point at readable, non-empty PEM files" >&2
-      return 1
-    fi
-
-    echo "[OPENBAO] Seeding the operator-supplied DS-HTTPS TLS certificate from XROAD_DS_HTTPS_CERT_FILE"
-    local payload
-    payload=$(jq -n --rawfile cert "$XROAD_DS_HTTPS_CERT_FILE" --rawfile key "$XROAD_DS_HTTPS_KEY_FILE" \
-      '{certificate: $cert, privateKey: $key}')
-    bao_api "POST" "$addr" "/v1/xrd-secret/tls/ds-https" \
-      "$payload" "$token" "Seeding the supplied DS-HTTPS TLS certificate" >/dev/null || return 1
-    trust_ds_https_supplied_cert
+  if [ -z "${XROAD_DS_HTTPS_CERT_FILE:-}" ] && [ -z "${XROAD_DS_HTTPS_KEY_FILE:-}" ]; then
+    echo "[OPENBAO] No DS-HTTPS TLS certificate supplied; the dataspace services wait" \
+      "until one is provisioned through the admin API"
     return 0
   fi
 
-  echo "[OPENBAO] Generating a self-signed DS-HTTPS TLS placeholder certificate"
-  local tmp_dir
-  tmp_dir=$(mktemp -d)
-  if ! openssl req \
-      -out "$tmp_dir/ds-https.crt" \
-      -new \
-      -keyout "$tmp_dir/ds-https.key" \
-      -newkey rsa:2048 \
-      -nodes \
-      -sha256 \
-      -x509 \
-      -subj "/CN=${HOSTNAME:-localhost}" \
-      -days 1095 \
-      -addext "subjectAltName = DNS:${HOSTNAME:-localhost},DNS:localhost,IP:127.0.0.1" \
-      -addext "keyUsage = digitalSignature,keyEncipherment" \
-      -addext "extendedKeyUsage = serverAuth" 2>/dev/null; then
-    echo "[OPENBAO] Failed to generate the DS-HTTPS placeholder certificate" >&2
-    rm -rf "$tmp_dir"
+  if [ ! -s "${XROAD_DS_HTTPS_CERT_FILE:-}" ] || [ ! -s "${XROAD_DS_HTTPS_KEY_FILE:-}" ]; then
+    echo "[OPENBAO] XROAD_DS_HTTPS_CERT_FILE and XROAD_DS_HTTPS_KEY_FILE must both point at readable, non-empty PEM files" >&2
     return 1
   fi
 
+  echo "[OPENBAO] Seeding the operator-supplied DS-HTTPS TLS certificate from XROAD_DS_HTTPS_CERT_FILE"
   local payload
-  payload=$(jq -n --rawfile cert "$tmp_dir/ds-https.crt" --rawfile key "$tmp_dir/ds-https.key" \
+  payload=$(jq -n --rawfile cert "$XROAD_DS_HTTPS_CERT_FILE" --rawfile key "$XROAD_DS_HTTPS_KEY_FILE" \
     '{certificate: $cert, privateKey: $key}')
-  rm -rf "$tmp_dir"
-
   bao_api "POST" "$addr" "/v1/xrd-secret/tls/ds-https" \
-    "$payload" "$token" "Seeding DS-HTTPS TLS placeholder certificate" >/dev/null
+    "$payload" "$token" "Seeding the supplied DS-HTTPS TLS certificate" >/dev/null || return 1
+  trust_ds_https_supplied_cert
 }
 
 # The sidecar's own ds-control-plane and ds-identity-hub make outbound HTTPS calls to other

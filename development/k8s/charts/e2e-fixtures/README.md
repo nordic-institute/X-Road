@@ -6,8 +6,7 @@
 > in-cluster: a test CA, mock information systems, a mail sink, and a hurl
 > bootstrap Job. Every rendered resource carries the label
 > `xroad.niis.org/production-ready: "false"`, matching the `Chart.yaml`
-> annotation. (The DS-HTTPS keystore init moved to its own
-> `ds-https-keystore` chart — see section 3.)
+> annotation.
 
 ## 1. Overview
 
@@ -48,16 +47,15 @@ files at render time, don't fork them into the chart" mechanism as the hurl
 scenario files (section 4) — see `values.yaml`'s `services.isrest.mappings`
 comment for the `--set-file` recipe.
 
-## 3. DS-HTTPS keystore (moved out)
+## 3. DS TLS certificates (provisioned via the admin API)
 
-The DS-HTTPS keystore init Job used to live here, but the Central Server
-Issuer Service and (when DSP is enabled) the Security Server ds_tls mode
-mount the resulting `ds-https-keystore` Secret **at boot** — so it must be
-provisioned before those charts, not alongside these fixtures. It now has its
-own `development/k8s/charts/ds-https-keystore` chart, deployed
-as an early ansible step (`ds_https_keystore` role, before `security_server`
-and `central_server`). See that chart's README for the self-signed recipe
-and the SAN set.
+There is no keystore fixture: `setup.hurl` provisions each server's DS TLS
+certificate through the admin API (generate key, DN-only CSR, signing at the
+in-cluster test CA with a per-server SAN list, upload) and registers the test
+CA's root as the DS TLS trust anchor. The ds-* pods wait at startup on the
+empty `tls/ds-https` vault slot until the hurl bootstrap runs; the
+scenario's DSP readiness gates assert their convergence. The DN/SAN values
+live in `values.yaml` under `hurl.vars`.
 
 ## 4. hurl bootstrap Job
 
@@ -99,10 +97,8 @@ against, so `setup.hurl` is the only scenario this chart runs.
 
 - Topology wiring (ansible `inventory/e2e`, namespaces, the
   `core/scripts/env-k8s` bring-up pipeline) — owned by `development/k8s`.
-- The DS-HTTPS keystore Secret — owned by the `ds-https-keystore` chart.
 - Scenario health — this chart's contract is a correct render and a bootstrap
   Job that runs; the E2E suite owns the assertions.
-- Replacing the DS-HTTPS stop-gap with ACME-from-OpenBao.
 
 ## 6. Rendering
 

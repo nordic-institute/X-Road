@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,18 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api;
+package org.niis.xroad.securityserver.restapi.wsdl;
 
-public final class Port {
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
-    public static final int UI = 4000;
-    public static final int PROXY_HTTP = 8080;
-    public static final int DB = 5432;
-    public static final int PROXY_HEALTHCHECK = 5558;
-    public static final int TEST_CA = 8888;
-    public static final int QUARKUS_HEALTH = 4099;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 
-    private Port() {
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+final class WsdlSslContextFactory {
+
+    private WsdlSslContextFactory() {
     }
 
+    static SSLSocketFactory trustAllSslSocketFactory(String protocol, ServerConfProvider serverConfProvider) {
+        try {
+            SSLContext ctx = SSLContext.getInstance(protocol);
+            ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)},
+                    new TrustManager[]{new HttpUrlConnectionConfig.NoopTrustManager()},
+                    new SecureRandom());
+            return ctx.getSocketFactory();
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
 }
