@@ -127,7 +127,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                                 .serverId(serverId)
                                 .clientId(clientId)
                                 .types(List.of(ManagementRequestType.CLIENT_REGISTRATION_REQUEST))
-                                .build(), PageRequestDto.unpaged())
+                                .build(), latestRequestPage())
                 .stream()
                 .map(ManagementRequestView::getStatus)
                 .findFirst()
@@ -147,6 +147,15 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         }
 
         return managementRequestStatus;
+    }
+
+    private static PageRequestDto latestRequestPage() {
+        return PageRequestDto.builder()
+                .jpaSort("id")
+                .desc(true)
+                .limit(1)
+                .offset(0)
+                .build();
     }
 
     @Override

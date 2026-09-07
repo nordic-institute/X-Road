@@ -119,7 +119,10 @@
               <p v-for="recipient in mailNotificationStatus.recipients_emails">
                 {{ recipient }}
                 <xrd-button
-                  v-if="mailNotificationStatus.configuration_present"
+                  v-if="
+                    mailNotificationStatus.configuration_present &&
+                    canSendTestMail
+                  "
                   large
                   variant="text"
                   data-test="send-test-mail"
@@ -150,8 +153,10 @@
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useMail } from '@/store/modules/mail';
+import { useUser } from '@/store/modules/user';
 import { defineComponent } from 'vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
+import { Permissions } from '@/global';
 
 type TestMailStatuses = {
   [key: string]: {
@@ -165,7 +170,11 @@ export default defineComponent({
     HelpButton,
   },
   computed: {
+    canSendTestMail() {
+      return this.hasPermission(Permissions.SEND_TEST_MAIL);
+    },
     ...mapState(useMail, ['mailNotificationStatus']),
+    ...mapState(useUser, ['hasPermission']),
   },
   data() {
     return {
@@ -181,7 +190,7 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError']),
     ...mapActions(useMail, ['fetchMailNotificationStatus', 'sendTestMail']),
     sendTestMailNotification(recipient: string) {
-      this.sendTestMail(recipient.substring(recipient.indexOf(' ')))
+      this.sendTestMail(recipient.substring(recipient.lastIndexOf(' ') + 1))
         .then((resp) => {
           this.testMailStatuses = {
             ...this.testMailStatuses,

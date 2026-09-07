@@ -26,17 +26,29 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.util.MimeTypes;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -81,4 +93,74 @@ public class ValidateSoapActionTest {
         assertEquals(valid, expected);
     }
 
+    @Test
+    public void createSOAPMessageParsesDoctypeFreeXml() throws Exception {
+        SOAPMessage soap = parse("""
+                <?xml version="1.0" encoding="UTF-8"?>
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                    <SOAP-ENV:Body><test/></SOAP-ENV:Body>
+                </SOAP-ENV:Envelope>""");
+
+        assertNotNull(soap.getSOAPBody());
+    }
+
+    @Test
+    public void createSOAPMessageRejectsExternalEntityDoctype() {
+        String xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE SOAP-ENV:Envelope [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                    <SOAP-ENV:Body><test>&xxe;</test></SOAP-ENV:Body>
+                </SOAP-ENV:Envelope>""";
+
+        SOAPException e = assertThrows(SOAPException.class, () -> parse(xml));
+        assertTrue(e.getMessage().contains("DOCTYPE"));
+    }
+
+    @Test
+    public void createSOAPMessageRejectsInternalEntityExpansion() {
+        String xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE lolz [
+                    <!ENTITY lol "lol">
+                    <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+                    <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">
+                ]>
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                    <SOAP-ENV:Body><test>&lol3;</test></SOAP-ENV:Body>
+                </SOAP-ENV:Envelope>""";
+
+        assertThrows(SOAPException.class, () -> parse(xml));
+    }
+
+    @Test
+    public void createSOAPMessageRejectsExternalDtdReference() {
+        String xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE SOAP-ENV:Envelope SYSTEM "http://localhost/evil.dtd">
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                    <SOAP-ENV:Body><test/></SOAP-ENV:Body>
+                </SOAP-ENV:Envelope>""";
+
+        assertThrows(SOAPException.class, () -> parse(xml));
+    }
+
+    @Test
+    public void soapParserRejectsDoctype() {
+        byte[] xml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE SOAP-ENV:Envelope [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+                <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+                    <SOAP-ENV:Body><test>&xxe;</test></SOAP-ENV:Body>
+                </SOAP-ENV:Envelope>""".getBytes(UTF_8);
+
+        SoapParserImpl parser = new SoapParserImpl();
+        InputStream input = new ByteArrayInputStream(xml);
+
+        assertThrows(CodedException.class, () -> parser.parse(MimeTypes.TEXT_XML_UTF8, input));
+    }
+
+    private static SOAPMessage parse(String xml) throws SOAPException, IOException {
+        return SoapUtils.createSOAPMessage(new ByteArrayInputStream(xml.getBytes(UTF_8)), "UTF-8");
+    }
 }

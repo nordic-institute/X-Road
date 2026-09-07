@@ -28,6 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,11 +47,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.security.Signature;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
@@ -68,9 +71,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
  */
 @Slf4j
 public class ConfigurationParser {
-
-    // We cache the certificates we have found for a given hash
-    static final Map<String, X509Certificate> HASH_TO_CERT = new ConcurrentHashMap<>();
 
     private enum ConfigurationPart {
         SIGNED_DATA,
@@ -265,21 +265,19 @@ public class ConfigurationParser {
         }
 
         X509Certificate getVerificationCert(ConfigurationLocation location, ConfigurationSignature parameters) {
-            if (HASH_TO_CERT.containsKey(parameters.getVerificationCertHash())) {
-                log.trace("Return certificate from HASH_TO_CERT map");
-
-                return HASH_TO_CERT.get(parameters.getVerificationCertHash());
-            }
-
             X509Certificate cert = location.getVerificationCert(parameters.getVerificationCertHash(),
                     parameters.getVerificationCertHashAlgoUri());
 
             log.trace("cert={}", cert);
 
             if (cert != null) {
-                log.trace("Put cert to HASH_TO_CERT map");
-
-                HASH_TO_CERT.put(parameters.getVerificationCertHash(), cert);
+                try {
+                    cert.checkValidity(Date.from(TimeUtils.now()));
+                } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+                    log.error("Verification certificate for configuration instance {} is not currently valid",
+                            location.getInstanceIdentifier(), e);
+                    return null;
+                }
             }
 
             return cert;
@@ -336,7 +334,8 @@ public class ConfigurationParser {
         }
 
         private void parseVersion() {
-            configuration.setVersion(getHeader(HEADER_VERSION));
+            Integer version = ConfigurationUtils.parseGlobalConfVersion(getHeader(HEADER_VERSION));
+            configuration.setVersion(version != null ? version.toString() : null);
         }
 
         private void verifyConfUpToDate() {

@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
@@ -38,7 +39,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -48,6 +51,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -188,7 +192,8 @@ public class ConfigurationDownloader {
 
     /**
      * Download all configuration files if the conditions are met {@link #shouldDownload(ConfigurationFile, Path)}.
-     *
+     * A part whose instance identifier is blank or resolves onto the global configuration root is skipped
+     * (logged at WARN) rather than aborting the download of the remaining parts.
      * @param configuration configuration object with details about the configuration download location
      * @return list of downloaded content
      * @throws Exception in case downloading or handling a file fails
@@ -202,7 +207,10 @@ public class ConfigurationDownloader {
         var contentHandler = ContentHandler.forVersion(configuration.getVersion());
 
         for (ConfigurationFile file : configuration.getFiles()) {
-            Path contentFileName = fileNameProvider.getFileName(file);
+            Path contentFileName = resolveFileNameOrSkip(file);
+            if (contentFileName == null) {
+                continue;
+            }
             if (shouldDownload(file, contentFileName)) {
                 byte[] content = downloadContent(location, file);
 
@@ -221,20 +229,70 @@ public class ConfigurationDownloader {
         return result;
     }
 
-    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
-        Set<Path> result = new HashSet<>();
-        for (DownloadedContent downloadedContent : downloadedContents) {
-            Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
-            if (downloadedContent.content != null) {
-                persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
-            } else {
-                updateExpirationDate(contentFileName, downloadedContent.file);
+    /**
+     * Resolves the write target for a configuration part, skipping (returning null, logged at WARN) a part
+     * whose instance identifier is blank or resolves onto the global configuration root.
+     */
+    private Path resolveFileNameOrSkip(ConfigurationFile file) {
+        try {
+            return fileNameProvider.getFileName(file);
+        } catch (CodedException e) {
+            if (ErrorCodes.X_GLOBAL_CONF_PART_BLANK_INSTANCE_IDENTIFIER.equals(e.getFaultCode())) {
+                log.warn("Skipping configuration part {} with a blank or invalid instance identifier",
+                        file.getContentLocation());
+                return null;
             }
-            result.add(contentFileName);
-            result.add(contentFileName.resolveSibling(contentFileName.getFileName()
+            throw e;
+        }
+    }
+
+    /**
+     * Resolves and validates the write target for every downloaded part before persisting any of them,
+     * so that a rejected batch (reserved-name collision or duplicate target) leaves the previous
+     * configuration directory untouched.
+     * @param downloadedContents the downloaded content to persist
+     * @return the set of file paths (content plus metadata sidecars) that must be retained on disk
+     */
+    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+        List<ResolvedContent> resolvedContents = resolveTargets(downloadedContents);
+
+        Set<Path> result = new HashSet<>();
+        for (ResolvedContent resolved : resolvedContents) {
+            persistResolvedContent(resolved);
+            result.add(resolved.contentFileName);
+            result.add(resolved.contentFileName.resolveSibling(resolved.contentFileName.getFileName()
                     + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA));
         }
         return result;
+    }
+
+    private List<ResolvedContent> resolveTargets(List<DownloadedContent> downloadedContents) {
+        List<ResolvedContent> resolvedContents = new ArrayList<>(downloadedContents.size());
+        Set<String> seenContentPaths = new HashSet<>();
+        for (DownloadedContent downloadedContent : downloadedContents) {
+            Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
+            String dedupKey = contentFileName.toString().toLowerCase(Locale.ROOT);
+            if (!seenContentPaths.add(dedupKey)) {
+                throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_DUPLICATE_TARGET,
+                        "Two configuration parts resolve to the same target path %s".formatted(contentFileName));
+            }
+            resolvedContents.add(new ResolvedContent(contentFileName, downloadedContent));
+        }
+        return resolvedContents;
+    }
+
+    private void persistResolvedContent(ResolvedContent resolved) throws Exception {
+        Path contentFileName = resolved.contentFileName;
+        ConfigurationFile file = resolved.downloadedContent.file;
+        byte[] content = resolved.downloadedContent.content;
+        if (content != null) {
+            persistContent(content, contentFileName, file);
+        } else {
+            updateExpirationDate(contentFileName, file);
+        }
+    }
+
+    private record ResolvedContent(Path contentFileName, DownloadedContent downloadedContent) {
     }
 
     void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
@@ -346,8 +404,33 @@ public class ConfigurationDownloader {
         ConfigurationDirectory.saveMetadata(destination, file.getMetadata());
     }
 
-    public static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file) throws Exception {
-        return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
+    static URL getDownloadURL(ConfigurationLocation location, ConfigurationFile file)
+            throws URISyntaxException, MalformedURLException {
+        URI sourceUri = new URI(location.getDownloadURL());
+        URI resolvedUri = sourceUri.resolve(file.getContentLocation());
+
+        if (!isSameOrigin(sourceUri, resolvedUri)) {
+            throw new CodedException(ErrorCodes.X_GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION,
+                    "Configuration part %s content location resolved to foreign origin %s (expected origin of %s)"
+                            .formatted(file, resolvedUri, sourceUri));
+        }
+
+        return resolvedUri.toURL();
+    }
+
+    private static boolean isSameOrigin(URI source, URI resolved) throws MalformedURLException {
+        if (resolved.getHost() == null || source.getHost() == null) {
+            return false;
+        }
+
+        return source.getScheme().equalsIgnoreCase(resolved.getScheme())
+                && source.getHost().equalsIgnoreCase(resolved.getHost())
+                && effectivePort(source) == effectivePort(resolved);
+    }
+
+    private static int effectivePort(URI uri) throws MalformedURLException {
+        int port = uri.getPort();
+        return port != -1 ? port : uri.toURL().getDefaultPort();
     }
 
     public static URLConnection getDownloadURLConnection(URL url) throws IOException {

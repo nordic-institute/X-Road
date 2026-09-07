@@ -65,7 +65,8 @@ public final class ParametersProviderFactory {
     }
 
     public static ParametersProviderFactory forGlobalConfVersion(String version) {
-        return new ParametersProviderFactory(version != null ? Integer.parseInt(version) : DEFAULT_VERSION);
+        Integer parsed = ConfigurationUtils.parseGlobalConfVersion(version);
+        return new ParametersProviderFactory(parsed != null ? parsed : DEFAULT_VERSION);
     }
 
     public static ParametersProviderFactory forGlobalConfVersion(Integer version) {

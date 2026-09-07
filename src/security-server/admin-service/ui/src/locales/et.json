@@ -297,6 +297,7 @@
       "http_challenge_file_creation": "ACME HTTP pretensioonifaili loomine ebaõnnestus",
       "http_challenge_file_deletion": "ACME HTTP pretensioonifaili kustutamine ebaõnnestus",
       "http_challenge_missing": "Praegu toetab X-Road tarkvara ainult HTTP pretensiooni, kuid see puudub ACME serveri võimalikes valikutes",
+      "http_challenge_token_invalid": "ACME server tagastas kehtetu HTTP pretensiooni tunnusmärgi",
       "challenge_trigger_failure": "Päring ACME serverile pretensiooni valideerimiseks ebaõnnestus",
       "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
       "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",

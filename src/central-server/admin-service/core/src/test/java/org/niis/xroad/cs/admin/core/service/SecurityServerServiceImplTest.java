@@ -50,6 +50,7 @@ import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.dto.SecurityServerAuthenticationCertificateDetails;
 import org.niis.xroad.cs.admin.api.paging.Page;
+import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -138,6 +139,9 @@ class SecurityServerServiceImplTest implements WithInOrder {
     @DisplayName("findSecurityServerRegistrationStatus(SecurityServerId serverId)")
     class SecurityServerRegStatusMethod implements WithInOrder {
 
+        @Captor
+        private ArgumentCaptor<PageRequestDto> pageRequestCaptor;
+
         @Test
         @DisplayName("should find management status approved")
         void shouldReturnStatusApproved() {
@@ -150,6 +154,24 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertNotNull(result);
             assertEquals(ManagementRequestStatus.APPROVED, result);
+        }
+
+        @Test
+        @DisplayName("should query only the latest registration request so stale revoked requests are ignored")
+        void shouldQueryOnlyLatestRegistrationRequest() {
+            Page<ManagementRequestView> managementRequestViews = new PageDto<>(new PageImpl<>(List.of(managementRequestView)));
+            doReturn(managementRequestViews).when(managementRequestService)
+                    .findRequests(any(), pageRequestCaptor.capture());
+            doReturn(ManagementRequestStatus.APPROVED).when(managementRequestView).getStatus();
+
+            ManagementRequestStatus result = securityServerService.findSecurityServerClientRegistrationStatus(serverId, clientId);
+
+            assertEquals(ManagementRequestStatus.APPROVED, result);
+            PageRequestDto pageRequest = pageRequestCaptor.getValue();
+            assertEquals("id", pageRequest.getJpaSort());
+            assertEquals(Boolean.TRUE, pageRequest.getDesc());
+            assertEquals(1, pageRequest.getLimit());
+            assertEquals(0, pageRequest.getOffset());
         }
 
         @Test

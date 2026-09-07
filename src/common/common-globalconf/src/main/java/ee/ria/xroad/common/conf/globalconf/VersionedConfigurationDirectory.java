@@ -292,14 +292,16 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     }
 
     protected List<Path> getConfigurationFiles() throws IOException {
-        return excludeMetadataAndDirs(Files.walk(path));
+        try (Stream<Path> walk = Files.walk(path)) {
+            return excludeMetadataAndDirs(walk);
+        }
     }
 
     private List<Path> excludeMetadataAndDirs(Stream<Path> stream) {
         return stream.filter(Files::isRegularFile)
-                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.FILES))
-                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
-                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
+                .filter(p -> !p.getFileName().toString().equalsIgnoreCase(ConfigurationDirectory.FILES))
+                .filter(p -> !p.getFileName().toString().equalsIgnoreCase(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
+                .filter(p -> !ConfigurationDirectory.isMetadataFileName(p.getFileName().toString()))
                 .toList();
     }
 
@@ -360,12 +362,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     public static Integer getVersion(Path filePath) {
         try {
-            String version = getMetadata(filePath).getConfigurationVersion();
-            if (version == null) {
-                return null;
-            }
-            return Integer.parseInt(version);
-        } catch (IOException | NumberFormatException e) {
+            return ConfigurationUtils.parseGlobalConfVersion(getMetadata(filePath).getConfigurationVersion());
+        } catch (IOException | CodedException e) {
             log.error("Unable to read configuration version", e);
             return null;
         }

@@ -164,8 +164,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     }
 
     public boolean canAutoApprove(AuthenticationCertificateRegistrationRequest request) {
-        return (SystemProperties.getCenterAutoApproveAuthCertRegRequests()
-                || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
+        return (SystemProperties.getCenterAutoApproveAuthCertRegRequests())
                 && request.getOrigin() == SECURITY_SERVER
                 && members.count(request.getSecurityServerId().getOwner()) > 0;
     }

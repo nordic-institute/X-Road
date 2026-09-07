@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
@@ -105,8 +106,16 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
     }
 
     @Override
-    public void refresh() throws Exception {
-        synchronizedAction(tokenWorker::refresh);
+    public synchronized void refresh() throws PKCS11Exception {
+        try {
+            tokenWorker.refresh();
+        } catch (PKCS11Exception e) {
+            throw e;
+        } catch (Exception e) {
+            throw translateException(e);
+        } finally {
+            tokenWorker.onActionHandled();
+        }
     }
 
     @FunctionalInterface
