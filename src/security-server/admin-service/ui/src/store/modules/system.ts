@@ -32,8 +32,6 @@ import {
   Anchor,
   AuthProviderType,
   AuthProviderTypeResponse,
-  ConfigurablePropertyDto,
-  ConfigurablePropertyUpdateDto,
   EnableMaintenanceModeData,
   MaintenanceMode,
   NodeType,
@@ -42,7 +40,7 @@ import {
   VersionInfo,
 } from '@/openapi-types';
 import * as api from '@/util/api';
-import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
+import { buildFileFormData, ConfigurablePropertyDto, ConfigurablePropertyUpdateDto, multipartFormDataConfig } from '@niis/shared-ui';
 
 export interface SystemState {
   securityServerVersion: VersionInfo;

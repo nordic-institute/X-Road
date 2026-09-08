@@ -361,14 +361,8 @@ import {
   XrdSubView,
   XrdView,
 } from '@niis/shared-ui';
-import type { ConfigurablePropertiesHandler } from '@niis/shared-ui';
-import type {
-  Anchor,
-  CertificateAuthority,
-  ConfigurablePropertyDto,
-  ServicePrioritizationStrategy,
-  TimestampingService,
-} from '@/openapi-types';
+import type { ConfigurablePropertiesHandler, ConfigurablePropertyDto } from '@niis/shared-ui';
+import type { Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
