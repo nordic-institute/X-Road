@@ -160,6 +160,25 @@
     "rsaExp": "Expoente da Chave Pública RSA",
     "rsaModulus": "Módulo da Chave Pública RSA"
   },
+  "configurableProperties": {
+    "title": "Propriedades do sistema configuráveis",
+    "search": "Pesquisar propriedades...",
+    "restartWarning": "Os seguintes serviços precisam ser reiniciados para que as alterações entrem em vigor: {scopes}.",
+    "propertyRestartWarning": "Reinicialização necessária para as alterações entrarem em vigor.",
+    "collapseAll": "Recolher tudo",
+    "updateSuccess": "Propriedade atualizada com sucesso",
+    "editDialog": {
+      "title": "Editar valor da propriedade"
+    },
+    "table": {
+      "header": {
+        "propertyName": "Nome da propriedade",
+        "currentValue": "Valor atual",
+        "defaultValue": "Valor padrão",
+        "description": "Descrição"
+      }
+    }
+  },
   "error_code": {
     "api_key_not_found": "Chave API não encontrada",
     "backup_file_not_found": "Backup não encontrado",
@@ -247,6 +266,7 @@
     "noBackups": "Nenhum backup ainda",
     "noCertificate": "Sem certificado",
     "noCertificates": "Sem certificados",
+    "noConfigurableProperties": "Nenhuma propriedade configurável",
     "noData": "Sem dados",
     "noMatches": "Nenhum item correspondente",
     "noServices": "Sem serviços",

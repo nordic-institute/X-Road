@@ -25,12 +25,8 @@
  * THE SOFTWARE.
  */
 
-export * from './backups';
-export * from './basic-types';
-export * from './notifications';
-export * from './routing';
-export * from './theme';
-export * from './api-keys';
-export * from './tls-certificates';
-export * from './admin-users';
-export * from './configurable-properties';
+import { ConfigurablePropertyUpdateDto } from '../openapi-types';
+
+export interface ConfigurablePropertiesHandler {
+  updateConfigurableProperty(update: ConfigurablePropertyUpdateDto): Promise<unknown>;
+}
