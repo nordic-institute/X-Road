@@ -6,6 +6,7 @@ plugins {
 dependencies {
     intTestImplementation(project(":tool:api-test-core"))
     intTestImplementation(project(":central-server:openapi-model"))
+    intTestImplementation(project(":common:common-admin-api"))
     intTestImplementation(libs.postgresql)
     intTestImplementation(libs.junit.jupiter.params)
     intTestImplementation(libs.bouncyCastle.bcpkix)

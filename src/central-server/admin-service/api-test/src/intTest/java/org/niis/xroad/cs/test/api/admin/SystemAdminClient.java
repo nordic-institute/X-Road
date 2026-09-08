@@ -28,6 +28,10 @@ package org.niis.xroad.cs.test.api.admin;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * RestAssured client for the Central Server system admin API.
@@ -64,6 +68,64 @@ public class SystemAdminClient {
                 .contentType(ContentType.JSON)
                 .body("{\"central_server_address\":\"" + address + "\"}")
                 .put("/system/server-address")
+                .then();
+    }
+
+    /**
+     * Requests the configurable properties list without asserting on the response status.
+     */
+    public ValidatableResponse getConfigurableProperties() {
+        return session.given()
+                .get("/system/property")
+                .then();
+    }
+
+    /**
+     * Returns configurable properties as raw maps.
+     */
+    public List<Map<String, Object>> listConfigurablePropertiesRaw() {
+        return getConfigurableProperties()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getList("$");
+    }
+
+    /**
+     * Returns the current value of the named configurable property, or {@code null} if not found.
+     */
+    public String getConfigurablePropertyValue(String propertyName) {
+        return listConfigurablePropertiesRaw().stream()
+                .filter(p -> propertyName.equals(p.get("property_name")))
+                .findFirst()
+                .map(p -> (String) p.get("current_value"))
+                .orElse(null);
+    }
+
+    /**
+     * Returns the effective value of the named configurable property — its current value when set,
+     * otherwise its default value. Returns {@code null} if the property is not found.
+     */
+    public String getConfigurablePropertyEffectiveValue(String propertyName) {
+        return listConfigurablePropertiesRaw().stream()
+                .filter(p -> propertyName.equals(p.get("property_name")))
+                .findFirst()
+                .map(p -> {
+                    var current = (String) p.get("current_value");
+                    return current != null ? current : (String) p.get("default_value");
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Updates a configurable property.
+     */
+    public ValidatableResponse updateConfigurableProperty(String propertyName, String propertyValue) {
+        var body = new ConfigurablePropertyUpdateDto(propertyName, propertyValue);
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .patch("/system/property")
                 .then();
     }
 }
