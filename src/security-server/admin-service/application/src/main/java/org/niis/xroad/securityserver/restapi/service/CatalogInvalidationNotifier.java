@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -51,7 +51,7 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 @Service
-public class CatalogInvalidationNotifier {
+public class CatalogInvalidationNotifier implements DisposableBean {
 
     private final ControlPlaneProvisioningClient controlPlaneProvisioningClient;
     private final AdminServiceProperties adminServiceProperties;
@@ -99,8 +99,8 @@ public class CatalogInvalidationNotifier {
         }
     }
 
-    @PreDestroy
-    void shutdown() {
+    @Override
+    public void destroy() {
         executorService.shutdown();
     }
 
