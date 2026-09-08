@@ -84,6 +84,7 @@ create_backup_tarball () {
         --exclude="/etc/xroad/xroad.properties" \
         --exclude="/etc/xroad/lost+found" \
         --exclude="/etc/openbao/root-token" \
+        --exclude="/etc/xroad/secret-store" \
         --exclude="/etc/openbao/unseal-keys" \
         "${BACKED_UP_PATHS[@]}" \
     | gpg --batch --no-tty --homedir /etc/xroad/gpghome --sign --digest-algo SHA256 "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
@@ -98,6 +99,7 @@ create_backup_tarball () {
       --exclude="/etc/xroad/xroad.properties" \
       --exclude="/etc/xroad/lost+found" \
       --exclude="/etc/openbao/root-token" \
+      --exclude="/etc/xroad/secret-store" \
       --exclude="/etc/openbao/unseal-keys" \
       "${BACKED_UP_PATHS[@]}"
   fi

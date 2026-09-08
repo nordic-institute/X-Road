@@ -46,8 +46,24 @@ if [ -n "${XROAD_SECRET_STORE_HOST:-}" ]; then
   exit 0
 fi
 
-mkdir -p -m 0750 "$SECRET_STORE_DIR"
-chown xroad:xroad "$SECRET_STORE_DIR"
+# Only root may read or traverse this directory: it holds the OpenBao root
+# token, the unseal keys and the storage password, and every consumer runs as
+# root (this script from the entrypoint, the xroad-secret-store-gate
+# supervisord program, verify.sh). Keeping the directory itself root-only also
+# denies the xroad user the ability to replace those files, which owning the
+# directory would grant regardless of the files' own modes.
+# /etc/xroad is typically a persisted volume, so ownership and mode are
+# re-applied on every boot rather than only when the directory is created.
+mkdir -p "$SECRET_STORE_DIR"
+chown root:root "$SECRET_STORE_DIR"
+chmod 0700 "$SECRET_STORE_DIR"
+
+for secret_file in "$DB_PASSWORD_FILE" "$ROOT_TOKEN_FILE" "$UNSEAL_KEYS_FILE"; do
+  if [ -e "$secret_file" ]; then
+    chown root:root "$secret_file"
+    chmod 0600 "$secret_file"
+  fi
+done
 
 # The openbao package's own postinst generates /opt/openbao/tls/tls.{crt,key}
 # with no Subject Alternative Name, which curl -k tolerates but a JVM client
@@ -182,6 +198,13 @@ BAO_PG_DATABASE=openbao
 BAO_PG_SCHEMA=openbao
 BAO_PG_CONNECTION_URL=postgres://openbao:${bao_db_password}@${db_addr}:${db_port}/openbao?search_path=openbao
 EOF
+# Group xroad read is required, not incidental: the backup driver runs as the
+# xroad user (xroad-auxiliary-service, which execs
+# backup_xroad_proxy_configuration.sh -> _backup_xroad.sh ->
+# backup_openbao_db.sh) and both sources this file for the pg_dump credentials
+# and archives /etc/openbao. No privileged path exists for that dump, so
+# narrowing this to root-only breaks backups. It grants raw OpenBao storage
+# access, not secret disclosure — the root token and unseal keys stay root-only.
 chown openbao:xroad /etc/openbao/openbao.env
 chmod 640 /etc/openbao/openbao.env
 
