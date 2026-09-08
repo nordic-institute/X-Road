@@ -97,7 +97,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), any());
-        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString(), any(), any());
     }
 
     @Test
@@ -112,7 +112,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
         verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
-        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString(), any(), any());
     }
 
     @Test
@@ -123,10 +123,10 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID);
-        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_ID);
-        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID);
-        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
     }
 
     @Test
@@ -137,7 +137,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).ensureParticipantContext(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
-        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
     }
 
     @Test
@@ -151,19 +151,20 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         verify(dataspaceProvisioningService).ensureParticipantContext(HOST_ID, ParticipantKind.HOST, OWNER);
         verify(dataspaceProvisioningService).ensureParticipantContext(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
-        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID);
-        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID);
-        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
     }
 
     @Test
     void provisionParticipantContinuesWithRemainingCredentialsWhenOneCredentialStepFails() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
-        when(dataspaceProvisioningService.ensureMembershipCredential(HOST_ID)).thenThrow(new IllegalStateException("ih down"));
+        when(dataspaceProvisioningService.ensureMembershipCredential(HOST_ID, ParticipantKind.HOST, OWNER))
+                .thenThrow(new IllegalStateException("ih down"));
 
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
-        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
     }
 }

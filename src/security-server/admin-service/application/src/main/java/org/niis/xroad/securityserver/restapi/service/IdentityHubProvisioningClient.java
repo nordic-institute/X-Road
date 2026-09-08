@@ -37,9 +37,13 @@ public interface IdentityHubProvisioningClient {
 
     /**
      * Creates (idempotently) the IdentityHub participant context for the given participant.
+     *
+     * @param reanchorMemberIdOnConflict when the context already exists, update its stored member id
+     *                                   to {@code memberId} instead of leaving it untouched
      */
     void createParticipantContext(String participantContextId, String did, String memberId,
-                                  String credentialServiceUrl, String keyId, String privateKeyAlias);
+                                  String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                  boolean reanchorMemberIdOnConflict);
 
     /**
      * Submits a membership credential request for the given participant and holder request id.

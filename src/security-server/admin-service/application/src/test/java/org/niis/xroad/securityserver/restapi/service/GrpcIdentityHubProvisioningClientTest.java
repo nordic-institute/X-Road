@@ -62,9 +62,16 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, false);
 
-        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, false);
+    }
+
+    @Test
+    void createParticipantContextForwardsReanchorFlag() {
+        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, true);
+
+        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, true);
     }
 
     @Test

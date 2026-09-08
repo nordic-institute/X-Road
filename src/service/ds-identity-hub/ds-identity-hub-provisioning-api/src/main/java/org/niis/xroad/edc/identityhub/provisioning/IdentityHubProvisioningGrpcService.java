@@ -114,8 +114,32 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
                 .build();
 
         var result = participantContextService.createParticipantContext(manifest);
+        if (result.failed() && result.reason() == ServiceFailure.Reason.CONFLICT && request.getReanchorMemberIdOnConflict()) {
+            reanchorMemberId(request.getParticipantContextId(), request.getMemberId());
+            return CreateParticipantContextResp.getDefaultInstance();
+        }
         requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
         return CreateParticipantContextResp.getDefaultInstance();
+    }
+
+    /**
+     * Re-points an already-existing participant context's stored member id to {@code memberId},
+     * leaving everything else about the context untouched. A no-op when the stored value already
+     * matches, so repeated calls with the same member id do not write on every tick.
+     */
+    private void reanchorMemberId(String participantContextId, String memberId) {
+        var current = participantContextService.getParticipantContext(participantContextId);
+        if (current.failed()) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, current.getFailureDetail());
+        }
+        if (memberId.equals(current.getContent().getProperties().get(XROAD_MEMBER_ID_PROPERTY))) {
+            return;
+        }
+        var result = participantContextService.updateParticipant(participantContextId,
+                ctx -> ctx.getProperties().put(XROAD_MEMBER_ID_PROPERTY, memberId));
+        if (result.failed()) {
+            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, result.getFailureDetail());
+        }
     }
 
     private RequestCredentialResp requestCredentialInternal(RequestCredentialReq request) {

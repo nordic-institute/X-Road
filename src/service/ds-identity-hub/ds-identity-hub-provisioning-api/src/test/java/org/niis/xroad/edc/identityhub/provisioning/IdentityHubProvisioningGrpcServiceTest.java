@@ -30,6 +30,7 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.eclipse.edc.identityhub.spi.credential.request.model.HolderCredentialRequest;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.IdentityHubParticipantContext;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
@@ -49,8 +51,12 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDi
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
+import java.util.function.Consumer;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -99,6 +105,67 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+    }
+
+    @Test
+    void createParticipantContextIgnoresConflictWhenReanchorFlagNotSet() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(createObserver).onCompleted();
+        verify(participantContextService, never()).getParticipantContext(anyString());
+        verify(participantContextService, never()).updateParticipant(anyString(), any());
+    }
+
+    @Test
+    void createParticipantContextReanchorsMemberIdOnConflictWhenFlagSetAndMemberIdChanged() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(contextWithMemberId("TEST/GOV/1234")));
+        when(participantContextService.updateParticipant(anyString(), any())).thenReturn(ServiceResult.success());
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/5678")
+                .setReanchorMemberIdOnConflict(true)
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(createObserver).onCompleted();
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Consumer<IdentityHubParticipantContext>> mutation = ArgumentCaptor.forClass(Consumer.class);
+        verify(participantContextService).updateParticipant(eq("ctx-1"), mutation.capture());
+        var mutated = contextWithMemberId("TEST/GOV/1234");
+        mutation.getValue().accept(mutated);
+        assertThat(mutated.getProperties()).containsEntry("xroadMemberId", "TEST/GOV/5678");
+    }
+
+    @Test
+    void createParticipantContextSkipsUpdateWhenMemberIdAlreadyMatches() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(contextWithMemberId("TEST/GOV/1234")));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/1234")
+                .setReanchorMemberIdOnConflict(true)
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(createObserver).onCompleted();
+        verify(participantContextService, never()).updateParticipant(anyString(), any());
     }
 
     @Test
@@ -236,5 +303,14 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(observer, never()).onCompleted();
+    }
+
+    private static IdentityHubParticipantContext contextWithMemberId(String memberId) {
+        return IdentityHubParticipantContext.Builder.newInstance()
+                .participantContextId("ctx-1")
+                .did("did:web:example.com")
+                .apiTokenAlias("ctx-1-apikey")
+                .property("xroadMemberId", memberId)
+                .build();
     }
 }

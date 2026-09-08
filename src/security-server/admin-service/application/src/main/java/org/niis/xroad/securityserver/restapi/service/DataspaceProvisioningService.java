@@ -75,18 +75,21 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       verified against a fresh derivation and its DID is used; without a row the DID is derived on
  *       the fly. This service never writes rows — binding an identity belongs to an explicit,
  *       auditable action outside the reconciler.</li>
- *   <li>{@link #ensureMembershipCredential(String)} — leaves an active (PENDING or ISSUED) request
- *       alone or submits a new one into the next available slot, in a single slot scan; advances
- *       past slots in terminal ERROR.</li>
- *   <li>{@link #readCredentialStatus(String)} — returns the current credential status
- *       ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active) without polling.</li>
+ *   <li>{@link #ensureMembershipCredential(String, ParticipantKind, ClientId)} — leaves an active
+ *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
+ *       slot scan; advances past slots in terminal ERROR.</li>
+ *   <li>{@link #readCredentialStatus(String, ParticipantKind, ClientId)} — returns the current credential
+ *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
+ *       without polling.</li>
  * </ul>
  *
  * <p>Slot semantics: each participant holds up to {@code maxHolderPidSlots} sequentially named holder-request
  * ids. A slot in terminal ERROR is skipped and the next slot is used on the following submit; a slot in
  * PENDING is reused; a slot in ISSUED is the terminal success state. All 20 slots exhausted in ERROR logs a
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
- * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".</p>
+ * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".
+ * For {@link ParticipantKind#SYSTEM}, the slot namespace itself is salted with the current owner —
+ * see {@link SystemCredentialAnchor}.</p>
  *
  * <p>The identity hub reports raw EDC {@code HolderRequestState} names, which have no PENDING value:
  * CREATED, REQUESTING and REQUESTED all denote a request in flight and map to {@link CredentialStatus#PENDING}.</p>
@@ -182,7 +185,7 @@ public class DataspaceProvisioningService {
         var did = didFor(identityHubHost, kind, memberId);
         requireNoHubDidDrift(participantId, did);
 
-        createIdentityHubContext(participantId, did, identityHubHost, memberId);
+        createIdentityHubContext(participantId, did, identityHubHost, kind, memberId);
         controlPlaneClient.createParticipantContext(participantId, did);
         controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
@@ -206,15 +209,23 @@ public class DataspaceProvisioningService {
      * left alone, a new request is submitted into the first free slot otherwise. Advances past
      * slots in terminal ERROR state only. Returns immediately — does not poll for the outcome.
      *
+     * <p>For a {@link ParticipantKind#SYSTEM} context the slot namespace is salted with the current
+     * owner ({@link SystemCredentialAnchor#holderPidBase}): an owner change makes the scan land on an
+     * empty slot, so a fresh credential is issued on the new owner. The stale credential, parked under
+     * the previous owner's slot namespace, is left untouched and expires on its own — no revocation.
+     *
      * @param participantId the participant context id
+     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
+     * @param memberId      the credential subject; for SYSTEM, the current owner
      * @return {@code ISSUED} for a terminally issued credential, {@code PENDING} when a request is
      *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
      *         {@code ERROR} when all slots are exhausted
      */
-    public CredentialStatus ensureMembershipCredential(String participantId) {
+    public CredentialStatus ensureMembershipCredential(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
+        var base = holderPidBase(participantId, kind, memberId);
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
-            var holderPid = holderPid(participantId, slot);
+            var holderPid = holderPid(base, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
                 log.info("Data space provisioning: submitting credential request for participant {}", participantId);
@@ -223,7 +234,7 @@ public class DataspaceProvisioningService {
                 return CredentialStatus.PENDING;
             }
             var status = hubCredentialState(state);
-            if (status != CredentialStatus.ERROR) {
+            if (SystemCredentialAnchor.decide(status) == SystemCredentialAnchor.Decision.SKIP) {
                 return status;
             }
             // ERROR — advance to next slot
@@ -238,17 +249,22 @@ public class DataspaceProvisioningService {
      *
      * <p>Scans holder-pid slots in order; ERROR slots are skipped. Returns {@code ISSUED} or {@code PENDING}
      * for the first active slot found, {@code ERROR} when all queried slots are in terminal ERROR, or
-     * {@code null} when no request has been submitted yet (all slots absent).</p>
+     * {@code null} when no request has been submitted yet (all slots absent). Uses the same slot
+     * namespace as {@link #ensureMembershipCredential}, so a SYSTEM context's status reflects the
+     * credential anchored to the current owner even right after an owner change.
      *
      * @param participantId the participant context id
+     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
+     * @param memberId      the credential subject; for SYSTEM, the current owner
      * @return {@code ISSUED}, {@code PENDING}, {@code ERROR}, {@code UNKNOWN}, or {@code null}
      */
     @Nullable
-    public CredentialStatus readCredentialStatus(String participantId) {
+    public CredentialStatus readCredentialStatus(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
+        var base = holderPidBase(participantId, kind, memberId);
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
-            var holderPid = holderPid(participantId, slot);
+            var holderPid = holderPid(base, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
                 continue;
@@ -261,6 +277,19 @@ public class DataspaceProvisioningService {
             return status;
         }
         return anyError ? CredentialStatus.ERROR : null;
+    }
+
+    /**
+     * The holder-pid slot-base for a participant context: unsalted for HOST/MANAGEMENT/MEMBER, salted
+     * with the current owner for SYSTEM. A {@code null} owner (SYSTEM before the SS owner is known)
+     * falls back to the unsalted base — the caller never reaches this point with credential requests
+     * to make, but a status read may.
+     */
+    private String holderPidBase(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
+        var unsalted = participantId + "-" + HOLDER_PID_BASE;
+        return kind == ParticipantKind.SYSTEM && memberId != null
+                ? SystemCredentialAnchor.holderPidBase(unsalted, memberId)
+                : unsalted;
     }
 
     private static CredentialStatus hubCredentialState(String state) {
@@ -342,7 +371,7 @@ public class DataspaceProvisioningService {
         try {
             var hubDid = identityHubClient.contextDid(participantId);
             var contextCreated = hubDid.isPresent();
-            var credentialStatus = resolveCredentialStatus(participantId, contextCreated);
+            var credentialStatus = resolveCredentialStatus(participantId, context.kind(), context.memberId(), contextCreated);
             return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus,
                     identityStatusOf(assessment, hubDid));
         } catch (Exception e) {
@@ -363,11 +392,12 @@ public class DataspaceProvisioningService {
         return assessment.status();
     }
 
-    private CredentialStatus resolveCredentialStatus(String participantId, boolean contextCreated) {
+    private CredentialStatus resolveCredentialStatus(String participantId, ParticipantKind kind,
+                                                     @Nullable ClientId memberId, boolean contextCreated) {
         if (!contextCreated) {
             return CredentialStatus.ABSENT;
         }
-        return Optional.ofNullable(readCredentialStatus(participantId)).orElse(CredentialStatus.ABSENT);
+        return Optional.ofNullable(readCredentialStatus(participantId, kind, memberId)).orElse(CredentialStatus.ABSENT);
     }
 
     private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
@@ -462,14 +492,15 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private void createIdentityHubContext(String participantId, String did, String identityHubHost, ClientId memberId) {
+    private void createIdentityHubContext(String participantId, String did, String identityHubHost,
+                                          ParticipantKind kind, ClientId memberId) {
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
                 UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         identityHubClient.createParticipantContext(participantId, did, memberId == null ? null : slashForm(memberId),
-                credentialServiceUrl, keyId, privateKeyAlias);
+                credentialServiceUrl, keyId, privateKeyAlias, kind == ParticipantKind.SYSTEM);
     }
 
     private String stsTokenUrl(String identityHubHost) {
@@ -486,8 +517,7 @@ public class DataspaceProvisioningService {
         return host;
     }
 
-    private String holderPid(String participantId, int slot) {
-        var base = participantId + "-" + HOLDER_PID_BASE;
+    private String holderPid(String base, int slot) {
         return slot == 0 ? base : base + "-" + slot;
     }
 

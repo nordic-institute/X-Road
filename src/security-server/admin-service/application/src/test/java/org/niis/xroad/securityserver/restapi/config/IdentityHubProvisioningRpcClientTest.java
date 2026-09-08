@@ -165,7 +165,7 @@ class IdentityHubProvisioningRpcClientTest {
     @Test
     void createIdentityHubParticipantContextForwardsAllFields() {
         client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
-                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key");
+                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", true);
 
         var req = capturedCreateReq.get();
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
@@ -174,6 +174,7 @@ class IdentityHubProvisioningRpcClientTest {
         assertThat(req.getCredentialServiceUrl()).isEqualTo("https://cred.example/v1");
         assertThat(req.getKeyId()).isEqualTo("did:web:example#key-1");
         assertThat(req.getPrivateKeyAlias()).isEqualTo("ctx-id-key");
+        assertThat(req.getReanchorMemberIdOnConflict()).isTrue();
     }
 
     @Test
