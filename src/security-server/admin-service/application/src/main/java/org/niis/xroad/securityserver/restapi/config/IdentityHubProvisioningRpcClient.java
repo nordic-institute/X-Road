@@ -88,7 +88,8 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
     }
 
     public void createIdentityHubParticipantContext(String participantContextId, String did, String memberId,
-                                                    String credentialServiceUrl, String keyId, String privateKeyAlias) {
+                                                    String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                                    boolean reanchorMemberIdOnConflict) {
         exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId(participantContextId)
                 .setDid(did)
@@ -96,6 +97,7 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
                 .setCredentialServiceUrl(credentialServiceUrl)
                 .setKeyId(keyId)
                 .setPrivateKeyAlias(privateKeyAlias)
+                .setReanchorMemberIdOnConflict(reanchorMemberIdOnConflict)
                 .build()));
     }
 

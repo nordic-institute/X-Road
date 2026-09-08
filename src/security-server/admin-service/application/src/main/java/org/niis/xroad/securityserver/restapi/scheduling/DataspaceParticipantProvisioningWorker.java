@@ -132,7 +132,7 @@ public class DataspaceParticipantProvisioningWorker {
     private void ensureCredentials(List<ParticipantContext> contexts) {
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureMembershipCredential(context.participantId());
+                dataspaceProvisioningService.ensureMembershipCredential(context.participantId(), context.kind(), context.memberId());
             } catch (Exception e) {
                 log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
