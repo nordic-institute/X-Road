@@ -67,6 +67,7 @@ class DataspaceProvisioningStatusServiceTest {
 
     private static final String PARTICIPANT_ID = "test-participant";
     private static final String MGMT_PARTICIPANT_ID = PARTICIPANT_ID + "-mgmt";
+    private static final String SYSTEM_PARTICIPANT_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
     private static final String HOLDER_PID_SLOT0 = PARTICIPANT_ID + "-xroad-membership-credential-request";
     private static final String MGMT_HOLDER_PID_SLOT0 = MGMT_PARTICIPANT_ID + "-xroad-membership-credential-request";
 
@@ -132,19 +133,22 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.enabled()).isTrue();
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         var host = status.participantContexts().get(0);
-        var mgmt = status.participantContexts().get(1);
+        var system = status.participantContexts().get(1);
+        var mgmt = status.participantContexts().get(2);
         assertThat(host.participantId()).isEqualTo(PARTICIPANT_ID);
         assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(host.contextCreated()).isTrue();
         assertThat(host.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
+        assertThat(system.participantId()).isEqualTo(SYSTEM_PARTICIPANT_ID);
+        assertThat(system.kind()).isEqualTo(ParticipantKind.SYSTEM);
         assertThat(mgmt.participantId()).isEqualTo(MGMT_PARTICIPANT_ID);
         assertThat(mgmt.kind()).isEqualTo(ParticipantKind.MANAGEMENT);
         assertThat(mgmt.contextCreated()).isTrue();
         assertThat(mgmt.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
-        assertThat(status.participantContexts().get(2).kind()).isEqualTo(ParticipantKind.MEMBER);
-        assertThat(status.participantContexts().get(2).participantId()).isEqualTo(OWNER_CTX_ID);
+        assertThat(status.participantContexts().get(3).kind()).isEqualTo(ParticipantKind.MEMBER);
+        assertThat(status.participantContexts().get(3).participantId()).isEqualTo(OWNER_CTX_ID);
     }
 
     @Test
@@ -157,9 +161,9 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         var host = status.participantContexts().get(0);
-        var mgmt = status.participantContexts().get(1);
+        var mgmt = status.participantContexts().get(2);
         assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(host.contextCreated()).isTrue();
         assertThat(host.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
@@ -177,7 +181,7 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.enabled()).isTrue();
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
@@ -194,9 +198,9 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(2);
+        assertThat(status.participantContexts()).hasSize(3);
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
@@ -211,9 +215,9 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
@@ -229,9 +233,11 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         var host = status.participantContexts().get(0);
-        var mgmt = status.participantContexts().get(1);
-        var member = status.participantContexts().get(2);
+        var system = status.participantContexts().get(1);
+        var mgmt = status.participantContexts().get(2);
+        var member = status.participantContexts().get(3);
         assertThat(host.identityStatus()).isNull();
+        assertThat(system.identityStatus()).isNull();
         assertThat(mgmt.identityStatus()).isNull();
         assertThat(member.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
     }
@@ -251,7 +257,7 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts().get(2).identityStatus())
+        assertThat(status.participantContexts().get(3).identityStatus())
                 .isEqualTo(IdentityStatus.MISMATCH);
     }
 
@@ -264,7 +270,7 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts().get(2).identityStatus())
+        assertThat(status.participantContexts().get(3).identityStatus())
                 .isEqualTo(IdentityStatus.DRIFTED);
     }
 
@@ -278,8 +284,8 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(2);
+        assertThat(status.participantContexts()).hasSize(3);
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT);
     }
 }

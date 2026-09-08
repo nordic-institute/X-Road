@@ -276,7 +276,7 @@ class DataspaceProvisioningServiceTest {
     // --- participantContexts ---
 
     @Test
-    void participantContextsReturnsOnlyHostAndOwnerWhenManagementNotRegisteredAndNoOtherClients() {
+    void participantContextsReturnsHostSystemAndOwnerWhenManagementNotRegisteredAndNoOtherClients() {
         givenServerConfWithOwner(OWNER);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
 
@@ -284,6 +284,8 @@ class DataspaceProvisioningServiceTest {
 
         assertThat(contexts).containsExactly(
                 new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, OWNER),
+                new DataspaceProvisioningService.ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT,
+                        ParticipantKind.SYSTEM, OWNER),
                 new DataspaceProvisioningService.ParticipantContext(ParticipantIdentifierScheme.memberCtxId(OWNER),
                         ParticipantKind.MEMBER, OWNER));
     }
@@ -296,8 +298,20 @@ class DataspaceProvisioningServiceTest {
         var contexts = service.participantContexts(true);
 
         assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
-        assertThat(contexts.get(1).participantId()).isEqualTo(PARTICIPANT_ID + "-mgmt");
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
+        assertThat(contexts.get(2).participantId()).isEqualTo(PARTICIPANT_ID + "-mgmt");
+    }
+
+    @Test
+    void participantContextsCarriesOwnerAsSystemCredentialSubjectWhenOwnerKnown() {
+        givenServerConfWithOwner(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.SYSTEM)
+                .extracting(DataspaceProvisioningService.ParticipantContext::memberId)
+                .containsExactly(OWNER);
     }
 
     @Test
@@ -309,7 +323,7 @@ class DataspaceProvisioningServiceTest {
         var contexts = service.participantContexts(false);
 
         assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MEMBER, ParticipantKind.MEMBER);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MEMBER, ParticipantKind.MEMBER);
         assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::participantId)
                 .contains(ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
     }
@@ -324,8 +338,8 @@ class DataspaceProvisioningServiceTest {
 
         var contexts = service.participantContexts(false);
 
-        // owner + MEMBER once, even though a subsystem of MEMBER is also a local client
-        assertThat(contexts).hasSize(3);
+        // host + SYSTEM + owner + MEMBER once, even though a subsystem of MEMBER is also a local client
+        assertThat(contexts).hasSize(4);
         assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
                 .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
                 .containsExactlyInAnyOrder(ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
@@ -363,7 +377,7 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void participantContextsReturnsOnlyHostWhenOwnerNotYetSet() {
+    void participantContextsReturnsHostAndSystemWithNullSubjectWhenOwnerNotYetSet() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
@@ -371,18 +385,22 @@ class DataspaceProvisioningServiceTest {
         var contexts = service.participantContexts(false);
 
         assertThat(contexts).containsExactly(
-                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null));
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null),
+                new DataspaceProvisioningService.ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT,
+                        ParticipantKind.SYSTEM, null));
     }
 
     @Test
-    void participantContextsReturnsOnlyHostWhenServerConfNotInitialized() {
+    void participantContextsReturnsHostAndSystemWhenServerConfNotInitialized() {
         when(serverConfRepository.getServerConf())
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.MALFORMED_SERVERCONF).build());
 
         var contexts = service.participantContexts(false);
 
         assertThat(contexts).containsExactly(
-                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null));
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, null),
+                new DataspaceProvisioningService.ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT,
+                        ParticipantKind.SYSTEM, null));
     }
 
     @Test
@@ -523,6 +541,65 @@ class DataspaceProvisioningServiceTest {
         verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
     }
 
+    // --- ensureParticipantContext (SYSTEM) ---
+
+    @Test
+    void ensureParticipantContextDerivesUnboundSystemDidWhenNoRowExists() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        var expectedDid = ParticipantIdentifierScheme.systemDid(SS_HOST);
+
+        service.ensureParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, OWNER);
+
+        verify(identityHubClient).createParticipantContext(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), eq(expectedDid),
+                eq(slashForm(OWNER)), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextUsesBoundDidWhenSystemRowExists() {
+        var bound = boundSystemParticipant(SS_HOST);
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(bound));
+
+        service.ensureParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, OWNER);
+
+        verify(identityHubClient).createParticipantContext(any(), eq(bound.getDid()), eq(slashForm(OWNER)), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextThrowsWhenBoundSystemRowNoLongerMatchesDerivation() {
+        var bound = boundSystemParticipant("ih.other.test:7183");
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.of(bound));
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(
+                ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, OWNER))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code()));
+
+        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextForSystemNeverConsultsMemberIdentifierLookup() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+
+        service.ensureParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, OWNER);
+
+        verify(dsParticipantRepository).findSystemParticipant();
+        verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
+    }
+
+    @Test
+    void ensureMembershipCredentialForSystemParticipantIsIdempotentWhileActiveCredentialExists() {
+        var systemHolderPidSlot0 = ParticipantIdentifierScheme.SYSTEM_SEGMENT + "-xroad-membership-credential-request";
+        when(identityHubClient.getCredentialRequestState(ParticipantIdentifierScheme.SYSTEM_SEGMENT, systemHolderPidSlot0))
+                .thenReturn(CredentialStatus.ISSUED.name());
+
+        assertThat(service.ensureMembershipCredential(ParticipantIdentifierScheme.SYSTEM_SEGMENT)).isEqualTo(CredentialStatus.ISSUED);
+        assertThat(service.ensureMembershipCredential(ParticipantIdentifierScheme.SYSTEM_SEGMENT)).isEqualTo(CredentialStatus.ISSUED);
+
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
     // --- readIdentityStatus ---
 
     @Test
@@ -589,6 +666,16 @@ class DataspaceProvisioningServiceTest {
         participant.setMemberIdentifier(ClientIdEntityFactory.create(member));
         participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
         participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost));
+        participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        participant.setState(ParticipantState.ACTIVE);
+        return participant;
+    }
+
+    private DsParticipantEntity boundSystemParticipant(String ssHost) {
+        var participant = new DsParticipantEntity();
+        participant.setParticipantType(ParticipantType.SYSTEM);
+        participant.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost));
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;

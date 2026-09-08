@@ -60,4 +60,13 @@ public class DsParticipantRepository {
     public Optional<DsParticipantEntity> findByMemberIdentifier(ClientId member) {
         return dsParticipantDAO.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);
     }
+
+    /**
+     * Finds the Security Server's bound SYSTEM participant row, if one has been provisioned.
+     *
+     * @return the bound SYSTEM row, if one has been provisioned
+     */
+    public Optional<DsParticipantEntity> findSystemParticipant() {
+        return dsParticipantDAO.findSystemParticipant(persistenceUtils.getCurrentSession());
+    }
 }

@@ -65,14 +65,16 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * <p>Exposes non-blocking, single-step primitives for use by
  * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
  * <ul>
- *   <li>{@link #participantContexts(boolean)} — enumerates the host, management (when registered)
- *       and per-member contexts to provision, member-level identity from the registered clients in
- *       {@link ClientRepository#getAllLocalClients()} plus the SS owner unconditionally.</li>
+ *   <li>{@link #participantContexts(boolean)} — enumerates the host, the per-server SYSTEM context,
+ *       management (when registered) and per-member contexts to provision, member-level identity from
+ *       the registered clients in {@link ClientRepository#getAllLocalClients()} plus the SS owner
+ *       unconditionally.</li>
  *   <li>{@link #ensureParticipantContext(String, ParticipantKind, ClientId)} — idempotent context
- *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context with a
- *       bound {@code ds_participant} row, the row is verified against a fresh derivation and its
- *       DID is used; without a row the DID is derived on the fly. This service never writes rows —
- *       binding an identity belongs to an explicit, auditable action outside the reconciler.</li>
+ *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} or
+ *       {@link ParticipantKind#SYSTEM} context with a bound {@code ds_participant} row, the row is
+ *       verified against a fresh derivation and its DID is used; without a row the DID is derived on
+ *       the fly. This service never writes rows — binding an identity belongs to an explicit,
+ *       auditable action outside the reconciler.</li>
  *   <li>{@link #ensureMembershipCredential(String)} — leaves an active (PENDING or ISSUED) request
  *       alone or submits a new one into the next available slot, in a single slot scan; advances
  *       past slots in terminal ERROR.</li>
@@ -106,16 +108,18 @@ public class DataspaceProvisioningService {
      */
     public enum IdentityStatus { OK, MISMATCH, VERSION_UNSUPPORTED, UNBOUND, DRIFTED, UNKNOWN }
 
-    public enum ParticipantKind { HOST, MANAGEMENT, MEMBER }
+    public enum ParticipantKind { HOST, MANAGEMENT, SYSTEM, MEMBER }
 
     /**
      * One participant context to provision or report on.
      *
      * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT or MEMBER
-     * @param memberId      the X-Road member this context's credential is issued to; {@code null} only
-     *                      when the SS owner is not yet known (HOST/MANAGEMENT — a MEMBER context always
-     *                      carries its member)
+     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
+     * @param memberId      the credential subject: the X-Road member this context's credential is issued
+     *                      to; {@code null} only when the SS owner is not yet known (HOST/MANAGEMENT/SYSTEM
+     *                      — a MEMBER context always carries its member). For SYSTEM this is the current
+     *                      owner member, kept distinct from the SYSTEM identifier itself, which is
+     *                      owner-free.
      */
     public record ParticipantContext(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
         public ParticipantContext {
@@ -130,7 +134,7 @@ public class DataspaceProvisioningService {
      * Read-only snapshot of one participant context's provisioning state.
      *
      * @param participantId    the participant context id
-     * @param kind             HOST, MANAGEMENT or MEMBER
+     * @param kind             HOST, MANAGEMENT, SYSTEM or MEMBER
      * @param contextCreated   whether the participant context exists in IdentityHub
      * @param credentialStatus the membership credential state
      * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for HOST
@@ -161,13 +165,15 @@ public class DataspaceProvisioningService {
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
      *
-     * <p>For a {@link ParticipantKind#MEMBER} context with a bound {@code ds_participant} row, the
-     * row is verified against a fresh derivation and its DID is used — the bound row is never
-     * written or overwritten here. Without a row the DID is derived on the fly and not bound.
+     * <p>For a {@link ParticipantKind#MEMBER} or {@link ParticipantKind#SYSTEM} context with a bound
+     * {@code ds_participant} row, the row is verified against a fresh derivation and its DID is used —
+     * the bound row is never written or overwritten here. Without a row the DID is derived on the fly
+     * and not bound.
      *
      * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT or MEMBER
-     * @param memberId      the X-Road member this context's credential is issued to
+     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
+     * @param memberId      the credential subject this context's credential is issued to; for SYSTEM
+     *                      this is the current owner member, not the (owner-free) SYSTEM identifier
      */
     public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
@@ -265,11 +271,16 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Enumerates the participant contexts to provision or report on: the host context, the management
-     * context when {@code managementRegistered}, and one member context per distinct X-Road member
-     * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
-     * members as soon as they have a registered local client. Member ctx-ids follow the v1 scheme
+     * Enumerates the participant contexts to provision or report on: the host context, the per-server
+     * SYSTEM context, the management context when {@code managementRegistered}, and one member context
+     * per distinct X-Road member (subsystems collapsed) hosted on this Security Server — the SS owner
+     * unconditionally, other members as soon as they have a registered local client. The SYSTEM context
+     * is unconditional, gated on nothing. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
+     *
+     * <p>The SYSTEM context carries the current SS owner as its credential subject (the member the
+     * credential is issued to), which is distinct from the SYSTEM identifier itself: the DID and ctx-id
+     * are owner-free, per {@link ParticipantIdentifierScheme#systemDid(String)}.
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
@@ -283,6 +294,7 @@ public class DataspaceProvisioningService {
 
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, owner));
+        contexts.add(new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner));
         if (managementRegistered) {
             contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
         }
@@ -362,6 +374,9 @@ public class DataspaceProvisioningService {
         if (kind == ParticipantKind.MEMBER) {
             return memberDid(memberId, didAuthority(identityHubHost));
         }
+        if (kind == ParticipantKind.SYSTEM) {
+            return systemDid(didAuthority(identityHubHost));
+        }
         var did = "did:web:" + didAuthority(identityHubHost).replace(":", "%3A");
         return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
     }
@@ -387,6 +402,20 @@ public class DataspaceProvisioningService {
             return bound.get().getDid();
         }
         return ParticipantIdentifierScheme.memberDid(member, ssHost);
+    }
+
+    /**
+     * Derive-then-bind for the per-server SYSTEM identifier, mirroring {@link #memberDid(ClientId, String)}.
+     * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
+     * though the context's credential is issued to the current owner.
+     */
+    private String systemDid(String ssHost) {
+        var bound = dsParticipantRepository.findSystemParticipant();
+        if (bound.isPresent()) {
+            ParticipantBindingCheck.verify(bound.get(), ssHost);
+            return bound.get().getDid();
+        }
+        return ParticipantIdentifierScheme.systemDid(ssHost);
     }
 
     /**
