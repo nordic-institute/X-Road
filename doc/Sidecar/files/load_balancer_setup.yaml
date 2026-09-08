@@ -20,7 +20,8 @@ metadata:
   namespace: sidecar
 type: Opaque
 stringData:
-  XROAD_TOKEN_PIN: "<token pin>"
+  XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
+  XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN: "<token pin>"
   XROAD_ADMIN_USER: "<admin user>"
   XROAD_ADMIN_PASSWORD: "<admin password>"
   XROAD_DB_HOST: "<database host>"
@@ -153,11 +154,16 @@ spec:
         - name: secret-ssh-sidecar
           mountPath: "/etc/.ssh/"
         env:
-        - name: XROAD_TOKEN_PIN
+        - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
           valueFrom:
             secretKeyRef:
               name: secret-sidecar-variables
-              key: XROAD_TOKEN_PIN
+              key: XROAD_SIGNER_AUTOLOGIN_ENABLED
+        - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
+          valueFrom:
+            secretKeyRef:
+              name: secret-sidecar-variables
+              key: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
         - name: XROAD_ADMIN_USER
           valueFrom:
             secretKeyRef:

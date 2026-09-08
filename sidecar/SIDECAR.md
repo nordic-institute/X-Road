@@ -24,18 +24,13 @@ scalability, a Sidecar cluster consisting of a primary node and multiple seconda
 
 X-Road Security Server Sidecar Docker images contain a custom set of modules instead of `xroad-securityserver`.
 
-The `slim` image installs:
+The image installs:
 
 * xroad-proxy
 * xroad-proxy-ui-api
 * xroad-database-remote
 * xroad-secret-store-remote
 * openbao
-
-`xroad-base`, `xroad-confclient` and `xroad-signer` arrive as dependencies of `xroad-proxy`.
-
-The `full` image adds, on top of `slim`:
-
 * xroad-monitor
 * xroad-opmonitor
 * xroad-auxiliary-service (backup/restore, and the scheduled message log archive/cleanup jobs)
@@ -43,6 +38,12 @@ The `full` image adds, on top of `slim`:
   supervisord program of its own)
 * xroad-ds-control-plane
 * xroad-ds-identity-hub
+
+`xroad-base`, `xroad-confclient` and `xroad-signer` arrive as dependencies of `xroad-proxy`.
+
+A `slim` image that left out message logging, environmental monitoring, operational monitoring, backup/restore and
+dataspace services was retired in X-Road 8; the reduced footprint it offered is now a matter of configuration on
+this one image, not a second image.
 
 The image is built from pre-built X-Road software packages, either installed from an X-Road apt repository
 selected by the `REPO` build argument, or, for development builds, from a local directory of tree-built `.deb`
@@ -60,9 +61,6 @@ The Security Server Sidecar Docker image (`niis/xroad-security-server-sidecar`) 
 
 ## Key Points and Limitations for X-Road Security Server Sidecar Deployment
 
-* The Security Server Sidecar `slim` version does not support environmental monitoring, operational monitoring,
-  message log archiving, backup/restore nor dataspace services, which are recommended for a service provider's
-  Security Server role.
 * The Security Server Sidecar embeds [OpenBao](https://openbao.org/) as its secret store by default, running under
   supervisord and initialized on first boot (unseal, PKI/secret mounts, client token). Point the container at an
   external secret store instead with the `XROAD_SECRET_STORE_*` environment variables — see the

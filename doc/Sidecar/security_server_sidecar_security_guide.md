@@ -67,9 +67,7 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 ### 1.2 Environment assumptions
 
-The regular version of the Sidecar includes message log, operational monitoring, and environmental monitoring modules, whereas the Sidecar slim version does not include the aforementioned modules. Both the slim and regular versions of the Sidecar can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package. More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
-
->**Note(1)** For the scope of this document, we will assume the regular Security Server Sidecar image version is used.
+The Sidecar image includes message log, operational monitoring, environmental monitoring and dataspace service modules, and can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package. More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
 
 The Security Server Sidecar can run alongside the client or service information system in the same host but in separate containers. In a production environment, a single Security Server Sidecar container may be shared between different information systems. However, the footprint of the Sidecar container is relatively high compared to the footprint of average containers and it has to be taken into account for dimensioning the host where the containers should run. More information can be found on the Security Server Sidecar User Guide for the [requirements to run a Security Server Sidecar container](security_server_sidecar_user_guide.md#24-requirements-for-the-x-road-security-server-sidecar).
 
@@ -335,7 +333,7 @@ The above-mentioned files should not be stored inside the Security Server Sideca
 During the Security Server Sidecar installation, the user should supply the different database and admin UI credentials as well as the software token PIN code, among other parameters, so that the configuration for the Sidecar container is unique. These user-supplied parameters are passed as environment variables to the docker run command (**reference data: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6**):
 
 ```bash
-docker run ... -e -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> \
+docker run ... -e XROAD_SIGNER_AUTOLOGIN_ENABLED=true -e XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> \
 -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<database password> ...
 ```
 

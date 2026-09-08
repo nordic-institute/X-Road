@@ -227,16 +227,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
-RECONFIG=(xroad-signer xroad-proxy xroad-proxy-ui-api xroad-confclient)
-if dpkg -s xroad-opmonitor &>/dev/null; then
-  RECONFIG+=(xroad-opmonitor)
-fi
-if dpkg -s xroad-ds-control-plane &>/dev/null; then
-  RECONFIG+=(xroad-ds-control-plane)
-fi
-if dpkg -s xroad-ds-identity-hub &>/dev/null; then
-  RECONFIG+=(xroad-ds-identity-hub)
-fi
+RECONFIG=(xroad-signer xroad-proxy xroad-proxy-ui-api xroad-confclient xroad-opmonitor xroad-ds-control-plane xroad-ds-identity-hub)
 
 LOCAL_DB=
 RECONFIGURED=false
@@ -246,7 +237,6 @@ if [ -f /.xroad-reconfigured ]; then
   RECONFIG_REQUIRED=${RECONFIG_REQUIRED:-false}
 else
   # new container, run reconfigure by default
-  # makes it possible to "upgrade" from "slim" to "full" container
   # (Disabling reconfigure by setting RECONFIG_REQUIRED to false
   # when it is known to be unnecessary saves some container startup time)
   RECONFIG_REQUIRED=${RECONFIG_REQUIRED:-true}
@@ -305,9 +295,7 @@ if [ ! -f ${DB_PROPERTIES} ]; then
     LOCAL_DB=false
     log "Using remote database $XROAD_DB_HOST:$XROAD_DB_PORT"
     messagelog=true
-    if dpkg -s xroad-opmonitor &>/dev/null; then
-      opmonitor=true
-    fi
+    opmonitor=true
     echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
     if [ -n "${XROAD_DATABASE_NAME}" ]; then
       touch /etc/xroad/db.properties
@@ -397,12 +385,8 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
 fi
 
 configure_proxy_health_check_listener
-if dpkg -s xroad-ds-control-plane &>/dev/null; then
-  configure_ds_control_plane_trusted_issuer_default
-fi
-if dpkg -s xroad-opmonitor &>/dev/null; then
-  configure_opmonitor_metaspace
-fi
+configure_ds_control_plane_trusted_issuer_default
+configure_opmonitor_metaspace
 configure_secret_store
 configure_secret_store_trust_env
 create_backup_dir_if_not_exists

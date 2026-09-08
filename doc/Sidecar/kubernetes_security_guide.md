@@ -144,7 +144,8 @@ This example shows how to create a secret for the Security Server Sidecar as env
       namespace: <namespace_name>
     type: Opaque
     stringData:
-      XROAD_TOKEN_PIN: "<token pin>"
+      XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
+      XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN: "<token pin>"
       XROAD_ADMIN_USER: "<admin user>"
       XROAD_ADMIN_PASSWORD: "<admin password>"
       XROAD_DB_HOST: "<database host>"
@@ -182,7 +183,9 @@ containers:
     image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     env:
-    - name: XROAD_TOKEN_PIN
+    - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
+      value: "true"
+    - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
       value: "<token pin>"
     - name: XROAD_ADMIN_USER
       value: "<admin user>"

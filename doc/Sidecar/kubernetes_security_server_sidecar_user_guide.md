@@ -113,22 +113,18 @@ This option enables scaling the number of Nodes and Pods on the cluster. The opt
 
 All of the X-Road Security Server Sidecar images described in the [Security Server user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) are suitable to be used for a Kubernetes deployment. Additionally, there are images suitable to be used for a Load Balancer Kubernetes deployment as described in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). These images include the necessary configuration so that the Pods can act as Primary or Secondary.
 
-| **Image**                                                               | **Description**                                                                                                                      |
-|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| niis/xroad-security-server-sidecar:\<version>-slim-primary              | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar                                           |
-| niis/xroad-security-server-sidecar:\<version>-slim-secondary            | Image for the Secondary Pod deployment using the slim version of the Security Server                                                 |
-| niis/xroad-security-server-sidecar:\<version>-primary                   | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server |
-| niis/xroad-security-server-sidecar:\<version>-secondary                 | Image for the Secondary Pod deployment using the regular version of the Security Server.                                             |
-| niis/xroad-security-server-sidecar:\<version>-slim-primary-\<variant>   | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar with NIIS member settings                 |
-| niis/xroad-security-server-sidecar:\<version>-slim-secondary-\<variant> | Image for the Secondary Pod deployment using the slim version of the Security Server with NIIS member settings                       |
-| niis/xroad-security-server-sidecar:\<version>-primary-\<variant>        | Image for the Primary Pod deployment using the regular version of the Security Server with NIIS member settings                      |
-| niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>      | Image for the Secondary Pod deployment using the regular version of the Security Server with NIIS member settings                    |
+| **Image**                                                          | **Description**                                                                                                   |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| niis/xroad-security-server-sidecar:\<version>-primary                   | Image for the Primary Pod deployment                                                                          |
+| niis/xroad-security-server-sidecar:\<version>-secondary                 | Image for the Secondary Pod deployment.                                                                       |
+| niis/xroad-security-server-sidecar:\<version>-primary-\<variant>        | Image for the Primary Pod deployment with NIIS member settings                                                |
+| niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>      | Image for the Secondary Pod deployment with NIIS member settings                                              |
 
 ## 4 Installation
 
 ### 4.1 Minimum resource requirements
 
-The resource requirements depend on the messaging workload, a minimum for the slim variant is 3 GB of memory and 2 CPUs.
+The resource requirements depend on the messaging workload, a minimum is 4 GB of memory and 2 CPUs.
 
 ### 4.2 Prerequisites to Installation
 
@@ -149,7 +145,7 @@ The table below lists the required connections between different components.
 | Inbound    | ACME Server                 | Sidecar                     | 80 / other       | http     | For more info see "Enabling ACME Support" in [Security Server Sidecar User Guide](security_server_sidecar_user_guide.md#32-enabling-acme-support) |
 | Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                                                                                                                                                   |
 | Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                                                                                                                                                   |
-| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*                                                                                                                                |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  |                                                                                                                                                   |
 | Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                                                                                                                                                   |
 | Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network                                                                                                                             |
 | Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                                                                                                                                                   |
@@ -204,7 +200,9 @@ spec:
     image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     env:
-    - name: XROAD_TOKEN_PIN
+    - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
+      value: "true"
+    - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
       value: "<token pin>"
     - name: XROAD_ADMIN_USER
       value: "<admin user>"
@@ -289,8 +287,8 @@ For example the following configuration could be stored as a Kubernetes secret:
 * SSH keys for the load balancer configuration synchronization
 * Sensitive Sidecar environment variables:
   * Software token PIN code:
-    * `XROAD_TOKEN_PIN`
-    * `XROAD_TOKEN_X_PIN` (in case of multiple tokens)
+    * `XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN`
+    * `XROAD_SIGNER_AUTOLOGIN_TOKENS__1__PIN` (in case of multiple tokens, and so on)
   * Security server GUI admin user:
     * `XROAD_ADMIN_USER`
     * `XROAD_ADMIN_PASSWORD`
@@ -327,7 +325,8 @@ This example shows how to create a secret for the Security Server Sidecar enviro
       namespace: <namespace_name>
     type: Opaque
     stringData:
-      XROAD_TOKEN_PIN: "<token pin>"
+      XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
+      XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN: "<token pin>"
       XROAD_ADMIN_USER: "<admin user>"
       XROAD_ADMIN_PASSWORD: "<admin password>"
       XROAD_DB_PWD: "<database password>"
@@ -464,7 +463,9 @@ spec:
     - name: <manifest volume name_2>
       mountPath: "/etc/.ssh/"
     env:
-    - name: XROAD_TOKEN_PIN
+    - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
+      value: "true"
+    - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
       value: "<token pin>"
     - name: XROAD_ADMIN_USER
       value: "<admin user>"
@@ -502,7 +503,7 @@ spec:
 The manifest has two Kubernetes objects:
 
 * A Headless Service, this service is used so that the secondary pods can connect to the primary one via SSH using a fixed Kubernetes cluster DNS name.
-* A Pod with the primary image of the Security Server Sidecar, as image tag you can choose between the "primary" or "primary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
+* A Pod with the primary image of the Security Server Sidecar, as image tag you use "primary" (or "primary-\<variant>") described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 The Pod defines two volumes: one volume to store the secret public key described in [4.5.4 Kubernetes Secrets](#454-Kubernetes-secrets), and a second volume to store the `/etc/xroad` configuration.
 
 Once the Primary Pod is deployed, you need to configure it (complete initial configuration, create the certificates, register in the Central Server) following the [User Guide](security_server_sidecar_user_guide.md#3-initial-configuration).
@@ -588,7 +589,9 @@ spec:
         - name: <manifest volume name>
           mountPath: "/etc/.ssh/"
         env:
-        - name: XROAD_TOKEN_PIN
+        - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
+          value: "true"
+        - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
           value: "<token pin>"
         - name: XROAD_ADMIN_USER
           value: "<admin user>"
@@ -622,7 +625,7 @@ The manifest has two Kubernetes objects:
 
 * A `LoadBalancer` type Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other Security Servers.
 * An internal Service for the consumer information systems that proxies requests to the secondary pods.
-* A Deployment for the secondary pods. As image tag, you can choose between the "secondary" or "secondary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
+* A Deployment for the secondary pods. As image tag, you use "secondary" (or "secondary-\<variant>") described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 
 The pods have a secrets volume for the public and private SSH keys which are required for the synchronization with the primary pod via SSH.
 
@@ -687,7 +690,7 @@ Upgrading to a new Sidecar container image is supported, provided that:
 * A volume is used for `/etc/xroad`.
 * An external database is used (or a volume is mapped to `/var/lib/postgresql/16/main`).
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
-* The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
+* The same variant (ee, fi, ...) is used for the new container.
 * If remote database is used, then upgrade it up to PostgreSQL 16 version when upgrading to 7.5.x.
 
 To update the version of the Security Server Sidecar, re-deploy the Pod with a newer version of the Sidecar container image. In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), it is possible to do a rolling upgrade if there are no changes to the database schema. In the case of database schema changes, one needs to take the cluster off-line (scale the secondary replica set to zero), upgrade the primary, and then upgrade (and scale up) the secondaries.
@@ -716,7 +719,7 @@ Safest way to upgrade is to create a new database volume and restore X-Road inst
 
 ## 8 Message log archives
 
-**Note:** Does not apply to slim containers and secondary Pods.
+**Note:** Does not apply to secondary Pods.
 
 As described in the [Security Server Sidecar User Guide](security_server_sidecar_user_guide.md#29-message-log-archives) it is recommended to use a persistent volume for the message log archives. Note that in the load balancer setup, only the primary node performs archiving.
 
@@ -740,8 +743,8 @@ The [load_balancer_setup manifest template](files/load_balancer_setup.yaml) cont
     * \<database port> (**Reference Data: 1.8**)
     * \<xroad log level> (**Reference Data: 1.10**)
     * \<xroad database name> (**Reference Data: 1.11**)
-    * \<version primary>, (`7.0.0-primary[-slim][-variant]`)
-    * \<version secondary>, (`7.0.0-secondary[-slim][-variant]`)
+    * \<version primary>, (`7.0.0-primary[-variant]`)
+    * \<version secondary>, (`7.0.0-secondary[-variant]`)
 
 2. Once the values are replaced, apply the manifest file:
     ```bash

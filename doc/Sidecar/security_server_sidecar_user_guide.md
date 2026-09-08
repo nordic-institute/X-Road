@@ -82,22 +82,15 @@ X-Road Security Server Sidecar is containerized, production ready, version of th
 
 The Security Server Sidecar has several images with alternative configurations:
 
-| **Image**                                                     | **Description**                                                                                              |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| niis/xroad-security-server-sidecar:\<version>-slim            | Slim image with the minimum required packages and configuration to function.                                 |
-| niis/xroad-security-server-sidecar:\<version>                 | Full image uses the slim as the base and adds message logging, and environmental and operational monitoring. |
-| niis/xroad-security-server-sidecar:\<version>-slim-\<variant> | Same as the slim image but with the NIIS member/partner country variant (ee,fi,fo,is) settings included.     |
-| niis/xroad-security-server-sidecar:\<version>-\<variant>      | Same as the full image but with the NIIS member/partner country variant configuration settings included.     |
+| **Image**                                                | **Description**                                                                             |
+|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| niis/xroad-security-server-sidecar:\<version>            | Image with message logging, environmental monitoring, operational monitoring and dataspace services. |
+| niis/xroad-security-server-sidecar:\<version>-\<variant> | Same image but with the NIIS member/partner country variant (ee,fi,fo,is) configuration settings included. |
 
 All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration.
 
-| **Feature**              | **Sidecar** | **Sidecar Slim** |
-|--------------------------|-------------|------------------|
-| Consume services         | Yes         | Yes              |
-| Provide services         | Yes         | Yes              |
-| Message logging          | Yes         | No               |
-| Environmental monitoring | Yes         | No               |
-| Operational monitoring   | Yes         | No               |
+A `slim` image that left out message logging, environmental and operational monitoring was retired in X-Road 8;
+that reduced footprint is now a matter of database-backed configuration on this one image, not a second image.
 
 ### 1.2 References
 
@@ -115,7 +108,7 @@ Docker Desktop for Windows or macOS (x86-64) can be used in testing and developm
 
 Minimum container resource limits for running the Security Server Sidecar container:
 * CPUs: 2
-* Memory: 3 GiB (slim, 4GiB or more for a full container)
+* Memory: 4 GiB or more
 * 3 GiB free disk space
 
 ### 2.2 Reference data
@@ -151,7 +144,7 @@ The table below lists the required connections between different components.
 | Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
 | Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                         |
 | Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                         |
-| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*      |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  |                         |
 | Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                         |
 | Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network   |
 | Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                         |
@@ -171,24 +164,20 @@ See also [Docker Networking](https://docs.docker.com/network/)
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
 
 Alternatively, build the images locally with the [docker-build.sh script](../../sidecar/docker-build.sh) (in the
-`sidecar/` directory of the source tree). By default it builds every image variant; pass `--target=slim` or
-`--target=full` to build only one (`full` requires the `slim` tag to already exist locally, since it is built
-`FROM` it):
+`sidecar/` directory of the source tree). By default it builds every image variant; pass `--target=full` to build
+only the main image:
 
 ```bash
-./docker-build.sh --target=slim
 ./docker-build.sh --target=full
 ```
 
 Packages are installed from an X-Road apt repository by default (the `REPO` positional argument selects it,
 defaulting to the development repository; see `docker-build.sh --help`). To build from a local directory of
 tree-built `.deb` packages instead (for example `deployment/native-packages/build/ubuntu26.04`), pass
-`--packages-path`; it builds the slim and full images with `PACKAGE_SOURCE=internal` and the given directory
-bind-mounted as the `packages` build context (each image re-scans it into its own trusted repository, since
-`slim`'s trusted repository does not persist past that build):
+`--packages-path`; it builds the image with `PACKAGE_SOURCE=internal` and the given directory bind-mounted as
+the `packages` build context:
 
 ```bash
-./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
 ./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
 ```
 
@@ -234,7 +223,7 @@ In production use, either persistent volumes should be used. Using a separate da
     b3031affa4b7   niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago      Up 10 minutes  ...       <container name>
     ```
 
-2. Ensure from the command line that the X-Road services are running in the container. On the `full` image:
+2. Ensure from the command line that the X-Road services are running in the container:
     ```bash
     docker exec -t <container name> supervisorctl status
     cron                                     RUNNING   pid 1137, uptime 0:00:45
@@ -251,8 +240,6 @@ In production use, either persistent volumes should be used. Using a separate da
     xroad-services:xroad-proxy               RUNNING   pid 1339, uptime 0:00:43
     xroad-services:xroad-signer              RUNNING   pid 1335, uptime 0:00:43
     ```
-    `slim` runs the same `openbao`, `xroad-secret-store-gate`, `postgres`, `cron`, `xroad-proxy-ui-api` and the
-    `xroad-services` group's `xroad-signer`/`xroad-confclient`/`xroad-proxy`, and nothing else.
 
     `xroad-secret-store-gate` is a one-shot program: it unseals the secret store and releases the gated
     `xroad-services` group, then exits — `EXITED` with exit status `0` is its expected steady state, not a failure.
@@ -401,8 +388,6 @@ can never be unsealed and its contents are unrecoverable. Keep the `/etc/xroad` 
 of `/etc/xroad/secret-store/` separately with the same care as the backup encryption keys.
 
 ### 2.9 Message log archives
-
-Does not apply to *slim* image.
 
 The Security Server Sidecar periodically archives message log records in the folder `/var/lib/xroad/`.
 It is recommended to store the archives to a volume by adding a volume mapping for the archive directory.
@@ -584,7 +569,7 @@ Upgrading to a new image is supported, provided that:
 * A volume is used for `/etc/xroad`.
 * A remote database is used, or a volume is mapped to `/var/lib/postgresql/18/main`.
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
-* The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
+* The same variant (ee, fi, ...) is used for the new container.
 
 If the prerequisites are met, upgrading is straightforward:
 
