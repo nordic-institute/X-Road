@@ -30,7 +30,8 @@ import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
 import { Permissions } from '@/global';
-import type { ConfigurablePropertyDto, MaintenanceMode } from '@/openapi-types';
+import type { MaintenanceMode } from '@/openapi-types';
+import type { ConfigurablePropertyDto } from '@niis/shared-ui';
 
 // ── AJV schemas ───────────────────────────────────────────────────────────────
 
