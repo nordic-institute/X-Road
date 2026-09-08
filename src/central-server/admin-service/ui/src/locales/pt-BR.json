@@ -525,6 +525,66 @@
       }
     }
   },
+  "systemParameters": {
+    "configurableProperties": {
+      "descriptions": {
+        "xroad": {
+          "admin-service": {
+            "auto-approve-auth-cert-reg-requests": "Se ativado, as solicitações de registro de certificado de autenticação são aprovadas automaticamente sem esperar a aprovação do administrador.",
+            "auto-approve-client-reg-requests": "Se ativado, as solicitações de registro de cliente são aprovadas automaticamente sem esperar a aprovação do administrador.",
+            "auto-approve-owner-change-requests": "Se ativado, as solicitações de mudança de proprietário são aprovadas automaticamente sem esperar a aprovação do administrador.",
+            "authentication-provider": "Provedor de autenticação usado para login na interface. Os valores possíveis são PAM ou DATABASE.",
+            "cache-api-key-ttl": "Configura a expiração do cache de chaves de API em segundos. Definir o valor como -1 desativa o cache.",
+            "cache-default-ttl": "Configura a expiração padrão do cache em segundos. O cache é utilizado durante as solicitações de autenticação. Definir o valor como -1 desativa o cache.",
+            "enforce-user-password-policy": "Quando ativado, as senhas de usuário devem atender à política de senhas configurada.",
+            "global-configuration-generation-rate-in-seconds": "Com que frequência, em segundos, o Servidor Central regenera a configuração global.",
+            "rate-limit-cache-size": "Controla quantos endereços IP podem ser lembrados no cache de limite de taxa. Compromisso entre uso de memória e proteção contra um ataque em grande escala.",
+            "rate-limit-enabled": "Habilita a limitação de taxa de solicitações para a API de administração.",
+            "rate-limit-expire-after-access-minutes": "Controla por quanto tempo as entradas do cache de limite de taxa são válidas.",
+            "rate-limit-requests-per-minute": "Limite de taxa de solicitações por minuto para a API de administração. Os limites se aplicam a cada IP solicitante.",
+            "rate-limit-requests-per-second": "Limite de taxa de solicitações por segundo para a API de administração. Os limites se aplicam a cada IP solicitante.",
+            "request-size-limit-binary-upload": "Tamanho máximo das solicitações da API de administração para envio de arquivos.",
+            "request-size-limit-regular": "Tamanho máximo das solicitações da API de administração.",
+            "strict-identifier-checks": "Configura a validação de entrada dos identificadores (código do membro, código do subsistema etc.). Valores: true - os identificadores devem corresponder ao padrão ^[a-zA-Z0-9'()+,-.=?]*. false - os identificadores não podem conter dois pontos (:), ponto e vírgula (;), barras (/\\), porcentagem (%) ou caracteres de controle.",
+            "trusted-anchors-allowed": "Se ativado, permite o envio de âncoras de configuração confiáveis adicionais além da própria do Servidor Central."
+          },
+          "management-service": {
+            "rate-limit-cache-size": "Controla quantos endereços IP podem ser lembrados no cache de limite de taxa. Compromisso entre uso de memória e proteção contra um ataque em grande escala.",
+            "rate-limit-enabled": "Habilita a limitação de taxa de solicitações para o serviço de gerenciamento.",
+            "rate-limit-expire-after-access-minutes": "Controla por quanto tempo as entradas do cache de limite de taxa são válidas.",
+            "rate-limit-requests-per-minute": "Limite de taxa de solicitações por minuto para o serviço de gerenciamento. Os limites se aplicam a cada IP solicitante.",
+            "rate-limit-requests-per-second": "Limite de taxa de solicitações por segundo para o serviço de gerenciamento. Um valor de -1 desativa o limite. Os limites se aplicam a cada IP solicitante.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Segundos de espera para que uma conexão fique disponível no pool de conexões.",
+              "connection-timeout-seconds": "Segundos de espera ao estabelecer uma conexão com a API de administração.",
+              "max-connections-per-route": "Número máximo de conexões simultâneas que o cliente HTTP do serviço de gerenciamento mantém abertas por rota.",
+              "max-connections-total": "Número máximo de conexões simultâneas que o cliente HTTP do serviço de gerenciamento mantém abertas no total.",
+              "response-timeout-seconds": "Segundos de espera por uma resposta da API de administração."
+            }
+          },
+          "registration-service": {
+            "rate-limit-cache-size": "Controla quantos endereços IP podem ser lembrados no cache de limite de taxa. Compromisso entre uso de memória e proteção contra um ataque em grande escala.",
+            "rate-limit-enabled": "Habilita a limitação de taxa de solicitações para o serviço de registro.",
+            "rate-limit-expire-after-access-minutes": "Controla por quanto tempo as entradas do cache de limite de taxa são válidas.",
+            "rate-limit-requests-per-minute": "Limite de taxa de solicitações por minuto para o serviço de registro. Os limites se aplicam a cada IP solicitante.",
+            "rate-limit-requests-per-second": "Limite de taxa de solicitações por segundo para o serviço de registro. Um valor de -1 desativa o limite. Os limites se aplicam a cada IP solicitante.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Segundos de espera para que uma conexão fique disponível no pool de conexões.",
+              "connection-timeout-seconds": "Segundos de espera ao estabelecer uma conexão com a API de administração.",
+              "max-connections-per-route": "Número máximo de conexões simultâneas que o cliente HTTP do serviço de registro mantém abertas por rota.",
+              "max-connections-total": "Número máximo de conexões simultâneas que o cliente HTTP do serviço de registro mantém abertas no total.",
+              "response-timeout-seconds": "Segundos de espera por uma resposta da API de administração."
+            },
+            "vault-retry": {
+              "retry-delay": "Atraso antes da primeira nova tentativa de uma solicitação ao Vault (OpenBao) com falha.",
+              "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa após cada tentativa malsucedida de uma solicitação ao Vault (OpenBao).",
+              "retry-max-attempts": "Número máximo de novas tentativas quando uma solicitação ao Vault (OpenBao) falha."
+            }
+          }
+        }
+      }
+    }
+  },
   "systemSettings": {
     "addMemberClassTitle": "Adicionar classe de membro",
     "centralServerAddress": "Endereço do Servidor Central",
@@ -591,6 +651,7 @@
       "apiKeys": "Chaves de API",
       "backupAndRestore": "Backup e Restauração",
       "globalResources": "Recursos Globais",
+      "systemParameters": "Parâmetros do Sistema",
       "systemSettings": "Configurações do Sistema",
       "tlsCertificates": "Certificados TLS"
     }
