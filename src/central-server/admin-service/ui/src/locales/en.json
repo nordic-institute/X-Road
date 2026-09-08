@@ -527,6 +527,66 @@
       }
     }
   },
+  "systemParameters": {
+    "configurableProperties": {
+      "descriptions": {
+        "xroad": {
+          "admin-service": {
+            "auto-approve-auth-cert-reg-requests": "If enabled, authentication certificate registration requests are approved automatically instead of waiting for administrator approval.",
+            "auto-approve-client-reg-requests": "If enabled, client registration requests are approved automatically instead of waiting for administrator approval.",
+            "auto-approve-owner-change-requests": "If enabled, owner change requests are approved automatically instead of waiting for administrator approval.",
+            "authentication-provider": "Authentication provider used for UI login. Possible values are PAM or DATABASE.",
+            "cache-api-key-ttl": "Configures API key cache expiration in seconds. Setting the value to -1 disables the cache.",
+            "cache-default-ttl": "Configures default cache expiration in seconds. Cache is hit during authentication requests. Setting the value to -1 disables the cache.",
+            "enforce-user-password-policy": "When enabled, user passwords must meet the configured password policy.",
+            "global-configuration-generation-rate-in-seconds": "How often, in seconds, the Central Server regenerates global configuration.",
+            "rate-limit-cache-size": "Controls how many IP addresses can be remembered in the rate-limit cache. Tradeoff between memory usage and protection from a large attack.",
+            "rate-limit-enabled": "Enables request rate limiting for the Admin API.",
+            "rate-limit-expire-after-access-minutes": "Controls how long the rate-limit cache entries are valid.",
+            "rate-limit-requests-per-minute": "Admin API request rate limit per minute. Rate limits apply per each requesting IP.",
+            "rate-limit-requests-per-second": "Admin API request rate limit per second. Rate limits apply per each requesting IP.",
+            "request-size-limit-binary-upload": "Maximum size of Admin API requests for file uploads.",
+            "request-size-limit-regular": "Maximum size of Admin API requests.",
+            "strict-identifier-checks": "Configures identifier input validation (member code, subsystem code etc). Values: true - identifiers must match pattern ^[a-zA-Z0-9'()+,-.=?]*. false - identifiers must not contain colon (:), semicolon (;), slashes (/\\), percent (%) or control characters.",
+            "trusted-anchors-allowed": "If enabled, allows uploading additional trusted configuration anchors besides the Central Server's own."
+          },
+          "management-service": {
+            "rate-limit-cache-size": "Controls how many IP addresses can be remembered in the rate-limit cache. Tradeoff between memory usage and protection from a large attack.",
+            "rate-limit-enabled": "Enables request rate limiting for the management service.",
+            "rate-limit-expire-after-access-minutes": "Controls how long the rate-limit cache entries are valid.",
+            "rate-limit-requests-per-minute": "Management service request rate limit per minute. Rate limits apply per each requesting IP.",
+            "rate-limit-requests-per-second": "Management service request rate limit per second. Set to -1 to disable. Rate limits apply per each requesting IP.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Seconds to wait for a connection to become available from the connection pool.",
+              "connection-timeout-seconds": "Seconds to wait when establishing a connection to the Admin API.",
+              "max-connections-per-route": "Maximum number of simultaneous connections the management service's HTTP client keeps open per route.",
+              "max-connections-total": "Maximum number of simultaneous connections the management service's HTTP client keeps open in total.",
+              "response-timeout-seconds": "Seconds to wait for a response from the Admin API."
+            }
+          },
+          "registration-service": {
+            "rate-limit-cache-size": "Controls how many IP addresses can be remembered in the rate-limit cache. Tradeoff between memory usage and protection from a large attack.",
+            "rate-limit-enabled": "Enables request rate limiting for the registration service.",
+            "rate-limit-expire-after-access-minutes": "Controls how long the rate-limit cache entries are valid.",
+            "rate-limit-requests-per-minute": "Registration service request rate limit per minute. Rate limits apply per each requesting IP.",
+            "rate-limit-requests-per-second": "Registration service request rate limit per second. Set to -1 to disable. Rate limits apply per each requesting IP.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Seconds to wait for a connection to become available from the connection pool.",
+              "connection-timeout-seconds": "Seconds to wait when establishing a connection to the Admin API.",
+              "max-connections-per-route": "Maximum number of simultaneous connections the registration service's HTTP client keeps open per route.",
+              "max-connections-total": "Maximum number of simultaneous connections the registration service's HTTP client keeps open in total.",
+              "response-timeout-seconds": "Seconds to wait for a response from the Admin API."
+            },
+            "vault-retry": {
+              "retry-delay": "Delay before the first retry of a failed Vault (OpenBao) request.",
+              "retry-exponential-backoff-multiplier": "Multiplier applied to the retry delay after each failed Vault (OpenBao) request attempt.",
+              "retry-max-attempts": "Maximum number of retry attempts when a Vault (OpenBao) request fails."
+            }
+          }
+        }
+      }
+    }
+  },
   "systemSettings": {
     "addMemberClassTitle": "Add member class",
     "centralServerAddress": "Central Server Address",
@@ -593,6 +653,7 @@
       "apiKeys": "API Keys",
       "backupAndRestore": "Backup And Restore",
       "globalResources": "Global Resources",
+      "systemParameters": "System Parameters",
       "systemSettings": "System Settings",
       "tlsCertificates": "TLS Certificates",
       "dsTlsCertificate": "DS TLS Certificate"

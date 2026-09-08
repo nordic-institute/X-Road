@@ -56,6 +56,7 @@ export enum RouteName {
   GlobalGroups = 'global-resources',
   GlobalGroup = 'global-group',
   SystemSettings = 'system-settings',
+  SystemParameters = 'system-parameters',
   BackupAndRestore = 'backup-and-restore',
   ApiKeys = 'api-keys',
   TlsCertificates = 'tls-certificates',
@@ -142,6 +143,7 @@ export enum Permissions {
   ACTIVATE_SIGNING_KEY = 'ACTIVATE_SIGNING_KEY',
   DELETE_SIGNING_KEY = 'DELETE_SIGNING_KEY',
   VIEW_SYSTEM_SETTINGS = 'VIEW_SYSTEM_SETTINGS',
+  CHANGE_CONFIGURATION_PROPERTY = 'CHANGE_CONFIGURATION_PROPERTY', // settings > system parameters > configurable properties
   REGISTER_SERVICE_PROVIDER = 'REGISTER_SERVICE_PROVIDER',
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION',
   RESTORE_CONFIGURATION = 'RESTORE_CONFIGURATION',

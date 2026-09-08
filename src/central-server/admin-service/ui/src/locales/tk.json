@@ -504,6 +504,66 @@
       }
     }
   },
+  "systemParameters": {
+    "configurableProperties": {
+      "descriptions": {
+        "xroad": {
+          "admin-service": {
+            "auto-approve-auth-cert-reg-requests": "Işjeňleşdirilse, administratoryň tassyklamagyna garaşmazdan, autentifikasiýa şahadatnamasyny bellige almak haýyşlary awtomatiki tassyklanýar.",
+            "auto-approve-client-reg-requests": "Işjeňleşdirilse, müşderini bellige almak haýyşlary awtomatiki tassyklanýar, administratoryň tassyklamagyna garaşylmaýar.",
+            "auto-approve-owner-change-requests": "Işjeňleşdirilse, eýeçiligi üýtgetmek haýyşlary awtomatiki tassyklanýar, administratoryň tassyklamagyna garaşylmaýar.",
+            "authentication-provider": "Interfeýse girmek üçin ulanylýan autentifikasiýa üpjün edijisi. Mümkin bolan bahalar: PAM ýa-da DATABASE.",
+            "cache-api-key-ttl": "API açar keşiniň sekuntda möhletini kesgitleýär. Bahasy -1 bolsa, keş öçürilýär.",
+            "cache-default-ttl": "Sanlyk keşiň sekuntda möhletini kesgitleýär. Keş autentifikasiýa haýyşlarynda ulanylýar. Bahasy -1 bolsa, keş öçürilýär.",
+            "enforce-user-password-policy": "Işjeňleşdirilse, ulanyjy parollary bellenen parol syýasatyna laýyk gelmeli.",
+            "global-configuration-generation-rate-in-seconds": "Merkezi serweriň global konfigurasiýany näçe ýygylykda (sekuntda) täzeden döredýändigi.",
+            "rate-limit-cache-size": "Talap çäklendirme keşinde ýatda saklanyp bilinjek IP salgylarynyň sanyny kesgitleýär. Ýady ulanmak bilen uly hüjümden goramagyň arasyndaky deňagramlylyk.",
+            "rate-limit-enabled": "Administrator API-si üçin haýyşlaryň tizlik çägini işjeňleşdirýär.",
+            "rate-limit-expire-after-access-minutes": "Talap çäklendirme keşiniň ýazgylarynyň näçe wagt hakyky bolýandygyny kesgitleýär.",
+            "rate-limit-requests-per-minute": "Administrator API-si üçin minutda haýyş çägi. Çäklendirmeler her haýyş edýän IP üçin ulanylýar.",
+            "rate-limit-requests-per-second": "Administrator API-si üçin sekuntda haýyş çägi. Çäklendirmeler her haýyş edýän IP üçin ulanylýar.",
+            "request-size-limit-binary-upload": "Faýl ýüklemek üçin Administrator API haýyşlarynyň iň uly ölçegi.",
+            "request-size-limit-regular": "Administrator API haýyşlarynyň iň uly ölçegi.",
+            "strict-identifier-checks": "Girizilen identifikatorlaryň barlagyny sazlaýar (agza kody, kiçi ulgam kody we ş.m.). Bahalar: true - identifikatorlar ^[a-zA-Z0-9'()+,-.=?]* nusgasyna laýyk gelmeli. false - identifikatorlarda iki nokat (:), nokatly otur (;), çyzyklar (/\\), göterim belgisi (%) ýa-da dolandyryş simwollary bolmaly däl.",
+            "trusted-anchors-allowed": "Işjeňleşdirilse, Merkezi serweriň öz labyryndan başga-da goşmaça ynamly konfigurasiýa labyrlaryny ýüklemäge rugsat berýär."
+          },
+          "management-service": {
+            "rate-limit-cache-size": "Talap çäklendirme keşinde ýatda saklanyp bilinjek IP salgylarynyň sanyny kesgitleýär. Ýady ulanmak bilen uly hüjümden goramagyň arasyndaky deňagramlylyk.",
+            "rate-limit-enabled": "Dolandyryş hyzmaty üçin haýyşlaryň tizlik çägini işjeňleşdirýär.",
+            "rate-limit-expire-after-access-minutes": "Talap çäklendirme keşiniň ýazgylarynyň näçe wagt hakyky bolýandygyny kesgitleýär.",
+            "rate-limit-requests-per-minute": "Dolandyryş hyzmaty üçin minutda haýyş çägi. Çäklendirmeler her haýyş edýän IP üçin ulanylýar.",
+            "rate-limit-requests-per-second": "Dolandyryş hyzmaty üçin sekuntda haýyş çägi. -1 bahasy çägi öçürýär. Çäklendirmeler her haýyş edýän IP üçin ulanylýar.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Birikme howzundan birikmäniň elýeterli bolmagyna garaşylýan sekunt sany.",
+              "connection-timeout-seconds": "Administrator API bilen birikme ýola goýulýança garaşylýan sekunt sany.",
+              "max-connections-per-route": "Dolandyryş hyzmatynyň HTTP müşderisiniň her ugur üçin açyk saklaýan iň köp birikme sany.",
+              "max-connections-total": "Dolandyryş hyzmatynyň HTTP müşderisiniň jemi açyk saklaýan iň köp birikme sany.",
+              "response-timeout-seconds": "Administrator API-den jogaba garaşylýan sekunt sany."
+            }
+          },
+          "registration-service": {
+            "rate-limit-cache-size": "Talap çäklendirme keşinde ýatda saklanyp bilinjek IP salgylarynyň sanyny kesgitleýär. Ýady ulanmak bilen uly hüjümden goramagyň arasyndaky deňagramlylyk.",
+            "rate-limit-enabled": "Bellige alyş hyzmaty üçin haýyşlaryň tizlik çägini işjeňleşdirýär.",
+            "rate-limit-expire-after-access-minutes": "Talap çäklendirme keşiniň ýazgylarynyň näçe wagt hakyky bolýandygyny kesgitleýär.",
+            "rate-limit-requests-per-minute": "Bellige alyş hyzmaty üçin minutda haýyş çägi. Çäklendirmeler her haýyş edýän IP üçin ulanylýar.",
+            "rate-limit-requests-per-second": "Bellige alyş hyzmaty üçin sekuntda haýyş çägi. -1 bahasy çägi öçürýär. Çäklendirmeler her haýyş edýän IP üçin ulanylýar.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Birikme howzundan birikmäniň elýeterli bolmagyna garaşylýan sekunt sany.",
+              "connection-timeout-seconds": "Administrator API bilen birikme ýola goýulýança garaşylýan sekunt sany.",
+              "max-connections-per-route": "Bellige alyş hyzmatynyň HTTP müşderisiniň her ugur üçin açyk saklaýan iň köp birikme sany.",
+              "max-connections-total": "Bellige alyş hyzmatynyň HTTP müşderisiniň jemi açyk saklaýan iň köp birikme sany.",
+              "response-timeout-seconds": "Administrator API-den jogaba garaşylýan sekunt sany."
+            },
+            "vault-retry": {
+              "retry-delay": "Vault (OpenBao) haýyşy şowsuz bolanda ilkinji gaýtadan synanyşykdan öňki gijikdirme.",
+              "retry-exponential-backoff-multiplier": "Vault (OpenBao) haýyşynyň her şowsuz synanyşygyndan soň gaýtadan synanyşyk gijikdirmesine ulanylýan köpeldiji.",
+              "retry-max-attempts": "Vault (OpenBao) haýyşy şowsuz bolanda gaýtadan synanyşyklaryň iň köp sany."
+            }
+          }
+        }
+      }
+    }
+  },
   "systemSettings": {
     "addMemberClassTitle": "Agzaň klassyny goş",
     "centralServerAddress": "Merkezi serweriň salgysy",
@@ -570,6 +630,7 @@
       "apiKeys": "API Açarlary",
       "backupAndRestore": "Ätiýaçlyk nusgasy we gaýtadan dikeltmek",
       "globalResources": "Global resurslary",
+      "systemParameters": "Ulgam parametrleri",
       "systemSettings": "Ulgam sazlamalary",
       "tlsCertificates": "TLS şahadatnamalary"
     }
