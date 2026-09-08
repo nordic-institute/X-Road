@@ -392,6 +392,14 @@ If needed, you can adjust the automatic backup deletion policies by editing the 
 
 Automatic backups will be stored in the folder `/var/lib/xroad/backup/`.
 
+Backup archives deliberately exclude the secret-store key material (`/etc/xroad/secret-store/` — unseal keys and
+root token), even though they include a dump of the secret store's database: an archive that carried both the
+encrypted store and its unseal keys would hand every stored secret to anyone who obtains the archive. Restoring
+a backup on the same instance is unaffected — the live key files are preserved across a restore. Recovering onto
+a fresh configuration volume, however, requires the original key files: without them the restored secret store
+can never be unsealed and its contents are unrecoverable. Keep the `/etc/xroad` volume itself, or store a copy
+of `/etc/xroad/secret-store/` separately with the same care as the backup encryption keys.
+
 ### 2.9 Message log archives
 
 Does not apply to *slim* image.
