@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -48,6 +49,8 @@ class IdentityHubProvisioningExtensionTest {
     @Mock
     private CredentialRequestManager credentialRequestManager;
     @Mock
+    private DidResolverRegistry didResolverRegistry;
+    @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
     private Monitor monitor;
@@ -61,6 +64,7 @@ class IdentityHubProvisioningExtensionTest {
         extension = new IdentityHubProvisioningExtension();
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "credentialRequestManager", credentialRequestManager);
+        setField(extension, "didResolverRegistry", didResolverRegistry);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }

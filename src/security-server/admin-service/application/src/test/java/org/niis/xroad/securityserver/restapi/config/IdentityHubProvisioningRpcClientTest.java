@@ -48,6 +48,7 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioning
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -178,13 +179,13 @@ class IdentityHubProvisioningRpcClientTest {
 
     @Test
     void requestMembershipCredentialReturnsRequestId() {
-        var requestId = client.requestMembershipCredential("ctx-id", "did:web:issuer", "holder-pid",
+        var requestId = client.requestMembershipCredential("ctx-id", List.of("did:web:issuer1", "did:web:issuer2"), "holder-pid",
                 "cred-def-id", "XRoadMembershipCredential", "VC1_0_JWT");
 
         assertThat(requestId).isEqualTo("req-42");
         var req = capturedRequestCredReq.get();
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
-        assertThat(req.getIssuerDid()).isEqualTo("did:web:issuer");
+        assertThat(req.getIssuerDidsList()).containsExactly("did:web:issuer1", "did:web:issuer2");
         assertThat(req.getHolderPid()).isEqualTo("holder-pid");
         assertThat(req.getCredentialDefinitionId()).isEqualTo("cred-def-id");
         assertThat(req.getCredentialType()).isEqualTo("XRoadMembershipCredential");

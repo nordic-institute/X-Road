@@ -29,6 +29,7 @@ package org.niis.xroad.edc.identityhub.provisioning;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.iam.did.spi.document.Service;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.credential.request.model.RequestedCredential;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
@@ -48,6 +49,7 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
@@ -70,6 +72,7 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
     private final IdentityHubParticipantContextService participantContextService;
     private final CredentialRequestManager credentialRequestManager;
+    private final DidResolverRegistry didResolverRegistry;
     private final RpcResponseHandler responseHandler;
 
     @Override
@@ -122,8 +125,13 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
         var requested = List.of(new RequestedCredential(
                 request.getCredentialDefinitionId(), request.getCredentialType(), request.getFormat()));
 
+        var issuerDid = selectReachableIssuer(request.getIssuerDidsList())
+                .orElseThrow(() -> failure(DSP_PROVISIONING_FAILED, request.getHolderPid(),
+                        "none of the %d candidate issuer DID(s) resolved to a reachable IssuerService endpoint"
+                                .formatted(request.getIssuerDidsCount())));
+
         var result = credentialRequestManager.initiateRequest(
-                request.getParticipantContextId(), request.getIssuerDid(), request.getHolderPid(), requested);
+                request.getParticipantContextId(), issuerDid, request.getHolderPid(), requested);
 
         if (result.failed() && result.reason() != ServiceFailure.Reason.CONFLICT) {
             throw failure(DSP_PROVISIONING_FAILED, request.getHolderPid(), result.getFailureDetail());
@@ -134,6 +142,24 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
             builder.setRequestId(result.getContent());
         }
         return builder.build();
+    }
+
+    /**
+     * Resolves each candidate DID's document, in order, and returns the first one that resolves and
+     * carries an {@link CredentialRequestManager#ISSUER_SERVICE_ENDPOINT_TYPE} service entry — the same
+     * targeting decision {@link CredentialRequestManager} itself makes once a request is in flight, done
+     * here before any {@link org.eclipse.edc.identityhub.spi.credential.request.model.HolderCredentialRequest}
+     * is created so an unreachable issuer never burns a holder request slot.
+     */
+    private Optional<String> selectReachableIssuer(List<String> candidateDids) {
+        return candidateDids.stream()
+                .filter(did -> {
+                    var resolved = didResolverRegistry.resolve(did);
+                    return resolved.succeeded() && resolved.getContent().getService().stream()
+                            .anyMatch(service -> service.getType().equalsIgnoreCase(
+                                    CredentialRequestManager.ISSUER_SERVICE_ENDPOINT_TYPE));
+                })
+                .findFirst();
     }
 
     private GetCredentialRequestStateResp getCredentialRequestStateInternal(GetCredentialRequestStateReq request) {

@@ -28,9 +28,13 @@ package org.niis.xroad.edc.identityhub.provisioning;
 
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.eclipse.edc.iam.did.spi.document.DidDocument;
+import org.eclipse.edc.iam.did.spi.document.Service;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.credential.request.model.HolderCredentialRequest;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,8 +53,11 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDi
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -59,10 +66,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class IdentityHubProvisioningGrpcServiceTest {
 
+    private static final String REACHABLE_ISSUER_DID = "did:web:issuer.example.com";
+    private static final String UNREACHABLE_ISSUER_DID = "did:web:unreachable.example.com";
+
     @Mock
     private IdentityHubParticipantContextService participantContextService;
     @Mock
     private CredentialRequestManager credentialRequestManager;
+    @Mock
+    private DidResolverRegistry didResolverRegistry;
     @Mock
     private StreamObserver<CreateParticipantContextResp> createObserver;
 
@@ -70,7 +82,21 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new IdentityHubProvisioningGrpcService(participantContextService, credentialRequestManager, new RpcResponseHandler());
+        service = new IdentityHubProvisioningGrpcService(
+                participantContextService, credentialRequestManager, didResolverRegistry, new RpcResponseHandler());
+    }
+
+    private void givenReachableIssuer(String did) {
+        var document = DidDocument.Builder.newInstance()
+                .id(did)
+                .service(List.of(new Service("issuer-service", CredentialRequestManager.ISSUER_SERVICE_ENDPOINT_TYPE,
+                        "https://issuer.example.com")))
+                .build();
+        when(didResolverRegistry.resolve(did)).thenReturn(Result.success(document));
+    }
+
+    private void givenUnreachableIssuer(String did) {
+        when(didResolverRegistry.resolve(did)).thenReturn(Result.failure("DID document not reachable"));
     }
 
     @ParameterizedTest
@@ -104,13 +130,14 @@ class IdentityHubProvisioningGrpcServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void requestCredentialToleratesConflict() {
-        when(credentialRequestManager.initiateRequest(anyString(), anyString(), anyString(), any()))
+        givenReachableIssuer(REACHABLE_ISSUER_DID);
+        when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
                 .thenReturn(ServiceResult.conflict("already requested"));
 
         StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
         var request = RequestCredentialReq.newBuilder()
                 .setParticipantContextId("ctx-1")
-                .setIssuerDid("did:web:issuer.example.com")
+                .addIssuerDids(REACHABLE_ISSUER_DID)
                 .setHolderPid("holder-pid-1")
                 .setCredentialDefinitionId("def-1")
                 .setCredentialType("MembershipCredential")
@@ -127,13 +154,14 @@ class IdentityHubProvisioningGrpcServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void requestCredentialPropagatesNonConflictFailure() {
-        when(credentialRequestManager.initiateRequest(anyString(), anyString(), anyString(), any()))
+        givenReachableIssuer(REACHABLE_ISSUER_DID);
+        when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
                 .thenReturn(ServiceResult.unexpected("storage error"));
 
         StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
         var request = RequestCredentialReq.newBuilder()
                 .setParticipantContextId("ctx-1")
-                .setIssuerDid("did:web:issuer.example.com")
+                .addIssuerDids(REACHABLE_ISSUER_DID)
                 .setHolderPid("holder-pid-1")
                 .setCredentialDefinitionId("def-1")
                 .setCredentialType("MembershipCredential")
@@ -144,6 +172,71 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(observer, never()).onCompleted();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void requestCredentialFailsOverToTheNextIssuerDidWhenTheFirstIsUnreachable() {
+        givenUnreachableIssuer(UNREACHABLE_ISSUER_DID);
+        givenReachableIssuer(REACHABLE_ISSUER_DID);
+        when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
+                .thenReturn(ServiceResult.success("issuer-pid-1"));
+
+        StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .addIssuerDids(UNREACHABLE_ISSUER_DID)
+                .addIssuerDids(REACHABLE_ISSUER_DID)
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        service.requestCredential(request, observer);
+
+        verify(credentialRequestManager).initiateRequest(eq("ctx-1"), eq(REACHABLE_ISSUER_DID), eq("holder-pid-1"), any());
+        verify(observer).onNext(any());
+        verify(observer, never()).onError(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void requestCredentialFailsWithoutCreatingAnyRequestWhenNoCandidateIsReachable() {
+        givenUnreachableIssuer(UNREACHABLE_ISSUER_DID);
+
+        StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .addIssuerDids(UNREACHABLE_ISSUER_DID)
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        service.requestCredential(request, observer);
+
+        verify(observer).onError(any(StatusRuntimeException.class));
+        verify(credentialRequestManager, never()).initiateRequest(any(), any(), any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void requestCredentialFailsWithoutCreatingAnyRequestWhenTheCandidateSetIsEmpty() {
+        StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        service.requestCredential(request, observer);
+
+        verify(observer).onError(any(StatusRuntimeException.class));
+        verify(credentialRequestManager, never()).initiateRequest(any(), any(), any(), any());
     }
 
     @Test

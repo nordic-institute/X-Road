@@ -53,10 +53,13 @@ xroad:
       # SqlContractNegotiationStoreExtension is excluded so XRoadContractNegotiationStoreExtension is the
       # sole ContractNegotiationStore provider; its jar stays on the classpath (via ds-control-plane-db) so
       # the delegate store class, dialect statements and schema DDL remain usable.
+      # TrustedIssuerConfigurationExtension is excluded so XRoadIssuerTrustAnchorExtension is the sole
+      # populator of the TrustedIssuerRegistry, from the distributed globalconf issuer-DID set.
       excluded-service-extensions: >-
         org.eclipse.edc.signaling.DataPlaneSignalingApiExtension,
         org.eclipse.edc.web.jetty.JettyExtension,
-        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension
+        org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.SqlContractNegotiationStoreExtension,
+        org.eclipse.edc.iam.decentralizedclaims.issuer.configuration.TrustedIssuerConfigurationExtension
   ds:
     rpc:
       host: "0.0.0.0"
@@ -124,14 +127,6 @@ edc:
   iam:
     issuer:
       id: "did:web:${HOSTNAME:localhost}%3A7183"
-    # trusted-issuer.issuer.id is declared here so the key is part of the property names
-    # QuarkusConfigBridge snapshots — an env var cannot introduce a hyphenated key on its own. The value
-    # comes from the X-Road key (EdcConfigKeys.TRUSTED_ISSUER_ID), which resolves from a stored override,
-    # an env var or conf.d. No fallback on purpose: an unset value fails startup naming both properties,
-    # whereas an empty DID would register a trusted issuer that rejects every credential.
-    trusted-issuer:
-      issuer:
-        id: ${xroad.edc.iam.trusted-issuer.issuer.id}
     dcp:
       scopes:
         membership:

@@ -55,6 +55,7 @@ public final class DspConfigKeys implements ConfigKeyProvider {
     private static final Prefix DSP = Prefix.of(Category.COMMON, "xroad.dsp");
     private static final Prefix CATALOG_CACHE = DSP.subPrefix("catalog").subPrefix("cache");
     private static final Prefix BUILTIN_SERVICES = DSP.subPrefix("builtin-services");
+    private static final Prefix ISSUER_TRUST = DSP.subPrefix("issuer-trust");
 
     private static final DspConfigKeys INSTANCE = new DspConfigKeys();
 
@@ -125,6 +126,14 @@ public final class DspConfigKeys implements ConfigKeyProvider {
             .string("server-proxy-url")
             .withDefaultValue("http://localhost:5500/")
             .withValidator(nonEmpty())
+            .publishedToFramework()
+            .build();
+
+    /** {@code xroad.dsp.issuer-trust.refresh-interval-seconds}. */
+    public static final ConfigKey<Long> ISSUER_TRUST_REFRESH_INTERVAL_SECONDS = ISSUER_TRUST
+            .longValue("refresh-interval-seconds")
+            .withDefaultValue(60L)
+            .withValidator(positiveLong())
             .publishedToFramework()
             .build();
 

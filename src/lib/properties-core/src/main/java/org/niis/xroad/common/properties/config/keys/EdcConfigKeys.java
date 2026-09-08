@@ -35,32 +35,16 @@ import org.niis.xroad.common.properties.config.Prefix;
 import java.util.Set;
 
 /**
- * X-Road owned inputs to EDC settings ({@code xroad.edc.*}).
- *
- * <p>An EDC setting is read by the EDC runtime itself, through {@code QuarkusConfigBridge}. Rather than
- * configuring such a setting per deployment as a file, the packaged {@code application.yaml} of the
- * runtime interpolates the X-Road key declared here — {@code edc.iam.trusted-issuer.issuer.id:
- * ${xroad.edc.iam.trusted-issuer.issuer.id}} — so the value can arrive by any means the DSL supports
- * (a stored override, an env var, {@code conf.d}) while the EDC key itself stays declared by the
- * packaged yaml, which is what makes it visible to the bridge's snapshot of property names.
+ * X-Road owned inputs to EDC settings ({@code xroad.edc.*}) that a packaged {@code application.yaml}
+ * interpolates into a setting the EDC runtime reads itself through {@code QuarkusConfigBridge}, so the
+ * value can arrive by any means the DSL supports (a stored override, an env var, {@code conf.d}) while
+ * the EDC key itself stays declared by the packaged yaml.
  */
 public final class EdcConfigKeys implements ConfigKeyProvider {
 
     private static final Prefix EDC = Prefix.of(Category.COMMON, "xroad.edc");
-    private static final Prefix TRUSTED_ISSUER = EDC.subPrefix("iam").subPrefix("trusted-issuer").subPrefix("issuer");
 
     private static final EdcConfigKeys INSTANCE = new EdcConfigKeys();
-
-    /**
-     * {@code xroad.edc.iam.trusted-issuer.issuer.id} — DID of the issuer whose membership credentials this
-     * Security Server trusts. Deliberately without a default: a wrong DID silently fails every credential
-     * check, so an unset value must surface as a startup error naming the property rather than as a
-     * trusted issuer nobody configured.
-     */
-    public static final ConfigKey<String> TRUSTED_ISSUER_ID = TRUSTED_ISSUER
-            .string("id")
-            .publishedToFramework()
-            .build();
 
     private EdcConfigKeys() {
     }

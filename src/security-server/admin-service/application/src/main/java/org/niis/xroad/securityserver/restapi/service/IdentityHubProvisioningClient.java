@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -42,11 +43,12 @@ public interface IdentityHubProvisioningClient {
                                   String credentialServiceUrl, String keyId, String privateKeyAlias);
 
     /**
-     * Submits a membership credential request for the given participant and holder request id.
+     * Submits a membership credential request for the given participant and holder request id, targeting
+     * whichever DID in {@code issuerDids} the identity hub resolves to a reachable issuer at request time.
      *
      * @return the created request id
      */
-    String requestMembershipCredential(String participantContextId, String issuerDid, String holderPid,
+    String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,
                                        String credentialDefinitionId, String credentialType, String format);
 
     /**
