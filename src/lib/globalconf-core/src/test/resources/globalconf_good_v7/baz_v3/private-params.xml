@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
     <instanceIdentifier>baz_v3</instanceIdentifier>
     <configurationAnchor>
-        <instanceIdentifier>baz</instanceIdentifier>
+        <instanceIdentifier>bar</instanceIdentifier>
         <source>
             <downloadURL>http://www.bar.com/conf</downloadURL>
             <verificationCert>YmFyCg==</verificationCert>
