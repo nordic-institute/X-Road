@@ -81,7 +81,10 @@ fi
 MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
 
 # Scripts shared with the native packages, kept out of the sidecar build context
-SHARED_SCRIPT_BUILD_ARGS=(--build-context "secret-store-scripts=$dir/../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts")
+SHARED_SCRIPT_BUILD_ARGS=(
+  --build-context "secret-store-scripts=$dir/../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts"
+  --build-context "auxiliary-service-scripts=$dir/../deployment/native-packages/src/xroad/common/auxiliary-service/usr/share/xroad/scripts"
+)
 
 # Add Docker Hub mirror build arg if configured
 if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then

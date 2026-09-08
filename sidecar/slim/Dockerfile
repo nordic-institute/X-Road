@@ -130,6 +130,11 @@ COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --from=secret-store-scripts --chown=root:root _openbao.sh /usr/share/xroad/scripts/sidecar/
+# db_property.sh (xroad-base) sources this helper, but the helper itself is packaged in
+# xroad-auxiliary-service, which the slim image does not install. The full image does, and
+# ships the very same file from this tree to the very same path, so the package copy simply
+# replaces this one there.
+COPY --from=auxiliary-service-scripts --chown=root:root read_db_properties.sh /usr/share/xroad/scripts/
 COPY --chown=root:root files/secret-store-init.sh files/xroad-secret-store-gate.sh files/dsp-config-seed.sh files/signer-autologin-config-seed.sh /usr/share/xroad/scripts/sidecar/
 RUN chmod 0755 /usr/share/xroad/scripts/sidecar/*.sh
 

@@ -2,12 +2,14 @@
 # Manage rows in the X-Road configuration_properties table.
 #
 # Usage:
-#   db_property.sh set    <key> <value> [--yes|-y]
+#   db_property.sh set    <key> <value> [--yes|-y] [--if-absent]
 #   db_property.sh remove <key>         [--yes|-y]
 #
 # Rows are keyed by property_key alone. Every process reads every row: the former per-application
 # `scope` column was dropped once the config source stopped filtering by it.
 # For `set`, an existing row triggers an overwrite prompt unless --yes is given.
+# For `set --if-absent`, an existing row is left untouched and the command succeeds without
+# prompting; the value is inserted only when the key has no row yet.
 # For `remove`, an existing row triggers a delete prompt unless --yes is given;
 # if no matching row exists, the command is a no-op success.
 
@@ -24,7 +26,7 @@ usage() {
 Usage: $(basename "$0") <command> [options]
 
 Commands:
-  set    <key> <value> [--yes|-y]
+  set    <key> <value> [--yes|-y] [--if-absent]
          Insert or update a row in configuration_properties.
 
   remove <key>         [--yes|-y]
@@ -34,23 +36,29 @@ Common options:
   -y, --yes   Skip interactive confirmation prompt
   -h, --help  Show this help
 
+Options for set:
+      --if-absent  Insert only when the key has no row yet; an existing row is
+                   left untouched and the command succeeds. Never prompts.
+
 Rows are keyed by property_key alone; there is no per-application scope.
 EOF
   exit 64
 }
 
-# Splits "$@" into ASSUME_YES (flag) and POS (positional args).
-# Subcommand callers validate POS arity themselves.
+# Splits "$@" into ASSUME_YES / IF_ABSENT (flags) and POS (positional args).
+# Subcommand callers validate POS arity themselves, and reject flags they do not support.
 parse_args() {
   ASSUME_YES=0
+  IF_ABSENT=0
   declare -ga POS=()
   while (($#)); do
     case "$1" in
-      -y|--yes)  ASSUME_YES=1 ;;
-      -h|--help) usage ;;
-      --)        shift; POS+=("$@"); break ;;
-      -*)        die "Unknown option: $1" ;;
-      *)         POS+=("$1") ;;
+      -y|--yes)    ASSUME_YES=1 ;;
+      --if-absent) IF_ABSENT=1 ;;
+      -h|--help)   usage ;;
+      --)          shift; POS+=("$@"); break ;;
+      -*)          die "Unknown option: $1" ;;
+      *)           POS+=("$1") ;;
     esac
     shift
   done
@@ -120,15 +128,23 @@ cmd_set() {
 
   load_db_properties
 
-  if [[ -n "$(row_exists)" && "$ASSUME_YES" -ne 1 ]]; then
+  if (( IF_ABSENT == 1 )); then
+    if [[ -n "$(row_exists)" ]]; then
+      log "Already present, left as-is: ${KEY}"
+      exit 0
+    fi
+  elif [[ -n "$(row_exists)" && "$ASSUME_YES" -ne 1 ]]; then
     confirm "Property '${KEY}' already exists. Overwrite?"
   fi
 
-  psql_q -v k="$KEY" -v v="$VALUE" <<'SQL'
+  local conflict_action="DO UPDATE SET property_value = EXCLUDED.property_value"
+  (( IF_ABSENT == 1 )) && conflict_action="DO NOTHING"
+
+  psql_q -v k="$KEY" -v v="$VALUE" <<SQL
 INSERT INTO configuration_properties (property_key, property_value)
 VALUES (:'k', :'v')
 ON CONFLICT (property_key)
-DO UPDATE SET property_value = EXCLUDED.property_value;
+${conflict_action};
 SQL
 
   log "Set: ${KEY}"
@@ -136,6 +152,7 @@ SQL
 
 cmd_remove() {
   parse_args "$@"
+  (( IF_ABSENT == 1 )) && die "--if-absent applies to 'set' only"
   (( ${#POS[@]} == 2 )) && reject_scope_argument "${POS[1]}"
   (( ${#POS[@]} == 1 )) || usage
   KEY="${POS[0]}"

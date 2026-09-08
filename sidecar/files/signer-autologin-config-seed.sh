@@ -18,12 +18,13 @@
 # Contract:
 #   in  - XROAD_SIGNER_AUTOLOGIN_ENABLED (operator opt-in; unset/empty = skip
 #         entirely, no row written, packaged default "false" stays in effect)
-#         /etc/xroad/db.properties (serverconf connection info, written by
-#         xroad-proxy's setup_serverconf_db.sh before this script runs)
 #   out - a xroad.signer.autologin.enabled row in serverconf's
 #         configuration_properties table, inserted only if the row is
 #         absent; an existing row (operator-set, or seeded on an earlier
-#         boot) is left untouched.
+#         boot) is left untouched. The row write and the serverconf
+#         connection details both come from the packaged
+#         /usr/share/xroad/scripts/db_property.sh, whose --if-absent mode
+#         provides the never-overwrite semantics.
 #
 #############################################################################
 set -euo pipefail
@@ -34,7 +35,6 @@ if [ -z "${XROAD_SIGNER_AUTOLOGIN_ENABLED:-}" ]; then
   exit 0
 fi
 
-DB_PROPERTIES=/etc/xroad/db.properties
 KEY="xroad.signer.autologin.enabled"
 
 case "$(echo "$XROAD_SIGNER_AUTOLOGIN_ENABLED" | tr '[:upper:]' '[:lower:]')" in
@@ -46,45 +46,5 @@ false) value=false ;;
   ;;
 esac
 
-get_db_prop() { crudini --get "$DB_PROPERTIES" '' "$1" 2>/dev/null || echo -n "$2"; }
-
-db_conn_user=$(get_db_prop xroad.db.serverconf.hibernate.connection.username serverconf)
-db_user="${db_conn_user%%@*}"
-db_schema=$(get_db_prop xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema "${db_user},public")
-db_schema="${db_schema%%,*}"
-db_password=$(get_db_prop xroad.db.serverconf.hibernate.connection.password "")
-db_url=$(get_db_prop xroad.db.serverconf.hibernate.connection.url "jdbc:postgresql://127.0.0.1:5432/serverconf")
-db_database=serverconf
-
-pat='^jdbc:postgresql://([^/]*)($|/([^?]*)(.*)$)'
-db_host="127.0.0.1:5432"
-if [[ "$db_url" =~ $pat ]]; then
-  db_host="${BASH_REMATCH[1]:-$db_host}"
-  db_database="${BASH_REMATCH[3]:-serverconf}"
-fi
-IFS=',' read -ra hosts <<<"$db_host"
-db_addr="${hosts[0]%%:*}"
-db_port="${hosts[0]##*:}"
-
-export PGPASSWORD="$db_password"
-export PGOPTIONS="-c client-min-messages=warning -c search_path=${db_schema},public"
-
-psql_serverconf() {
-  psql -h "$db_addr" -p "$db_port" -U "$db_user" -d "$db_database" -v ON_ERROR_STOP=1 -qtA "$@"
-}
-
-existing=$(psql_serverconf -v k="$KEY" <<'SQL'
-SELECT 1 FROM configuration_properties WHERE property_key = :'k' LIMIT 1;
-SQL
-)
-if [[ -n "$existing" ]]; then
-  log "${KEY} already configured, leaving it as-is"
-  exit 0
-fi
-
-log "Seeding ${KEY} = ${value}"
-psql_serverconf -v k="$KEY" -v v="$value" <<'SQL'
-INSERT INTO configuration_properties (property_key, property_value)
-VALUES (:'k', :'v')
-ON CONFLICT (property_key) DO NOTHING;
-SQL
+log "Seeding ${KEY} = ${value} unless the row already exists"
+exec /usr/share/xroad/scripts/db_property.sh set "$KEY" "$value" --if-absent
