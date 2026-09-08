@@ -1,0 +1,35 @@
+{{- /*
+Stream config for the ds-gateway sidecar (proxy pod): serves the DSP surface on the
+GlobalConf-registered address. Counterparties derive this server's DID resolution
+(7183) and DSP (8183) endpoints from that one address (XRDADR-41), but in k8s the
+backends are separate namespace-scoped Services — the sidecar forwards per port.
+TLS passes through; the ds-* pods terminate it.
+*/}}
+{{- if .Values.dsp.participantContextId }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-ds-gateway-config
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    worker_processes 1;
+    pid /tmp/nginx.pid;
+    error_log /dev/stderr warn;
+
+    events {
+        worker_connections 1024;
+    }
+
+    stream {
+        server {
+            listen 7183;
+            proxy_pass ds-identity-hub:7183;
+        }
+        server {
+            listen 8183;
+            proxy_pass ds-control-plane:8183;
+        }
+    }
+{{- end }}

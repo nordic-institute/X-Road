@@ -64,6 +64,11 @@ spec:
       targetPort: {{ .config.debugPort }}
       name: debug
     {{- end }}
+    {{- range .config.extraServicePorts }}
+    - port: {{ .port }}
+      targetPort: {{ .targetPort | default .port }}
+      name: {{ .name }}
+    {{- end }}
   selector:
     app: xroad-{{ .service }}
 {{- end }}
@@ -211,6 +216,9 @@ spec:
             successThreshold: 1
             failureThreshold: {{ .config.livenessProbe.failureThreshold | default 3 }}
           {{- end }}
+        {{- with .config.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
 
       volumes:
         - name: tmp-volume

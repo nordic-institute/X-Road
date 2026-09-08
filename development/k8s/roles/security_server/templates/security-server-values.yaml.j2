@@ -3,10 +3,11 @@
    and the fixtures' hurl bootstrap provisions each release's DS TLS certificate
    through the admin API (the ds-* pods wait at startup for the slot until then). #}
 {% set ds_tls = e2e_fixtures_enabled | default(false) | bool %}
-{# Advertised DS hostnames. In k8s the ds-* services are separate, namespace-scoped Services, so
-   each is addressed on its own namespace-qualified name — the same rule the rest of this
-   topology follows, and the names the provisioned DS TLS cert's SAN list carries. #}
-{% set ds_cp_host = 'ds-control-plane.' ~ security_server_namespace %}
+{# DS hostnames. The externally advertised DSP surface (DID resolution 7183, DSP 8183)
+   lives on the GlobalConf-registered address — the proxy Service — per XRDADR-41:
+   counterparties derive it from that one address. An nginx sidecar in the proxy pod
+   forwards those ports to the ds-* Services. ds_ih_host remains the internal
+   reach-the-hub URL for the admin-service provisioning client. #}
 {% set ds_ih_host = 'ds-identity-hub.' ~ security_server_namespace %}
 {% set ds_serverproxy_host = 'proxy.' ~ security_server_namespace %}
 {% set ds_participant_id = dsp_participant_context_id %}
@@ -148,6 +149,45 @@ services:
   op-monitor:
     enabled: true
 
+{% if ds_tls %}
+  # The GlobalConf-registered address is the proxy Service, so the DSP surface
+  # counterparties derive from it (7183 DID resolution, 8183 DSP) must be served
+  # there too: an nginx stream sidecar in the proxy pod forwards those ports to
+  # the ds-* Services (config: the chart's ds-gateway ConfigMap).
+  proxy:
+    extraServicePorts:
+      - port: 7183
+        name: ds-did
+      - port: 8183
+        name: dsp
+    extraContainers:
+      - name: ds-gateway
+        image: nginxinc/nginx-unprivileged:stable-alpine
+        securityContext:
+          runAsNonRoot: true
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        ports:
+          - containerPort: 7183
+            name: ds-did
+          - containerPort: 8183
+            name: dsp
+        volumeMounts:
+          - name: tmp-volume
+            mountPath: /tmp
+          - name: ds-gateway-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
+    volumes:
+      - name: ds-gateway-config
+        configMap:
+          name: ds-gateway-config
+{% endif %}
+
   # DSP services — bump replicas from chart default of 0. DB clusters are
   # provisioned by the cloudnative_pg role (see ds_*_db vars). OpenBao TLS
   # trust is the chart's secretStore.tls knob (set once, above), not
@@ -178,11 +218,11 @@ services:
       # application.yaml. The participant context id itself rides the chart's
       # dsp.participantContextId knob (set below), not a per-service env entry here.
       XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
-      EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_cp_host }}:8183/api/dsp/%s"
+      EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_serverproxy_host }}:8183/api/dsp/%s"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
 {% if svc == 'ds-identity-hub' %}
-      EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ds_ih_host }}"
+      EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ds_serverproxy_host }}"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
 {% endif %}
