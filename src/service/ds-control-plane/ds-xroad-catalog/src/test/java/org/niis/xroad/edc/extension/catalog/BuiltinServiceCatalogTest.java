@@ -36,13 +36,13 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_ALLOWED_METHODS_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_GET_OPEN_API_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_GET_WSDL_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_LIST_METHODS_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.OP_MONITOR_HEALTH_DATA_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.META_ALLOWED_METHODS_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.META_GET_OPEN_API_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.META_GET_WSDL_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.META_LIST_METHODS_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.OP_MONITOR_HEALTH_DATA_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE;
+import static org.niis.xroad.ds.identity.BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
 @ExtendWith(MockitoExtension.class)
 class BuiltinServiceCatalogTest {
