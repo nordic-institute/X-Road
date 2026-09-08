@@ -537,7 +537,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 .pollInterval(REGISTRATION_POLL_INTERVAL)
                 .timeout(REGISTRATION_POLL_TIMEOUT)
                 .untilAsserted(() -> {
-                    approvePendingRegistrationIfPresent(csBaseUrl, cs);
+                    approvePendingRegistrationIfPresent(csBaseUrl, cs, clientId);
                     var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId);
                     assertThat(response.getStatusCode()).as("GET /clients/%s", clientId).isEqualTo(200);
                     assertThat(response.jsonPath().getString("status"))
@@ -547,20 +547,23 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Approves the most recent WAITING client registration request if one is present. An empty list
-     * means either the environment auto-approved it or it has not surfaced yet; both are handled by
-     * the surrounding registration-status poll, so this returns quietly rather than asserting.
+     * Approves this test's own WAITING client registration request if one is present — matched by
+     * request type and the client's encoded id, so a warm shared environment's unrelated pending
+     * requests are never touched. No match means either the environment auto-approved it or it has
+     * not surfaced yet; both are handled by the surrounding registration-status poll, so this
+     * returns quietly rather than asserting.
      */
-    private void approvePendingRegistrationIfPresent(String csBaseUrl, AdminSession cs) {
+    private void approvePendingRegistrationIfPresent(String csBaseUrl, AdminSession cs, String clientId) {
         var response = authed(cs).get(csBaseUrl + "/api/v1/management-requests?sort=id&desc=true&status=WAITING");
         assertThat(response.getStatusCode()).as("list WAITING management requests").isEqualTo(200);
 
-        List<Object> items = response.jsonPath().getList("items");
-        if (items.isEmpty()) {
+        Integer requestId = response.jsonPath().get(
+                "items.find { it.type == 'CLIENT_REGISTRATION_REQUEST' && it.client_id?.encoded_id == '%s' }?.id"
+                        .formatted(clientId));
+        if (requestId == null) {
             return;
         }
 
-        var requestId = response.jsonPath().getInt("items[0].id");
         var approval = authed(cs).post(csBaseUrl + "/api/v1/management-requests/" + requestId + "/approval");
         assertThat(approval.getStatusCode())
                 .as("approve client registration request %s (409 if a prior tick already approved it)", requestId)
