@@ -129,7 +129,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public String execMessagelogSql(String envName, String sql) {
-        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
             return sidecar.execMessagelogSql(sql);
         }
         var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
@@ -143,7 +144,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public void triggerMessageLogCommand(String envName, String command) {
-        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
             sidecar.triggerMessageLogCommand(command);
             return;
         }
@@ -160,7 +162,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public void downloadMessageLogArchives(String envName, String localDir) {
-        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
             sidecar.downloadMessageLogArchives(localDir);
             return;
         }
@@ -170,7 +173,8 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public int decryptArchives(String envName, String filePrefix, String keyId, String passphrase, String outputDir) {
-        if (sidecarSs0(envName) instanceof SidecarSsStackSetup sidecar) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
             return sidecar.decryptArchives(filePrefix, keyId, passphrase, outputDir);
         }
         var keyFile = "/gpg-keys/%s.asc".formatted(keyId);

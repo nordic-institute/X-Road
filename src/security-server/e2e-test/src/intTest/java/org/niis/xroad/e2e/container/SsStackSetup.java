@@ -30,9 +30,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 
-import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -190,14 +188,6 @@ public class SsStackSetup extends AbstractSsStack {
         var container = env.getContainerByServiceName(OPENBAO).orElseThrow();
         container.execInContainer("bao", "write", "xrd-secret/" + MLOG_ARCHIVAL_PGP_PUBLIC_KEYS_PATH,
                 "payload=@/gpg-keys/public-keys.asc");
-    }
-
-    private Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
-        return createLogConsumer("%s-%s".formatted(envName, containerName));
-    }
-
-    private File composeFile(String fileName) {
-        return new File(coreProperties.resourceDir() + fileName);
     }
 
     /**

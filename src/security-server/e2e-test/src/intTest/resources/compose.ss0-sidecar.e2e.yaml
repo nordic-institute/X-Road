@@ -8,10 +8,11 @@ services:
       # The admin-service's data space participant-context provisioning worker needs these on every
       # scheduled tick, not only for DSP-specific scenarios: identity-hub-url/participant-id have no
       # built-in default, so leaving them unset fails every tick with a NullPointerException instead
-      # of just leaving data space credentials unprovisioned. Values mirror what compose.e2e.yaml
-      # seeds for the multi-container ss0/ss1 stacks.
-      - XROAD_DATASPACE_IDENTITY_HUB_URL=https://ss0-ds-identity-hub:7183
-      - XROAD_DATASPACE_PARTICIPANT_ID=xrd-ss0
+      # of just leaving data space credentials unprovisioned. The identity-hub URL points at the
+      # identity hub's DID resolution port (7183), which in the sidecar is served by this container
+      # under its own ds-identity-hub network alias.
+      - XROAD_DATASPACE_IDENTITY_HUB_URL=https://${SS_NAME:-ss0}-ds-identity-hub:7183
+      - XROAD_DATASPACE_PARTICIPANT_ID=xrd-${SS_NAME:-ss0}
       - XROAD_DATASPACE_ISSUER_DID=did:web:cs%3A6183:issuer
       # xroad-ds-control-plane's own trusted-issuer check (its packaged application.yaml requires
       # xroad.edc.iam.trusted-issuer.issuer.id with no fallback) otherwise falls back to the sidecar
@@ -22,7 +23,7 @@ services:
       # e.g. the management Security Server registering its own clients) from this address. Without
       # it, it falls back to the container's own auto-assigned Docker hostname, which is not in the
       # provisioned DS TLS certificate's SAN list, so the callback's TLS handshake fails.
-      - EDC_DSP_CALLBACK_ADDRESS=https://ss0-ds-control-plane:8183/api/dsp/%s
+      - EDC_DSP_CALLBACK_ADDRESS=https://${SS_NAME:-ss0}-ds-control-plane:8183/api/dsp/%s
     volumes:
       - ./container-files/etc/xroad/entrypoint.d:/etc/xroad/entrypoint.d:ro
     deploy:

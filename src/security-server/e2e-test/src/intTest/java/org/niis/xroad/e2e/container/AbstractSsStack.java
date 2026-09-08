@@ -27,6 +27,9 @@ package org.niis.xroad.e2e.container;
 
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+
+import java.io.File;
 
 /**
  * Common base for the two stack shapes a single ss0/ss1 slot in {@link E2eEnvSetup} can boot: the
@@ -44,4 +47,12 @@ public abstract class AbstractSsStack extends BaseComposeSetup {
      * Blocks until this stack's proxy reports readiness, including OCSP status for the auth key.
      */
     public abstract void awaitProxyReadiness();
+
+    protected Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
+        return createLogConsumer("%s-%s".formatted(envName, containerName));
+    }
+
+    protected File composeFile(String fileName) {
+        return new File(coreProperties.resourceDir() + fileName);
+    }
 }

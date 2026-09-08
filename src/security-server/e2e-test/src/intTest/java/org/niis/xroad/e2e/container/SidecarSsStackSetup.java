@@ -32,10 +32,7 @@ import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.ExecConfig;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.utility.MountableFile;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -53,8 +50,8 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
  * stacks (embedded PostgreSQL, embedded OpenBao, every service under supervisord). Selected for ss0
  * by {@code test-framework.ss0-stack=sidecar}; its compose file joins the shared {@code xroad-network}
  * with every alias the multi-container stack exports for that instance (UI, proxy, {@code xrd-<name>})
- * declared statically at container creation, so hurl and the test suite run unmodified against either
- * shape from the moment the container exists, without waiting on the sidecar's slower cold start.
+ * declared statically at container creation, so every alias resolves from the moment the container
+ * exists rather than only once the sidecar's slower cold start finishes.
  */
 @Slf4j
 @SuppressWarnings("checkstyle:magicnumber")
@@ -78,9 +75,7 @@ public class SidecarSsStackSetup extends AbstractSsStack {
     /**
      * The sidecar's measured cold start is around three minutes (embedded PostgreSQL and OpenBao
      * bootstrap plus every packaged service starting under supervisord, the dataspace control plane
-     * alone taking over two), and a single early control-plane restart under load has been observed;
-     * this leaves generous headroom above that instead of reusing the multi-container stack's
-     * five-minute budget.
+     * alone taking over two); this leaves generous headroom above that.
      */
     private static final Duration READINESS_TIMEOUT = Duration.ofMinutes(10);
     private static final Duration READINESS_POLL_INTERVAL = Duration.ofSeconds(5);
@@ -110,6 +105,15 @@ public class SidecarSsStackSetup extends AbstractSsStack {
                 .withExposedService(SIDECAR, SsStackSetup.Port.UI,
                         forListeningPort().withStartupTimeout(PORT_WAIT_TIMEOUT))
                 .withLogConsumer(SIDECAR, createLogConsumer(name, SIDECAR));
+    }
+
+    /**
+     * The packaged services log to files under supervisord rather than to the container's stdout, so
+     * their logs reach a failed run's CI artifacts only by being copied out before teardown.
+     */
+    @Override
+    protected void onPreStop() {
+        copyXRoadLogsFromContainer(SIDECAR, "%s-%s".formatted(name, SIDECAR));
     }
 
     /**
@@ -192,56 +196,12 @@ public class SidecarSsStackSetup extends AbstractSsStack {
     }
 
     /**
-     * Decrypts every archive file under the sidecar's message log archive directory whose name starts
-     * with {@code filePrefix}, following the same steps as {@link org.niis.xroad.e2e.LxdEnvSetup}. Message
-     * log encryption is an ss1-only feature, so on ss0 no file ever matches {@code filePrefix*.gpg} and
-     * this returns 0 with an empty tarball — the unencrypted path the interface still has to satisfy.
+     * The sidecar stack is only ever selected for ss0, and message log encryption is enabled on ss1
+     * alone, so no scenario reaches this. The signature stays to keep the {@code MessagelogArchiveOps}
+     * contract {@link E2eEnvSetup} routes here satisfied.
      */
-    @SneakyThrows
     public int decryptArchives(String filePrefix, String keyId, String passphrase, String outputDir) {
-        var keyFile = Path.of(coreProperties.resourceDir() + "gpg_keys/" + keyId + ".asc");
-        var workDir = "/tmp/decrypt-" + UUID.randomUUID();
-        var gnupgHome = workDir + "/gnupg";
-        var decryptedDir = workDir + "/out";
-        var keyFileInContainer = workDir + "/key.asc";
-
-        try {
-            var listResult = execChecked("find", ARCHIVE_DIR, "-maxdepth", "1", "-type", "f", "-name", filePrefix + "*.gpg");
-            var remoteFiles = listResult.getStdout().lines().filter(line -> !line.isBlank()).toList();
-
-            execChecked("mkdir", "-p", "-m", "700", gnupgHome);
-            execChecked("mkdir", "-p", decryptedDir);
-            containerState().copyFileToContainer(MountableFile.forHostPath(keyFile), keyFileInContainer);
-            execChecked("gpg", "--homedir", gnupgHome, "--batch", "--yes", "--import", keyFileInContainer);
-
-            for (var remoteFile : remoteFiles) {
-                decryptOne(gnupgHome, remoteFile, passphrase, decryptedDir);
-            }
-
-            downloadTarball("cd %s && tar czf %s .", decryptedDir, outputDir);
-            return remoteFiles.size();
-        } finally {
-            exec("rm", "-rf", workDir);
-        }
-    }
-
-    /**
-     * Decrypts a single archive in place; gpg's exit code cannot be trusted (these fixtures are signed by
-     * a key the recipient keyring doesn't hold), so success is judged by the output file existing and
-     * being non-empty, matching {@link org.niis.xroad.e2e.LxdEnvSetup}.
-     */
-    private void decryptOne(String gnupgHome, String remoteFile, String passphrase, String decryptedDir) {
-        var outFileName = remoteFile.substring(remoteFile.lastIndexOf('/') + 1).replaceFirst("\\.gpg$", "");
-        var outPath = decryptedDir + "/" + outFileName;
-
-        var decryptResult = exec("gpg", "--homedir", gnupgHome, "--batch", "--no-tty", "--pinentry-mode", "loopback",
-                "--passphrase", passphrase, "--output", outPath, "--decrypt", remoteFile);
-        var sizeCheck = exec("test", "-s", outPath);
-        if (sizeCheck.getExitCode() != 0) {
-            log.warn("Decryption of {} in sidecar {} did not produce output (gpg exit {}): {}",
-                    remoteFile, name, decryptResult.getExitCode(), decryptResult.getStderr());
-            exec("rm", "-f", outPath);
-        }
+        throw new UnsupportedOperationException("message log encryption is an ss1-only feature");
     }
 
     @SneakyThrows
@@ -299,13 +259,5 @@ public class SidecarSsStackSetup extends AbstractSsStack {
 
     private ContainerState containerState() {
         return env.getContainerByServiceName(SIDECAR).orElseThrow();
-    }
-
-    private Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
-        return createLogConsumer("%s-%s".formatted(envName, containerName));
-    }
-
-    private File composeFile(String fileName) {
-        return new File(coreProperties.resourceDir() + fileName);
     }
 }

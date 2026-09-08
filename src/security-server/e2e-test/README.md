@@ -33,9 +33,9 @@ To run a single test class or method directly:
 
 ### ss0 as a sidecar container
 
-Compose mode also has a per-instance stack switch, `-Pe2e.ss0-stack`, that swaps ss0 (only ss0; ss1,
-the Central Server stack and hurl are unaffected) from today's per-service stack to one full sidecar
-container (embedded PostgreSQL, embedded OpenBao, every service under supervisord):
+Compose mode also has an ss0-only stack switch, `-Pe2e.ss0-stack`, that swaps ss0 (ss1, the Central
+Server stack and hurl are unaffected) from today's per-service stack to one full sidecar container
+(embedded PostgreSQL, embedded OpenBao, every service under supervisord):
 
 | `-Pe2e.ss0-stack` | ss0 shape |
 |--------------------|-----------|
@@ -55,17 +55,24 @@ cd core/sidecar
 This produces the local images `xroad-security-server-sidecar:8.0.0-slim` and
 `xroad-security-server-sidecar:8.0.0`. The harness resolves the sidecar image the same way it
 resolves every other service image — through the generated `.env` (`SIDECAR_IMG`, tagged
-`<xroadImageRegistry>/xroad-security-server-sidecar:<xroadImageTag>`) — so push the locally built
-image to the local registry under that reference before running the suite:
+`<registry>/xroad-security-server-sidecar:<tag>`) — so tag the locally built image under that
+reference before running the suite:
 
 ```bash
-docker tag xroad-security-server-sidecar:8.0.0 localhost:5555/xroad-security-server-sidecar:8.0.0-beta2-SNAPSHOT
-docker push localhost:5555/xroad-security-server-sidecar:8.0.0-beta2-SNAPSHOT
+# <registry> = core/src/gradle.properties' xroadImageRegistry (localhost:5555)
+# <tag>      = its xroadVersion and xroadBuildType joined with a dash (just xroadVersion when
+#              xroadBuildType is RELEASE), unless -PxroadImageTag overrides it
+docker tag xroad-security-server-sidecar:8.0.0 <registry>/xroad-security-server-sidecar:<tag>
 ```
 
-(`localhost:5555` and `8.0.0-beta2-SNAPSHOT` are `core/src/gradle.properties`'
-`xroadImageRegistry`/default `xroadImageTag`; `core/scripts/build-images.sh` starts the `xrd-registry`
-container if it is not already running.) Then run the suite with the variant selected:
+Unlike the other e2e services, the sidecar service declares no `pull_policy`, so Compose never
+contacts the registry for it: whichever local image already carries that tag wins, however stale,
+and a run against an outdated sidecar reads as a genuine result. Re-tag from a fresh build — or
+`docker pull` the reference — before every local run. The `xrd-registry` container still has to be
+up for the rest of the stack, whose services do pull; `core/scripts/build-images.sh` starts it if it
+is not already running.
+
+Then run the suite with the variant selected:
 
 ```bash
 cd core/src
