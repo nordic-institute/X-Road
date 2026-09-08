@@ -85,7 +85,7 @@ fi
 umask 027
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
-chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
+chmod -R u=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 if [ $1 -gt 1 ] ; then
     # upgrade
