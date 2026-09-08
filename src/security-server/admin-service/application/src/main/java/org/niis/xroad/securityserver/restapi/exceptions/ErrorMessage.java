@@ -194,7 +194,9 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     DUPLICATE_LOCAL_GROUP_CODE(ERROR_DUPLICATE_LOCAL_GROUP_CODE),
     MISSING_MEMBER_ID("missing_member_id"),
 
-    ORPHANS_NOT_FOUND(ERROR_ORPHANS_NOT_FOUND);
+    ORPHANS_NOT_FOUND(ERROR_ORPHANS_NOT_FOUND),
+
+    INVALID_TEST_MAIL_RECIPIENT("invalid_test_mail_recipient");
 
     private final String code;
 

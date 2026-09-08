@@ -27,8 +27,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -44,8 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * Unit tests for {@link XmlUtils}
@@ -68,20 +64,17 @@ public class XmlUtilsTest {
         pw.close();
     }
 
-    @Test
+    @Test(expected = SAXParseException.class)
     public void createDocumentBuilderFactory() throws
             IOException, ParserConfigurationException, SAXException {
         DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
-        try {
-            // Secure parsing throws SAXParseException to prevent injection (depends on DocumentBuilderFactory impl)
-            Document document = dbf.newDocumentBuilder().parse(getXXEFileInjectionDocument());
+        dbf.newDocumentBuilder().parse(getXXEFileInjectionDocument());
+    }
 
-            // If no exception then verify at least that the injection didn't work or else vulnerability was detected
-            NodeList nodeList = document.getElementsByTagName("test");
-            assertNotEquals(testString, nodeList.item(0).getTextContent());
-        } catch (SAXParseException e) {
-            // Parsing was secure
-        }
+    @Test(expected = SAXParseException.class)
+    public void parseDocumentRejectsDoctype() throws
+            IOException, ParserConfigurationException, SAXException {
+        XmlUtils.parseDocument(getXXEFileInjectionDocument());
     }
 
     @Test(expected = SAXParseException.class)

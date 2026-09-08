@@ -108,7 +108,6 @@ public final class AcmeService {
     public static final int ORDER_NOT_AFTER_DAYS = 365;
     @Setter
     private String acmeAccountKeystorePath = SystemProperties.getConfPath() + "ssl/acme.p12";
-    private final String acmeChallengePath = SystemProperties.getConfPath() + "acme-challenge/";
 
     private final AcmeProperties acmeProperties;
     private final MailNotificationProperties mailNotificationProperties;
@@ -329,8 +328,11 @@ public final class AcmeService {
                 Http01Challenge httpChallenge = auth.findChallenge(Http01Challenge.class)
                         .orElseThrow(() -> new AcmeServiceException(HTTP_CHALLENGE_MISSING.build()));
                 String token = httpChallenge.getToken();
+                if (!AcmeConfig.isValidChallengeToken(token)) {
+                    throw new AcmeServiceException(AcmeDeviationMessage.HTTP_CHALLENGE_TOKEN_INVALID.build());
+                }
                 String content = httpChallenge.getAuthorization();
-                String acmeChallenge = acmeChallengePath + token;
+                String acmeChallenge = AcmeConfig.ACME_CHALLENGE_PATH.resolve(token).toString();
                 try {
                     AtomicSave.execute(acmeChallenge, "tmp_challenge",
                             out -> out.write(content.getBytes(StandardCharsets.UTF_8)));

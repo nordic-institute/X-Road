@@ -23,32 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.controller;
+package org.niis.xroad.common.acme;
 
-import org.niis.xroad.common.acme.AcmeConfig;
-import org.niis.xroad.common.exception.BadRequestException;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import ee.ria.xroad.common.SystemProperties;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import lombok.experimental.UtilityClass;
 
-import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
-@RestController
-public class AcmeChallengeController {
+@UtilityClass
+public class AcmeConfig {
 
-    @GetMapping(value = "/.well-known/acme-challenge/{token}")
-    public ResponseEntity<String> getChallenge(@PathVariable("token") String token) throws IOException {
-        if (!AcmeConfig.isValidChallengeToken(token)) {
-            throw new BadRequestException(INVALID_URL.build());
+    private static final Pattern ACME_CHALLENGE_TOKEN_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+$");
+    public static final Path ACME_CHALLENGE_PATH = Paths.get(SystemProperties.getConfPath() + "acme-challenge/");
+
+    /**
+     * Validates an ACME HTTP-01 challenge token received from an (untrusted) ACME server before it is used
+     * to build a file path under {@link #ACME_CHALLENGE_PATH}.
+     * <p>
+     * Rejects anything that is not a plain RFC 8555 base64url token, and, as defense in depth, verifies that
+     * resolving the token under {@link #ACME_CHALLENGE_PATH} does not escape that directory.
+     */
+    public static boolean isValidChallengeToken(String token) {
+        if (token == null || !ACME_CHALLENGE_TOKEN_PATTERN.matcher(token).matches()) {
+            return false;
         }
-        FileSystemResource fileSystemResource = new FileSystemResource(AcmeConfig.ACME_CHALLENGE_PATH.resolve(token));
-        return new ResponseEntity<>(fileSystemResource.getContentAsString(StandardCharsets.UTF_8), HttpStatus.OK);
+        Path normalizedBase = ACME_CHALLENGE_PATH.normalize();
+        Path resolved = normalizedBase.resolve(token).normalize();
+        return resolved.startsWith(normalizedBase);
     }
-
 }
