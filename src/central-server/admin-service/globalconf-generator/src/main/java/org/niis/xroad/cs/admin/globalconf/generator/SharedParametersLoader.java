@@ -45,6 +45,7 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
@@ -72,6 +73,7 @@ class SharedParametersLoader {
     private final CertificationServicesService certificationServicesService;
     private final TimestampingServicesService timestampingServicesService;
     private final DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
+    private final DataspaceIssuerDidService dataspaceIssuerDidService;
     private final ClientService clientService;
     private final SecurityServerService securityServerService;
     private final GlobalGroupService globalGroupService;
@@ -82,7 +84,8 @@ class SharedParametersLoader {
 
     SharedParameters load() {
         return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
-                getApprovedTSAs(), getApprovedDsTlsCas(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
+                getApprovedTSAs(), getApprovedDsTlsCas(), getIssuerDids(), getMembers(), getSecurityServers(), getGlobalGroups(),
+                getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -184,6 +187,10 @@ class SharedParametersLoader {
                     ca.getAcmeServerDirectoryUrl(), null, null, null, ca.getDsTlsCertificateProfileId()));
         }
         return approvedDsTlsCa;
+    }
+
+    private List<String> getIssuerDids() {
+        return dataspaceIssuerDidService.findAll();
     }
 
     private List<SharedParameters.CaInfo> toDsTlsCaInfos(List<DsTlsIntermediateCertificateAuthority> cas) {

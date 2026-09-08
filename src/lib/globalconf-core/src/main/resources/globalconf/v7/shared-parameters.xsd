@@ -161,6 +161,15 @@
                     </documentation>
                 </annotation>
             </element>
+            <element name="dataspaceParameters" type="tns:DataspaceParametersType" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Dataspace-wide parameters published by this X-Road instance. Absent when the instance is not
+                        dataspace-enabled, i.e. no Central Server node of this instance has provisioned a data space
+                        issuer.
+                    </documentation>
+                </annotation>
+            </element>
             <element name="member" type="tns:MemberType" minOccurs="0" maxOccurs="unbounded">
                 <annotation>
                     <documentation>
@@ -287,6 +296,32 @@
                     <documentation>
                         ACME specific certification services settings. Absent when the certificate issued by this CA
                         is obtained and uploaded out-of-band instead of via automated enrollment.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="DataspaceParametersType">
+        <sequence>
+            <element name="issuer" type="tns:DataspaceIssuerType" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        One Central Server node's dataspace credential issuer. Under a high-availability Central
+                        Server, each node publishes its own; the full set is the distributed dataspace issuer
+                        trust anchor that Security Servers use to trust issued credentials.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="DataspaceIssuerType">
+        <sequence>
+            <element name="did" type="string">
+                <annotation>
+                    <documentation>
+                        Issuer DID (did:web) of this dataspace credential issuer.
                     </documentation>
                 </annotation>
             </element>

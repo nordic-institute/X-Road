@@ -26,23 +26,40 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.CostType;
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
-class SharedParametersV7MarshallerTest {
+class SharedParametersOlderVersionsOmitDataspaceParametersTest {
 
-    private final SharedParametersV7Marshaller marshaller = new SharedParametersV7Marshaller();
+    @ParameterizedTest
+    @MethodSource("olderVersionMarshallers")
+    void shouldNotLeakDataspaceParametersIntoOlderVersions(SharedParametersMarshaller marshaller) {
+        var sharedParameters = minimalSharedParametersWithIssuerDids();
+        var xml = new String[1];
 
-    @Test
-    void marshall() {
+        assertThatNoException().isThrownBy(() -> xml[0] = marshaller.marshall(sharedParameters));
+
+        assertThat(xml[0]).doesNotContain("dataspaceParameters", "issuer", "did");
+    }
+
+    private static Stream<SharedParametersMarshaller> olderVersionMarshallers() {
+        return Stream.of(
+                new SharedParametersV2Marshaller(),
+                new SharedParametersV3Marshaller(),
+                new SharedParametersV4Marshaller(),
+                new SharedParametersV5Marshaller(),
+                new SharedParametersV6Marshaller()
+        );
+    }
+
+    private static SharedParameters minimalSharedParametersWithIssuerDids() {
         var sharedParamsBuilder = SharedParameters.builder();
         sharedParamsBuilder.instanceIdentifier("CS");
 
@@ -50,41 +67,12 @@ class SharedParametersV7MarshallerTest {
         configurationSource.setAddress("cs");
         configurationSource.setInternalVerificationCerts(List.of("internal-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
         sharedParamsBuilder.sources(List.of(configurationSource));
-
-        var approvedDsTlsCa = new SharedParameters.ApprovedDsTlsCa();
-        approvedDsTlsCa.setName("Test DS TLS CA");
-        approvedDsTlsCa.setTopCA(new SharedParameters.CaInfo("ds-tls-ca-cert".getBytes(UTF_8), List.of(
-                new SharedParameters.OcspInfo("ds-tls-ocsp:url", "ds-tls-ocsp-cert".getBytes(UTF_8), CostType.FREE))));
-        approvedDsTlsCa.setIntermediateCas(List.of(
-                new SharedParameters.CaInfo("ds-tls-intermediate-ca-cert".getBytes(UTF_8), List.of(
-                        new SharedParameters.OcspInfo("ds-tls-intermediate-ocsp:url", "ds-tls-intermediate-ocsp-cert".getBytes(UTF_8),
-                                CostType.UNDEFINED)
-                ))
-        ));
-        approvedDsTlsCa.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", null, null,
-                "ds-tls-profile"));
-        sharedParamsBuilder.approvedDsTlsCas(List.of(approvedDsTlsCa));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
 
         sharedParamsBuilder.issuerDids(List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer"));
 
-        final String result = marshaller.marshall(sharedParamsBuilder.build());
-
-        assertThat(result).isNotBlank();
-        assertThat(result).contains("dataspaceParameters", "did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
-        System.out.println(result);
+        return sharedParamsBuilder.build();
     }
-
-    @Test
-    void marshallShouldFailWhenInvalid() {
-        var sharedParamsBuilder = SharedParameters.builder();
-        sharedParamsBuilder.instanceIdentifier("CS");
-        sharedParamsBuilder.sources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
-        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
-        SharedParameters sharedParameters = sharedParamsBuilder.build();
-        assertThrows(XrdRuntimeException.class, () -> marshaller.marshall(sharedParameters));
-    }
-
 
 }

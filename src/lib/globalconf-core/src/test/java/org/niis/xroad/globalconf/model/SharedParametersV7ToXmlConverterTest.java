@@ -87,7 +87,8 @@ class SharedParametersV7ToXmlConverterTest {
                         "members.id",
                         "members.subsystems.id",
                         "centralService",
-                        "any"
+                        "any",
+                        "dataspaceParameters"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
@@ -162,11 +163,43 @@ class SharedParametersV7ToXmlConverterTest {
         assertThat(roundTrip(List.of())).isEmpty();
     }
 
+    @Test
+    void shouldRoundTripSingleIssuerDid() {
+        assertThat(roundTripIssuerDids(List.of("did:web:cs1.example%3A443:issuer")))
+                .containsExactly("did:web:cs1.example%3A443:issuer");
+    }
+
+    @Test
+    void shouldRoundTripMultipleIssuerDids() {
+        var issuerDids = List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
+
+        assertThat(roundTripIssuerDids(issuerDids)).containsExactlyElementsOf(issuerDids);
+    }
+
+    @Test
+    void shouldRoundTripEmptyIssuerDidListAsNotDataspaceEnabled() {
+        var xml = new SharedParametersV7Marshaller().marshall(minimalSharedParameters(List.of()));
+
+        assertThat(xml).doesNotContain("dataspaceParameters", "issuer", "did");
+        assertThat(roundTripIssuerDids(List.of())).isEmpty();
+    }
+
     private static List<SharedParameters.ApprovedDsTlsCa> roundTrip(List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas) {
         var sharedParameters = minimalSharedParameters(approvedDsTlsCas);
         var xml = new SharedParametersV7Marshaller().marshall(sharedParameters);
         var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
         return afterMarshalling.getApprovedDsTlsCas();
+    }
+
+    private static List<String> roundTripIssuerDids(List<String> issuerDids) {
+        var sharedParamsBuilder = SharedParameters.builder();
+        sharedParamsBuilder.instanceIdentifier("CS");
+        sharedParamsBuilder.sources(getConfigurationSources());
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.issuerDids(issuerDids);
+        var xml = new SharedParametersV7Marshaller().marshall(sharedParamsBuilder.build());
+        var afterMarshalling = new SharedParametersV7(xml.getBytes(UTF_8)).getSharedParameters();
+        return afterMarshalling.getIssuerDids();
     }
 
     private static SharedParameters minimalSharedParameters(List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas) {
@@ -206,10 +239,14 @@ class SharedParametersV7ToXmlConverterTest {
     private static SharedParameters getSharedParameters() {
         return new SharedParameters("INSTANCE", getConfigurationSources(), List.of(getApprovedCA()),
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8), CostType.PAID)),
-                List.of(getApprovedDsTlsCa()), getMembers(), List.of(getSecurityServer()),
+                List.of(getApprovedDsTlsCa()), getIssuerDids(), getMembers(), List.of(getSecurityServer()),
                 List.of(new SharedParameters.GlobalGroup("group-code",
                 "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
+    }
+
+    private static List<String> getIssuerDids() {
+        return List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
     }
 
     private static List<SharedParameters.ConfigurationSource> getConfigurationSources() {
