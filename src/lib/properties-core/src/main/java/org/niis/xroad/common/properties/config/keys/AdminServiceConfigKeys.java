@@ -492,16 +492,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(false)
             .build();
 
-    /**
-     * {@code xroad.admin-service.dataspace.issuer-did} — inert. The issuance-targeting candidate set now
-     * comes from the distributed globalconf issuer-DID set (see the {@code issuer-trust-anchor}
-     * provider); this key stays declared for deployments that still set the per-environment seed
-     * (removed by a follow-up story), but its value is never read.
-     */
-    public static final ConfigKey<String> DATASPACE_ISSUER_DID = DATASPACE
-            .string("issuer-did")
-            .build();
-
     public static final ConfigKey<String> DATASPACE_CREDENTIAL_DEFINITION_ID = DATASPACE
             .string("credential-definition-id")
             .withDefaultValue("xroad-membership-credential-definition")

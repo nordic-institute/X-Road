@@ -115,8 +115,7 @@
 # 5. DS control-plane runtime overrides. Same reasoning as identity-hub above.
 #
 # TEMPORARY (dataspaces dev): remove once xroad-ds-control-plane debconf ships
-#   participant-context-id, trusted-issuer.id, sts.oauth.token.url and
-#   dsp.callback.address config.
+#   participant-context-id, sts.oauth.token.url and dsp.callback.address config.
 # ---------------------------------------------------------------------------
 - name: preseed ds-control-plane runtime overrides
   copy:
@@ -147,14 +146,7 @@
       xroad:
         dsp:
           participant-context-id: "{{ inventory_hostname }}.lxd"
-        # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged application.yaml.
-        # The EDC key is hyphenated, so it can only be reached through an X-Road key the yaml declares
-        # (see EdcConfigKeys.TRUSTED_ISSUER_ID); the interpolation has no fallback, so this must be set.
         edc:
-          iam:
-            trusted-issuer:
-              issuer:
-                id: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
           web:
             https:
               trust:

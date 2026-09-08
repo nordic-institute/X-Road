@@ -136,8 +136,6 @@ configSeed:
       value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
       value: "https://{{ ds_ih_host }}:7182"
-    - key: xroad.proxy-ui-api.dataspace.issuer-did
-      value: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
     # Seconds (prod default 60); short so a fixture-written dataset is visible to the
     # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
     - key: xroad.dsp.catalog.cache.ttl-seconds
@@ -174,10 +172,6 @@ services:
 {% if ds_tls and svc != 'ds-issuer-service' %}
     env:
 {% if svc == 'ds-control-plane' %}
-      # Interpolated into edc.iam.trusted-issuer.issuer.id by the runtime's packaged
-      # application.yaml. The participant context id itself rides the chart's
-      # dsp.participantContextId knob (set below), not a per-service env entry here.
-      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
       EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_cp_host }}:8183/api/dsp/%s"
       EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
