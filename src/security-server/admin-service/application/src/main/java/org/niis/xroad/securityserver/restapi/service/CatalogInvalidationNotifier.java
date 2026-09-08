@@ -44,8 +44,9 @@ import java.util.concurrent.RejectedExecutionException;
  * dependency on dataspace internals.
  *
  * <p>Local group membership changes are the one exception: published policy constraints reference a
- * local group's id, not its member list, so adding or removing members never alters a catalog record
- * and {@code LocalGroupService} never signals here.</p>
+ * local group's id, not its member list, so adding or removing members never alters a catalog record.
+ * Deleting a local group is different — it also removes the group's own access-right grants, which
+ * the published policies do read, so that one {@code LocalGroupService} operation signals here.</p>
  *
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
  * or failed signal degrades latency, never correctness. A no-op when the data space feature is

@@ -83,6 +83,7 @@ public class LocalGroupService {
     private final ClientService clientService;
     private final AuditDataHelper auditDataHelper;
     private final IdentifierService identifierService;
+    private final CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     /**
      * Return local group.
@@ -234,6 +235,7 @@ public class LocalGroupService {
 
         deleteAccessRightsByXRoadId(clientEntity, xRoadId);
         localGroupRepository.delete(existingLocalGroupEntity);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     /**

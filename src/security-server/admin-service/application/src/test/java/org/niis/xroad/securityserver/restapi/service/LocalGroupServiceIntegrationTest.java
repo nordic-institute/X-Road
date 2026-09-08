@@ -38,6 +38,7 @@ import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.model.GroupMember;
 import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +52,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.CLIENT_ID_SS1;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.DB_LOCAL_GROUP_ID_1;
@@ -63,6 +66,9 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
     @Autowired
     LocalGroupService localGroupService;
+
+    @MockitoBean
+    CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     @Autowired
     ClientService clientService;
@@ -93,6 +99,8 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
         localGroupService.addLocalGroupMembers(
                 groupId, List.of(getClientId(CLIENT_ID_SS1)));
+
+        verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
 
         LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
         Assertions.assertThat(localGroup.getGroupMembers())
@@ -192,6 +200,8 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
         );
 
         localGroupService.deleteLocalGroup(groupId);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
 
         // local group should be removed
         LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
