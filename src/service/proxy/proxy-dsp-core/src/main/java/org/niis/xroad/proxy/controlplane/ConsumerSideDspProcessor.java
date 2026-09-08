@@ -30,11 +30,13 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
@@ -57,18 +59,19 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 
 /**
  * Consumer-side implementation of {@link DspRequestProcessor}. Resolves candidate provider security
- * servers via {@link ProviderSecurityServerResolver}, looks each up in the hardcoded
- * {@link CounterPartyTarget} map, and invokes
+ * servers via {@link ProviderSecurityServerResolver} and invokes
  * {@link AssetAccessAcquisitionService#acquireAssetAccess} in shuffled order until one succeeds.
  *
  * <p>ID construction:
  * <ul>
  *   <li>{@code assetId = serviceId.asEncodedId()} — symmetric with provider
  *       {@code AssetMapper.encodeAssetId}.</li>
- *   <li>{@code counterPartyId} + {@code counterPartyAddress} — looked up by candidate
- *       host-address in {@link CounterPartyTarget#defaultMap()} for normal requests or
- *       {@link CounterPartyTarget#managementMap()} for MANAGEMENT requests. Lookup miss is a hard
- *       error (fail fast; no silent fallback).</li>
+ *   <li>{@code counterPartyId} + {@code counterPartyAddress} — for member targets, derived per
+ *       candidate from the provider member id and the candidate's GlobalConf host-address
+ *       ({@link DspConventions}); each {@code member@SS} is a distinct participant (XRDADR-41), so
+ *       shuffle plus per-candidate failover is the multi-SS selection. MANAGEMENT and
+ *       builtin-service requests keep the legacy map lookup
+ *       ({@link CounterPartyTarget#managementMap()}); there a lookup miss skips the candidate.</li>
  *   <li>{@code participantContextId} — management and builtin-service requests use the configured
  *       legacy context, everything else negotiates as the sender member's derived context
  *       ({@link ParticipantIdentifierScheme#memberCtxId}).</li>
@@ -95,8 +98,6 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
     private final AssetAccessClientProperties clientProperties;
 
-    @SuppressWarnings("deprecation")
-    private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
     private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();
 
     @Override
@@ -132,12 +133,11 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         var participantContextId = requestForcesMgmtCtx
                 ? clientProperties.participantContextId()
                 : ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
-        var targets = requestForcesMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
 
         var remoteFailures = new ArrayList<RuntimeException>();
         var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
-            var target = targets.get(candidate.hostAddress());
+            var target = targetFor(requestForcesMgmtCtx, serviceId, candidate.hostAddress());
             if (target == null) {
                 var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
                         .origin(DATASPACE)
@@ -159,6 +159,22 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             }
         }
         throw buildFinalException(remoteFailures, localFailures, serviceId, candidates.size());
+    }
+
+    /**
+     * The counter-party target of one candidate serving security server: derived for member
+     * targets (cannot miss — derivation failures surface on acquire and ride the per-candidate
+     * failover), map-based for the legacy {@code -mgmt} targets ({@code null} on a lookup miss).
+     */
+    @Nullable
+    private CounterPartyTarget targetFor(boolean requestForcesMgmtCtx, ServiceId serviceId, String hostAddress) {
+        if (requestForcesMgmtCtx) {
+            return mgmtCounterPartyTargets.get(hostAddress);
+        }
+        var providerMember = serviceId.getClientId().getMemberId();
+        return new CounterPartyTarget(
+                DspConventions.memberCounterPartyId(providerMember, hostAddress),
+                DspConventions.memberCounterPartyAddress(providerMember, hostAddress));
     }
 
     private static boolean isBuiltinService(ServiceId serviceId) {
