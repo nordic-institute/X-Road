@@ -28,7 +28,6 @@ package org.niis.xroad.cs.test.api.admin;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
-import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
 
 import java.util.List;
 import java.util.Map;
@@ -121,10 +120,9 @@ public class SystemAdminClient {
      * Updates a configurable property.
      */
     public ValidatableResponse updateConfigurableProperty(String propertyName, String propertyValue) {
-        var body = new ConfigurablePropertyUpdateDto(propertyName, propertyValue);
         return session.given()
                 .contentType(ContentType.JSON)
-                .body(body)
+                .body(Map.of("property_name", propertyName, "property_value", propertyValue))
                 .patch("/system/property")
                 .then();
     }
