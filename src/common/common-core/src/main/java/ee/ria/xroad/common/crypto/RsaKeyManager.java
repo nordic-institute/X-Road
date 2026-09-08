@@ -1,19 +1,21 @@
 /*
  * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,9 +24,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.common.crypto;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
@@ -44,9 +46,11 @@ public final class RsaKeyManager extends AbstractKeyManager {
     // Use no digesting algorithm, since the input data is already a digest
     private static final SignAlgorithm SIGNATURE_ALGORITHM = SignAlgorithm.ofName("NONEwithRSA");
     private static final KeyAlgorithm CRYPTO_ALGORITHM = KeyAlgorithm.RSA;
+    private final int keyLength;
 
-    RsaKeyManager() {
+    public RsaKeyManager(int keyLength) {
         super(CRYPTO_ALGORITHM);
+        this.keyLength = keyLength;
     }
 
     /**
@@ -77,7 +81,7 @@ public final class RsaKeyManager extends AbstractKeyManager {
     public KeyPair generateKeyPair() {
         try {
             KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name());
-            keyPairGen.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+            keyPairGen.initialize(keyLength, new SecureRandom());
 
             return keyPairGen.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {

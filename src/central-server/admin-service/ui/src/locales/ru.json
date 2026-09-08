@@ -123,6 +123,7 @@
     "authenticationCertificateProfileId": "ID профиля сертификата аутентификации",
     "certFile": "Файл сертификата",
     "certProfile": "Информация о профиле сертификата",
+    "dsTlsCertificateProfileId": "Идентификатор профиля сертификата DS TLS",
     "distinguishedName": "Отличительное имя",
     "init": {
       "address": "Адрес центрального сервера",
@@ -138,6 +139,7 @@
     "keyLabel": "Удобное имя ключа",
     "memberCode": "Код участника",
     "memberName": "Имя участника",
+    "name": "Имя",
     "securityServerAddress": "Адрес сервера безопасности",
     "serverCode": "Код сервера",
     "serviceAddress": "Адрес центрального сервера",
@@ -573,31 +575,21 @@
     }
   },
   "tlsCertificates": {
-    "managementService": {
-      "downloadCertificate": "Скачать сертификат",
-      "downloadSuccess": "TLS сертификат управленческого сервиса успешно скачан",
-      "generateCsr": {
-        "button": "Создать CSR",
-        "content": "Сначала укажите отличительное имя. Затем создайте новый CSR и сохраните его в безопасном месте",
-        "distinguishedName": "Введите отличительное имя",
-        "example": "CN=mycentralserver.example.com, O=My Organization, C=EE",
-        "title": "Создать запрос на подписание TLS сертификата"
-      },
-      "generateKey": {
-        "button": "Повторно создать ключ",
-        "confirmation": "Создать новый TLS ключ и сертификат для управленческого сервиса?",
-        "explanation": "Система создаст новый TLS ключ для управленческого сервиса и самоподписанный сертификат, заменив существующий ключ и сертификат.",
-        "success": "Новый TLS ключ и сертификат для управленческого сервиса успешно созданы",
-        "title": "TLS ключ управленческого сервиса"
-      },
-      "key": "TLS ключ управленческого сервиса",
-      "title": "TLS сертификат управленческого сервиса",
-      "uploadCertificate": {
-        "button": "Загрузить сертификат",
-        "label": "Загрузите файл сертификата с вашего компьютера",
-        "success": "TLS сертификат управленческого сервиса успешно загружен",
-        "title": "Загрузить TLS сертификат управленческого сервиса"
-      }
+    "downloadSuccess": "TLS сертификат управленческого сервиса успешно скачан",
+    "generateCsr": {
+      "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
+    },
+    "generateKey": {
+      "confirmation": "Создать новый TLS ключ и сертификат для управленческого сервиса?",
+      "explanation": "Система создаст новый TLS ключ для управленческого сервиса и самоподписанный сертификат, заменив существующий ключ и сертификат.",
+      "success": "Новый TLS ключ и сертификат для управленческого сервиса успешно созданы",
+      "title": "TLS ключ управленческого сервиса"
+    },
+    "key": "TLS ключ управленческого сервиса",
+    "title": "TLS сертификат управленческого сервиса",
+    "uploadCertificate": {
+      "success": "TLS сертификат управленческого сервиса успешно загружен",
+      "title": "Загрузить TLS сертификат управленческого сервиса"
     }
   },
   "tokens": {
@@ -629,6 +621,23 @@
     "certProfileInputExplanation": "Полное имя класса, реализующего интерфейс ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "certificationServices": "Сервисы сертификации",
     "defaultCsrFormat": "Формат CSR по умолчанию",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "Добавить удостоверяющий центр DS TLS",
+      "delete": {
+        "confirmationDialog": {
+          "message": "Вы уверены, что хотите удалить удостоверяющий центр DS TLS \"{name}\"?",
+          "title": "Вы уверены?"
+        },
+        "success": "Удостоверяющий центр DS TLS успешно удален"
+      },
+      "dsTlsCertificateProfileIdExplanation": "Идентификатор профиля, используемый некоторыми серверами ACME, чтобы узнать тип использования сертификата при заказе сертификата DS TLS.",
+      "dsTlsCertificationAuthorities": "Удостоверяющие центры DS TLS",
+      "dsTlsCertificationAuthority": "Удостоверяющий центр DS TLS",
+      "nameExplanation": "Произвольное имя, идентифицирующее этот удостоверяющий центр, например \"Let's Encrypt\".",
+      "settings": {
+        "title": "Настройки УЦ DS TLS"
+      }
+    },
     "timestampingService": {
       "addedSuccessfully": "Служба временных меток успешно добавлена",
       "dialog": {

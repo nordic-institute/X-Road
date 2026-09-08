@@ -1,0 +1,16 @@
+---
+- name: setup master database
+  import_tasks: serverconf_master_db.yml
+
+- name: enable master role for node
+  ini_file: dest=/etc/xroad/conf.d/node.ini section=node option=type value=master create=true mode=0640 owner=xroad group=xroad
+
+- name: start services
+  service:
+    name: "{{ item }}"
+    state: started
+  loop:
+    - xroad-proxy
+    - xroad-confclient
+    - xroad-signer
+    - xroad-proxy-ui-api

@@ -33,21 +33,27 @@ import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
+import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,7 +91,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     public void initSecurityServerFail() throws Exception {
         InitialServerConfDto initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
         Mockito.doThrow(new InitializationService.AnchorNotFoundException("err"))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -94,7 +100,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InitializationService.ServerAlreadyFullyInitializedException(""))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -103,7 +109,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InitializationService.InvalidInitParamsException("", Collections.emptyList()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -112,7 +118,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new UnhandledWarningsException(Collections.emptyList()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -121,7 +127,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InvalidCharactersException(""))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -130,7 +136,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new WeakPinException("", Collections.emptyList()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
@@ -139,11 +145,48 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
 
         Mockito.doThrow(new InitializationService.SoftwareTokenInitException("", new Exception()))
-                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
+                .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean(), any());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
             fail("should have thrown");
         } catch (InternalServerErrorException expected) {
+            // expected
+        }
+    }
+
+    @Test
+    @WithAnonymousUser
+    public void getInitialAdminUserStatusReportsRequired() {
+        when(initialAdminUserService.isInitialAdminUserRequired()).thenReturn(true);
+
+        ResponseEntity<InitialAdminUserStatusDto> response = initializationApiController.getInitialAdminUserStatus();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().getAdminUserCreationRequired());
+    }
+
+    @Test
+    @WithAnonymousUser
+    public void createInitialAdminUserSuccess() {
+        InitialAdminUserDto request = new InitialAdminUserDto().username("admin").password("TopSecret123!");
+
+        ResponseEntity<Void> response = initializationApiController.createInitialAdminUser(request);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(initialAdminUserService).createInitialAdminUser(eq("admin"), any(char[].class));
+    }
+
+    @Test
+    @WithAnonymousUser
+    public void createInitialAdminUserRejectedWhenStateNotAllowed() {
+        InitialAdminUserDto request = new InitialAdminUserDto().username("admin").password("TopSecret123!");
+        Mockito.doThrow(new InitialAdminUserService.InitialAdminUserNotAllowedException())
+                .when(initialAdminUserService).createInitialAdminUser(any(), any(char[].class));
+
+        try {
+            initializationApiController.createInitialAdminUser(request);
+            fail("should have thrown");
+        } catch (ConflictException expected) {
             // expected
         }
     }

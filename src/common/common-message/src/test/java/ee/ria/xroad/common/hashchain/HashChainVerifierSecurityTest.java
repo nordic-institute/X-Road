@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -77,8 +76,8 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
-                .extracting(e -> ((CodedException) e).getFaultCode())
+                .isInstanceOf(XrdRuntimeException.class)
+                .extracting(e -> ((XrdRuntimeException) e).getCode())
                 .asString()
                 .endsWith(MALFORMED_HASH_CHAIN.code());
     }
@@ -103,8 +102,8 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
-                .satisfies(e -> assertThat(((CodedException) e).getMessage()).doesNotContain("step count"));
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getMessage()).doesNotContain("step count"));
     }
 
     @Test
@@ -114,10 +113,10 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> {
-                    CodedException xre = (CodedException) e;
-                    assertThat(xre.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
                     assertThat(xre.getMessage()).contains("maximum depth");
                 });
     }
@@ -128,10 +127,10 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> {
-                    CodedException xre = (CodedException) e;
-                    assertThat(xre.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
                     assertThat(xre.getMessage()).contains("maximum depth");
                 });
     }
@@ -142,10 +141,10 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> {
-                    CodedException xre = (CodedException) e;
-                    assertThat(xre.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
                     assertThat(xre.getMessage()).contains("step count");
                 });
     }
@@ -156,10 +155,10 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> {
-                    CodedException xre = (CodedException) e;
-                    assertThat(xre.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+                    XrdRuntimeException xre = (XrdRuntimeException) e;
+                    assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
                     assertThat(xre.getMessage()).contains("value count");
                 });
     }
@@ -184,10 +183,10 @@ class HashChainVerifierSecurityTest {
 
         assertThat(thrown).isInstanceOf(InvocationTargetException.class);
         Throwable cause = ((InvocationTargetException) thrown).getTargetException();
-        assertThat(cause).isInstanceOf(CodedException.class);
-        CodedException coded = (CodedException) cause;
-        assertThat(coded.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
-        assertThat(coded.getMessage()).contains("value count");
+        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
+        XrdRuntimeException xre = (XrdRuntimeException) cause;
+        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(xre.getMessage()).contains("value count");
     }
 
     /**
@@ -224,10 +223,10 @@ class HashChainVerifierSecurityTest {
 
         assertThat(thrown).isInstanceOf(InvocationTargetException.class);
         Throwable cause = ((InvocationTargetException) thrown).getTargetException();
-        assertThat(cause).isInstanceOf(CodedException.class);
-        CodedException coded = (CodedException) cause;
-        assertThat(coded.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
-        assertThat(coded.getMessage()).contains("value count");
+        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
+        XrdRuntimeException xre = (XrdRuntimeException) cause;
+        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(xre.getMessage()).contains("value count");
     }
 
     /**
@@ -270,10 +269,10 @@ class HashChainVerifierSecurityTest {
 
         assertThat(thrown).isInstanceOf(InvocationTargetException.class);
         Throwable cause = ((InvocationTargetException) thrown).getTargetException();
-        assertThat(cause).isInstanceOf(CodedException.class);
-        CodedException coded = (CodedException) cause;
-        assertThat(coded.getFaultCode()).endsWith(MALFORMED_HASH_CHAIN.code());
-        assertThat(coded.getMessage()).contains("value count");
+        assertThat(cause).isInstanceOf(XrdRuntimeException.class);
+        XrdRuntimeException xre = (XrdRuntimeException) cause;
+        assertThat(xre.getCode()).endsWith(MALFORMED_HASH_CHAIN.code());
+        assertThat(xre.getMessage()).contains("value count");
     }
 
     private static HashValueType dummyHashValue(byte[] digestValue) {
@@ -289,9 +288,9 @@ class HashChainVerifierSecurityTest {
         String result = buildResult(CHAIN_URI + "#STEP0");
 
         assertThatThrownBy(() -> HashChainVerifier.verify(stream(result), resolver(chain), Collections.emptyMap()))
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> {
-                    assertThat(e.getMessage()).doesNotContain("step count");
+                    assertThat(((XrdRuntimeException) e).getMessage()).doesNotContain("step count");
                 });
     }
 

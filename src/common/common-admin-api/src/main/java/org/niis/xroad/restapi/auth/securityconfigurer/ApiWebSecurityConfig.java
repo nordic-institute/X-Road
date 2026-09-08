@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +39,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
-import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 
@@ -57,12 +55,10 @@ public class ApiWebSecurityConfig {
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
                                                          ApiKeyAuthenticationManager apiKeyAuthenticationManager,
                                                          Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
-                                                         @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
-            throws Exception {
+                                                         @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite) {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
         filter.setAuthenticationManager(apiKeyAuthenticationManager);
@@ -81,7 +77,7 @@ public class ApiWebSecurityConfig {
                         // we require csrf protection only if there is a session alive
                         .requireCsrfProtectionMatcher(ApiWebSecurityConfig::sessionExists)
                         // CsrfFilter always generates a new token in the repo -> prevent with lazy
-                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
+                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))
                 )
                 .anonymous(AbstractHttpConfigurer::disable)
                 .headers(headerPolicyDirectives("default-src 'none'; frame-ancestors 'none'"))
@@ -92,7 +88,11 @@ public class ApiWebSecurityConfig {
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
     public WebSecurityCustomizer apiWebSecurityCustomizer() {
-        return customizer -> customizer.ignoring().requestMatchers("/api/v1/openapi.yaml");
+        return customizer -> customizer.ignoring().requestMatchers(
+                "/api/v1/openapi.yaml",
+                "/api/v1/initialization/admin-user/status",
+                "/api/v1/initialization/admin-user"
+        );
     }
 
     /**

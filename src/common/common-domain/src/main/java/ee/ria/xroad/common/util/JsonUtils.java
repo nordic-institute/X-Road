@@ -28,18 +28,16 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
  * This class contains various json related utility methods.
@@ -50,35 +48,27 @@ public final class JsonUtils {
     private static final ObjectMapper OBJECT_MAPPER_WITH_NULLS;
 
     static {
-        ObjectMapper objectMapperWithNulls = new ObjectMapper();
         SimpleModule module = new SimpleModule();
         module.addSerializer(ClientId.class, new ClientIdSerializer());
-        objectMapperWithNulls.registerModule(module);
-        objectMapperWithNulls.registerModule(new JavaTimeModule());
-        objectMapperWithNulls.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        objectMapperWithNulls.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
-        objectMapperWithNulls.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        OBJECT_MAPPER_WITH_NULLS = objectMapperWithNulls;
+        OBJECT_MAPPER_WITH_NULLS = JsonMapper.builder()
+                .addModule(module)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .build();
 
-        ObjectMapper objectMapperWithoutNulls = objectMapperWithNulls.copy();
-        objectMapperWithoutNulls.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        OBJECT_MAPPER = objectMapperWithoutNulls;
+        OBJECT_MAPPER = JsonMapper.builder()
+                .addModule(module)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+                .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .changeDefaultPropertyInclusion(v -> JsonInclude.Value.construct(
+                        JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL))
+                .build();
     }
 
     private JsonUtils() {
-    }
-
-    /**
-     * <strong>Get a copy of the static {@link #OBJECT_MAPPER} instance</strong> e.g. when you need to provide it for
-     * some other context such as MappingJackson2HttpMessageConverter. For basic de/serialization needs,
-     * please use {@link #getObjectReader()}, {@link #getObjectWriter()} or {@link #getObjectWriter(boolean)} instead
-     *
-     * @return Jackson ObjectMapper instance with custom deserializer.
-     */
-    public static ObjectMapper getObjectMapperCopy() {
-        return OBJECT_MAPPER.copy();
     }
 
     /**
@@ -124,14 +114,14 @@ public final class JsonUtils {
 
         @Override
         public void serialize(ClientId value, JsonGenerator gen,
-                              SerializerProvider serializers) throws IOException {
+                              SerializationContext serializers) {
             gen.writeStartObject();
-            gen.writeStringField("xRoadInstance", value.getXRoadInstance());
-            gen.writeStringField("memberClass", value.getMemberClass());
-            gen.writeStringField("memberCode", value.getMemberCode());
+            gen.writeStringProperty("xRoadInstance", value.getXRoadInstance());
+            gen.writeStringProperty("memberClass", value.getMemberClass());
+            gen.writeStringProperty("memberCode", value.getMemberCode());
 
             if (value.getSubsystemCode() != null) {
-                gen.writeStringField("subsystemCode", value.getSubsystemCode());
+                gen.writeStringProperty("subsystemCode", value.getSubsystemCode());
             }
             gen.writeEndObject();
         }

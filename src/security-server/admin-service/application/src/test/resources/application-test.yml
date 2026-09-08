@@ -1,0 +1,36 @@
+# properties for test runtime
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    generate-ddl: true
+    show-sql: false
+    defer-datasource-initialization: true
+  cloud:
+    vault:
+      enabled: false
+
+ratelimit:
+  requests:
+    per:
+      second: 60
+      minute: 3600
+
+server:
+  ssl:
+    enabled: false
+  tomcat:
+    accesslog.enabled: false
+
+# Extra configurattion to verify PropertyFileReadingHibernateCustomizer.
+# xroad.db.serverconf.* stays here — DB/Hibernate config is read from the Spring Environment, not the XRoadConfig DSL.
+# DSL xroad.* test overrides (common-rpc, mail-notification, proxy-ui-api) live in TestXRoadConfigOverridesConfig.
+xroad:
+  db:
+    serverconf:
+      hibernate:
+        jdbc:
+          use_streams_for_binary: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect

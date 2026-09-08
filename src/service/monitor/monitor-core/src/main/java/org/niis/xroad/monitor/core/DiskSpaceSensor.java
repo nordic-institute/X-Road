@@ -25,29 +25,41 @@
  */
 package org.niis.xroad.monitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
-import org.springframework.scheduling.TaskScheduler;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
 
 import java.io.File;
-import java.time.Duration;
 
 /**
  * Collects disk space information
  */
+@Startup
 @Slf4j
-public class DiskSpaceSensor extends AbstractSensor {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class DiskSpaceSensor {
 
-    /**
-     * Constructor
-     */
-    public DiskSpaceSensor(TaskScheduler taskScheduler) {
-        super(taskScheduler);
-        log.info("Creating sensor, measurement interval: {}", getInterval());
-        updateMetrics();
-        scheduleSingleMeasurement(getInterval());
+    private final Scheduler scheduler;
+    private final EnvMonitorProperties envMonitorProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
+
+    @PostConstruct
+    public void init() {
+        var interval = envMonitorProperties.diskSpaceSensorInterval();
+        log.info("Creating sensor, measurement interval: {}", interval);
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval(interval.toString())
+                .setTask(_ -> measure())
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(applicationNotRunning)
+                .schedule();
     }
 
     private void updateMetrics() {
@@ -67,16 +79,9 @@ public class DiskSpaceSensor extends AbstractSensor {
         }
     }
 
-    @Override
     protected void measure() {
         log.debug("Updating metrics");
         updateMetrics();
-        scheduleSingleMeasurement(getInterval());
-    }
-
-    @Override
-    protected Duration getInterval() {
-        return Duration.ofSeconds(SystemProperties.getEnvMonitorDiskSpaceSensorInterval());
     }
 
 }

@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.CustomClientTlsSSLSocketFactory;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -60,6 +62,7 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +77,7 @@ import java.util.List;
 public class InternalServerTestService {
     private static final String TLS = "TLS";
     private final ServerConfProvider serverConfProvider;
+    private final AdminServiceProperties adminServiceProperties;
 
     /**
      * Tests if a HTTPS connection can be established to the given URL using
@@ -81,33 +85,35 @@ public class InternalServerTestService {
      *
      * @param trustedCerts certificates used for authentication
      * @param url          the URL for opening the connection
-     * @throws Exception in case connection fails
      */
-    public void testHttpsConnection(
-            List<CertificateEntity> trustedCerts, String url)
-            throws IOException, UnrecoverableKeyException, CertificateException, KeyStoreException,
-            NoSuchAlgorithmException, KeyManagementException {
+    public void testHttpsConnection(List<CertificateEntity> trustedCerts, String url) {
+        try {
+            List<X509Certificate> trustedX509Certs = new ArrayList<>();
+            for (CertificateEntity trustedCert : trustedCerts) {
+                trustedX509Certs.add(CryptoUtils.readCertificate(trustedCert.getData()));
+            }
 
-        List<X509Certificate> trustedX509Certs = new ArrayList<>();
-        for (CertificateEntity trustedCert : trustedCerts) {
-            trustedX509Certs.add(CryptoUtils.readCertificate(trustedCert.getData()));
+            SSLContext ctx = SSLContext.getInstance(TLS);
+            ctx.init(createServiceKeyManager(),
+                    new TrustManager[]{new ServiceTrustManager(trustedX509Certs)},
+                    new SecureRandom());
+
+            HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
+
+            con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory(),
+                    adminServiceProperties.getProxyTlsProtocols(), adminServiceProperties.getProxyTlsCipherSuites()));
+            con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
+
+            con.connect();
+        } catch (IOException | UnrecoverableKeyException | CertificateException | KeyStoreException
+                 | NoSuchAlgorithmException | KeyManagementException | InvalidKeySpecException e) {
+            throw XrdRuntimeException.systemException(e);
         }
-
-        SSLContext ctx = SSLContext.getInstance(TLS);
-        ctx.init(createServiceKeyManager(),
-                new TrustManager[]{new ServiceTrustManager(trustedX509Certs)},
-                new SecureRandom());
-
-        HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
-
-        con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory()));
-        con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
-
-        con.connect();
     }
 
     private KeyManager[] createServiceKeyManager()
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
         InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {
@@ -176,8 +182,7 @@ public class InternalServerTestService {
         }
 
         @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
             log.trace("checkClientTrusted()");
         }
 

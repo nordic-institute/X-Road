@@ -1,0 +1,31 @@
+{
+  "id": "42",
+  "url": "https://example.com/rest-api",
+  "type": "REST",
+  "disabled": true,
+  "disabled_notice": "Out of order",
+  "refreshed_at": "2026-06-10T19:57:57.852Z",
+  "services": [
+    {
+      "id": "CS:GOV:1234:SUBS1:MY-API",
+      "service_description_id": "42",
+      "client_id": "CS:GOV:1234:SUBS1",
+      "service_code": "MY-API",
+      "timeout": 60,
+      "url": "https://example.com/rest-api",
+      "endpoints": [
+        {
+          "service_code": "MY-API",
+          "method": "*",
+          "path": "**",
+          "client_id": "CS:GOV:1234:SUBS1",
+          "generated": true,
+          "id": "157"
+        }
+      ],
+      "full_service_code": "MY-API",
+      "ssl_auth": false
+    }
+  ],
+  "client_id": "CS:GOV:1234:SUBS1"
+}

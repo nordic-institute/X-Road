@@ -25,13 +25,12 @@
  */
 package ee.ria.xroad.common.certificateprofile;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.lang.reflect.InvocationTargetException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 
 /**
  * Utility class for getting the certificate profile instance.
@@ -52,9 +51,9 @@ public class GetCertificateProfile {
         try {
             return klass().getDeclaredConstructor().newInstance();
         } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e, "Could not instantiate %s: %s", className, e.getMessage());
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e, "Could not instantiate %s: %s", className, e.getMessage());
         } catch (IllegalAccessException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e);
         }
     }
 
@@ -72,12 +71,12 @@ public class GetCertificateProfile {
             if (CertificateProfileInfoProvider.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
                 return (Class<CertificateProfileInfoProvider>) clazz;
             } else {
-                throw new CodedException(X_INTERNAL_ERROR,
+                throw XrdRuntimeException.systemException(INTERNAL_ERROR,
                         "%s must implement %s", className,
                         CertificateProfileInfoProvider.class);
             }
         } catch (ClassNotFoundException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e,
+            throw XrdRuntimeException.systemException(INTERNAL_ERROR, e,
                     "%s could not be found in classpath", className);
         }
     }

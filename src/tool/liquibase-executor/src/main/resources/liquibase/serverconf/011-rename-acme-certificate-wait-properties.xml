@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="serverconf/011-rename-acme-certificate-wait-properties.xml">
+
+    <!--
+        The system-parameters UI offered xroad.proxy-ui-api.acme-certification-wait-attempts/-interval,
+        but the admin-service reads xroad.proxy-ui-api.acme-certificate-wait-attempts/-interval, so any
+        stored override was ignored. Move stored values onto the keys the code reads. The rename is
+        skipped for a scope that already holds the target key (the unique indexes on
+        (property_key) / (property_key, scope) would reject it) and the stale row is dropped either way.
+    -->
+    <changeSet author="niis" id="011-rename-acme-certificate-wait-properties">
+        <sql splitStatements="true"><![CDATA[
+            UPDATE configuration_properties AS stale
+               SET property_key = 'xroad.proxy-ui-api.acme-certificate-wait-attempts'
+             WHERE stale.property_key = 'xroad.proxy-ui-api.acme-certification-wait-attempts'
+               AND NOT EXISTS (SELECT 1
+                                 FROM configuration_properties existing
+                                WHERE existing.property_key = 'xroad.proxy-ui-api.acme-certificate-wait-attempts'
+                                  AND (existing.scope = stale.scope
+                                       OR (existing.scope IS NULL AND stale.scope IS NULL)));
+
+            UPDATE configuration_properties AS stale
+               SET property_key = 'xroad.proxy-ui-api.acme-certificate-wait-interval'
+             WHERE stale.property_key = 'xroad.proxy-ui-api.acme-certification-wait-interval'
+               AND NOT EXISTS (SELECT 1
+                                 FROM configuration_properties existing
+                                WHERE existing.property_key = 'xroad.proxy-ui-api.acme-certificate-wait-interval'
+                                  AND (existing.scope = stale.scope
+                                       OR (existing.scope IS NULL AND stale.scope IS NULL)));
+
+            DELETE FROM configuration_properties
+             WHERE property_key IN ('xroad.proxy-ui-api.acme-certification-wait-attempts',
+                                    'xroad.proxy-ui-api.acme-certification-wait-interval');
+            ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

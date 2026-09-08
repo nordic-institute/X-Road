@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.arch;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
@@ -53,11 +54,22 @@ public final class ArchUnitSuppressionHelper {
         }
 
         // Check if the declaring class has @ArchUnitSuppressed
-        if (javaMethod.getOwner().isAnnotatedWith(ArchUnitSuppressed.class)) {
-            ArchUnitSuppressed annotation = javaMethod.getOwner().getAnnotationOfType(ArchUnitSuppressed.class);
+        return isSuppressed(javaMethod.getOwner(), ruleName);
+    }
+
+    /**
+     * Checks if a class is suppressed from a specific ArchUnit rule.
+     * Uses @ArchUnitSuppressed annotation for reliable suppression.
+     *
+     * @param javaClass the class to check
+     * @param ruleName  the name of the rule to check suppression for
+     * @return true if the class is suppressed from the rule, false otherwise
+     */
+    public static boolean isSuppressed(JavaClass javaClass, String ruleName) {
+        if (javaClass.isAnnotatedWith(ArchUnitSuppressed.class)) {
+            ArchUnitSuppressed annotation = javaClass.getAnnotationOfType(ArchUnitSuppressed.class);
             return isRuleSuppressedByCustomAnnotation(annotation, ruleName);
         }
-
         return false;
     }
 
@@ -85,6 +97,4 @@ public final class ArchUnitSuppressionHelper {
 
         return false;
     }
-
-
 }

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,21 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <XrdSubTabs :tabs />
-  </div>
+  <XrdViewNavigation :allowed-tabs="tabs" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab, XrdSubTabs } from '@niis/shared-ui';
+import { Tab, XrdViewNavigation } from '@niis/shared-ui';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   components: {
-    XrdSubTabs,
+    XrdViewNavigation,
   },
   props: {
     id: {
@@ -58,6 +57,7 @@ export default defineComponent({
         {
           key: 'details',
           name: 'tab.client.details',
+          icon: 'list_alt',
           to: {
             name: RouteName.MemberDetails,
             params: { id: this.id },
@@ -66,6 +66,7 @@ export default defineComponent({
         {
           key: 'internalServers',
           name: 'tab.client.internalServers',
+          icon: 'host',
           to: {
             name: RouteName.MemberServers,
             params: { id: this.id },

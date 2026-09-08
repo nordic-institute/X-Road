@@ -46,8 +46,8 @@ public final class Version {
     public static final String JAVA_RUNTIME_VERSION_PROPERTY = "java.runtime.version";
     public static final String JAVA_VENDOR_PROPERTY = "java.vendor";
 
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 21;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 21;
+    public static final int MIN_SUPPORTED_JAVA_VERSION = 25;
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 25;
 
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;
@@ -57,7 +57,7 @@ public final class Version {
     static {
         Properties props = new Properties();
 
-        try (InputStream inputStream = Version.class.getResourceAsStream("/version.properties")) {
+        try (InputStream inputStream = Version.class.getResourceAsStream("/xroad-version.properties")) {
             props.load(inputStream);
         } catch (IOException e) {
             log.error("Could not read version.properties", e);

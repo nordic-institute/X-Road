@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.AuthKeyManager;
@@ -55,7 +53,7 @@ public final class SSLContextUtil {
      */
     public static SSLContext createXroadSSLContext(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider)
             throws KeyManagementException, NoSuchAlgorithmException {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
                 new TrustManager[]{new AuthTrustManager(globalConfProvider)},
                 new SecureRandom());

@@ -25,89 +25,79 @@
    THE SOFTWARE.
  -->
 <template>
-  <main
-    data-test="security-server-authentication-certificates-view"
-    class="mt-5"
-  >
+  <XrdSubView data-test="security-server-authentication-certificates-view">
     <!-- Table -->
     <v-data-table
+      class="xrd bg-surface-container xrd-rounded-12 border"
+      item-key="id"
+      hide-default-footer
       :loading="loading"
       :headers="headers"
       :items="authenticationCertificates"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
       :loader-height="2"
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
-          <xrd-icon-base icon-name="certificate" class="mr-4">
-            <xrd-icon-certificate />
-          </xrd-icon-base>
-          {{ item.issuer_common_name }}
-        </div>
+        <XrdLabelWithIcon
+          icon="assured_workload"
+          clickable
+          semi-bold
+          :label="item.issuer_common_name"
+          @navigate="navigateToCertificateDetails(item.id)"
+        />
       </template>
       <template #[`item.not_after`]="{ item }">
-        <date-time :value="item.not_after" />
+        <XrdDateTime :value="item.not_after" />
       </template>
 
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-button
+          <XrdBtn
             v-if="hasDeletePermission"
             data-test="delete-AC-button"
-            text
-            :outlined="false"
+            variant="text"
+            text="action.delete"
+            color="tertiary"
             @click="openDeleteConfirmationDialog(item.id)"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
+          />
         </div>
-      </template>
-
-      <template #bottom>
-        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
     <delete-authentication-certificate-dialog
-      v-if="
-        securityServerId &&
-        authCertIdForDeletion &&
-        showDeleteConfirmationDialog
-      "
+      v-if="securityServerId && authCertIdForDeletion && showDeleteConfirmationDialog"
       :authentication-certificate-id="authCertIdForDeletion.toString()"
       :security-server-id="securityServerId"
       @cancel="cancelDeletion"
       @delete="finishDeletion"
-    >
-    </delete-authentication-certificate-dialog>
-  </main>
+    />
+  </XrdSubView>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
-import { Permissions, RouteName } from '@/global';
-import { useUser } from '@/store/modules/user';
+
+import { DataTableHeader } from 'vuetify/lib/components/VDataTable/types';
 import { mapState, mapStores } from 'pinia';
-import {
-  SecurityServerAuthenticationCertificateDetails,
-  SecurityServerId,
-} from '@/openapi-types';
-import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+
+import { XrdBtn, XrdDateTime, XrdLabelWithIcon, XrdSubView } from '@niis/shared-ui';
+
+import { Permissions, RouteName } from '@/global';
+import { SecurityServerAuthenticationCertificateDetails, SecurityServerId } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import DateTime from '@/components/ui/DateTime.vue';
-import { XrdIconCertificate, XrdDataTableFooter } from '@niis/shared-ui';
-import { DataTableHeader } from '@/ui-types';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+import { useUser } from '@/store/modules/user';
+
+import DeleteAuthenticationCertificateDialog from './dialogs/DeleteAuthenticationCertificateDialog.vue';
 
 export default defineComponent({
   components: {
-    XrdDataTableFooter,
-    DateTime,
+    XrdSubView,
+    XrdDateTime,
     DeleteAuthenticationCertificateDialog,
-    XrdIconCertificate,
+    XrdLabelWithIcon,
+    XrdBtn,
   },
   props: {
     serverId: {
@@ -132,16 +122,12 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: this.$t(
-            'securityServers.securityServer.certificationAuthority',
-          ) as string,
+          title: this.$t('securityServers.securityServer.certificationAuthority') as string,
           align: 'start',
           key: 'issuer_common_name',
         },
         {
-          title: this.$t(
-            'securityServers.securityServer.serialNumber',
-          ) as string,
+          title: this.$t('securityServers.securityServer.serialNumber') as string,
           align: 'start',
           key: 'serial',
         },
@@ -163,18 +149,21 @@ export default defineComponent({
       ];
     },
     securityServerId(): SecurityServerId | undefined {
-      return this.securityServerStore.currentSecurityServer?.server_id;
+      return this.securityServerStore.current?.server_id;
     },
   },
-  created() {
-    this.fetchSecurityServerAuthenticationCertificates();
+  watch: {
+    serverId: {
+      immediate: true,
+      handler(serverId) {
+        this.fetchSecurityServerAuthenticationCertificates(serverId);
+      },
+    },
   },
   methods: {
-    fetchSecurityServerAuthenticationCertificates(): void {
+    fetchSecurityServerAuthenticationCertificates(serverId: string): void {
       this.loading = true;
-      this.securityServerAuthCertStore
-        .fetch(this.serverId)
-        .finally(() => (this.loading = false));
+      this.securityServerAuthCertStore.fetch(serverId).finally(() => (this.loading = false));
     },
     hasDeletePermission(): boolean {
       return this.hasPermission(Permissions.DELETE_SECURITY_SERVER_AUTH_CERT);
@@ -188,7 +177,7 @@ export default defineComponent({
     },
     finishDeletion(): void {
       this.showDeleteConfirmationDialog = false;
-      this.fetchSecurityServerAuthenticationCertificates();
+      this.fetchSecurityServerAuthenticationCertificates(this.serverId);
     },
     navigateToCertificateDetails(authCertId?: number): void {
       if (!authCertId) {
@@ -197,21 +186,11 @@ export default defineComponent({
       this.$router.push({
         name: RouteName.SecurityServerAuthenticationCertificate,
         params: {
-          authenticationCertificateId: authCertId.toString(),
+          certificateId: authCertId.toString(),
         },
       });
     },
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables' as *;
-@use '@niis/shared-ui/src/assets/colors';
-
-.icon-cell {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-</style>
+<style lang="scss" scoped></style>

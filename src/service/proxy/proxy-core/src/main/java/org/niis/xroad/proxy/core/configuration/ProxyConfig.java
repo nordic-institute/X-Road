@@ -25,111 +25,268 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+
+import io.quarkus.vault.VaultKVSecretEngine;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
+import io.smallrye.config.SmallRyeConfig;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
+import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.VaultKeyClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultKeyClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
-import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
-import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
-import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
-import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
-import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
+import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
+import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.MessageSigner;
-import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.proxy.core.signature.SimpleSigner;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class,
-        ProxyOpMonitoringConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-})
-@Configuration
-@ArchUnitSuppressed("NoVanillaExceptions")
-public class ProxyConfig {
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.util.stream.Stream;
 
-    @Bean
-    MessageSigner messageSigner(SignerRpcClient signerRpcClient) {
-        return new BatchSigner(signerRpcClient);
+import static java.util.Arrays.stream;
+
+@Slf4j
+class ProxyConfig {
+
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(CommonConfigKeys.instance())
+                .register(CommonRpcConfigKeys.instance())
+                .register(ProxyConfigKeys.instance())
+                .register(MessageLogEncryptionConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
+                .register(ServerConfConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .dbOverrides(appName)
+                .build();
     }
 
-    @Bean
-    SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                          MessageSigner messageSigner) {
-        return new SigningCtxProviderImpl(globalConfProvider, keyConfProvider, messageSigner);
+    @ApplicationScoped
+    ServerConfCommonProperties serverConfCommonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadServerConfProperties(xRoadConfig);
     }
 
-    @Bean
-    CommonBeanProxy commonBeanProxy(GlobalConfProvider globalConfProvider,
-                                    KeyConfProvider keyConfProvider,
-                                    SigningCtxProvider signingCtxProvider,
-                                    ServerConfProvider serverConfProvider,
-                                    CertChainFactory certChainFactory,
-                                    CertHelper certHelper) {
-        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
-                certHelper);
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
     }
 
-    @Bean
-    ClientProxy clientProxy(CommonBeanProxy commonBeanProxy,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
     }
 
-    @Bean
-    CertHelper certHelper(GlobalConfProvider globalConfProvider) {
-        return new CertHelper(globalConfProvider);
+    @ApplicationScoped
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcChannelProperties(xRoadConfig);
     }
 
-    @Bean
-    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
-        return new CertChainFactory(globalConfProvider);
+    @ApplicationScoped
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ConfClientRpcChannelProperties(xRoadConfig);
     }
 
-    @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
+    @ApplicationScoped
+    EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorRpcChannelProperties(xRoadConfig);
     }
 
-    @Bean
-    ServerProxy serverProxy(CommonBeanProxy commonBeanProxy) throws Exception {
-        return new ServerProxy(commonBeanProxy);
+    @ApplicationScoped
+    ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcChannelProperties(xRoadConfig);
     }
 
-    @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        return new CertHashBasedOcspResponder(keyConfProvider);
+    @ApplicationScoped
+    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
     }
 
-    @Bean
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
-        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
+    @ApplicationScoped
+    CommonProperties commonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadConfigCommonProperties(xRoadConfig);
     }
 
-    @Bean
-    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
-        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
+    @ApplicationScoped
+    AntiDosConfiguration antiDosConfiguration(XRoadConfig xRoadConfig) {
+        return new AntiDosConfiguration(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyRpcServerProperties proxyRpcServerProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcServerProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyHealthCheckProperties proxyHealthCheckProperties(XRoadConfig xRoadConfig) {
+        return new ProxyHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyMessageLogProperties proxyMessageLogProperties(XRoadConfig xRoadConfig) {
+        return new ProxyMessageLogProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyProperties proxyProperties(XRoadConfig xRoadConfig) {
+        return new ProxyProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyTlsProperties proxyTlsProperties(XRoadConfig xRoadConfig) {
+        return new ProxyTlsProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyProperties.ClientProxyProperties clientProxyProperties(ProxyProperties proxyProperties) {
+        return proxyProperties.clientProxy();
+    }
+
+    @ApplicationScoped
+    ProxyProperties.Addon addonProperties(ProxyProperties proxyProperties) {
+        return proxyProperties.addon();
+    }
+
+    @ApplicationScoped
+    ProxyProperties.OcspResponderProperties ocspResponderProperties(XRoadConfig xRoadConfig) {
+        return new ProxyProperties.OcspResponderProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    VaultKeyClient vaultKeyClient(VaultPKISecretEngineFactory pkiSecretEngineFactory, ProxyTlsProperties tlsProperties) {
+        return new QuarkusVaultKeyClient(pkiSecretEngineFactory, tlsProperties.certificateProvisioning());
+    }
+
+    @ApplicationScoped
+    VaultClient vaultClient(VaultKeyClient vaultKeyClient, VaultKVSecretEngine kvSecretEngine) {
+        QuarkusVaultClient vaultClient = new QuarkusVaultClient(kvSecretEngine);
+        try {
+            ensureInternalTlsKeyPresent(vaultKeyClient, vaultClient);
+        } catch (Exception e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+        return vaultClient;
+    }
+
+    private void ensureInternalTlsKeyPresent(VaultKeyClient vaultKeyClient, VaultClient vaultClient)
+            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        try {
+            vaultClient.getInternalTlsCredentials();
+        } catch (Exception e) {
+            log.warn("Unable to locate internal TLS credentials, attempting to create new ones", e);
+            VaultKeyClient.VaultKeyData vaultKeyData = vaultKeyClient.provisionNewCerts();
+            var certChain = Stream.concat(stream(vaultKeyData.identityCertChain()), stream(vaultKeyData.trustCerts()))
+                    .toArray(X509Certificate[]::new);
+            var internalTlsKey = new InternalSSLKey(vaultKeyData.identityPrivateKey(), certChain);
+            vaultClient.createInternalTlsCredentials(internalTlsKey);
+            log.info("Successfully created internal TLS credentials");
+        }
+    }
+
+    @ApplicationScoped
+    static class OpMonitoringBufferInitializer {
+
+        @ApplicationScoped
+        OpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider,
+                                              ProxyProperties proxyProperties,
+                                              VaultClient vaultClient)
+                throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
+                       InvalidKeySpecException, KeyManagementException {
+
+            if (proxyProperties.addon().opMonitor().enabled()) {
+                log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(
+                        serverConfProvider, proxyProperties.addon().opMonitor(), vaultClient,
+                        proxyProperties.clientProxy().poolEnableConnectionReuse());
+                opMonitoringBuffer.init();
+                return opMonitoringBuffer;
+            } else {
+                log.debug("Initializing NoOpMonitoringBuffer");
+                return new NoOpMonitoringBuffer();
+            }
+        }
+
+        public void cleanup(@Disposes OpMonitoringBuffer opMonitoringBuffer) {
+            if (opMonitoringBuffer instanceof OpMonitoringBufferImpl impl)
+                impl.destroy();
+        }
+
+    }
+
+
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
+                                          ServerConfCommonProperties serverConfProperties,
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
+    }
+
+    @ApplicationScoped
+    MessageSigner messageSigner(ProxyProperties properties, SignerSignClient signerSignClient,
+                                SignerRpcClient signerRpcClient, SignerRpcChannelProperties signerRpcChannelProperties) {
+        if (properties.batchSigningEnabled()) {
+            return new BatchSigner(signerRpcClient, signerSignClient, signerRpcChannelProperties);
+        } else {
+            return new SimpleSigner(signerSignClient);
+        }
+    }
+
+    public void dispose(@Disposes MessageSigner messageSigner) {
+        if (messageSigner instanceof BatchSigner batchSigner) {
+            batchSigner.destroy();
+        }
     }
 }

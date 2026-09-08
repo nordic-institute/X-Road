@@ -25,17 +25,16 @@
  */
 package org.niis.xroad.globalconf.impl;
 
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +45,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -54,18 +52,14 @@ public class GlobalConfVer3Test {
     private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v3";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
-    @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
-
     private static GlobalConfProvider globalConfProvider;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
-
         createConfigurationFiles();
 
-        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
+        var source = new FileSystemGlobalConfSource(GOOD_CONF_DIR);
+        globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
     }
 
     private static void createConfigurationFiles() throws IOException {

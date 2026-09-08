@@ -5,17 +5,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,17 +28,18 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
-import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,7 +62,7 @@ class SecurityServerClientMapperTest {
     private static final String SERVER_CODE = "server-code";
     private static final String OWNER_NAME = "owner-name";
     private static final String CLASS_DESCRIPTION = "class-description";
-    private static final int SUBSYSTEM_ID = 123;
+    private static final long SUBSYSTEM_ID = 123L;
 
     @Autowired
     private SecurityServerClientMapper securityServerClientMapper;
@@ -116,8 +117,9 @@ class SecurityServerClientMapperTest {
         final XRoadMemberEntity member = new XRoadMemberEntity(MEMBER_NAME, memberIdEntity, memberClasEntity);
 
         final ClientId identifier = SubsystemIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE);
+        ReflectionTestUtils.setField(identifier, "createdAt", TimeUtils.now());
+        ReflectionTestUtils.setField(identifier, "updatedAt", TimeUtils.now());
         final SubsystemEntity entity = new SubsystemEntity(member, identifier);
-        ReflectionTestUtils.setField(entity, "id", 2);
         final ServerClientEntity serverClient = new ServerClientEntity();
         final XRoadMemberEntity owner = new XRoadMemberEntity(OWNER_NAME, memberIdEntity, memberClasEntity);
         serverClient.setSecurityServer(new SecurityServerEntity(owner, SERVER_CODE));

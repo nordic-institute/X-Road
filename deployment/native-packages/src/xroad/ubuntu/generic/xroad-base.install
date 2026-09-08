@@ -1,0 +1,9 @@
+../../../../src/xroad/common/base/etc/*  etc/
+../../../../src/xroad/common/base/usr/*  usr/
+../../../../src/xroad/common/helper-scripts/yaml_helper.py usr/share/xroad/scripts/
+../../../../src/xroad/common/helper-scripts/yaml_helper.sh usr/share/xroad/scripts/
+../../../../../../src/tool/liquibase-executor/build/libs/liquibase-executor.jar usr/share/xroad/db/
+../../../../../../src/tool/otel-javaagent-dist/build/libs/opentelemetry-javaagent.jar usr/share/xroad/lib/
+../../../../../../src/3RD-PARTY-NOTICES.txt usr/share/doc/xroad-base/
+../../../../../../CHANGELOG.md usr/share/doc/xroad-base/
+../../../../../../src/LICENSE.txt usr/share/doc/xroad-base/

@@ -12,7 +12,7 @@ dependencies {
   api(libs.awaitility)
   api(libs.systemRules)
   api(libs.assertj.core)
-  api(libs.logback.classic)
+  api(libs.junit.jupiter.params)
 }
 
 sourceSets {

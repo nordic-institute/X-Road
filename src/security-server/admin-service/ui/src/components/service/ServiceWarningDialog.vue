@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,93 +25,67 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-if="dialog"
-    :model-value="dialog"
-    persistent
+  <XrdConfirmDialog
+    title="services.warning"
     :max-width="maxWidth"
+    :loading="loading"
+    :accept-button-text="acceptButtonText"
+    :cancel-button-text="cancelButtonText"
+    @cancel="cancel"
+    @accept="accept"
   >
-    <v-card>
-      <v-card-title class="text-h5" data-test="service-warning-dialog-title">{{
-        $t('services.warning')
-      }}</v-card-title>
-      <v-card-text>
-        <div v-for="warning in warnings" :key="warning.code">
-          <!-- create the localisation key from warning code -->
-          <div class="dlg-warning-header">
-            {{ $t(`services.warningCode.${warning.code}`) }}
-          </div>
-          <div v-for="meta in warning.metadata" :key="meta">{{ meta }}</div>
+    <template #text>
+      <div v-for="warning in warnings" :key="warning.code">
+        <!-- create the localisation key from warning code -->
+        <div class="dlg-warning-header font-weight-medium">
+          {{ $t(`services.warningCode.${warning.code}`) }}
         </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <xrd-button
-          color="primary"
-          variant="outlined"
-          data-test="dialog-cancel-button"
-          @click="cancel()"
-          >{{ $t(cancelButtonText) }}</xrd-button
-        >
-        <xrd-button
-          color="primary"
-          variant="outlined"
-          :loading="loading"
-          data-test="service-url-change-button"
-          @click="accept()"
-          >{{ $t(acceptButtonText) }}</xrd-button
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        <div v-for="meta in warning.metadata" :key="meta" class="ml-2">
+          {{ meta }}
+        </div>
+      </div>
+    </template>
+  </XrdConfirmDialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 // A dialog for backend warnings
-import { defineComponent, PropType } from 'vue';
+import { PropType } from 'vue';
 import { CodeWithDetails } from '@/openapi-types';
-import { XrdButton } from '@niis/shared-ui';
+import { XrdConfirmDialog } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: { XrdButton },
-  props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    warnings: {
-      type: Array as PropType<CodeWithDetails[]>,
-      required: true,
-    },
-    cancelButtonText: {
-      type: String,
-      default: 'action.cancel',
-    },
-    acceptButtonText: {
-      type: String,
-      default: 'action.continue',
-    },
-    maxWidth: {
-      type: String,
-      default: '850',
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  warnings: {
+    type: Array as PropType<CodeWithDetails[]>,
+    required: true,
   },
-  emits: ['cancel', 'accept'],
-  methods: {
-    cancel(): void {
-      this.$emit('cancel');
-    },
-    accept(): void {
-      this.$emit('accept');
-    },
+  cancelButtonText: {
+    type: String,
+    default: 'action.cancel',
+  },
+  acceptButtonText: {
+    type: String,
+    default: 'action.continue',
+  },
+  maxWidth: {
+    type: String,
+    default: '840',
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 });
+
+const emit = defineEmits(['cancel', 'accept']);
+
+function cancel(): void {
+  emit('cancel');
+}
+
+function accept(): void {
+  emit('accept');
+}
 </script>
 
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>
+<style lang="scss" scoped></style>

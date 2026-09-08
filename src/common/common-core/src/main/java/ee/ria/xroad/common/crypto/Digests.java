@@ -40,8 +40,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static ee.ria.xroad.common.util.EncoderUtils.encodeHex;
 import static lombok.AccessLevel.PRIVATE;
@@ -76,7 +76,7 @@ public final class Digests {
     /**
      * A cache of BouncyCastle algorithm identifiers
      */
-    private static final Map<DigestAlgorithm, AlgorithmIdentifier> ALGORITHM_IDENTIFIER_CACHE = new HashMap<>();
+    private static final Map<DigestAlgorithm, AlgorithmIdentifier> ALGORITHM_IDENTIFIER_CACHE = new ConcurrentHashMap<>();
 
     /**
      * Calculates message digest using the provided digest calculator.

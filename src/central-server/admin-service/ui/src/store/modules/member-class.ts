@@ -39,27 +39,19 @@ export const useMemberClass = defineStore('memberClass', {
   persist: true,
   actions: {
     fetchAll() {
-      return axios
-        .get<MemberClass[]>('/member-classes')
-        .then((resp) => (this.memberClasses = resp.data));
+      return axios.get<MemberClass[]>('/member-classes').then((resp) => (this.memberClasses = resp.data));
     },
     delete(memberClass: MemberClass) {
-      return axios
-        .delete(`/member-classes/${memberClass.code}`, {})
-        .finally(() => this.fetchAll());
+      return axios.delete(`/member-classes/${memberClass.code}`, {}).finally(() => this.fetchAll());
     },
     update(code: string, description: string) {
       const memberClassDescription: MemberClassDescription = {
         description: description,
       };
-      return axios
-        .patch(`/member-classes/${code}`, memberClassDescription)
-        .finally(() => this.fetchAll());
+      return axios.patch(`/member-classes/${code}`, memberClassDescription).finally(() => this.fetchAll());
     },
     add(memberClass: MemberClass) {
-      return axios
-        .post('/member-classes', memberClass)
-        .finally(() => this.fetchAll());
+      return axios.post('/member-classes', memberClass).finally(() => this.fetchAll());
     },
   },
 });

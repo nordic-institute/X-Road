@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-import { MailNotificationStatus, TestMailResponse } from '@/openapi-types';
+import { MailNotificationStatus, SendTestMailData, TestMailResponse } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
@@ -51,9 +52,8 @@ export const useMail = defineStore('mail', {
         });
     },
     async sendTestMail(mailAddress: string) {
-      return api.put<TestMailResponse>('/mail/send-test-mail', {
-        mail_address: mailAddress,
-      });
+      const body: SendTestMailData['body'] = { mail_address: mailAddress };
+      return api.put<TestMailResponse>('/mail/send-test-mail', body);
     },
   },
 });

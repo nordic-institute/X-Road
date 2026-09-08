@@ -25,28 +25,95 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import lombok.RequiredArgsConstructor;
+import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.properties.CommonProperties;
+import org.niis.xroad.common.vault.VaultClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.service.HttpSenderProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-final class ServiceHandlerLoader {
+import java.util.ArrayList;
+import java.util.List;
 
-    private ServiceHandlerLoader() {
+import static org.niis.xroad.proxy.core.configuration.ServerProxyConfig.SERVER_PROXY_HTTP_CLIENT;
+
+/**
+ * Constructs service handlers at startup based on feature flags and exposes immutable ordered handler lists.
+ */
+@ApplicationScoped
+@RequiredArgsConstructor
+public class ServiceHandlerLoader {
+
+    private final ServerConfProvider serverConfProvider;
+    private final GlobalConfProvider globalConfProvider;
+    private final ProxyProperties proxyProperties;
+    private final CommonProperties commonProperties;
+    private final VaultClient vaultClient;
+    private final MonitorRpcClient monitorRpcClient;
+    private final HttpSenderProvider httpSenderProvider;
+    @Named(SERVER_PROXY_HTTP_CLIENT)
+    private final HttpClient serverProxyHttpClient;
+
+    private List<ServiceHandler> soapHandlers;
+    private List<RestServiceHandler> restHandlers;
+
+    @PostConstruct
+    public void init() {
+        soapHandlers = buildSoapHandlers();
+        restHandlers = buildRestHandlers();
     }
 
-    static ServiceHandler load(String className, ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            if (!AbstractServiceHandler.class.isAssignableFrom(clazz)) {
-                throw XrdRuntimeException.systemInternalError(
-                        "Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
-            }
-
-            return (ServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class, GlobalConfProvider.class)
-                    .newInstance(serverConfProvider, globalConfProvider);
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("Failed to load service handler: " + className, e);
+    @PreDestroy
+    public void destroy() {
+        if (soapHandlers != null) {
+            soapHandlers.forEach(ServiceHandler::destroy);
         }
+    }
+
+    private List<ServiceHandler> buildSoapHandlers() {
+        var addons = proxyProperties.addon();
+        var handlers = new ArrayList<ServiceHandler>();
+
+        if (addons.metaservices().enabled()) {
+            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider, proxyProperties));
+        }
+        if (addons.opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                    vaultClient, proxyProperties));
+        }
+        if (addons.proxyMonitor().enabled()) {
+            handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
+        }
+        handlers.add(new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider, httpSenderProvider));
+        return List.copyOf(handlers);
+    }
+
+    private List<RestServiceHandler> buildRestHandlers() {
+        var handlers = new ArrayList<RestServiceHandler>();
+        if (proxyProperties.addon().metaservices().enabled()) {
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider, proxyProperties, commonProperties));
+        }
+        handlers.add(new DefaultRestServiceHandlerImpl(serverConfProvider, serverProxyHttpClient, commonProperties));
+        return List.copyOf(handlers);
+    }
+
+    List<ServiceHandler> getSoapHandlers() {
+        return soapHandlers;
+    }
+
+    List<RestServiceHandler> getRestHandlers() {
+        return restHandlers;
     }
 
 }

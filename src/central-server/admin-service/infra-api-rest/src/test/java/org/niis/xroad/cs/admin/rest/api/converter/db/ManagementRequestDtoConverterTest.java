@@ -116,7 +116,7 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
     private ManagementRequestDtoConverter converter;
 
     @BeforeEach
-    private void setZoneOffset() {
+    public void setZoneOffset() {
         ReflectionTestUtils.setField(converter, "dtoZoneOffset", dtoZoneOffset);
     }
 

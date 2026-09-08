@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.globalconf.impl.signature;
 
-import ee.ria.xroad.common.CodedException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.CMSException;
@@ -44,11 +42,11 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.niis.xroad.common.core.exception.ErrorCode.INCORRECT_CERTIFICATE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SIGNATURE;
 import static org.niis.xroad.common.core.exception.ErrorCode.NO_TIMESTAMPING_PROVIDER_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_SIGNER_VERIFICATION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.TIMESTAMP_TOKEN_SIGNER_INFO_NOT_FOUND;
@@ -79,7 +77,7 @@ public final class TimestampVerifier {
                 tsToken.getTimeStampInfo().getHashAlgorithm(), stampedData));
         String thisHash = encodeBase64(tsToken.getTimeStampInfo().getMessageImprintDigest());
         if (!thisHash.equals(thatHash)) {
-            throw new CodedException(X_MALFORMED_SIGNATURE, "Timestamp hashes do not match");
+            throw XrdRuntimeException.systemException(MALFORMED_SIGNATURE, "Timestamp hashes do not match");
         }
 
         verify(tsToken, tspCerts);

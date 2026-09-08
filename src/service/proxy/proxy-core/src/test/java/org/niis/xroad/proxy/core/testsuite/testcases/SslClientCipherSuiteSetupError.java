@@ -26,16 +26,15 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.TestContext;
 import org.niis.xroad.proxy.core.testsuite.SslMessageTestCase;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  * SSL connection should fail cause client proxy is set to use not accepted cipher suite. Test is expecting that
@@ -43,9 +42,6 @@ import java.security.NoSuchAlgorithmException;
  * read again per new socket conn) where as the property on the server side proxy is read only once (on startup).
  */
 public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
-
-    String propertyName = "xroad.proxy.xroad-tls-ciphers";
-    String[] origCipherSuites = SystemProperties.getXroadTLSCipherSuites();
 
     /**
      * Constructs the test case.
@@ -63,14 +59,19 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
     @Override
     public boolean execute(TestContext testContext) throws Exception {
         try {
-            // Set not accepted cipher in use
-            System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
             // execute test
             return super.execute(testContext);
         } finally {
             // Restore cipher suite setup for rest of the tests
-            System.setProperty(propertyName, String.join(",", origCipherSuites));
+            reset(proxyTestSuiteHelper.proxyProperties);
         }
+    }
+
+    @Override
+    protected void postInitExecHook() {
+        // Set not accepted cipher in use
+        String[] origCipherSuites = proxyTestSuiteHelper.proxyProperties.xroadTlsCiphers();
+        when(proxyTestSuiteHelper.proxyProperties.xroadTlsCiphers()).thenReturn(getNotAcceptedCipher(origCipherSuites));
     }
 
     /**
@@ -85,12 +86,12 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
         // fault expected
     }
 
-    private String getNotAcceptedCipher(String[] acceptedCiphers) throws NoSuchAlgorithmException,
-            KeyManagementException {
+    @SneakyThrows
+    private String[] getNotAcceptedCipher(String[] acceptedCiphers) {
         var sslCtx = SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider);
         for (String cipher : sslCtx.createSSLEngine().getSupportedCipherSuites()) {
             if (cipher.contains("_RSA_") && !ArrayUtils.contains(acceptedCiphers, cipher)) {
-                return cipher;
+                return new String[]{cipher};
             }
         }
         return null;

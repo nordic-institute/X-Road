@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -143,9 +144,10 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
-    public void updateServiceHttpsVerifySslAuth() throws Exception {
-        doThrow(new SSLHandshakeException("")).when(internalServerTestService).testHttpsConnection(any(), any());
-
+    public void updateServiceHttpsVerifySslAuth() {
+        doThrow(XrdRuntimeException.systemException(new SSLHandshakeException("")))
+                .when(internalServerTestService)
+                .testHttpsConnection(any(), any());
         ServiceDto service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
@@ -160,7 +162,9 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertEquals(DeviationCodes.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR,
                 expected.getWarningDeviations().iterator().next().code());
 
-        doThrow(new IOException("test")).when(internalServerTestService).testHttpsConnection(any(), any());
+        doThrow(XrdRuntimeException.systemException(new IOException("test")))
+                .when(internalServerTestService)
+                .testHttpsConnection(any(), any());
         expected = assertThrows(BadRequestException.class,
                 () -> servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate));
 
@@ -197,7 +201,6 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
     public void updateServiceHttpVerifySslAuth() {
-        when(backupService.getBackupFiles()).thenThrow(new RuntimeException());
         ServiceDto service = servicesApiController.getService(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(60, service.getTimeout().intValue());
 
@@ -566,7 +569,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Test(expected = ConflictException.class)
     @WithMockUser(authorities = {"VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL"})
-    public void addDuplicateAccessRight() throws Exception {
+    public void addDuplicateAccessRight() {
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
         Set<ServiceClientDto> serviceClients = servicesApiController.getServiceServiceClients(

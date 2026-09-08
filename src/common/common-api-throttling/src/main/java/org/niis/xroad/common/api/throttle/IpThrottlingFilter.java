@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class IpThrottlingFilter implements Filter {
     private static final int HTTP_STATUS_TOO_MANY_REQUESTS = 429;
+    public static final String[] ADMIN_UI_PATTERNS = {"/login", "/logout", "/api/*"};
 
     private final IpThrottlingFilterConfig ipThrottlingFilterConfig;
     private final LoadingCache<String, Bucket> bucketCache;
@@ -93,6 +94,11 @@ public class IpThrottlingFilter implements Filter {
     public void doFilter(ServletRequest servletRequest,
                          ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
+
+        if (!ipThrottlingFilterConfig.isRateLimitEnabled()) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
 
         final var ip = servletRequest.getRemoteAddr();
         final Bucket bucket;

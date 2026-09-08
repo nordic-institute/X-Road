@@ -1,6 +1,6 @@
 {{#jackson}}
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "{{{discriminator.propertyBaseName}}}", visible = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "{{{discriminator.propertyBaseName}}}", visible = true)
 {{#discriminator.mappedModels}}
 {{#-first}}
 @JsonSubTypes({

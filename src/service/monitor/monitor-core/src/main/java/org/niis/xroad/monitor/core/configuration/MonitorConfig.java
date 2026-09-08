@@ -25,91 +25,116 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import io.grpc.BindableService;
+import io.quarkus.vault.VaultKVSecretEngine;
+import io.smallrye.config.SmallRyeConfig;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
-import org.niis.xroad.monitor.core.CertificateInfoSensor;
-import org.niis.xroad.monitor.core.DiskSpaceSensor;
-import org.niis.xroad.monitor.core.ExecListingSensor;
-import org.niis.xroad.monitor.core.MetricsRpcService;
-import org.niis.xroad.monitor.core.SystemMetricsSensor;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.common.healthcheck.HealthCheckProperties;
+import org.niis.xroad.common.healthcheck.XRoadHealthCheckProperties;
+import org.niis.xroad.common.properties.config.DeploymentMode;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.HealthCheckConfigKeys;
+import org.niis.xroad.common.properties.config.keys.MonitorConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
+import org.niis.xroad.common.rpc.RpcProperties;
+import org.niis.xroad.common.rpc.XRoadRpcProperties;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.quarkus.QuarkusVaultClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.util.List;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
+import org.niis.xroad.signer.client.SoftwareTokenSignerRpcChannelProperties;
 
 @Slf4j
-@Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class})
-@EnableScheduling
-@Configuration
 public class MonitorConfig {
-    private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
-    @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(),
-                builder -> bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
+    @ApplicationScoped
+    XRoadConfig xRoadConfig(@ConfigProperty(name = "quarkus.application.name") String appName) {
+        return XRoadConfigBuilder.create()
+                .register(CommonRpcConfigKeys.instance())
+                .register(MonitorConfigKeys.instance())
+                .register(HealthCheckConfigKeys.instance())
+                .register(GlobalConfConfigKeys.instance())
+                .register(OcspVerifierConfigKeys.instance())
+                .register(ServerConfConfigKeys.instance())
+                .deploymentMode(deploymentMode())
+                .dbOverrides(appName)
+                .build();
     }
 
-    @Bean
-    TaskScheduler taskScheduler() {
-        var taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.setPoolSize(TASK_EXECUTOR_POOL_SIZE);
-        return taskScheduler;
+    @ApplicationScoped
+    ServerConfCommonProperties serverConfCommonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadServerConfProperties(xRoadConfig);
     }
 
-    @Bean
-    MetricsRpcService metricsRpcService() {
-        return new MetricsRpcService();
+    private static DeploymentMode deploymentMode() {
+        var profiles = ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getProfiles();
+        return profiles.contains("containerized") ? DeploymentMode.CONTAINERIZED : DeploymentMode.NATIVE;
     }
 
-    @Bean
-    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        return new SystemMetricsSensor(taskScheduler);
+    @ApplicationScoped
+    RpcProperties rpcProperties(XRoadConfig xRoadConfig) {
+        return new XRoadRpcProperties(xRoadConfig);
     }
 
-    @Bean
-    DiskSpaceSensor diskSpaceSensor(TaskScheduler taskScheduler) {
-        return new DiskSpaceSensor(taskScheduler);
+    @ApplicationScoped
+    EnvMonitorProperties envMonitorProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorProperties(xRoadConfig);
     }
 
-    @Bean
-    ExecListingSensor execListingSensor(TaskScheduler taskScheduler) {
-        return new ExecListingSensor(taskScheduler);
+    @ApplicationScoped
+    EnvMonitorServerProperties envMonitorServerProperties(XRoadConfig xRoadConfig) {
+        return new EnvMonitorServerProperties(xRoadConfig);
     }
 
-    @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider,
-                                                SignerRpcClient signerRpcClient) {
-        return new CertificateInfoSensor(taskScheduler, serverConfProvider, signerRpcClient);
+    @ApplicationScoped
+    HealthCheckProperties healthCheckProperties(XRoadConfig xRoadConfig) {
+        return new XRoadHealthCheckProperties(xRoadConfig);
     }
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    @ApplicationScoped
+    ConfClientRpcChannelProperties confClientRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ConfClientRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    ProxyRpcChannelProperties proxyRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new ProxyRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SignerRpcChannelProperties signerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    SoftwareTokenSignerRpcChannelProperties softwareTokenSignerRpcChannelProperties(XRoadConfig xRoadConfig) {
+        return new SoftwareTokenSignerRpcChannelProperties(xRoadConfig);
+    }
+
+    @ApplicationScoped
+    VaultClient vaultClient(VaultKVSecretEngine kvSecretEngine) {
+        return new QuarkusVaultClient(kvSecretEngine);
+    }
+
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
+                                          ServerConfCommonProperties serverConfProperties,
+                                          GlobalConfProvider globalConfProvider,
+                                          VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
     }
 
 }

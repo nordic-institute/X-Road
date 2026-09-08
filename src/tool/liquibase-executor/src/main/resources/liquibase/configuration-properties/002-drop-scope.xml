@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+    logicalFilePath="configuration-properties/002-drop-scope.xml">
+
+    <!--
+        Collapses configuration_properties to a plain property_key-keyed table. The scope column used to
+        partition the rows per consuming application; since the config source stopped filtering by it, every
+        process reads every row, so two rows for one key are ambiguous rather than app-specific.
+
+        Survivor rule, preserving what a deployment resolved while scope was still honoured (the source
+        ordered scope NULLS LAST, so an app-scoped row beat the scope-less one):
+          1. an app-scoped row wins over the scope-less row for the same key;
+          2. between app-scoped rows — one key configured for several applications, which can no longer be
+             represented — the most recently updated wins, id breaking a tie.
+        Anything dropped is reported first, so an upgrade leaves a record of values that stopped applying.
+
+        Must run after every changeset that references the scope column (serverconf/011).
+    -->
+    <changeSet author="niis" id="002-report-collapsed-property-scopes" dbms="postgresql">
+        <sql splitStatements="false"><![CDATA[
+            DO $$
+            DECLARE
+                dropped RECORD;
+            BEGIN
+                FOR dropped IN
+                    SELECT cp.property_key, cp.scope, cp.property_value
+                      FROM configuration_properties cp
+                     WHERE EXISTS (SELECT 1
+                                     FROM configuration_properties keeper
+                                    WHERE keeper.property_key = cp.property_key
+                                      AND keeper.id <> cp.id
+                                      AND ((cp.scope IS NULL AND keeper.scope IS NOT NULL)
+                                        OR ((cp.scope IS NULL) = (keeper.scope IS NULL)
+                                            AND (keeper.updated_at, keeper.id) > (cp.updated_at, cp.id))))
+                LOOP
+                    RAISE NOTICE 'configuration_properties: dropping duplicate of % (scope=%, value=%); another row for this key survives the scope drop',
+                        dropped.property_key, coalesce(dropped.scope, '<none>'), dropped.property_value;
+                END LOOP;
+            END $$;
+            ]]></sql>
+    </changeSet>
+
+    <changeSet author="niis" id="002-collapse-duplicate-property-keys">
+        <sql splitStatements="false"><![CDATA[
+            DELETE FROM configuration_properties cp
+             WHERE EXISTS (SELECT 1
+                             FROM configuration_properties keeper
+                            WHERE keeper.property_key = cp.property_key
+                              AND keeper.id <> cp.id
+                              AND ((cp.scope IS NULL AND keeper.scope IS NOT NULL)
+                                OR ((cp.scope IS NULL) = (keeper.scope IS NULL)
+                                    AND (keeper.updated_at > cp.updated_at
+                                         OR (keeper.updated_at = cp.updated_at AND keeper.id > cp.id)))));
+            ]]></sql>
+    </changeSet>
+
+    <changeSet author="niis" id="002-drop-scope-column">
+        <sql splitStatements="true"><![CDATA[
+            DROP INDEX IF EXISTS uniq_key;
+            DROP INDEX IF EXISTS uniq_key_scope;
+            ]]></sql>
+        <dropColumn tableName="configuration_properties" columnName="scope"/>
+        <createIndex tableName="configuration_properties" indexName="uniq_property_key" unique="true">
+            <column name="property_key"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

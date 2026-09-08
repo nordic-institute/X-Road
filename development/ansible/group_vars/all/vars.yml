@@ -1,0 +1,5 @@
+---
+
+# controls lxd versions, if changed, check epel version and repo urls
+rhel_releasever: 9
+ubuntu_releasever: resolute

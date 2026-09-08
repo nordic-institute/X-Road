@@ -69,8 +69,11 @@ public class ConfigurationVerifier {
             throws ProcessNotExecutableException, ProcessFailedException, InterruptedException {
         ExternalProcessRunner.ProcessResult processResult =
                 externalProcessRunner.execute(verificationScriptPath, fileToValidatePath);
-        int exitCode = processResult.getExitCode();
-        switch (exitCode) {
+        throwIfErrorCodeReturned(processResult.getExitCode());
+    }
+
+    public static void throwIfErrorCodeReturned(int returnCode) {
+        switch (returnCode) {
             case 0:
                 break;
             case EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE:
@@ -86,7 +89,7 @@ public class ConfigurationVerifier {
             case EXIT_STATUS_OTHER:
                 throw new InternalServerErrorException(CONF_VERIFICATION_OTHER.build());
             default:
-                throw new InternalServerErrorException("Configuration verifier exited with an unknown code: " + exitCode);
+                throw new InternalServerErrorException("Configuration verifier exited with an unknown code: " + returnCode);
         }
     }
 }

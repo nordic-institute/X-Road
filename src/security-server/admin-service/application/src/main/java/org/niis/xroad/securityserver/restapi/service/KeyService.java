@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.RequiredArgsConstructor;
@@ -138,7 +137,7 @@ public class KeyService {
             } else {
                 throw e;
             }
-        } catch (CodedException | InternalServerErrorException e) {
+        } catch (InternalServerErrorException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Update key friendly name failed", e, INTERNAL_ERROR.build());
@@ -166,10 +165,10 @@ public class KeyService {
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.GENERATE_KEY,
                 tokenInfo);
 
-        KeyInfo keyInfo = null;
+        KeyInfo keyInfo;
         try {
             keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, algorithm);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception other) {
             throw new InternalServerErrorException("Adding a new key failed", other, INTERNAL_ERROR.build());
@@ -260,7 +259,7 @@ public class KeyService {
         try {
             signerRpcClient.deleteKey(keyId, false);
             signerRpcClient.deleteKey(keyId, true);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception other) {
             throw new InternalServerErrorException("Delete key failed", other, INTERNAL_ERROR.build());
@@ -296,7 +295,7 @@ public class KeyService {
                     certificateInfo.getCertificateBytes());
             // update status
             signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (DeviationAwareRuntimeException | CodedException e) {
+        } catch (DeviationAwareRuntimeException | XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Could not unregister auth cert", e, INTERNAL_ERROR.build());

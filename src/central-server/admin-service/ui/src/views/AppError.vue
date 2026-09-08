@@ -26,9 +26,19 @@
  -->
 
 <template>
-  <XrdNotFoundError />
+  <XrdNotFoundError @go-home="goHome" />
 </template>
 
 <script lang="ts" setup>
+import { useRouter } from 'vue-router';
+
 import { XrdNotFoundError } from '@niis/shared-ui';
+import { useMainTabs } from '@/store/modules/main-tabs';
+
+const { push } = useRouter();
+const mainTabs = useMainTabs();
+
+function goHome() {
+  push(mainTabs.firstAllowedTab.to);
+}
 </script>

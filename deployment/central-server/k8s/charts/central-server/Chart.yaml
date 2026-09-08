@@ -1,0 +1,9 @@
+apiVersion: v2
+name: central-server
+description: >-
+  X-Road Central Server — dev-only wrapper around the all-in-one
+  central-server-dev image. NOT production-ready; see README.
+version: 0.1.0
+appVersion: 1.0.0
+annotations:
+  xroad.niis.org/production-ready: "false"

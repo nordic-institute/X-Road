@@ -1,0 +1,101 @@
+{{- $image := .Values.global.image }}
+{{- $archiver := .Values.messageLogArchiver }}
+{{- $archiverEnv := $archiver.env | default dict }}
+{{- $allVolumeMounts := concat ($archiver.volumeMounts | default list) ($archiver.extraVolumeMounts | default list) }}
+{{- $allVolumes := concat ($archiver.volumes | default list) ($archiver.extraVolumes | default list) }}
+{{- /*
+Same OpenBao TLS trust rule as services/all.yaml (secretStore.tls),
+applied to this Job by the same env-key check rather than a special case.
+*/}}
+{{- if and .Values.secretStore.tls.caSecretName (hasKey $archiverEnv "XROAD_SECRET_STORE_HOST") }}
+{{- $archiverEnv = merge (dict "QUARKUS_VAULT_TLS_CA_CERT" "/etc/xroad/ssl/openbao.crt") $archiverEnv }}
+{{- $allVolumes = append $allVolumes (dict
+      "name" "message-log-archiver-openbao-tls-certificate"
+      "secret" (dict
+        "secretName" .Values.secretStore.tls.caSecretName
+        "items" (list (dict "key" .Values.secretStore.tls.caSecretKey "path" "openbao.crt"))
+      )
+    ) }}
+{{- $allVolumeMounts = append $allVolumeMounts (dict
+      "mountPath" "/etc/xroad/ssl/openbao.crt"
+      "subPath" "openbao.crt"
+      "name" "message-log-archiver-openbao-tls-certificate"
+    ) }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-message-log-archiver-job-template
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+data:
+  job-template.yaml: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: "__JOBNAME__"
+    spec:
+      ttlSecondsAfterFinished: {{ $archiver.ttlSecondsAfterFinished }}
+      activeDeadlineSeconds: {{ $archiver.activeDeadlineSeconds }}
+      backoffLimit: 0
+      podFailurePolicy:
+        rules:
+          - action: Ignore
+            onPodConditions:
+              - type: DisruptionTarget
+      template:
+        spec:
+          restartPolicy: Never
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- range . }}
+            - name: {{ . }}
+            {{- end }}
+          {{- end }}
+          containers:
+            - name: message-log-archiver
+              image: {{ $image.registry }}/{{ $archiver.imageName }}:{{ $image.tag }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - >-
+                  exec java
+                  -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+                  -Djava.library.path=/usr/share/xroad/lib
+                  -Dquarkus.profile=containerized
+                  ${JAVA_OPTS:-}
+                  -jar /opt/app/quarkus-run.jar
+                  __CLI_ARGS__
+              env:
+                - name: JAVA_TOOL_OPTIONS
+                  value: "-XX:MaxRAMPercentage={{ .Values.jvmHeap.maxRAMPercentage }}"
+              {{- range $name, $value := $archiverEnv }}
+                - name: {{ $name }}
+                  value: {{ $value | quote }}
+              {{- end }}
+              {{- range $archiver.envFromSecrets }}
+                - name: {{ .name }}
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .secretName }}
+                      key: {{ .key }}
+              {{- end }}
+              {{- if $allVolumeMounts }}
+              volumeMounts:
+              {{- toYaml $allVolumeMounts | nindent 14 }}
+              {{- end }}
+          {{- if $allVolumes }}
+          volumes:
+          {{- range $allVolumes }}
+          {{- if .persistentVolumeClaim }}
+            - name: {{ .name }}
+              persistentVolumeClaim:
+                claimName: {{ $.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+          {{- else if .configMap }}
+            - name: {{ .name }}
+              configMap:
+                name: {{ $.Release.Name }}-{{ .configMap.name }}
+          {{- else }}
+            - {{ toYaml . | nindent 14 }}
+          {{- end }}
+          {{- end }}
+          {{- end }}

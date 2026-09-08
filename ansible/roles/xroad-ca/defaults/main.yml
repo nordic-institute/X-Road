@@ -1,7 +1,0 @@
-xroad_ca_o: "X-Road Test CA"
-xroad_ca_cn: "Test CA"
-xroad_ca_ocsp_o: "{{ xroad_ca_o }}"
-xroad_ca_ocsp_cn: "Test OCSP"
-xroad_ca_tsa_o: "{{ xroad_ca_o }}"
-xroad_ca_tsa_cn: "Test TSA"
-a2c_ver: "0.35"

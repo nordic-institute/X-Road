@@ -27,19 +27,20 @@
 
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.properties.config.impl.XRoadConfigBuilder;
+import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.file.Paths;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationEvent.FAILURE;
@@ -49,36 +50,30 @@ import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationS
 class GlobalConfGenerationStatusServiceImplTest {
 
     private static final ObjectMapper OBJECT_MAPPER;
+    private static final String LOG_PATH = System.getProperty("java.io.tmpdir");
 
     static {
-        OBJECT_MAPPER = new ObjectMapper();
-        OBJECT_MAPPER.registerModule(new JavaTimeModule());
+        OBJECT_MAPPER = JsonMapper.builder().build();
     }
 
     private final GlobalConfGenerationStatusServiceImpl globalConfGenerationStatusService =
-            new GlobalConfGenerationStatusServiceImpl(OBJECT_MAPPER);
+            new GlobalConfGenerationStatusServiceImpl(OBJECT_MAPPER, configWithLogPath(LOG_PATH));
 
-    private static String currentLogPath;
-
-    @BeforeAll
-    public static void saveSystemProperty() {
-        currentLogPath = System.getProperty(SystemProperties.LOG_PATH);
-        System.setProperty(SystemProperties.LOG_PATH, System.getProperty("java.io.tmpdir"));
+    private static XRoadConfig configWithLogPath(String logPath) {
+        return XRoadConfigBuilder.create()
+                .register(CsAdminServiceConfigKeys.instance())
+                .overrides(Map.of(CsAdminServiceConfigKeys.APP_LOG_PATH.key(), logPath))
+                .build();
     }
 
     @AfterAll
     public static void restoreSystemProperty() {
-        FileUtils.deleteQuietly(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME).toFile());
-        if (currentLogPath == null) {
-            System.clearProperty(SystemProperties.LOG_PATH);
-        } else {
-            System.setProperty(SystemProperties.LOG_PATH, currentLogPath);
-        }
+        FileUtils.deleteQuietly(Paths.get(LOG_PATH, STATUS_FILE_NAME).toFile());
     }
 
     @BeforeEach
     public void deleteStatusFileIfExists() {
-        FileUtils.deleteQuietly(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME).toFile());
+        FileUtils.deleteQuietly(Paths.get(LOG_PATH, STATUS_FILE_NAME).toFile());
     }
 
     @Test

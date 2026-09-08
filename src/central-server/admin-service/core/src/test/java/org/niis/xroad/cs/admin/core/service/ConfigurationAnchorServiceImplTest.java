@@ -42,6 +42,7 @@ import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchorWithFile;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceGlobalConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
@@ -49,9 +50,13 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.xmlunit.assertj3.XmlAssert;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +97,8 @@ public class ConfigurationAnchorServiceImplTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private AuditEventHelper auditEventHelper;
+    @Mock
+    private AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties;
 
     private ConfigurationAnchorServiceImpl configurationAnchorService;
 
@@ -100,6 +107,7 @@ public class ConfigurationAnchorServiceImplTest {
         configurationAnchorService = new ConfigurationAnchorServiceImpl(
                 configurationSourceRepository,
                 systemParameterService,
+                adminServiceGlobalConfigProperties,
                 auditEventHelper,
                 auditDataHelper,
                 new HAConfigStatus(HA_NODE_NAME, false));
@@ -194,6 +202,7 @@ public class ConfigurationAnchorServiceImplTest {
 
         @Test
         void shouldSuccessfullyRecreateInternal() {
+            when(adminServiceGlobalConfigProperties.getInternalDirectory()).thenReturn("internalconf");
             when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
@@ -270,6 +279,7 @@ public class ConfigurationAnchorServiceImplTest {
 
         @Test
         void shouldSuccessfullyRecreateExternal() {
+            when(adminServiceGlobalConfigProperties.getExternalDirectory()).thenReturn("externalconf");
             when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
@@ -365,7 +375,13 @@ public class ConfigurationAnchorServiceImplTest {
         }
 
         private String asString(final Instant instant) {
-            return instant.truncatedTo(ChronoUnit.MILLIS).toString();
+            try {
+                return DatatypeFactory.newInstance()
+                        .newXMLGregorianCalendar(GregorianCalendar.from(instant.atZone(ZoneOffset.UTC)))
+                        .toXMLFormat();
+            } catch (DatatypeConfigurationException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 

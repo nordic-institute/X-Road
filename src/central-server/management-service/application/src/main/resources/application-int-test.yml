@@ -1,5 +1,16 @@
 server:
   address: 0.0.0.0
+  ssl:
+    enabled: false
+
+spring:
+  cloud:
+    vault:
+      enabled: false
+
+# xroad.* config for the int-test container comes from the configuration_properties
+# DB seed (etc/xroad/db-config-seed in the int-test container files) - the XRoadConfig
+# DSL does not read this file.
 
 logging:
   level:

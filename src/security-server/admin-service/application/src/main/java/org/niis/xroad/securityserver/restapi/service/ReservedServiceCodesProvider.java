@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -42,11 +42,11 @@ public class ReservedServiceCodesProvider {
     private final Set<String> reservedCodes;
 
     /**
-     * Loads the reserved service codes from configuration (proxy-ui-api.reserved-service-codes)
-     * @param reservedCodesList List of reserved codes from application configuration
+     * Loads the reserved service codes from the admin-service configuration ({@code xroad.proxy-ui-api.reserved-service-codes}).
+     * @param adminServiceProperties admin-service configuration
      */
-    public ReservedServiceCodesProvider(
-            @Value("${xroad.proxy-ui-api.reserved-service-codes:}") List<String> reservedCodesList) {
+    public ReservedServiceCodesProvider(AdminServiceProperties adminServiceProperties) {
+        List<String> reservedCodesList = adminServiceProperties.getReservedServiceCodes();
         if (reservedCodesList != null) {
             this.reservedCodes = new HashSet<>(reservedCodesList);
         } else {

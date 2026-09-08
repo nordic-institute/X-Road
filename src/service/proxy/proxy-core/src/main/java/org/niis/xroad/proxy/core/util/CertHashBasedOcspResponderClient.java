@@ -25,10 +25,13 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -39,7 +42,7 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,17 +59,20 @@ import java.util.List;
  * Contains utility methods for getting OCSP responses for certificates.
  */
 @Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
 public final class CertHashBasedOcspResponderClient {
 
+    public static final String SHA_256_CERT_PARAM = "cert_hash";
+    // Legacy SHA-1 hash parameter, kept so X-Road 8.x clients can fetch OCSP responses from 7.x security servers
+    // whose responder only recognises this parameter name. Remove once 7.x interop is no longer required.
+    static final String SHA_1_CERT_PARAM = "cert";
     private static final String METHOD = "GET";
-    private static final String SHA_1_CERT_PARAM = "cert";
-    private static final String SHA_256_CERT_PARAM = "cert_hash";
 
     private static final List<Integer> VALID_RESPONSE_CODES = Arrays.asList(
             200, 201, 202, 203, 204, 205, 206, 207, 208, 226);
 
-    private CertHashBasedOcspResponderClient() {
-    }
+    private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
 
     /**
      * Creates an GET request to the internal cert hash based OCSP responder and expects an OCSP responses.
@@ -74,10 +80,9 @@ public final class CertHashBasedOcspResponderClient {
      * @param providerAddress URL of the OCSP response provider
      * @param certificates    certificates for which to get the responses
      * @return list of OCSP response objects
-     * @throws Exception if I/O errors occurred
      */
-    public static List<OCSPResp> getOcspResponsesFromServer(String providerAddress, List<X509Certificate> certificates)
-            throws CertificateEncodingException, URISyntaxException, IOException, OperatorCreationException, OCSPException {
+    public List<OCSPResp> getOcspResponsesFromServer(String providerAddress, List<X509Certificate> certificates)
+            throws CertificateEncodingException, URISyntaxException, IOException, OCSPException {
         URL url = createUrl(providerAddress, certificates);
         return getOcspResponsesFromServer(url);
     }
@@ -90,12 +95,12 @@ public final class CertHashBasedOcspResponderClient {
      * @throws IOException   if I/O errors occurred
      * @throws OCSPException if the response could not be parsed
      */
-    public static List<OCSPResp> getOcspResponsesFromServer(URL destination) throws IOException, OCSPException {
+    public List<OCSPResp> getOcspResponsesFromServer(URL destination) throws IOException, OCSPException {
         HttpURLConnection connection = (HttpURLConnection) destination.openConnection();
         connection.setRequestProperty("Accept", MimeTypes.MULTIPART_RELATED);
         connection.setDoOutput(true);
-        connection.setConnectTimeout(SystemProperties.getOcspResponderClientConnectTimeout());
-        connection.setReadTimeout(SystemProperties.getOcspResponderClientReadTimeout());
+        connection.setConnectTimeout(ocspResponderProperties.clientConnectTimeout());
+        connection.setReadTimeout(ocspResponderProperties.clientReadTimeout());
         connection.setRequestMethod(METHOD);
         connection.connect();
 
@@ -134,19 +139,28 @@ public final class CertHashBasedOcspResponderClient {
         return responses;
     }
 
-    private static URL createUrl(String providerAddress, List<X509Certificate> certificates)
-            throws URISyntaxException, IOException, CertificateEncodingException, OperatorCreationException {
-        String[] sha1Hashes = CertUtils.getSha1Hashes(certificates);
+    URL createUrl(String providerAddress, List<X509Certificate> certificates)
+            throws URISyntaxException, IOException, CertificateEncodingException {
         String[] sha256Hashes = CertUtils.getHashes(certificates);
+        String[] sha1Hashes = getSha1Hashes(certificates);
 
-        var uriBuilder = new URIBuilder().setScheme("http").setHost(providerAddress).setPort(SystemProperties.getOcspResponderPort());
-        // TODO sha1 hashes should not be added to the request once 7.3.x is no longer supported
+        var uriBuilder = new URIBuilder().setScheme("http").setHost(providerAddress).setPort(ocspResponderProperties.port());
+        // Send both parameter names so 7.x responders (only recognise "cert") and 8.x responders
+        // (recognise "cert_hash") can both serve the request. Drop the SHA-1 parameter once 7.x interop is gone.
         Arrays.stream(sha1Hashes).forEach(hash -> uriBuilder.addParameter(SHA_1_CERT_PARAM, hash));
         Arrays.stream(sha256Hashes).forEach(hash -> uriBuilder.addParameter(SHA_256_CERT_PARAM, hash));
         var uri = uriBuilder.build();
 
-        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(sha1Hashes), uri.getHost());
+        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(sha256Hashes), uri.getHost());
 
         return uri.toURL();
+    }
+
+    private static String[] getSha1Hashes(List<X509Certificate> certs) throws CertificateEncodingException, IOException {
+        String[] hashes = new String[certs.size()];
+        for (int i = 0; i < certs.size(); i++) {
+            hashes[i] = Digests.hexDigest(DigestAlgorithm.SHA1, certs.get(i).getEncoded());
+        }
+        return hashes;
     }
 }

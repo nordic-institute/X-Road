@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.wsdl;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URL;
@@ -39,7 +40,8 @@ import static org.mockito.Mockito.mock;
  * Unit tests for OpenAPIParser
  */
 public class OpenApiParserTest {
-    private final HttpUrlConnectionConfig httpUrlConnectionConfig = new HttpUrlConnectionConfig(mock(ServerConfProvider.class));
+    private final HttpUrlConnectionConfig httpUrlConnectionConfig = new HttpUrlConnectionConfig(mock(ServerConfProvider.class),
+            mock(AdminServiceProperties.class));
 
     @Test
     public void shouldParseOpenApiYaml() throws OpenApiParser.ParsingException, UnsupportedOpenApiVersionException {

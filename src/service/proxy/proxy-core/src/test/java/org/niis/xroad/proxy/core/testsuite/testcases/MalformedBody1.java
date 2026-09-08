@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_BODY;
 
 /**
  * Client sends message with invalid SOAP body (duplicate Body element)
@@ -47,6 +47,6 @@ public class MalformedBody1 extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_INVALID_BODY);
+        assertErrorCode(CLIENT_X, INVALID_BODY.code());
     }
 }

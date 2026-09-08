@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core.test;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -80,7 +81,7 @@ public final class TestSigningCtxUtil {
     private static SigningCtx getSigningCtx(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                             TestCertUtil.PKCS12 pkcs12) {
         ClientId subject = ClientId.Conf.create("EE", "BUSINESS", "foo");
-        return new SigningCtxImpl(globalConfProvider, keyConfProvider, subject, new TestSigningKey(pkcs12.key),
+        return new SigningCtxImpl(globalConfProvider, keyConfProvider, DigestAlgorithm.SHA512, subject, new TestSigningKey(pkcs12.key),
                 pkcs12.certChain[0]);
     }
 }

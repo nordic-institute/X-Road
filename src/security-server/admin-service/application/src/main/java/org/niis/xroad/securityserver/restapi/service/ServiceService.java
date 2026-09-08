@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.common.core.exception.WarningDeviation;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -149,7 +150,7 @@ public class ServiceService {
                                  String url, boolean urlAll, Integer timeout, boolean timeoutAll,
                                  boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
             ServiceDescriptionService.UrlAlreadyExistsException,
-            ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException, InvalidHttpsUrlException {
+            ServiceNotFoundException, ClientNotFoundException, InvalidHttpsUrlException {
 
         auditDataHelper.put(clientId);
 
@@ -166,11 +167,12 @@ public class ServiceService {
             ClientEntity clientEntity = serviceEntity.getServiceDescription().getClient();
             try {
                 internalServerTestService.testHttpsConnection(clientEntity.getCertificates(), url);
-            } catch (SSLHandshakeException she) {
-                throw new UnhandledWarningsException(
-                        new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR, url));
             } catch (Exception e) {
-                throw new UnhandledWarningsException(new WarningDeviation(WARNING_INTERNAL_SERVER_SSL_ERROR, url));
+                final String errorCode = e.getCause() instanceof SSLHandshakeException
+                        ? WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR
+                        : WARNING_INTERNAL_SERVER_SSL_ERROR;
+                throw new BadRequestException(
+                        new UnhandledWarningsException(new WarningDeviation(errorCode, url)));
             }
         }
 
@@ -263,8 +265,8 @@ public class ServiceService {
                     + "WSDL type of Service Description");
         }
 
-        EndpointEntity endpointEntity = EndpointEntity.create(serviceEntity.getServiceCode(), method, path, false);
         ClientEntity clientEntity = serviceEntity.getServiceDescription().getClient();
+        EndpointEntity endpointEntity = EndpointEntity.create(clientEntity, serviceEntity.getServiceCode(), method, path, false);
         if (clientEntity.getEndpoints().stream()
                 .anyMatch(existingEp -> existingEp.isEquivalent(endpointEntity))) {
             throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "

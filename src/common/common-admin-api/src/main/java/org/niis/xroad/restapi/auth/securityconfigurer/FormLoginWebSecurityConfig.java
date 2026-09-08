@@ -32,7 +32,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.core.annotation.ArchUnitSuppressed;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,7 +56,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.csrfTokenRequestAttributeHandler;
 import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
@@ -73,17 +71,17 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
 public class FormLoginWebSecurityConfig {
     public static final String LOGIN_URL = "/login";
 
+    public static final String FORM_LOGIN_AUTHENTICATION = "formLoginAuthentication";
+
     @Autowired
     private AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Bean
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
-    @ArchUnitSuppressed("NoVanillaExceptions")
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
-                                                            @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
+                                                            @Qualifier(FORM_LOGIN_AUTHENTICATION)
                                                             AuthenticationProvider authenticationProvider,
-                                                            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
-            throws Exception {
+                                                            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite) {
 
         return http
                 .authenticationProvider(authenticationProvider)
@@ -151,6 +149,14 @@ public class FormLoginWebSecurityConfig {
             public void onAuthenticationSuccess(HttpServletRequest request,
                                                 HttpServletResponse response, Authentication authentication)
                     throws IOException {
+                // Resolve the deferred CSRF token to ensure the XSRF-TOKEN cookie is set.
+                // CsrfCookieFilter cannot do this because UsernamePasswordAuthenticationFilter
+                // short-circuits the filter chain after successful form login.
+                CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+                if (csrfToken != null) {
+                    csrfToken.getToken();
+                }
+
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");
             }
@@ -164,8 +170,10 @@ public class FormLoginWebSecurityConfig {
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
                 throws ServletException, IOException {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-            // Render the token value to a cookie by causing the deferred token to be loaded
-            csrfToken.getToken();
+            if (csrfToken != null) {
+                // Render the token value to a cookie by causing the deferred token to be loaded
+                csrfToken.getToken();
+            }
 
             filterChain.doFilter(request, response);
         }

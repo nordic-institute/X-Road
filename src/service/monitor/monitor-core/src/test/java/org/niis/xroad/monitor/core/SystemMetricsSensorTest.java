@@ -25,26 +25,30 @@
  */
 package org.niis.xroad.monitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduler;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
-import org.springframework.scheduling.TaskScheduler;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorProperties;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +57,8 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,28 +73,36 @@ class SystemMetricsSensorTest {
     private static RpcServer rpcServer;
     private static StatsResp response;
 
+    private static final RpcCredentialsConfigurer RPC_CREDENTIALS_CONFIGURER = new InsecureRpcCredentialsConfigurer();
+
+    private final EnvMonitorProperties envMonitorProperties = createEnvMonitorProperties();
+
+    private static EnvMonitorProperties createEnvMonitorProperties() {
+        var props = mock(EnvMonitorProperties.class);
+        when(props.systemMetricsSensorInterval()).thenReturn(Duration.ofSeconds(1));
+        when(props.limitRemoteDataSet()).thenReturn(true);
+        return props;
+    }
+
     @Spy
     private MetricRegistry metricRegistry = new MetricRegistry();
 
     static {
         PORT = TestPortUtils.findRandomPort();
-
-        System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
-        System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getGrpcInternalHost(), PORT, serverBuilder ->
-                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
-                    @Override
-                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
-                        responseObserver.onNext(response);
-                        responseObserver.onCompleted();
-                    }
-                }));
-        rpcServer.afterPropertiesSet();
+        rpcServer = new RpcServer("127.0.0.1", PORT, RPC_CREDENTIALS_CONFIGURER.createServerCredentials(),
+                serverBuilder ->
+                        serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                            @Override
+                            public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                                responseObserver.onNext(response);
+                                responseObserver.onCompleted();
+                            }
+                        }));
+        rpcServer.init();
     }
 
     @AfterAll
@@ -101,10 +114,29 @@ class SystemMetricsSensorTest {
     void testSystemMetricsSensor() throws Exception {
         MetricRegistryHolder.getInstance().setMetrics(metricRegistry);
 
-        var taskScheduler = spy(TaskScheduler.class);
-        when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
+        ProxyRpcChannelProperties proxyRpcClientProperties = new ProxyRpcChannelProperties() {
+            @Override
+            public String host() {
+                return "localhost";
+            }
 
-        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler);
+            @Override
+            public int port() {
+                return PORT;
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return 60000;
+            }
+        };
+
+        Scheduler scheduler = mock(Scheduler.class);
+        when(scheduler.newJob(any())).thenReturn(mock(Scheduler.JobDefinition.class, RETURNS_SELF));
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(envMonitorProperties,
+                new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties,
+                scheduler, mock(Scheduled.ApplicationNotRunning.class));
+        systemMetricsSensor.afterPropertiesSet();
 
         response = StatsResp.newBuilder()
                 .setOpenFileDescriptorCount(0)
@@ -135,4 +167,3 @@ class SystemMetricsSensorTest {
     }
 
 }
-

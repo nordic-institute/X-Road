@@ -1,5 +1,3 @@
-legacy/passwordstore/libpasswordstore.so
-passwordstore/libpasswordstore.so
 **/log/
 center-service/db/migrate/
 center-ui/db/migrate/

@@ -27,17 +27,14 @@
 
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
@@ -73,53 +70,46 @@ class AuthenticationCertificateRegistrationRequestHandlerTest {
     private final GlobalGroupMemberService groupMemberService = mock(GlobalGroupMemberService.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
     private final MemberHelper memberHelper = mock(MemberHelper.class);
+    private final ManagementServiceConfigProperties managementServiceConfigProperties = mock(ManagementServiceConfigProperties.class);
 
     private final AuthenticationCertificateRegistrationRequestHandler handler = new AuthenticationCertificateRegistrationRequestHandler(
             globalConfProvider, serverIds, members, authCertReqRequests, authCerts, servers, groupMemberService, requestMapper,
-            memberHelper);
+            memberHelper, managementServiceConfigProperties);
 
     private final SecurityServerId securityServerId = SecurityServerId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, SERVER_CODE);
 
     @Test
     void canAutoApproveFalseWhenSubmittedForApprovalAndFlagDisabled() {
+        when(managementServiceConfigProperties.isAutoApproveAuthCertRegRequests()).thenReturn(false);
         lenient().when(members.count(securityServerId.getOwner())).thenReturn(1L);
 
         final AuthenticationCertificateRegistrationRequest request =
                 new AuthenticationCertificateRegistrationRequest(SECURITY_SERVER, securityServerId);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
-        try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
-            systemProperties.when(SystemProperties::getCenterAutoApproveAuthCertRegRequests).thenReturn(false);
-
-            assertThat(handler.canAutoApprove(request)).isFalse();
-        }
+        assertThat(handler.canAutoApprove(request)).isFalse();
     }
 
     @Test
     void canAutoApproveTrueWhenFlagEnabledAndPreconditionsMet() {
+        when(managementServiceConfigProperties.isAutoApproveAuthCertRegRequests()).thenReturn(true);
         when(members.count(securityServerId.getOwner())).thenReturn(1L);
 
         final AuthenticationCertificateRegistrationRequest request =
                 new AuthenticationCertificateRegistrationRequest(SECURITY_SERVER, securityServerId);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
-        try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
-            systemProperties.when(SystemProperties::getCenterAutoApproveAuthCertRegRequests).thenReturn(true);
-
-            assertThat(handler.canAutoApprove(request)).isTrue();
-        }
+        assertThat(handler.canAutoApprove(request)).isTrue();
     }
 
     @Test
     void canAutoApproveFalseWhenOriginIsCenter() {
+        when(managementServiceConfigProperties.isAutoApproveAuthCertRegRequests()).thenReturn(true);
+
         final AuthenticationCertificateRegistrationRequest request =
                 new AuthenticationCertificateRegistrationRequest(CENTER, securityServerId);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
-        try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
-            systemProperties.when(SystemProperties::getCenterAutoApproveAuthCertRegRequests).thenReturn(true);
-
-            assertThat(handler.canAutoApprove(request)).isFalse();
-        }
+        assertThat(handler.canAutoApprove(request)).isFalse();
     }
 }

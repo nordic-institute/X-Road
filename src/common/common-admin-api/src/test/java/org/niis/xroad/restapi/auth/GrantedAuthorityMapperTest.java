@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,8 +25,9 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -36,10 +37,10 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
 import static org.niis.xroad.restapi.auth.GrantedAuthorityMapper.PERMISSION_ACTIVATE_DEACTIVATE_TOKEN;
 
 /**
@@ -54,11 +55,6 @@ public class GrantedAuthorityMapperTest {
             Role.XROAD_SECURITYSERVER_OBSERVER);
 
     private final GrantedAuthorityMapper mapper = new GrantedAuthorityMapper();
-
-    @AfterEach
-    public void afterTest() {
-        System.setProperty(NODE_TYPE, "foo"); // reset the node type property – gibberish/null defaults to STANDALONE
-    }
 
     @Test
     public void simpleMapping() {
@@ -87,17 +83,20 @@ public class GrantedAuthorityMapperTest {
 
     @Test
     public void shouldAllowWhitelistedPermissionsOnSlaveNode() {
-        System.setProperty(NODE_TYPE, "slave"); // secondary node in a cluster
+        try (MockedStatic<NodeProperties> nodePropertiesMock = mockStatic(NodeProperties.class)) {
+            nodePropertiesMock.when(NodeProperties::getServerNodeType)
+                    .thenReturn(NodeProperties.NodeType.SECONDARY);
+            final Set<GrantedAuthority> result = mapper.getAuthorities(ADMIN_ROLES);
 
-        final Set<GrantedAuthority> result = mapper.getAuthorities(ADMIN_ROLES);
+            assertEquals(6, result.size());
+            assertTrue(containsPermission(result, Role.XROAD_SECURITY_OFFICER.getGrantedAuthorityName()));
+            assertTrue(containsPermission(result, Role.XROAD_REGISTRATION_OFFICER.getGrantedAuthorityName()));
+            assertTrue(containsPermission(result, Role.XROAD_SERVICE_ADMINISTRATOR.getGrantedAuthorityName()));
+            assertTrue(containsPermission(result, Role.XROAD_SYSTEM_ADMINISTRATOR.getGrantedAuthorityName()));
+            assertTrue(containsPermission(result, Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()));
+            assertTrue(containsPermission(result, PERMISSION_ACTIVATE_DEACTIVATE_TOKEN));
+        }
 
-        assertEquals(6, result.size());
-        assertTrue(containsPermission(result, Role.XROAD_SECURITY_OFFICER.getGrantedAuthorityName()));
-        assertTrue(containsPermission(result, Role.XROAD_REGISTRATION_OFFICER.getGrantedAuthorityName()));
-        assertTrue(containsPermission(result, Role.XROAD_SERVICE_ADMINISTRATOR.getGrantedAuthorityName()));
-        assertTrue(containsPermission(result, Role.XROAD_SYSTEM_ADMINISTRATOR.getGrantedAuthorityName()));
-        assertTrue(containsPermission(result, Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()));
-        assertTrue(containsPermission(result, PERMISSION_ACTIVATE_DEACTIVATE_TOKEN));
     }
 
     @Test

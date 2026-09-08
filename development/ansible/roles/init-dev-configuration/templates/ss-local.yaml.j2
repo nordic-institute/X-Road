@@ -1,0 +1,11 @@
+---
+# Quarkus services read this file directly; xroad.* runtime config lives in the
+# configuration_properties DB override layer (see xroad-ss seed-config-properties.yml).
+quarkus:
+  log:
+    level: INFO
+    category:
+      "org.niis.xroad":
+        level: DEBUG
+      "io.quarkus":
+        level: INFO

@@ -177,7 +177,7 @@ class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    void shouldAcceptPercentEncodedIdentifiers() {
+    void shouldNotAcceptPercentEncodedIdentifiers() {
         setServiceHandler((request, response) -> assertEquals("/path%3B/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
@@ -185,7 +185,13 @@ class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub%2Fsystem")
                 .urlEncodingEnabled(false)
                 .get(PREFIX + "/EE/BUSINESS/producer/s%2Fub/%C3%B6%C3%A4%C3%A5/path%3B/")
-                .then().statusCode(200);
+                .then()
+                .statusCode(500)
+                .header("X-Road-Error", "server.clientproxy.invalid_client_identifier")
+                .header("Content-Type", "application/json")
+                .body(Matchers.containsString("server.clientproxy.invalid_client_identifier"))
+                .body(Matchers.containsString("Invalid character(s) in identifier SUBSYSTEM:EE/BUSINESS/consumer/sub/system"))
+                .body("detail", Matchers.notNullValue());
     }
 
     @Test

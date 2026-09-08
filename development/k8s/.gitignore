@@ -1,0 +1,7 @@
+.state/
+.venv/
+collections/
+*.pyc
+__pycache__/
+*.retry
+xroad-dev-config

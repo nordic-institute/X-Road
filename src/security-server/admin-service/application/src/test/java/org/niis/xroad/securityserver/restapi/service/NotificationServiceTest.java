@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -43,6 +42,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -69,7 +69,7 @@ public class NotificationServiceTest {
     @Test
     public void getAlertsAllOkNoBackupRestore() {
         notificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, notificationService.getBackupRestoreRunningSince());
+        assertNull(notificationService.getBackupRestoreRunningSince());
 
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
 
@@ -82,8 +82,8 @@ public class NotificationServiceTest {
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
         AlertStatus alertStatus = notificationService.getAlerts();
-        assertEquals(null, alertStatus.getBackupRestoreRunningSince());
-        assertEquals(null, alertStatus.getCurrentTime());
+        assertNull(alertStatus.getBackupRestoreRunningSince());
+        assertNull(alertStatus.getCurrentTime());
         assertEquals(true, alertStatus.getGlobalConfValid());
         assertEquals(true, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(true, alertStatus.getSoftTokenPinEntered());
@@ -95,7 +95,7 @@ public class NotificationServiceTest {
         notificationService.setBackupRestoreRunningSince();
         assertNotNull(null, notificationService.getBackupRestoreRunningSince());
 
-        doThrow(new CodedException("")).when(globalConfProvider).verifyValidity();
+        doThrow(XrdRuntimeException.systemInternalError("")).when(globalConfProvider).verifyValidity();
 
         AlertStatus alertStatus = notificationService.getAlerts();
         assertNotNull(alertStatus.getBackupRestoreRunningSince());
@@ -106,13 +106,13 @@ public class NotificationServiceTest {
         assertEquals(false, alertStatus.getSoftTokenPinEnteredCheckSuccess());
 
         notificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, notificationService.getBackupRestoreRunningSince());
+        assertNull(notificationService.getBackupRestoreRunningSince());
     }
 
     @Test
     public void getAlertsSoftTokenNotFound() {
         notificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, notificationService.getBackupRestoreRunningSince());
+        assertNull(notificationService.getBackupRestoreRunningSince());
 
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
 
@@ -134,7 +134,7 @@ public class NotificationServiceTest {
     @Test
     public void getAlertsGlobalConfCheckThrowsRuntimeException() {
         notificationService.resetBackupRestoreRunningSince();
-        assertEquals(null, notificationService.getBackupRestoreRunningSince());
+        assertNull(notificationService.getBackupRestoreRunningSince());
 
         doThrow(new RuntimeException("")).when(globalConfProvider).verifyValidity();
 
@@ -147,8 +147,8 @@ public class NotificationServiceTest {
         when(tokenService.getAllTokens()).thenReturn(allTokens);
 
         AlertStatus alertStatus = notificationService.getAlerts();
-        assertEquals(null, alertStatus.getBackupRestoreRunningSince());
-        assertEquals(null, alertStatus.getCurrentTime());
+        assertNull(alertStatus.getBackupRestoreRunningSince());
+        assertNull(alertStatus.getCurrentTime());
         assertEquals(false, alertStatus.getGlobalConfValid());
         assertEquals(false, alertStatus.getGlobalConfValidCheckSuccess());
         assertEquals(true, alertStatus.getSoftTokenPinEntered());

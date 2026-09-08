@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <table class="xrd-table keys-table">
-      <KeysTableThead
-        :sort-direction="sortDirection"
-        :selected-sort="selectedSort"
-        @set-sort="setSort"
-      />
+  <div class="pr-4 pb-4 pl-4">
+    <v-table class="xrd keys-table">
+      <KeysTableThead :sort-direction="sortDirection" :selected-sort="selectedSort" @set-sort="setSort" />
 
       <tbody v-for="key in sortedKeys" :key="key.id">
         <!-- Key -->
-        <KeyRow
-          :token-logged-in="tokenLoggedIn"
-          :token-key="key"
-          @generate-csr="generateCsr(key)"
-          @key-click="keyClick(key)"
-        />
+        <KeyRow :token-logged-in="tokenLoggedIn" :token-key="key" @generate-csr="generateCsr(key)" @key-click="keyClick(key)" />
 
         <!-- Certificate -->
         <CertificateRow
@@ -50,19 +42,15 @@
         >
           <template #certificateAction>
             <template v-if="canImportFromToken">
-              <xrd-button
-                v-if="
-                  cert.possible_actions?.includes(
-                    PossibleAction.IMPORT_FROM_TOKEN,
-                  )
-                "
+              <XrdBtn
+                v-if="cert.possible_actions?.includes(PossibleAction.IMPORT_FROM_TOKEN)"
                 class="table-button-fix"
-                :outlined="false"
-                text
+                variant="text"
+                color="tertiary"
+                text="keys.importCert"
                 data-test="import-from-token-button"
                 @click="importCert(cert.certificate_details.hash)"
-                >{{ $t('keys.importCert') }}</xrd-button
-              >
+              />
 
               <!-- Special case where HW cert has auth usage -->
               <div v-else-if="key.usage === 'AUTHENTICATION'">
@@ -72,7 +60,7 @@
           </template>
         </CertificateRow>
       </tbody>
-    </table>
+    </v-table>
   </div>
 </template>
 
@@ -84,23 +72,20 @@ import { defineComponent, PropType } from 'vue';
 import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
-import {
-  Key,
-  PossibleAction,
-  TokenCertificate,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Key, PossibleAction, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { XrdBtn } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     KeyRow,
     CertificateRow,
     KeysTableThead,
+    XrdBtn,
   },
   props: {
     keys: {
@@ -115,12 +100,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [
-    'key-click',
-    'certificate-click',
-    'generate-csr',
-    'import-cert-by-hash',
-  ],
+  emits: ['key-click', 'certificate-click', 'generate-csr', 'import-cert-by-hash'],
   data() {
     return {
       registerDialog: false,
@@ -139,17 +119,10 @@ export default defineComponent({
       return PossibleAction;
     },
     sortedKeys(): Key[] {
-      return Sorting.keyArraySort(
-        this.keys,
-        this.selectedSort,
-        this.sortDirection,
-      );
+      return Sorting.keyArraySort(this.keys, this.selectedSort, this.sortDirection);
     },
     canCreateCsr(): boolean {
-      return (
-        this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
-        this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
-      );
+      return this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) || this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ);
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
@@ -196,15 +169,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-
-.keys-table {
-  margin-top: 20px;
-}
-
-.table-button-fix {
-  margin-left: auto;
-  margin-right: 0;
-}
-</style>
+<style lang="scss" scoped></style>

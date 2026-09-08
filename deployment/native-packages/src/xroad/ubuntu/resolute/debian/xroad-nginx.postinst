@@ -1,0 +1,19 @@
+#!/bin/bash
+if [ "$1" = configure ]; then
+    test -d /etc/xroad/ssl || mkdir -p -m 0750 /etc/xroad/ssl && chown xroad:xroad /etc/xroad/ssl
+    test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+
+    chmod 0750 /etc/xroad/ssl
+    chown -R xroad:xroad /etc/xroad/ssl
+
+    # Back up the existing nginx config with a timestamp if it exists
+    test -f /etc/nginx/nginx.conf && mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak.$(date +%F_%H%M%S)
+    # Copy the X-Road nginx config into place
+    cp /etc/xroad/nginx/nginx.conf /etc/nginx/nginx.conf
+fi
+
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
+exit 0

@@ -1,0 +1,37 @@
+---
+- name: Install/upgrade e2e-fixtures chart
+  kubernetes.core.helm:
+    name: e2e-fixtures
+    chart_ref: "{{ (e2e_fixtures_chart_repo | length > 0) | ternary(e2e_fixtures_chart_repo + '/' + e2e_fixtures_chart, e2e_fixtures_chart) }}"
+    chart_version: "{{ e2e_fixtures_chart_version | default(omit, true) }}"
+    release_namespace: "{{ e2e_fixtures_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ e2e_fixtures_helm_wait_timeout }}"
+    values: "{{ lookup('template', 'e2e-fixtures-values.yaml.j2') | from_yaml }}"
+
+# The hurl Job (backoffLimit: 0, restartPolicy: Never) runs to completion once helm's own
+# wait=true above confirms the fixtures Deployments/other Jobs are up; poll it separately since
+# helm's wait doesn't track Job completion the way it tracks Deployment/Pod readiness.
+- name: Wait for hurl-bootstrap Job to complete
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ kubeconfig_path }}"
+    api_version: batch/v1
+    kind: Job
+    name: e2e-fixtures-hurl-bootstrap
+    namespace: "{{ e2e_fixtures_namespace }}"
+  register: hurl_job
+  until: >-
+    (hurl_job.resources | length > 0) and
+    ((hurl_job.resources[0].status.succeeded | default(0)) >= 1 or
+     (hurl_job.resources[0].status.failed | default(0)) >= 1)
+  retries: "{{ hurl_wait_retries }}"
+  delay: "{{ hurl_wait_delay }}"
+
+- name: Fail fast if hurl-bootstrap Job failed
+  ansible.builtin.fail:
+    msg: >-
+      hurl-bootstrap Job failed — check
+      `kubectl logs -n {{ e2e_fixtures_namespace }} -l app=hurl-bootstrap`
+  when: (hurl_job.resources[0].status.failed | default(0)) >= 1

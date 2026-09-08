@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +34,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import java.io.IOException;
 
 /**
  * AuthenticationEntryPoint that returns 401
@@ -53,7 +50,7 @@ public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint
      * @inheritDoc
      */
     public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
+                         AuthenticationException exception) {
         if (log.isDebugEnabled()) {
             log.debug("Pre-authenticated entry point called. Rejecting access");
         }

@@ -33,7 +33,6 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.SortedMap;
 import java.util.regex.Pattern;
@@ -97,21 +96,16 @@ final class HealthDataMetricsUtil {
     }
 
     /**
-     * Escape the minimum set of reserved characters in XML so our metrics
-     * can be forwarded over JMX. Plus, because of the syntax of Zabbix
-     * parameters, escape the dot, the space, the comma, the backslash and
-     * square brackets manually.
-     * Note that the character set of the XRoad identifiers has not been
+     * The character set of the XRoad identifiers has not been
      * limited strictly. However, to be able to convert the identifier string
      * with forward slashes as separators, we escape the forward slash inside
      * identifier elements.
-     * For consistency, we use HTML escape sequences for all the replacements.
      * If the subsystem code is missing, the generated short string contains an
      * empty character between forward slash separators where the subsystem code
      * would generally be.
+     *
      * @param serviceId the service ID as obtained using getServiceIdInRecord()
-     * @return the escaped short form of the service ID suitable for using
-     * inside a JMX parameter name.
+     * @return the escaped short form of the service ID.
      */
     static String escapeServiceId(ServiceId serviceId) {
         StringBuilder sb = new StringBuilder();
@@ -138,29 +132,15 @@ final class HealthDataMetricsUtil {
     }
 
     private static String escapeString(String string) {
-        return StringEscapeUtils.escapeXml11(string)
-                // For Zabbix: escape the dots that are part of the service
-                // ID so Zabbix won't split the value when processing the
-                // key of the item such as:
-                // jmx[com.example:Type=Hello,all.fruits.apple.weight]
-                .replace(".", "&#46;")
-                // For Zabbix: escape the backslash, the space and the comma:
-                .replace("\\", "&#92;")
-                .replace(" ", "&#32;")
-                .replace(",", "&#44;")
-                // For Zabbix: escape the square brackets that are used as
-                // the containers of the JMX parameter name and attribute
-                // such as:
-                // jmx[<parameter name [with square brackets], attribute>].
-                .replace("[", "&#91;").replace("]", "&#93;")
+        return string
                 // Replace forward slashes to be able to convert the identifier
                 // string back into a service identifier object
                 .replace("/", "&#47;");
     }
 
     /**
-     * @param metricName an metric name where the service ID part has been
-     * escaped using escapeServiceId().
+     * @param metricName a metric name where the service ID part has been
+     *                   escaped using escapeServiceId().
      * @return the quoted metric name suitable for passing to a regular
      * expression matcher method
      */
@@ -169,11 +149,10 @@ final class HealthDataMetricsUtil {
     }
 
     /**
-     * @param serviceId the service ID as obtained using getServiceIdInRecord()
-     * @param parameterKeyTemplate template string of the JMX parameter name
-     * @param requestSucceeded set to true for a successfully mediated request
-     * @return the key of the parameter suitable for forwarding over JMX to
-     * Zabbix.
+     * @param serviceId            the service ID as obtained using getServiceIdInRecord()
+     * @param parameterKeyTemplate template string of the parameter name
+     * @param requestSucceeded     set to true for a successfully mediated request
+     * @return the key of the parameter.
      */
     private static String formatParameterAndStatusKey(ServiceId serviceId,
                                                       String parameterKeyTemplate, boolean requestSucceeded,
@@ -212,10 +191,9 @@ final class HealthDataMetricsUtil {
     }
 
     /**
-     * @param serviceId the service ID as obtained using getServiceIdInRecord()
-     * @param parameterKeyTemplate template string of the JMX parameter name
-     * @return the key of the parameter suitable for forwarding over JMX to
-     * Zabbix.
+     * @param serviceId            the service ID as obtained using getServiceIdInRecord()
+     * @param parameterKeyTemplate template string of the parameter name
+     * @return the key of the parameter.
      */
     static String formatParameterKey(ServiceId serviceId,
                                      String parameterKeyTemplate) {
@@ -223,7 +201,7 @@ final class HealthDataMetricsUtil {
     }
 
     /**
-     * @param registry the metric registry where the gauge should be looked up
+     * @param registry          the metric registry where the gauge should be looked up
      * @param expectedGaugeName the gauge name to find
      * @return the found gauge or null if it does not exist
      */
@@ -235,15 +213,14 @@ final class HealthDataMetricsUtil {
 
         if (gauges.size() > 1) {
             // Should not happen because we use a strict regexp.
-            log.warn("Multiple gauges matched the name "
-                    + expectedGaugeName);
+            log.warn("Multiple gauges matched the name {}", expectedGaugeName);
         }
 
         return gauges.isEmpty() ? null : gauges.values().iterator().next();
     }
 
     /**
-     * @param registry the metric registry where the counter should be looked up
+     * @param registry            the metric registry where the counter should be looked up
      * @param expectedCounterName the counter name to find
      * @return the found counter or null if it does not exist
      */
@@ -256,16 +233,15 @@ final class HealthDataMetricsUtil {
 
         if (counters.size() > 1) {
             // Should not happen because we use a strict regexp.
-            log.warn("Multiple counters matched the name "
-                    + expectedCounterName);
+            log.warn("Multiple counters matched the name {}", expectedCounterName);
         }
 
         return counters.isEmpty() ? null : counters.values().iterator().next();
     }
 
     /**
-     * @param registry the metric registry where the histogram should be
-     * looked up
+     * @param registry              the metric registry where the histogram should be
+     *                              looked up
      * @param expectedHistogramName the counter name to find
      * @return the found histogram or null if it does not exist
      */
@@ -278,8 +254,7 @@ final class HealthDataMetricsUtil {
 
         if (histograms.size() > 1) {
             // Should not happen because we use a strict regexp.
-            log.warn("Multiple histograms matched the name "
-                    + expectedHistogramName);
+            log.warn("Multiple histograms matched the name {}", expectedHistogramName);
         }
 
         return histograms.isEmpty() ? null

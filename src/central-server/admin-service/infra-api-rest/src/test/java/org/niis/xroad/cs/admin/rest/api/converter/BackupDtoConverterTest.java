@@ -27,20 +27,23 @@ package org.niis.xroad.cs.admin.rest.api.converter;
 
 import ee.ria.xroad.common.util.TimeUtils;
 
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.restapi.common.backup.dto.BackupFile;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.niis.xroad.cs.admin.api.dto.BackupFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BackupDtoConverterTest {
     private final BackupDtoConverter backupDtoConverter = new BackupDtoConverter();
 
-    @Test
-    void shouldSuccessfullyMapToDto() {
-        var backupFile = new BackupFile("test.tar", TimeUtils.offsetDateTimeNow());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldSuccessfullyMapToDto(boolean isCompatible) {
+        var backupFile = new BackupFile("test.tar", TimeUtils.offsetDateTimeNow(), isCompatible);
 
         var result = backupDtoConverter.toTarget(backupFile);
 
         assertThat(result.getFilename()).isEqualTo(backupFile.getFilename());
+        assertThat(result.getCompatible()).isEqualTo(backupFile.isCompatible());
     }
 }

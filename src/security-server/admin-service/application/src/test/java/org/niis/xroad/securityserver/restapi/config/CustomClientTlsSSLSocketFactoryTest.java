@@ -27,8 +27,6 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,6 +44,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES;
+import static org.niis.xroad.common.properties.DefaultTlsProperties.DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS;
 
 class CustomClientTlsSSLSocketFactoryTest {
 
@@ -56,7 +56,8 @@ class CustomClientTlsSSLSocketFactoryTest {
     @BeforeEach
     void setUp() {
         mockInternalFactory = mock(SSLSocketFactory.class);
-        customFactory = new CustomClientTlsSSLSocketFactory(mockInternalFactory);
+        customFactory = new CustomClientTlsSSLSocketFactory(mockInternalFactory,
+                DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS, DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
         mockSSLSocket = mock(SSLSocket.class);
     }
 
@@ -66,8 +67,8 @@ class CustomClientTlsSSLSocketFactoryTest {
 
         Socket socket = customFactory.createSocket("example.com", 443);
 
-        verify(mockSSLSocket).setEnabledProtocols(SystemProperties.getProxyClientTLSProtocols());
-        verify(mockSSLSocket).setEnabledCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
+        verify(mockSSLSocket).setEnabledProtocols(DEFAULT_PROXY_CLIENT_TLS_PROTOCOLS);
+        verify(mockSSLSocket).setEnabledCipherSuites(DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES);
         assertEquals(mockSSLSocket, socket);
     }
 
@@ -85,7 +86,7 @@ class CustomClientTlsSSLSocketFactoryTest {
     @Test
     void whenGetSupportedCipherSuitesThenReturnsConfiguredSuites() {
         assertArrayEquals(
-                SystemProperties.getProxyClientTLSCipherSuites(),
+                DEFAULT_PROXY_CLIENT_SSL_CIPHER_SUITES,
                 customFactory.getSupportedCipherSuites()
         );
     }

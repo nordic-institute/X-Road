@@ -189,16 +189,16 @@ public final class SoapMessageTestUtil {
      */
     public static SoapMessageImpl createRequest(String queryDir, String fileName) throws FileNotFoundException {
         Soap message = createSoapMessage(queryDir, fileName);
-        if (!(message instanceof SoapMessageImpl)) {
+        if (!(message instanceof SoapMessageImpl soapMessage)) {
             throw XrdRuntimeException.systemInternalError(
                     "Got " + message.getClass() + " instead of SoapMessage");
         }
 
-        if (((SoapMessageImpl) message).isResponse()) {
+        if (soapMessage.isResponse()) {
             throw XrdRuntimeException.systemInternalError("Got response instead of request");
         }
 
-        return (SoapMessageImpl) message;
+        return soapMessage;
     }
 
     /**

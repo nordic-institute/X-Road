@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.common.util.PasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.DeviationBuilder;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -49,18 +48,17 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PI
 public class TokenPinValidatorImpl implements TokenPinValidator {
     private static final Object[] DEFAULT_WEAK_PIN_METADATA = new String[]{
             DeviationBuilder.TRANSLATABLE_PREFIX + ERROR_METADATA_PIN_MIN_LENGTH,
-            String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
+            String.valueOf(PasswordPolicy.MIN_PASSWORD_LENGTH),
             DeviationBuilder.TRANSLATABLE_PREFIX + ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-            String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)
+            String.valueOf(PasswordPolicy.MIN_CHARACTER_CLASS_COUNT)
     };
 
-    @Setter
-    private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
+    private final SignerProxyFacade signerProxyFacade;
 
     @Override
     public void validateSoftwareTokenPin(char[] softwareTokenPin) throws BadRequestException {
-        if (isTokenPinEnforced) {
-            TokenPinPolicy.Description description = TokenPinPolicy.describe(softwareTokenPin);
+        if (signerProxyFacade.isEnforcedTokenPinPolicy()) {
+            PasswordPolicy.Description description = PasswordPolicy.describe(softwareTokenPin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {
                     throw new BadRequestException(TOKEN_INVALID_CHARACTERS.build());

@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -35,8 +33,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_PROTOCOL_VERSION;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_PROTOCOL_VERSION;
 
 /**
  * Represents the protocolVersion header field value.
@@ -66,7 +65,7 @@ public class ProtocolVersion implements ValidatableField {
     /**
      * Sets the protocol version.
      * @param v the version
-     * @throws CodedException with error code
+     * @throws XrdRuntimeException with error code
      * 'InvalidProtocolVersion' if the protocol version is not supported.
      */
     private void setVersion(@NonNull String v) {
@@ -80,9 +79,9 @@ public class ProtocolVersion implements ValidatableField {
         // protocol version, we simply check if the version starts with
         // a predefined string.
         if (!version.startsWith(CURRENT_VERSION_PREFIX)) {
-            throw new CodedException(X_INVALID_PROTOCOL_VERSION,
-                    "Invalid protocol version (supported: %s, provided: %s)",
-                    CURRENT_VERSION_PREFIX + 'x', version);
+            throw XrdRuntimeException.systemException(INVALID_PROTOCOL_VERSION,
+                    "Invalid protocol version (supported: %s, provided: %s)".formatted(
+                    CURRENT_VERSION_PREFIX + 'x', version));
         }
     }
 }

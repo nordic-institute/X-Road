@@ -1,0 +1,6 @@
+---
+openbao:
+  nodes:
+{% for i in range(openbao_ha_replicas) %}
+    - "https://openbao-{{ i }}.openbao-internal:8200"
+{% endfor %}

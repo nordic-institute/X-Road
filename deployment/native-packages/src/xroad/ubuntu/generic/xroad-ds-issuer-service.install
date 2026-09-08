@@ -1,0 +1,3 @@
+../../../../src/xroad/common/ds-issuer-service/etc/* etc/
+../../../../src/xroad/common/ds-issuer-service/usr/* usr/
+../../../../../../src/service/ds-issuer-service/ds-issuer-service-application/build/quarkus-app/* usr/share/xroad/jlib/ds-issuer-service/

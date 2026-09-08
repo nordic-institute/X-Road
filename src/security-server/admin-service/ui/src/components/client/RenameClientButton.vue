@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,15 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="d-inline-block">
-    <xrd-button data-test="rename-client-button" outlined @click="openDialog">
-      <xrd-icon-base class="xrd-large-button-icon">
-        <xrd-icon-edit />
-      </xrd-icon-base>
-      {{ $t('action.edit') }}
-    </xrd-button>
+  <div>
+    <XrdBtn data-test="rename-client-button" variant="outlined" text="action.edit" prepend-icon="edit_square" @click="openDialog" />
 
-    <xrd-simple-dialog
+    <XrdSimpleDialog
       v-if="showDialog"
       :disable-save="!canSave"
       :loading="loading"
@@ -44,29 +40,29 @@
       @save="rename"
     >
       <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="name"
-            class="mt-2"
-            v-bind="nameAttrs"
-            :label="$t('client.subsystemName')"
-            variant="outlined"
-            autofocus
-            data-test="subsystem-name-input"
-          />
-        </div>
+        <XrdFormBlock>
+          <XrdFormBlockRow full-length>
+            <v-text-field
+              v-model="name"
+              v-bind="nameAttrs"
+              data-test="subsystem-name-input"
+              class="xrd"
+              autofocus
+              :label="$t('client.subsystemName')"
+            />
+          </XrdFormBlockRow>
+        </XrdFormBlock>
       </template>
-    </xrd-simple-dialog>
+    </XrdSimpleDialog>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, PropType, ref } from 'vue';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
-import { useI18n } from 'vue-i18n';
 import { ClientStatus } from '@/openapi-types';
 import { useClient } from '@/store/modules/client';
+import { XrdBtn, useNotifications, XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '@niis/shared-ui';
 
 const props = defineProps({
   id: {
@@ -90,7 +86,7 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
   initialValues: { subsystemName: props.subsystemName || '' },
 });
 
-const { showError, showSuccess } = useNotifications();
+const { addError, addSuccessMessage } = useNotifications();
 
 const [name, nameAttrs] = defineField('subsystemName', {
   props: (state) => ({ 'error-messages': state.errors }),
@@ -101,14 +97,8 @@ resetForm();
 const loading = ref(false);
 const showDialog = ref(false);
 
-const canSave = computed(
-  () =>
-    meta.value.valid &&
-    meta.value.dirty &&
-    (name.value ? true : props.subsystemName),
-);
+const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
 
-const { t } = useI18n();
 const client = useClient();
 
 function openDialog() {
@@ -122,15 +112,13 @@ const rename = handleSubmit((values) => {
     .renameClient(props.id, values.subsystemName)
     .then(() => {
       if (props.clientStatus === ClientStatus.REGISTERED) {
-        showSuccess(t('client.action.renameSubsystem.changeSubmitted'));
+        addSuccessMessage('client.action.renameSubsystem.changeSubmitted');
       } else {
-        showSuccess(t('client.action.renameSubsystem.changeAdded'));
+        addSuccessMessage('client.action.renameSubsystem.changeAdded');
       }
       emits('done', props.id);
     })
-    .catch((error) => {
-      showError(error);
-    })
+    .catch((error) => addError(error))
     .finally(() => {
       loading.value = false;
       showDialog.value = false;

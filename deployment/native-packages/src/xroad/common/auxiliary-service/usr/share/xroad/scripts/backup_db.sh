@@ -1,0 +1,45 @@
+#!/bin/bash
+get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
+abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
+
+dump_file="$1"
+db_properties=/etc/xroad/db.properties
+if [ -f /etc/xroad/xroad.properties ]; then
+  root_properties=/etc/xroad/xroad.properties
+else
+  root_properties=/etc/xroad.properties
+fi
+db_host="127.0.0.1:5432"
+db_conn_user="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.username' 'serverconf')"
+db_user="${db_conn_user%%@*}"
+db_schema=$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema' "${db_user},public")
+db_schema=${db_schema%%,*}
+db_password="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.password' "serverconf")"
+db_url="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
+db_database=serverconf
+pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
+db_admin_user=$(get_prop ${root_properties} 'serverconf.database.admin_user' "$db_conn_user")
+db_admin_password=$(get_prop ${root_properties} 'serverconf.database.admin_password' "$db_password")
+
+pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+if [[ "$db_url" =~ $pat ]]; then
+  db_host=${BASH_REMATCH[1]:-$db_host}
+  #match 2 unused
+  db_database=${BASH_REMATCH[3]:-serverconf}
+fi
+
+IFS=',' read -ra hosts <<<"$db_host"
+db_addr=${hosts[0]%%:*}
+db_port=${hosts[0]##*:}
+
+# Reading custom libpq ENV variables
+if [ -f /etc/xroad/db_libpq.env ]; then
+  source /etc/xroad/db_libpq.env
+fi
+
+if [[ ! -z $PGOPTIONS_EXTRA ]]; then
+  PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
+fi
+
+PGOPTIONS="$pg_options${PGOPTIONS_EXTRA-}" PGPASSWORD="${db_admin_password}" PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" \
+    pg_dump -n "$db_schema" -x -O -F c -U "$db_admin_user" -f "$dump_file" "$db_database"

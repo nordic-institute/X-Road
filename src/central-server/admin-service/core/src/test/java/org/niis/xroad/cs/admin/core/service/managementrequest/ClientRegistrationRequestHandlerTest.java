@@ -27,20 +27,17 @@
 
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
-import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
+import org.niis.xroad.cs.admin.core.config.ManagementServiceConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.ClientRegistrationRequestRepository;
@@ -77,53 +74,46 @@ class ClientRegistrationRequestHandlerTest {
     private final ServerClientRepository serverClientRepository = mock(ServerClientRepository.class);
     private final RequestMapper requestMapper = mock(RequestMapper.class);
     private final MemberHelper memberHelper = mock(MemberHelper.class);
+    private final ManagementServiceConfigProperties managementServiceConfigProperties = mock(ManagementServiceConfigProperties.class);
 
     private final ClientRegistrationRequestHandler handler = new ClientRegistrationRequestHandler(
             serverIds, clientIds, members, clients, clientRegRequests, servers, serverClientRepository, requestMapper,
-            memberHelper);
+            memberHelper, managementServiceConfigProperties);
 
     private final SecurityServerId securityServerId = SecurityServerId.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, SERVER_CODE);
     private final ClientId clientId = MemberId.create(INSTANCE, "OTHER-MEMBER-CLASS", "OTHER-MEMBER-CODE");
 
     @Test
     void canAutoApproveFalseWhenSubmittedForApprovalAndFlagDisabled() {
+        when(managementServiceConfigProperties.isAutoApproveClientRegRequests()).thenReturn(false);
         lenient().when(servers.count(securityServerId)).thenReturn(1L);
         lenient().when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
         final ClientRegistrationRequest request = new ClientRegistrationRequest(SECURITY_SERVER, securityServerId, clientId, null);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
-        try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
-            systemProperties.when(SystemProperties::getCenterAutoApproveClientRegRequests).thenReturn(false);
-
-            assertThat(handler.canAutoApprove(request)).isFalse();
-        }
+        assertThat(handler.canAutoApprove(request)).isFalse();
     }
 
     @Test
     void canAutoApproveTrueWhenFlagEnabledAndPreconditionsMet() {
+        when(managementServiceConfigProperties.isAutoApproveClientRegRequests()).thenReturn(true);
         when(servers.count(securityServerId)).thenReturn(1L);
         when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
         final ClientRegistrationRequest request = new ClientRegistrationRequest(SECURITY_SERVER, securityServerId, clientId, null);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
-        try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
-            systemProperties.when(SystemProperties::getCenterAutoApproveClientRegRequests).thenReturn(true);
-
-            assertThat(handler.canAutoApprove(request)).isTrue();
-        }
+        assertThat(handler.canAutoApprove(request)).isTrue();
     }
 
     @Test
     void canAutoApproveFalseWhenOriginIsCenter() {
+        when(managementServiceConfigProperties.isAutoApproveClientRegRequests()).thenReturn(true);
+
         final ClientRegistrationRequest request = new ClientRegistrationRequest(CENTER, securityServerId, clientId, null);
         request.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
 
-        try (MockedStatic<SystemProperties> systemProperties = Mockito.mockStatic(SystemProperties.class)) {
-            systemProperties.when(SystemProperties::getCenterAutoApproveClientRegRequests).thenReturn(true);
-
-            assertThat(handler.canAutoApprove(request)).isFalse();
-        }
+        assertThat(handler.canAutoApprove(request)).isFalse();
     }
 }

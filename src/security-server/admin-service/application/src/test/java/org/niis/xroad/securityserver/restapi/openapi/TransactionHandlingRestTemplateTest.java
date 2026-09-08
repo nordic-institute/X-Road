@@ -39,14 +39,11 @@ import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -58,11 +55,11 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.API_KEY_HEADE
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_ID;
 
 /**
- * Test live clients api controller with rest template.
+ * Test live clients api controller with web test client.
  * Test exists to check proper loading of lazy collections, and
  * open-session-in-view configuration.
  * <p>
- * If data source is altered with TestRestTemplate (e.g. POST, PUT or DELETE) in this test class,
+ * If data source is altered with WebTestClient (e.g. POST, PUT or DELETE) in this test class,
  * please remember to mark the context dirty with the following annotation:
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
  */
@@ -70,16 +67,15 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_
 public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    TestRestTemplate restTemplate;
+    WebTestClient webTestClient;
+
+    private WebTestClient client;
 
     @Before
     public void setup() {
-        restTemplate.getRestTemplate().setInterceptors(
-                Collections.singletonList((request, body, execution) -> {
-                    request.getHeaders()
-                            .add("Authorization", API_KEY_HEADER_VALUE);
-                    return execution.execute(request, body);
-                }));
+        client = webTestClient.mutate()
+                .defaultHeader("Authorization", API_KEY_HEADER_VALUE)
+                .build();
 
         doAnswer(invocation -> {
             List<String> encodedClientIds = Arrays.asList("FI:GOV:M1:SS1",
@@ -105,95 +101,110 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void localGroupMembersAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/local-groups/"
-                        + 1L,
-                Object.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        client.get().uri("/api/v1/local-groups/" + 1L)
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void localGroupMemberDeleteWorks() {
         String localGroupEndpointUrl = "/api/v1/local-groups/" + 1L;
-        ResponseEntity<Object> response = restTemplate.getForEntity(localGroupEndpointUrl,
-                Object.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        client.get().uri(localGroupEndpointUrl)
+                .exchange()
+                .expectStatus().isOk();
 
         // add a new member, and delete it. Delete fails if lazy collections are not handled ok
-        ResponseEntity<LocalGroupDto> groupResponse = restTemplate.getForEntity(
-                localGroupEndpointUrl,
-                LocalGroupDto.class);
-        assertEquals(HttpStatus.OK, groupResponse.getStatusCode());
-        assertTrue(groupResponse.getBody().getMembers().isEmpty());
+        LocalGroupDto group = client.get().uri(localGroupEndpointUrl)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(LocalGroupDto.class)
+                .returnResult()
+                .getResponseBody();
+        assert group != null;
+        assertTrue(group.getMembers().isEmpty());
 
         // add member
         MembersDto members = new MembersDto().addItemsItem(TestUtils.CLIENT_ID_SS1);
-        response = restTemplate.postForEntity(
-                localGroupEndpointUrl + "/members", members, Object.class);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        client.post().uri(localGroupEndpointUrl + "/members")
+                .bodyValue(members)
+                .exchange()
+                .expectStatus().isCreated();
 
-        groupResponse = restTemplate.getForEntity(localGroupEndpointUrl,
-                LocalGroupDto.class);
-        assertEquals(HttpStatus.OK, groupResponse.getStatusCode());
-        assertEquals(1, groupResponse.getBody().getMembers().size());
+        group = client.get().uri(localGroupEndpointUrl)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(LocalGroupDto.class)
+                .returnResult()
+                .getResponseBody();
+        assert group != null;
+        assertEquals(1, group.getMembers().size());
 
         // delete member
-        response = restTemplate.postForEntity(
-                localGroupEndpointUrl + "/members/delete", members, Object.class);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        client.post().uri(localGroupEndpointUrl + "/members/delete")
+                .bodyValue(members)
+                .exchange()
+                .expectStatus().isNoContent();
 
-        groupResponse = restTemplate.getForEntity(localGroupEndpointUrl,
-                LocalGroupDto.class);
-        assertEquals(HttpStatus.OK, groupResponse.getStatusCode());
-        assertEquals(0, groupResponse.getBody().getMembers().size());
+        group = client.get().uri(localGroupEndpointUrl)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(LocalGroupDto.class)
+                .returnResult()
+                .getResponseBody();
+        assert group != null;
+        assertEquals(0, group.getMembers().size());
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientLocalGroupsAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/"
+        client.get().uri("/api/v1/clients/"
                         + TestUtils.CLIENT_ID_SS1
-                        + "/local-groups",
-                Object.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+                        + "/local-groups")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientTlsCertsAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/"
+        client.get().uri("/api/v1/clients/"
                         + TestUtils.CLIENT_ID_SS1
-                        + "/tls-certificates",
-                Object.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+                        + "/tls-certificates")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientServiceDescriptionsAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/"
+        client.get().uri("/api/v1/clients/"
                         + TestUtils.CLIENT_ID_SS1
-                        + "/service-descriptions",
-                Object.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+                        + "/service-descriptions")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void serviceDescriptionServicesAreFetched() {
-        ResponseEntity<Object> response = restTemplate.getForEntity(
-                "/api/v1/service-descriptions/1",
-                Object.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        client.get().uri("/api/v1/service-descriptions/1")
+                .exchange()
+                .expectStatus().isOk();
     }
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void normalClientConverterWorks() {
-        ResponseEntity<ClientDto> clientResponse = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
-                ClientDto.class);
-        assertEquals(HttpStatus.OK, clientResponse.getStatusCode());
-        assertEquals("M1", clientResponse.getBody().getMemberCode());
+        ClientDto clientDto = client.get().uri("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ClientDto.class)
+                .returnResult()
+                .getResponseBody();
+        assert clientDto != null;
+        assertEquals("M1", clientDto.getMemberCode());
     }
 
     @Test
@@ -207,8 +218,8 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
             return null;
         }).when(clientConverter).convert(any(Client.class));
 
-        ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1,
-                Object.class);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        client.get().uri("/api/v1/clients/" + TestUtils.CLIENT_ID_SS1)
+                .exchange()
+                .expectStatus().is5xxServerError();
     }
 }

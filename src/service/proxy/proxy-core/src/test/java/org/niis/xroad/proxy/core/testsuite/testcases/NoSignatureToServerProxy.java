@@ -26,14 +26,11 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemProperties;
-
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MISSING_SIGNATURE;
 
 /**
  * Test connects directly to SP thus impersonating the CP. It sends
@@ -52,11 +49,11 @@ public class NoSignatureToServerProxy extends MessageTestCase {
         requestContentType = "multipart/mixed; "
                 + "boundary=jetty42534330h7vzfqv2;charset=ISO-8859-1";
 
-        url = "http://127.0.0.1:" + System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
+        url = () -> "http://127.0.0.1:" + proxyTestSuiteHelper.proxyProperties.serverProxyPort();
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_SERVERPROXY_X, X_MISSING_SIGNATURE);
+        assertErrorCode(SERVER_SERVERPROXY_X, MISSING_SIGNATURE.code());
     }
 }

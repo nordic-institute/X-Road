@@ -29,15 +29,11 @@ import ee.ria.xroad.common.Version;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
-@WithMockUser
 class VersionServiceTest {
 
     VersionService versionService = new VersionService();
@@ -64,10 +60,10 @@ class VersionServiceTest {
     @Test
     void tooNewJavaVersion() {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
-        System.setProperty(Version.JAVA_VERSION_PROPERTY, "12");
+        System.setProperty(Version.JAVA_VERSION_PROPERTY, "26");
         try {
             VersionInfo versionInfo = versionService.getVersionInfo();
-            assertEquals(12, versionInfo.getJavaVersion());
+            assertEquals(26, versionInfo.getJavaVersion());
             assertFalse(versionInfo.isUsingSupportedJavaVersion());
         } finally {
             System.setProperty(Version.JAVA_VERSION_PROPERTY, original);

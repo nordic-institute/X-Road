@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,12 +26,8 @@
  -->
 <template>
   <div class="ml-1">
-    <xrd-icon-base v-if="arrowState" class="arrow-down" :color="iconColor">
-      <xrd-icon-sorting-arrow />
-    </xrd-icon-base>
-    <xrd-icon-base v-else class="arrow-up" :color="iconColor">
-      <xrd-icon-sorting-arrow />
-    </xrd-icon-base>
+    <v-icon v-if="arrowState" icon="arrow_downward" :class="iconColor" />
+    <v-icon v-else icon="arrow_upward" :class="iconColor" />
   </div>
 </template>
 
@@ -39,10 +36,10 @@
  * Component for sorting icon (up and down)
  */
 import { defineComponent } from 'vue';
-import { Colors, XrdIconSortingArrow } from '@niis/shared-ui';
+import {} from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { XrdIconSortingArrow },
+  components: {},
   props: {
     arrowState: {
       type: Boolean,
@@ -61,25 +58,15 @@ export default defineComponent({
     iconColor(): string {
       // Determine the icon color
       if (this.selected) {
-        return Colors.Black100;
+        return 'on-surface';
       }
       if (this.active) {
-        return Colors.Black30;
+        return 'on-surface-variant';
       }
-      return 'transparent'; // Hidden
+      return 'opacity-0'; // Hidden
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-.arrow-up {
-  transform: rotate(-180deg) translateY(-4px);
-  transition-duration: 0s;
-}
-
-.arrow-down {
-  transition-duration: 0s;
-  transform: translateY(-4px);
-}
-</style>
+<style lang="scss" scoped></style>

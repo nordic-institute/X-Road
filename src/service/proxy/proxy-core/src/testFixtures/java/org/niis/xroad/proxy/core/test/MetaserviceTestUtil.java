@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.ProtocolVersion;
@@ -46,8 +45,6 @@ import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPHeader;
 import jakarta.xml.soap.SOAPMessage;
 import jakarta.xml.soap.SOAPPart;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -69,7 +66,6 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -85,7 +81,6 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Small util class for metaservice unit- and integration tests
@@ -279,51 +274,9 @@ public final class MetaserviceTestUtil {
         }
 
         @Override
-        public void write(int b) throws IOException {
+        public void write(int b) {
             outputStream.write(b);
         }
-    }
-
-    /**
-     * A class to match {@link CodedException} codes with Hamcrest.
-     */
-    public static class CodedExceptionMatcher extends TypeSafeMatcher<CodedException> {
-
-        private final String faultCode;
-
-        public static CodedExceptionMatcher faultCodeEquals(String faultCode) {
-            return new CodedExceptionMatcher(faultCode);
-        }
-
-        protected CodedExceptionMatcher(String faultCode) {
-            this.faultCode = faultCode;
-        }
-
-        @Override
-        protected boolean matchesSafely(CodedException ex) {
-            return faultCode.equals(ex.getFaultCode());
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("expects faultCode ").appendValue(faultCode);
-        }
-
-        @Override
-        protected void describeMismatchSafely(CodedException ex, Description mismatchDescription) {
-            mismatchDescription.appendText("was ").appendValue(ex.getFaultCode());
-        }
-    }
-
-    /**
-     * Clean the database (You are using this from a test, right?)
-     */
-    public static void cleanDB() throws Exception {
-        doInTransaction(session -> {
-            var q = session.createNativeMutationQuery("TRUNCATE SCHEMA public AND COMMIT");
-            q.executeUpdate();
-            return null;
-        });
     }
 
     /**

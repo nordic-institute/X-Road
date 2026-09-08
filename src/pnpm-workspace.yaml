@@ -6,3 +6,8 @@ packages:
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - esbuild
+
+shamefullyHoist: true
+strictPeerDependencies: false
+
+engineStrict: true

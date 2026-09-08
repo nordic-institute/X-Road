@@ -27,98 +27,80 @@
 import {
   ApprovedCertificationService,
   ApprovedCertificationServiceListItem,
+  ApprovedDsTlsCertificationAuthority,
+  ApprovedDsTlsCertificationAuthorityListItem,
   CertificateAuthority,
   CertificateDetails,
   CertificationServiceFileAndSettings,
   CertificationServiceSettings,
   CostType,
+  DsTlsCertificationAuthorityFileAndSettings,
+  DsTlsCertificationAuthoritySettings,
+  DsTlsIntermediateCertificateAuthority,
   OcspResponder,
   TimestampingService,
+  OcspResponderCertificateDetails,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { WithCurrentItem } from '@niis/shared-ui';
 
-export interface CertificationServiceStoreState {
+export interface CertificationServiceStoreState extends WithCurrentItem<ApprovedCertificationService> {
   certificationServices: ApprovedCertificationServiceListItem[];
-  currentCertificationService: ApprovedCertificationService | null;
 }
 
 export const useCertificationService = defineStore('certificationService', {
   state: (): CertificationServiceStoreState => ({
+    current: undefined,
     certificationServices: [],
-    currentCertificationService: null,
   }),
   persist: true,
   actions: {
-    fetchAll() {
+    async fetchAll() {
       return axios
         .get<ApprovedCertificationServiceListItem[]>('/certification-services')
         .then((resp) => (this.certificationServices = resp.data));
     },
-    loadById(certificationServiceId: number) {
+    async loadById(certificationServiceId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
       return axios
-        .get<ApprovedCertificationService>(
-          `/certification-services/${certificationServiceId}`,
-        )
+        .get<ApprovedCertificationService>(`/certification-services/${certificationServiceId}`)
         .then((resp) => {
-          this.currentCertificationService = resp.data;
+          this.current = resp.data;
         })
         .catch((error) => {
           throw error;
-        });
+        })
+        .finally(() => (this.loadingCurrent = false));
     },
-    deleteById(certificationServiceId: number) {
+    async deleteById(certificationServiceId: number) {
       return axios.delete(`/certification-services/${certificationServiceId}`);
     },
-    add(newCas: CertificationServiceFileAndSettings) {
+    async add(newCas: CertificationServiceFileAndSettings) {
       const formData = new FormData();
-      formData.append(
-        'certificate_profile_info',
-        newCas.certificate_profile_info || '',
-      );
+      formData.append('certificate_profile_info', newCas.certificate_profile_info || '');
       formData.append('tls_auth', newCas.tls_auth || '');
       formData.append('certificate', newCas.certificate);
-      formData.append('default_csr_format', newCas.default_csr_format);
-      formData.append(
-        'acme_server_directory_url',
-        newCas.acme_server_directory_url || '',
-      );
-      formData.append(
-        'acme_server_ip_address',
-        newCas.acme_server_ip_address || '',
-      );
-      formData.append(
-        'authentication_certificate_profile_id',
-        newCas.authentication_certificate_profile_id || '',
-      );
-      formData.append(
-        'signing_certificate_profile_id',
-        newCas.signing_certificate_profile_id || '',
-      );
-      return axios
-        .post('/certification-services', formData)
-        .finally(() => this.fetchAll());
+      formData.append('default_csr_format', newCas.default_csr_format as string);
+      formData.append('acme_server_directory_url', newCas.acme_server_directory_url || '');
+      formData.append('acme_server_ip_address', newCas.acme_server_ip_address || '');
+      formData.append('authentication_certificate_profile_id', newCas.authentication_certificate_profile_id || '');
+      formData.append('signing_certificate_profile_id', newCas.signing_certificate_profile_id || '');
+      return axios.post('/certification-services', formData).finally(() => this.fetchAll());
     },
-    update(
-      certificationServiceId: number,
-      settings: CertificationServiceSettings,
-    ) {
+    async update(certificationServiceId: number, settings: CertificationServiceSettings) {
       return axios
-        .patch<ApprovedCertificationService>(
-          `/certification-services/${certificationServiceId}`,
-          settings,
-        )
+        .patch<ApprovedCertificationService>(`/certification-services/${certificationServiceId}`, settings)
         .then((resp) => {
-          this.currentCertificationService = resp.data;
+          this.current = resp.data;
         })
         .catch((error) => {
           throw error;
         });
     },
-    getCertificate(certificationServiceId: number) {
-      return axios.get<CertificateDetails>(
-        `/certification-services/${certificationServiceId}/certificate`,
-      );
+    async getCertificate(certificationServiceId: number) {
+      return axios.get<CertificateDetails>(`/certification-services/${certificationServiceId}/certificate`);
     },
   },
 });
@@ -126,6 +108,7 @@ export const useCertificationService = defineStore('certificationService', {
 export interface OcspResponderStoreState {
   currentCa: ApprovedCertificationService | CertificateAuthority | null;
   currentOcspResponders: OcspResponder[];
+  loadingOcspResponders?: boolean;
 }
 
 export const useOcspResponderService = defineStore('ocspResponderService', {
@@ -144,16 +127,18 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
     },
   },
   actions: {
-    loadByCa(ca: ApprovedCertificationService | CertificateAuthority) {
+    async loadByCa(ca: ApprovedCertificationService | CertificateAuthority) {
       this.currentCa = ca;
-      this.fetchOcspResponders();
+      return this.fetchOcspResponders();
     },
-    fetchOcspResponders() {
+    async fetchOcspResponders() {
+      this.loadingOcspResponders = true;
       return axios
         .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
-        .then((resp) => (this.currentOcspResponders = resp.data));
+        .then((resp) => (this.currentOcspResponders = resp.data))
+        .finally(() => (this.loadingOcspResponders = false));
     },
-    addOcspResponder(url: string, costType: string, certificate: File | undefined) {
+    async addOcspResponder(url: string, costType: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
       formData.append('cost_type', costType);
@@ -161,16 +146,9 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         formData.append('certificate', certificate);
       }
 
-      return axios
-        .post(this.getCurrentCaOcspRespondersPath, formData)
-        .finally(() => this.fetchOcspResponders());
+      return axios.post(this.getCurrentCaOcspRespondersPath, formData).finally(() => this.fetchOcspResponders());
     },
-    updateOcspResponder(
-      id: number,
-      url: string,
-      costType: string,
-      certificate: File | undefined,
-    ) {
+    async updateOcspResponder(id: number, url: string, costType: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
       formData.append('cost_type', costType);
@@ -179,67 +157,63 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
       }
       return axios.patch(`/ocsp-responders/${id}/`, formData);
     },
-    deleteOcspResponder(id: number) {
+    async deleteOcspResponder(id: number) {
       return axios.delete(`/ocsp-responders/${id}`);
     },
-    getOcspResponderCertificate(id: number) {
-      return axios.get<CertificateDetails>(
-        `/ocsp-responders/${id}/certificate`,
-      );
+    async getOcspResponderCertificate(id: number) {
+      return axios.get<OcspResponderCertificateDetails>(`/ocsp-responders/${id}/certificate`);
     },
   },
 });
 
-export interface IntermediateCasStoreState {
+export interface IntermediateCasStoreState extends WithCurrentItem<CertificateAuthority> {
   currentCs: ApprovedCertificationService | null;
   currentIntermediateCas: CertificateAuthority[];
-  currentSelectedIntermediateCa: CertificateAuthority | null;
 }
 
 export const useIntermediateCasService = defineStore('intermediateCasService', {
   state: (): IntermediateCasStoreState => ({
+    current: undefined,
     currentCs: null,
     currentIntermediateCas: [],
-    currentSelectedIntermediateCa: null,
   }),
   persist: true,
   actions: {
-    loadByCs(cs: ApprovedCertificationService) {
+    async loadByCs(cs: ApprovedCertificationService) {
       this.currentCs = cs;
-      this.fetchIntermediateCas();
+      return this.fetchIntermediateCas();
     },
-    loadById(intermediateCaId: number) {
+    async loadById(intermediateCaId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
       return this.getIntermediateCa(intermediateCaId)
         .then((resp) => {
-          this.currentSelectedIntermediateCa = resp.data;
+          this.current = resp.data;
+          return this.current;
         })
         .catch((error) => {
           throw error;
-        });
+        })
+        .finally(() => (this.loadingCurrent = false));
     },
-    fetchIntermediateCas() {
+    async fetchIntermediateCas() {
       if (!this.currentCs) return;
 
       return axios
-        .get<
-          CertificateAuthority[]
-        >(`/certification-services/${this.currentCs.id}/intermediate-cas`)
+        .get<CertificateAuthority[]>(`/certification-services/${this.currentCs.id}/intermediate-cas`)
         .then((resp) => (this.currentIntermediateCas = resp.data));
     },
-    getIntermediateCa(id: number) {
+    async getIntermediateCa(id: number) {
       return axios.get<CertificateAuthority>(`/intermediate-cas/${id}`);
     },
-    addIntermediateCa(certificate: File) {
+    async addIntermediateCa(certificate: File) {
       if (!this.currentCs) {
         throw new Error('CA not selected');
       }
       const formData = new FormData();
       formData.append('certificate', certificate);
       return axios
-        .post(
-          `/certification-services/${this.currentCs.id}/intermediate-cas`,
-          formData,
-        )
+        .post(`/certification-services/${this.currentCs.id}/intermediate-cas`, formData)
         .finally(() => this.fetchIntermediateCas());
     },
     deleteIntermediateCa(id: number) {
@@ -248,57 +222,151 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
   },
 });
 
+export interface DsTlsCertificationAuthorityStoreState extends WithCurrentItem<ApprovedDsTlsCertificationAuthority> {
+  dsTlsCertificationAuthorities: ApprovedDsTlsCertificationAuthorityListItem[];
+}
+
+export const useDsTlsCertificationAuthorityService = defineStore('dsTlsCertificationAuthorityService', {
+  state: (): DsTlsCertificationAuthorityStoreState => ({
+    current: undefined,
+    dsTlsCertificationAuthorities: [],
+  }),
+  persist: true,
+  actions: {
+    async fetchAll() {
+      return axios
+        .get<ApprovedDsTlsCertificationAuthorityListItem[]>('/ds-tls-certification-authorities')
+        .then((resp) => (this.dsTlsCertificationAuthorities = resp.data));
+    },
+    async loadById(dsTlsCertificationAuthorityId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
+      return axios
+        .get<ApprovedDsTlsCertificationAuthority>(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}`)
+        .then((resp) => {
+          this.current = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        })
+        .finally(() => (this.loadingCurrent = false));
+    },
+    async deleteById(dsTlsCertificationAuthorityId: number) {
+      return axios.delete(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}`);
+    },
+    async add(newCa: DsTlsCertificationAuthorityFileAndSettings) {
+      const formData = new FormData();
+      formData.append('name', newCa.name || '');
+      formData.append('certificate', newCa.certificate);
+      formData.append('acme_server_directory_url', newCa.acme_server_directory_url || '');
+      formData.append('ds_tls_certificate_profile_id', newCa.ds_tls_certificate_profile_id || '');
+      return axios.post('/ds-tls-certification-authorities', formData).finally(() => this.fetchAll());
+    },
+    async update(dsTlsCertificationAuthorityId: number, settings: DsTlsCertificationAuthoritySettings) {
+      return axios
+        .patch<ApprovedDsTlsCertificationAuthority>(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}`, settings)
+        .then((resp) => {
+          this.current = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    async getCertificate(dsTlsCertificationAuthorityId: number) {
+      return axios.get<CertificateDetails>(`/ds-tls-certification-authorities/${dsTlsCertificationAuthorityId}/certificate`);
+    },
+  },
+});
+
+export interface DsTlsIntermediateCasStoreState extends WithCurrentItem<DsTlsIntermediateCertificateAuthority> {
+  currentCa: ApprovedDsTlsCertificationAuthority | null;
+  currentIntermediateCas: DsTlsIntermediateCertificateAuthority[];
+}
+
+export const useDsTlsIntermediateCasService = defineStore('dsTlsIntermediateCasService', {
+  state: (): DsTlsIntermediateCasStoreState => ({
+    current: undefined,
+    currentCa: null,
+    currentIntermediateCas: [],
+  }),
+  persist: true,
+  actions: {
+    async loadByCa(ca: ApprovedDsTlsCertificationAuthority) {
+      this.currentCa = ca;
+      return this.fetchIntermediateCas();
+    },
+    async loadById(dsTlsIntermediateCaId: number) {
+      this.loadingCurrent = true;
+      this.current = undefined;
+      return this.getIntermediateCa(dsTlsIntermediateCaId)
+        .then((resp) => {
+          this.current = resp.data;
+          return this.current;
+        })
+        .catch((error) => {
+          throw error;
+        })
+        .finally(() => (this.loadingCurrent = false));
+    },
+    async fetchIntermediateCas() {
+      if (!this.currentCa) return;
+
+      return axios
+        .get<DsTlsIntermediateCertificateAuthority[]>(`/ds-tls-certification-authorities/${this.currentCa.id}/intermediate-cas`)
+        .then((resp) => (this.currentIntermediateCas = resp.data));
+    },
+    async getIntermediateCa(dsTlsIntermediateCaId: number) {
+      return axios.get<DsTlsIntermediateCertificateAuthority>(`/ds-tls-intermediate-cas/${dsTlsIntermediateCaId}`);
+    },
+    async addIntermediateCa(certificate: File) {
+      if (!this.currentCa) {
+        throw new Error('DS TLS certification authority not selected');
+      }
+      const formData = new FormData();
+      formData.append('certificate', certificate);
+      return axios
+        .post(`/ds-tls-certification-authorities/${this.currentCa.id}/intermediate-cas`, formData)
+        .finally(() => this.fetchIntermediateCas());
+    },
+    deleteIntermediateCa(dsTlsIntermediateCaId: number) {
+      return axios.delete(`/ds-tls-intermediate-cas/${dsTlsIntermediateCaId}`);
+    },
+  },
+});
+
 export interface TimestampingServicesStoreState {
   timestampingServices: TimestampingService[];
 }
 
-export const useTimestampingServicesStore = defineStore(
-  'timestampingServices',
-  {
-    state: (): TimestampingServicesStoreState => ({
-      timestampingServices: [],
-    }),
-    persist: true,
-    actions: {
-      fetchTimestampingServices() {
-        return axios
-          .get<TimestampingService[]>('/timestamping-services')
-          .then((resp) => (this.timestampingServices = resp.data));
-      },
-      delete(id: number) {
-        return axios
-          .delete(`/timestamping-services/${id}`)
-          .finally(() => this.fetchTimestampingServices());
-      },
-      addTimestampingService(url: string, costType: string, certificate: File) {
-        const formData = new FormData();
-        formData.append('url', url);
-        formData.append('cost_type', costType);
+export const useTimestampingServices = defineStore('timestampingServices', {
+  state: (): TimestampingServicesStoreState => ({
+    timestampingServices: [],
+  }),
+  persist: true,
+  actions: {
+    async fetchTimestampingServices() {
+      return axios.get<TimestampingService[]>('/timestamping-services').then((resp) => (this.timestampingServices = resp.data));
+    },
+    async delete(id: number) {
+      return axios.delete(`/timestamping-services/${id}`).finally(() => this.fetchTimestampingServices());
+    },
+    async addTimestampingService(url: string, costType: string, certificate: File) {
+      const formData = new FormData();
+      formData.append('url', url);
+      formData.append('cost_type', costType);
+      formData.append('certificate', certificate);
+      return axios.post('/timestamping-services', formData).finally(() => this.fetchTimestampingServices());
+    },
+    async updateTimestampingService(id: number, url: string, costType: string, certificate: File | undefined) {
+      const formData = new FormData();
+      formData.append('url', url);
+      formData.append('cost_type', costType);
+      if (certificate) {
         formData.append('certificate', certificate);
-        return axios
-          .post('/timestamping-services', formData)
-          .finally(() => this.fetchTimestampingServices());
-      },
-      updateTimestampingService(
-        id: number,
-        url: string,
-        costType: string,
-        certificate: File | undefined,
-      ) {
-        const formData = new FormData();
-        formData.append('url', url);
-        formData.append('cost_type', costType);
-        if (certificate) {
-          formData.append('certificate', certificate);
-        }
-        return axios
-          .patch(`/timestamping-services/${id}`, formData)
-          .finally(() => this.fetchTimestampingServices());
-      },
+      }
+      return axios.patch(`/timestamping-services/${id}`, formData).finally(() => this.fetchTimestampingServices());
     },
   },
-);
+});
 
-export const definedCostTypes: CostType[] = Object.values(CostType).filter(
-  (v) => v !== CostType.UNDEFINED,
-);
+export const definedCostTypes: CostType[] = Object.values(CostType).filter((v) => v !== CostType.UNDEFINED);

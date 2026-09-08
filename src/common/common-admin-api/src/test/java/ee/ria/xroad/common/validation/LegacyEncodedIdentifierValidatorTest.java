@@ -26,8 +26,8 @@
 package ee.ria.xroad.common.validation;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 
@@ -37,26 +37,25 @@ import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.Va
 import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.FORWARDSLASH;
 import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.PERCENT;
 import static ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator.ValidationError.SEMICOLON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class LegacyEncodedIdentifierValidatorTest {
+class LegacyEncodedIdentifierValidatorTest {
 
     private LegacyEncodedIdentifierValidator encodedIdentifierValidator;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         encodedIdentifierValidator = new LegacyEncodedIdentifierValidator();
     }
 
     @Test
-    public void valid() {
-        assertTrue(encodedIdentifierValidator.isValid("adsdsa"));
-        assertTrue(encodedIdentifierValidator.isValid("a.b.c"));
-        assertTrue(encodedIdentifierValidator.isValid("a-b-c"));
-        assertTrue(encodedIdentifierValidator.isValid("äöå"));
-        assertTrue(encodedIdentifierValidator.isValid("列"));
+    void valid() {
+        assertThat(encodedIdentifierValidator.isValid("adsdsa")).isTrue();
+        assertThat(encodedIdentifierValidator.isValid("a.b.c")).isTrue();
+        assertThat(encodedIdentifierValidator.isValid("a-b-c")).isTrue();
+        assertThat(encodedIdentifierValidator.isValid("äöå")).isTrue();
+        assertThat(encodedIdentifierValidator.isValid("列")).isTrue();
     }
 
     final char semiColon = ';';
@@ -72,48 +71,48 @@ public class LegacyEncodedIdentifierValidatorTest {
     final char space = ' ';
 
     @Test
-    public void semiOrFullColons() {
-        assertEquals(EnumSet.of(COLON),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(colon)));
-        assertEquals(EnumSet.of(SEMICOLON),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(semiColon)));
-        assertEquals(EnumSet.of(COLON, SEMICOLON),
-                encodedIdentifierValidator.getValidationErrors("aaa:bbbb;cccc"));
+    void semiOrFullColons() {
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(colon)))
+                .isEqualTo(EnumSet.of(COLON));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(semiColon)))
+                .isEqualTo(EnumSet.of(SEMICOLON));
+        assertThat(encodedIdentifierValidator.getValidationErrors("aaa:bbbb;cccc"))
+                .isEqualTo(EnumSet.of(COLON, SEMICOLON));
     }
 
     @Test
-    public void slashesOrPercent() {
-        assertEquals(EnumSet.of(FORWARDSLASH),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(slash)));
-        assertEquals(EnumSet.of(BACKSLASH),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(backslash)));
-        assertEquals(EnumSet.of(PERCENT),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(percent)));
+    void slashesOrPercent() {
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(slash)))
+                .isEqualTo(EnumSet.of(FORWARDSLASH));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(backslash)))
+                .isEqualTo(EnumSet.of(BACKSLASH));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(percent)))
+                .isEqualTo(EnumSet.of(PERCENT));
 
-        assertEquals(EnumSet.of(FORWARDSLASH, BACKSLASH, PERCENT),
-                encodedIdentifierValidator.getValidationErrors("aaa/./bbbb\\cc/../cc%ddd"));
+        assertThat(encodedIdentifierValidator.getValidationErrors("aaa/./bbbb\\cc/../cc%ddd"))
+                .isEqualTo(EnumSet.of(FORWARDSLASH, BACKSLASH, PERCENT));
     }
 
     @Test
-    public void controlChars() {
-        assertEquals(EnumSet.of(CONTROL_CHAR),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(tab)));
-        assertEquals(EnumSet.of(CONTROL_CHAR),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(newline)));
-        assertEquals(EnumSet.of(CONTROL_CHAR),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(cr)));
-        assertEquals(EnumSet.of(CONTROL_CHAR),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(esc)));
-        assertEquals(EnumSet.of(CONTROL_CHAR),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(sos)));
-        assertEquals(EnumSet.noneOf(LegacyEncodedIdentifierValidator.ValidationError.class),
-                encodedIdentifierValidator.getValidationErrors(String.valueOf(space)));
+    void controlChars() {
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(tab)))
+                .isEqualTo(EnumSet.of(CONTROL_CHAR));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(newline)))
+                .isEqualTo(EnumSet.of(CONTROL_CHAR));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(cr)))
+                .isEqualTo(EnumSet.of(CONTROL_CHAR));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(esc)))
+                .isEqualTo(EnumSet.of(CONTROL_CHAR));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(sos)))
+                .isEqualTo(EnumSet.of(CONTROL_CHAR));
+        assertThat(encodedIdentifierValidator.getValidationErrors(String.valueOf(space)))
+                .isEqualTo(EnumSet.noneOf(LegacyEncodedIdentifierValidator.ValidationError.class));
     }
 
     @Test
-    public void allErrors() {
-        assertEquals(EnumSet.allOf(LegacyEncodedIdentifierValidator.ValidationError.class),
-                encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../f\tf"));
+    void allErrors() {
+        assertThat(encodedIdentifierValidator.getValidationErrors(":aa;bb/cc\\dd%ee/../f\tf"))
+                .isEqualTo(EnumSet.allOf(LegacyEncodedIdentifierValidator.ValidationError.class));
     }
 
 }

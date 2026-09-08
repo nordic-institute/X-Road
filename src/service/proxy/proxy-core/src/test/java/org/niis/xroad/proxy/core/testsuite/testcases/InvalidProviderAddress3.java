@@ -30,7 +30,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 
 /**
  * Client proxy attempts to make query to non-existing server proxy address
@@ -55,6 +55,6 @@ public class InvalidProviderAddress3 extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_UNKNOWN_MEMBER);
+        assertErrorCode(SERVER_CLIENTPROXY_X, UNKNOWN_MEMBER.code());
     }
 }

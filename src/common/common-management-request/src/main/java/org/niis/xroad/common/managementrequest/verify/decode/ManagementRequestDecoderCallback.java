@@ -26,19 +26,19 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
-import ee.ria.xroad.common.CodedException;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_REQUEST;
 
 public interface ManagementRequestDecoderCallback {
 
     default void verifyMessagePart(Object value, String message) {
         if (value == null || value instanceof String && ((String) value).isEmpty()) {
-            throw new CodedException(X_INVALID_REQUEST, message);
+            throw XrdRuntimeException.systemException(INVALID_REQUEST, message);
         }
     }
 

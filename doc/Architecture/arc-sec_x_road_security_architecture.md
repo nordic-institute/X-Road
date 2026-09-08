@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 0.11
-01.06.2023
+Version: 0.12
+12.08.2026
 
 Doc. ID: ARC-SEC
 
@@ -24,6 +24,7 @@ Doc. ID: ARC-SEC
  24.08.2023 | 0.9     | Minimum supported client Security Server version | Eneli Reimets
  12.06.2024 | 0.10    | Update with the new ACME features                | Petteri Kivimäki
  21.03.2025 | 0.11    | Syntax and styling                               | Pauline Dimmek
+ 12.08.2026 | 0.12    | Add reference to X-Road Threat Model; correct package signing description | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -88,6 +89,13 @@ Figure 1. X-Road security architecture.
 
 The identity of each organization (X-Road Service Provider or Service Consumer) and technical entry point (Security Server) is verified using certificates that are issued by a trusted Certification Authority (CA) when an organization joins an X-Road ecosystem. The identities are maintained centrally, but all the data is exchanged directly between a consumer and provider. Message routing is based on organization and service level identifiers that are mapped to physical network locations of the services by X-Road. All the evidence regarding data exchange is stored locally by the data exchange parties, and no third parties have access to the data. Time-stamping and digital signature together guarantee non-repudiation of the data sent via X-Road.
 
+Please see the X-Road Threat Model \[[ARC-TM](#Ref_ARC-TM)\] for more detailed information on:
+
+  * Trust boundaries and entry points.
+  * Assets that need protection.
+  * Prioritised threat scenarios that cross those boundaries.
+  * Automated tests that verify the corresponding controls.
+
 ### 1.1 Terms and Abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
@@ -110,6 +118,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 13. <a id="Ref_GDPR" class="anchor"></a>\[GDPR\] EU Regulation No 679/2016 – Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC
 14. <a id="Ref_UG-SEC" class="anchor"></a>\[UG-SEC\] X-Road: Security hardening guidelines. Document ID: [UG-SEC](../Manuals/ug-sec_x_road_security_hardening.md)
 15. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
+16. <a id="Ref_ARC-TM" class="anchor"></a>\[ARC-TM\] X-Road Threat Model. Document ID: [ARC-TM](arc-tm_x-road_threat_model.md).
 
 ## 2 Environment Assumptions
 
@@ -179,7 +188,7 @@ In X-Road, access control starts by denying all access by default. Access will n
 
 ### 7.3 Minimum Supported Client Security Server Version
 
-To increase the security of the X-Road ecosystem, it is recommended to limit the minimum version of the client Security Server that is allowed to access a service. Service providers can configure a minimum client Security Server version that's required to consume their services. For details, refer to \[[UG-SEC](#Ref_UG-SEC)\] section 4.1.
+To increase the security of the X-Road ecosystem, it is recommended to limit the minimum version of the client Security Server that is allowed to access a service. Service providers can configure a minimum client Security Server version that's required to consume their services. For details, refer to \[[UG-SEC](#Ref_UG-SEC)\] section 3.1.1.
 
 ## 8 Input Validation
 
@@ -219,7 +228,7 @@ The time-stamping feature is directly related to message logging. If the message
 
 ## 11 Updatability
 
-X-Road is designed to enable reliable installation of software updates including security updates. X-Road software packages are signed so that their origins are traceable. 
+X-Road is designed to enable reliable installation of software updates including security updates. RPM packages are signed individually; Debian packages are distributed through a repository whose index is signed, so that the origin of both is traceable.
 
 ## 12 Trust Federation
 

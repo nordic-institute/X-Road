@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="test-drop-scope-changelog.xml">
+
+    <!--
+        Stands in for configuration-properties/001-configuration-properties.xml, whose triggers and
+        partial indexes are PostgreSQL-only. Models the pre-drop table shape the 002 migration receives.
+    -->
+    <changeSet author="test" id="test-scoped-configuration-properties-table">
+        <createTable tableName="configuration_properties">
+            <column name="id" autoIncrement="true" type="INT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="property_key" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="property_value" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scope" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="test" id="test-seed-scoped-rows">
+        <sql splitStatements="true"><![CDATA[
+            -- NULL-scope loser vs app-scoped winner for the same key
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.proxy.health-check-port', '1111', NULL, '2026-01-01', '2026-01-01');
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.proxy.health-check-port', '2222', 'proxy', '2026-01-01', '2026-01-01');
+            -- one key configured for two applications: the most recently updated row wins
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.common-rpc.use-tls', 'false', 'signer', '2026-01-01', '2026-01-01');
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.common-rpc.use-tls', 'true', 'op-monitor', '2026-02-02', '2026-02-02');
+            -- untouched singletons, one per former shape
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.message-log-encryption.db.encryption-enabled', 'true', NULL, '2026-01-01', '2026-01-01');
+            INSERT INTO configuration_properties (property_key, property_value, scope, created_at, updated_at)
+            VALUES ('xroad.signer.ocsp-retry-delay', '30', 'signer', '2026-01-01', '2026-01-01');
+            ]]></sql>
+    </changeSet>
+
+    <include file="liquibase/configuration-properties/002-drop-scope.xml"/>
+
+</databaseChangeLog>

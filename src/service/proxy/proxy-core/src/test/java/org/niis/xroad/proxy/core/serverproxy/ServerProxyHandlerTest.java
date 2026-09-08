@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
-import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.server.ConnectionMetaData;
 import org.eclipse.jetty.server.Request;
@@ -33,10 +32,8 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -50,15 +47,15 @@ public class ServerProxyHandlerTest {
         final var request = getMockedRequest();
         final var callback = mock(Callback.class);
         var globalConfProvider = mock(GlobalConfProvider.class);
-        var keyConfProvider = mock(KeyConfProvider.class);
-        var serverConfProvider = mock(ServerConfProvider.class);
-        var certChainFactory = mock(CertChainFactory.class);
         var checkMock = mock(ClientProxyVersionVerifier.class);
-        var commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null,
-                certChainFactory, null);
 
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(HttpClient.class), mock(HttpClient.class),
-                checkMock);
+        var serverRestMessageProcessor = mock(ServerRestMessageProcessor.class);
+        var serverSoapMessageProcessor = mock(ServerSoapMessageProcessor.class);
+
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(serverRestMessageProcessor,
+                serverSoapMessageProcessor,
+                mock(ProxyProperties.ServerProperties.class),
+                checkMock, globalConfProvider, new NoOpMonitoringBuffer());
 
         serverProxyHandler.handle(request, getMockedResponse(), callback);
 

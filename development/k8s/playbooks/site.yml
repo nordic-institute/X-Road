@@ -1,0 +1,103 @@
+---
+- name: Deploy X-Road Security Server stack
+  hosts: k8s_control
+  gather_facts: true
+  pre_tasks:
+    - name: Assert required vars present
+      ansible.builtin.assert:
+        that:
+          - kubeconfig_path is defined
+          - security_server_namespace is defined
+          - cluster_provider is defined
+        fail_msg: "Inventory group_vars missing required variables"
+
+    - name: Ensure state directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../.state"
+        state: directory
+        mode: "0755"
+
+  tasks:
+    - name: Provision KinD cluster
+      ansible.builtin.include_role:
+        name: kind_cluster
+      vars:
+        kind_state_dir: "{{ playbook_dir }}/../.state"
+      when: cluster_provider == 'kind'
+
+    # Before any chart, so the credentials are in place when the first pod is scheduled.
+    - name: Provision registry pull Secret (when the images are in a private registry)
+      ansible.builtin.include_role:
+        name: image_pull_secret
+      when: xroad_image_pull_secret | default('') | length > 0
+
+    - name: Install CloudNativePG operator
+      ansible.builtin.include_role:
+        name: cloudnative_pg
+
+    # security_server_instances is the multi-release topology hook: a list of
+    # {namespace, dsp_participant_context_id, openbao_tls_dir} dicts, one per Security Server
+    # release. When unset it defaults to the single existing
+    # security_server_namespace/openbao_tls_dir — identical single-iteration behavior to before
+    # this was a loop.
+    - name: Deploy OpenBao (TLS + postgres + openbao + init)
+      ansible.builtin.include_role:
+        name: openbao
+      vars:
+        security_server_namespace: "{{ ss_instance.namespace }}"
+        openbao_tls_dir: "{{ ss_instance.openbao_tls_dir }}"
+        messagelog_encryption_pgp_public_keyring_file: "{{ ss_instance.messagelog_encryption_pgp_public_keyring_file | default('') }}"
+      loop: >-
+        {{
+          security_server_instances
+          | default([{'namespace': security_server_namespace,
+                      'openbao_tls_dir': (playbook_dir ~ '/../.state/openbao-tls')}])
+        }}
+      loop_control:
+        loop_var: ss_instance
+        label: "{{ ss_instance.namespace }}"
+
+    - name: Deploy external service bridges
+      ansible.builtin.include_role:
+        name: external_service_bridge
+      vars:
+        bridge_name: "{{ item.name }}"
+        bridge_external_host: "{{ item.external_host }}"
+        bridge_ports: "{{ item.ports }}"
+      loop: "{{ external_service_bridges | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Deploy Security Server
+      ansible.builtin.include_role:
+        name: security_server
+      vars:
+        security_server_namespace: "{{ ss_instance.namespace }}"
+        dsp_participant_context_id: "{{ ss_instance.dsp_participant_context_id | default('') }}"
+        signer_hsm_enabled: "{{ ss_instance.signer_hsm_enabled | default(false) }}"
+        softtoken_signer_enabled: "{{ ss_instance.softtoken_signer_enabled | default(false) }}"
+        messagelog_encryption_config: "{{ ss_instance.messagelog_encryption_config | default('') }}"
+      loop: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
+      loop_control:
+        loop_var: ss_instance
+        label: "{{ ss_instance.namespace }}"
+
+    - name: Deploy Central Server (when enabled)
+      ansible.builtin.include_role:
+        name: central_server
+      when: central_server_enabled | default(false) | bool
+
+    - name: Deploy e2e-fixtures (test CA, mock IS, mailpit, hurl bootstrap) (when enabled)
+      ansible.builtin.include_role:
+        name: e2e_fixtures
+      when: e2e_fixtures_enabled | default(false) | bool
+
+    - name: Deploy Prometheus (when enabled)
+      ansible.builtin.include_role:
+        name: prometheus
+      when: deploy_prometheus | default(false) | bool
+
+    - name: Deploy Netdata (when enabled)
+      ansible.builtin.include_role:
+        name: netdata
+      when: deploy_netdata | default(true) | bool

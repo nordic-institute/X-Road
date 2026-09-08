@@ -207,7 +207,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         FileUtils.copyFile(smallWsdl, testServiceWsdl);
 
@@ -242,7 +242,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         try {
             serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
@@ -332,7 +332,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         try {
             serviceDescriptionService.updateWsdlUrl(serviceDescriptionEntity.getId(),
@@ -377,7 +377,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
         doReturn(mockValidationFailures)
-                .when(wsdlValidator).executeValidator(anyString());
+                .when(wsdlValidator).validate(anyString());
 
         // should be able to ignore them all
         serviceDescriptionService.updateWsdlUrl(serviceDescriptionEntity.getId(), newUrl, true);
@@ -495,7 +495,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescription2.getServices().add(serviceV2);
         serviceDescriptionRepository.persist(serviceDescription2);
 
-        EndpointEntity endpointEntity = EndpointEntity.create("foo", ANY_METHOD, ANY_PATH, true);
+        EndpointEntity endpointEntity = EndpointEntity.create(clientEntity, "foo", ANY_METHOD, ANY_PATH, true);
         clientEntity.getEndpoints().add(endpointEntity);
 
         doReturn(true).when(globalConfService).clientsExist(any());
@@ -711,12 +711,12 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // Test adding service with duplicate service code
         assertThrows(ServiceDescriptionService.ServiceCodeAlreadyExistsException.class,
                 () -> serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
-                "http://testurl.com", "getRandom"));
+                        "http://testurl.com", "getRandom"));
 
         // Test adding service with duplicate full service code
         assertThrows(ServiceDescriptionService.ServiceCodeAlreadyExistsException.class,
                 () -> serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
-                "http:://testurl.com", "getRandom.v1"));
+                        "http:://testurl.com", "getRandom.v1"));
 
     }
 

@@ -25,19 +25,56 @@
  */
 package org.niis.xroad.serverconf.spring;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import lombok.Setter;
+import org.niis.xroad.common.properties.config.XRoadConfig;
+import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.common.vault.spring.SpringVaultClientConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.XRoadServerConfProperties;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+import java.util.Map;
 
 @Configuration
+@EnableConfigurationProperties(ServerConfBeanConfig.SpringServerConfDbProperties.class)
+@Import(SpringVaultClientConfig.class)
 public class ServerConfBeanConfig {
 
     @Bean
-    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
+    ServerConfCommonProperties serverConfCommonProperties(XRoadConfig xRoadConfig) {
+        return new XRoadServerConfProperties(xRoadConfig);
+    }
+
+    @Bean(destroyMethod = "destroy")
+    ServerConfDatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
+        return new ServerConfDatabaseCtx(dbProperties);
+    }
+
+    @Bean
+    public ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
+                                                 GlobalConfProvider globalConfProvider,
+                                                 ServerConfCommonProperties serverConfProperties,
+                                                 VaultClient vaultClient) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, vaultClient, serverConfProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = "xroad.db.serverconf")
+    public static class SpringServerConfDbProperties implements ServerConfDbProperties {
+        private Map<String, String> hibernate = Map.of();
+
+        @Override
+        public Map<String, String> hibernate() {
+            return hibernate;
+        }
     }
 }

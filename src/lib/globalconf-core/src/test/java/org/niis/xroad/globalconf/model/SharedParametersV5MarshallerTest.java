@@ -28,6 +28,7 @@ package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -37,6 +38,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Slf4j
 class SharedParametersV5MarshallerTest {
 
     private static final String MEMBER_CODE = "mcode";
@@ -73,7 +75,7 @@ class SharedParametersV5MarshallerTest {
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
-        System.out.println(result);
+        log.info(result);
     }
 
     private SharedParameters.Subsystem createSubsystem(String code, String name) {

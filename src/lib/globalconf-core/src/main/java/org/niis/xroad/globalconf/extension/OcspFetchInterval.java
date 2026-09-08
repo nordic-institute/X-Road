@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.globalconf.extension;
 
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.ToString;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.globalconf.model.AbstractXmlConf;
 import org.niis.xroad.globalconf.schema.ocspfetchintervalparameters.ObjectFactory;
 import org.niis.xroad.globalconf.schema.ocspfetchintervalparameters.OcspFetchIntervalType;
 

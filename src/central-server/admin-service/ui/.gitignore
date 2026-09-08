@@ -2,9 +2,8 @@
 node_modules
 /dist
 
-/tests/e2e/reports/
-/tests/e2e/screenshots/
-selenium-debug.log
+# vitest output (screenshots on failure, attachments, junit report)
+/tests/results/
 
 # local env files
 .env.local
@@ -12,10 +11,11 @@ selenium-debug.log
 
 # Log files
 npm-debug.log*
-chromedriver.log*
+pnpm-debug.log*
 
 # Generated type definitions
 src/openapi-types
+src/openapi-msw-paths.d.ts
 build/
 
 # Editor directories and files

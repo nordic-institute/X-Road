@@ -25,22 +25,24 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.Collections;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for verifying query request handler behavior.
@@ -56,9 +58,9 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
 
     @Test
     public void checkInvalidSearchCriteriaOutputFields() {
-        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkOutputFields(Set.of(
+        var err = assertThrows(XrdRuntimeException.class, () -> OperationalDataRequestHandler.checkOutputFields(Set.of(
                 "monitoringDataTs", "UNKNOWN-FIELD")));
-        assertEquals("Unknown output field in search criteria: UNKNOWN-FIELD", err.getFaultString());
+        assertEquals("Unknown output field in search criteria: UNKNOWN-FIELD", err.getDetails());
     }
 
     @Test
@@ -66,8 +68,10 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
             throws Exception {
         ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "00000001", "GOV", "System1");
+        OpMonitorProperties opMonitorProperties = mock(OpMonitorProperties.class);
+        when(opMonitorProperties.recordsAvailableTimestampOffsetSeconds()).thenReturn(60);
         OperationalDataRequestHandler handler =
-                new OperationalDataRequestHandler(mock(GlobalConfProvider.class));
+                new OperationalDataRequestHandler(mock(GlobalConfProvider.class), operationalDataRecordManager, opMonitorProperties);
         long recordsAvailableBefore = TimeUtils.getEpochSecond();
 
         GetSecurityServerOperationalDataResponseType response = handler
@@ -80,25 +84,25 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
 
     @Test
     public void checkNegativeRecordsFromTimestamps() {
-        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(-10, 10, 10));
-        assertEquals("Records from timestamp is a negative number", err.getFaultString());
+        var err = assertThrows(XrdRuntimeException.class, () -> OperationalDataRequestHandler.checkTimestamps(-10, 10, 10));
+        assertEquals("Records from timestamp is a negative number", err.getDetails());
     }
 
     @Test
     public void checkNegativeRecordsToTimestamps() {
-        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, -10, 10));
-        assertEquals("Records to timestamp is a negative number", err.getFaultString());
+        var err = assertThrows(XrdRuntimeException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, -10, 10));
+        assertEquals("Records to timestamp is a negative number", err.getDetails());
     }
 
     @Test
     public void checkEarlierRecordsToTimestamps() {
-        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 5, 10));
-        assertEquals("Records to timestamp is earlier than records from timestamp", err.getFaultString());
+        var err = assertThrows(XrdRuntimeException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 5, 10));
+        assertEquals("Records to timestamp is earlier than records from timestamp", err.getDetails());
     }
 
     @Test
     public void checkRecordsNotAvailable() {
-        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 10, 5));
-        assertEquals("Records not available from " + 10 + " yet", err.getFaultString());
+        var err = assertThrows(XrdRuntimeException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 10, 5));
+        assertEquals("Records not available from " + 10 + " yet", err.getDetails());
     }
 }

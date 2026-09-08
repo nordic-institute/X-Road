@@ -25,19 +25,21 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.mail.MailNotificationProperties;
-import org.niis.xroad.common.mail.MailService;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.mail.MailNotificationProperties;
+import org.niis.xroad.securityserver.restapi.mail.MailService;
+import org.niis.xroad.securityserver.restapi.mail.NotificationConfig;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CertUtils.isSigningCert;
@@ -49,14 +51,16 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVA
 public class MailNotificationHelper {
 
     private final MailNotificationProperties mailNotificationProperties;
+    private final NotificationConfig notificationConfig;
     private final MessageSourceAccessor notificationMessageSourceAccessor;
     private final MailService mailService;
+    private final AdminServiceProperties adminServiceProperties;
 
     public void sendSuccessNotification(ClientId memberId,
                                         SecurityServerId.Conf securityServerId,
                                         CertificateInfo newCertInfo,
                                         KeyUsageInfo keyUsageInfo) {
-        if (SystemProperties.getAcmeRenewalSuccessNotificationEnabled()) {
+        if (notificationConfig.isAcmeRenewalSuccessNotificationEnabled()) {
             String authTitle =
                     notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_title");
             String signTitle =
@@ -65,13 +69,13 @@ public class MailNotificationHelper {
             String authCertContent =
                     notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_content",
                             new String[]{securityServerId.asEncodedId(), newCertInfo.getCertificateDisplayName()});
-            if (!SystemProperties.getAutomaticActivateAuthCertificate()) {
+            if (!adminServiceProperties.isAutomaticActivateAuthCertificate()) {
                 authCertContent += " " + notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_content_activate");
             }
             String signCertContent =
                     notificationMessageSourceAccessor.getMessage("acme_sign_cert_renewal_success_content",
                             new String[]{newCertInfo.getCertificateDisplayName(), memberId.asEncodedId(), securityServerId.asEncodedId()});
-            if (!SystemProperties.getAutomaticActivateAcmeSignCertificate()) {
+            if (!adminServiceProperties.isAutomaticActivateAcmeSignCertificate()) {
                 signCertContent += " " + notificationMessageSourceAccessor.getMessage("acme_sign_cert_renewal_success_content_activate");
             }
             String content = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo) ? authCertContent : signCertContent;
@@ -85,7 +89,7 @@ public class MailNotificationHelper {
                                         CertificateInfo certInfo,
                                         SecurityServerId.Conf securityServerId,
                                         String errorDescription) {
-        if (SystemProperties.getAcmeRenewalFailureNotificationEnabled()) {
+        if (notificationConfig.isAcmeRenewalFailureNotificationEnabled()) {
             boolean isSignCert = isSigningCert(readCertificate(certInfo.getCertificateBytes()));
             String authCertTitle =
                     notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_failure_title",
@@ -108,7 +112,7 @@ public class MailNotificationHelper {
     }
 
     public void sendAuthCertRegisteredNotification(SecurityServerId securityServerId, CertificateInfo certInfo) {
-        if (SystemProperties.getAuthCertRegisteredNotificationEnabled()) {
+        if (notificationConfig.isAuthCertRegisteredNotificationEnabled()) {
             String title =
                     notificationMessageSourceAccessor.getMessage("auth_cert_registration_success_title");
             String baseContent =
@@ -116,7 +120,7 @@ public class MailNotificationHelper {
                             new String[]{certInfo.getCertificateDisplayName(), securityServerId.getServerCode()});
             String contentWhitManualActivation =
                     baseContent + " " + notificationMessageSourceAccessor.getMessage("auth_cert_registration_success_content_activate");
-            String content = SystemProperties.getAutomaticActivateAuthCertificate() ? baseContent : contentWhitManualActivation;
+            String content = adminServiceProperties.isAutomaticActivateAuthCertificate() ? baseContent : contentWhitManualActivation;
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(securityServerId.getOwner().asEncodedId()))
                     .ifPresent(address -> mailService.sendMailAsync(address, title, content));
@@ -127,7 +131,7 @@ public class MailNotificationHelper {
                                               SecurityServerId securityServerId,
                                               CertificateInfo certInfo,
                                               KeyUsageInfo keyUsageInfo) {
-        if (SystemProperties.getAcmeCertAutomaticallyActivatedNotificationEnabled()) {
+        if (notificationConfig.isCertAutoActivationNotificationEnabled()) {
             String authCertTitle =
                     notificationMessageSourceAccessor.getMessage("auth_cert_automatic_activation_title");
             String signCertTitle =
@@ -152,7 +156,7 @@ public class MailNotificationHelper {
                                                       SecurityServerId.Conf securityServerId,
                                                       KeyUsageInfo keyUsageInfo,
                                                       String errorDescription) {
-        if (SystemProperties.getAcmeCertAutomaticActivationFailureNotificationEnabled()) {
+        if (notificationConfig.isCertAutoActivationFailureNotificationEnabled()) {
             boolean isSignCert = keyUsageInfo == KeyUsageInfo.SIGNING;
             String authCertTitle =
                     notificationMessageSourceAccessor.getMessage("auth_cert_automatic_activation_failure_title");
@@ -170,6 +174,42 @@ public class MailNotificationHelper {
                     .map(contacts -> contacts.get(memberId))
                     .ifPresent(address -> mailService.sendMailAsync(address, title, content));
         }
+    }
+
+    public void sendDsTlsAcmeSuccessNotification(String hostname, boolean isRenewal) {
+        if (adminServiceProperties.getDataspace().isTlsCertificateRenewalSuccessNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_title",
+                    new String[]{isRenewal ? "renewal" : "enrollment"});
+            String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_success_content",
+                    new String[]{hostname, isRenewal ? "renewed" : "enrolled"});
+            sendToDsTlsNotificationContacts(title, content);
+        }
+    }
+
+    public void sendDsTlsAcmeFailureNotification(String hostname, String errorDescription) {
+        if (adminServiceProperties.getDataspace().isTlsCertificateRenewalFailureNotificationEnabled()) {
+            String title = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_title");
+            String content = notificationMessageSourceAccessor.getMessage("acme_ds_tls_cert_renewal_failure_content",
+                    new String[]{hostname, errorDescription});
+            sendToDsTlsNotificationContacts(title, content);
+        }
+    }
+
+    private void sendToDsTlsNotificationContacts(String title, String content) {
+        List<String> contacts = adminServiceProperties.getDataspace().getTlsCertificateNotificationContacts();
+        if (contacts != null) {
+            contacts.forEach(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
+    /**
+     * Resolves the ACME account contact email configured for the given member, if any.
+     */
+    public List<String> getAcmeContacts(String memberId) {
+        return Optional.ofNullable(mailNotificationProperties.getContacts())
+                .map(contacts -> contacts.get(memberId))
+                .map(List::of)
+                .orElse(List.of());
     }
 
     public void sendTestMail(String recipientAddress, String securityServerId) {

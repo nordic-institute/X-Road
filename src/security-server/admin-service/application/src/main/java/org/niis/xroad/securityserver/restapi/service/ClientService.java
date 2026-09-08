@@ -39,6 +39,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -54,7 +56,6 @@ import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
@@ -62,7 +63,6 @@ import org.niis.xroad.serverconf.impl.mapper.CertificateMapper;
 import org.niis.xroad.serverconf.impl.mapper.ClientMapper;
 import org.niis.xroad.serverconf.impl.mapper.LocalGroupMapper;
 import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.LocalGroup;
@@ -87,6 +87,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashOrThrow;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
@@ -327,7 +328,7 @@ public class ClientService {
         } catch (Exception e) {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
-        String hash = calculateCertHexHash(x509Certificate);
+        String hash = calculateCertHexHashOrThrow(x509Certificate);
         CertificateEntity certificateEntity = new CertificateEntity();
         try {
             certificateEntity.setData(x509Certificate.getEncoded());
@@ -339,7 +340,7 @@ public class ClientService {
 
         ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
         Optional<CertificateEntity> duplicate = clientEntity.getCertificates().stream()
-                .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
+                .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHashOrThrow(cert.getData())))
                 .findFirst();
         if (duplicate.isPresent()) {
             throw new CertificateAlreadyExistsException("certificate already exists");
@@ -352,28 +353,6 @@ public class ClientService {
     private void putCertificateHashToAudit(CertificateEntity certificateEntity) {
         if (certificateEntity != null) {
             auditDataHelper.putCertificateHashAndAlgorithm(certificateEntity.getData());
-        }
-    }
-
-    /**
-     * Convenience / cleanness wrapper
-     */
-    private String calculateCertHexHash(X509Certificate cert) {
-        try {
-            return CryptoUtils.calculateCertHexHash(cert);
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("hash calculation failed", e);
-        }
-    }
-
-    /**
-     * Convenience / cleanness wrapper
-     */
-    private String calculateCertHexHash(byte[] certBytes) {
-        try {
-            return CryptoUtils.calculateCertHexHash(certBytes);
-        } catch (Exception e) {
-            throw XrdRuntimeException.systemInternalError("hash calculation failed", e);
         }
     }
 
@@ -394,7 +373,8 @@ public class ClientService {
 
         ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
         Optional<CertificateEntity> certificateEntity = clientEntity.getCertificates().stream()
-                .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
+                .filter(certificate ->
+                        calculateCertHexHashOrThrow(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
         if (certificateEntity.isEmpty()) {
             throw new CertificateNotFoundException();
@@ -417,7 +397,8 @@ public class ClientService {
             throws ClientNotFoundException {
         ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
         return clientEntity.getCertificates().stream()
-                .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
+                .filter(certificate ->
+                        calculateCertHexHashOrThrow(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .map(certificateEntity -> CertificateMapper.get().toTarget(certificateEntity))
                 .findAny();
     }

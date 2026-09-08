@@ -1,0 +1,12 @@
+test-framework:
+  working-dir: "build/"
+  resource-dir: "build/resources/intTest/"
+  allure:
+    results-directory: "build/allure-results"
+
+"%cli":
+  test-framework:
+    working-dir: "test-framework-working-dir/"
+    resource-dir: "test-framework-working-dir/resources/"
+    allure:
+      results-directory: "test-framework-working-dir/allure-results"

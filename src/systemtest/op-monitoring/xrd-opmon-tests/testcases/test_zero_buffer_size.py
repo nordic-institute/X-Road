@@ -25,7 +25,7 @@
 # size has been set to zero, the operational monitoring data of X-Road
 # requests is not stored by the operational monitoring daemon and can't
 # be queried.
-# Expecting that the value of op-monitor-buffer.size has been set 
+# Expecting that the value of op-monitor.buffer.size has been set
 # to 0 via run_tests.py.
 
 import os
@@ -100,7 +100,7 @@ def run(request_template_dir, query_parameters):
         soap_part, record_count = common.get_multipart_soap_and_record_count(mime_parts[0])
         common.print_multipart_soap_and_record_count(soap_part, record_count)
 
-        # op-monitor-buffer.size=0 must result in an empty response
+        # op-monitor.buffer.size=0 must result in an empty response
         common.check_record_count(record_count, 0)
     else:
         common.parse_and_check_soap_response(raw_response)
@@ -124,7 +124,7 @@ def run(request_template_dir, query_parameters):
         soap_part, record_count = common.get_multipart_soap_and_record_count(mime_parts[0])
         common.print_multipart_soap_and_record_count(soap_part, record_count, is_client=False)
 
-        # op-monitor-buffer.size=0 must result in an empty response
+        # op-monitor.buffer.size=0 must result in an empty response
         common.check_record_count(record_count, 0)
     else:
         common.parse_and_check_soap_response(raw_response)

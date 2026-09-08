@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
     title="login.logIn"
     save-button-text="login.logIn"
@@ -35,34 +36,35 @@
     @cancel="cancel"
   >
     <template #content>
-      <div class="pt-5 dlg-input-width">
-        <v-text-field
-          v-model="tokenPin"
-          type="password"
-          variant="outlined"
-          :label="$t('fields.tokenPin')"
-          autofocus
-          name="tokenPin"
-          :error-messages="errors"
-          @keyup.enter="save"
-        ></v-text-field>
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="tokenPin"
+            class="xrd"
+            type="password"
+            name="tokenPin"
+            autofocus
+            :label="$t('fields.tokenPin')"
+            :error-messages="errors"
+            @keyup.enter="save"
+          />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { Token } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
-import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import { useField } from 'vee-validate';
+import { XrdSimpleDialog, useNotifications, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow },
   props: {
     dialog: {
       type: Boolean,
@@ -71,12 +73,19 @@ export default defineComponent({
   },
   emits: ['cancel', 'save'],
   setup() {
-    const { value, meta, errors, setErrors, resetField } = useField(
-      'tokenPin',
-      'required',
-      { initialValue: '' },
-    );
-    return { tokenPin: value, meta, errors, setErrors, resetField };
+    const { addSuccessMessage, addError } = useNotifications();
+    const { tokenLogin } = useTokens();
+    const { value, meta, errors, setErrors, resetField } = useField('tokenPin', 'required', { initialValue: '' });
+    return {
+      tokenPin: value,
+      meta,
+      errors,
+      setErrors,
+      resetField,
+      addSuccessMessage,
+      addError,
+      tokenLogin,
+    };
   },
   data() {
     return {
@@ -88,7 +97,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.resetField();
@@ -102,24 +110,18 @@ export default defineComponent({
       const token: Token = this.selectedToken;
 
       this.loading = true;
-      api
-        .put(`/tokens/${encodePathParameter(token.id)}/login`, {
-          password: this.tokenPin,
-        })
+      this.tokenLogin(token.id, this.tokenPin)
         .then(() => {
           this.loading = false;
-          this.showSuccess(this.$t('keys.loggedIn'));
+          this.addSuccessMessage('keys.loggedIn');
           this.$emit('save');
         })
         .catch((error) => {
           this.loading = false;
-          if (
-            error.response.status === 400 &&
-            error.response.data.error.code === 'pin_incorrect'
-          ) {
+          if (error.response.status === 400 && error.response.data.error.code === 'pin_incorrect') {
             this.setErrors(this.$t('keys.incorrectPin'));
           }
-          this.showError(error);
+          this.addError(error);
         })
         .finally(() => this.checkAlertStatus());
 
@@ -128,7 +130,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>

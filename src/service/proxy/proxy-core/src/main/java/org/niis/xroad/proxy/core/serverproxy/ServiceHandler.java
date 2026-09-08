@@ -30,7 +30,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.soap.SOAPException;
-import org.apache.http.client.HttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.xml.sax.SAXException;
@@ -38,12 +37,11 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 
 interface ServiceHandler {
 
-    boolean shouldVerifyAccess();
+    boolean shouldVerifyAccess(ProxyMessage requestMessage);
 
     boolean shouldVerifySignature();
 
@@ -51,14 +49,10 @@ interface ServiceHandler {
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(RequestWrapper request, ProxyMessage requestMessage,
-                       HttpClient opMonitorClient, OpMonitoringData opMonitoringData)
+    ServiceHandlerResult startHandling(RequestWrapper request, ProxyMessage requestMessage, OpMonitoringData opMonitoringData)
             throws SOAPException, JAXBException, IOException, URISyntaxException, HttpClientCreator.HttpClientCreatorException,
             ParserConfigurationException, SAXException;
 
-    void finishHandling();
-
-    String getResponseContentType();
-
-    InputStream getResponseContent();
+    default void destroy() {
+    }
 }

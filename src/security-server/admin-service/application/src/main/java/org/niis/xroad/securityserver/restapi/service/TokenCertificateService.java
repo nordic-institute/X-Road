@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
@@ -38,6 +36,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.acme.config.AcmeConfig;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -49,6 +48,7 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.util.SecurityHelper;
+import org.niis.xroad.securityserver.restapi.converter.AcmeKeyPurposeMapping;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.AuthCertVerifier;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -124,6 +124,7 @@ public class TokenCertificateService {
     private final AcmeService acmeService;
     private final MailNotificationHelper mailNotificationHelper;
     private final ServerConfService serverConfService;
+    private final AcmeConfig acmeConfig;
     private final AuthCertVerifier authCertVerifier = new AuthCertVerifier();
 
     /**
@@ -211,7 +212,7 @@ public class TokenCertificateService {
         try {
             generatedCertRequestInfo = signerRpcClient.generateCertRequest(keyId, memberId,
                     keyUsage, subjectName, subjectAltName, format, caInfo.getCertificateProfileInfo());
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Generate cert request failed", e, INTERNAL_ERROR.build());
@@ -237,7 +238,8 @@ public class TokenCertificateService {
                 ? CertUtils.convertPemCsrToDer(generatedCertRequestInfo.certRequest())
                 : generatedCertRequestInfo.certRequest();
         List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
-                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberEncodedId, derCsr);
+                subjectFieldValues.get("CN"), subjectAltName, AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage), caInfo, memberEncodedId,
+                derCsr, mailNotificationHelper.getAcmeContacts(memberEncodedId));
         if (chain != null) {
             log.info("Acme order was successful, importing certificate");
             try {
@@ -298,7 +300,7 @@ public class TokenCertificateService {
 
         try {
             return signerRpcClient.regenerateCertRequest(csrId, format);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Regenerate cert request failed", e, INTERNAL_ERROR.build());
@@ -418,7 +420,7 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             String hash = CryptoUtils.calculateCertHexHash(certBytes);
             auditDataHelper.putCertificateHash(hash);
-            boolean activate = !isAuthCert && (!isAcme || SystemProperties.getAutomaticActivateAcmeSignCertificate());
+            boolean activate = !isAuthCert && (!isAcme || acmeConfig.isAutomaticActivateAcmeSignCertificate());
             signerRpcClient.importCert(certBytes, certificateState, clientId, activate);
             certificateInfo = getCertificateInfo(hash);
             ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();
@@ -427,8 +429,8 @@ public class TokenCertificateService {
             }
             setNextPlannedAcmeAutomaticRenewalDate(memberId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (XrdRuntimeException e) {
-            translateCodedExceptions(e);
-        } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException | CodedException e) {
+            translateXrdRuntimeExceptions(e);
+        } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException e) {
             throw e;
         } catch (Exception e) {
             // something went really wrong
@@ -461,7 +463,9 @@ public class TokenCertificateService {
         X509Certificate caX509Certificate = globalConfProvider.getCaCert(memberId.getXRoadInstance(), x509Certificate);
         ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {
-            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId.asEncodedId(), approvedCA, x509Certificate, keyUsageInfo);
+            String memberEncodedId = memberId.asEncodedId();
+            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberEncodedId, approvedCA, x509Certificate,
+                    AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsageInfo), mailNotificationHelper.getAcmeContacts(memberEncodedId));
             signerRpcClient.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
         }
     }
@@ -724,7 +728,7 @@ public class TokenCertificateService {
             auditDataHelper.putManagementRequestId(requestId);
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_REGINPROG);
             signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
-        } catch (DeviationAwareRuntimeException | CodedException e) {
+        } catch (DeviationAwareRuntimeException | XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException("Could not register auth cert", e, INTERNAL_ERROR.build());
@@ -761,7 +765,7 @@ public class TokenCertificateService {
         try {
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_DELINPROG);
             signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
-        } catch (CodedException e) {
+        } catch (XrdRuntimeException e) {
             throw e;
         } catch (Exception e) {
             // this means that cert was not found (which has been handled already) or some Akka error
@@ -810,7 +814,7 @@ public class TokenCertificateService {
     }
 
     /**
-     * Helper to translate caught {@link CodedException CodedExceptions}
+     * Helper to translate caught {@link XrdRuntimeException XrdRuntimeExceptions}
      *
      * @param e
      * @throws CertificateAlreadyExistsException
@@ -819,7 +823,7 @@ public class TokenCertificateService {
      * @throws CsrNotFoundException
      * @throws KeyNotFoundException
      */
-    private void translateCodedExceptions(XrdRuntimeException e)
+    private void translateXrdRuntimeExceptions(XrdRuntimeException e)
             throws CertificateAlreadyExistsException, InvalidCertificateException,
             WrongCertificateUsageException, CsrNotFoundException,
             KeyNotFoundException {
@@ -1101,10 +1105,11 @@ public class TokenCertificateService {
             List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
                     commonName,
                     subjectAltName,
-                    keyUsage,
+                    AcmeKeyPurposeMapping.toAcmeKeyPurpose(keyUsage),
                     caInfo,
                     memberId,
-                    generatedCertRequestInfo.certRequest());
+                    generatedCertRequestInfo.certRequest(),
+                    mailNotificationHelper.getAcmeContacts(memberId));
             if (chain != null) {
                 try {
                     importCertificate(chain.get(0).getEncoded(), false, true);

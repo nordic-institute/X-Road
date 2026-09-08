@@ -25,11 +25,11 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.ErrorCode;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -43,7 +43,7 @@ import static org.junit.Assert.fail;
 public class SchemaValidatorTest {
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Tests Ok XML validation.
@@ -63,7 +63,7 @@ public class SchemaValidatorTest {
      */
     @Test
     public void testXxeFailsValidation() throws Exception {
-        thrown.expectError(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
+        thrown.expectError(ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF.code());
 
         StreamSource source = new StreamSource(ResourceUtils.getClasspathResourceStream("test-part-with-xxe.xml"));
 
@@ -81,7 +81,7 @@ public class SchemaValidatorTest {
         }
 
         static void validate(Source source) throws Exception {
-            validate(SCHEMA, source, ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
+            validate(SCHEMA, source, ErrorCode.MALFORMED_OPTIONAL_PARTS_CONF);
         }
     }
 }

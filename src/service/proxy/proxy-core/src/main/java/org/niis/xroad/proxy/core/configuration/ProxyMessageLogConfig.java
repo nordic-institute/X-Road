@@ -25,73 +25,78 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
-import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.JobManager;
-
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.messagelog.MessageLogDatabaseCtx;
+import org.niis.xroad.proxy.core.addon.messagelog.AbstractLogManager;
+import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Slf4j
-@Configuration
 public class ProxyMessageLogConfig {
-    private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
-    @Bean
-    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider) {
-        return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
-    }
+    @Startup
+    @ApplicationScoped
+    public static class MessageLogInitializer {
 
-    @Bean("messageLogEnabledStatus")
-    Boolean messageLogEnabledStatus(AbstractLogManager logManager) {
-        return NullLogManager.class != logManager.getClass();
-    }
+        private final AbstractLogManager messageLogManager;
 
-    @Bean
-    MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
-        return new MessageLogEncryptionStatusDiagnostics(
-                MessageLogProperties.isArchiveEncryptionEnabled(),
-                MessageLogProperties.isMessageLogEncryptionEnabled(),
-                ARCHIVE_GROUPING.name(),
-                getMessageLogArchiveEncryptionMembers(getMembers(serverConfProvider)));
-    }
-
-    private List<ClientId> getMembers(ServerConfProvider serverConfProvider) {
-        try {
-            return new ArrayList<>(serverConfProvider.getMembers());
-        } catch (Exception e) {
-            log.warn("Failed to get members from server configuration", e);
-            return Collections.emptyList();
+        MessageLogInitializer(ProxyMessageLogProperties messageLogProperties,
+                              GlobalConfProvider globalConfProvider,
+                              ServerConfProvider serverConfProvider,
+                              Instance<MessageLogDatabaseCtx> messageLogDatabaseCtx,
+                              Instance<LogRecordManager> logRecordManager) {
+            messageLogManager = createMessageLogManager(
+                   messageLogProperties, globalConfProvider, serverConfProvider, messageLogDatabaseCtx, logRecordManager);
         }
-    }
 
-    private static List<MessageLogArchiveEncryptionMember> getMessageLogArchiveEncryptionMembers(
-            List<ClientId> members) throws IOException {
-        EncryptionConfigProvider configProvider = EncryptionConfigProvider.getInstance(ARCHIVE_GROUPING);
-        if (!configProvider.isEncryptionEnabled()) {
-            return Collections.emptyList();
+        @Produces
+        @ApplicationScoped
+        public AbstractLogManager messageLogManager() {
+            return messageLogManager;
         }
-        return configProvider.forDiagnostics(members).getEncryptionMembers()
-                .stream()
-                .map(member -> new MessageLogArchiveEncryptionMember(member.getMemberId(),
-                        member.getKeys(), member.isDefaultKeyUsed()))
-                .toList();
-    }
 
+        public void cleanup(@Disposes AbstractLogManager logManager) {
+            if (logManager instanceof LogManager impl)
+                impl.destroy();
+        }
+
+        private static AbstractLogManager createMessageLogManager(ProxyMessageLogProperties messageLogProperties,
+                                                                  GlobalConfProvider globalConfProvider,
+                                                                  ServerConfProvider serverConfProvider,
+                                                                  Instance<MessageLogDatabaseCtx> messageLogDatabaseCtx,
+                                                                  Instance<LogRecordManager> logRecordManager) {
+            final AbstractLogManager logManager;
+            if (messageLogProperties.enabled()) {
+                logManager = new LogManager(
+                        globalConfProvider,
+                        serverConfProvider,
+                        getRequiredBean(logRecordManager, "LogRecordManager"),
+                        getRequiredBean(messageLogDatabaseCtx, "MessageLogDatabaseCtx"),
+                        messageLogProperties);
+            } else {
+                logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+            }
+            return MessageLog.init(logManager);
+        }
+
+        private static <T> T getRequiredBean(Instance<T> instance, String beanName) {
+            if (instance.isUnsatisfied()) {
+                throw XrdRuntimeException.systemException(
+                        ErrorCode.NOT_FOUND, "%s is not available although message log is enabled", beanName);
+            }
+            return instance.get();
+        }
+
+    }
 }

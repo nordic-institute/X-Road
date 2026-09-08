@@ -25,82 +25,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :model-value="dialog" :width="width" :persistent="true">
-    <v-card class="xrd-card">
-      <v-card-title>
-        <span class="text-h5">{{ $t(title) }}</span>
-      </v-card-title>
-      <template #append>
-        <xrd-close-button @click="$emit('cancel')" />
-      </template>
-      <v-card-text class="content-wrapper">
-        <slot />
-        <div class="text-wrap">
-          {{ $t(text) }}
-        </div>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer />
-        <xrd-button @click="$emit('cancel')">
-          {{ $t('keys.gotIt') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <XrdSimpleDialog :title="title" :width="width" hide-cancel save-button-text="keys.gotIt" @save="emit('cancel')" @cancel="emit('cancel')">
+    <template #content>
+      <slot />
+      <div :class="{ 'mt-6': $slots.default }">
+        {{ $t(text) }}
+      </div>
+    </template>
+  </XrdSimpleDialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 /** Component for help dialogs */
-import { defineComponent } from 'vue';
-import XrdButton from './XrdButton.vue';
-import XrdCloseButton from './XrdCloseButton.vue';
+import XrdSimpleDialog from './XrdSimpleDialog.vue';
 
-export default defineComponent({
-  components: {
-    XrdButton,
-    XrdCloseButton,
+defineProps({
+  // Title of the dialog
+  title: {
+    type: String,
+    required: true,
   },
-  props: {
-    // Title of the dialog
-    title: {
-      type: String,
-      required: true,
-    },
-    // Dialog visible / hidden
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    width: {
-      type: Number,
-      default: 850,
-    },
-    // Help text
-    text: {
-      type: String,
-      required: true,
-    },
+  width: {
+    type: Number,
+    default: 840,
   },
-  emits: ['cancel'],
+  // Help text
+  text: {
+    type: String,
+    required: true,
+  },
 });
+
+const emit = defineEmits(['cancel']);
 </script>
 
-<style lang="scss" scoped>
-@use '../assets/colors';
-
-.content-wrapper {
-  margin-top: 20px;
-}
-
-.text-wrap {
-  margin: 10px;
-}
-
-.xrd-card {
-  .xrd-card-actions {
-    background-color: colors.$WarmGrey10;
-    height: 72px;
-    padding-right: 24px;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

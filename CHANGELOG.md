@@ -1,5 +1,7 @@
 # Change Log
 
+## 8.0.0 - UNRELEASED
+
 ## 7.8.3 - 2026-09-07
 - XRDDEV-3262: Fix an issue with signature MIME part remaining unbounded.
 - XRDDEV-3263: Fix a hash chain verification-related security vulnerability affecting local/offline signature verification.

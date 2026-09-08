@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.test.serverconf.EmptyServerConf;
@@ -43,6 +44,7 @@ import java.util.List;
 /**
  * Test serverconf implementation.
  */
+@RequiredArgsConstructor
 public class TestSuiteServerConf extends EmptyServerConf {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
@@ -52,6 +54,8 @@ public class TestSuiteServerConf extends EmptyServerConf {
     private static final String SERVICE2 = "SERVICE2";
     private static final String SERVICE3 = "SERVICE3";
     private static final String SERVICE4 = "SERVICE4";
+
+    private final ProxyTestSuiteHelper proxyTestSuiteHelper;
 
     @Override
     public SecurityServerId.Conf getIdentifier() {
@@ -66,7 +70,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
             return serviceAddress;
         }
 
-        return "127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_PORT
+        return "127.0.0.1:" + proxyTestSuiteHelper.servicePort
                 + ((serviceId != null) ? "/" + serviceId.getServiceCode() : "");
     }
 
@@ -128,7 +132,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
         return list;
     }
 
-    private static MessageTestCase currentTestCase() {
-        return ProxyTestSuiteHelper.currentTestCase;
+    private MessageTestCase currentTestCase() {
+        return proxyTestSuiteHelper.currentTestCase;
     }
 }

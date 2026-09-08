@@ -68,7 +68,7 @@ abstract class AbstractCertificateProfileInfo
     public void validateSubjectField(DnFieldValue field) {
         DnFieldDescription description = getDescription(field);
         if (description.isRequired() && StringUtils.isBlank(field.getValue())) {
-            throw XrdRuntimeException.businessException(ErrorCode.CERT_VALIDATION)
+            throw XrdRuntimeException.systemException(ErrorCode.CERT_VALIDATION)
                     .details(String.format("Field '%s (%s)' is missing value",
                             description.getLabel(),
                             description.getId()
@@ -85,7 +85,7 @@ abstract class AbstractCertificateProfileInfo
         return Arrays.stream(fields)
                 .filter(f -> f.getId().equals(value.getId()))
                 .findFirst()
-                .orElseThrow(() -> XrdRuntimeException.businessException(ErrorCode.CERT_VALIDATION)
+                .orElseThrow(() -> XrdRuntimeException.systemException(ErrorCode.CERT_VALIDATION)
                         .details("Unknown field: " + value.getId())
                         .build()
                 );

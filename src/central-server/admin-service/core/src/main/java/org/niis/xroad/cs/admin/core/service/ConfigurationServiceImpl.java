@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -47,6 +46,7 @@ import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceGlobalConfigProperties;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
@@ -103,6 +103,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final AuditDataHelper auditDataHelper;
     private final ConfigurationPartValidator configurationPartValidator;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
+    private final AdminServiceGlobalConfigProperties adminServiceGlobalConfigProperties;
 
     @Override
     public Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithOrderedConfigurationSigningKeys() {
@@ -210,8 +211,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public GlobalConfDownloadUrl getGlobalDownloadUrl(ConfigurationSourceType sourceType) {
         final String csAddress = systemParameterService.getCentralServerAddress();
         final String sourceDirectory = sourceType.equals(INTERNAL)
-                ? SystemProperties.getCenterInternalDirectory()
-                : SystemProperties.getCenterExternalDirectory();
+                ? adminServiceGlobalConfigProperties.getInternalDirectory()
+                : adminServiceGlobalConfigProperties.getExternalDirectory();
 
         final String downloadUrl = "https://" + csAddress + "/" + sourceDirectory;
 

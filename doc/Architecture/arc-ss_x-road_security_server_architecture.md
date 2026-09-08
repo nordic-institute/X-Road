@@ -2,8 +2,8 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.19
-12.06.2024
+Version: 1.20
+11.11.2025
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -39,6 +39,7 @@ Doc. ID: ARC-SS
 | 12.06.2024 | 1.17    | Add information about ACME support                                                                   | Petteri Kivimäki   |
 | 23.09.2024 | 1.18    | Added mail server connection                                                                         | Mikk-Erik Bachmann |
 | 21.03.2025 | 1.19    | Syntax and styling                                                                                   | Pauline Dimmek     |
+| 11.11.2025 | 1.20    | Drop JMX interfaces                                                                                  | Justas Samuolis    |
 
 
 
@@ -126,7 +127,6 @@ Doc. ID: ARC-SS
   - [4.10 Store Operational Monitoring Data](#410-store-operational-monitoring-data)
   - [4.11 Operational Monitoring Query](#411-operational-monitoring-query)
   - [4.12 Environmental Monitoring Protocol](#412-environmental-monitoring-protocol)
-  - [4.13 Environmental Monitoring JMX](#413-environmental-monitoring-jmx)
 - [5 Deployment View](#5-deployment-view)
   - [5.1 Simple Deployment](#51-simple-deployment)
   - [5.2 Redundant Deployment](#52-redundant-deployment)
@@ -267,7 +267,7 @@ The component is a proxy addon.
 ### 2.5 Opmonitor
 
 Opmonitor component collects operational monitoring information such as which services have been called, how many times, what was the size of the response, etc. 
-The monitoring data is published via SOAP XML and (optional) JMX interfaces.
+The monitoring data is published via SOAP XML.
 
 The component is a separate daemon process.
 
@@ -349,7 +349,7 @@ The component is a proxy addon.
 
 ### 2.14 Monitor
 
-Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via gRPC and (optional) JMX interfaces.
+Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via gRPC.
 
 The component is a separate daemon process.
 
@@ -552,13 +552,9 @@ The sensor data is stored in memory of the xroad-monitor process.
 
 Xroad-monitor's sensor data is queried by xroad-proxy using interface Q in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
 
-Sensor data is also accessible via JMX protocol through interface J.
-
 #### 3.6.4 Input/output ports
 
 The input port for querying sensor data is internal and can be found from the source code.
-
-The input port for accessing sensor data through JMX protocol is closed by default and must be opened separately by editing /etc/xroad/services/monitor.conf.
 
 #### 3.6.5 Persistent data
 
@@ -578,11 +574,9 @@ Xroad-opmonitor stores the operational data in postgresql database. There is als
 
 Xroad-opmonitor communicates with xroad-proxy through operational monitoring query and store interfaces Q and S respectively in \[[Figure 2](#Ref_Security_Server_process_diagram)\]. The protocols are described in \[[PR-OPMON](#Ref_PR-OPMON)\].
 
-Operational monitoring data is also made available via JMX protocol through interface J.
-
 #### 3.7.4 Input/output ports
 
-The input ports for query, store, and JMX access of operational monitoring data are specified in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
+The input ports for query, store operational monitoring data are specified in \[[UG-OPMONSYSPAR](#Ref_UG-OPMONSYSPAR)\].
 
 #### 3.7.5 Persistent data
 
@@ -701,11 +695,6 @@ The interface is described in more detail in \[[ARC-OPMOND](#Ref_ARC-OPMOND)\].
 ### 4.12 Environmental Monitoring Protocol
 
 The Environmental Monitoring Protocol can be used by the external monitoring systems to gather environmental monitoring information about the security server.
-
-
-### 4.13 Environmental Monitoring JMX
-
-Monitor JMX interface publishes local security server environmental monitoring data gathered by environmental monitoring service.
 
 
 ## 5 Deployment View

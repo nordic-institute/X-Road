@@ -90,7 +90,6 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.EXIS
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_EXISTS;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WRONG_SERVICE_DESCRIPTION_TYPE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WSDL_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WSDL_VALIDATOR_INTERRUPTED;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
 
@@ -225,8 +224,6 @@ public class ServiceDescriptionService {
                 } catch (UnhandledWarningsException | InvalidWsdlException e) {
                     // deviation data (errorcode + warnings) copied
                     throw new BadRequestException(e);
-                } catch (InterruptedException e) {
-                    throw new InternalServerErrorException(WSDL_VALIDATOR_INTERRUPTED.build());
                 }
             }
             case OPENAPI3 -> {
@@ -256,9 +253,6 @@ public class ServiceDescriptionService {
      * @throws InvalidServiceUrlException       if the WSDL has services with invalid urls
      * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
      * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
-     * @throws InterruptedException             if the thread running the WSDL validator is interrupted. <b>The
-     *                                          interrupted thread has already been handled with so you can choose to ignore this exception
-     *                                          if you so please.</b>
      * @throws ReservedServiceCodeException     if a parsed service uses a reserved service code.
      */
     ServiceDescriptionEntity addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
@@ -268,7 +262,7 @@ public class ServiceDescriptionService {
                    UnhandledWarningsException,
                    ServiceAlreadyExistsException,
                    InvalidUrlException,
-                   WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
+                   WsdlUrlAlreadyExistsException, InvalidServiceUrlException {
         ClientEntity clientEntity = clientService.getLocalClientEntity(clientId);
         if (clientEntity == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
@@ -331,7 +325,7 @@ public class ServiceDescriptionService {
 
         // add all new endpoints into a hashmap with a combination key
         newServiceDescription.getServices().stream()
-                .map(serviceEntity -> EndpointEntity.create(
+                .map(serviceEntity -> EndpointEntity.create(clientEntity,
                         serviceEntity.getServiceCode(), ANY_METHOD, ANY_PATH, true))
                 .forEach(endpointEntity -> endpointMap.put(createEndpointKey(endpointEntity), endpointEntity));
 
@@ -408,11 +402,11 @@ public class ServiceDescriptionService {
         serviceDescriptionEntity.getServices().add(serviceEntity);
 
         // Create endpoints
-        EndpointEntity endpointEntity = EndpointEntity.create(serviceCode, ANY_METHOD, ANY_PATH, true);
+        EndpointEntity endpointEntity = EndpointEntity.create(clientEntity, serviceCode, ANY_METHOD, ANY_PATH, true);
         List<EndpointEntity> endpoints = new ArrayList<>();
         endpoints.add(endpointEntity);
         endpoints.addAll(result.operations().stream()
-                .map(operation -> EndpointEntity.create(serviceCode, operation.method(), operation.path(), true))
+                .map(operation -> EndpointEntity.create(clientEntity, serviceCode, operation.method(), operation.path(), true))
                 .toList());
 
         checkDuplicateUrl(serviceDescriptionEntity);
@@ -543,7 +537,7 @@ public class ServiceDescriptionService {
         client.getServiceDescriptions().add(serviceDescriptionEntity);
 
         // Add created endpoint to client
-        EndpointEntity endpointEntity = EndpointEntity.create(serviceCode, ANY_METHOD,
+        EndpointEntity endpointEntity = EndpointEntity.create(client, serviceCode, ANY_METHOD,
                 ANY_PATH, true);
         client.getEndpoints().add(endpointEntity);
 
@@ -569,9 +563,6 @@ public class ServiceDescriptionService {
      * @throws InvalidServiceUrlException          if the WSDL has services with invalid urls
      * @throws WsdlUrlAlreadyExistsException       conflict: another service description has same url
      * @throws ServiceAlreadyExistsException       conflict: same service exists in another SD
-     * @throws InterruptedException                if the thread running the WSDL validator is interrupted. <b>The
-     *                                             interrupted thread has already been handled with
-     *                                             so you can choose to ignore this exception if you so  please.</b>
      */
     public ServiceDescription updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -580,7 +571,7 @@ public class ServiceDescriptionService {
                    UnhandledWarningsException,
                    InvalidUrlException,
                    ServiceAlreadyExistsException,
-                   WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
+                   WsdlUrlAlreadyExistsException, InvalidServiceUrlException {
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
         if (serviceDescriptionEntity == null) {
             throw new ServiceDescriptionNotFoundException(id);
@@ -610,7 +601,7 @@ public class ServiceDescriptionService {
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
                    ServiceDescriptionNotFoundException, WrongServiceDescriptionException,
                    UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-                   WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException, InterruptedException,
+                   WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException,
                    InvalidServiceUrlException, UnsupportedOpenApiVersionException {
 
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
@@ -644,9 +635,6 @@ public class ServiceDescriptionService {
      * @throws InvalidServiceUrlException          if the WSDL has services with invalid urls
      * @throws WsdlUrlAlreadyExistsException       conflict: another service description has same url
      * @throws ServiceAlreadyExistsException       conflict: same service exists in another SD
-     * @throws InterruptedException                if the thread running the WSDL validator is interrupted. <b>The
-     *                                             interrupted thread has already been handled with so you can choose
-     *                                             to ignore this exception if you so  please.</b>
      * @throws ReservedServiceCodeException        if the service code is in the list of reserved codes
      */
     @PreAuthorize("hasAuthority('REFRESH_WSDL')")
@@ -655,7 +643,7 @@ public class ServiceDescriptionService {
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
                    WrongServiceDescriptionException,
                    UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-                   WsdlUrlAlreadyExistsException, InterruptedException {
+                   WsdlUrlAlreadyExistsException {
 
         if (!serviceDescriptionEntity.getType().equals(DescriptionType.WSDL)) {
             throw new WrongServiceDescriptionException("Expected description type WSDL");
@@ -881,6 +869,7 @@ public class ServiceDescriptionService {
         serviceDescription.getClient().getEndpoints().removeAll(serviceChanges.getRemovedEndpoints());
 
         // Add parsed endpoints to endpoints list if it is not already there
+        serviceChanges.getAddedEndpoints().forEach(endpoint -> endpoint.setClient(serviceDescription.getClient()));
         serviceDescription.getClient().getEndpoints().addAll(serviceChanges.getAddedEndpoints());
     }
 
@@ -977,15 +966,12 @@ public class ServiceDescriptionService {
      * @throws InvalidUrlException              if url was empty or invalid
      * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
      * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
-     * @throws InterruptedException             if the thread running the WSDL validator is interrupted. <b>The
-     *                                          interrupted thread has already been handled with so you can choose
-     *                                          to ignore this exception if you so  please.</b>
      * @throws ReservedServiceCodeException     if a parsed service uses a reserved service code
      */
     private ServiceDescriptionEntity updateWsdlUrl(ServiceDescriptionEntity serviceDescriptionEntity, String url, boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
                    WrongServiceDescriptionException, UnhandledWarningsException,
-                   ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
+                   ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException {
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(RestApiAuditProperty.WSDL);
@@ -1184,12 +1170,9 @@ public class ServiceDescriptionService {
      * If non-fatal warnings, return those.
      * @param url
      * @return list of validation warnings that can be ignored by choice
-     * @throws WsdlValidator.WsdlValidationFailedException
-     * @throws WsdlValidator.WsdlValidatorNotExecutableException
      */
-    private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
-                                                         WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
-        return wsdlValidator.executeValidator(url);
+    private List<String> validateWsdl(String url) {
+        return wsdlValidator.validate(url);
     }
 
     private List<ServiceEntity> getClientsExistingServices(ClientEntity clientEntity, Long idToSkip) {
@@ -1264,7 +1247,7 @@ public class ServiceDescriptionService {
                    InvalidWsdlException,
                    InvalidUrlException,
                    WsdlUrlAlreadyExistsException,
-                   ServiceAlreadyExistsException, InterruptedException {
+                   ServiceAlreadyExistsException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
 

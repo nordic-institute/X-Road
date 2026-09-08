@@ -123,6 +123,7 @@
     "authenticationCertificateProfileId": "ID del perfil de certificado de autenticación",
     "certFile": "Certificado",
     "certProfile": "Información del perfil de certificado",
+    "dsTlsCertificateProfileId": "Id. de perfil de certificado DS TLS",
     "distinguishedName": "Nombre distinguido (DN)",
     "init": {
       "address": "Dirección del servidor central",
@@ -138,6 +139,7 @@
     "keyLabel": "Nombre amigable para la llave",
     "memberCode": "Código de miembro",
     "memberName": "Nombre de miembro",
+    "name": "Nombre",
     "securityServerAddress": "Dirección del servidor de seguridad",
     "serverCode": "Código de servidor",
     "serviceAddress": "Dirección del servidor central",
@@ -578,31 +580,21 @@
     }
   },
   "tlsCertificates": {
-    "managementService": {
-      "downloadCertificate": "Descarga de certificado",
-      "downloadSuccess": "Certificado TLS del servicio de administración descargado con éxito",
-      "generateCsr": {
-        "button": "Generar CSR",
-        "content": "Primero, proporcione un nombre distinguido (DN). Luego, genere una nueva CSR y guárdela en un lugar seguro",
-        "distinguishedName": "Ingrese el nombre distinguido (DN)",
-        "example": "CN = miservidorcentral.ejemplo.com, O = mi organización, C = ee",
-        "title": "Generar solicitud de firma de certificado TLS"
-      },
-      "generateKey": {
-        "button": "Recrear la clave",
-        "confirmation": "¿Desea generar una nueva clave y certificado para el servicio de administración?",
-        "explanation": "El sistema generará una nueva clave TLS para el servicio de administración y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
-        "success": "NUEVA CLAVE Y CERTIFICADO TLS del SERVICIO DE ADMINISTRACION generados correctamente",
-        "title": "Clave TLS del servicio de administración"
-      },
-      "key": "Clave TLS del Servicio de administración",
-      "title": "Certificado TLS del servicio de administración",
-      "uploadCertificate": {
-        "button": "Carga de certificado",
-        "label": "Cargue el archivo o fichero de certificado desde su computadora",
-        "success": "Certificado TLS del servicio de administración cargado con éxito",
-        "title": "Carga del certificado TLS del servicio de administración"
-      }
+    "downloadSuccess": "Certificado TLS del servicio de administración descargado con éxito",
+    "generateCsr": {
+      "example": "CN = miservidorcentral.ejemplo.com, O = mi organización, C = ee"
+    },
+    "generateKey": {
+      "confirmation": "¿Desea generar una nueva clave y certificado para el servicio de administración?",
+      "explanation": "El sistema generará una nueva clave TLS para el servicio de administración y un certificado autofirmado, reemplazando la clave y el certificado existentes.",
+      "success": "NUEVA CLAVE Y CERTIFICADO TLS del SERVICIO DE ADMINISTRACION generados correctamente",
+      "title": "Clave TLS del servicio de administración"
+    },
+    "key": "Clave TLS del Servicio de administración",
+    "title": "Certificado TLS del servicio de administración",
+    "uploadCertificate": {
+      "success": "Certificado TLS del servicio de administración cargado con éxito",
+      "title": "Carga del certificado TLS del servicio de administración"
     }
   },
   "tokens": {
@@ -634,6 +626,23 @@
     "certProfileInputExplanation": "Nombre de clase totalmente calificado (FQDN) que implementa la interfaz ee.ria.xroad.common.certificateprofile.certificateProfileInfoprovider",
     "certificationServices": "Servicios de certificación",
     "defaultCsrFormat": "Formato CSR predeterminado",
+    "dsTls": {
+      "addDsTlsCertificationAuthority": "Agregar autoridad de certificación DS TLS",
+      "delete": {
+        "confirmationDialog": {
+          "message": "¿Estás seguro de que quieres eliminar la autoridad de certificación DS TLS \"{name}\"?",
+          "title": "¿Estás seguro?"
+        },
+        "success": "Autoridad de certificación DS TLS eliminada con éxito"
+      },
+      "dsTlsCertificateProfileIdExplanation": "Id. de perfil utilizado por algunos servidores ACME para conocer el tipo de uso del certificado al solicitar un certificado DS TLS.",
+      "dsTlsCertificationAuthorities": "Autoridades de Certificación DS TLS",
+      "dsTlsCertificationAuthority": "Autoridad de Certificación DS TLS",
+      "nameExplanation": "Un nombre libre que identifica esta autoridad de certificación, por ejemplo \"Let's Encrypt\".",
+      "settings": {
+        "title": "Configuración de la CA DS TLS"
+      }
+    },
     "timestampingService": {
       "addedSuccessfully": "Servicio de marca de tiempo agregado correctamente",
       "dialog": {

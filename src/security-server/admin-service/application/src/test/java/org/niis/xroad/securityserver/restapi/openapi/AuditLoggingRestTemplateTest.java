@@ -36,9 +36,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeWrapper
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Map;
 
@@ -62,14 +62,16 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.getClientId;
 public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    TestRestTemplate restTemplate;
+    WebTestClient webTestClient;
+
+    private WebTestClient client;
 
     @Autowired
     ClientService clientService;
 
     @Before
     public void setup() {
-        addApiKeyAuthorizationHeader(restTemplate);
+        client = addApiKeyAuthorizationHeader(webTestClient);
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
@@ -79,9 +81,12 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
     public void testSuccessAuditLog() {
         ConnectionTypeWrapperDto connectionTypeWrapper = new ConnectionTypeWrapperDto();
         connectionTypeWrapper.setConnectionType(ConnectionTypeDto.HTTP);
-        restTemplate.patchForObject("/api/v1/clients/" + CLIENT_ID_SS1, connectionTypeWrapper, Object.class);
-        Client client = clientService.getLocalClient(getClientId(CLIENT_ID_SS1));
-        assertEquals("NOSSL", client.getIsAuthentication());
+        client.patch().uri("/api/v1/clients/" + CLIENT_ID_SS1)
+                .bodyValue(connectionTypeWrapper)
+                .exchange()
+                .expectStatus().isOk();
+        Client clientModel = clientService.getLocalClient(getClientId(CLIENT_ID_SS1));
+        assertEquals("NOSSL", clientModel.getIsAuthentication());
 
         // verify mock audit log
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
@@ -112,7 +117,9 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void testUnloggedEndpoint() {
-        restTemplate.getForObject("/api/v1/clients/" + CLIENT_ID_SS1, Object.class);
+        client.get().uri("/api/v1/clients/" + CLIENT_ID_SS1)
+                .exchange()
+                .expectStatus().isOk();
         // auditLogSuccess will be called, but no actual calls to AuditLogger.log
         verify(auditEventLoggingFacade, times(1)).auditLogSuccess();
         verifyNoMoreInteractions(auditEventLoggingFacade);
@@ -125,7 +132,9 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
         connectionTypeWrapper.setConnectionType(ConnectionTypeDto.HTTP);
         String missingClientId = "FI:GOV:MFOOBAR:SS555";
 
-        restTemplate.patchForObject("/api/v1/clients/" + missingClientId, connectionTypeWrapper, Object.class);
+        client.patch().uri("/api/v1/clients/" + missingClientId)
+                .bodyValue(connectionTypeWrapper)
+                .exchange();
 
         // verify mock audit log
         verify(auditEventLoggingFacade, times(1)).auditLogFail(any());

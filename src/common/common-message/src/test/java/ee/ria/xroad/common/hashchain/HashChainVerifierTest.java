@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import org.junit.Rule;
@@ -37,13 +37,13 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
+import static org.niis.xroad.common.core.exception.ErrorCode.HASHCHAIN_UNUSED_INPUTS;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HASH_CHAIN_REF;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_HASH_CHAIN_RESULT;
+import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_HASH_CHAIN;
 
 /**
  * Tests to verify that hash chain verification is correct.
@@ -55,7 +55,7 @@ public class HashChainVerifierTest {
     private static final String HASH_CHAIN = "/hashchain.xml";
 
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * Simple test case, input is detached.
@@ -107,7 +107,7 @@ public class HashChainVerifierTest {
     public void simpleUnusedInputs() throws Exception {
         LOG.info("simpleUnusedInputs()");
 
-        thrown.expectErrorSuffix(X_HASHCHAIN_UNUSED_INPUTS);
+        thrown.expectErrorSuffix(HASHCHAIN_UNUSED_INPUTS.code());
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier1-hashchain.xml");
@@ -132,7 +132,7 @@ public class HashChainVerifierTest {
     public void simpleDigestMismatch() throws Exception {
         LOG.info("simpleDigestMismatch()");
 
-        thrown.expectErrorSuffix(X_INVALID_HASH_CHAIN_RESULT);
+        thrown.expectErrorSuffix(INVALID_HASH_CHAIN_RESULT.code());
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier1-hashchain.xml");
@@ -258,7 +258,7 @@ public class HashChainVerifierTest {
 
         Map<String, DigestValue> inputs = makeInputs(MESSAGE, null);
 
-        thrown.expectErrorSuffix(X_INVALID_HASH_CHAIN_REF);
+        thrown.expectErrorSuffix(INVALID_HASH_CHAIN_REF.code());
 
         HashChainVerifier.verify(
                 load("hc-verifier3-hashchainresult.xml"),
@@ -267,7 +267,7 @@ public class HashChainVerifierTest {
 
     @Test
     public void invalidSchema() throws Exception {
-        thrown.expectError(X_MALFORMED_HASH_CHAIN);
+        thrown.expectError(MALFORMED_HASH_CHAIN.code());
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier5-hashchain-invalid-schema.xml",

@@ -1,0 +1,42 @@
+---
+argument_specs:
+  main:
+    short_description: Provision a local KinD cluster for X-Road
+    options:
+      kind_cluster_name:
+        type: str
+        required: true
+        description: Name of the KinD cluster
+      kubeconfig_path:
+        type: path
+        required: true
+        description: Path to write the merged kubeconfig to
+      kind_worker_count:
+        type: int
+        default: 2
+        description: Number of worker nodes (excluding control-plane)
+      containerd_config_patches:
+        type: list
+        elements: str
+        default: []
+        description: Raw containerd config TOML snippets injected into every node
+      kind_state_dir:
+        type: path
+        required: false
+        description: Directory for rendered kind config and sentinel files
+      kind_wait_for_ready:
+        type: str
+        default: "5m"
+        description: Value for `kind create cluster --wait`
+      kind_create_async_timeout:
+        type: int
+        default: 900
+        description: Max seconds Ansible waits for `kind create cluster` (async)
+      kind_create_poll_interval:
+        type: int
+        default: 10
+        description: Seconds between async poll updates (progress heartbeat)
+      kind_node_image:
+        type: str
+        required: false
+        description: Pinned kindest/node image (empty = kind CLI default)

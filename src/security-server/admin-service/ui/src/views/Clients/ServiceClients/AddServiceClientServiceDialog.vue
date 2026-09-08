@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,9 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <XrdSimpleDialog
     v-if="dialog"
-    :width="750"
+    :width="840"
     title="serviceClients.addService"
     scrollable
     :disable-save="filterSelections().length === 0"
@@ -34,20 +35,20 @@
     @cancel="cancel"
   >
     <template v-if="serviceCandidates.length > 0" #content>
-      <v-text-field
-        v-model="search"
-        :label="$t('serviceClients.searchPlaceHolder')"
-        single-line
-        autofocus
-        hide-details
-        data-test="search-service-client"
-        variant="underlined"
-        density="compact"
-        class="search-input"
-        append-inner-icon="mdi-magnify"
-      >
-      </v-text-field>
-      <table class="xrd-table">
+      <v-table class="xrd border xrd-rounded-12 bg-surface-container">
+        <template #top>
+          <v-text-field
+            v-model="search"
+            data-test="search-service-client"
+            density="compact"
+            class="xrd xrd-search-field mt-2 ml-4 mb-6"
+            prepend-inner-icon="search"
+            single-line
+            hide-details
+            autofocus
+            :label="$t('serviceClients.searchPlaceHolder')"
+          />
+        </template>
         <thead>
           <tr>
             <th class="selection-checkbox"></th>
@@ -56,38 +57,31 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="accessRight in searchResults()"
-            :key="accessRight.id"
-            class="service-row"
-            data-test="access-right-toggle"
-          >
-            <td class="selection-checkbox">
+          <tr v-for="accessRight in searchResults()" :key="accessRight.id" class="service-row" data-test="access-right-toggle">
+            <td class="xrd-checkbox-column">
               <div>
-                <v-checkbox
-                  v-model="selections"
-                  :value="accessRight"
-                  data-test="access-right-checkbox-input"
-                  hide-details
-                />
+                <v-checkbox v-model="selections" data-test="access-right-checkbox-input" class="xrd" hide-details :value="accessRight" />
               </div>
             </td>
             <td>{{ accessRight.service_code }}</td>
             <td>{{ accessRight.service_title }}</td>
           </tr>
         </tbody>
-      </table>
+      </v-table>
     </template>
     <template v-else #content>
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { AccessRight } from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
+import { XrdSimpleDialog } from '@niis/shared-ui';
+
 export default defineComponent({
+  components: { XrdSimpleDialog },
   props: {
     dialog: {
       type: Boolean,
@@ -130,33 +124,14 @@ export default defineComponent({
 
       return this.serviceCandidates.filter((candidate: ServiceCandidate) => {
         return (
-          candidate.service_code.toLowerCase().includes(cleanedSearch) ||
-          candidate.service_title?.toLowerCase().includes(cleanedSearch)
+          candidate.service_code.toLowerCase().includes(cleanedSearch) || candidate.service_title?.toLowerCase().includes(cleanedSearch)
         );
       });
     },
     filterSelections(): AccessRight[] {
-      return this.selections.filter((ac: AccessRight) =>
-        ac.service_code.includes(this.search),
-      );
+      return this.selections.filter((ac: AccessRight) => ac.service_code.includes(this.search));
     },
   },
 });
 </script>
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/tables';
-@use '@niis/shared-ui/src/assets/colors';
-
-.selection-checkbox {
-  width: 40px;
-}
-.search-input {
-  margin: 30px 0;
-  width: 50%;
-  min-width: 200px;
-}
-.service-row:hover {
-  cursor: pointer;
-  background-color: colors.$Purple10;
-}
-</style>
+<style lang="scss" scoped></style>

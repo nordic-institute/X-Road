@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+    <!-- Minimal changeset required by signer schema-->
+    <changeSet author="niis" id="001-create_identifier_table" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+
+        <createTable tableName="identifier">
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="object_type" type="VARCHAR(255)"/>
+            <column name="xroad_instance" type="VARCHAR(255)"/>
+            <column name="member_class" type="VARCHAR(255)"/>
+            <column name="member_code" type="VARCHAR(255)"/>
+            <column name="subsystem_code" type="VARCHAR(255)"/>
+            <column name="service_code" type="VARCHAR(255)"/>
+            <column name="service_version" type="VARCHAR(255)"/>
+            <column name="group_code" type="VARCHAR(255)"/>
+            <column name="server_code" type="VARCHAR(255)"/>
+        </createTable>
+
+        <addPrimaryKey columnNames="id" constraintName="pk" tableName="identifier"/>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON identifier;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON identifier
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+
+    </changeSet>
+</databaseChangeLog>

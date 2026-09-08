@@ -37,8 +37,8 @@ import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.testsuite.UsingDummyServerProxy;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
+import static org.niis.xroad.common.core.exception.ErrorCode.HTTP_ERROR;
 
 /**
  * Server proxy responds with HTTP error.
@@ -68,6 +68,6 @@ public class ServerProxyHttpError extends MessageTestCase implements UsingDummyS
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_HTTP_ERROR);
+        assertErrorCode(SERVER_CLIENTPROXY_X, HTTP_ERROR.code());
     }
 }

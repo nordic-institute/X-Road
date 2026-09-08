@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,29 +26,36 @@
  */
 package org.niis.xroad.proxy.core.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import io.opentelemetry.api.trace.Span;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.core.exception.XrdRuntimeHttpException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.proxy.core.util.MessageProcessorBase;
+import org.niis.xroad.proxy.core.configuration.ProxyProperties;
+import org.niis.xroad.proxy.core.util.OpMonitoringDataHelper;
+import org.niis.xroad.proxy.core.util.ProxyMessageUtils;
+import org.niis.xroad.proxy.core.util.RestRequestContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import tools.jackson.core.JsonGenerator;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -56,19 +64,21 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
+import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
 /**
- * Handles client messages. This handler must be the last handler in the
- * handler collection, since it will not pass handling of the request to
- * the next handler (i.e. throws exception instead), if it cannot process
- * the request itself.
+ * Handles client REST messages by delegating to the CDI singleton {@link ClientRestMessageProcessor}.
+ * This handler must be the last handler in the handler collection, since it will not pass handling
+ * of the request to the next handler if it cannot process the request itself.
  */
 @Slf4j
-class ClientRestMessageHandler extends AbstractClientProxyHandler {
+@RequiredArgsConstructor
+public class ClientRestMessageHandler extends HandlerBase {
 
     private static final String TEXT_XML = "text/xml";
     private static final String APPLICATION_XML = "application/xml";
@@ -76,30 +86,90 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
-        super(commonBeanProxy, client, true);
-    }
+    private final ClientRestMessageProcessor clientRestMessageProcessor;
+    private final ProxyProperties proxyProperties;
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final OpMonitoringBuffer opMonitoringBuffer;
+    private final OpMonitoringDataHelper opMonitoringDataHelper;
 
     @Override
-    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) {
-        final var target = getTarget(request);
-        if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
-            verifyCanProcess();
-            return new ClientRestMessageProcessor(commonBeanProxy,
-                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
+    @SuppressWarnings({"java:S3776"})
+    public boolean handle(Request request, Response response, Callback callback) throws IOException {
+        Span.current().updateName("ClientProxy REST");
+        boolean handled = false;
+        long start = ProxyMessageUtils.logPerformanceBegin(request);
+        OpMonitoringData opMonitoringData = new OpMonitoringData(CLIENT, start);
+
+        try {
+            final var target = getTarget(RequestWrapper.of(request));
+            if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
+                verifyCanProcess();
+                var ctx = new RestRequestContext(
+                        RequestWrapper.of(request), ResponseWrapper.of(response), opMonitoringData);
+                handled = true;
+                boolean success = clientRestMessageProcessor.process(ctx);
+                opMonitoringData.setSucceeded(success);
+                callback.succeeded();
+                if (log.isTraceEnabled()) {
+                    log.info("Request successfully handled ({} ms)", System.currentTimeMillis() - start);
+                }
+            }
+        } catch (XrdRuntimeHttpException e) {
+            handled = true;
+            log.error("Request processing error", e);
+            failure(response, callback, e, opMonitoringData);
+        } catch (XrdRuntimeException e) {
+            handled = true;
+            String errorMessage;
+            XrdRuntimeException exception = e;
+            if (e.hasSoapFault()) {
+                errorMessage = "Request processing error";
+            } else {
+                errorMessage = "Request processing error (" + e.getDetails() + ")";
+                if (!e.originatesFrom(ErrorOrigin.CLIENT)) {
+                    exception = e.withPrefix(SERVER_CLIENTPROXY_X);
+                }
+            }
+            log.error(errorMessage, exception);
+            opMonitoringDataHelper.updateOpMonitoringSoapFault(opMonitoringData, exception);
+            failure(request, response, callback, exception, opMonitoringData);
+        } catch (Throwable e) {
+            handled = true;
+            XrdRuntimeException cex = XrdRuntimeException.systemException(e).withPrefix(SERVER_CLIENTPROXY_X);
+            log.error("Request processing error ({})", cex.getIdentifier(), e);
+            opMonitoringDataHelper.updateOpMonitoringSoapFault(opMonitoringData, cex);
+            failure(request, response, callback, cex, opMonitoringData);
+        } finally {
+            if (handled) {
+                opMonitoringDataHelper.updateOpMonitoringResponseOutTs(opMonitoringData);
+                opMonitoringBuffer.store(opMonitoringData);
+                ProxyMessageUtils.logPerformanceEnd(start);
+            }
         }
-        return null;
+        return handled;
+    }
+
+    private void failure(Request request, Response response, Callback callback,
+                         XrdRuntimeException e, OpMonitoringData opMonitoringData) throws IOException {
+        opMonitoringDataHelper.updateOpMonitoringResponseOutTs(opMonitoringData);
+        sendErrorResponse(request, response, callback, e);
+    }
+
+    private void failure(Response response, Callback callback, XrdRuntimeHttpException e,
+                         OpMonitoringData opMonitoringData) {
+        opMonitoringDataHelper.updateOpMonitoringResponseOutTs(opMonitoringData);
+        sendPlainTextErrorResponse(response, callback, e.getHttpStatus().get().getCode(), e.getDetails());
     }
 
     private void verifyCanProcess() {
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        globalConfProvider.verifyValidity();
 
-        if (!SystemProperties.isSslEnabled()) {
+        if (!proxyProperties.sslEnabled()) {
             return;
         }
 
-        AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
+        AuthKey authKey = keyConfProvider.getAuthKey();
         if (authKey.certChain() == null) {
             throw XrdRuntimeException.systemException(SSL_AUTH_FAILED)
                     .details("Security server has no authentication certificate")
@@ -111,13 +181,13 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     public void sendErrorResponse(Request request,
                                   Response response,
                                   Callback callback,
-                                  CodedException ex) throws IOException {
-        if (ex.getFaultCode().startsWith("server.")) {
+                                  XrdRuntimeException ex) {
+        if (ex.getErrorCode().startsWith("server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }
-        response.getHeaders().put("X-Road-Error", ex.getFaultCode());
+        response.getHeaders().put("X-Road-Error", ex.getErrorCode());
 
         final String responseContentType = decideErrorResponseContentType(request.getHeaders().getValues("Accept"));
         setContentType(response, responseContentType, MimeUtils.UTF8);
@@ -127,13 +197,13 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 Element errorRootElement = doc.createElement("error");
                 doc.appendChild(errorRootElement);
                 Element typeElement = doc.createElement("type");
-                typeElement.appendChild(doc.createTextNode(ex.getFaultCode()));
+                typeElement.appendChild(doc.createTextNode(ex.getErrorCode()));
                 errorRootElement.appendChild(typeElement);
                 Element messageElement = doc.createElement("message");
-                messageElement.appendChild(doc.createTextNode(ex.getFaultString()));
+                messageElement.appendChild(doc.createTextNode(ex.getDetails()));
                 errorRootElement.appendChild(messageElement);
                 Element detailElement = doc.createElement("detail");
-                detailElement.appendChild(doc.createTextNode(ex.getFaultDetail()));
+                detailElement.appendChild(doc.createTextNode(ex.getIdentifier()));
                 errorRootElement.appendChild(detailElement);
                 responseOut.write(XmlUtils.prettyPrintXml(doc, "UTF-8", 0).getBytes());
             } catch (Exception e) {
@@ -143,11 +213,11 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
             }
         } else {
             try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
-                    .getFactory().createGenerator(new PrintWriter(asOutputStream(response)))) {
+                    .createGenerator(new PrintWriter(asOutputStream(response)))) {
                 jsonGenerator.writeStartObject();
-                jsonGenerator.writeStringField("type", ex.getFaultCode());
-                jsonGenerator.writeStringField("message", ex.getFaultString());
-                jsonGenerator.writeStringField("detail", ex.getFaultDetail());
+                jsonGenerator.writeStringProperty("type", ex.getErrorCode());
+                jsonGenerator.writeStringProperty("message", ex.getDetails());
+                jsonGenerator.writeStringProperty("detail", ex.getIdentifier());
                 jsonGenerator.writeEndObject();
             } finally {
                 callback.succeeded();

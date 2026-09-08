@@ -1,0 +1,3 @@
+#!/bin/bash
+. /etc/xroad/services/proxy.conf
+exec java ${XROAD_PARAMS} ${XROAD_PROXY_PARAMS} -jar /usr/share/xroad/jlib/proxy.jar

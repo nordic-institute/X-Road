@@ -1,17 +1,18 @@
 # Security Server Sidecar Security Guide <!-- omit in toc -->
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: UG-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                 | Author              |
-|------------|---------|-----------------------------|---------------------|
-| 05.02.2021 | 1.0     | Initial version             | Raul Martinez Lopez |
-| 28.11.2021 | 1.1     | Add license info            | Petteri Kivimäki    |
-| 11.10.2022 | 1.2     | Updating links              | Monika Liutkute     |
-| 06.07.2023 | 1.3     | Sidecar repo migration      | Eneli Reimets       |
-| 23.12.2024 | 1.4     | Minor documentation updates | Eneli Reimets       |
+| Date       | Version | Description                               | Author              |
+|------------|---------|-------------------------------------------|---------------------|
+| 05.02.2021 | 1.0     | Initial version                           | Raul Martinez Lopez |
+| 28.11.2021 | 1.1     | Add license info                          | Petteri Kivimäki    |
+| 11.10.2022 | 1.2     | Updating links                            | Monika Liutkute     |
+| 06.07.2023 | 1.3     | Sidecar repo migration                    | Eneli Reimets       |
+| 23.12.2024 | 1.4     | Minor documentation updates               | Eneli Reimets       |
+| 18.08.2026 | 1.5     | Add relationship to other security guides | Petteri Kivimäki    |
  
 ## License
 
@@ -24,6 +25,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 * [1 Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
   * [1.2 Environment assumptions](#12-environment-assumptions)
+  * [1.3 Relationship to the X-Road security hardening guide](#13-relationship-to-the-x-road-security-hardening-guide)
 * [2 Securing Sidecar container](#2-securing-sidecar-container)
   * [2.1 Securing Host Operating System](#21-securing-host-operating-system)
     * [2.1.1 Host configuration](#211-host-configuration)
@@ -77,9 +79,23 @@ The Security Server Sidecar can be configured to use either a local database run
 
 >**Note(3)** For the scope of this document, we will assume the Security Server sidecar is configured to use an external database for storing server configuration, message logs and operational monitoring data and an external volume to store configuration files.
 
-### 1.3 References
+### 1.3 Relationship to the X-Road security hardening guide
+
+This guide covers the platform: the Docker host, the Docker daemon and the container runtime that a Security Server Sidecar runs on. It does not cover the Security Server itself.
+
+The security of the Security Server software — the software token PIN policy, backup encryption, message log and archive protection, audit log forwarding, the minimum supported client Security Server version, and the trust placed in the global configuration endpoint — is the subject of the X-Road security hardening guide \[[UG-SEC](#Ref_UG-SEC)\]. Those controls are properties of the Security Server rather than of the platform, so they apply in exactly the same way to a Sidecar container as to a Security Server installed from native packages.
+
+The two guides are therefore additive. **Applying this guide alone leaves the Security Server itself unhardened**, because nothing here enables a token PIN policy, encrypts a backup or forwards an audit log. Read \[[UG-SEC](#Ref_UG-SEC)\] as the baseline and this guide as the platform layer on top of it.
+
+Where a control in \[[UG-SEC](#Ref_UG-SEC)\] is realised differently in a container — how administrator credentials reach the Security Server, and where keys, configuration and backups are stored so that they survive the container — the difference is covered in this guide and in the Security Server Sidecar User Guide rather than in \[[UG-SEC](#Ref_UG-SEC)\].
+
+For a Sidecar running in a Kubernetes cluster, the cluster is a third layer with its own guide; see the Kubernetes Security Server Sidecar Security User Guide \[[UG-K-SS-SEC-SIDECAR](#Ref_UG-K-SS-SEC-SIDECAR)\]. All three apply.
+
+### 1.4 References
 
 1. <a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md)
+2. <a id="Ref_UG-SEC">[UG-SEC]</a> [X-Road: Security hardening guidelines](../Manuals/ug-sec_x_road_security_hardening.md)
+3. <a id="Ref_UG-K-SS-SEC-SIDECAR">[UG-K-SS-SEC-SIDECAR]</a> [X-Road: Kubernetes Security Server Sidecar Security User Guide](kubernetes_security_guide.md)
 
 ## 2 Securing Sidecar container
 

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,21 @@
  -->
 <template>
   <div class="cert-row-wrap">
-    <xrd-status-icon :status="statusIconType" />
-    <div class="status-text">{{ $t(status) }}</div>
+    <XrdStatusChip :type="chipType" :text="status">
+      <template #icon>
+        <XrdStatusIcon class="mr-1 ml-n1" :status="statusIconType" />
+      </template>
+    </XrdStatusChip>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
+import { XrdStatusChip, XrdStatusIcon } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdStatusChip, XrdStatusIcon },
   props: {
     certificate: {
       type: Object as PropType<TokenCertificate>,
@@ -90,28 +96,29 @@ export default defineComponent({
           return 'error';
       }
     },
+    chipType() {
+      switch (this.certificate.status) {
+        case CertificateStatus.SAVED:
+          return 'warning';
+
+        case CertificateStatus.REGISTRATION_IN_PROGRESS:
+          return 'info';
+
+        case CertificateStatus.REGISTERED:
+          return 'success';
+
+        case CertificateStatus.DELETION_IN_PROGRESS:
+          return 'error';
+
+        case CertificateStatus.GLOBAL_ERROR:
+          return 'error';
+        default:
+          return 'error';
+      }
+    },
   },
   methods: {},
 });
 </script>
 
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-
-.cert-row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 2px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-</style>
+<style lang="scss" scoped></style>

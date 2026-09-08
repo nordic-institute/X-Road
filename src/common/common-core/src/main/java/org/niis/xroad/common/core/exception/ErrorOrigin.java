@@ -29,8 +29,16 @@ package org.niis.xroad.common.core.exception;
 public enum ErrorOrigin {
     CLIENT,
     SERVER,
+    PROXY,
+    OP_MONITOR,
+    MONITOR,
+    CONF_CLIENT,
+    AUXILIARY_SERVICE,
     SIGNER,
-    OP_MONITOR;
+    DATASPACE,
+    DS_CONTROL_PLANE,
+    DS_IDENTITY_HUB,
+    DS_ISSUER_SERVICE;
 
     public String toPrefix() {
         return this.name().toLowerCase() + ".";

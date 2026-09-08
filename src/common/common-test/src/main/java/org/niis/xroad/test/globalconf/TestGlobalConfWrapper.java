@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.test.globalconf;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -146,8 +146,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException {
-        return globalConfProvider.getOrderedOcspResponderAddresses(member);
+    public List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException {
+        return globalConfProvider.getOrderedOcspResponderAddresses(member, prioritizationStrategy);
     }
 
     @Override
@@ -287,11 +288,6 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public Set<String> getAllowedFederationInstances() {
-        return Set.of();
-    }
-
-    @Override
     public String getConfigurationDirectoryPath(String instanceIdentifier) {
         return "";
     }
@@ -312,7 +308,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException {
+    public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) {
         return globalConfProvider.getApprovedCA(instanceIdentifier, cert);
     }
 

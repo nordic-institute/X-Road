@@ -42,20 +42,14 @@ export const useSecurityServerAuthCert = defineStore('securityServerAuthCert', {
   actions: {
     async fetch(securityServerId: string) {
       return axios
-        .get<
-          SecurityServerAuthenticationCertificateDetails[]
-        >(`/security-servers/${securityServerId}/authentication-certificates`)
+        .get<SecurityServerAuthenticationCertificateDetails[]>(`/security-servers/${securityServerId}/authentication-certificates`)
         .then((resp) => {
           this.authenticationCertificates = resp.data || [];
+          return this.authenticationCertificates;
         });
     },
-    async deleteAuthenticationCertificate(
-      securityServerCode: string,
-      authenticationCertificateId: string,
-    ) {
-      return axios.delete(
-        `/security-servers/${securityServerCode}/authentication-certificates/${authenticationCertificateId}`,
-      );
+    async deleteAuthenticationCertificate(securityServerCode: string, authenticationCertificateId: string) {
+      return axios.delete(`/security-servers/${securityServerCode}/authentication-certificates/${authenticationCertificateId}`);
     },
   },
 });

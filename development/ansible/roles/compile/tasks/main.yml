@@ -1,0 +1,5 @@
+---
+- name: compile xroad code
+  command: ../../scripts/compile-all.sh
+  args:
+    chdir: ../../src

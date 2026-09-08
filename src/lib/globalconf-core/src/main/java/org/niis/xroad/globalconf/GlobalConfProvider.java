@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.globalconf;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -34,9 +34,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.CostType;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
@@ -155,10 +157,12 @@ public interface GlobalConfProvider {
      * Addresses are ordered based on ocsp-prioritization-strategy system property.
      *
      * @param member the member certificate
+     * @param prioritizationStrategy the strategy that defines the ordering and filtering of OCSP responders
      * @return list of OCSP responder addresses
      *
      */
-    List<String> getOrderedOcspResponderAddresses(X509Certificate member) throws CertificateEncodingException, IOException;
+    List<String> getOrderedOcspResponderAddresses(X509Certificate member, ServicePrioritizationStrategy prioritizationStrategy)
+            throws CertificateEncodingException, IOException;
 
 
     /**
@@ -178,6 +182,20 @@ public interface GlobalConfProvider {
      * @return a list of known OCSP responder certificates
      */
     List<X509Certificate> getOcspResponderCertificates();
+
+    /**
+     * @param instanceIdentifier the instance identifier
+     * @param memberCert         the member certificate
+     * @return the issuer certificate for the member certificate
+     * @throws XrdRuntimeException if certificate encoding error or I/O error occurs
+     */
+    default X509Certificate getCaCertOrThrow(String instanceIdentifier, X509Certificate memberCert) {
+        try {
+            return getCaCert(instanceIdentifier, memberCert);
+        } catch (CertificateEncodingException | IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
 
     /**
      * @param instanceIdentifier the instance identifier
@@ -225,6 +243,21 @@ public interface GlobalConfProvider {
      * @return the security server id for the given authentication certificate
      * of null of the authentication certificate does not map to any security
      * server.
+     * @throws XrdRuntimeException if certificate encoding error, I/O error or operation creation error occurs
+     */
+    default SecurityServerId.Conf getServerIdOrThrow(X509Certificate cert) {
+        try {
+            return getServerId(cert);
+        } catch (CertificateEncodingException | IOException | OperatorCreationException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    /**
+     * @param cert the authentication certificate
+     * @return the security server id for the given authentication certificate
+     * of null of the authentication certificate does not map to any security
+     * server.
      *
      */
     SecurityServerId.Conf getServerId(X509Certificate cert) throws CertificateEncodingException, IOException, OperatorCreationException;
@@ -251,6 +284,16 @@ public interface GlobalConfProvider {
      * @return all known approved CAs
      */
     default Collection<ApprovedCAInfo> getApprovedCAs(
+            String instanceIdentifier) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * @param instanceIdentifier the instance identifier
+     * @return all known approved DataSpace TLS CAs. Separate from {@link #getApprovedCAs}: this list is never
+     * consulted for member-certificate validation.
+     */
+    default Collection<ApprovedDsTlsCaInfo> getApprovedDsTlsCas(
             String instanceIdentifier) {
         return Collections.emptyList();
     }
@@ -357,14 +400,6 @@ public interface GlobalConfProvider {
     Set<String> getSourceAddresses(String instanceIdentifier);
 
     /**
-     * Returns all allowed federation instances.
-     * Also taking into account the value of the {@code configuration-client.allowed-federations} property.
-     *
-     * @return a set of allowed federation instances
-     */
-    Set<String> getAllowedFederationInstances();
-
-    /**
      * Returns the configuration directory path for the given instance identifier.
      *
      * @param instanceIdentifier the instance identifier
@@ -398,10 +433,10 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier instance id
      * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
-     * @throws CodedException if something went wrong, for example
+     * @throws XrdRuntimeException if something went wrong, for example
      *                        {@code cert} was not an approved CA cert
      */
-    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
+    ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert);
 
     /**
      * Returns access to various GlobalConf extensions.

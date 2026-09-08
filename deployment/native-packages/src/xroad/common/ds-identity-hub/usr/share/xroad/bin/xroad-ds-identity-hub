@@ -1,0 +1,4 @@
+#!/bin/bash
+. /etc/xroad/services/ds-identity-hub.conf
+
+exec java ${XROAD_PARAMS} ${XROAD_DS_IDENTITY_HUB_PARAMS} -jar /usr/share/xroad/jlib/ds-identity-hub/quarkus-run.jar

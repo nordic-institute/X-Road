@@ -73,8 +73,8 @@
                                           succeeded, service_xroad_instance, service_member_class, service_member_code,
                                           service_subsystem_code, service_code, service_version)
             VALUES (6, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
-                    EXTRACT(EPOCH FROM NOW() - INTERVAL '121 minutes') * 1000,
-                    EXTRACT(EPOCH FROM NOW() - INTERVAL '122 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '105 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '106 minutes') * 1000,
                     'Producer',
                     TRUE,
                     'DEV', 'COM', '1234', 'Service9', 'getTopSecret', 'v2');
@@ -84,8 +84,8 @@
                                           succeeded, service_xroad_instance, service_member_class, service_member_code,
                                           service_subsystem_code, service_code, service_version)
             VALUES (7, EXTRACT(EPOCH FROM NOW()), '192.168.3.250',
-                    EXTRACT(EPOCH FROM NOW() - INTERVAL '121 minutes') * 1000,
-                    EXTRACT(EPOCH FROM NOW() - INTERVAL '122 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '105 minutes') * 1000,
+                    EXTRACT(EPOCH FROM NOW() - INTERVAL '106 minutes') * 1000,
                     'Producer',
                     FALSE,
                     'DEV', 'COM', '1234', 'Service9', 'getTopSecret', 'v2');

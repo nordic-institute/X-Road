@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.test.serverconf;
 
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -36,6 +37,7 @@ import lombok.Setter;
 import org.niis.xroad.common.CostType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
@@ -44,6 +46,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
 @Setter
@@ -127,7 +130,7 @@ public class TestServerConfWrapper implements ServerConfProvider {
 
     @Override
     public InternalSSLKey getSSLKey() throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, InvalidKeySpecException {
         return serverConfProvider.getSSLKey();
     }
 
@@ -162,8 +165,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<String> getOrderedTspUrls() {
-        return serverConfProvider.getOrderedTspUrls();
+    public List<String> getOrderedTspUrls(ServicePrioritizationStrategy prioritizationStrategy) {
+        return serverConfProvider.getOrderedTspUrls(prioritizationStrategy);
     }
 
     @Override
@@ -184,6 +187,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return serverConfProvider.getServiceEndpoints(serviceId);
+    }
+
+    @Override
+    public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
+        return serverConfProvider.getServiceAccessRights(serviceId);
     }
 
     @Override

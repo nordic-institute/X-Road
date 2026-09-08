@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.asic;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedXrdRuntimeException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,9 +37,9 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MESSAGE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MIME_TYPE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_MESSAGE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_MIME_TYPE_NOT_FOUND;
+import static org.niis.xroad.common.core.exception.ErrorCode.ASIC_SIGNATURE_NOT_FOUND;
 
 /**
  * Tests to verify correct ASiC container loading behavior.
@@ -47,7 +47,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
 @RunWith(Parameterized.class)
 public class AsicContainerTest {
     @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    public ExpectedXrdRuntimeException thrown = ExpectedXrdRuntimeException.none();
 
     /**
      * @return test input data
@@ -57,10 +57,10 @@ public class AsicContainerTest {
         return Arrays.asList(new Object[][]{
                 {"valid-signed-message-with-attachments.asice", null},
                 {"valid-signed-message.asice", null},
-                {"no-mimetype.asice", X_ASIC_MIME_TYPE_NOT_FOUND},
-                {"no-message.asice", X_ASIC_MESSAGE_NOT_FOUND},
-                {"no-signature.asice", X_ASIC_SIGNATURE_NOT_FOUND},
-                {"not-asic.asice", X_ASIC_MIME_TYPE_NOT_FOUND}
+                {"no-mimetype.asice", ASIC_MIME_TYPE_NOT_FOUND.code()},
+                {"no-message.asice", ASIC_MESSAGE_NOT_FOUND.code()},
+                {"no-signature.asice", ASIC_SIGNATURE_NOT_FOUND.code()},
+                {"not-asic.asice", ASIC_MIME_TYPE_NOT_FOUND.code()}
         });
     }
 

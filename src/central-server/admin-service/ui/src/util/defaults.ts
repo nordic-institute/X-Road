@@ -28,8 +28,6 @@
 
 import { toPagingOptions } from '@/util/helpers';
 
-export function defaultItemsPerPageOptions(
-  ...additional: number[]
-): { title: string; value: number }[] {
+export function defaultItemsPerPageOptions(...additional: number[]): { title: string; value: number }[] {
   return toPagingOptions(10, 25, ...additional);
 }

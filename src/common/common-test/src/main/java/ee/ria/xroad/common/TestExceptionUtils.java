@@ -27,16 +27,18 @@
 package ee.ria.xroad.common;
 
 import org.assertj.core.api.Condition;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 public final class TestExceptionUtils {
 
     private TestExceptionUtils() {
     }
 
-    public static Condition<Throwable> codedException(String faultCode) {
+    public static Condition<Throwable> xrdRuntimeException(ErrorCode errorCore) {
         return new Condition<>(
-                t -> t instanceof CodedException codedException && codedException.getFaultCode().equals(faultCode),
-                "CodedException with fault code '%s'", faultCode);
+                t -> t instanceof XrdRuntimeException ex && ex.getErrorCode().equals(errorCore.code()),
+                "XrdRuntimeException with error code '%s'", errorCore);
     }
 
 }

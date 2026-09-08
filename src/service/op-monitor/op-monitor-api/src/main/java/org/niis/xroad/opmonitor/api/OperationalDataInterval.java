@@ -26,18 +26,11 @@
 package org.niis.xroad.opmonitor.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.ToString;
-import lombok.Value;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Value
-@ToString(onlyExplicitlyIncluded = true)
-public class OperationalDataInterval implements Serializable {
-
-    @JsonIgnore
-    OperationalDataIntervalProto message;
+public record OperationalDataInterval(@JsonIgnore OperationalDataIntervalProto message) implements Serializable {
 
     public Instant getIntervalStart() {
         return Instant.ofEpochSecond(message.getTimeIntervalStart().getSeconds(), message.getTimeIntervalStart().getNanos());

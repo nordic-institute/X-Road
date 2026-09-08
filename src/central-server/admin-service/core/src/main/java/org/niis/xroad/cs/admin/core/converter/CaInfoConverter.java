@@ -52,6 +52,7 @@ public class CaInfoConverter {
     public CertificateAuthority toCertificateAuthority(CaInfoEntity caInfo) {
         return new CertificateAuthority()
                 .setId(caInfo.getId())
+                .setCertificationServiceId(caInfo.getApprovedCa() == null ? null : caInfo.getApprovedCa().getId())
                 .setCaCertificate(certConverter.toCertificateDetails(caInfo.getCert()))
                 .setOcspResponders(caInfo.getOcspInfos().stream()
                         .map(ocspResponderConverter::toModel)

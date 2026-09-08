@@ -32,7 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
+import org.niis.xroad.cs.admin.api.service.ConfigurationBackupGenerator;
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.when;
@@ -45,11 +45,12 @@ class BackupsApiControllerTest {
     private BackupsApiController backupsApiController;
 
     @Mock
-    private BaseConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
+    private ConfigurationBackupGenerator centralServerConfigurationBackupGenerator;
 
     @Test
-    void addBackupShouldHandleInterruptedException() throws InterruptedException {
-        when(centralServerConfigurationBackupGenerator.generateBackup()).thenThrow(new InterruptedException());
+    void addBackupShouldHandleInterruptedException() {
+        when(centralServerConfigurationBackupGenerator.generateBackup())
+                .thenThrow(new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build()));
         var error = assertThrowsExactly(InternalServerErrorException.class, backupsApiController::addBackup);
         Assertions.assertThat(error.getErrorDeviation().code()).isEqualTo(BACKUP_GENERATION_INTERRUPTED.code());
     }

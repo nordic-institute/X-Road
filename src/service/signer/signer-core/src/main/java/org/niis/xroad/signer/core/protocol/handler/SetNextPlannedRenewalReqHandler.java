@@ -25,25 +25,27 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.common.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
 /**
  * Handles requests for setting the certificate renewal error.
  */
-@Component
-public class SetNextPlannedRenewalReqHandler
-        extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class SetNextPlannedRenewalReqHandler extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
+    private final CertManager certManager;
 
     @Override
     protected Empty handle(SetNextPlannedRenewalReq request) {
         Instant nextRenewalTime = Instant.ofEpochSecond(request.getNextRenewalTime().getSeconds(), request.getNextRenewalTime().getNanos());
-        TokenManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
+        certManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
 
         return Empty.getDefaultInstance();
     }

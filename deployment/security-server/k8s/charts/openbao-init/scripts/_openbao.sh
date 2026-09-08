@@ -1,0 +1,1 @@
+../../../../../native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts/_openbao.sh

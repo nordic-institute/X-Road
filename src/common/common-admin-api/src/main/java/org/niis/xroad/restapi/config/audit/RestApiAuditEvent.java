@@ -40,6 +40,11 @@ public enum RestApiAuditEvent {
     API_KEY_UPDATE("API key update"),
     API_KEY_REMOVE("API key remove"),
 
+    ADMIN_USER_ADD("Add admin user"),
+    ADMIN_USER_EDIT_ROLES("Edit admin user roles"),
+    ADMIN_USER_CHANGE_PASSWORD("Change admin user password"),
+    ADMIN_USER_DELETE("Remove admin user"),
+
     INIT_ANCHOR("Initialize anchor"),
     INIT_SERVER_CONFIGURATION("Initialize server configuration"),
     INIT_CENTRAL_SERVER("Initialize central server"),
@@ -94,6 +99,7 @@ public enum RestApiAuditEvent {
     EDIT_CENTRAL_SERVER_ADDRESS("Edit central server address"),
     ENABLE_MAINTENANCE_MODE("Enable maintenance mode of the security server"),
     DISABLE_MAINTENANCE_MODE("Disable maintenance mode of the security server"),
+    UPDATE_CONFIGURATION_PROPERTY("Update configuration property"),
 
     // keys and certificates events
     LOGIN_TOKEN("Log in to token"),
@@ -158,6 +164,12 @@ public enum RestApiAuditEvent {
     ADD_CERTIFICATION_SERVICE_INTERMEDIATE_CA("Add intermediate CA"),
     ADD_INTERMEDIATE_CA_OCSP_RESPONDER("Add OCSP responder of intermediate CA"),
     EDIT_OCSP_RESPONDER("Edit OCSP responder"),
+
+    ADD_DS_TLS_CERTIFICATION_AUTHORITY("Add DS TLS certification authority"),
+    DELETE_DS_TLS_CERTIFICATION_AUTHORITY("Delete DS TLS certification authority"),
+    EDIT_DS_TLS_CERTIFICATION_AUTHORITY_SETTINGS("Edit DS TLS certification authority settings"),
+    ADD_DS_TLS_CERTIFICATION_AUTHORITY_INTERMEDIATE_CA("Add DS TLS intermediate CA"),
+    DELETE_DS_TLS_INTERMEDIATE_CA("Delete DS TLS intermediate CA"),
     ADD_GLOBAL_GROUP("Add global group"),
     ADD_GLOBAL_GROUP_MEMBERS("Add members to global group"),
     DELETE_GLOBAL_GROUP("Delete global group"),
@@ -181,7 +193,11 @@ public enum RestApiAuditEvent {
     EDIT_MANAGEMENT_SERVICES_PROVIDER("Edit provider of management services"),
     GENERATE_MANAGEMENT_SERVICE_TLS_CSR("Generate management service TLS certificate signing request"),
     GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT("Generate management service TLS key and self-sign certificate"),
-    UPLOAD_MANAGEMENT_SERVICE_TLS_CERT("Upload management service TLS certificate");
+    UPLOAD_MANAGEMENT_SERVICE_TLS_CERT("Upload management service TLS certificate"),
+
+    GENERATE_DS_TLS_KEY("Generate data space TLS key"),
+    GENERATE_DS_TLS_CSR("Generate data space TLS certificate signing request"),
+    UPLOAD_DS_TLS_CERT("Upload data space TLS certificate");
     private final String eventName;
 
     RestApiAuditEvent(String eventName) {

@@ -31,11 +31,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
-import org.niis.xroad.signer.core.tokenmanager.token.BlockingTokenWorker;
-import org.niis.xroad.signer.core.tokenmanager.token.TokenType;
-import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
 
 import java.util.Collections;
@@ -55,12 +54,15 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @RequiredArgsConstructor
 public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
     @SuppressWarnings("java:S3077")
-    private volatile Map<String, BlockingTokenWorker> tokenWorkers = Collections.emptyMap();
+    private volatile Map<String, AbstractTokenWorker> tokenWorkers = Collections.emptyMap();
 
     @Getter
     private final ModuleType moduleType;
 
-    public Optional<TokenWorker> getTokenById(String tokenId) {
+    protected final TokenManager tokenManager;
+    protected final TokenLookup tokenLookup;
+
+    public Optional<AbstractTokenWorker> getTokenById(String tokenId) {
         return Optional.ofNullable(tokenWorkers.get(tokenId));
     }
 
@@ -84,7 +86,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
             log.warn("PKCS11Exception was thrown. Reloading underlying module and token workers.", pkcs11Exception);
             reload();
         } catch (Exception e) {
-            log.error("Error during update of module " + getClass().getSimpleName(), e);
+            log.error("Error during update of module {}", getClass().getSimpleName(), e);
             throw translateException(e);
         }
     }
@@ -95,28 +97,28 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         tokenWorkers = Collections.emptyMap();
     }
 
-    protected abstract List<TokenType> listTokens() throws TokenException;
+    protected abstract List<TokenDefinition> listTokens() throws TokenException;
 
-    protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType);
+    protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenDefinition tokenDefinition);
 
     private void loadTokens(boolean reload) throws TokenException {
-        final Map<String, BlockingTokenWorker> newTokens = new HashMap<>();
+        final Map<String, AbstractTokenWorker> newTokens = new HashMap<>();
 
-        final List<TokenType> tokens = listTokens();
+        final List<TokenDefinition> tokens = listTokens();
         log.trace("Got {} tokens from module '{}'", tokens.size(), getClass().getSimpleName());
 
-        for (TokenType tokenType : tokens) {
-            BlockingTokenWorker tokenWorker = tokenWorkers.get(tokenType.getId());
+        for (TokenDefinition tokenDefinition : tokens) {
+            AbstractTokenWorker tokenWorker = tokenWorkers.get(tokenDefinition.getId());
             if (tokenWorker == null) {
-                log.debug("Adding new token '{}#{}'", tokenType.getModuleType(), tokenType.getId());
-                tokenWorker = new BlockingTokenWorker(createWorker(getTokenInfo(tokenType), tokenType));
+                log.debug("Adding new token '{}#{}'", tokenDefinition.moduleType(), tokenDefinition.getId());
+                tokenWorker = createWorker(getTokenInfo(tokenDefinition), tokenDefinition);
                 tokenWorker.start();
             } else if (reload) {
                 tokenWorker.reload();
             }
 
             tokenWorker.refresh();
-            newTokens.put(tokenType.getId(), tokenWorker);
+            newTokens.put(tokenDefinition.getId(), tokenWorker);
         }
 
         final var oldTokenWorkers = tokenWorkers;
@@ -124,12 +126,12 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         stopLostTokenWorkers(oldTokenWorkers, tokens);
     }
 
-    private void stopLostTokenWorkers(Map<String, BlockingTokenWorker> oldTokens, List<TokenType> newTokens) {
+    private void stopLostTokenWorkers(Map<String, AbstractTokenWorker> oldTokens, List<TokenDefinition> newTokens) {
         final Set<String> moduleTypes = newTokens.stream()
-                .map(TokenType::getId)
+                .map(TokenDefinition::getId)
                 .collect(Collectors.toSet());
 
-        for (Map.Entry<String, BlockingTokenWorker> entry : oldTokens.entrySet()) {
+        for (Map.Entry<String, AbstractTokenWorker> entry : oldTokens.entrySet()) {
             if (!moduleTypes.contains(entry.getKey())) {
                 try {
                     log.trace("Stopping token worker for module '{}'", entry.getKey());
@@ -141,15 +143,15 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         }
     }
 
-    private static TokenInfo getTokenInfo(TokenType tokenType) {
-        TokenInfo info = TokenManager.getTokenInfo(tokenType.getId());
+    private TokenInfo getTokenInfo(TokenDefinition tokenDefinition) {
+        TokenInfo info = tokenLookup.getTokenInfo(tokenDefinition.getId());
 
         if (info != null) {
-            TokenManager.setTokenAvailable(tokenType, true);
+            tokenManager.enableToken(tokenDefinition);
 
             return info;
         } else {
-            return TokenManager.createToken(tokenType);
+            return tokenManager.createToken(tokenDefinition);
         }
     }
 }

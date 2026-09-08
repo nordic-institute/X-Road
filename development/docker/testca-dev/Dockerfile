@@ -1,0 +1,75 @@
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}ubuntu:26.04
+
+ARG XROAD_MIRROR_URL
+ARG XROAD_MIRROR_USER
+
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
+
+# ACME
+ARG A2C_VER=0.42.1
+ARG A2C_DEB_RELEASE=2
+ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb /tmp/
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    ca-certificates supervisor nginx python3 python3-pip \
+    uwsgi uwsgi-plugin-python3 curl nano \
+  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-${A2C_DEB_RELEASE}_all.deb \
+  && apt-get clean
+
+#Setup TEST-CA with TSA and OCSP
+RUN useradd -m ca -U \
+  && useradd -G ca ocsp
+
+COPY files/home /home
+COPY files/etc /etc
+
+RUN chown -R ca:ca /home/ca/CA \
+  && find /home/ca/TSA -type f -exec chmod 0664 {} + \
+  && find /home/ca/CA -type f -exec chmod 0740 {} + \
+  && mkdir -p /var/log/ \
+  && touch /var/log/ocsp.log \
+  && chown ca:ca /var/log/ocsp.log \
+  && chmod 0664 /var/log/ocsp.log \
+  && chmod 0774 /home/ca/CA/newcerts \
+  && chmod 0754 /home/ca/CA/ca.py \
+  && chmod 0754 /home/ca/CA/sign_req.sh \
+  && chmod 0664 /home/ca/CA/index.txt \
+  && chmod 0664 /home/ca/CA/serial
+
+#Setup ACME2Certifier
+RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
+    && sed -i "s/80/8887/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
+    && cp /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf /etc/nginx/sites-available/acme_srv.conf \
+    && ln -s /etc/nginx/sites-available/acme_srv.conf /etc/nginx/sites-enabled/acme_srv.conf \
+    && sed -i "s/\/run\/uwsgi\/acme.sock/acme.sock/g" /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
+    && sed -i "s/nginx/www-data/g" /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
+    && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
+    && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
+    && sed -i s/level=log_mode\)/level=log_mode,filename=\'logs\\/a2c_logs\'\)/g /var/www/acme2certifier/acme_srv/helpers/logging_utils.py \
+    && mkdir -p /var/www/acme2certifier/logs \
+    && chown -R www-data:www-data /var/www/acme2certifier/logs \
+    && usermod -a -G ca www-data
+
+# Canonical ACME overlay from development/acme2certifier/, staged by init_context.sh.
+COPY --chown=www-data:www-data build/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
+COPY --chown=www-data:www-data build/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
+COPY --chown=www-data:www-data build/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+COPY --chown=www-data:www-data build/acme2certifier/renewalinfo.py /var/www/acme2certifier/acme_srv/renewalinfo.py
+
+COPY files/ca-entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+
+COPY --chown=root:root files/ca-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# Cleanup mirror configuration (restore public mirrors for published image)
+RUN --mount=type=bind,from=mirror-scripts,source=cleanup-mirror-apt.sh,target=/tmp/cleanup-mirror-apt.sh \
+    /bin/bash /tmp/cleanup-mirror-apt.sh
+
+CMD ["/root/entrypoint.sh"]
+
+EXPOSE 8887 8888 8899

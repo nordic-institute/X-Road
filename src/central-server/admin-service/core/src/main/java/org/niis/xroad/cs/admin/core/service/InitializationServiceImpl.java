@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
@@ -35,6 +33,7 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
@@ -47,6 +46,7 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
+import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioningWorker;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -84,6 +84,7 @@ public class InitializationServiceImpl implements InitializationService {
     private final AuditDataHelper auditDataHelper;
     private final HAConfigStatus currentHaConfigStatus;
     private final ExternalProcessRunner externalProcessRunner;
+    private final DataspaceIssuerProvisioningWorker dataspaceIssuerProvisioningWorker;
     @Value("${script.generate-gpg-keypair.path}")
     private final String generateKeypairScriptPath;
     @Value("${gpgkeys.gpghome}")
@@ -142,8 +143,8 @@ public class InitializationServiceImpl implements InitializationService {
             try {
                 signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
             } catch (Exception e) {
-                if (e instanceof CodedException ce
-                        && ce.getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
+                if (e instanceof XrdRuntimeException ce
+                        && ce.getErrorCode().contains(ErrorCode.TOKEN_PIN_POLICY_FAILURE.code())) {
                     log.warn("Signer saw Token pin policy failure, remember to restart also the central server after "
                             + "configuring policy enforcement", e);
                     throw new BadRequestException(INIT_SIGNER_PIN_POLICY_FAILED.build());
@@ -154,6 +155,7 @@ public class InitializationServiceImpl implements InitializationService {
         }
 
         generateGPGKeyPair(systemParameterService.getInstanceIdentifier());
+        dataspaceIssuerProvisioningWorker.provisionAsync();
     }
 
     private void initializeCsSystemParameters() {

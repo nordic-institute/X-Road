@@ -34,12 +34,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 
 @Slf4j
 public class ClientEnableRequestCallback extends BaseClientRequestCallback<ClientRequestType> {
 
-    public ClientEnableRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(globalConfProvider, rootCallback, ManagementRequestType.CLIENT_ENABLE_REQUEST);
+    public ClientEnableRequestCallback(GlobalConfProvider globalConfProvider, OcspVerifierFactory ocspVerifierFactory,
+                                       ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(globalConfProvider, ocspVerifierFactory, rootCallback, ManagementRequestType.CLIENT_ENABLE_REQUEST);
     }
 
     @Override

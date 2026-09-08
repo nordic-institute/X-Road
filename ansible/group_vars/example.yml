@@ -1,2 +1,0 @@
-# see roles/xroad-ca/defaults/main.yml for other CA-related parameters
-xroad_ca_o: "Xroad Test Organization X"

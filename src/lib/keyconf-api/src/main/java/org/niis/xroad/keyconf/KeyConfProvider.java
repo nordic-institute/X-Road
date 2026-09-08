@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.keyconf;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.keyconf.dto.AuthKey;
 
 import java.io.IOException;
@@ -38,6 +37,8 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.CANNOT_CREATE_SIGNATURE;
 
 /**
  * Declares methods for accessing key configuration.
@@ -85,7 +86,7 @@ public interface KeyConfProvider {
         }
 
         if (!missingResponses.isEmpty()) {
-            throw new CodedException(ErrorCodes.X_CANNOT_CREATE_SIGNATURE,
+            throw XrdRuntimeException.systemException(CANNOT_CREATE_SIGNATURE,
                     "Could not get OCSP responses for certificates (%s)",
                     missingResponses);
         }
@@ -108,6 +109,14 @@ public interface KeyConfProvider {
      */
     default void destroy() {
         //NOP
+    }
+
+    default void addChangeListener(KeyConfChangeListener listener) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    interface KeyConfChangeListener {
+        void keyConfChanged();
     }
 
 }

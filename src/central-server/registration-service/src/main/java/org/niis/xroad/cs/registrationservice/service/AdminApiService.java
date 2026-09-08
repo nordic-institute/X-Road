@@ -28,6 +28,8 @@ package org.niis.xroad.cs.registrationservice.service;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
 /**
  * Interface to the Central server admin API
  */
@@ -38,7 +40,7 @@ public interface AdminApiService {
      * @param address server address
      * @param certificate X.509 authentication certificate in encoded form
      * @return registration request id
-     * @throws ee.ria.xroad.common.CodedException in case the request fails
+     * @throws XrdRuntimeException in case the request fails
      */
     int addRegistrationRequest(SecurityServerId serverId, String address, byte[] certificate);
 }

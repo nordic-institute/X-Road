@@ -31,9 +31,12 @@ import org.niis.xroad.restapi.mapper.ApiKeyMapper;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.API_KEY_ENCODER;
 
 /**
  * AuthenticationHelper class.
@@ -48,7 +51,9 @@ public class ApiKeyAuthenticationHelper {
     private final ApiKeyMapper apiKeyMapper;
 
     @Autowired
-    public ApiKeyAuthenticationHelper(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository, ApiKeyMapper apiKeyMapper) {
+    public ApiKeyAuthenticationHelper(@Qualifier(API_KEY_ENCODER) PasswordEncoder passwordEncoder,
+                                      ApiKeyRepository apiKeyRepository,
+                                      ApiKeyMapper apiKeyMapper) {
         this.passwordEncoder = passwordEncoder;
         this.apiKeyRepository = apiKeyRepository;
         this.apiKeyMapper = apiKeyMapper;

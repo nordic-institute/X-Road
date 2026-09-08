@@ -1,0 +1,3 @@
+org.niis.xroad.ds.issuance.membership.XRoadMembershipAttestationExtension
+org.niis.xroad.ds.issuance.membership.XRoadDcpHolderTokenVerifierExtension
+org.niis.xroad.ds.issuance.web.XRoadIssuerRequestHeaderSizeExtension

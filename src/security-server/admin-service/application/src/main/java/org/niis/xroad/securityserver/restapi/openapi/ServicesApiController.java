@@ -34,7 +34,6 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.securityserver.restapi.converter.EndpointConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
@@ -95,19 +94,14 @@ public class ServicesApiController implements ServicesApi {
     public ResponseEntity<ServiceDto> updateService(String id, ServiceUpdateDto serviceUpdateDto) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
-        ServiceDto updatedService;
         boolean ignoreWarnings = serviceUpdateDto.getIgnoreWarnings();
-        try {
-            updatedService = serviceConverter.convert(
-                    serviceService.updateService(clientId, fullServiceCode,
-                            serviceUpdateDto.getUrl(), serviceUpdateDto.getUrlAll(),
-                            serviceUpdateDto.getTimeout(), serviceUpdateDto.getTimeoutAll(),
-                            Boolean.TRUE.equals(serviceUpdateDto.getSslAuth()), serviceUpdateDto.getSslAuthAll(),
-                            ignoreWarnings),
-                    clientId);
-        } catch (UnhandledWarningsException e) {
-            throw new BadRequestException(e);
-        }
+        ServiceDto updatedService = serviceConverter.convert(
+                serviceService.updateService(clientId, fullServiceCode,
+                        serviceUpdateDto.getUrl(), serviceUpdateDto.getUrlAll(),
+                        serviceUpdateDto.getTimeout(), serviceUpdateDto.getTimeoutAll(),
+                        Boolean.TRUE.equals(serviceUpdateDto.getSslAuth()), serviceUpdateDto.getSslAuthAll(),
+                        ignoreWarnings),
+                clientId);
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 

@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.ServicePrioritizationStrategy;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
@@ -165,7 +165,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     @WithMockUser(authorities = {"VIEW_APPROVED_CERTIFICATE_AUTHORITIES"})
     public void getOcspPrioritizationStrategy() {
         when(certificateAuthorityService.getOcspPrioritizationStrategy())
-                .thenReturn(SystemProperties.ServicePrioritizationStrategy.ONLY_PAID);
+                .thenReturn(ServicePrioritizationStrategy.ONLY_PAID);
 
         ResponseEntity<ServicePrioritizationStrategyDto> response = caController.getOcspPrioritizationStrategy();
         assertEquals(HttpStatus.OK, response.getStatusCode());

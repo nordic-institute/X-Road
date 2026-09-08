@@ -1,0 +1,10 @@
+---
+database_host: "127.0.0.1:5432"
+database_admin_password: ""
+mask_local_postgresql: true
+
+enable_postgres_remote_access: true
+pg_remote_dev_cidrs:
+  - "10.0.0.0/8"        # LXD bridge + any 10.x private net
+  - "172.16.0.0/12"     # Docker default + private nets
+  - "192.168.0.0/16"    # Lima socket_vmnet + home LANs

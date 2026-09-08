@@ -1,0 +1,532 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.confclient.common.service;
+
+import lombok.Getter;
+import lombok.SneakyThrows;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.assertj.core.api.AssertionsForClassTypes;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.confclient.common.config.ConfigurationClientConfig;
+import org.niis.xroad.confclient.common.domain.Configuration;
+import org.niis.xroad.confclient.common.domain.ConfigurationFile;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static ee.ria.xroad.common.TestExceptionUtils.xrdRuntimeException;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
+/**
+ * Tests for configuration downloader
+ */
+@ExtendWith(MockitoExtension.class)
+class ConfigurationDownloaderTest {
+    private static final int MAX_ATTEMPTS = 5;
+    private static final String LOCATION_URL_SUCCESS = "http://x-road.global/";
+    private static final String LOCATION_HTTPS_URL_SUCCESS = "https://x-road.global/";
+
+    @TempDir
+    File tempDir;
+    @Mock
+    ConfigurationClientConfig clientProperties;
+
+    /**
+     * For better HA, the order of sources to be tried to download configuration
+     * from, must be random.
+     */
+    @Test
+    void downloadConfigurationFilesInRandomOrder() {
+        // We need multiple attempts as shuffling may give original order
+        // sometimes.
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+            try {
+                executeDownload();
+
+                break;
+            } catch (AssertionError e) {
+                if (haveMoreAttempts(i)) {
+                    continue;
+                }
+
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Checks if last successful download location is remembered correctly so
+     * that configuration per location is downloaded from where the last
+     * successful download was done.
+     */
+    @Test
+    void rememberLastSuccessfulDownloadLocation() {
+        int version = 3;
+        // We loop in order to make failing due to wrong URL more certain.
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+            // Given
+            ConfigurationDownloader downloader = getDownloader(version, LOCATION_HTTPS_URL_SUCCESS + "?version=" + version);
+            List<String> locationUrls = getMixedLocationUrls();
+
+            // When
+            downloader.download(getSource(locationUrls));
+            resetParser(downloader);
+            downloader.download(getSource(locationUrls));
+
+            // Then
+            verifyOnlyOneSuccessfulLocation(downloader, version);
+        }
+    }
+
+    @Test
+    void downloaderConnectionsTimeout() throws IOException {
+        when(clientProperties.downloaderReadTimeout()).thenReturn(30000);
+        when(clientProperties.downloaderConnectTimeout()).thenReturn(20000);
+
+        URLConnection connection = getDownloader().getDownloadURLConnection(
+                createURL("http://test.download.com"));
+        assertEquals(20000, connection.getConnectTimeout());
+        assertEquals(30000, connection.getReadTimeout());
+        assertTrue(connection.getConnectTimeout() > 0);
+        assertTrue(connection.getReadTimeout() > 0);
+    }
+
+    @Test
+    void connectionShouldWorkAfterDisablingTlsCertificationAndHostnameVerification() throws IOException {
+        when(clientProperties.globalConfHostnameVerification()).thenReturn(false);
+        when(clientProperties.globalConfTlsCertVerification()).thenReturn(false);
+
+        HttpsURLConnection connection =
+                (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationLocationTest.com"));
+        assertEquals("NO_OP", connection.getHostnameVerifier().toString());
+    }
+
+    @Test
+    void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
+        when(clientProperties.globalConfHostnameVerification()).thenReturn(false);
+        HttpsURLConnection connection =
+                (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationDownloaderTest.com"));
+        AssertionsForClassTypes.assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    void downloaderWithDefaultHostnameVerifier() throws IOException {
+        when(clientProperties.globalConfHostnameVerification()).thenReturn(true);
+        HttpsURLConnection connection =
+                (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationDownloaderTest.com"));
+        AssertionsForClassTypes.assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
+        AssertionsForClassTypes.assertThat(connection.getHostnameVerifier()).isNotInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    void twoPartsResolvingToSameTargetAreRejected() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    @Test
+    void duplicateTargetRejectionLeavesNoPartialWriteOnDisk() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, "content-a".getBytes()),
+                new ConfigurationDownloader.DownloadedContent(partB, "content-b".getBytes())
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+
+        AssertionsForClassTypes.assertThat(new File(tempDir, "EE/custom.xml")).doesNotExist();
+    }
+
+    @Test
+    void blankInstancePartIsSkippedAndValidPartsStillDownload() {
+        ConfigurationDownloader downloader = getContentStubbingDownloader(3);
+        Configuration configuration = new Configuration(
+                new ConfigurationLocation("EE", LOCATION_HTTPS_URL_SUCCESS, List.of()));
+        configuration.getFiles().add(genericPartWithInstance("/good.xml", "EE"));
+        configuration.getFiles().add(genericPart("/bad.xml"));
+
+        List<ConfigurationDownloader.DownloadedContent> result = downloader.downloadAllContent(configuration);
+
+        assertEquals(1, result.size());
+        assertEquals("/good.xml", result.getFirst().file.getContentLocation());
+    }
+
+    @Test
+    void relativeContentLocationResolvesAgainstSourceUrl() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("files/part.xml");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs.x-road.global/files/part.xml");
+    }
+
+    @Test
+    void rootRelativeContentLocationResolvesToSourceOrigin() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("/V2/fi/shared-params.xml");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs.x-road.global/V2/fi/shared-params.xml");
+    }
+
+    @Test
+    void absoluteCrossHostContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://169.254.169.254/latest/meta-data/");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    @Test
+    void absoluteSameHostDifferentPortContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs:80/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://cs:9000/x");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    @Test
+    void absoluteSameOriginWithImplicitDefaultPortIsAllowed() throws Exception {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("http://cs:80/x");
+
+        URL result = ConfigurationDownloader.getDownloadURL(location, file);
+
+        assertThat(result.toString()).isEqualTo("http://cs:80/x");
+    }
+
+    @Test
+    void sameHostDifferentSchemeContentLocationIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("https://cs.x-road.global/x");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    @Test
+    void nonHttpSchemeContentLocationWithNoHostIsRejected() {
+        ConfigurationLocation location = new ConfigurationLocation("EE", "http://cs.x-road.global/internalconf", new ArrayList<>());
+        ConfigurationFile file = genericPart("file:///etc/passwd");
+
+        assertThatThrownBy(() -> ConfigurationDownloader.getDownloadURL(location, file))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_INVALID_CONTENT_LOCATION));
+    }
+
+    private static ConfigurationFile genericPart(String contentLocation) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private ConfigurationDownloader getContentStubbingDownloader(int confVersion) {
+        when(clientProperties.globalConfDir()).thenReturn(tempDir.getAbsolutePath());
+        var connectionConfigurer = new HttpUrlConnectionConfigurer(clientProperties);
+        return new ConfigurationDownloader(connectionConfigurer, clientProperties.globalConfDir(), confVersion) {
+            @Override
+            protected byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) {
+                return "content".getBytes();
+            }
+
+            @Override
+            void verifyContent(byte[] content, ConfigurationFile file) {
+                // downloaded content is synthetic in this test; hash verification is exercised elsewhere
+            }
+        };
+    }
+
+    @Test
+    void duplicateTargetIsRejectedCaseInsensitively() {
+        ConfigurationDownloader downloader = getDownloader(3, LOCATION_HTTPS_URL_SUCCESS + "?version=3");
+        ConfigurationFile partA = genericPartWithInstance("/dir-a/Custom.xml", "EE");
+        ConfigurationFile partB = genericPartWithInstance("/dir-b/custom.xml", "EE");
+
+        List<ConfigurationDownloader.DownloadedContent> contents = List.of(
+                new ConfigurationDownloader.DownloadedContent(partA, new byte[0]),
+                new ConfigurationDownloader.DownloadedContent(partB, new byte[0])
+        );
+
+        assertThatThrownBy(() -> downloader.persistAllContent(contents))
+                .is(xrdRuntimeException(ErrorCode.GLOBAL_CONF_PART_DUPLICATE_TARGET));
+    }
+
+    private static ConfigurationFile genericPartWithInstance(String contentLocation, String instance) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HEADER_CONTENT_TYPE, "application/octet-stream");
+        headers.put(HEADER_CONTENT_TRANSFER_ENCODING, "base64");
+        headers.put(HEADER_CONTENT_LOCATION, contentLocation);
+        headers.put(HEADER_HASH_ALGORITHM_ID, "http://www.w3.org/2001/04/xmlenc#sha512");
+        headers.put(HEADER_CONTENT_IDENTIFIER, "GENERIC; instance='%s'".formatted(instance));
+        return ConfigurationFile.of(headers, OffsetDateTime.MAX, "2", "hash");
+    }
+
+    private void resetParser(ConfigurationDownloader downloader) {
+        getParser(downloader).reset();
+    }
+
+    private void verifyOnlyOneSuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
+        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
+
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+    }
+
+    private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
+        return new TypeSafeMatcher<>() {
+            @Override
+            protected boolean matchesSafely(List<String> parsedUrls) {
+                return parsedUrls.size() == 1
+                        && parsedUrls.contains(url + "?version=" + version);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Only one successful URL contained");
+            }
+        };
+    }
+
+    private void executeDownload() {
+        // Given
+        ConfigurationDownloader downloader = getDownloader(3);
+        List<String> locationUrls = getAllFailedLocationUrls();
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        List<String> expectedLocationUrls = locationUrls.stream()
+                .map(url -> url + "?version=" + downloader.getConfigurationVersion())
+                .toList();
+        verifyLocationsRandomizedPreferHttps(downloader, expectedLocationUrls);
+    }
+
+    private void verifyLocationsRandomizedPreferHttps(
+            ConfigurationDownloader downloader, List<String> locationUrls) {
+        List<String> urlsParsedInOrder =
+                getParser(downloader).getConfigurationUrls();
+
+        assertTrue(locationUrls.getFirst().startsWith("http:"));
+        assertTrue(urlsParsedInOrder.getFirst().startsWith("https"));
+        MatcherAssert.assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
+        MatcherAssert.assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
+    }
+
+    private TestConfigurationParser getParser(ConfigurationDownloader downloader) {
+        return (TestConfigurationParser) downloader.getParser();
+    }
+
+    private boolean haveMoreAttempts(int attemptNo) {
+        return attemptNo < MAX_ATTEMPTS - 1;
+    }
+
+    private Matcher<List<String>> sameUrlsAreContained(
+            final List<String> locationUrls) {
+        return new TypeSafeMatcher<>() {
+            @Override
+            protected boolean matchesSafely(List<String> parsedUrls) {
+                return locationUrls.size() == parsedUrls.size()
+                        && locationUrls.containsAll(parsedUrls);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Same size and same items contained");
+            }
+        };
+    }
+
+    private Matcher<List<String>> urlsAreInDifferentOrder(
+            final List<String> locationUrls) {
+        return new TypeSafeMatcher<>() {
+            @Override
+            protected boolean matchesSafely(List<String> parsedUrls) {
+                return !locationUrls.equals(parsedUrls);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText(
+                        "Location URLs in different order than parsed.");
+            }
+        };
+    }
+
+    private List<String> getAllFailedLocationUrls() {
+        List<String> result = new ArrayList<>();
+
+        result.add("http://www.example.com/loc1");
+        result.add("http://www.example.com/loc2");
+        result.add("http://www.example.com/loc3");
+        result.add("https://www.example.com/loc1");
+        result.add("https://www.example.com/loc2");
+        result.add("https://www.example.com/loc3");
+
+        return result;
+    }
+
+    private List<String> getMixedLocationUrls() {
+        List<String> result = new ArrayList<>();
+
+        result.add("http://www.example.com/failure1");
+        result.add(LOCATION_URL_SUCCESS);
+        result.add(LOCATION_HTTPS_URL_SUCCESS);
+        result.add("http://www.example.com/failure2");
+
+        return result;
+    }
+
+    private ConfigurationSource getSource(final List<String> locationUrls) {
+        return new TestConfigurationSource(locationUrls);
+    }
+
+
+    private ConfigurationDownloader getDownloader() {
+        return getDownloader(5, LOCATION_HTTPS_URL_SUCCESS + "?version=5");
+    }
+
+    private ConfigurationDownloader getDownloader(int confVersion, String... successfulLocationUrls) {
+        when(clientProperties.globalConfDir()).thenReturn(tempDir.getAbsolutePath());
+        var connectionConfigurer = new HttpUrlConnectionConfigurer(clientProperties);
+        return new ConfigurationDownloader(connectionConfigurer, clientProperties.globalConfDir(), confVersion) {
+
+            final ConfigurationParser parser = new TestConfigurationParser(this, successfulLocationUrls);
+
+            @Override
+            protected ConfigurationParser getParser() {
+                return parser;
+            }
+        };
+    }
+
+    @SneakyThrows
+    private URL createURL(String url) {
+        return URI.create(url).toURL();
+    }
+
+    private record TestConfigurationSource(List<String> locationUrls) implements ConfigurationSource {
+
+        @Override
+        public String getInstanceIdentifier() {
+            return "EE";
+        }
+
+        @Override
+        public List<ConfigurationLocation> getLocations() {
+            List<ConfigurationLocation> result =
+                    new ArrayList<>(locationUrls.size());
+
+            locationUrls.forEach(url -> result.add(getLocation(url)));
+
+            return result;
+        }
+
+        private ConfigurationLocation getLocation(String url) {
+            return new ConfigurationLocation(this.getInstanceIdentifier(), url, new ArrayList<>());
+        }
+    }
+
+    private static class TestConfigurationParser extends ConfigurationParser {
+
+        @Getter
+        private List<String> configurationUrls = new ArrayList<>();
+        private final List<String> successfulDownloadUrls;
+
+        TestConfigurationParser(ConfigurationDownloader configurationDownloader, String... successfulDownloadUrls) {
+            super(configurationDownloader);
+            this.successfulDownloadUrls = Arrays.asList(successfulDownloadUrls);
+        }
+
+        @Override
+        public Configuration parse(ConfigurationLocation location,
+                                   String... contentIdentifiersToBeHandled) {
+            // For checking the order later.
+            String downloadUrl = location.getDownloadURL();
+            configurationUrls.add(downloadUrl);
+
+            if (!successfulDownloadUrls.contains(downloadUrl)) {
+                throw new RuntimeException("Do not let it download actually");
+            }
+
+            return new Configuration(location);
+        }
+
+        void reset() {
+            configurationUrls = new ArrayList<>();
+        }
+    }
+}

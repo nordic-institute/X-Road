@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.getCenterTrustedAnchorsAllowed;
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -66,6 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final SystemParameterService systemParameterService;
+    private final AdminServiceProperties adminServiceProperties;
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalConfGenerationStatusService globalConfGenerationStatus;
 
@@ -84,7 +85,7 @@ public class NotificationServiceImpl implements NotificationService {
         if (isInitialized(tokens)) {
             alerts.addAll(checkGlobalConfGenerationStatus());
             alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_INTERNAL, tokens));
-            if (getCenterTrustedAnchorsAllowed()) {
+            if (adminServiceProperties.isTrustedAnchorsAllowed()) {
                 alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_EXTERNAL, tokens));
             }
         }

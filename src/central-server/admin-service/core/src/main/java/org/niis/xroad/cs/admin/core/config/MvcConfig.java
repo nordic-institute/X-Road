@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
+import org.niis.xroad.restapi.auth.securityconfigurer.CspNonceResourceTransformer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -57,7 +58,10 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        addResourceLocationMapping(registry, "/index.html", RESOURCE_ROOT, false);
+        registry.addResourceHandler("/index.html")
+                .addResourceLocations(RESOURCE_ROOT)
+                .resourceChain(false)
+                .addTransformer(new CspNonceResourceTransformer());
         addResourceLocationMapping(registry, "/favicon.ico", RESOURCE_ROOT, true);
         addResourceLocationMapping(registry, "/css/**", RESOURCE_ROOT + "css/", true);
         addResourceLocationMapping(registry, "/img/**", RESOURCE_ROOT + "img/", true);

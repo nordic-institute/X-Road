@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jboss-test-logging-conventions")
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -30,7 +31,6 @@ dependencies {
   "xjc"(libs.bundles.jaxb)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.junit.jupiter.params)
 }
 
 tasks.register("createDirs") {
@@ -124,6 +124,14 @@ tasks.register("xjc") {
         "destdir" to schemaTargetDir,
         "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v6",
         "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v6/shared-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for federateable global external conf v7
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v7",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v7/shared-parameters.xsd",
         "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
       )
     }

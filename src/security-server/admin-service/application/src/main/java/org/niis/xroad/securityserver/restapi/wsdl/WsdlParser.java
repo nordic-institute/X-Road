@@ -30,10 +30,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.securityserver.restapi.config.ClientSslKeyManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -42,10 +40,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
@@ -69,10 +63,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -129,15 +119,17 @@ public final class WsdlParser {
             throw new WsdlNotFoundException(e);
         } catch (Exception e) {
             log.error("Reading WSDL from {} failed", wsdlUrl, e);
-            throw new WsdlParseException(clarifyWsdlParsingException(e));
+            throw new WsdlParseException(clarifyWsdlParsingException(unwrapOriginalCause(e)));
         }
+    }
+
+    private static Exception unwrapOriginalCause(Exception e) {
+        return e instanceof XrdRuntimeException && e.getCause() instanceof Exception cause ? cause : e;
     }
 
     private static Exception clarifyWsdlParsingException(Exception e) {
         if (identicalOperationsUnderSamePort(e)) {
-            return XrdRuntimeException.businessException(ErrorCode.INTERNAL_ERROR)
-                    .details("WSDL violates specification: " + e.getMessage())
-                    .build();
+            return XrdRuntimeException.systemInternalError("WSDL violates specification: " + e.getMessage());
         }
 
         return e;
@@ -150,19 +142,9 @@ public final class WsdlParser {
 
     }
 
-    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws WSDLException {
+    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) {
         log.info("running WSDL parser");
-        WSDLFactory wsdlFactory = WSDLFactory.newInstance(
-                "com.ibm.wsdl.factory.WSDLFactoryImpl");
-
-        WSDLReader wsdlReader = wsdlFactory.newWSDLReader();
-        wsdlReader.setFeature("javax.wsdl.importDocuments", false);
-        wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
-
-        Definition definition =
-                wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
-
-        Collection<Service> services = definition.getServices().values();
+        Collection<Service> services = getServices(wsdlUrl);
 
         Map<String, ServiceInfo> result = new HashMap<>();
 
@@ -187,6 +169,25 @@ public final class WsdlParser {
 
         return result.values();
     }
+
+    private Collection<Service> getServices(String wsdlUrl) {
+        try {
+            WSDLFactory wsdlFactory = WSDLFactory.newInstance(
+                    "com.ibm.wsdl.factory.WSDLFactoryImpl");
+
+            WSDLReader wsdlReader = wsdlFactory.newWSDLReader();
+            wsdlReader.setFeature("javax.wsdl.importDocuments", false);
+            wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
+
+            Definition definition =
+                    wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
+
+            return definition.getServices().values();
+        } catch (WSDLException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
 
     private static boolean hasSoapOverHttpBinding(Port port) {
         for (ExtensibilityElement ext : (List<ExtensibilityElement>) port.getBinding().getExtensibilityElements()) {
@@ -360,36 +361,8 @@ public final class WsdlParser {
             // no-op
         }
 
-        private void configureHttps(HttpsURLConnection conn) throws NoSuchAlgorithmException, KeyManagementException {
-            TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-
-                        @Override
-                        @SuppressWarnings("java:S4830") // Won't fix: Works as designed
-                        // ("Server certificates should be verified")
-                        public void checkClientTrusted(
-                                X509Certificate[] certs, String authType) {
-                            // never called as used by client
-                        }
-
-                        @Override
-                        @SuppressWarnings("java:S4830") // Won't fix: Works as designed
-                        // ("Server certificates should be verified")
-                        public void checkServerTrusted(
-                                X509Certificate[] certs, String authType) {
-                            // trust all
-                        }
-                    }
-            };
-
-            SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-            ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, trustAllCerts, new SecureRandom());
-
-            conn.setSSLSocketFactory(ctx.getSocketFactory());
+        private void configureHttps(HttpsURLConnection conn) {
+            conn.setSSLSocketFactory(WsdlSslContextFactory.trustAllSslSocketFactory(CryptoUtils.SSL_PROTOCOL, serverConfProvider));
             conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
         }
     }

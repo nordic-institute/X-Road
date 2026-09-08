@@ -26,11 +26,13 @@
  */
 package org.niis.xroad.common.managementrequest.model;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.MultipartOutputStream;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,10 +40,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class AuthCertRegWithoutCertRequest extends AuthCertRegRequest {
-    public AuthCertRegWithoutCertRequest(SignerRpcClient signerRpcClient, byte[] authCert,
-                                         ClientId owner,
-                                         SoapMessageImpl request) {
-        super(signerRpcClient, authCert, owner, request);
+    public AuthCertRegWithoutCertRequest(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                                         byte[] authCert, ClientId owner, SoapMessageImpl request,
+                                         DigestAlgorithm signatureDigestAlgorithm) {
+        super(signerRpcClient, signerSignClient, authCert, owner, request, signatureDigestAlgorithm);
     }
 
     @Override

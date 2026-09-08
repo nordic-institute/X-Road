@@ -70,11 +70,7 @@ export const useClient = defineStore('client', {
         this.pagingOptions = resp.data.paging_metadata;
       });
     },
-    getByExcludingGroup(
-      groupId: string,
-      query: string | null,
-      dataOptions: PagingOptions,
-    ) {
+    getByExcludingGroup(groupId: string, query: string | null, dataOptions: PagingOptions) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: unknown = {
         excluding_group: groupId,
@@ -91,11 +87,7 @@ export const useClient = defineStore('client', {
           throw error;
         });
     },
-    getByClientType(
-      clientType: string,
-      query: string | null,
-      dataOptions: DataQuery,
-    ) {
+    getByClientType(clientType: string, query: string | null, dataOptions: DataQuery) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: unknown = {
         client_type: clientType,

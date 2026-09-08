@@ -1,0 +1,259 @@
+{{- define "xroad.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+{{- end }}
+
+{{- define "xroad.volumeName" -}}
+{{- . | trimPrefix "/" | replace "/" "-" -}}
+{{- end }}
+
+
+{{- define "xroad.service" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .service }}
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+spec:
+  ports:
+    {{- if .root.Values.jvmMetrics.enabled }}
+    - port: {{ .root.Values.jvmMetrics.jmxExporter.port }}
+      targetPort: {{ .root.Values.jvmMetrics.jmxExporter.port }}
+      name: jmx-metrics
+    {{- end }}
+    {{- range .config.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .port }}
+      name: {{ .name }}
+    {{- end }}
+    {{- if .config.debugPort }}
+    - port: {{ .config.debugPort }}
+      targetPort: {{ .config.debugPort }}
+      name: debug
+    {{- end }}
+  selector:
+    app: xroad-{{ .service }}
+{{- end }}
+
+{{- define "xroad.deployment" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .service }}
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+spec:
+  replicas: {{ .config.replicas | default 1 }}
+  {{- with .config.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: xroad-{{ .service }}
+  template:
+    metadata:
+      labels:
+        {{- include "xroad.labels" .root | nindent 8 }}
+        app: xroad-{{ .service }}
+    spec:
+      securityContext:
+        {{- toYaml .root.Values.securityContext.pod | nindent 8 }}
+      serviceAccountName: {{ .service }}-sa
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      {{- with .root.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .service }}
+          image: {{ .root.Values.global.image.registry }}/{{ .config.imageName }}:{{ .root.Values.global.image.tag }}
+          imagePullPolicy: {{ .root.Values.global.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .root.Values.securityContext.container | nindent 12 }}
+          ports:
+            {{- if .root.Values.jvmMetrics.enabled }}
+            - containerPort: {{ .root.Values.jvmMetrics.jmxExporter.port }}
+              name: jmx-metrics
+            {{- end }}
+            {{- range .config.ports }}
+            {{- if not .skipContainerPort }}
+            - containerPort: {{ .port }}
+              name: {{ .name }}
+            {{- end }}
+            {{- end }}
+            {{- if .config.debugPort }}
+            - containerPort: {{ .config.debugPort }}
+              name: debug
+            {{- end }}
+          resources:
+            {{- toYaml .config.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ .root.Release.Name }}-{{ .service }}-env
+          env:
+            {{- range .config.envFromSecrets }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .key }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+            {{- if .root.Values.jvmMetrics.enabled }}
+            - mountPath: /opt/jmx-exporter-config.yaml
+              name: jmx-exporter-config
+              subPath: jmx-exporter-config.yaml
+              readOnly: true
+            {{- end}}
+            {{- $skipMounts := .config.skipDefaultMounts | default list }}
+            {{- range .root.Values.writablePaths }}
+            {{- if not (has . $skipMounts) }}
+            - mountPath: {{ . }}
+              name: {{ include "xroad.volumeName" . }}
+            {{- end }}
+            {{- end }}
+            {{- if .config.volumeMounts }}
+            {{- toYaml .config.volumeMounts | nindent 12 }}
+            {{- end }}
+            {{- if .config.extraVolumeMounts }}
+            {{- toYaml .config.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ .config.readinessProbe.path }}
+              port: {{ .config.readinessProbe.port | default (index .config.ports 0).port }}
+              scheme: {{ .config.readinessProbe.scheme | default "HTTP" }}
+            initialDelaySeconds: {{ .config.readinessProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .config.readinessProbe.periodSeconds | default 5 }}
+            timeoutSeconds: {{ .config.readinessProbe.timeoutSeconds | default 1 }}
+            successThreshold: 1
+            failureThreshold: {{ .config.readinessProbe.failureThreshold | default 3 }}
+          {{- if .config.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ .config.livenessProbe.path }}
+              port: {{ .config.livenessProbe.port | default (index .config.ports 0).port }}
+              scheme: {{ .config.livenessProbe.scheme | default "HTTP" }}
+            initialDelaySeconds: {{ .config.livenessProbe.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ .config.livenessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .config.livenessProbe.timeoutSeconds | default 3 }}
+            successThreshold: 1
+            failureThreshold: {{ .config.livenessProbe.failureThreshold | default 3 }}
+          {{- end }}
+        {{- with .config.sidecars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+        {{- if .root.Values.jvmMetrics.enabled }}
+        - name: jmx-exporter-config
+          configMap:
+            name: {{ $.root.Release.Name }}-jmx-exporter-config
+        {{- end }}
+        {{- $skipMounts := .config.skipDefaultMounts | default list }}
+        {{- range .root.Values.writablePaths }}
+        {{- if not (has . $skipMounts) }}
+        - name: {{ include "xroad.volumeName" . }}
+          emptyDir: {}
+        {{- end }}
+        {{- end }}
+        {{- if .config.volumes }}
+        {{- range .config.volumes }}
+        {{- if .persistentVolumeClaim }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ $.root.Release.Name }}-{{ .configMap.name }}
+        {{- else }}
+        - {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if .config.extraVolumes }}
+        {{- range .config.extraVolumes }}
+        {{- if .persistentVolumeClaim }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else if .configMap }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ $.root.Release.Name }}-{{ .configMap.name }}
+        {{- else }}
+        - {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+{{- end }}
+{{- define "xroad.serviceaccount" -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .service }}-sa
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+  {{- with .config.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .service }}-role
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+rules:
+  {{- include "xroad.serviceAccountRules" . | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .service }}-rolebinding
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .service }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .service }}-sa
+    namespace: {{ .root.Release.Namespace }}
+{{- end }}
+{{- define "xroad.serviceAccountRules" -}}
+- apiGroups: [""]
+  resources: ["configmaps", "pods"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames:
+    - {{ printf "%s-common-xroad-config" .root.Release.Name | quote }}
+    - {{ printf "%s-%s-config" .root.Release.Name .service | quote }}
+  verbs: ["get", "watch", "list"]
+{{- if and .config.rbac (hasKey .config.rbac "extraRules") }}
+{{- toYaml .config.rbac.extraRules | nindent 0 }}
+{{- end }}
+{{- end }}

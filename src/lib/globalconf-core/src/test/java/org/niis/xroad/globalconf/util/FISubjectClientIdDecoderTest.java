@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.globalconf.util;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -37,8 +36,8 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -73,11 +72,10 @@ public class FISubjectClientIdDecoderTest {
      * Test decoding client id
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
     @Test
-    public void shouldDecodeClientId() throws GeneralSecurityException, IOException, OperatorCreationException {
+    public void shouldDecodeClientId() throws GeneralSecurityException, OperatorCreationException {
         X509Certificate cert = generateSelfSignedCertificate(
                 "C=FI, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
@@ -95,11 +93,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that decoder fails when empty components are found
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
-    @Test(expected = CodedException.class)
-    public void shouldFailIfEmptyComponents() throws GeneralSecurityException, IOException, OperatorCreationException {
+    @Test(expected = XrdRuntimeException.class)
+    public void shouldFailIfEmptyComponents() throws GeneralSecurityException, OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=///",
                 keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
@@ -109,11 +106,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that decoder fails if there are too many components
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
-    @Test(expected = CodedException.class)
-    public void shouldFailIfTooManyComponents() throws GeneralSecurityException, IOException,
+    @Test(expected = XrdRuntimeException.class)
+    public void shouldFailIfTooManyComponents() throws GeneralSecurityException,
                                                        OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=1/2/3/4",
                 keyPair);
@@ -124,11 +120,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that decoder fails if country code is wrong
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
-    @Test(expected = CodedException.class)
-    public void shouldFailIfCountryDoesNotMatch() throws GeneralSecurityException, IOException,
+    @Test(expected = XrdRuntimeException.class)
+    public void shouldFailIfCountryDoesNotMatch() throws GeneralSecurityException,
                                                          OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate(
                 "C=XX, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB", keyPair);
@@ -139,11 +134,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that decoder fails if organization is missing
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
-    @Test(expected = CodedException.class)
-    public void shouldFailIfOrgMissing() throws GeneralSecurityException, IOException, OperatorCreationException {
+    @Test(expected = XrdRuntimeException.class)
+    public void shouldFailIfOrgMissing() throws GeneralSecurityException, OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate(
                 "C=FI, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB", keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
@@ -159,11 +153,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that legacy format decoding succeeds
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
     @Test
-    public void shouldDecodeClientIdLegacy() throws GeneralSecurityException, IOException, OperatorCreationException {
+    public void shouldDecodeClientIdLegacy() throws GeneralSecurityException, OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=FI-TEST, OU=PUB, CN=1234567-8", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 
@@ -174,11 +167,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that decoder fails if country code does not match
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
-    @Test(expected = CodedException.class)
-    public void shouldFailIfCountryDoesNotMatchLegacy() throws GeneralSecurityException, IOException,
+    @Test(expected = XrdRuntimeException.class)
+    public void shouldFailIfCountryDoesNotMatchLegacy() throws GeneralSecurityException,
                                                                OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=XX, O=FI-TEST, OU=PUB, CN=1234567-8", keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
@@ -205,11 +197,10 @@ public class FISubjectClientIdDecoderTest {
      * Test that FI-DEV stone age decoding succeeds
      *
      * @throws GeneralSecurityException  when security exception occurs
-     * @throws IOException               when I/O error occurs
      * @throws OperatorCreationException when operator creation fails
      */
     @Test
-    public void shouldDecodeClientIdStoneAge() throws GeneralSecurityException, IOException, OperatorCreationException {
+    public void shouldDecodeClientIdStoneAge() throws GeneralSecurityException, OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI-DEV, O=GOV, CN=0245437-2", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
 

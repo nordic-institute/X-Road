@@ -50,12 +50,12 @@ import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
@@ -99,13 +99,13 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.IMPORT_CERT_FILE)
-    public ResponseEntity<TokenCertificateDto> importCertificate(Resource certificateResource) {
+    public ResponseEntity<TokenCertificateDto> importCertificate(MultipartFile file) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
-        String filename = certificateResource.getFilename();
+        String filename = file.getOriginalFilename();
         auditDataHelper.put(RestApiAuditProperty.CERT_FILE_NAME, filename);
 
-        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(certificateResource);
+        byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(file);
         CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificate(certificateBytes);

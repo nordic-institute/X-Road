@@ -24,18 +24,26 @@
  */
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.FilePaths;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 @Component
 @RequiredArgsConstructor
 @Order(DiagnosticCollector.ORDER_GROUP4)
 public class SidecarCollector implements DiagnosticCollector<SidecarCollector.Containerized> {
+
+    private static final String DOCKER_ENV_PATH = "/.dockerenv";
+    private static final String MOUNT_INFO_PATH = "/proc/self/mountinfo";
+    private static final String KUBERNETES_SECRETS_PATH = "/var/run/secrets/kubernetes.io";
+    private static final String KUBERNETES_SERVICE_HOST_KEY = "KUBERNETES_SERVICE_HOST";
 
     @Override
     public String name() {
@@ -44,10 +52,38 @@ public class SidecarCollector implements DiagnosticCollector<SidecarCollector.Co
 
     @Override
     public Containerized collect() {
-        return new Containerized(
-                Paths.get(SystemProperties.getConfPath(), "conf.d", "override-docker.ini").toFile().exists(),
-                Paths.get(SystemProperties.CONF_FILE_NODE).toFile().exists()
-        );
+
+        boolean containerized = dockerEnvExists() || inKubernetes() || checkMountInfo();
+
+        return new Containerized(containerized, Files.exists(FilePaths.NODE_INI_PATH));
+    }
+
+    private static boolean dockerEnvExists() {
+        return Files.exists(Paths.get(DOCKER_ENV_PATH));
+    }
+
+    private static boolean checkMountInfo() {
+        var mountInfo = Paths.get(MOUNT_INFO_PATH);
+        if (!Files.exists(mountInfo)) {
+            return false;
+        }
+        try (var lines = Files.lines(mountInfo)) {
+
+            return lines
+                    .anyMatch(line -> line.contains("/docker/")
+                            || line.contains("/lxd/"));
+
+        } catch (IOException e) {
+            throw XrdRuntimeException.systemException(e);
+        }
+    }
+
+    private static boolean inKubernetes() {
+        if (System.getenv(KUBERNETES_SERVICE_HOST_KEY) != null) {
+            return true;
+        }
+
+        return Files.exists(Paths.get(KUBERNETES_SECRETS_PATH));
     }
 
     public record Containerized(boolean containerized, boolean asNode) {

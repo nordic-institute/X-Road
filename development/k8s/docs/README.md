@@ -1,0 +1,119 @@
+# X-Road k8s Ansible (`niis.xroad_k8s`)
+
+Ansible Collection that spins up a full X-Road stack — Central Server + two Security Servers +
+e2e-fixtures (test CA, mock IS, mailpit, hurl bootstrap) — on a local [KinD](https://kind.sigs.k8s.io/)
+cluster (or a pre-provisioned EKS cluster — see [EKS.md](./EKS.md)). `dev` and `e2e` bring up the
+same in-cluster topology through the same `playbooks/site.yml`, roles and charts, differing only by
+`--env` (inventory/values); there is no external LXD or Docker dependency for either.
+
+## Prerequisites
+
+- Docker Desktop (macOS) or Docker / Podman (Linux)
+- `kind`, `kubectl`, `helm` on PATH
+- Python 3.11+
+- `ansible-core >= 2.20, < 2.21` (installed via `requirements.txt`)
+
+`start-env.sh` provisions these automatically on every run: it creates `.venv/`,
+installs `requirements.txt` (pip) and `requirements.yml` (Ansible collections),
+skipping each install when its requirements file is unchanged. Pass
+`--skip-bootstrap` to opt out (offline / CI).
+
+To provision manually — or when running `ansible-playbook` directly (from
+`development/k8s/`):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+ansible-galaxy collection install -r requirements.yml --force
+```
+
+Keep the venv activated when running ansible-playbook directly. `scripts/env-k8s/_common.sh` auto-activates `.venv/` if present, so new shells don't need the manual `source`.
+
+## Usage
+
+Bring up the dev environment:
+
+```bash
+scripts/env-k8s/start-env.sh --env=dev
+```
+
+Tear it down:
+
+```bash
+scripts/env-k8s/delete-env.sh --env=dev
+```
+
+Restart port-forwards after a `kubectl` hiccup:
+
+```bash
+scripts/env-k8s/port-forward.sh --env=dev
+```
+
+### Scripts
+
+All live under `scripts/env-k8s/`:
+
+| Script | Purpose |
+|---|---|
+| `start-env.sh` | Bring up the full k8s stack (preflight → images → ansible → port-forward) |
+| `delete-env.sh` | Tear down helm releases + optionally delete the KinD cluster |
+| `port-forward.sh` | Start/restart `kubectl port-forward` for 4000, 5500, 5577, 8080, 8443 |
+| `preflight.sh` | Detect missing tooling and print install hints per OS |
+| `dev.sh` | Per-service rebuild + redeploy (`kind load docker-image` + `kubectl rollout restart`) |
+| `lint.sh` | Run `ansible-lint` + `yamllint` |
+
+Image build lives at `scripts/images/build-security-server.sh` — called automatically by `start-env.sh` and `dev.sh`.
+
+### Common flags for `start-env.sh`
+
+- `--env=dev|test|eks|e2e` — target environment (default `dev`)
+- `--recreate` — delete the existing kind cluster before bringing it back up
+- `--skip-images` — don't rebuild the Security Server container images
+- `--skip-forward` — don't start port-forwards
+- `--skip-preflight` — skip tooling check
+- `-e VAR=VAL` — forwarded to `ansible-playbook --extra-vars`
+
+### Dev loop (single-service rebuild + redeploy)
+
+Mirrors `scripts/env-lxd/dev.sh` for the k8s world. Rebuilds one service image, loads it directly into every kind node (bypassing the containerd pull cache), then rolls the matching Deployment.
+
+```bash
+scripts/env-k8s/dev.sh -bdm proxy            # rebuild + redeploy proxy
+scripts/env-k8s/dev.sh -dm proxy-ui-api      # redeploy latest image only (no build)
+scripts/env-k8s/dev.sh -bm signer            # rebuild only, deploy later
+scripts/env-k8s/dev.sh -h                    # help + supported service names
+```
+
+Works against the current kubectl context. For non-`dev` envs (EKS, test-on-Artifactory) the `kind load` step will fail and you should instead push to the target registry.
+
+### Linting
+
+```bash
+scripts/env-k8s/lint.sh                      # ansible-lint + yamllint
+```
+
+## Environments
+
+| Environment | Cluster | Charts | Registry |
+|---|---|---|---|
+| `dev` | KinD `xroad-dev-cluster` | Local charts (`deployment/*/k8s/charts/...`, `development/k8s/charts/...`) | `localhost:5555` (via containerd mirror) |
+| `e2e` | KinD `xroad-e2e-cluster` | Local charts (`deployment/*/k8s/charts/...`, `development/k8s/charts/...`) | `localhost:5555` (via containerd mirror) |
+| `test` | KinD `xroad-test-cluster` | Artifactory `oci://artifactory.niis.org/xroad8-snapshot-helm` | `artifactory.niis.org/xroad8-snapshot-image` |
+| `eks` | Pre-provisioned EKS | Artifactory release OCI repo | ECR |
+
+`dev` and `e2e` deploy the identical topology (Central Server + ss0/ss1 Security Servers +
+e2e-fixtures); `test` and `eks` are Security-Server-only, `test` reaching an external CS/CA/SS0 via
+`external-service-bridge` (to `host.docker.internal`).
+
+Environment-specific values live in `inventory/<env>/group_vars/all.yml`.
+
+## Host OS notes
+
+- **macOS**: Docker Desktop provides `host.docker.internal` natively. Install helpers with `brew install kind kubectl helm`.
+- **Linux**: `host.docker.internal` only resolves if Docker was started with `--add-host=host.docker.internal:host-gateway` (Docker 20.10+). Override `external_service_host` in a local inventory override if needed.
+
+## Related docs
+
+- [EKS.md](./EKS.md) — EKS deployment guide

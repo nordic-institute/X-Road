@@ -25,17 +25,7 @@
  * THE SOFTWARE.
  */
 import { configure, defineRule } from 'vee-validate';
-import {
-  between,
-  is,
-  max,
-  min,
-  required,
-  url,
-  one_of,
-  email,
-  confirmed,
-} from '@vee-validate/rules';
+import { between, confirmed, email, is, max, min, one_of, required, url } from '@vee-validate/rules';
 import { isIP } from 'is-ip';
 import { i18n } from '@niis/shared-ui';
 import * as Helpers from '@niis/shared-ui';
@@ -75,8 +65,7 @@ export function createValidators() {
               break;
             }
           }
-
-          return t(`validation.messages.${ctx.rule?.name}`, args) as string;
+          return i18n.global.t(`validation.messages.${ctx.rule?.name}`, args) as string;
         },
       });
 
@@ -98,7 +87,7 @@ export function createValidators() {
         }
         if (/[^a-zA-Z\d-.]/.test(value)) {
           const field = t('fields.' + ctx.field);
-          return t('validation.messages.address', { field });
+          return i18n.global.t('validation.messages.address', { field });
         }
         return true;
       });
@@ -108,7 +97,7 @@ export function createValidators() {
           return true;
         }
         if (/[^a-zA-Z0-9\-_,.;:!? ]/.test(value)) {
-          return t('customValidation.description');
+          return i18n.global.t('customValidation.description');
         }
         return true;
       });
@@ -128,7 +117,7 @@ export function createValidators() {
         }
         for (const ipAddress of value.split(',')) {
           if (!isIP(ipAddress.trim())) {
-            return t('customValidation.invalidIpAddress');
+            return i18n.global.t('customValidation.invalidIpAddress');
           }
         }
         return true;

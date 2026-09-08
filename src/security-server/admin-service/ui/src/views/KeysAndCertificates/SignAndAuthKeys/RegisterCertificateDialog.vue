@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,34 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
-    v-if="dialog"
-    title="keys.registrationRequest"
-    :disable-save="!meta.valid"
-    @save="save"
-    @cancel="cancel"
-  >
+  <XrdSimpleDialog v-if="dialog" title="keys.registrationRequest" :disable-save="!meta.valid" @save="save" @cancel="cancel">
     <template #content>
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
-        <v-text-field
-          v-model="address"
-          single-line
-          variant="underlined"
-          :error-messages="errors"
-          class="dlg-row-input"
-          autofocus
-        />
-      </div>
+      <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-text-field v-model="address" class="xrd" autofocus :label="$t('keys.certRegistrationInfo')" :error-messages="errors" />
+        </XrdFormBlockRow>
+      </XrdFormBlock>
     </template>
-  </xrd-simple-dialog>
+  </XrdSimpleDialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useField } from 'vee-validate';
+import { XrdSimpleDialog, XrdFormBlock, XrdFormBlockRow } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdSimpleDialog, XrdFormBlockRow, XrdFormBlock },
   props: {
     dialog: {
       type: Boolean,
@@ -60,11 +51,7 @@ export default defineComponent({
   },
   emits: ['cancel', 'save'],
   setup() {
-    const { meta, errors, value, resetField } = useField(
-      'dns',
-      'required|address',
-      { initialValue: '' },
-    );
+    const { meta, errors, value, resetField } = useField('dns', 'required|address', { initialValue: '' });
     return { meta, errors, address: value, resetField };
   },
   methods: {
@@ -82,7 +69,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/dialogs';
-</style>

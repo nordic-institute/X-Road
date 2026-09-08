@@ -1,0 +1,15 @@
+usr/share/xroad/jlib/configuration-proxy-cli/quarkus-run.jar usr/share/xroad/jlib/configuration-proxy-cli.jar
+usr/share/xroad/jlib/configuration-proxy-application/quarkus-run.jar usr/share/xroad/jlib/configuration-proxy-application.jar
+etc/xroad/nginx/xroad-public.conf etc/nginx/sites-enabled/xroad-public
+usr/share/xroad/bin/confproxy usr/bin/confproxy
+usr/share/xroad/bin/confproxy-view-conf usr/bin/confproxy-view-conf
+usr/share/xroad/bin/confproxy-add-signing-key usr/bin/confproxy-add-signing-key
+usr/share/xroad/bin/confproxy-del-signing-key usr/bin/confproxy-del-signing-key
+usr/share/xroad/bin/confproxy-generate-anchor usr/bin/confproxy-generate-anchor
+usr/share/xroad/bin/confproxy-create-instance usr/bin/confproxy-create-instance
+usr/share/xroad/bin/confproxy-activate-signing-key usr/bin/confproxy-activate-signing-key
+usr/share/xroad/bin/confproxy-download-conf usr/bin/confproxy-download-conf
+usr/share/xroad/bin/confproxy-generate-api-key usr/bin/confproxy-generate-api-key
+usr/share/xroad/bin/confproxy-list-api-keys usr/bin/confproxy-list-api-keys
+usr/share/xroad/bin/confproxy-revoke-api-key usr/bin/confproxy-revoke-api-key
+usr/share/xroad/bin/xroad-confproxy usr/bin/xroad-confproxy

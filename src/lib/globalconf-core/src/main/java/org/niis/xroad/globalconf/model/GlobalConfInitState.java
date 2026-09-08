@@ -34,6 +34,10 @@ public enum GlobalConfInitState {
      */
     UNKNOWN,
     /**
+     * GlobalConf is uninitialized.
+     */
+    UNINITIALIZED,
+    /**
      * Unexpected exception has occurred during initialization.
      */
     FAILURE_UNEXPECTED,
@@ -49,6 +53,10 @@ public enum GlobalConfInitState {
      * Instance-identifier is missing.
      */
     FAILURE_MISSING_INSTANCE_IDENTIFIER,
+    /**
+     * GlobalConf for provided instance-identifier is missing.
+     */
+    FAILURE_INSTANCE_IDENTIFIER_DATA_MISSING,
     /**
      * GlobalConf is malformed. (Missing required files, etc.)
      */

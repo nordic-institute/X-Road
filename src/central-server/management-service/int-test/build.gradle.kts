@@ -4,57 +4,29 @@ plugins {
 }
 
 dependencies {
+  intTestImplementation(project(":tool:api-test-core"))
   intTestImplementation(project(":common:common-test"))
-  intTestImplementation(project(":central-server:admin-service:api-client"))
+  intTestImplementation(project(":central-server:openapi-model"))
   intTestImplementation(testFixtures(project(":common:common-management-request")))
-  intTestImplementation(libs.feign.hc5)
 
-  intTestImplementation(libs.bundles.testAutomation) {
-    exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
-    exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
-  }
-  intTestImplementation(libs.testAutomation.assert)
+  intTestImplementation(project(":tool:liquibase-executor"))
+  intTestImplementation(libs.liquibase.core)
+  intTestImplementation(libs.postgresql)
+  intTestImplementation(libs.mockserver.client)
 }
 
-tasks.register<Test>("intTest") {
-  useJUnitPlatform()
-
-  description = "Runs integration tests."
-  group = "verification"
-
-  testClassesDirs = sourceSets["intTest"].output.classesDirs
-  classpath = sourceSets["intTest"].runtimeClasspath
-
-  val intTestArgs = mutableListOf<String>()
-
-  if (project.hasProperty("intTestTags")) {
-    intTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("intTestTags")}"
-  }
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
-  jvmArgs(intTestArgs)
-
-  testLogging {
-    showStackTraces = true
-    showExceptions = true
-    showCauses = true
-    showStandardStreams = true
-  }
-
-  reports {
-    junitXml.required.set(false) // equivalent to includeSystemOutLog = false
-  }
-
-  dependsOn(":central-server:admin-service:application:bootJar")
-  shouldRunAfter(tasks.test)
+intTestComposeEnv {
+  images(
+    "CS_IMG" to "central-server-dev"
+  )
 }
 
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
+intTestShadowJar {
+  archiveBaseName("central-server-management-int-test")
+  mainClass("org.niis.xroad.cs.test.ConsoleIntTestRunner")
 }
 
-archUnit {
-  setSkip(true)
+intTestPhasedSuite {
+  phasedSuiteClass = "ManagementServiceIntTestSuite"
+  productName = "Management Service"
 }

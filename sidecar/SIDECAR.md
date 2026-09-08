@@ -25,7 +25,6 @@ scalability, a Sidecar cluster consisting of a primary node and multiple seconda
 X-Road Security Server Sidecar Docker image contains a custom set of modules instead of `xroad-securityserver`:
 
 * xroad-proxy
-* xroad-addon-metaservices
 * xroad-addon-wsdlvalidator
 * xroad-autologin.
 

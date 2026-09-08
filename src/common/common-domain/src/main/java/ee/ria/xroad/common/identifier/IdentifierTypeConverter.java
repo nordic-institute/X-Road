@@ -25,12 +25,11 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import ee.ria.xroad.common.CodedException;
-
 import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVICE;
+import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
 
 /**
  * Adapter class for converting between DTO and XML identifier types.
@@ -96,13 +95,13 @@ final class IdentifierTypeConverter {
     static ClientId parseClientId(XRoadIdentifierType v) {
         if (XRoadObjectType.SUBSYSTEM.equals(v.getObjectType())
                 && v.getSubsystemCode() == null) {
-            throw new CodedException(X_INVALID_CLIENT_IDENTIFIER,
+            throw XrdRuntimeException.systemException(INVALID_CLIENT_IDENTIFIER,
                     "Missing required subsystem code");
         }
 
         if (XRoadObjectType.MEMBER.equals(v.getObjectType())
                 && v.getSubsystemCode() != null) {
-            throw new CodedException(X_INVALID_CLIENT_IDENTIFIER,
+            throw XrdRuntimeException.systemException(INVALID_CLIENT_IDENTIFIER,
                     "Redundant subsystem code");
         }
 

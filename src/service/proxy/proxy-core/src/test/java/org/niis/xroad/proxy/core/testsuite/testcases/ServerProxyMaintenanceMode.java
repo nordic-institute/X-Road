@@ -35,7 +35,7 @@ import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
+import static org.niis.xroad.common.core.exception.ErrorCode.MAINTENANCE_MODE;
 
 /**
  * The producer side is in maintenance mode.
@@ -53,8 +53,8 @@ public class ServerProxyMaintenanceMode extends MessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper));
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
                 return Optional.of(SharedParameters.MaintenanceMode.enabled("Maintenance mode is on"));
@@ -64,6 +64,6 @@ public class ServerProxyMaintenanceMode extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_MAINTENANCE_MODE);
+        assertErrorCode(SERVER_CLIENTPROXY_X, MAINTENANCE_MODE.code());
     }
 }

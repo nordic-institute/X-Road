@@ -1,0 +1,103 @@
+---
+# Messagelog DB + archive encryption for dev stacks. xroad.message-log-encryption.db.encryption-enabled
+# and .archive.encryption-enabled default false (MessageLogEncryptionProperties in
+# lib/messagelog-core) — compose enables the equivalent via configuration_properties seeds.
+# These land in the same table here: the XRoadConfig DSL resolves DB overrides and packaged
+# defaults only, never conf.d yaml, so each key is its own row and the single-block /
+# duplicate-top-level-key constraint a YAML preseed had no longer applies.
+#
+# No DB key provisioning is needed: the DB master key is generated unconditionally at SS init
+# (EncryptionInitializationService.initializeMessageLogDatabaseEncryption()) and stored in
+# openbao, so it already exists on any provisioned stack. db.key-id is left at its "default".
+#
+# Archive encryption is xrd-ss1-ONLY, mirroring compose exactly: ComposeEnvSetup only adds the
+# Feature.MESSAGE_LOG_ENCRYPTION compose overlay (which mounts msglog_encryption_config/ — the
+# same db+archive block) to envSs1, never envSs0. The 0200-ss-messagelog feature's SS0 scenario
+# asserts plain (unencrypted) .zip archives; enabling archive encryption on ss0 too would break
+# it. DB encryption, by contrast, is deliberately applied to both hosts here — broader than
+# compose, which enables it only on ss1; harmless, since no scenario asserts unencrypted DB
+# rows on ss0.
+#
+# Archive encryption additionally needs the recipient PGP public keys imported into openbao
+# (see msglog-archive-encryption.yml) and the grouping keys/strategy below, mirroring compose's
+# msglog_encryption_config/application.yaml and the e2e test's gpg fixtures
+# (src/security-server/e2e-test/src/intTest/resources/gpg_keys/) 1:1. The archive signing secret
+# key is generated unconditionally at SS init (InitializationService.prepareEncryption ->
+# initializeMessageLogArchivalEncryption), so only the recipient public keys need importing.
+- name: seed messagelog DB encryption config
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.message-log-encryption.db.encryption-enabled
+      - "true"
+      - --yes
+  notify: restart xroad-proxy
+
+# grouping-keys is a single JSON-document DSL key (Map<String, Set<String>>), so the
+# per-member key lists are arrays rather than the CSV form a SmallRye yaml source took.
+- name: seed messagelog archive encryption config (xrd-ss1)
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop:
+    - key: xroad.message-log-encryption.archive.encryption-enabled
+      value: "true"
+    - key: xroad.message-log-encryption.archive.default-key-id
+      value: "3BD9C292C63580F8"
+    - key: xroad.message-log-encryption.archive.grouping-strategy
+      value: SUBSYSTEM
+  loop_control:
+    label: "{{ item.key }}"
+  notify: restart xroad-proxy
+  when: inventory_hostname == 'xrd-ss1'
+
+# Built as a real YAML mapping and serialized with to_json: a bare literal string
+# that merely looks like JSON gets coerced by Ansible into a native dict and
+# re-stringified with Python repr() (single quotes, True/False), which the DSL's
+# strict JSON parser then rejects.
+- name: seed messagelog archive encryption grouping-keys config (xrd-ss1)
+  become: true
+  vars:
+    grouping_keys_config:
+      "not/existing/member": ["8A4BB80EEE081BDE"]
+      "DEV/COM/4321": ["E93952B01C2D2EA5", "8A4BB80EEE081BDE"]
+      "another/fake/member": ["1234567890ABCDEF"]
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - xroad.message-log-encryption.archive.grouping-keys
+      - "{{ grouping_keys_config | to_json }}"
+      - --yes
+  notify: restart xroad-proxy
+  when: inventory_hostname == 'xrd-ss1'
+
+# timestamp-immediately: without it the batch timestamper's ~60s cadence races the e2e
+# archive trigger - un-timestamped records are not archivable, so fresh test traffic
+# silently survives archival and cleanup. The op-monitor addon flag is paired with the
+# daemon install in opmonitor.yml and gated on the same variable.
+- name: seed proxy config
+  become: true
+  command:
+    argv:
+      - /usr/share/xroad/scripts/db_property.sh
+      - set
+      - "{{ item.key }}"
+      - "{{ item.value }}"
+      - --yes
+  loop: "{{ proxy_seed_properties }}"
+  vars:
+    proxy_seed_properties: >-
+      {{ [{'key': 'xroad.proxy.message-log.timestamper.timestamp-immediately', 'value': 'true'}]
+         + ([{'key': 'xroad.proxy.addon.op-monitor.enabled', 'value': 'true'}]
+            if (xroad_install_opmonitoring | default(false) | bool) else []) }}
+  loop_control:
+    label: "{{ item.key }}"
+  notify: restart xroad-proxy

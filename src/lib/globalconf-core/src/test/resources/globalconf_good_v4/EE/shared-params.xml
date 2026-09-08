@@ -429,13 +429,13 @@
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
         <!-- Extracted using command 'openssl sha256 consumer.pem' -->
-        <authCertHash>XhdxNaWNz7XBuakTRDyz+5Ald53DCy3DwxUacFe/VX8=</authCertHash>
+        <authCertHash>q89Do9RvTbSgutnIsynR0YsVsKAk0IyZgFBrhWMjxv8=</authCertHash>
     </securityServer>
 
     <securityServer>
         <owner>fooId</owner>
         <serverCode>fooServerCode</serverCode>
-        <authCertHash>enRxKzBGb0q7sUJa8Hx0A5aHmQwCa1HzWNFrN3ZDDJw=</authCertHash>
+        <authCertHash>FDNMozu+c7VjfGuCkiUUPmuSxchIIWBh7Q7qOkpGE3Q=</authCertHash>
         <client>producerId</client>
     </securityServer>
 

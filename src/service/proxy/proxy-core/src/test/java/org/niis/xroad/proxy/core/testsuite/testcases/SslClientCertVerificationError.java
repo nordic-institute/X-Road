@@ -36,7 +36,7 @@ import org.niis.xroad.proxy.core.testsuite.SslMessageTestCase;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.SSL_AUTH_FAILED;
 
 /**
  * Authentication certificate verification fails.
@@ -52,8 +52,8 @@ public class SslClientCertVerificationError extends SslMessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
-        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf(proxyTestSuiteHelper));
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf(proxyTestSuiteHelper) {
             @Override
             public boolean authCertMatchesMember(X509Certificate cert,
                                                  ClientId member) {
@@ -65,6 +65,6 @@ public class SslClientCertVerificationError extends SslMessageTestCase {
     @Override
     protected void validateFaultResponse(Message receivedResponse)
             throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
+        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, SSL_AUTH_FAILED.code());
     }
 }

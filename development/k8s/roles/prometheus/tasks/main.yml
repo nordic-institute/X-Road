@@ -1,0 +1,17 @@
+---
+- name: Add prometheus-community helm repo
+  kubernetes.core.helm_repository:
+    name: prometheus-community
+    repo_url: "{{ prometheus_chart_repo }}"
+
+- name: Deploy kube-prometheus-stack
+  kubernetes.core.helm:
+    name: prometheus
+    chart_ref: "{{ prometheus_chart }}"
+    chart_version: "{{ prometheus_chart_version | default(omit, true) }}"
+    release_namespace: "{{ monitoring_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig_path }}"
+    wait: true
+    wait_timeout: "{{ prometheus_helm_timeout }}"
+    values: "{{ lookup('template', 'prometheus-values.yaml.j2') | from_yaml }}"

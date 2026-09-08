@@ -67,7 +67,7 @@ public class HashCalculator {
      * @return the calculated hash String
      * @throws Exception in case of any errors
      */
-    public String calculateFromStream(InputStream data) throws IOException, OperatorCreationException {
+    public String calculateFromStream(InputStream data) throws IOException {
         byte[] hashBytes = calculateDigest(algoURI, data);
         return encodeBase64(hashBytes);
     }
