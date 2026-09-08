@@ -40,10 +40,10 @@
         <v-table class="xrd configurable-properties-table">
           <thead>
             <tr>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.propertyName') }}</th>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.currentValue') }}</th>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.defaultValue') }}</th>
-              <th>{{ $t('systemParameters.configurableProperties.table.header.description') }}</th>
+              <th>{{ $t('configurableProperties.table.header.propertyName') }}</th>
+              <th>{{ $t('configurableProperties.table.header.currentValue') }}</th>
+              <th>{{ $t('configurableProperties.table.header.defaultValue') }}</th>
+              <th>{{ $t('configurableProperties.table.header.description') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -59,7 +59,7 @@
                     <template #activator="{ props: tooltipProps }">
                       <v-icon v-bind="tooltipProps" icon="warning" color="warning" class="mr-2" />
                     </template>
-                    {{ $t('systemParameters.configurableProperties.propertyRestartWarning') }}
+                    {{ $t('configurableProperties.propertyRestartWarning') }}
                   </v-tooltip>
                   <XrdBtn
                     data-test="edit-configurable-property-button"
@@ -79,29 +79,22 @@
 </template>
 
 <script lang="ts" setup>
-import { XrdExpandable, XrdBtn } from '@niis/shared-ui';
-import type { ConfigurablePropertyDto } from '@/openapi-types';
-import { useI18n } from 'vue-i18n';
+import XrdExpandable from './XrdExpandable.vue';
+import XrdBtn from './XrdBtn.vue';
+import type { ConfigurablePropertyDto } from '../openapi-types';
 
 defineProps<{
   scope: string;
   properties: ConfigurablePropertyDto[];
   modifiedProperties: Set<string>;
   isOpen: boolean;
+  getPropertyDescription: (propertyName: string | undefined) => string;
 }>();
 
 const emit = defineEmits<{
   open: [value: boolean];
   'edit-property': [prop: ConfigurablePropertyDto];
 }>();
-
-const { t, te } = useI18n();
-
-function getPropertyDescription(propertyName: string | undefined): string {
-  if (!propertyName) return '-';
-  const key = 'systemParameters.configurableProperties.descriptions.' + propertyName;
-  return te(key) ? String(t(key)) : '-';
-}
 </script>
 
 <style lang="scss" scoped>

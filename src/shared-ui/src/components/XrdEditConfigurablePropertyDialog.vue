@@ -30,7 +30,7 @@
     :loading="loading"
     cancel-button-text="action.cancel"
     save-button-text="action.save"
-    title="systemParameters.configurableProperties.editDialog.title"
+    title="configurableProperties.editDialog.title"
     data-test="edit-configurable-property-dialog"
     submittable
     @cancel="close"
@@ -56,12 +56,16 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { XrdFormBlock, XrdFormBlockRow, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
-import type { ConfigurablePropertyDto } from '@/openapi-types';
-import { useSystem } from '@/store/modules/system';
+import XrdSimpleDialog from './XrdSimpleDialog.vue';
+import XrdFormBlock from './XrdFormBlock.vue';
+import XrdFormBlockRow from './XrdFormBlockRow.vue';
+import { useNotifications } from '../composables';
+import type { ConfigurablePropertyDto } from '../openapi-types';
+import type { ConfigurablePropertiesHandler } from '../types';
 
 const props = defineProps<{
   property: ConfigurablePropertyDto;
+  configurablePropertiesHandler: ConfigurablePropertiesHandler;
 }>();
 
 const emit = defineEmits<{
@@ -70,7 +74,6 @@ const emit = defineEmits<{
 }>();
 
 const { addError, addSuccessMessage } = useNotifications();
-const { updateConfigurableProperty } = useSystem();
 
 const { values, meta, resetForm, defineField } = useForm({
   validationSchema: {
@@ -93,12 +96,12 @@ function close(): void {
 async function save() {
   loading.value = true;
   try {
-    await updateConfigurableProperty({
+    await props.configurablePropertiesHandler.updateConfigurableProperty({
       property_name: props.property.property_name!,
       property_value: values.propertyValue,
       scope: props.property.scope,
     });
-    addSuccessMessage('systemParameters.configurableProperties.updateSuccess');
+    addSuccessMessage('configurableProperties.updateSuccess');
     emit('saved', props.property.scope || 'common');
   } catch (error) {
     return addError(error);

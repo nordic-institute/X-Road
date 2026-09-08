@@ -158,6 +158,25 @@
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus"
   },
+  "configurableProperties": {
+    "title": "Sazlanylýan ulgam häsiýetleri",
+    "search": "Häsiýetleri gözle...",
+    "restartWarning": "Üýtgetmeleriň güýje girmegi üçin şu hyzmatlar täzeden başladylmaly: {scopes}.",
+    "propertyRestartWarning": "Üýtgetmeleriň güýje girmegi üçin täzeden başlatmak talap edilýär.",
+    "collapseAll": "Hemmesini ýyg",
+    "updateSuccess": "Häsiýet üstünlikli täzelendi",
+    "editDialog": {
+      "title": "Häsiýetiň bahasyny redaktirle"
+    },
+    "table": {
+      "header": {
+        "propertyName": "Häsiýetiň ady",
+        "currentValue": "Häzirki baha",
+        "defaultValue": "Deslapky baha",
+        "description": "Düşündiriş"
+      }
+    }
+  },
   "error_code": {
     "api_key_not_found": "API açar tapylmady",
     "backup_file_not_found": "Äiýaçlyk nusgasynyň faýly tapylmady",
@@ -242,6 +261,7 @@
     "noBackups": "Ätiýäçlyk nusgalary entäk ýok",
     "noCertificate": "Şahadatnama ýok",
     "noCertificates": "Şahadatnamalar ýok",
+    "noConfigurableProperties": "Sazlanylýan häsiýetler ýok",
     "noData": "Maglumat ýok",
     "noMatches": "Kriteriýa gabat gelýän zat ýok",
     "noServices": "Hyzmatlar ýok",
