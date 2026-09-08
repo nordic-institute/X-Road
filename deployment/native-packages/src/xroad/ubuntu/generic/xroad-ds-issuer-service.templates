@@ -1,0 +1,8 @@
+Template: xroad-common/dataspace-issuer-host
+Type: string
+Description: Insert dataspace issuer host [default=${DEFAULT}]
+ This is the externally visible name under which this Central Server publishes its dataspace Issuer DID.
+ .
+ It can be a public hostname or a load balancer name reachable by Security Servers, not necessarily this machine's own hostname.
+ .
+ Suggested default: ${DEFAULT}

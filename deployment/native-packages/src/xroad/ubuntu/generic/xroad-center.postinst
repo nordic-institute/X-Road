@@ -19,33 +19,6 @@ gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"
 }
 
-handle_error() {
-    ERR=$(</tmp/cert.err)
-    db_subst xroad-common/cert-generation-abort ERR "$(printf %s "$ERR" | debconf-escape -e)"
-    db_input critical xroad-common/cert-generation-abort
-    db_go
-    rm -f /tmp/cert.err
-}
-
-handle_error_retry() {
-  ERR=$1
-  db_reset xroad-common/cert-generation-retry
-  db_reset xroad-common/cert-generation-error
-  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
-  db_beginblock
-  db_input critical xroad-common/cert-generation-error || true
-  db_input critical xroad-common/cert-generation-retry || true
-  db_endblock
-  db_go
-
-  db_get xroad-common/cert-generation-retry
-  if [ "$RET" = false ]; then
-    exit 1
-  fi
-
-  echo "Retrying certificate generation"
-}
-
 # setup database and run migrations
 setup_database() {
     /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
@@ -113,10 +86,6 @@ setup_database() {
 
     psql_dbuser() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
-    }
-
-    psql_adminuser() {
-        PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
     }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
@@ -196,6 +165,57 @@ EOF
     else
       /usr/share/xroad/scripts/setup_centerui_db.sh || abort "Database migration failed. ABORTING."
     fi
+}
+
+# Writes the dataspace issuer host answer to the CS configuration_properties DB layer — the
+# only place the DSL config resolves this key from. The question itself is asked by the .config
+# script (shared xroad-common template), so the answer is available here on any package
+# configure order. Must run after setup_database() so the table exists.
+#
+# An existing row is left untouched except under dpkg-reconfigure, detected via
+# DEBCONF_RECONFIGURE=1 (postinst receives "configure", never "reconfigure", as $1 — that
+# argument is checked as well per debconf-devel(7) forward-compat guidance).
+#
+# A database error while reading the row aborts rather than counting as "row absent": treating
+# it as absent would overwrite the instance-wide row on an HA node join.
+#
+# When database migrations were skipped (operator-managed/legacy migration installs), the whole
+# step is skipped: the schema may predate the configuration_properties table, and the retained
+# debconf answer can be applied later via dpkg-reconfigure once the schema is migrated.
+configure_dataspace_issuer_host() {
+  local -r key="xroad.dataspace.issuer.host"
+  local -r template="xroad-common/dataspace-issuer-host"
+
+  RET=""
+  db_get xroad-common/skip-cs-db-migrations || true
+  if [[ "$RET" == "true" ]]; then
+    log "Database migrations were skipped — not storing ${key}; run 'dpkg-reconfigure xroad-center' after migrating"
+    return
+  fi
+
+  local reconfiguring=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    reconfiguring=1
+  fi
+
+  local row_present=0 rc=0
+  /usr/share/xroad/scripts/db_property.sh get "$key" >/dev/null || rc=$?
+  case "$rc" in
+    0) row_present=1 ;;
+    1) row_present=0 ;;
+    *) abort "Unable to read ${key} from the database. ABORTING." ;;
+  esac
+
+  if [[ "$row_present" -eq 1 && "$reconfiguring" != "1" ]]; then
+    log "Dataspace issuer host is already configured, skipping"
+    return
+  fi
+
+  RET=""
+  db_get "$template" || true
+  local answer="${RET:-$(hostname -f)}"
+  /usr/share/xroad/scripts/db_property.sh set "$key" "$answer" --yes \
+    || abort "Failed to store ${key} in the database. ABORTING."
 }
 
 extract_ip_list() {
@@ -299,6 +319,7 @@ case "$1" in
 configure | reconfigure)
     prepare_certificates_settings
     setup_database
+    configure_dataspace_issuer_host "$1"
 
     RET=""
     db_get xroad-common/username
@@ -343,10 +364,6 @@ configure | reconfigure)
       # always fix gpghome ownership
       [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
     fi
-
-    RET=
-    db_get xroad-common/skip-cs-db-migrations || true
-    skip_migrations="${RET}"
 
     #create symlink to nginx config
     if [[ -d /etc/nginx/sites-enabled ]]; then

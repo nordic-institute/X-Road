@@ -9,11 +9,10 @@
     state: absent
 
 # The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
-# and conf.d yaml are ignored — so the issuer DID host must be a row in the
-# centerui configuration_properties table (default is localhost; the SS side
-# references did:web:<cs-host>...). Deterministic upsert; restart xroad-center
-# because it resolved the DSL config before the row existed.
-- name: seed dataspace issuer host into centerui configuration_properties
+# and conf.d yaml are ignored — so these are seeded straight into the centerui
+# configuration_properties table. Deterministic upsert; restart xroad-center
+# because it resolved the DSL config before the rows existed.
+- name: seed dev-cadence configuration into centerui configuration_properties
   become: true
   command:
     argv:
@@ -23,8 +22,6 @@
       - "{{ item.value }}"
       - --yes
   loop:
-    - key: xroad.dataspace.issuer.host
-      value: "{{ groups['cs_servers'] | first }}"
     - key: xroad.admin-service.global-configuration-generation-rate-in-seconds
       value: "10"
     # See the identical setting in xroad-ss/tasks/seed-config-properties.yml —
@@ -36,7 +33,7 @@
   loop_control:
     label: "{{ item.key }}"
 
-- name: restart xroad-center to resolve the seeded issuer host
+- name: restart xroad-center to resolve the seeded configuration
   systemd:
     name: xroad-center
     state: restarted
