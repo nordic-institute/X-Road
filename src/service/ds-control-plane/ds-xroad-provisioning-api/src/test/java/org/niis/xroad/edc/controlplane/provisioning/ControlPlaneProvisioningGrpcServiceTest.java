@@ -41,6 +41,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
@@ -53,9 +54,11 @@ import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class ControlPlaneProvisioningGrpcServiceTest {
@@ -115,7 +118,7 @@ class ControlPlaneProvisioningGrpcServiceTest {
     }
 
     @Test
-    void createParticipantContextSucceedsAndRegistersDataPlane() {
+    void createParticipantContextSucceedsRegistersDataPlaneAndInvalidatesCatalogCaches() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance()
                         .participantContextId("ctx-1")
@@ -133,10 +136,11 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onCompleted();
         verify(createObserver, never()).onError(any());
         verify(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+        verify(catalogCacheInvalidator).invalidate();
     }
 
     @Test
-    void createParticipantContextToleratesConflictAndStillRegistersDataPlane() {
+    void createParticipantContextToleratesConflictRegistersDataPlaneButNeverInvalidatesCatalogCaches() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.conflict("already exists"));
 
@@ -151,10 +155,11 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onCompleted();
         verify(createObserver, never()).onError(any());
         verify(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+        verify(catalogCacheInvalidator, never()).invalidate();
     }
 
     @Test
-    void createParticipantContextDoesNotRegisterDataPlaneOnUnexpectedFailure() {
+    void createParticipantContextDoesNotRegisterDataPlaneOrInvalidateCatalogCachesOnUnexpectedFailure() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.unexpected("db down"));
 
@@ -168,6 +173,28 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(createObserver, never()).onCompleted();
         verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
+        verify(catalogCacheInvalidator, never()).invalidate();
+    }
+
+    @Test
+    void createParticipantContextSurfacesErrorWhenDataPlaneRegistrationFails() {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance()
+                        .participantContextId("ctx-1")
+                        .identity("did:web:example.com")
+                        .build()));
+        doThrow(XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "no such details"))
+                .when(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
     }
 
     @Test

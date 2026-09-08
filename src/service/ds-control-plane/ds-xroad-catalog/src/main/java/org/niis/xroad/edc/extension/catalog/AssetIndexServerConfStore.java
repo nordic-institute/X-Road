@@ -112,7 +112,8 @@ class AssetIndexServerConfStore implements AssetIndex {
     @Override
     @Nullable
     public Asset findById(String assetId) {
-        return cache.findById(assetId, requestedParticipantContext.get(), () -> findByIdInternal(assetId));
+        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
+        return cache.findById(assetId, cacheKeyContext, () -> findByIdInternal(assetId));
     }
 
     @Nullable
@@ -156,7 +157,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         if (managementParticipantContextId.equals(requested)) {
             return managementParticipantContextId;
         }
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, serviceContextResolver.provisionedMemberContextIds());
+        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
         return ServiceContextResolver.select(resolvedContexts, requested);
     }
 

@@ -201,6 +201,8 @@ class StoreCacheBenchmarkTest {
     private AssetIndexServerConfStore buildStore(ServerConfProvider provider, boolean cacheEnabled) {
         var cache = new StoreEnumerationCache<Asset>(cacheEnabled, 3600, 10000, "bench");
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        lenient().when(participantContextService.getParticipantContext(any()))
+                .thenReturn(ServiceResult.notFound("no such context"));
         var serviceContextResolver = new ServiceContextResolver(
                 "participant", "participant-mgmt", globalConfProvider, participantContextService);
         return new AssetIndexServerConfStore(provider, globalConfProvider,

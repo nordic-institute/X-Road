@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -66,6 +67,8 @@ class CachingStoreTest {
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
     private static final ServiceId.Conf SERVICE_1 = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "getRecords", "v1");
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1111", "ss0");
+    private static final String MEMBER_CTX =
+            ParticipantIdentifierScheme.memberCtxId(ClientId.Conf.create("DEV", "GOV", "1111"));
 
     @Mock
     private ServerConfProvider serverConfProvider;
@@ -86,6 +89,8 @@ class CachingStoreTest {
         noCache = new StoreEnumerationCache<>(false, 60, 1000, "test");
         withCache = new StoreEnumerationCache<>(true, 3600, 1000, "test");
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        lenient().when(participantContextService.getParticipantContext(any()))
+                .thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, globalConfProvider, participantContextService);
         requestedParticipantContext.clear();
@@ -161,12 +166,33 @@ class CachingStoreTest {
         lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var store = buildStore(withCache);
 
-        requestedParticipantContext.set("member-ctx");
+        // A syntactically valid member ctx-id and the host ctx are both plausible requested
+        // contexts, so each must key its own cache entry.
+        requestedParticipantContext.set(MEMBER_CTX);
         store.findById(SERVICE_1.asEncodedId());
-        requestedParticipantContext.set("other-member-ctx");
+        requestedParticipantContext.set(PARTICIPANT_CONTEXT_ID);
         store.findById(SERVICE_1.asEncodedId());
 
         verify(serverConfProvider, times(2)).serviceExists(SERVICE_1);
+    }
+
+    @Test
+    void findByIdCacheKeyCollapsesGarbageRequestedContextsWithNoContextRequested() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
+        lenient().when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+        var store = buildStore(withCache);
+
+        // Neither string decodes as a member ctx-id nor matches the host/management ctx, so both
+        // collapse to the same key as "no context requested" — one cache entry, one loader call.
+        requestedParticipantContext.clear();
+        store.findById(SERVICE_1.asEncodedId());
+        requestedParticipantContext.set("not-a-real-ctx");
+        store.findById(SERVICE_1.asEncodedId());
+        requestedParticipantContext.set("also-not-a-real-ctx");
+        store.findById(SERVICE_1.asEncodedId());
+
+        verify(serverConfProvider, times(1)).serviceExists(SERVICE_1);
     }
 
     @Test

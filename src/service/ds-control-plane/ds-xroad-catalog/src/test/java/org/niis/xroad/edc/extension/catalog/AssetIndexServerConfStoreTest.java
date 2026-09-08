@@ -96,6 +96,7 @@ class AssetIndexServerConfStoreTest {
     @BeforeEach
     void setUp() {
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, globalConfProvider, participantContextService);
         requestedParticipantContext.clear();

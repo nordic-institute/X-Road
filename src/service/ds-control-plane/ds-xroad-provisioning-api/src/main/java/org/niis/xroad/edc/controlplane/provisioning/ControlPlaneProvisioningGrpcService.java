@@ -95,6 +95,12 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
 
         var result = participantContextService.createParticipantContext(participantContext);
         requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
+        // Data-plane registration must converge on every replica, so it fires on both outcomes; cache
+        // invalidation must not, since the admin worker re-sends this request every 30s and invalidating
+        // on each conflict would defeat the cache TTL permanently.
+        if (result.succeeded()) {
+            catalogCacheInvalidator.invalidate();
+        }
         dataPlaneContextRegistrar.registerParticipantContext(request.getParticipantContextId());
         return CreateParticipantContextResp.getDefaultInstance();
     }

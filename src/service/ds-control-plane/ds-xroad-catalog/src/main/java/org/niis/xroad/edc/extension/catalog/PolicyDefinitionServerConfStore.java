@@ -77,7 +77,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     @Nullable
     @WithSpan("dsp-find-acl")
     public PolicyDefinition findById(@SpanAttribute String policyId) {
-        return cache.findById(policyId, requestedParticipantContext.get(), () -> findByIdInternal(policyId));
+        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
+        return cache.findById(policyId, cacheKeyContext, () -> findByIdInternal(policyId));
     }
 
     @Nullable
@@ -208,7 +209,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, serviceContextResolver.provisionedMemberContextIds());
+        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }

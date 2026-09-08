@@ -40,6 +40,10 @@ import lombok.RequiredArgsConstructor;
  * parameters across the root resource and any sub-resource locators it dispatches through, so this
  * filter sees {@code participantContextId} regardless of which sub-resource ultimately handles the
  * request.
+ *
+ * <p>The holder is written unconditionally on every request — set to the path segment when present,
+ * cleared otherwise — so a pooled request-handling thread can never observe a value left over from a
+ * previous request whose path happened to carry no segment.</p>
  */
 @RequiredArgsConstructor
 class ParticipantContextCaptureFilter implements ContainerRequestFilter, ContainerResponseFilter {
@@ -53,6 +57,8 @@ class ParticipantContextCaptureFilter implements ContainerRequestFilter, Contain
         var participantContextId = requestContext.getUriInfo().getPathParameters().getFirst(PARTICIPANT_CONTEXT_ID_PATH_PARAM);
         if (participantContextId != null) {
             holder.set(participantContextId);
+        } else {
+            holder.clear();
         }
     }
 

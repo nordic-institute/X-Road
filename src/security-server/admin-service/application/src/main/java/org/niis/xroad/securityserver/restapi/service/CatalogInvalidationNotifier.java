@@ -25,10 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Signals the data space control plane to flush its catalog caches on a local client add or remove,
@@ -38,14 +43,33 @@ import org.springframework.stereotype.Service;
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
  * or failed signal degrades latency, never correctness. A no-op when the data space feature is
  * disabled, so a non-dataspace deployment never attempts the call.</p>
+ *
+ * <p>The gRPC call is dispatched off the caller's thread, and — when a transaction is active around
+ * the caller — deferred until that transaction commits. Firing beforehand would let a concurrent
+ * catalog read re-cache pre-commit state; firing on the caller's thread would hold the transaction
+ * open for up to the RPC deadline.</p>
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CatalogInvalidationNotifier {
 
     private final ControlPlaneProvisioningClient controlPlaneProvisioningClient;
     private final AdminServiceProperties adminServiceProperties;
+    private final ExecutorService executorService;
+
+    public CatalogInvalidationNotifier(ControlPlaneProvisioningClient controlPlaneProvisioningClient,
+                                       AdminServiceProperties adminServiceProperties) {
+        this(controlPlaneProvisioningClient, adminServiceProperties,
+                Executors.newSingleThreadExecutor(CatalogInvalidationNotifier::newDaemonThread));
+    }
+
+    CatalogInvalidationNotifier(ControlPlaneProvisioningClient controlPlaneProvisioningClient,
+                                AdminServiceProperties adminServiceProperties,
+                                ExecutorService executorService) {
+        this.controlPlaneProvisioningClient = controlPlaneProvisioningClient;
+        this.adminServiceProperties = adminServiceProperties;
+        this.executorService = executorService;
+    }
 
     /**
      * Notifies the control plane that the local client set changed. Swallows and logs any failure —
@@ -55,11 +79,41 @@ public class CatalogInvalidationNotifier {
         if (!adminServiceProperties.getDataspace().isEnabled()) {
             return;
         }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new AfterCommitInvalidation());
+        } else {
+            dispatch();
+        }
+    }
+
+    private void dispatch() {
+        executorService.execute(this::invalidateNow);
+    }
+
+    private void invalidateNow() {
         try {
             controlPlaneProvisioningClient.invalidateCatalogCaches();
         } catch (Exception e) {
             log.warn("Data space: failed to notify the control plane of a client change; the catalog "
                     + "cache will refresh once its normal expiry elapses", e);
+        }
+    }
+
+    @PreDestroy
+    void shutdown() {
+        executorService.shutdown();
+    }
+
+    private static Thread newDaemonThread(Runnable runnable) {
+        var thread = new Thread(runnable, "catalog-invalidation-notifier");
+        thread.setDaemon(true);
+        return thread;
+    }
+
+    private final class AfterCommitInvalidation implements TransactionSynchronization {
+        @Override
+        public void afterCommit() {
+            dispatch();
         }
     }
 }

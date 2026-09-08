@@ -73,7 +73,8 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     @Override
     @Nullable
     public ContractDefinition findById(String definitionId) {
-        return cache.findById(definitionId, requestedParticipantContext.get(), () -> findByIdInternal(definitionId));
+        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
+        return cache.findById(definitionId, cacheKeyContext, () -> findByIdInternal(definitionId));
     }
 
     @Nullable
@@ -199,7 +200,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, serviceContextResolver.provisionedMemberContextIds());
+        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return ContractDefinitionMapper.toContractDefinition(serviceId, matchedEntries.getFirst().getSubjectId(), ctxId);
     }

@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.google.common.util.concurrent.MoreExecutors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.doThrow;
@@ -55,11 +58,19 @@ class CatalogInvalidationNotifierTest {
     @BeforeEach
     void setUp() {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-        notifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, adminServiceProperties);
+        notifier = new CatalogInvalidationNotifier(
+                controlPlaneProvisioningClient, adminServiceProperties, MoreExecutors.newDirectExecutorService());
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     @Test
-    void invalidateCatalogCachesCallsControlPlaneWhenDataspaceEnabled() {
+    void invalidateCatalogCachesCallsControlPlaneWhenDataspaceEnabledAndNoTransactionActive() {
         when(dataspace.isEnabled()).thenReturn(true);
 
         notifier.invalidateCatalogCaches();
@@ -83,5 +94,31 @@ class CatalogInvalidationNotifierTest {
                 .when(controlPlaneProvisioningClient).invalidateCatalogCaches();
 
         assertThatCode(() -> notifier.invalidateCatalogCaches()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void invalidateCatalogCachesDefersCallUntilTransactionCommitsWhenTransactionActive() {
+        when(dataspace.isEnabled()).thenReturn(true);
+        TransactionSynchronizationManager.initSynchronization();
+
+        notifier.invalidateCatalogCaches();
+        verify(controlPlaneProvisioningClient, never()).invalidateCatalogCaches();
+
+        TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCommit());
+
+        verify(controlPlaneProvisioningClient).invalidateCatalogCaches();
+    }
+
+    @Test
+    void invalidateCatalogCachesNeverCallsControlPlaneWhenTransactionRollsBack() {
+        when(dataspace.isEnabled()).thenReturn(true);
+        TransactionSynchronizationManager.initSynchronization();
+
+        notifier.invalidateCatalogCaches();
+        // afterCompletion(ROLLED_BACK) is delivered on rollback instead of afterCommit; the
+        // synchronization is simply never told to commit, so the call is never dispatched.
+        TransactionSynchronizationManager.clearSynchronization();
+
+        verify(controlPlaneProvisioningClient, never()).invalidateCatalogCaches();
     }
 }

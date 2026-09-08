@@ -39,12 +39,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.lang.reflect.Field;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -204,6 +206,23 @@ class XRoadDataPlaneRegistrarExtensionTest {
                 .filteredOn(instance -> instance.getParticipantContextId().equals(MEMBER_CONTEXT))
                 .extracting(DataPlaneInstance::getId)
                 .containsOnly("xroad-proxy::" + MEMBER_CONTEXT);
+    }
+
+    @Test
+    void providedRegistrarPropagatesWhenStoreSaveFails() {
+        stubParticipantContexts();
+        when(context.getConfig("xroad.cp.dataplane")).thenReturn(buildDataplaneConfig(Map.of(
+                "xroad.cp.dataplane.proxy.id", "xroad-proxy",
+                "xroad.cp.dataplane.proxy.url", "http://127.0.0.1:5590/full/api/v1/dataflows"
+        )));
+        when(store.save(any())).thenReturn(StoreResult.success());
+        extension.initialize(context);
+        var registrar = extension.dataPlaneContextRegistrar();
+
+        when(store.save(any())).thenReturn(StoreResult.generalError("db down"));
+
+        assertThatThrownBy(() -> registrar.registerParticipantContext(MEMBER_CONTEXT))
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test

@@ -26,21 +26,32 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
+import org.niis.xroad.serverconf.ServerConfProvider;
+
 import java.util.List;
 
 /**
- * Fans {@link StoreEnumerationCache#invalidate()} out across every catalog store's cache instance.
+ * Clears the underlying {@link ServerConfProvider}'s own cache, then fans
+ * {@link StoreEnumerationCache#invalidate()} out across every catalog store's cache instance.
+ *
+ * <p>Flushing only the store caches would leave a caching {@code ServerConfProvider} (used whenever
+ * {@code cachePeriod > 0}) serving stale reads underneath a freshly-rebuilt store cache, so the
+ * serverconf cache is cleared first — {@link ServerConfProvider#clearCache()} defaults to a no-op,
+ * so this is harmless against a non-caching provider too.</p>
  */
 final class DefaultCatalogCacheInvalidator implements CatalogCacheInvalidator {
 
+    private final ServerConfProvider serverConfProvider;
     private final List<StoreEnumerationCache<?>> caches;
 
-    DefaultCatalogCacheInvalidator(List<StoreEnumerationCache<?>> caches) {
+    DefaultCatalogCacheInvalidator(ServerConfProvider serverConfProvider, List<StoreEnumerationCache<?>> caches) {
+        this.serverConfProvider = serverConfProvider;
         this.caches = List.copyOf(caches);
     }
 
     @Override
     public void invalidate() {
+        serverConfProvider.clearCache();
         caches.forEach(StoreEnumerationCache::invalidate);
     }
 }

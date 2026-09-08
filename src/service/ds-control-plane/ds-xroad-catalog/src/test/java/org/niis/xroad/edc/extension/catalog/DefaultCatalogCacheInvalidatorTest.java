@@ -30,16 +30,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.inOrder;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultCatalogCacheInvalidatorTest {
 
+    @Mock
+    private ServerConfProvider serverConfProvider;
     @Mock
     private StoreEnumerationCache<?> assetIndexCache;
     @Mock
@@ -48,21 +51,23 @@ class DefaultCatalogCacheInvalidatorTest {
     private StoreEnumerationCache<?> contractDefinitionCache;
 
     @Test
-    void invalidateFansOutToEveryCache() {
+    void invalidateClearsServerConfCacheThenFansOutToEveryStoreCache() {
         var invalidator = new DefaultCatalogCacheInvalidator(
-                List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
+                serverConfProvider, List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
 
         invalidator.invalidate();
 
-        verify(assetIndexCache).invalidate();
-        verify(policyDefinitionCache).invalidate();
-        verify(contractDefinitionCache).invalidate();
+        var order = inOrder(serverConfProvider, assetIndexCache, policyDefinitionCache, contractDefinitionCache);
+        order.verify(serverConfProvider).clearCache();
+        order.verify(assetIndexCache).invalidate();
+        order.verify(policyDefinitionCache).invalidate();
+        order.verify(contractDefinitionCache).invalidate();
     }
 
     @Test
     void invalidateOnRealCacheDiscardsWhatWasCached() {
         var cache = new StoreEnumerationCache<String>(true, 3600, 1000, "test");
-        var invalidator = new DefaultCatalogCacheInvalidator(List.of(cache));
+        var invalidator = new DefaultCatalogCacheInvalidator(serverConfProvider, List.of(cache));
 
         var firstLoad = cache.getEnumeration(() -> List.of("stale"));
         assertThat(firstLoad).containsExactly("stale");
@@ -76,7 +81,7 @@ class DefaultCatalogCacheInvalidatorTest {
     @Test
     void invalidateIsNoOpWhenCachingIsDisabled() {
         var disabledCache = new StoreEnumerationCache<String>(false, 3600, 1000, "test");
-        var invalidator = new DefaultCatalogCacheInvalidator(List.of(disabledCache));
+        var invalidator = new DefaultCatalogCacheInvalidator(serverConfProvider, List.of(disabledCache));
 
         assertThatCode(invalidator::invalidate).doesNotThrowAnyException();
     }

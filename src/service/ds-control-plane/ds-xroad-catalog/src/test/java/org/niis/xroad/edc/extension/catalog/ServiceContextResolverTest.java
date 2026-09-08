@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
@@ -43,7 +44,11 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -136,21 +141,81 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void provisionedMemberContextIdsReturnsEmptySetWhenSearchFails() {
+    void provisionedMemberContextIdsPropagatesWhenSearchFails() {
         when(participantContextService.search(any())).thenReturn(ServiceResult.unexpected("boom"));
 
-        var result = resolver().provisionedMemberContextIds();
-
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() -> resolver().provisionedMemberContextIds())
+                .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
-    void provisionedMemberContextIdsReturnsEmptySetWhenServiceThrows() {
+    void provisionedMemberContextIdsPropagatesWhenServiceThrows() {
         when(participantContextService.search(any())).thenThrow(new IllegalStateException("boom"));
 
-        var result = resolver().provisionedMemberContextIds();
+        assertThatThrownBy(() -> resolver().provisionedMemberContextIds())
+                .isInstanceOf(XrdRuntimeException.class);
+    }
 
-        assertThat(result).isEmpty();
+    @Test
+    void resolveEnabledByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.notFound("no such context"));
+
+        var result = resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+
+        assertThat(result).containsExactly(HOST_CTX);
+    }
+
+    @Test
+    void resolveEnabledByIdIncludesOwningMemberContextWhenProvisioned() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
+
+        var result = resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+
+        assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
+    }
+
+    @Test
+    void resolveEnabledByIdDoesNotPerformFullEnumeration() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.notFound("no such context"));
+
+        resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+
+        verify(participantContextService, never()).search(any());
+    }
+
+    @Test
+    void resolveEnabledByIdPropagatesOnUnexpectedFailure() {
+        when(participantContextService.getParticipantContext(MEMBER_CTX))
+                .thenReturn(ServiceResult.unexpected("boom"));
+
+        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void resolveEnabledByIdPropagatesWhenServiceThrows() {
+        when(participantContextService.getParticipantContext(eq(MEMBER_CTX)))
+                .thenThrow(new IllegalStateException("boom"));
+
+        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+                .isInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void normalizeRequestedContextPassesThroughHostAndManagementAndValidMemberCtx() {
+        assertThat(resolver().normalizeRequestedContext(HOST_CTX)).isEqualTo(HOST_CTX);
+        assertThat(resolver().normalizeRequestedContext(MGMT_CTX)).isEqualTo(MGMT_CTX);
+        assertThat(resolver().normalizeRequestedContext(MEMBER_CTX)).isEqualTo(MEMBER_CTX);
+    }
+
+    @Test
+    void normalizeRequestedContextCollapsesNullAndGarbageToNull() {
+        assertThat(resolver().normalizeRequestedContext(null)).isNull();
+        assertThat(resolver().normalizeRequestedContext("not-a-real-ctx")).isNull();
+        assertThat(resolver().normalizeRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isNull();
     }
 
     private static ParticipantContext participantContext(String contextId) {

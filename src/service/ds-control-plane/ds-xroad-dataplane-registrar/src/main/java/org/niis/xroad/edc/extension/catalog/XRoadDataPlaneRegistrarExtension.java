@@ -42,6 +42,9 @@ import java.util.stream.Stream;
  * Populates the EDC {@link DataPlaneInstanceStore} from local YAML configuration at boot, for the host and
  * management participant contexts, and exposes a {@link DataPlaneContextRegistrar} for other extensions to
  * register data-plane instances for participant contexts created afterwards, at runtime.
+ *
+ * <p>Member-context registrations live only in this in-memory store, so a restart loses them by design:
+ * the provisioning loop's create-or-conflict resends re-establish every registration within one tick.</p>
  */
 @Slf4j
 @Provides(DataPlaneContextRegistrar.class)

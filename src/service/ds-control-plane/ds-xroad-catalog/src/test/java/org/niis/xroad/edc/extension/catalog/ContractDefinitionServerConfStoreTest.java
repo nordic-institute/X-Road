@@ -95,6 +95,7 @@ class ContractDefinitionServerConfStoreTest {
     @BeforeEach
     void setUp() {
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
+        lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX, globalConfProvider, participantContextService);
         requestedParticipantContext.clear();

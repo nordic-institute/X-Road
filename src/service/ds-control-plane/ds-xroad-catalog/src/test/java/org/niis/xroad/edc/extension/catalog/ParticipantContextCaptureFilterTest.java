@@ -69,7 +69,20 @@ class ParticipantContextCaptureFilterTest {
     }
 
     @Test
-    void filterLeavesHolderUnsetWhenNoParticipantContextIdSegment() {
+    void filterClearsHolderWhenNoParticipantContextIdSegment() {
+        when(requestContext.getUriInfo()).thenReturn(uriInfo);
+        when(uriInfo.getPathParameters()).thenReturn(pathParameters);
+        when(pathParameters.getFirst(ParticipantContextCaptureFilter.PARTICIPANT_CONTEXT_ID_PATH_PARAM))
+                .thenReturn(null);
+
+        filter.filter(requestContext);
+
+        assertThat(holder.get()).isNull();
+    }
+
+    @Test
+    void filterOverwritesStaleValueLeftByAPreviousRequestOnThePooledThreadWhenNoParticipantContextIdSegment() {
+        holder.set("DEV:GOV:9999");
         when(requestContext.getUriInfo()).thenReturn(uriInfo);
         when(uriInfo.getPathParameters()).thenReturn(pathParameters);
         when(pathParameters.getFirst(ParticipantContextCaptureFilter.PARTICIPANT_CONTEXT_ID_PATH_PARAM))

@@ -30,9 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 
 /**
  * Registers the control plane's configured data-plane entries under participant contexts, backed by the
@@ -72,9 +75,9 @@ final class DefaultDataPlaneContextRegistrar implements DataPlaneContextRegistra
         var instance = buildInstance(entry, participantContextId);
         var result = dataPlaneInstanceStore.save(instance);
         if (result.failed()) {
-            log.error("Failed to register data plane '{}' (config node '{}'): {}",
-                    instance.getId(), node, result.getFailureDetail());
-            return;
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                    "Failed to register data plane '%s' (config node '%s') for participant context '%s': %s",
+                    instance.getId(), node, participantContextId, result.getFailureDetail());
         }
         log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
                 instance.getId(), participantContextId, node, instance.getUrl());

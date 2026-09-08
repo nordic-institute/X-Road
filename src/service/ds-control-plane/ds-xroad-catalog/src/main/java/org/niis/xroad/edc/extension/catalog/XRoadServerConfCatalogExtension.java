@@ -155,7 +155,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 cacheConfig.findByIdMaxSize(), "ContractDefinition");
 
         catalogCacheInvalidator = new DefaultCatalogCacheInvalidator(
-                List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
+                serverConfProvider, List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
     }
 
     @Provider
