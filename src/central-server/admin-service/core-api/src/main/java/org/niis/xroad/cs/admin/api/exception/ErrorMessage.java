@@ -133,7 +133,9 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     TRUSTED_ANCHOR_NOT_FOUND("trusted_anchor_not_found"),
 
     INVALID_PAGINATION_PROPERTIES("invalid_pagination_properties"),
-    INVALID_SORTING_PROPERTIES("invalid_sort_properties");
+    INVALID_SORTING_PROPERTIES("invalid_sort_properties"),
+
+    INVALID_PROPERTY_VALUE("invalid_property_value");
 
 
     private final String code;

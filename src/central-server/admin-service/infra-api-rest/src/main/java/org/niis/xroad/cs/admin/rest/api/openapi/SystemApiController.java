@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationPropertyService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
@@ -47,7 +48,11 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.openapi.ConfigurablePropertiesApi;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -55,6 +60,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.openapi.model.HighAvailabilityClusterNodeDto.StatusEnum.OK;
@@ -63,10 +69,11 @@ import static org.niis.xroad.cs.openapi.model.HighAvailabilityClusterNodeDto.Sta
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
-public class SystemApiController implements SystemApi {
+public class SystemApiController implements SystemApi, ConfigurablePropertiesApi {
 
     private final InitializationService initializationService;
     private final SystemParameterService systemParameterService;
+    private final ConfigurationPropertyService configurationPropertyService;
     private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationService configurationService;
     private final AuditDataHelper auditDataHelper;
@@ -129,6 +136,22 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<VersionDto> getSystemVersion() {
         return ResponseEntity.ok(new VersionDto().info(ee.ria.xroad.common.Version.XROAD_VERSION));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
+    public ResponseEntity<Set<ConfigurablePropertyDto>> getConfigurableProperties() {
+        return ResponseEntity.ok(configurationPropertyService.getConfigurationProperties());
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CONFIGURATION_PROPERTY)
+    public ResponseEntity<Void> updateConfigurableProperty(ConfigurablePropertyUpdateDto configurablePropertyUpdateDto) {
+        configurationPropertyService.updateConfigurableProperty(
+                configurablePropertyUpdateDto.getPropertyName(),
+                configurablePropertyUpdateDto.getPropertyValue());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     private ResponseEntity<SystemStatusDto> getSystemStatusResponseEntity() {
