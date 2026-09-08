@@ -33,7 +33,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
@@ -55,6 +57,7 @@ import java.util.Set;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -156,7 +159,9 @@ public class DataspaceProvisioningService {
     private final ControlPlaneProvisioningClient controlPlaneClient;
     private final ClientRepository clientRepository;
     private final ServerConfRepository serverConfRepository;
+    private final ServerConfService serverConfService;
     private final DsParticipantRepository dsParticipantRepository;
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
@@ -173,7 +178,7 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
-        var did = didFor(identityHubHost, kind, memberId);
+        var did = didFor(kind, memberId);
         requireNoHubDidDrift(participantId, did);
 
         createIdentityHubContext(participantId, did, identityHubHost, memberId);
@@ -358,26 +363,32 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(participantId)).orElse(CredentialStatus.ABSENT);
     }
 
-    private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
+    private String didFor(ParticipantKind kind, ClientId memberId) {
         if (kind == ParticipantKind.MEMBER) {
-            return memberDid(memberId, didAuthority(identityHubHost));
+            return memberDid(memberId, didAuthority());
         }
-        var did = "did:web:" + didAuthority(identityHubHost).replace(":", "%3A");
+        var did = "did:web:" + didAuthority().replace(":", "%3A");
         return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
     }
 
     /**
-     * The authority (host:port) embedded in derived DIDs. Interim source: the identity-hub host
-     * plus its DID-serving port, because that is where DID documents are actually served. Target
-     * source, once registered-address DID serving exists: the GlobalConf-registered security
-     * server address ({@code GlobalConfProvider#getSecurityServerAddress}), with no port.
+     * The authority (host:port) embedded in derived DIDs: this Security Server's
+     * GlobalConf-registered address plus the fixed DID port ({@link DspConventions#DID_PORT}) — the
+     * same coordinates counter-parties derive for this server's participants from their own
+     * GlobalConf copy. The identity hub must serve DID documents on this authority.
      *
-     * <p>The port must match the identity hub's own {@code web.http.did.port}. It is part of every
-     * DID bound in {@code ds_participant}, so changing it after a member's identity has been
-     * bound makes that row fail verification.</p>
+     * <p>The authority is part of every DID bound in {@code ds_participant}, so changing the
+     * registered address after a member's identity has been bound makes that row fail
+     * verification.</p>
      */
-    private String didAuthority(String identityHubHost) {
-        return identityHubHost + ":" + adminServiceProperties.getDataspace().getIdentityHubDidPort();
+    private String didAuthority() {
+        var serverId = serverConfService.getSecurityServerId();
+        var address = globalConfProvider.getSecurityServerAddress(serverId);
+        if (address == null || address.isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                    "security server %s has no GlobalConf-registered address; cannot derive participant DIDs", serverId);
+        }
+        return DspConventions.didAuthority(address);
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -411,7 +422,7 @@ public class DataspaceProvisioningService {
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
         try {
-            var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
+            var ssHost = didAuthority();
             var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));

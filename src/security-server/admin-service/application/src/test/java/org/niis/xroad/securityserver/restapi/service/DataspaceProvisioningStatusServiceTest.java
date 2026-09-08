@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -88,7 +90,11 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private ServerConfRepository serverConfRepository;
     @Mock
+    private ServerConfService serverConfService;
+    @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceProvisioningStatusService statusService;
@@ -100,7 +106,6 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -113,8 +118,11 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
+        lenient().when(serverConfService.getSecurityServerId()).thenReturn(SecurityServerId.Conf.create(OWNER, "SS0"));
+        lenient().when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("ss.example.test");
+
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository);
+                clientRepository, serverConfRepository, serverConfService, dsParticipantRepository, globalConfProvider);
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);

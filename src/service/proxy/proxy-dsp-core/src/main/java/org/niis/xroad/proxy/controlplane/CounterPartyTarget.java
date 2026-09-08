@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
+import org.niis.xroad.ds.identity.DspConventions;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,11 +53,9 @@ import java.util.Map;
 public record CounterPartyTarget(String counterPartyId, String counterPartyAddress) {
 
     /**
-     * DSP profile id segment of the provider DSP URL, and the profile registered by the
-     * EDC virtual runtime ({@code DspVirtualApiConfigurationV2025Extension}). Since EDC 0.18
-     * the profile id replaces the bare protocol version ({@code 2025-1}) as the URL segment.
+     * DSP profile id segment of the provider DSP URL — see {@link DspConventions#DSP_PROFILE_ID}.
      */
-    public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
+    public static final String DSP_PROFILE_ID = DspConventions.DSP_PROFILE_ID;
 
     /**
      * Default per-host map used when no provider-specific source is configured.
