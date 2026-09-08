@@ -1,19 +1,63 @@
 #!/bin/bash
 set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: docker-build.sh [--target=slim|full] [--no-cache] [--no-mirror]
+                        [--packages-path=DIR] [version] [tag] [repo] [dist] [repo_key]
+
+  --target=slim|full   Build only the named image. With no --target, all
+                       images (slim, full, country variants,
+                       kubernetesBalancer) are built, unchanged from before.
+                       Building "full" requires the "slim" tag to already
+                       exist locally, since the full image is built FROM it.
+  --no-cache           Pass --no-cache to every docker build.
+  --no-mirror          Skip the package-mirror build args even if the
+                       XROAD_MIRROR_* environment variables are set.
+  --packages-path=DIR  Build the slim and full images from a local directory
+                       of tree-built Ubuntu DEBs instead of an X-Road apt
+                       repository (PACKAGE_SOURCE=internal, DIR bind-mounted
+                       as the "packages" build context). Country variants and
+                       kubernetesBalancer images, which do not install X-Road
+                       packages of their own, are unaffected. DIR must exist
+                       and contain at least one file.
+  -h, --help           Show this help.
+USAGE
+}
+
 no_cache=""
 no_mirror=""
-n=1
+target=""
+packages_path=""
 args_to_keep=()
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then
         no_cache="--no-cache"
     elif [[ $i == "--no-mirror" ]] ; then
         no_mirror="true"
+    elif [[ $i == "--target="* ]] ; then
+        target="${i#--target=}"
+    elif [[ $i == "--packages-path="* ]] ; then
+        packages_path="${i#--packages-path=}"
+    elif [[ $i == "--help" || $i == "-h" ]] ; then
+        usage
+        exit 0
     else
         args_to_keep+=("$i")
     fi
 done
-set -- "${args_to_keep[@]}"
+set -- "${args_to_keep[@]+"${args_to_keep[@]}"}"
+
+case "$target" in
+    ""|slim|full) ;;
+    *)
+        echo "Unknown --target: $target (expected 'slim' or 'full')" >&2
+        usage >&2
+        exit 1
+        ;;
+esac
+build_all=true
+[[ -n "$target" ]] && build_all=false
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
 version="${1:-8.0.0}"
@@ -22,8 +66,25 @@ repo="${3-}"
 dist="${4-}"
 repo_key="${5-}"
 
+# Prepare internal-package build args (only set when --packages-path is given)
+PACKAGE_BUILD_ARGS=()
+if [[ -n "$packages_path" ]]; then
+  if [[ ! -d "$packages_path" ]] || [[ -z "$(ls -A "$packages_path" 2>/dev/null)" ]]; then
+    echo "Packages path '$packages_path' does not exist or is empty." >&2
+    echo "Build tree-built Ubuntu DEBs first, e.g. scripts/packages/build-deb.sh resolute." >&2
+    exit 1
+  fi
+  PACKAGE_BUILD_ARGS=(--build-arg "PACKAGE_SOURCE=internal" --build-context "packages=$packages_path")
+fi
+
 # Prepare mirror build args (unless --no-mirror flag is set)
 MIRROR_BUILD_ARGS=(--build-context "mirror-scripts=$dir/../deployment/.scripts")
+
+# Scripts shared with the native packages, kept out of the sidecar build context
+SHARED_SCRIPT_BUILD_ARGS=(
+  --build-context "secret-store-scripts=$dir/../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts"
+  --build-context "auxiliary-service-scripts=$dir/../deployment/native-packages/src/xroad/common/auxiliary-service/usr/share/xroad/scripts"
+)
 
 # Add Docker Hub mirror build arg if configured
 if [[ "$no_mirror" != "true" ]] && [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
@@ -45,7 +106,9 @@ build() {
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
   [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
-  docker build --progress=plain -f "$1" "${build_args[@]}" "${MIRROR_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
+  local package_args=()
+  [[ "${3:-}" == "true" ]] && package_args=("${PACKAGE_BUILD_ARGS[@]+"${PACKAGE_BUILD_ARGS[@]}"}")
+  docker build --progress=plain -f "$1" "${build_args[@]}" "${package_args[@]+"${package_args[@]}"}" "${MIRROR_BUILD_ARGS[@]}" "${SHARED_SCRIPT_BUILD_ARGS[@]}" -t "$tag:$version$2" "$dir"
 }
 
 copy_variant_conf() {
@@ -67,37 +130,47 @@ build_variant() {
     -t "$tag:$version$1-$2" "$dir"
 }
 
-# Ensure latest ubuntu image is used as base
+# Ensure the base image the slim Dockerfile's FROM references is warmed
 if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
-  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:26.04"
+  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:resolute"
 else
-  docker pull ubuntu:26.04
+  docker pull ubuntu:resolute
 fi
 
-build "$dir/slim/Dockerfile" "-slim"
-build_variant "-slim" "fi"
-build_variant "-slim" "fo"
-build_variant "-slim" "is"
+if $build_all || [[ "$target" == "slim" ]]; then
+  build "$dir/slim/Dockerfile" "-slim" true
+fi
 
-build "$dir/Dockerfile" ""
-build_variant "" "fi"
-build_variant "" "ee"
-build_variant "" "fo"
-build_variant "" "is"
+if $build_all; then
+  build_variant "-slim" "fi"
+  build_variant "-slim" "fo"
+  build_variant "-slim" "is"
+fi
 
-build "$dir/kubernetesBalancer/slim/primary/Dockerfile" "-slim-primary"
-build "$dir/kubernetesBalancer/slim/secondary/Dockerfile" "-slim-secondary"
-build "$dir/kubernetesBalancer/primary/Dockerfile" "-primary"
-build "$dir/kubernetesBalancer/secondary/Dockerfile" "-secondary"
+if $build_all || [[ "$target" == "full" ]]; then
+  build "$dir/Dockerfile" "" true
+fi
 
-build_variant "-slim-primary" "fi"
-build_variant "-slim-secondary" "fi"
-build_variant "-slim-primary" "is"
-build_variant "-slim-secondary" "is"
+if $build_all; then
+  build_variant "" "fi"
+  build_variant "" "ee"
+  build_variant "" "fo"
+  build_variant "" "is"
 
-build_variant "-primary" "fi"
-build_variant "-secondary" "fi"
-build_variant "-primary" "is"
-build_variant "-secondary" "is"
-build_variant "-primary" "ee"
-build_variant "-secondary" "ee"
+  build "$dir/kubernetesBalancer/slim/primary/Dockerfile" "-slim-primary"
+  build "$dir/kubernetesBalancer/slim/secondary/Dockerfile" "-slim-secondary"
+  build "$dir/kubernetesBalancer/primary/Dockerfile" "-primary"
+  build "$dir/kubernetesBalancer/secondary/Dockerfile" "-secondary"
+
+  build_variant "-slim-primary" "fi"
+  build_variant "-slim-secondary" "fi"
+  build_variant "-slim-primary" "is"
+  build_variant "-slim-secondary" "is"
+
+  build_variant "-primary" "fi"
+  build_variant "-secondary" "fi"
+  build_variant "-primary" "is"
+  build_variant "-secondary" "is"
+  build_variant "-primary" "ee"
+  build_variant "-secondary" "ee"
+fi

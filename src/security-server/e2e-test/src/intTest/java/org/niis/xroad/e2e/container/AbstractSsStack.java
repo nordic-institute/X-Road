@@ -23,44 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e;
+package org.niis.xroad.e2e.container;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
+import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+
+import java.io.File;
 
 /**
- * Fat-jar entry point for the e2e test suite.
+ * Common base for the two stack shapes a single ss0/ss1 slot in {@link E2eEnvSetup} can boot: the
+ * per-service multi-container stack ({@link SsStackSetup}) and the single sidecar container
+ * ({@link SidecarSsStackSetup}). Both answer to the same set of network aliases and ports, so tests
+ * declare {@code E2eEnvironment}/the ops interfaces and never see which shape is running.
  */
-public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
+public abstract class AbstractSsStack extends BaseComposeSetup {
 
-    public static void main(String[] args) {
-        new ConsoleE2ETestRunner().run();
+    protected AbstractSsStack(ApiTestCoreProperties coreProperties) {
+        super(coreProperties);
     }
 
-    @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.aux.yaml",
-                "compose.main.yaml",
-                "compose.e2e.yaml",
-                "compose.e2e.ds.yaml",
-                "compose.ss-hsm.e2e.yaml",
-                "compose.ss-batch-signature-enabled.e2e.yaml",
-                "compose.ss-softtoken-signer-enabled.e2e.yaml",
-                "compose.ss-msglog-encryption.e2e.yaml",
-                "compose.ss-msglog.e2e.yaml",
-                "compose.ss-opmonitor.e2e.yaml",
-                "compose.ss0-sidecar.e2e.yaml",
-                ".env",
-                "container-files/",
-                "wiremock_mappings/",
-                "signer-with-hsm/",
-                "hurl/",
-                "gpg_keys/"
-        };
+    /**
+     * Blocks until this stack's proxy reports readiness, including OCSP status for the auth key.
+     */
+    public abstract void awaitProxyReadiness();
+
+    protected Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
+        return createLogConsumer("%s-%s".formatted(envName, containerName));
     }
 
-    @Override
-    protected String phasedSuiteClassName() {
-        return E2eSuite.class.getName();
+    protected File composeFile(String fileName) {
+        return new File(coreProperties.resourceDir() + fileName);
     }
 }

@@ -57,7 +57,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     private static final Duration GLOBALCONF_PROPAGATION_GRACE_PERIOD = Duration.ofSeconds(20);
 
     private AuxStackSetup aux;
-    private SsStackSetup ss0;
+    private AbstractSsStack ss0;
     private SsStackSetup ss1;
 
     public E2eEnvSetup(ApiTestCoreProperties coreProperties) {
@@ -69,8 +69,7 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
         aux = new AuxStackSetup(coreProperties);
         aux.start();
 
-        ss0 = new SsStackSetup(coreProperties, "ss0",
-                Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER, SsStackSetup.Feature.OP_MONITOR));
+        ss0 = buildSs0Stack(coreProperties);
         ss0.start();
 
         ss1 = new SsStackSetup(coreProperties, "ss1",
@@ -130,6 +129,10 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public String execMessagelogSql(String envName, String sql) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
+            return sidecar.execMessagelogSql(sql);
+        }
         var result = execInEnvContainer(envName, SsStackSetup.DB_MESSAGELOG,
                 "psql", "-U", "postgres", "-d", "messagelog", "-tAX", "-c", sql);
         if (result.getExitCode() != 0) {
@@ -141,6 +144,11 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
     @Override
     @SneakyThrows
     public void triggerMessageLogCommand(String envName, String command) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
+            sidecar.triggerMessageLogCommand(command);
+            return;
+        }
         var javaCmd = "java -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
                 + " -Dquarkus.profile=containerized"
                 + " -jar /opt/app/quarkus-run.jar " + command
@@ -154,12 +162,21 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
 
     @Override
     public void downloadMessageLogArchives(String envName, String localDir) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
+            sidecar.downloadMessageLogArchives(localDir);
+            return;
+        }
         downloadArchivesTarball(envName, "/var/lib/xroad", localDir);
     }
 
     @Override
     @SneakyThrows
     public int decryptArchives(String envName, String filePrefix, String keyId, String passphrase, String outputDir) {
+        var sidecar = sidecarSs0(envName);
+        if (sidecar != null) {
+            return sidecar.decryptArchives(filePrefix, keyId, passphrase, outputDir);
+        }
         var keyFile = "/gpg-keys/%s.asc".formatted(keyId);
         var remoteOutputDir = "/tmp/decrypt-" + UUID.randomUUID();
 
@@ -196,6 +213,26 @@ public class E2eEnvSetup extends BaseComposeSetup implements E2eEnvironment, Mes
             case "aux" -> aux;
             default -> throw new IllegalArgumentException("Unknown environment: " + name);
         };
+    }
+
+    private AbstractSsStack buildSs0Stack(ApiTestCoreProperties coreProperties) {
+        return switch (coreProperties.ss0Stack()) {
+            case DEFAULT -> new SsStackSetup(coreProperties, "ss0",
+                    Set.of(SsStackSetup.Feature.BATCH_SIGNATURES, SsStackSetup.Feature.SOFTTOKEN_SIGNER,
+                            SsStackSetup.Feature.OP_MONITOR));
+            case SIDECAR -> new SidecarSsStackSetup(coreProperties, "ss0");
+        };
+    }
+
+    /**
+     * Returns {@code ss0} when it is running the sidecar stack variant, so messagelog DB and archive
+     * operations can route to its single-container exec-based implementation instead of the
+     * {@code db-messagelog}/{@code message-log-cli} containers the multi-container stack exposes.
+     * Returns {@code null} for every other environment name (including {@code ss0} when it is the
+     * multi-container stack).
+     */
+    private SidecarSsStackSetup sidecarSs0(String envName) {
+        return "ss0".equals(envName) && ss0 instanceof SidecarSsStackSetup sidecar ? sidecar : null;
     }
 
     @Override

@@ -4,8 +4,9 @@ name: E2E Tests
 # `variant`, so the Actions UI shows a single "e2e" group with one leg per substrate.
 #
 # The suite itself is identical in all lanes -- the same fat jar, the same scenario
-# classes -- and `test-framework.env-mode` selects the substrate. What differs is the
-# setup each substrate needs before the jar can attach, which is expressed as
+# classes -- and `test-framework.env-mode` selects the substrate (sidecar reuses
+# `compose` env-mode with the `ss0-stack=sidecar` switch). What differs is the setup
+# each substrate needs before the jar can attach, which is expressed as
 # variant-guarded steps. Everything from "Setup Java" onward is shared.
 #
 # The caller has no `needs: build-and-package` edge, so every leg starts with the
@@ -13,11 +14,13 @@ name: E2E Tests
 # package-independent prep (variant-guarded, see below) immediately -- this is what
 # overlaps with build-and-package -- then a uniform wait step polls for a readiness
 # marker artifact before downloading anything build-and-package produced. lxd waits
-# on `artifacts-ready` (native packages + e2e-test-jar); compose and k8s wait on
-# `images-ready` (all image pushes), since both deploy run-tagged images that land
-# later in that job. The marker also carries the image registry/tag: without the
-# `needs` edge, `needs.build-and-package.outputs.*` is not available to read them
-# from.
+# on `artifacts-ready` (native packages + e2e-test-jar); compose, k8s and sidecar wait
+# on `images-ready` (all image pushes), since all three deploy run-tagged images that
+# land later in that job -- sidecar additionally needs the tree-built DEBs
+# `artifacts-ready` carries, but those are uploaded earlier in the same linear job, so
+# waiting on the later marker alone is sufficient. The marker also carries the image
+# registry/tag: without the `needs` edge, `needs.build-and-package.outputs.*` is not
+# available to read them from.
 on:
   workflow_call:
     inputs:
@@ -30,7 +33,7 @@ on:
         required: true
         type: string
       variant:
-        description: 'E2E substrate: compose | lxd | k8s'
+        description: 'E2E substrate: compose | lxd | k8s | sidecar'
         required: true
         type: string
       runs_on:
@@ -45,11 +48,14 @@ on:
 jobs:
   e2e:
     name: ${{ inputs.variant }}
-    # The lxd lane stays on pull_request and manual dispatch only; compose also gates
-    # pushes to develop. Guarding here rather than in the caller keeps the three lanes
-    # in one matrix -- an excluded lane shows as a skipped leg instead of vanishing.
+    # The lxd and sidecar lanes stay on pull_request and manual dispatch only; compose
+    # and k8s also run on pushes to develop. sidecar is new and unproven at CI scale --
+    # kept as narrow as lxd until it has a track record, rather than matching
+    # compose/k8s's broader scope by default. Guarding here rather than in the caller
+    # keeps all lanes in one matrix -- an excluded lane shows as a skipped leg instead
+    # of vanishing.
     if: >
-      inputs.variant != 'lxd'
+      (inputs.variant != 'lxd' && inputs.variant != 'sidecar')
       || github.event_name == 'workflow_dispatch'
       || github.event_name == 'pull_request'
     runs-on: ${{ inputs.runs_on }}
@@ -177,10 +183,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ------------------------------------------------------------ compose setup
+      # -------------------------------------------------- compose/sidecar setup
+
+      # sidecar runs the suite in compose env-mode (ss0-stack=sidecar), so it needs the
+      # same registry login and shared network as the compose lane.
 
       - name: Login to GHCR
-        if: inputs.variant == 'compose'
+        if: inputs.variant == 'compose' || inputs.variant == 'sidecar'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
@@ -188,7 +197,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create compose network
-        if: inputs.variant == 'compose'
+        if: inputs.variant == 'compose' || inputs.variant == 'sidecar'
         run: docker network create xroad-network
 
       # --------------------------------------------------------- wait for build
@@ -323,6 +332,36 @@ jobs:
             -e '{"xroad_image_pull_secret_namespaces": ["cs", "ss0", "ss1"]}'
           echo "PROVISION_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      # ----------------------------------------------------- sidecar image build
+
+      # DEB artifact for the sidecar's base dist (Ubuntu 26.04 / resolute) -- the same
+      # tree-built packages the lxd leg consumes above, uploaded well before images-ready
+      # (see the marker header comment), so it is already available once that wait ends.
+      - name: Download resolute (Ubuntu 26.04) packages (sidecar)
+        if: inputs.variant == 'sidecar'
+        uses: ./.github/actions/download-artifact-retry
+        with:
+          name: lxd-packages-ubuntu26.04
+          path: deployment/native-packages/build/ubuntu26.04
+
+      # Builds slim then full from the tree-built DEBs via --packages-path. Order matters:
+      # the full image is `FROM <tag>:<version>-slim`, so the slim tag has to exist locally
+      # before the full build can resolve it. Both are tagged to match exactly what the
+      # e2e-test jar's generated .env already resolves SIDECAR_IMG to (build.gradle.kts's
+      # intTestComposeEnv resolves every service image, sidecar included, to
+      # $imageRegistry/<name>:$imageTag). No push:
+      # docker compose's default pull policy only fetches an image it cannot find
+      # locally, so a matching local tag is all the harness needs -- SIDECAR_IMG rides
+      # the same generated env as every other service image, with no runtime override.
+      - name: Build sidecar images
+        if: inputs.variant == 'sidecar'
+        working-directory: ./sidecar
+        run: |
+          ./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04 \
+            "${{ env.SERVICE_IMAGE_TAG }}" "${{ env.IMAGE_REGISTRY }}/xroad-security-server-sidecar"
+          ./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04 \
+            "${{ env.SERVICE_IMAGE_TAG }}" "${{ env.IMAGE_REGISTRY }}/xroad-security-server-sidecar"
+
       # ------------------------------------------------------------------- shared
 
       - name: Download e2e-test JAR
@@ -363,8 +402,12 @@ jobs:
           java -Dtest-framework.env-mode=k8s -jar e2e-test-1.0.jar
           echo "E2E_SECS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
+      - name: Run e2e tests (sidecar)
+        if: inputs.variant == 'sidecar'
+        run: java -Dtest-framework.env-mode=compose -Dtest-framework.ss0-stack=sidecar -jar e2e-test-1.0.jar
+
       - name: Log storage
-        if: always() && inputs.variant == 'compose'
+        if: always() && (inputs.variant == 'compose' || inputs.variant == 'sidecar')
         uses: ./.github/actions/log-storage
         with:
           label: 'e2e-test storage'

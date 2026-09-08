@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.22
+Version: 1.25
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -30,6 +30,9 @@ Doc. ID: UG-SS-SIDECAR
 | 14.10.2025 | 1.20    | Document multiple token autologin support               | Raido Kaju                |
 | 18.12.2025 | 1.21    | Added hardware token installation paragraph             | Marc David                |
 | 02.03.2026 | 1.22    | Fix broken link                                         | Petteri Kivimäki          |
+| 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
+| 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
+| 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
 
 ## License
 
@@ -55,6 +58,9 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.7 Using Volumes](#27-using-volumes)
   * [2.8 Automatic backups](#28-automatic-backups)
   * [2.9 Message log archives](#29-message-log-archives)
+  * [2.10 Secret Store](#210-secret-store)
+  * [2.11 Health Checks](#211-health-checks)
+  * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
   * [3.2 Enabling ACME Support](#32-enabling-acme-support)
@@ -122,7 +128,6 @@ The following parameters are used in example commands:
 | \<admin port>                       | Port for admin user interface (default 4000)                                                                                      |
 | \<healthcheck port>                 | Port for service health check (default 5588)                                                                                      |
 | \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https))                                                              |
-| \<token pin>                        | Software token PIN code                                                                                                           |
 | \<admin user>                       | Admin username                                                                                                                    |
 | \<admin password>                   | Admin password                                                                                                                    |
 | \<database host>                    | (Optional) host for external database                                                                                             |
@@ -164,7 +169,30 @@ See also [Docker Networking](https://docs.docker.com/network/)
 ### 2.4 Running the Sidecar Container
 
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
-Alternatively, you can build container images locally using the [docker-build.sh script](https://github.com/nordic-institute/X-Road/blob/2834322c62363e845b6030511e6e52fdacd9a8e0/sidecar/docker-build.sh).
+
+Alternatively, build the images locally with the [docker-build.sh script](../../sidecar/docker-build.sh) (in the
+`sidecar/` directory of the source tree). By default it builds every image variant; pass `--target=slim` or
+`--target=full` to build only one (`full` requires the `slim` tag to already exist locally, since it is built
+`FROM` it):
+
+```bash
+./docker-build.sh --target=slim
+./docker-build.sh --target=full
+```
+
+Packages are installed from an X-Road apt repository by default (the `REPO` positional argument selects it,
+defaulting to the development repository; see `docker-build.sh --help`). To build from a local directory of
+tree-built `.deb` packages instead (for example `deployment/native-packages/build/ubuntu26.04`), pass
+`--packages-path`; it builds the slim and full images with `PACKAGE_SOURCE=internal` and the given directory
+bind-mounted as the `packages` build context (each image re-scans it into its own trusted repository, since
+`slim`'s trusted repository does not persist past that build):
+
+```bash
+./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
+./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
+```
+
+`docker-build.sh` fails with a clear error if the given path does not exist or contains no files.
 
 ```bash
 docker run --detach \
@@ -174,7 +202,6 @@ docker run --detach \
   -p <consumer information system port>:8443 \
   -p 5500:5500 \
   -p 5577:5577 \
-  -e XROAD_TOKEN_PIN=<token pin> \
   -e XROAD_ADMIN_USER=<admin user> \
   -e XROAD_ADMIN_PASSWORD=<admin password> \
   # Alternatively a password hash for admin can be used
@@ -207,26 +234,45 @@ In production use, either persistent volumes should be used. Using a separate da
     b3031affa4b7   niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago      Up 10 minutes  ...       <container name>
     ```
 
-2. Ensure from the command line that the X-Road services are running in the container:
+2. Ensure from the command line that the X-Road services are running in the container. On the `full` image:
     ```bash
     docker exec -t <container name> supervisorctl status
-    cron                             RUNNING   pid 557, uptime 0:07:44
-    postgres                         RUNNING   pid 552, uptime 0:07:44
-    xroad-addon-messagelog           RUNNING   pid 558, uptime 0:07:44
-    xroad-autologin                  EXITED    Dec 19 01:18 PM
-    xroad-confclient                 RUNNING   pid 553, uptime 0:07:44
-    xroad-monitor                    RUNNING   pid 554, uptime 0:07:44
-    xroad-opmonitor                  RUNNING   pid 555, uptime 0:07:44
-    xroad-proxy                      RUNNING   pid 560, uptime 0:07:44
-    xroad-proxy-ui-api               RUNNING   pid 561, uptime 0:07:44
-    xroad-signer                     RUNNING   pid 556, uptime 0:07:44
+    cron                                     RUNNING   pid 1137, uptime 0:00:45
+    openbao                                  RUNNING   pid 1133, uptime 0:00:45
+    postgres                                 RUNNING   pid 1135, uptime 0:00:45
+    xroad-opmonitor                          RUNNING   pid 1136, uptime 0:00:45
+    xroad-proxy-ui-api                       RUNNING   pid 1142, uptime 0:00:45
+    xroad-secret-store-gate                  EXITED    Sep 01 02:28 AM
+    xroad-services:xroad-auxiliary-service   RUNNING   pid 1325, uptime 0:00:43
+    xroad-services:xroad-confclient          RUNNING   pid 1323, uptime 0:00:43
+    xroad-services:xroad-ds-control-plane    RUNNING   pid 1326, uptime 0:00:43
+    xroad-services:xroad-ds-identity-hub     RUNNING   pid 1329, uptime 0:00:43
+    xroad-services:xroad-monitor             RUNNING   pid 1324, uptime 0:00:43
+    xroad-services:xroad-proxy               RUNNING   pid 1339, uptime 0:00:43
+    xroad-services:xroad-signer              RUNNING   pid 1335, uptime 0:00:43
     ```
+    `slim` runs the same `openbao`, `xroad-secret-store-gate`, `postgres`, `cron`, `xroad-proxy-ui-api` and the
+    `xroad-services` group's `xroad-signer`/`xroad-confclient`/`xroad-proxy`, and nothing else.
+
+    `xroad-secret-store-gate` is a one-shot program: it unseals the secret store and releases the gated
+    `xroad-services` group, then exits — `EXITED` with exit status `0` is its expected steady state, not a failure.
+    If it cannot confirm the store is unsealed, it leaves the `xroad-services` group stopped and exits nonzero;
+    supervisord re-runs it until the store becomes usable, and the container stays unhealthy meanwhile.
 
 3. Ensure that you can open the admin user interface URL `https://127.0.0.1:<admin port>` in a web browser. To log in, use the credentials you set during the installation (\<admin user>, \<admin password>). While the user interface is still starting up, the web browser may display a connection refused -error.
 
+4. Check that the container itself reports healthy — Docker's own `HEALTHCHECK` probes the proxy's liveness endpoint
+   and does not require the server to be initialized:
+    ```bash
+    docker ps --filter "name=<container name>"
+    CONTAINER ID   IMAGE                                            COMMAND                 CREATED         STATUS                   PORTS     NAMES
+    b3031affa4b7   niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago  Up 10 minutes (healthy)  ...       <container name>
+    ```
+   See [Health Checks](#211-health-checks) for what "healthy" means before the server has been initialized.
+
 ### 2.5 Using an External Database
 
-For full compatibility, the external database must be PostgreSQL version 16 (for example backup and restore does not work if the version differs).
+For full compatibility, the external database must be PostgreSQL version 18 (for example backup and restore does not work if the version differs).
 When starting the container, provide the external database server hostname, server port, and superuser credentials (for creating the necessary users and tables) as parameters. 
 For example:
 
@@ -240,7 +286,7 @@ docker run -d \
 -e POSTGRES_PASSWORD=<postgres password> \
 --name remote-db \
 --network xroad-network \
-postgres:16
+postgres:18
 
 # Run sidecar
 docker run -d \
@@ -251,7 +297,6 @@ docker run -d \
 -p 5500:5500 \
 -p 5577:5577 \
 --network xroad-network \
--e XROAD_TOKEN_PIN=<token pin> \
 -e XROAD_ADMIN_USER=<admin user> \
 -e XROAD_ADMIN_PASSWORD=<admin password> \
 -e XROAD_DB_HOST=remote-db \
@@ -316,29 +361,28 @@ It is recommended to configure persistent [storage](https://docs.docker.com/stor
 
 | Mount point                 | Description                                               |
 |-----------------------------|-----------------------------------------------------------|
-| /etc/xroad                  | X-Road configuration                                      |
+| /etc/xroad                  | X-Road configuration; also holds the secret-store unseal keys, root token and client token (`/etc/xroad/secret-store/`, `/etc/xroad/secret-store-client-token`) |
 | /var/lib/xroad              | Backups and messagelog archives                           |
-| /var/lib/postgresql/16/main | Local database files (not applicable to external database |
+| /var/lib/postgresql/18/main | Local database files, including the embedded OpenBao secret store's own storage database (not applicable to external database |
 
 *Note* Use docker volume instead of bind mount for local database files to avoid permissions issues. For more information see: [Volumes](https://docs.docker.com/storage/volumes/)
 
 For example, to run sidecar using volumes for each mount point execute the following command:
 ```bash
 docker run --detach \
-  --name sss-7.6.0 \
+  --name sss-8.0.0 \
   -p 127.0.0.1:4170:4000 \
   -p 127.0.0.1:5588:5588 \
   -p 8443:8443 \
   -p 5500:5500 \
   -p 5577:5577 \
   --network xroad-network \
-  -e XROAD_TOKEN_PIN=1234 \
   -e XROAD_ADMIN_USER=xrd \
   -e XROAD_ADMIN_PASSWORD=secret \
   -v sidecar_config_volume:/etc/xroad \
   -v sidecar_backup_volume:/var/lib/xroad \
-  -v sidecar_db_volume:/var/lib/postgresql/16/main \
-  niis/xroad-security-server-sidecar:7.6.0
+  -v sidecar_db_volume:/var/lib/postgresql/18/main \
+  niis/xroad-security-server-sidecar:8.0.0
 ```
 
 ### 2.8 Automatic backups
@@ -348,12 +392,109 @@ If needed, you can adjust the automatic backup deletion policies by editing the 
 
 Automatic backups will be stored in the folder `/var/lib/xroad/backup/`.
 
+Backup archives deliberately exclude the secret-store key material (`/etc/xroad/secret-store/` — unseal keys and
+root token), even though they include a dump of the secret store's database: an archive that carried both the
+encrypted store and its unseal keys would hand every stored secret to anyone who obtains the archive. Restoring
+a backup on the same instance is unaffected — the live key files are preserved across a restore. Recovering onto
+a fresh configuration volume, however, requires the original key files: without them the restored secret store
+can never be unsealed and its contents are unrecoverable. Keep the `/etc/xroad` volume itself, or store a copy
+of `/etc/xroad/secret-store/` separately with the same care as the backup encryption keys.
+
 ### 2.9 Message log archives
 
 Does not apply to *slim* image.
 
 The Security Server Sidecar periodically archives message log records in the folder `/var/lib/xroad/`.
 It is recommended to store the archives to a volume by adding a volume mapping for the archive directory.
+
+### 2.10 Secret Store
+
+The Security Server Sidecar needs a secret store for TLS material, token PINs and encryption keys. By default it
+runs an embedded [OpenBao](https://openbao.org/) instance under supervisord; no configuration is needed to use it.
+
+On first boot, before any X-Road service starts, the container initializes the embedded store: it starts OpenBao,
+initializes and unseals it, creates the `xrd-pki`, `xrd-secret` and `xrd-ds-secret` mounts, and mints a client
+token used by signer, proxy, configuration-client and (in the `full` image) monitor, auxiliary-service and the
+dataspace services. On every later boot the store is only re-unsealed, using the keys generated on first boot; it
+is never re-initialized. The unseal keys, root token and client token live under `/etc/xroad/secret-store/` and
+`/etc/xroad/secret-store-client-token`, and the store's own data lives in the embedded PostgreSQL database — both
+already covered by the volumes in [2.7 Using Volumes](#27-using-volumes), so no extra volume is needed to persist
+the secret store across restarts.
+
+To use an external secret store instead of the embedded one, set:
+
+| Variable                      | Description                                             |
+|--------------------------------|---------------------------------------------------------|
+| `XROAD_SECRET_STORE_HOST`      | External secret store hostname                          |
+| `XROAD_SECRET_STORE_PORT`      | (Optional) External secret store port, default 8200      |
+| `XROAD_SECRET_STORE_SCHEME`    | (Optional) `http` or `https`, default `https`             |
+| `XROAD_SECRET_STORE_TOKEN`     | Access token the X-Road services use against the external store |
+
+When `XROAD_SECRET_STORE_HOST` is set, the embedded OpenBao program does not start and the container does not
+attempt to initialize it; the X-Road services connect to the external store using the values provided.
+
+The `full` image's dataspace services (ds-control-plane, ds-identity-hub) also need a TLS certificate for their
+HTTPS listeners. The sidecar handles this the same way as every other deployment mode: the services start with the
+certificate slot empty and wait until one is provisioned through the admin API — either by uploading a certificate
+signed against a CSR downloaded from the server, or by ACME enrollment from an approved CA. Self-signed
+certificates are not accepted by peers: outbound dataspace connections validate the peer's certificate against the
+approved CAs designated in the global configuration only.
+
+### 2.11 Health Checks
+
+The image's Docker `HEALTHCHECK` targets the proxy's **liveness** endpoint (`/q/health/live` on the
+`<healthcheck port>`), not its readiness or aggregate health endpoint. A container reports `healthy` in `docker ps`
+/ `docker inspect` as soon as the proxy JVM itself is up — deadlock and heap checks only — regardless of whether
+the server has been initialized.
+
+Readiness (`/q/health/ready`) additionally includes global-configuration and serverconf checks, which are
+legitimately `DOWN` until an anchor has been imported and the server configured. A freshly started, uninitialized
+container is therefore expected to be Docker-`healthy` while its readiness endpoint still reports `DOWN` — this is
+not a fault, and orchestrators must not use readiness to decide whether to restart the container.
+
+### 2.12 First-Boot Hook Scripts
+
+Executable scripts mounted into `/etc/xroad/entrypoint.d/` run once, on the container's first boot, as the last
+provisioning step: after the image's own database provisioning, configuration seeding and secret-store setup, and
+before supervisord starts any X-Road service. The database (embedded or external) is up and reachable at that
+point, and the secret store is initialized, so a hook can call the native configuration tool to seed rows the
+operator needs in place before services start, for example:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+/usr/share/xroad/scripts/db_property.sh set xroad.some.property some-value --yes
+```
+
+Rules:
+
+* Scripts run in lexical filename order (`10-...` before `20-...`); a numeric prefix controls ordering when more
+  than one script is mounted.
+* Only regular, executable files run. Symlinks to regular files count, which is how Kubernetes delivers every file
+  of a ConfigMap or Secret mount. A file that is not executable is skipped with a log line naming it;
+  subdirectories and symlinks without a target are skipped silently.
+* A script that exits non-zero fails the boot: the entrypoint logs the failing script and its exit status and the
+  container stops without starting supervisord. Such a boot is not recorded as provisioned, so the hooks stay
+  pending — fix the script and start the container again (`docker start`), and the entrypoint reconfigures the
+  packages and runs the hooks again from the beginning.
+* After a boot that completed, hooks do not run again on a later restart of the same container: they share the
+  reconfiguration marker that guards the image's own seeding, `/.xroad-reconfigured`, which is written only once
+  every hook has succeeded. To run them again, recreate the container with `-e RECONFIG_REQUIRED=true` —
+  `docker restart` cannot add an environment variable to an existing container.
+* Nothing is mounted into `/etc/xroad/entrypoint.d/` by default, so a container with no hook volume behaves exactly
+  as one without this feature.
+
+Example compose mount:
+
+```yaml
+services:
+  sidecar:
+    image: niis/xroad-security-server-sidecar:8.0.0
+    volumes:
+      - ./entrypoint.d:/etc/xroad/entrypoint.d:ro
+```
+
+with `./entrypoint.d/10-seed-config.sh` executable on the host and containing the script shown above.
 
 ## 3 Initial configuration
 
@@ -398,29 +539,40 @@ Security Server Sidecar provides built-in support for hardware security tokens, 
 
 ### 3.5 Autologin
 
-The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)).
+Autologin logs a token in to the signer automatically after the container starts or restarts, so unattended
+restarts do not require an operator to log the token in by hand. It is implemented inside the signer itself and is
+disabled by default; PINs are stored in OpenBao, the same secret store described in
+[2.10 Secret Store](#210-secret-store).
 
-For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which supports both single and multiple token configurations:
+To enable it, set on `docker run`:
 
-Single token configuration:
+* `XROAD_SIGNER_AUTOLOGIN_ENABLED=true` — turns autologin on. Leaving this variable unset keeps it disabled and
+  writes nothing to the server's configuration.
+* `XROAD_SIGNER_AUTOLOGIN_TOKENS__<id>__PIN=<token pin>` — the PIN for token `<id>` (the first software token is
+  `0`). Set one variable per token, e.g. `-e XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=<token pin>` for a single-token
+  setup, plus `-e XROAD_SIGNER_AUTOLOGIN_TOKENS__1__PIN=<token pin>` for a second token, and so on.
 
-* Set the environment variable `XROAD_TOKEN_PIN` (e.g., `-e XROAD_TOKEN_PIN=<token pin>`)
-* This PIN will be used for token ID 0
-* When the Security Server is initialized for the first time, the token pin configured needs to match this variable
+Example:
 
-Multiple tokens configuration:
+```bash
+docker run --detach \
+  ... \
+  -e XROAD_SIGNER_AUTOLOGIN_ENABLED=true \
+  -e XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN=<token pin> \
+  niis/xroad-security-server-sidecar:<version[-type[-variant]>
+```
 
-* Set environment variables in the format `XROAD_TOKEN_<id>_PIN` where `<id>` is the token ID
-* Example: `-e XROAD_TOKEN_0_PIN=1234 -e XROAD_TOKEN_1_PIN=5678`
-* Each token will be logged in with its respective PIN
-* If using numbered tokens (other than 0), multiple token PINs must be provided
+The enable flag is written into the server's own configuration only once — the first time the container
+reconfigures against a given config volume (normally its very first boot) — and an existing value is never
+overwritten. Setting the variable on that first start is enough; it does not need to be repeated on later
+`docker restart`s of the same container. Changing it afterward requires updating the server's configuration
+directly, the same way any other configuration property is changed after initialization.
 
-Fallback configuration:
-
-* If no environment variables are set, the script will read from `/etc/xroad/autologin`
-* This file can contain either a single PIN (for token 0) or multiple lines in the format `token-id:token-pin`
-
-Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded.
+Since autologin only succeeds once the token has actually been initialized (created and given the same PIN through
+the admin UI or API) and the signer is running, the signer log shows retries against `token_not_initialized` until
+initialization happens; this is expected before the server has been set up, and the process keeps retrying rather
+than failing permanently. Once the token is initialized, the log shows the PIN being stored into the secret store
+and the token being logged in.
 
 ## 4 Upgrading
 
@@ -430,7 +582,7 @@ Upgrading to a new image is supported, provided that:
   * As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
   * As an exception, upgrading from 7.4.2 to 7.5.x is supported using backup archive if local database is used.
 * A volume is used for `/etc/xroad`.
-* A remote database is used, or a volume is mapped to `/var/lib/postgresql/16/main`.
+* A remote database is used, or a volume is mapped to `/var/lib/postgresql/18/main`.
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
 
