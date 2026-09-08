@@ -28,12 +28,14 @@ package org.niis.xroad.securityserver.restapi.service;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Signals the data space control plane to flush its catalog caches on a local client add or remove,
@@ -57,6 +59,7 @@ public class CatalogInvalidationNotifier implements DisposableBean {
     private final AdminServiceProperties adminServiceProperties;
     private final ExecutorService executorService;
 
+    @Autowired
     public CatalogInvalidationNotifier(ControlPlaneProvisioningClient controlPlaneProvisioningClient,
                                        AdminServiceProperties adminServiceProperties) {
         this(controlPlaneProvisioningClient, adminServiceProperties,
@@ -87,7 +90,12 @@ public class CatalogInvalidationNotifier implements DisposableBean {
     }
 
     private void dispatch() {
-        executorService.execute(this::invalidateNow);
+        try {
+            executorService.execute(this::invalidateNow);
+        } catch (RejectedExecutionException e) {
+            log.warn("Data space: catalog invalidation dispatch rejected (executor shutting down); the "
+                    + "catalog cache will refresh once its normal expiry elapses", e);
+        }
     }
 
     private void invalidateNow() {

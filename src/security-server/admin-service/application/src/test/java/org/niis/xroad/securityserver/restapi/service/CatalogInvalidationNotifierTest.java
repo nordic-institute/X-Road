@@ -36,7 +36,13 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -120,5 +126,44 @@ class CatalogInvalidationNotifierTest {
         TransactionSynchronizationManager.clearSynchronization();
 
         verify(controlPlaneProvisioningClient, never()).invalidateCatalogCaches();
+    }
+
+    @Test
+    void invalidateCatalogCachesRunsOffTheCallerThreadWithTheRealExecutor() throws Exception {
+        when(dataspace.isEnabled()).thenReturn(true);
+        var callingThread = new AtomicReference<Thread>();
+        var called = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            callingThread.set(Thread.currentThread());
+            called.countDown();
+            return null;
+        }).when(controlPlaneProvisioningClient).invalidateCatalogCaches();
+        var realNotifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, adminServiceProperties);
+        try {
+            realNotifier.invalidateCatalogCaches();
+
+            assertThat(called.await(5, TimeUnit.SECONDS))
+                    .as("control plane notified within the wait budget")
+                    .isTrue();
+            assertThat(callingThread.get())
+                    .as("dispatch runs on the notifier's own thread, not the caller's")
+                    .isNotEqualTo(Thread.currentThread());
+            assertThat(callingThread.get().isDaemon())
+                    .as("the notifier thread must not block JVM shutdown")
+                    .isTrue();
+        } finally {
+            realNotifier.destroy();
+        }
+    }
+
+    @Test
+    void invalidateCatalogCachesIsBestEffortAfterShutdown() {
+        when(dataspace.isEnabled()).thenReturn(true);
+        var realNotifier = new CatalogInvalidationNotifier(controlPlaneProvisioningClient, adminServiceProperties);
+        realNotifier.destroy();
+
+        assertThatCode(realNotifier::invalidateCatalogCaches)
+                .as("a rejected dispatch is logged, never thrown to the caller")
+                .doesNotThrowAnyException();
     }
 }
