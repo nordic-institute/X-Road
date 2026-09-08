@@ -51,7 +51,7 @@ import org.niis.xroad.common.properties.config.keys.ProxyConfigKeys;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.messagelog.MessageLogEncryptionConfigKeys;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.signer.common.config.SignerConfigKeys;
@@ -116,11 +116,11 @@ public class ConfigurablePropertiesService {
      *
      * @return set of system properties with their metadata and current values
      */
-    public Set<SecurityServerConfigurablePropertyDto> getConfigurationProperties() {
+    public Set<ConfigurablePropertyDto> getConfigurationProperties() {
         var currentPropertiesValues = repository.findAll();
         return getAllPropertyDefinitions()
                 .stream()
-                .map(param -> toSecurityServerSystemParameterDto(param, currentPropertiesValues))
+                .map(param -> toConfigurablePropertyDto(param, currentPropertiesValues))
                 .collect(Collectors.toSet());
     }
 
@@ -173,9 +173,9 @@ public class ConfigurablePropertiesService {
         repository.saveOrUpdate(entity);
     }
 
-    private SecurityServerConfigurablePropertyDto toSecurityServerSystemParameterDto(
-            PropertyDefinition parameter, List<ConfigurationPropertyEntity> storedValues) {
-        var systemPropertyDto = new SecurityServerConfigurablePropertyDto();
+    private ConfigurablePropertyDto toConfigurablePropertyDto(PropertyDefinition parameter,
+                                                              List<ConfigurationPropertyEntity> storedValues) {
+        var systemPropertyDto = new ConfigurablePropertyDto();
         systemPropertyDto.setPropertyName(parameter.propertyName());
         systemPropertyDto.setDefaultValue(parameter.defaultValue());
         systemPropertyDto.setScope(parameter.scope());

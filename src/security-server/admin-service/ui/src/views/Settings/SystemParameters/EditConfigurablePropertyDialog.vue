@@ -57,11 +57,11 @@
 import { ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { XrdFormBlock, XrdFormBlockRow, useNotifications, XrdSimpleDialog } from '@niis/shared-ui';
-import type { SecurityServerConfigurableProperty } from '@/openapi-types';
+import type { ConfigurablePropertyDto } from '@/openapi-types';
 import { useSystem } from '@/store/modules/system';
 
 const props = defineProps<{
-  property: SecurityServerConfigurableProperty;
+  property: ConfigurablePropertyDto;
 }>();
 
 const emit = defineEmits<{

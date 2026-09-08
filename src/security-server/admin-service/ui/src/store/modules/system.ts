@@ -32,13 +32,13 @@ import {
   Anchor,
   AuthProviderType,
   AuthProviderTypeResponse,
+  ConfigurablePropertyDto,
+  ConfigurablePropertyUpdateDto,
   EnableMaintenanceModeData,
   MaintenanceMode,
   NodeType,
   NodeTypeResponse,
   SecurityServerAddressStatus,
-  SecurityServerConfigurableProperty,
-  SecurityServerPropertyUpdate,
   VersionInfo,
 } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -114,9 +114,9 @@ export const useSystem = defineStore('system', {
       return api.put('/system/server-address', body);
     },
     async fetchConfigurableProperties() {
-      return api.get<SecurityServerConfigurableProperty[]>('/system/property').then((resp) => resp.data);
+      return api.get<ConfigurablePropertyDto[]>('/system/property').then((resp) => resp.data);
     },
-    async updateConfigurableProperty(update: SecurityServerPropertyUpdate) {
+    async updateConfigurableProperty(update: ConfigurablePropertyUpdateDto) {
       return api.patch('/system/property', update);
     },
     async uploadAnchor(initMode: boolean, anchorFile: File) {
