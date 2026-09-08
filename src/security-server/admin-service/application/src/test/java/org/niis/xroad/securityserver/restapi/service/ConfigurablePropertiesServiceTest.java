@@ -36,7 +36,7 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 
@@ -90,7 +90,7 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesOmitsKeysThatAreNotDeclaredExposed() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
         assertTrue(systemParameters.stream()
                 .noneMatch(p -> "xroad.signer.modules".equals(p.getPropertyName())));
@@ -100,9 +100,9 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesIncludesDslCatalogueDerivedProperty() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, CATALOGUE_PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, CATALOGUE_PROPERTY_NAME);
         assertEquals(CATALOGUE_DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(CATALOGUE_SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
@@ -112,9 +112,9 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesNotInDatabase() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
@@ -127,9 +127,9 @@ class ConfigurablePropertiesServiceTest {
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(repository.findAll()).thenReturn(List.of(entity));
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(SCOPE, parameter.getScope());
         assertEquals(PROPERTY_VALUE_2, parameter.getCurrentValue());
@@ -142,9 +142,9 @@ class ConfigurablePropertiesServiceTest {
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(repository.findAll()).thenReturn(List.of(entity));
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
     }
@@ -153,7 +153,7 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesGroupsSharedKeysWithoutScope() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
         assertNull(findProperty(systemParameters, SCOPELESS_PROPERTY_NAME).getScope());
     }
@@ -287,8 +287,8 @@ class ConfigurablePropertiesServiceTest {
         verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, "");
     }
 
-    private static SecurityServerConfigurablePropertyDto findProperty(
-            Set<SecurityServerConfigurablePropertyDto> properties, String propertyName) {
+    private static ConfigurablePropertyDto findProperty(
+            Set<ConfigurablePropertyDto> properties, String propertyName) {
         return properties.stream()
                 .filter(p -> propertyName.equals(p.getPropertyName()))
                 .findFirst()

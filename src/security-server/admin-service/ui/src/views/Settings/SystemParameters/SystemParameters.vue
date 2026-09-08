@@ -301,7 +301,8 @@
             v-model="propertySearch"
             data-test="configurable-properties-search"
             autofocus
-            :label="$t('systemParameters.configurableProperties.search')" />
+            :label="$t('systemParameters.configurableProperties.search')"
+          />
         </div>
 
         <XrdEmptyPlaceholder
@@ -312,11 +313,7 @@
           :no-items-text="$t('noData.noConfigurableProperties')"
         />
 
-        <div
-          v-if="!loadingProperties && filteredScopeKeys.length > 0"
-          class="mt-3 mx-4 mb-4"
-          data-test="configurable-properties-panels"
-        >
+        <div v-if="!loadingProperties && filteredScopeKeys.length > 0" class="mt-3 mx-4 mb-4" data-test="configurable-properties-panels">
           <ScopePropertiesExpandable
             v-for="(scope, index) in filteredScopeKeys"
             :key="scope"
@@ -363,7 +360,13 @@ import {
   XrdSubView,
   XrdView,
 } from '@niis/shared-ui';
-import type { Anchor, CertificateAuthority, SecurityServerConfigurableProperty, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
+import type {
+  Anchor,
+  CertificateAuthority,
+  ConfigurablePropertyDto,
+  ServicePrioritizationStrategy,
+  TimestampingService,
+} from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
@@ -406,9 +409,9 @@ const messageLogEnabled = ref(false);
 const showEditServerAddressDialog = ref(false);
 const addressChangeInProgress = ref(false);
 const serverAddress = ref('');
-const configurableProperties = ref<SecurityServerConfigurableProperty[]>([]);
+const configurableProperties = ref<ConfigurablePropertyDto[]>([]);
 const loadingProperties = ref(false);
-const editingProperty = ref<SecurityServerConfigurableProperty | undefined>(undefined);
+const editingProperty = ref<ConfigurablePropertyDto | undefined>(undefined);
 const modifiedScopes = ref<Set<string>>(new Set());
 const modifiedProperties = ref<Set<string>>(new Set());
 const openScopes = ref<Record<string, boolean>>({});
@@ -418,8 +421,8 @@ const orderedCertificateAuthorities = computed<CertificateAuthority[]>(() =>
   [...certificateAuthorities.value].sort((a, b) => a.path.localeCompare(b.path)),
 );
 
-const propertiesByScope = computed<Record<string, SecurityServerConfigurableProperty[]>>(() => {
-  const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+const propertiesByScope = computed<Record<string, ConfigurablePropertyDto[]>>(() => {
+  const result: Record<string, ConfigurablePropertyDto[]> = {};
   for (const prop of configurableProperties.value) {
     const scope = prop.scope || 'common';
     if (!result[scope]) result[scope] = [];
@@ -431,11 +434,11 @@ const propertiesByScope = computed<Record<string, SecurityServerConfigurableProp
   return result;
 });
 
-const filteredPropertiesByScope = computed<Record<string, SecurityServerConfigurableProperty[]>>(() => {
+const filteredPropertiesByScope = computed<Record<string, ConfigurablePropertyDto[]>>(() => {
   const term = propertySearch.value.trim().toLowerCase();
   if (!term) return propertiesByScope.value;
 
-  const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+  const result: Record<string, ConfigurablePropertyDto[]> = {};
   for (const [scope, props] of Object.entries(propertiesByScope.value)) {
     const matched = props.filter((p) => p.property_name?.toLowerCase().includes(term));
     if (matched.length > 0) result[scope] = matched;
@@ -444,14 +447,10 @@ const filteredPropertiesByScope = computed<Record<string, SecurityServerConfigur
 });
 
 const filteredScopeKeys = computed(() =>
-  Object.keys(filteredPropertiesByScope.value).sort((a, b) =>
-    a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b),
-  ),
+  Object.keys(filteredPropertiesByScope.value).sort((a, b) => (a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b))),
 );
 
-const hasAnyOpenScope = computed(() =>
-  filteredScopeKeys.value.some((scope) => openScopes.value[scope]),
-);
+const hasAnyOpenScope = computed(() => filteredScopeKeys.value.some((scope) => openScopes.value[scope]));
 
 watch(filteredPropertiesByScope, (filtered) => {
   if (!propertySearch.value.trim()) return;

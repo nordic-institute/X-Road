@@ -32,7 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
 
 import java.util.Arrays;
@@ -136,7 +136,7 @@ class ConfigurablePropertiesCatalogueTest {
     @Test
     void catalogueIncludesCrossModuleKeysWithExpectedScopeAndDefault() {
         var actual = service.getConfigurationProperties().stream()
-                .collect(Collectors.toMap(SecurityServerConfigurablePropertyDto::getPropertyName, dto -> dto,
+                .collect(Collectors.toMap(ConfigurablePropertyDto::getPropertyName, dto -> dto,
                         (first, second) -> first));
 
         assertThat(expectedCrossModuleProperties())
@@ -151,7 +151,7 @@ class ConfigurablePropertiesCatalogueTest {
     @Test
     void catalogueScopesAreLimitedToSecurityServerProcessNames() {
         var scopes = service.getConfigurationProperties().stream()
-                .map(SecurityServerConfigurablePropertyDto::getScope)
+                .map(ConfigurablePropertyDto::getScope)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -161,7 +161,7 @@ class ConfigurablePropertiesCatalogueTest {
     @Test
     void catalogueOffersAcmeWaitKeysUnderTheNamesTheCodeReads() {
         var keys = service.getConfigurationProperties().stream()
-                .map(SecurityServerConfigurablePropertyDto::getPropertyName)
+                .map(ConfigurablePropertyDto::getPropertyName)
                 .collect(Collectors.toSet());
 
         assertThat(keys)
@@ -176,7 +176,7 @@ class ConfigurablePropertiesCatalogueTest {
     @Test
     void catalogueOmitsDocumentValuedKeys() {
         var keys = service.getConfigurationProperties().stream()
-                .map(SecurityServerConfigurablePropertyDto::getPropertyName)
+                .map(ConfigurablePropertyDto::getPropertyName)
                 .collect(Collectors.toSet());
 
         assertThat(keys)

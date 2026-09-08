@@ -28,8 +28,8 @@ package org.niis.xroad.ss.test.api.admin;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerPropertyUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 
 import java.util.List;
@@ -177,7 +177,7 @@ public class SystemParametersAdminClient {
      * Updates a configurable property.
      */
     public ValidatableResponse updateConfigurableProperty(String propertyName, String propertyValue, String scope) {
-        var body = new SecurityServerPropertyUpdateDto(propertyName, propertyValue).scope(scope);
+        var body = new ConfigurablePropertyUpdateDto(propertyName, propertyValue).scope(scope);
         return session.given()
                 .contentType(ContentType.JSON)
                 .body(body)
