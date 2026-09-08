@@ -255,7 +255,9 @@ In production use, either persistent volumes should be used. Using a separate da
     `xroad-services` group's `xroad-signer`/`xroad-confclient`/`xroad-proxy`, and nothing else.
 
     `xroad-secret-store-gate` is a one-shot program: it unseals the secret store and releases the gated
-    `xroad-services` group, then exits — `EXITED` is its expected steady state, not a failure.
+    `xroad-services` group, then exits — `EXITED` with exit status `0` is its expected steady state, not a failure.
+    If it cannot confirm the store is unsealed, it leaves the `xroad-services` group stopped and exits nonzero;
+    supervisord re-runs it until the store becomes usable, and the container stays unhealthy meanwhile.
 
 3. Ensure that you can open the admin user interface URL `https://127.0.0.1:<admin port>` in a web browser. To log in, use the credentials you set during the installation (\<admin user>, \<admin password>). While the user interface is still starting up, the web browser may display a connection refused -error.
 
