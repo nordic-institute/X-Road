@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.BuiltinServiceCodes;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -451,7 +452,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.findById(builtinAssetId);
 
@@ -477,7 +478,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.resolveForAsset(builtinAssetId);
 
@@ -496,7 +497,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
                 noBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
         var result = store.resolveForAsset(builtinAssetId);
 

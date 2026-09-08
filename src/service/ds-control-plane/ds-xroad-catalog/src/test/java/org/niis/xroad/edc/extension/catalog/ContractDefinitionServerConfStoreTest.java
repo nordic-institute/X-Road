@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.BuiltinServiceCodes;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -459,7 +460,7 @@ class ContractDefinitionServerConfStoreTest {
         var builtinStore = new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CTX, MGMT_PARTICIPANT_CTX,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
         var contractId = builtinAssetId + ContractDefinitionMapper.getContractDefinitionSuffix();
 
         var result = builtinStore.findById(contractId);
