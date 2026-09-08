@@ -59,6 +59,12 @@ public class DspConventions {
     public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
 
     /**
+     * Suffix appended to the host participant context id (and its DID) for the legacy management
+     * companion context. Interim: dies with the SYSTEM-context migration.
+     */
+    public static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
+
+    /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
      * and their DID documents served.
      *
@@ -67,6 +73,28 @@ public class DspConventions {
      */
     public static String didAuthority(String ssAddress) {
         return ssAddress + ":" + DID_PORT;
+    }
+
+    /**
+     * The interim MVP DID of a Security Server's HOST participant context: the bare authority as a
+     * {@code did:web}, no scheme version. Interim: dies with the SYSTEM-context migration.
+     *
+     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
+     * @return the host context DID, e.g. {@code did:web:ss0.example.org%3A7183}
+     */
+    public static String hostDid(String ssAddress) {
+        return "did:web:" + didAuthority(ssAddress).replace(":", "%3A");
+    }
+
+    /**
+     * The interim MVP DID of a Security Server's management companion context: the host DID plus the
+     * {@code :mgmt} path segment. Interim: dies with the SYSTEM-context migration.
+     *
+     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
+     * @return the management context DID, e.g. {@code did:web:ss0.example.org%3A7183:mgmt}
+     */
+    public static String managementDid(String ssAddress) {
+        return hostDid(ssAddress) + ":mgmt";
     }
 
     /**

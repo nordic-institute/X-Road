@@ -52,11 +52,6 @@ import java.util.Map;
 public record CounterPartyTarget(String counterPartyId, String counterPartyAddress) {
 
     /**
-     * DSP profile id segment of the provider DSP URL — see {@link DspConventions#DSP_PROFILE_ID}.
-     */
-    public static final String DSP_PROFILE_ID = DspConventions.DSP_PROFILE_ID;
-
-    /**
      * Targets of the legacy {@code -mgmt} participant contexts, keyed by GlobalConf-registered
      * provider host-address, covering the known dev/test substrates: Docker compose E2E
      * ({@code xrd-ss0/1/2}), LXD ({@code xrd-ss*.lxd}), Docker compose system-test ({@code ss0/1}),
@@ -90,9 +85,8 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
     }
 
     private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress, String hostParticipantId) {
-        var did = "did:web:" + DspConventions.didAuthority(hostAddress).replace(":", "%3A") + ":mgmt";
-        var url = "https://%s:%d/api/dsp/%s-mgmt/%s"
-                .formatted(hostAddress, DspConventions.DSP_PORT, hostParticipantId, DSP_PROFILE_ID);
-        return Map.entry(hostAddress, new CounterPartyTarget(did, url));
+        var url = "https://%s:%d/api/dsp/%s%s/%s".formatted(hostAddress, DspConventions.DSP_PORT,
+                hostParticipantId, DspConventions.MANAGEMENT_CONTEXT_SUFFIX, DspConventions.DSP_PROFILE_ID);
+        return Map.entry(hostAddress, new CounterPartyTarget(DspConventions.managementDid(hostAddress), url));
     }
 }

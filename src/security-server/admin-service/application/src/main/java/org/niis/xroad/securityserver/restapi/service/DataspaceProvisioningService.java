@@ -149,7 +149,6 @@ public class DataspaceProvisioningService {
     }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
-    private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
@@ -289,7 +288,8 @@ public class DataspaceProvisioningService {
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, owner));
         if (managementRegistered) {
-            contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
+            contexts.add(new ParticipantContext(hostParticipantId + DspConventions.MANAGEMENT_CONTEXT_SUFFIX,
+                    ParticipantKind.MANAGEMENT, owner));
         }
 
         ownerId.ifPresent(id -> hostedMembers(id).forEach(member ->
@@ -364,11 +364,13 @@ public class DataspaceProvisioningService {
     }
 
     private String didFor(ParticipantKind kind, ClientId memberId) {
+        var address = registeredAddress();
         if (kind == ParticipantKind.MEMBER) {
-            return memberDid(memberId, didAuthority());
+            return memberDid(memberId, DspConventions.didAuthority(address));
         }
-        var did = "did:web:" + didAuthority().replace(":", "%3A");
-        return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
+        return kind == ParticipantKind.MANAGEMENT
+                ? DspConventions.managementDid(address)
+                : DspConventions.hostDid(address);
     }
 
     /**
@@ -382,13 +384,17 @@ public class DataspaceProvisioningService {
      * verification.</p>
      */
     private String didAuthority() {
+        return DspConventions.didAuthority(registeredAddress());
+    }
+
+    private String registeredAddress() {
         var serverId = serverConfService.getSecurityServerId();
         var address = globalConfProvider.getSecurityServerAddress(serverId);
         if (address == null || address.isBlank()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
                     "security server %s has no GlobalConf-registered address; cannot derive participant DIDs", serverId);
         }
-        return DspConventions.didAuthority(address);
+        return address;
     }
 
     private String memberDid(ClientId member, String ssHost) {

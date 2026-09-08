@@ -45,6 +45,12 @@ class DspConventionsTest {
     }
 
     @Test
+    void shouldDeriveInterimHostAndManagementDids() {
+        assertThat(DspConventions.hostDid("ss0.example.org")).isEqualTo("did:web:ss0.example.org%3A7183");
+        assertThat(DspConventions.managementDid("ss0.example.org")).isEqualTo("did:web:ss0.example.org%3A7183:mgmt");
+    }
+
+    @Test
     void shouldDeriveMemberCounterPartyId() {
         assertThat(DspConventions.memberCounterPartyId(MEMBER, "ss0.example.org"))
                 .isEqualTo("did:web:ss0.example.org%3A7183:v1:DEV:COM:222");
