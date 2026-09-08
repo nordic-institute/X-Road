@@ -29,7 +29,6 @@ no_cache=""
 no_mirror=""
 target=""
 packages_path=""
-n=1
 args_to_keep=()
 for i in "$@" ; do
     if [[ $i == "--no-cache" ]] ; then

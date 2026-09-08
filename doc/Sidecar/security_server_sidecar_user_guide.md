@@ -444,10 +444,11 @@ not a fault, and orchestrators must not use readiness to decide whether to resta
 
 ### 2.12 First-Boot Hook Scripts
 
-Executable scripts mounted into `/etc/xroad/entrypoint.d/` run once, on the container's first boot: after the
-image's own database provisioning and configuration seeding, before supervisord starts any X-Road service. The
-database (embedded or external) is up and reachable at that point, so a hook can call the native configuration
-tool to seed rows the operator needs in place before services start, for example:
+Executable scripts mounted into `/etc/xroad/entrypoint.d/` run once, on the container's first boot, as the last
+provisioning step: after the image's own database provisioning, configuration seeding and secret-store setup, and
+before supervisord starts any X-Road service. The database (embedded or external) is up and reachable at that
+point, and the secret store is initialized, so a hook can call the native configuration tool to seed rows the
+operator needs in place before services start, for example:
 
 ```bash
 #!/bin/bash
@@ -459,14 +460,17 @@ Rules:
 
 * Scripts run in lexical filename order (`10-...` before `20-...`); a numeric prefix controls ordering when more
   than one script is mounted.
-* Only regular, executable files run. Non-executable files and subdirectories are skipped, with a log line naming
-  each skipped file.
+* Only regular, executable files run. Symlinks to regular files count, which is how Kubernetes delivers every file
+  of a ConfigMap or Secret mount. A file that is not executable is skipped with a log line naming it;
+  subdirectories and symlinks without a target are skipped silently.
 * A script that exits non-zero fails the boot: the entrypoint logs the failing script and its exit status and the
-  container does not start supervisord. Fix the script, then restart the container with `RECONFIG_REQUIRED=true` to
-  retry (a plain restart does not re-run hooks, see below).
-* Hooks do not run again on a later restart of the same container: they share the reconfiguration marker that
-  guards the image's own seeding, `/.xroad-reconfigured`. Set `RECONFIG_REQUIRED=true` to force a rerun, for example
-  after fixing a failed hook.
+  container stops without starting supervisord. Such a boot is not recorded as provisioned, so the hooks stay
+  pending — fix the script and start the container again (`docker start`), and the entrypoint reconfigures the
+  packages and runs the hooks again from the beginning.
+* After a boot that completed, hooks do not run again on a later restart of the same container: they share the
+  reconfiguration marker that guards the image's own seeding, `/.xroad-reconfigured`, which is written only once
+  every hook has succeeded. To run them again, recreate the container with `-e RECONFIG_REQUIRED=true` —
+  `docker restart` cannot add an environment variable to an existing container.
 * Nothing is mounted into `/etc/xroad/entrypoint.d/` by default, so a container with no hook volume behaves exactly
   as one without this feature.
 

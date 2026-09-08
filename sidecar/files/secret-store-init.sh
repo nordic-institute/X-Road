@@ -78,7 +78,7 @@ rmdir "$tls_tmp_dir"
 # without needing its own env vars re-supplied on every restart.
 db_hostport="${XROAD_DB_HOST:-127.0.0.1}:${XROAD_DB_PORT:-5432}"
 if [ -r /etc/xroad/db.properties ]; then
-  db_url=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url 2>/dev/null || echo -n "")
+  db_url=$(crudini --get /etc/xroad/db.properties '' xroad.db.serverconf.hibernate.connection.url 2>/dev/null || echo -n "")
   if [[ "$db_url" =~ ^jdbc:postgresql://([^/]*) ]]; then
     db_hostport="${BASH_REMATCH[1]}"
     [[ "$db_hostport" == *:* ]] || db_hostport="${db_hostport}:5432"

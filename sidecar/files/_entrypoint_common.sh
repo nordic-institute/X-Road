@@ -168,16 +168,20 @@ EOF
 
 HOOK_DIR=/etc/xroad/entrypoint.d
 
-# Hooks need the database up, so they run from the same dpkg-reconfigure-
-# success guard as the seed_* functions above - true by default only on the
-# container's first boot (see RECONFIG_REQUIRED), so a plain restart does
-# not re-run them, and the local database started further down for the
-# reconfigure step is still running when they execute.
+# Hooks are the last provisioning step: they run after every seed_*/configure_*
+# function above, once the dpkg-reconfigure step has succeeded - true by default
+# only on the container's first boot (see RECONFIG_REQUIRED), so a plain restart
+# does not re-run them. The local database started further down for the
+# reconfigure step is still running when they execute, so a hook can reach it.
+#
+# find -L follows symlinks so that hook files delivered as symlinks (every file
+# in a Kubernetes ConfigMap or Secret mount is one) are found; a symlink with no
+# target resolves to nothing and is not a regular file, so it is not run.
 run_first_boot_hooks() {
   [ -d "$HOOK_DIR" ] || return 0
   local hook rc
   local -a hooks
-  mapfile -t hooks < <(find "$HOOK_DIR" -maxdepth 1 -type f -print | LC_ALL=C sort)
+  mapfile -t hooks < <(find -L "$HOOK_DIR" -maxdepth 1 -type f -print | LC_ALL=C sort)
   for hook in "${hooks[@]}"; do
     if [ ! -x "$hook" ]; then
       log "Skipping non-executable first-boot hook \"$hook\""
@@ -235,6 +239,7 @@ if dpkg -s xroad-ds-identity-hub &>/dev/null; then
 fi
 
 LOCAL_DB=
+RECONFIGURED=false
 
 if [ -f /.xroad-reconfigured ]; then
   # restarted container, skip reconfigure by default
@@ -303,12 +308,6 @@ if [ ! -f ${DB_PROPERTIES} ]; then
     if dpkg -s xroad-opmonitor &>/dev/null; then
       opmonitor=true
     fi
-    if dpkg -s xroad-ds-control-plane &>/dev/null; then
-      ds_control_plane=true
-    fi
-    if dpkg -s xroad-ds-identity-hub &>/dev/null; then
-      ds_identity_hub=true
-    fi
     echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
     if [ -n "${XROAD_DATABASE_NAME}" ]; then
       touch /etc/xroad/db.properties
@@ -325,12 +324,6 @@ if [ ! -f ${DB_PROPERTIES} ]; then
       fi
       if [ -n "$messagelog" ]; then
         set_db_props messagelog
-      fi
-      if [ -n "$ds_control_plane" ]; then
-        set_db_props "ds-control-plane"
-      fi
-      if [ -n "$ds_identity_hub" ]; then
-        set_db_props "ds-identity-hub"
       fi
     fi
   else
@@ -386,19 +379,12 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
 
   log "Reconfiguring packages"
   if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
-    echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
-    touch /.xroad-reconfigured
+    RECONFIGURED=true
     seed_dsp_participant_context_id
     seed_signer_autologin_enabled
-    run_first_boot_hooks
   fi
-  if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 18 main stop
-    sleep 1
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
-  else
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
-  fi
+  # The local database, if any, is left running until the provisioning steps
+  # below (and the first-boot hooks that follow them) are done with it.
 fi
 XROAD_DB_PWD=
 
@@ -420,3 +406,22 @@ fi
 configure_secret_store
 configure_secret_store_trust_env
 create_backup_dir_if_not_exists
+
+# The configuration is only recorded as provisioned once the operator's hooks
+# have succeeded too, so a hook that fails leaves the container retryable: the
+# next start finds no /.xroad-reconfigured, reconfigures again and re-runs it.
+if [[ "$RECONFIGURED" == "true" ]]; then
+  run_first_boot_hooks
+  echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
+  touch /.xroad-reconfigured
+fi
+
+if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
+  if [[ "$LOCAL_DB" == "true" ]]; then
+    pg_ctlcluster 18 main stop
+    sleep 1
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
+  else
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
+  fi
+fi

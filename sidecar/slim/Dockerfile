@@ -88,7 +88,9 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
     openbao \
   && apt-get -qq remove dpkg-dev \
   && apt-get -qq autoremove \
-  && rm -rf /tmp/repo \
+  # the file: repo does not outlive this build stage, so its source list must go
+  # with it - a dangling trusted=yes source would fail every later apt-get update
+  && rm -rf /tmp/repo /etc/apt/sources.list.d/xroad.list \
   && apt-get -qq clean
 
 FROM xroad-${PACKAGE_SOURCE} AS final
