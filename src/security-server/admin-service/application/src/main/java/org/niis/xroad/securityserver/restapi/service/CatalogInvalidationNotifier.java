@@ -38,9 +38,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
- * Signals the data space control plane to flush its catalog caches on a local client add or remove,
- * so the change is visible without waiting out the cache's own expiry. Keeps {@link ClientService}
- * free of a direct dependency on dataspace internals.
+ * Signals the data space control plane to flush its catalog caches on a catalog-affecting serverconf
+ * change — local clients, service descriptions, services, endpoints, and access rights — so the
+ * change is visible without waiting out the cache's own expiry. Keeps callers free of a direct
+ * dependency on dataspace internals.
+ *
+ * <p>Local group membership changes are the one exception: published policy constraints reference a
+ * local group's id, not its member list, so adding or removing members never alters a catalog record
+ * and {@code LocalGroupService} never signals here.</p>
  *
  * <p>Best-effort by design: the cache expiry stays in place as the correctness backstop, so a lost
  * or failed signal degrades latency, never correctness. A no-op when the data space feature is
@@ -75,8 +80,8 @@ public class CatalogInvalidationNotifier implements DisposableBean {
     }
 
     /**
-     * Notifies the control plane that the local client set changed. Swallows and logs any failure —
-     * the caller's operation must never fail because this signal could not be delivered.
+     * Notifies the control plane that catalog-affecting serverconf state changed. Swallows and logs
+     * any failure — the caller's operation must never fail because this signal could not be delivered.
      */
     public void invalidateCatalogCaches() {
         if (!adminServiceProperties.getDataspace().isEnabled()) {

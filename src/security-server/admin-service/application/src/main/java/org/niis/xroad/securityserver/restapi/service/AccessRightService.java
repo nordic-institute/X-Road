@@ -96,6 +96,7 @@ public class AccessRightService {
     private final ClientService clientService;
     private final GlobalConfService globalConfService;
     private final LocalGroupService localGroupService;
+    private final CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     /**
      * Remove AccessRights from a Service
@@ -204,6 +205,7 @@ public class AccessRightService {
             }
             clientEntity.getAccessRights().removeAll(accessRightsToBeRemoved);
         }
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
 
@@ -517,6 +519,7 @@ public class AccessRightService {
         }
         clientRepository.merge(clientEntity);
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return addedAccessRights;
     }
 

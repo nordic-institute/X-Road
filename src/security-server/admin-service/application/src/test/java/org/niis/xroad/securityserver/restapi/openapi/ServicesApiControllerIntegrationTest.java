@@ -44,9 +44,11 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdateDto;
+import org.niis.xroad.securityserver.restapi.service.CatalogInvalidationNotifier;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -63,6 +65,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.CLIENT_NOT_FOUND;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_NOT_FOUND;
@@ -80,6 +84,9 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Autowired
     ServiceClientSortingComparator serviceClientSortingComparator;
+
+    @MockitoBean
+    CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     private static final String FOO = "foo";
@@ -140,6 +147,19 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertEquals(10, updatedService.getTimeout().intValue());
         assertEquals(false, updatedService.getSslAuth());
         assertEquals(TestUtils.URL_HTTPS, updatedService.getUrl());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "EDIT_SERVICE_PARAMS"})
+    public void updateServiceNotifiesCatalogInvalidation() {
+        ServiceUpdateDto serviceUpdate = new ServiceUpdateDto();
+        serviceUpdate.setTimeout(10);
+        serviceUpdate.setSslAuth(false);
+        serviceUpdate.setUrl(TestUtils.URL_HTTPS);
+
+        servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
     }
 
     @Test
@@ -641,6 +661,20 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         servicesApiController.addEndpoint(TestUtils.SS6_OPENAPI_TEST, endpoint);
     }
 
+    @Test(expected = ConflictException.class)
+    @WithMockUser(authorities = {"ADD_OPENAPI3_ENDPOINT"})
+    public void addDuplicateEndpointDoesNotNotifyCatalogInvalidation() {
+        EndpointDto endpoint = new EndpointDto();
+        endpoint.setMethod(EndpointDto.MethodEnum.GET);
+        endpoint.setPath("/foo");
+        endpoint.setServiceCode("openapi3-test");
+        try {
+            servicesApiController.addEndpoint(TestUtils.SS6_OPENAPI_TEST, endpoint);
+        } finally {
+            verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
+        }
+    }
+
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"ADD_OPENAPI3_ENDPOINT"})
     public void addEndpointToWSDL() {
@@ -675,5 +709,18 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertTrue(service.getEndpoints().stream().anyMatch(ep -> ep.getPath().equals(endpoint.getPath())
                 && ep.getMethod().equals(endpoint.getMethod())
                 && ep.getServiceCode().equals(endpoint.getServiceCode())));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ADD_OPENAPI3_ENDPOINT"})
+    public void addEndpointNotifiesCatalogInvalidation() {
+        EndpointDto endpoint = new EndpointDto();
+        endpoint.setMethod(EndpointDto.MethodEnum.GET);
+        endpoint.setPath("/foo3");
+        endpoint.setServiceCode("openapi3-test");
+
+        servicesApiController.addEndpoint(TestUtils.SS6_OPENAPI_TEST, endpoint);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
     }
 }
