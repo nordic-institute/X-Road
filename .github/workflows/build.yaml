@@ -95,8 +95,7 @@ jobs:
           - variant: k8s
             runs_on: xrd-runner-8c
             timeout_minutes: 90
-          # 8c runner: builds slim+full sidecar images from tree-built DEBs, then boots the
-          # one heavy multi-JVM sidecar container the compose-mode sidecar variant swaps in for ss0
+          # 8c runner: builds slim+full sidecar images, then boots one multi-JVM container as ss0
           - variant: sidecar
             runs_on: xrd-runner-8c
             timeout_minutes: 90
