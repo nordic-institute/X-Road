@@ -62,40 +62,38 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * That new client is the <b>provider</b>. The <b>consumer</b> is {@code DEV:COM:1234:TestService},
  * ss0's own already-registered, already-proven subsystem, granted access to the new client's service.
  *
- * <p><b>Why the consumer cannot be the new client calling itself.</b> {@link SsProxyDspSelfCallTest}'s
- * same-identity self-call only works because {@code DEV:COM:1234} <i>is</i> ss0's owner: the proxy's
- * consumer path always presents the server's fixed host-context identity ({@code xrd-ss0} on k8s,
- * {@code xrd-ss0.lxd} on LXD), and that coincides with {@code TestService}'s own participant identity
- * for that scenario. The new client is not ss0's owner, so its service offer is ODRL-gated on
- * {@code XROAD_CLIENT_ID == DEV:COM:4321:RuntimeService} — a condition the fixed host-context consumer
- * identity can never satisfy. The proxy's consumer-side per-request participant context (which would
- * let a call genuinely present the new client's own identity) is not something this epic addresses. So
- * the consumer here is deliberately a subsystem that already, legitimately presents the host context:
- * {@code TestService}.
+ * <p><b>Who the consumer is.</b> The consumer is deliberately {@code TestService} — ss0's own,
+ * already-registered subsystem — not the new client calling itself. The proxy's consumer path negotiates
+ * as the <i>sender member's</i> derived participant context, so {@code TestService}'s calls present
+ * {@code DEV:COM:1234} (ss0's owner member). The new client's service is ACL-granted to
+ * {@code TestService}, keeping this scenario about one thing: a runtime-onboarded <i>provider</i> serving
+ * an established consumer. A same-member self-call of the new client is
+ * {@link SsProxyDspSelfCallTest}-shaped, not this scenario.
  *
- * <p><b>Which participant context the transfer actually rides.</b> Publication is additive during this
+ * <p><b>Which participant contexts the exchange actually rides.</b> Publication is additive during this
  * epic (the legacy host-context publication is removed only by a later cutover story), so the new
  * client's service is published under the host context in addition to its own {@code DEV:COM:4321}
- * context. A {@code TestService} (host-identity) consumer only ever discovers and negotiates the
- * host-context copy of that offer, so the resulting negotiation, agreement and transfer all carry the
- * host participant context — whose literal value differs per environment, which is why the DB
- * assertions read it from the matched rows instead of comparing against a constant. Confirmed by
- * querying the live e2e cluster's {@code edc_contract_negotiation}/{@code edc_contract_agreement} rows
- * for this exact consumer/provider pair, not assumed. This scenario therefore does <b>not</b> exercise
- * the new member's own participant
- * context as the transfer's context — {@link #awaitMemberContextIssued} still confirms that context and
- * its membership credential are independently provisioned, proving the runtime member is a genuine
- * dataspace participant, just not the one this particular transfer happens to travel under.
+ * context, and the consumer proxy still addresses the provider's host-context DSP endpoint. The exchange
+ * therefore splits: the consumer side negotiates on the sender member's context ({@code DEV:COM:1234}),
+ * the provider side serves the offer on the host context — whose literal value differs per environment
+ * ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD), which is why the DB assertions never compare it
+ * against a constant. Each side persists its own per-context copy of the one wire agreement. This
+ * scenario does <b>not</b> exercise the new member's own participant context as the provider side's
+ * context — {@link #awaitMemberContextIssued} still confirms that context and its membership credential
+ * are independently provisioned, proving the runtime member is a genuine dataspace participant, just not
+ * the one this particular offer happens to be served under.
  *
- * <p><b>Per-member data-plane registration (slice 01) is not re-proven here.</b> Because the transfer
- * rides {@code xrd-ss0}, it uses the boot-time host data-plane instance, not a runtime-registered
- * instance scoped to {@code DEV:COM:4321}. The EDC data-plane instance store is in-memory in the control
- * plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d} on the live database
- * lists no data-plane-instance table) and no externally reachable listing endpoint the control port
- * exposes (that port carries data-plane signaling callbacks, not a selector query API) — so a per-member
- * data-plane record is not observable from an end-to-end test without addressing the member context
- * directly, which the consumer-side gap above rules out. That registration path is proven by
- * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests instead.
+ * <p><b>Per-member data-plane registration is exercised for the consumer's member, not the new one.</b>
+ * The consumer side's transfer runs under {@code DEV:COM:1234}, so data-plane selection resolves the
+ * member-context instance the registrar created for that context — a transfer under a member context with
+ * no registered instance terminates with "No dataplane found". A runtime-registered instance scoped to
+ * {@code DEV:COM:4321} is <i>not</i> what this transfer uses. The EDC data-plane instance store is
+ * in-memory in the control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d}
+ * on the live database lists no data-plane-instance table) and no externally reachable listing endpoint
+ * the control port exposes (that port carries data-plane signaling callbacks, not a selector query API) —
+ * so the new member's own record is not directly observable from an end-to-end test; its registration
+ * path is proven by {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests
+ * instead.
  *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
@@ -114,7 +112,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * exact pre-archive messagelog assertions) and after {@link SsProxyDspSelfCallTest}, before
  * {@link SsMonitoringTest} (whose operational-data assertions accumulate over the whole run).
  */
-@DisplayName("SS proxy - runtime-provisioned member serves a host-context consumer, no restart")
+@DisplayName("SS proxy - runtime-provisioned member serves an established member-context consumer, no restart")
 @Order(350)
 @Slf4j
 @SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
@@ -143,6 +141,11 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
+
+    /** The ctx-id the consumer side negotiates as: {@link #CONSUMER_CLIENT_ID}'s member, ss0's owner. */
+    private static final String CONSUMER_MEMBER_CTX_ID = "DEV:COM:1234";
+    private static final String TYPE_CONSUMER = "CONSUMER";
+    private static final String TYPE_PROVIDER = "PROVIDER";
     private static final String NEW_SERVICE_PATH = "/r1/DEV/COM/4321/RuntimeService/mock1";
     private static final String REST_SERVICE_CODE = "mock1";
 
@@ -218,8 +221,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     @Test
-    @DisplayName("A member onboarded to ss0 at runtime serves a host-context consumer, no restart")
-    void memberOnboardedAtRuntimeServesAHostContextConsumer(E2eEnvironment env) {
+    @DisplayName("A member onboarded to ss0 at runtime serves an established member-context consumer, no restart")
+    void memberOnboardedAtRuntimeServesAMemberContextConsumer(E2eEnvironment env) {
         Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
                 () -> "%s does not run the dataspace protocol stack; runtime member provisioning is only wired for k8s and LXD"
                         .formatted(env.getClass().getSimpleName()));
@@ -256,7 +259,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         and("the new service description is enabled", () ->
                 enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
 
-        and("the existing host-context consumer TestService is granted access to the new client's service", () ->
+        and("the established consumer TestService is granted access to the new client's service", () ->
                 grantConsumerAccessRights(ss0BaseUrl, ss0Session, clientId, CONSUMER_CLIENT_ID));
 
         then("the new member's own participant context and membership credential are provisioned, independent of "
@@ -264,22 +267,23 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 awaitMemberContextIssued(ss0BaseUrl, ss0Session));
 
         var response = when(
-                "a REST request from the host-context consumer to the new client's service succeeds via the ss0 proxy, "
+                "a REST request from the established consumer to the new client's service succeeds via the ss0 proxy, "
                         + "within the catalog cache window",
                 () -> awaitCallSucceeds(env));
 
         then("the response carries the expected POST service message", () ->
                 response.body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
 
-        var agreementInternalId = then(
-                "the negotiation converges: two FINALIZED negotiations under the shared host context FK-resolve to one agreement",
+        var wireAgreementId = then(
+                "the negotiation completes: a CONSUMER row on the sender member's context and a PROVIDER row on the "
+                        + "host context share one wire agreement",
                 () -> awaitConvergedNegotiations(dbOps));
 
-        and("exactly one edc_contract_agreement row exists for the converged (agreement id, participant context) pair", () ->
-                assertSingleConvergedAgreement(dbOps, agreementInternalId));
+        and("exactly one per-context edc_contract_agreement copy exists for each side of that wire agreement", () ->
+                assertPerContextAgreementCopies(dbOps, wireAgreementId));
 
-        and("the transfer over the converged agreement succeeds", () ->
-                awaitTransferSucceeded(dbOps, agreementInternalId));
+        and("the transfer over that agreement succeeds", () ->
+                awaitTransferSucceeded(dbOps, wireAgreementId));
     }
 
     private String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -633,7 +637,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Grants the host-context consumer ({@link #CONSUMER_CLIENT_ID}) access to the new provider
+     * Grants the established consumer ({@link #CONSUMER_CLIENT_ID}) access to the new provider
      * client's service — the new client cannot legitimately call its own service (see the class doc),
      * so this is an access right onto a different subject than the environment bring-up's own
      * {@code TestService} self-access grant. Tolerates 409 so this stays safe to run against a
@@ -726,18 +730,20 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     }
 
     /**
-     * Similar in shape to {@link SsProxyDspSelfCallTest#awaitConvergedNegotiations}. The transfer rides
-     * the environment's host participant context, whose literal value differs per environment
-     * ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD) and is shared with plenty of other traffic,
-     * so no context literal appears in the query: the scenario-unique {@link #ASSET_ID} join is what
-     * makes this pair unambiguous, and the mgmt companion context is the only exclusion by shape.
+     * Similar in shape to {@link SsProxyDspSelfCallTest#awaitConvergedNegotiations}. The consumer side rides
+     * {@link #CONSUMER_MEMBER_CTX_ID}, the provider side the environment's host context — whose literal value
+     * differs per environment ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD) and is shared with plenty
+     * of other traffic, so no host-context literal appears in the query: the scenario-unique {@link #ASSET_ID}
+     * join is what makes this pair unambiguous, and the mgmt companion context is the only exclusion by shape.
+     * The two sides reference different per-context agreement copies, so the pair is grouped by the wire
+     * agreement id those copies share; returns that wire agreement id.
      */
     private String awaitConvergedNegotiations(DsControlPlaneDbOps dbOps) {
-        var candidateSql = "SELECT n.agreement_id FROM edc_contract_negotiation n "
+        var candidateSql = "SELECT a.agr_agreement_id FROM edc_contract_negotiation n "
                 + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
                 + "WHERE n.agreement_id IS NOT NULL AND n.participant_context_id NOT LIKE '%-mgmt'"
                 + " AND a.asset_id = '" + ASSET_ID + "'"
-                + " GROUP BY n.agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
+                + " GROUP BY a.agr_agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
                 + " ORDER BY MAX(n.created_at) DESC LIMIT 1";
         var lastSeen = new AtomicReference<>(List.<String[]>of());
 
@@ -753,63 +759,74 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                             return false;
                         }
 
-                        var memberSql = ("SELECT id, state, agreement_id, participant_context_id "
-                                + "FROM edc_contract_negotiation WHERE agreement_id = '%s' ORDER BY id")
+                        var memberSql = ("SELECT n.state, n.type, n.participant_context_id, a.agr_agreement_id "
+                                + "FROM edc_contract_negotiation n "
+                                + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
+                                + "WHERE a.agr_agreement_id = '%s' ORDER BY n.id")
                                 .formatted(candidateId);
                         var rows = parseRows(dbOps.execDsControlPlaneSql(SS0_ENV, memberSql));
                         lastSeen.set(rows);
-                        return rows.size() == EXPECTED_NEGOTIATION_COUNT
-                                && rows.stream().allMatch(row -> Integer.parseInt(row[1]) == NEGOTIATION_STATE_FINALIZED)
-                                && rows.get(0)[3].equals(rows.get(1)[3]);
+                        return isConsumerAndProviderPairFinalized(rows);
                     });
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
-                    ("Timed out waiting for a converged negotiation pair for asset '%s' "
-                            + "(two FINALIZED non-mgmt rows sharing one agreement and one participant context); "
-                            + "last observed candidate group's rows (id|state|agreement_id|participant_context_id): %s")
-                            .formatted(ASSET_ID, lastSeen.get().stream().map(row -> String.join("|", row)).toList()), e);
+                    ("Timed out waiting for a negotiation pair for asset '%s' (a FINALIZED CONSUMER row on context "
+                            + "'%s' and a FINALIZED PROVIDER row on a non-mgmt host context, sharing one wire agreement "
+                            + "id); last observed candidate group's rows (state|type|participant_context_id|agr_agreement_id): %s")
+                            .formatted(ASSET_ID, CONSUMER_MEMBER_CTX_ID,
+                                    lastSeen.get().stream().map(row -> String.join("|", row)).toList()), e);
         }
 
-        return lastSeen.get().get(0)[2];
+        return lastSeen.get().get(0)[3];
     }
 
-    private void assertSingleConvergedAgreement(DsControlPlaneDbOps dbOps, String agreementInternalId) {
-        var agreementRows = parseRows(dbOps.execDsControlPlaneSql(SS0_ENV,
-                ("SELECT agr_agreement_id, agr_participant_context_id FROM edc_contract_agreement "
-                        + "WHERE agr_id = '%s'").formatted(agreementInternalId)));
-        assertThat(agreementRows)
-                .as("edc_contract_agreement row for the converged internal id %s", agreementInternalId)
-                .hasSize(1);
+    private boolean isConsumerAndProviderPairFinalized(List<String[]> rows) {
+        if (rows.size() != EXPECTED_NEGOTIATION_COUNT
+                || !rows.stream().allMatch(row -> Integer.parseInt(row[0]) == NEGOTIATION_STATE_FINALIZED)) {
+            return false;
+        }
+        var consumerOnMemberCtx = rows.stream().anyMatch(row ->
+                TYPE_CONSUMER.equals(row[1]) && CONSUMER_MEMBER_CTX_ID.equals(row[2]));
+        var providerOnHostCtx = rows.stream().anyMatch(row ->
+                TYPE_PROVIDER.equals(row[1]) && !row[2].endsWith("-mgmt") && !CONSUMER_MEMBER_CTX_ID.equals(row[2]));
+        return consumerOnMemberCtx && providerOnHostCtx;
+    }
 
-        var wireAgreementId = agreementRows.get(0)[0];
-        var participantContextId = agreementRows.get(0)[1];
-        assertThat(participantContextId)
-                .as("the converged agreement's participant context (the environment's host context, never the mgmt companion)")
-                .isNotBlank()
-                .doesNotEndWith("-mgmt");
+    /**
+     * Each side persists its own copy of the wire agreement scoped to its participant context, so exactly two
+     * copies must exist: the consumer's on {@link #CONSUMER_MEMBER_CTX_ID} and the provider's on the host
+     * context. Also verifies every negotiation row referencing a copy carries that copy's own context — the
+     * invariant the store's composite-key upsert exists to protect.
+     */
+    private void assertPerContextAgreementCopies(DsControlPlaneDbOps dbOps, String wireAgreementId) {
+        var contexts = parseRows(dbOps.execDsControlPlaneSql(SS0_ENV,
+                ("SELECT agr_participant_context_id FROM edc_contract_agreement "
+                        + "WHERE agr_agreement_id = '%s' ORDER BY agr_participant_context_id")
+                        .formatted(wireAgreementId))).stream().map(row -> row[0]).toList();
+        assertThat(contexts)
+                .as("per-context edc_contract_agreement copies of wire agreement %s", wireAgreementId)
+                .hasSize(2)
+                .doesNotHaveDuplicates()
+                .contains(CONSUMER_MEMBER_CTX_ID);
+        assertThat(contexts)
+                .as("no copy of wire agreement %s rides the mgmt companion context", wireAgreementId)
+                .noneMatch(ctx -> ctx.endsWith("-mgmt"));
 
         var mismatchedNegotiations = Integer.parseInt(dbOps.execDsControlPlaneSql(SS0_ENV,
-                ("SELECT COUNT(*) FROM edc_contract_negotiation "
-                        + "WHERE agreement_id = '%s' AND participant_context_id <> '%s'")
-                        .formatted(agreementInternalId, participantContextId)).trim());
+                ("SELECT COUNT(*) FROM edc_contract_negotiation n "
+                        + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
+                        + "WHERE a.agr_agreement_id = '%s' AND n.participant_context_id <> a.agr_participant_context_id")
+                        .formatted(wireAgreementId)).trim());
         assertThat(mismatchedNegotiations)
-                .as("negotiations referencing agreement %s carry the same participant context as the agreement itself",
-                        agreementInternalId)
+                .as("negotiations referencing a copy of agreement %s carry that copy's own participant context",
+                        wireAgreementId)
                 .isZero();
-
-        var compositeCount = Integer.parseInt(dbOps.execDsControlPlaneSql(SS0_ENV,
-                ("SELECT COUNT(*) FROM edc_contract_agreement "
-                        + "WHERE agr_agreement_id = '%s' AND agr_participant_context_id = '%s'")
-                        .formatted(wireAgreementId, participantContextId)));
-        assertThat(compositeCount)
-                .as("edc_contract_agreement rows for composite pair (agreement id %s, participant context %s)",
-                        wireAgreementId, participantContextId)
-                .isEqualTo(1);
     }
 
-    private void awaitTransferSucceeded(DsControlPlaneDbOps dbOps, String agreementInternalId) {
+    private void awaitTransferSucceeded(DsControlPlaneDbOps dbOps, String wireAgreementId) {
         var sql = ("SELECT transferprocess_id, state FROM edc_transfer_process "
-                + "WHERE contract_id = '%s' ORDER BY created_at").formatted(agreementInternalId);
+                + "WHERE contract_id IN (SELECT agr_id FROM edc_contract_agreement WHERE agr_agreement_id = '%s') "
+                + "OR contract_id = '%s' ORDER BY created_at").formatted(wireAgreementId, wireAgreementId);
         var lastSeen = new AtomicReference<>(List.<String[]>of());
 
         try {
