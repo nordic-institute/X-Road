@@ -35,5 +35,6 @@ import java.util.Optional;
 @Repository
 public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, Integer>, IssuerDidRepository {
 
+    @Override
     Optional<IssuerDidEntity> findByDid(String did);
 }
