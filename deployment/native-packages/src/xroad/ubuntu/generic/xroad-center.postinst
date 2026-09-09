@@ -249,6 +249,18 @@ extract_dns_list() {
 # installs): the schema may predate the configuration_properties table, and the debconf
 # questions can be (re-)asked later via dpkg-reconfigure once the schema is migrated.
 prepare_certificates_settings() {
+  # Identity can only be captured on the final host. Without a running systemd
+  # (the same check debhelper-generated code uses to skip service starts) this
+  # is a container image build or chroot, where `hostname -f` is an ephemeral
+  # build name — persisting it as a DB row would outrank the XROAD_HOST-based
+  # runtime default that containerized deployments configure their identity
+  # with. Containers keep the env channel; a chroot-provisioned native host
+  # can seed later via 'dpkg-reconfigure xroad-center'.
+  if [[ ! -d /run/systemd/system ]]; then
+    log "No running systemd — not storing TLS certificate identity (containerized deployments configure it via XROAD_HOST)"
+    return
+  fi
+
   RET=""
   db_get xroad-common/skip-cs-db-migrations || true
   if [[ "$RET" == "true" ]]; then
