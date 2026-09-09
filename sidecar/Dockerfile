@@ -104,7 +104,7 @@ RUN --mount=type=bind,from=packages,target=/tmp/packages \
 
 FROM xroad-${PACKAGE_SOURCE} AS final
 
-COPY --chown=xroad:xroad files/override-docker.ini files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
+COPY --chown=xroad:xroad files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
 COPY --chown=root:root files/secret-store-local.conf /etc/xroad/services/secret-store-local.conf
 
 RUN rm -f \
