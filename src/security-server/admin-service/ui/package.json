@@ -28,7 +28,7 @@
     "vue-echarts": "^8.1.0"
   },
   "devDependencies": {
-    "@pinia/testing": "^1.0.3",
+    "@pinia/testing": "^2.0.1",
     "@typescript-eslint/eslint-plugin": "~8.67.0",
     "@typescript-eslint/parser": "~8.67.0",
     "@vitest/ui": "4.1.10",
