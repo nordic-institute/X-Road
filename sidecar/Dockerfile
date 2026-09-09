@@ -4,7 +4,7 @@
 ARG PACKAGE_SOURCE=external
 
 ARG DOCKER_REGISTRY=""
-FROM ${DOCKER_REGISTRY}ubuntu:resolute AS base
+FROM ${DOCKER_REGISTRY}ubuntu:26.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Configure package mirror for APT
@@ -14,8 +14,6 @@ ARG XROAD_MIRROR_USER
 RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-apt.sh,target=/tmp/configure-mirror-apt.sh \
     --mount=type=secret,id=mirror_token \
     /bin/bash /tmp/configure-mirror-apt.sh "$XROAD_MIRROR_URL" "$XROAD_MIRROR_USER"
-
-ARG VERSION
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
@@ -39,7 +37,6 @@ ARG DIST=resolute
 ARG REPO=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/debian
 ARG REPO_KEY=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/jenkins@niis.org.gpg
 ARG COMPONENT=main
-ARG CERTS_PATH=/etc/xroad/ssl
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
@@ -123,8 +120,8 @@ RUN rm -f \
 ##
 # create a backup of the configuration for version migration and
 # for initializing an empty config volume
-  && test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini \
-  && test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties \
+  && { test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini; } \
+  && { test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties; } \
   && mkdir -p /etc/xroad/entrypoint.d \
   && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
   && cp -a /etc/xroad /usr/share/xroad/config/etc/ \

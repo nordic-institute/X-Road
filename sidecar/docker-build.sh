@@ -129,9 +129,9 @@ build_variant() {
 
 # Ensure the base image is warmed
 if [[ -n "${XROAD_MIRROR_DOCKER_URL:-}" ]]; then
-  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:resolute"
+  docker pull "${XROAD_MIRROR_DOCKER_URL}ubuntu:26.04"
 else
-  docker pull ubuntu:resolute
+  docker pull ubuntu:26.04
 fi
 
 if $build_all || [[ "$target" == "full" ]]; then
