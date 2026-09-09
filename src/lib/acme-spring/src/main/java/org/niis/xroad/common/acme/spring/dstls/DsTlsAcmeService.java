@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.common.acme.spring.dstls;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.acme.AcmeAccountContext;
@@ -31,23 +31,20 @@ import org.niis.xroad.common.acme.AcmeClient;
 import org.niis.xroad.common.acme.AcmeKeyPurpose;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.List;
 
-import static java.util.Objects.requireNonNullElse;
-
 /**
  * Thin DS TLS-specific wrapper around the shared {@link AcmeClient} engine (order, renew, ARI-aware renewal
  * timing) — no signer, no member id, no {@code KeyUsageInfo}.
  * <p>
- * Every call is made under a fixed, non-member ACME account alias (see {@link #DS_TLS_ACME_ALIAS}), reusing the
- * existing per-CA/per-member EAB configuration map with a synthetic member slot rather than extending its schema.
- * The alias can never collide with a real encoded {@code ClientId}, because every encoded {@code ClientId} contains
- * a {@code :} separator and this alias does not.
+ * Every call is made under a fixed, non-member ACME account alias supplied by {@link DsTlsAcmeHostContext},
+ * reusing the existing per-CA/per-member EAB configuration map with a synthetic member slot rather than
+ * extending its schema. That alias can never collide with a real encoded {@code ClientId}, because every
+ * encoded {@code ClientId} contains a {@code :} separator and this alias does not.
  * <p>
  * This class is the only place that knows {@link ApprovedDsTlsCaInfo} exists — it's translated into a plain
  * {@link AcmeAccountContext} here before ever reaching {@link AcmeClient}, so the shared engine never needs to
@@ -58,12 +55,8 @@ import static java.util.Objects.requireNonNullElse;
 @RequiredArgsConstructor
 class DsTlsAcmeService {
 
-    static final String DS_TLS_ACME_ALIAS = "dataspace-tls";
-
-    private static final List<String> NO_CONTACTS = List.of();
-
     private final AcmeClient acmeClient;
-    private final AdminServiceProperties adminServiceProperties;
+    private final DsTlsAcmeHostContext hostContext;
 
     /**
      * Orders a brand-new DS TLS certificate: no certificate exists yet for this CSR's key.
@@ -89,11 +82,7 @@ class DsTlsAcmeService {
     }
 
     private AcmeAccountContext toAccountContext(ApprovedDsTlsCaInfo caInfo) {
-        return new AcmeAccountContext(DS_TLS_ACME_ALIAS, caInfo.getName(), caInfo.getAcmeServerDirectoryUrl(),
-                caInfo.getDsTlsCertificateProfileId(), AcmeKeyPurpose.AUTHENTICATION, resolveContacts());
-    }
-
-    private List<String> resolveContacts() {
-        return requireNonNullElse(adminServiceProperties.getDataspace().getTlsCertificateContacts(), NO_CONTACTS);
+        return new AcmeAccountContext(hostContext.getEabAlias(), caInfo.getName(), caInfo.getAcmeServerDirectoryUrl(),
+                caInfo.getDsTlsCertificateProfileId(), AcmeKeyPurpose.AUTHENTICATION, hostContext.getAccountContacts());
     }
 }

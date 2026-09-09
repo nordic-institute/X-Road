@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api.admin;
 
-import io.restassured.response.ValidatableResponse;
+package org.niis.xroad.common.acme.config;
 
 /**
- * RestAssured client for the SS-specific {@code /dataspace} admin API resource (security-server admin-service,
- * {@code DataspaceApiController}) — provisioning status and DS TLS certificate ACME enrollment status.
+ * The subset of ACME configuration the shared HTTP-01 challenge listener ({@code AcmeChallengerConfig},
+ * {@code AcmeChallengeFilter}) consumes, independent of which certificate flow is being renewed or whether
+ * a scheduler is even involved. {@link AcmeConfig} extends this with the full auth/sign-member-certificate
+ * configuration surface; a consumer that only serves challenges can implement this narrower interface alone.
  */
-public class DataspaceAdminClient {
-
-    private final AdminApiSession session;
-
-    public DataspaceAdminClient(AdminApiSession session) {
-        this.session = session;
-    }
+public interface AcmeChallengeProperties {
 
     /**
-     * Gets the current DS TLS certificate ACME enrollment status: enrollment method (NONE/MANUAL/ACME),
-     * next scheduled renewal time, and last enrollment/renewal error.
+     * whether the service should listen on acme challenge port (default 80) for incoming requests
      */
-    public ValidatableResponse getTlsCertificateEnrollmentStatus() {
-        return session.given()
-                .get("/dataspace/tls-certificate/enrollment-status")
-                .then();
+    boolean isAcmeChallengePortEnabled();
+
+    int getAcmeChallengePort();
+
+    /**
+     * @return the network address the ACME challenge listener binds to, or {@code null} to bind every
+     *     interface (the default). Bind every interface when this listener is itself the public-facing
+     *     HTTP-01 endpoint; a product that fronts it with its own reverse proxy should return a loopback
+     *     address instead, so the port is reachable only through that proxy, never directly.
+     */
+    default String getAcmeChallengeBindAddress() {
+        return null;
     }
 }

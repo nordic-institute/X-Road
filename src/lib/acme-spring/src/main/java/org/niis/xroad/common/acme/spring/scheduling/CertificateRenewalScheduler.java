@@ -27,7 +27,7 @@ package org.niis.xroad.common.acme.spring.scheduling;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.config.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
@@ -40,7 +40,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 public class CertificateRenewalScheduler {
 
     private final AcmeRenewalWorker acmeRenewalWorker;
-    private final AcmeConfig acmeConfig;
+    private final AcmeSchedulingProperties acmeConfig;
     private final TaskScheduler taskScheduler;
     private ScheduledFuture<?> scheduledFuture;
 

@@ -301,6 +301,95 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .withValidator(range(1, 7))
             .build();
 
+    // --- ACME (DS TLS renewal scheduling / HTTP-01 challenge listener) ---
+    /** {@code xroad.admin-service.acme-renewal-retry-delay} — ACME certificate renewal retry delay in seconds. */
+    public static final ConfigKey<Integer> ACME_RENEWAL_RETRY_DELAY = ADMIN
+            .integer("acme-renewal-retry-delay")
+            .withDefaultValue(60)
+            .build();
+    /** {@code xroad.admin-service.acme-renewal-interval} — ACME certificate renewal job interval in seconds. */
+    public static final ConfigKey<Integer> ACME_RENEWAL_INTERVAL = ADMIN
+            .integer("acme-renewal-interval")
+            .withDefaultValue(3600)
+            .build();
+    /** {@code xroad.admin-service.acme-renewal-time-before-expiration-date}. */
+    public static final ConfigKey<Integer> ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE = ADMIN
+            .integer("acme-renewal-time-before-expiration-date")
+            .withDefaultValue(14)
+            .build();
+    /** {@code xroad.admin-service.acme-keypair-renewal-time-before-expiration-date}. */
+    public static final ConfigKey<Integer> ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE = ADMIN
+            .integer("acme-keypair-renewal-time-before-expiration-date")
+            .withDefaultValue(14)
+            .build();
+    /** {@code xroad.admin-service.acme-authorization-wait-attempts}. */
+    public static final ConfigKey<Integer> ACME_AUTHORIZATION_WAIT_ATTEMPTS = ADMIN
+            .integer("acme-authorization-wait-attempts")
+            .withDefaultValue(5)
+            .build();
+    /** {@code xroad.admin-service.acme-authorization-wait-interval}. */
+    public static final ConfigKey<Integer> ACME_AUTHORIZATION_WAIT_INTERVAL = ADMIN
+            .integer("acme-authorization-wait-interval")
+            .withDefaultValue(5)
+            .build();
+    /** {@code xroad.admin-service.acme-certificate-wait-attempts}. */
+    public static final ConfigKey<Integer> ACME_CERTIFICATE_WAIT_ATTEMPTS = ADMIN
+            .integer("acme-certificate-wait-attempts")
+            .withDefaultValue(5)
+            .build();
+    /** {@code xroad.admin-service.acme-certificate-wait-interval}. */
+    public static final ConfigKey<Integer> ACME_CERTIFICATE_WAIT_INTERVAL = ADMIN
+            .integer("acme-certificate-wait-interval")
+            .withDefaultValue(5)
+            .build();
+    /** {@code xroad.admin-service.acme-certificate-account-key-pair-expiration}. */
+    public static final ConfigKey<Integer> ACME_CERTIFICATE_ACCOUNT_KEY_PAIR_EXPIRATION = ADMIN
+            .integer("acme-certificate-account-key-pair-expiration")
+            .withDefaultValue(365)
+            .build();
+    /**
+     * {@code xroad.admin-service.acme-challenge-port-enabled} — whether admin-service should listen on
+     * {@link #ACME_CHALLENGE_PORT} for incoming HTTP-01 challenge requests. The public well-known path is
+     * reached only via nginx proxying to this port, never directly — see {@link #ACME_CHALLENGE_BIND_ADDRESS}
+     * for how that's enforced.
+     */
+    public static final ConfigKey<Boolean> ACME_CHALLENGE_PORT_ENABLED = ADMIN
+            .bool("acme-challenge-port-enabled")
+            .withDefaultValue(false)
+            .build();
+    /**
+     * {@code xroad.admin-service.acme-challenge-bind-address} — the network address the ACME challenge
+     * listener binds to. Defaults to loopback-only, matching the co-located topology every native-package
+     * install has today: nginx and admin-service run on the same host, so nothing outside it needs to reach
+     * this port directly. Change this (together with {@code xroad-acme-challenge.conf}'s proxy target on the
+     * nginx side) only once nginx and admin-service no longer share a host — e.g. a future
+     * containerized/Kubernetes Central Server (XRDADR-37) — to an address nginx can actually route to; a
+     * loopback bind on that side would make the port unreachable no matter what the nginx side is configured
+     * to proxy to.
+     */
+    public static final ConfigKey<String> ACME_CHALLENGE_BIND_ADDRESS = ADMIN
+            .string("acme-challenge-bind-address")
+            .withDefaultValue("127.0.0.1")
+            .build();
+    /**
+     * {@code xroad.admin-service.acme-challenge-port}. Defaults to a port distinct from both admin-service's
+     * own HTTPS port and the public port 80 nginx already binds for globalconf distribution.
+     */
+    public static final ConfigKey<Integer> ACME_CHALLENGE_PORT = ADMIN
+            .integer("acme-challenge-port")
+            .withDefaultValue(5987)
+            .build();
+    /** {@code xroad.admin-service.acme-key-length}. */
+    public static final ConfigKey<Integer> ACME_KEY_LENGTH = ADMIN
+            .integer("acme-key-length")
+            .withDefaultValue(2048)
+            .build();
+    /** {@code xroad.admin-service.acme-challenge-path}. */
+    public static final ConfigKey<String> ACME_CHALLENGE_PATH = ADMIN
+            .string("acme-challenge-path")
+            .withDefaultValue("/etc/xroad/acme-challenge")
+            .build();
+
     // --- management-requests (auto-approval toggles) ---
     /** {@code xroad.admin-service.management-requests.auto-approve-auth-cert-reg-requests}. */
     public static final ConfigKey<Boolean> MANAGEMENT_REQUESTS_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = MANAGEMENT_REQUESTS
@@ -316,6 +405,20 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> MANAGEMENT_REQUESTS_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = MANAGEMENT_REQUESTS
             .bool("auto-approve-owner-change-requests")
             .withDefaultValue(false)
+            .build();
+
+    /**
+     * {@code xroad.admin-service.acme} — full ACME configuration (EAB credentials) as a YAML/JSON document,
+     * same document shape Security Server uses (parsed into the same {@code AcmeProperties}), but its own
+     * key: Security Server's equivalent lives at the bare, unscoped {@code xroad.acme} — this can't share
+     * that literal path even though the two are read from entirely separate databases, because the system's
+     * property catalogue ({@code ConfigKeyProviders.allProviders()}) aggregates every product's provider
+     * into one list and expects every bare key path to be globally unique across it, for the admin-service
+     * UI/export and the Quarkus defaults config source that consume it. No default (unset = no EAB
+     * credentials configured).
+     */
+    public static final ConfigKey<String> ACME = ADMIN
+            .string("acme")
             .build();
 
     private CsAdminServiceConfigKeys() {

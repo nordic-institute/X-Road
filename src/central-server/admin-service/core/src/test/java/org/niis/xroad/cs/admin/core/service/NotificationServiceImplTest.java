@@ -29,12 +29,15 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.util.TimeUtils;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
@@ -43,6 +46,7 @@ import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
@@ -54,6 +58,7 @@ import java.util.Set;
 
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus.GlobalConfGenerationStatusEnum.FAILURE;
@@ -77,9 +82,16 @@ class NotificationServiceImplTest {
     private GlobalConfGenerationStatusService globalConfGenerationStatus;
     @Mock
     private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private DsTlsCertificateService dsTlsCertificateService;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, null));
+    }
 
     @Test
     void getAlertsSignerException() {
@@ -188,6 +200,80 @@ class NotificationServiceImplTest {
 
         assertThat(alerts).hasSize(1)
                 .contains(new AlertInfo("status.global_conf_generation.global_conf_expired"));
+    }
+
+    @Test
+    void getAlertsDsTlsAcmeEnrollmentFailing() {
+        mockInitialized(true, true);
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
+        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
+        confSigningKey.setKeyIdentifier("id");
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "CA unreachable"));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(1)
+                .contains(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
+    }
+
+    @Test
+    void getAlertsDsTlsAcmeRenewalFailing() {
+        mockInitialized(true, true);
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
+        ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
+        confSigningKey.setKeyIdentifier("id");
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
+                .thenReturn(Optional.of(confSigningKey));
+        when(adminServiceProperties.isTrustedAnchorsAllowed()).thenReturn(true);
+        when(dsTlsCertificateService.getEnrollmentStatus())
+                .thenReturn(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), "CA unreachable"));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(1)
+                .contains(new AlertInfo("status.dataspace_tls_acme.renewal_failing", "CA unreachable"));
+    }
+
+    @Test
+    void getAlertsDsTlsAcmeFailingSurfacesEvenWhenNotYetInitialized() {
+        // instance identifier left blank -> isInitialized() is false, so none of the signer/globalconf checks run
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "CA unreachable"));
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
+    }
+
+    @Test
+    void getAlertsDsTlsAcmeEnrollmentStatusCheckThrowsProducesFallbackAlertNotException() {
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenThrow(new RuntimeException("vault unreachable"));
+        when(signerProxyFacade.getTokens()).thenReturn(List.of());
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).containsExactly(new AlertInfo("status.dataspace_tls_acme.status_check_failed"));
+    }
+
+    @Test
+    void getAlertsSurfacesBothSignerErrorAndDsTlsAcmeFailureWhenBothFail() {
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "CA unreachable"));
+        when(signerProxyFacade.getTokens()).thenThrow(XrdRuntimeException.systemException(INTERNAL_ERROR).build());
+
+        final Set<AlertInfo> alerts = notificationService.getAlerts();
+
+        assertThat(alerts).hasSize(2)
+                .contains(new AlertInfo("status.signer_error"))
+                .contains(new AlertInfo("status.dataspace_tls_acme.enrollment_failing", "CA unreachable"));
     }
 
     private void mockInitialized(boolean tokenActive, boolean keyAvailable) {

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.common.acme.spring.dstls;
 
 import ee.ria.xroad.common.crypto.RsaKeyManager;
 
@@ -34,31 +34,29 @@ import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
-import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
- * Enrolls and continuously renews the Security Server's own DS TLS certificate via ACME, once DataSpace is enabled
- * and a governing authority has designated an ACME-capable CA for DS TLS in globalconf.
+ * Enrolls and continuously renews a product's own DS TLS certificate via ACME, once DS TLS ACME enrollment is
+ * enabled (per {@link DsTlsAcmeHostContext}) and a governing authority has designated an ACME-capable CA for DS
+ * TLS, per {@link DsTlsAcmeHostContext#getDsTlsCertificationAuthorities()}.
  * <p>
- * Entirely parallel to the auth/sign {@code AcmeCertificateRenewalWorker}: signer-free, in-process key generation,
- * no {@code KeyUsageInfo}, no member id. Runs on its own {@link CertificateRenewalScheduler} instance, wired by
- * {@link DsTlsAcmeCertificateRenewalSchedulingConfig}.
+ * Entirely parallel to the member auth/sign {@code AcmeCertificateRenewalWorker}: signer-free, in-process key
+ * generation, no {@code KeyUsageInfo}, no member id. Runs on its own {@link CertificateRenewalScheduler}
+ * instance, wired by {@link DsTlsAcmeCertificateRenewalSchedulingConfig}.
  * <p>
- * Each cycle: resolve the public hostname (blank means DataSpace isn't enabled — skip, not a failure; malformed is
- * a real configuration error); find the designated ACME-capable DS TLS CA (zero matches — skip, manual upload
- * remains the path; more than one — fail closed); enroll or renew as needed, regardless of whether the currently
- * stored certificate was obtained manually or via ACME.
+ * Each cycle: resolve the public hostname from {@link DsTlsAcmeHostContext} (blank/absent means enrollment
+ * isn't currently enabled — skip, not a failure; malformed is a real configuration error); find the designated
+ * ACME-capable DS TLS CA (zero matches — skip, manual upload remains the path; more than one — fail closed);
+ * enroll or renew as needed, regardless of whether the currently stored certificate was obtained manually or
+ * via ACME.
  */
 @Slf4j
 @Component
@@ -68,16 +66,15 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
     private static final int DS_TLS_KEY_LENGTH = 2048;
 
     private final GlobalConfProvider globalConfProvider;
-    private final AdminServiceProperties adminServiceProperties;
     private final DsTlsCertificateService dsTlsCertificateService;
     private final DsTlsAcmeService dsTlsAcmeService;
-    private final MailNotificationHelper mailNotificationHelper;
+    private final DsTlsAcmeHostContext hostContext;
 
     @Override
     public void execute(CertificateRenewalScheduler scheduler) {
         log.info("DS TLS ACME certificate renewal cycle started");
 
-        if (!globalConfProvider.isValid()) {
+        if (hostContext.requiresValidGlobalConf() && !globalConfProvider.isValid()) {
             log.debug("Invalid global configuration, pausing DS TLS ACME renewal");
             if (scheduler != null) {
                 scheduler.globalConfInvalidated();
@@ -87,19 +84,19 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
         String hostname;
         try {
-            hostname = resolvePublicHostname();
+            hostname = hostContext.getPublicHostname();
         } catch (Exception ex) {
-            log.error("The configured DataSpace public hostname is malformed", ex);
+            log.error("The configured DS TLS public hostname is malformed", ex);
             String error = describeError(ex);
             if (dsTlsCertificateService.recordAcmeOutcome(error)) {
-                mailNotificationHelper.sendDsTlsAcmeFailureNotification(adminServiceProperties.getDataspace().getIdentityHubUrl(), error);
+                hostContext.notifyEnrollmentFailure(hostContext.getConfiguredHostnameSource(), error);
             }
             finishCycle(scheduler, true);
             return;
         }
 
         if (hostname == null) {
-            log.debug("DataSpace is not enabled, DS TLS ACME enrollment skipped");
+            log.debug("DS TLS ACME enrollment is not currently enabled, skipped");
             dsTlsCertificateService.suspendAcmeScheduling();
             finishCycle(scheduler, false);
             return;
@@ -110,28 +107,10 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
     }
 
     /**
-     * @return the host component of the configured DataSpace IdentityHub URL, or {@code null} when DataSpace isn't
-     *     enabled (blank URL) — the same value {@code DataspaceProvisioningService} already uses to construct this
-     *     server's own {@code did:web} identifier.
-     */
-    private String resolvePublicHostname() {
-        String identityHubUrl = adminServiceProperties.getDataspace().getIdentityHubUrl();
-        if (isBlank(identityHubUrl)) {
-            return null;
-        }
-
-        String host = URI.create(identityHubUrl).getHost();
-        if (isBlank(host)) {
-            throw new IllegalArgumentException("Configured DataSpace IdentityHub URL has no host: " + identityHubUrl);
-        }
-        return host;
-    }
-
-    /**
      * @return {@code true} on success (including a skipped or not-yet-due cycle), {@code false} on a real failure
      */
     private boolean runCycle(String hostname) {
-        List<ApprovedDsTlsCaInfo> acmeCapableCas = globalConfProvider.getApprovedDsTlsCas(globalConfProvider.getInstanceIdentifier())
+        List<ApprovedDsTlsCaInfo> acmeCapableCas = hostContext.getDsTlsCertificationAuthorities()
                 .stream()
                 .filter(ca -> isNotBlank(ca.getAcmeServerDirectoryUrl()))
                 .toList();
@@ -147,7 +126,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
                     .formatted(acmeCapableCas.size());
             log.error(error);
             if (dsTlsCertificateService.recordAcmeOutcome(error)) {
-                mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, error);
+                hostContext.notifyEnrollmentFailure(hostname, error);
             }
             return false;
         }
@@ -159,7 +138,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
             log.error("DS TLS ACME enrollment/renewal failed", ex);
             String error = describeError(ex);
             if (dsTlsCertificateService.recordAcmeOutcome(error)) {
-                mailNotificationHelper.sendDsTlsAcmeFailureNotification(hostname, error);
+                hostContext.notifyEnrollmentFailure(hostname, error);
             }
             return false;
         }
@@ -191,7 +170,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         dsTlsCertificateService.storeAcmeEnrolledCertificate(keyPair.getPrivate(), chainArray, nextRenewalTime);
 
         boolean isRenewal = currentCertificate != null;
-        mailNotificationHelper.sendDsTlsAcmeSuccessNotification(hostname, isRenewal);
+        hostContext.notifyEnrollmentSuccess(hostname, isRenewal);
         log.info("DS TLS certificate successfully {} via ACME", isRenewal ? "renewed" : "enrolled");
     }
 

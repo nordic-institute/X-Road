@@ -34,7 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.config.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeChallengeProperties;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AcmeChallengeFilter implements Filter {
 
-    private final AcmeConfig acmeConfig;
+    private final AcmeChallengeProperties acmeConfig;
 
     @Override
     @SuppressWarnings("checkstyle:MagicNumber")

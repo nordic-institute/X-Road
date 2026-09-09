@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.common.acme.spring.dstls;
 
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 

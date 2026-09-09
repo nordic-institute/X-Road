@@ -15,6 +15,9 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4000" ]
+    depends_on:
+      testca:
+        condition: service_healthy
     deploy:
       resources:
         reservations:
@@ -32,3 +35,15 @@ services:
           memory: 128M
         limits:
           memory: 512M
+
+  # ACME test server (acme2certifier). Reached two ways: directly by cs-admin-service's own DS TLS ACME
+  # worker (issuing the order, keyed by the EAB credential seeded in 50-api-test.properties), and indirectly
+  # by this same acme2certifier instance calling back into cs-admin-service's real public nginx on :80 to
+  # fetch the HTTP-01 challenge response - proving the nginx proxy hop, not just the internal listener.
+  testca:
+    image: ${CA_IMG}
+    pull_policy: always
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/testca/certs/" ]

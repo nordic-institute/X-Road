@@ -24,29 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import DsTlsCertificateEnrollmentStatusChip from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatusChip.vue';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
-import { DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
-import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
-import { useNotificationsContainer } from '@niis/shared-ui';
-import mockedStore from '../../../mocked-store';
+import { DsTlsCertificateEnrollmentStatus, XrdDsTlsCertificateEnrollmentStatusChip, useNotificationsContainer } from '@niis/shared-ui';
 
 const vuetify = createVuetify({
   components,
   directives,
 });
 
-function mountStatus(status: DataspaceTlsCertificateEnrollmentStatus) {
+function mountStatus(status: DsTlsCertificateEnrollmentStatus) {
   const pinia = createTestingPinia();
-  const store = mockedStore(useDsTlsCertificate);
-  store.fetchDsTlsCertificateEnrollmentStatus.mockResolvedValue(status);
+  const fetchStatus = vi.fn().mockResolvedValue(status);
 
-  const wrapper = mount(DsTlsCertificateEnrollmentStatusChip, {
+  const wrapper = mount(XrdDsTlsCertificateEnrollmentStatusChip, {
+    props: { fetchStatus },
     global: {
       plugins: [pinia, vuetify],
       mocks: {
@@ -54,7 +50,7 @@ function mountStatus(status: DataspaceTlsCertificateEnrollmentStatus) {
       },
     },
   });
-  return { wrapper, store };
+  return { wrapper, fetchStatus };
 }
 
 async function flush(wrapper: ReturnType<typeof mount>) {
@@ -62,13 +58,13 @@ async function flush(wrapper: ReturnType<typeof mount>) {
   await wrapper.vm.$nextTick();
 }
 
-describe('DsTlsCertificateEnrollmentStatusChip', () => {
+describe('XrdDsTlsCertificateEnrollmentStatusChip', () => {
   it('renders nothing while the initial fetch is pending, with no loading indicator', async () => {
     const pinia = createTestingPinia();
-    const store = mockedStore(useDsTlsCertificate);
-    store.fetchDsTlsCertificateEnrollmentStatus.mockReturnValue(new Promise(() => {}));
+    const fetchStatus = vi.fn().mockReturnValue(new Promise(() => {}));
 
-    const wrapper = mount(DsTlsCertificateEnrollmentStatusChip, {
+    const wrapper = mount(XrdDsTlsCertificateEnrollmentStatusChip, {
+      props: { fetchStatus },
       global: {
         plugins: [pinia, vuetify],
         mocks: {
@@ -154,10 +150,10 @@ describe('DsTlsCertificateEnrollmentStatusChip', () => {
 
   it('renders nothing but notifies the user when the fetch fails, rather than showing a stale or misleading status', async () => {
     const pinia = createTestingPinia();
-    const store = mockedStore(useDsTlsCertificate);
-    store.fetchDsTlsCertificateEnrollmentStatus.mockRejectedValue(new Error('network error'));
+    const fetchStatus = vi.fn().mockRejectedValue(new Error('network error'));
 
-    const wrapper = mount(DsTlsCertificateEnrollmentStatusChip, {
+    const wrapper = mount(XrdDsTlsCertificateEnrollmentStatusChip, {
+      props: { fetchStatus },
       global: {
         plugins: [pinia, vuetify],
         mocks: {
