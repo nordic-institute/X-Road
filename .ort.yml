@@ -195,6 +195,23 @@ resolutions:
       comment: "Error is caused by the Scanner not being able to scan the JavaScript source map for Apache ECharts’ ES module bundle."
 
 license_choices:
+  package_license_choices:
+    - package_id: "Maven:org.glassfish.jersey.containers:jersey-container-servlet:4.0.2"
+      license_choices:
+        - given: "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+          choice: "EPL-2.0"
+    - package_id: "Maven:org.glassfish.jersey.inject:jersey-hk2:4.0.2"
+      license_choices:
+        - given: "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+          choice: "EPL-2.0"
+    - package_id: "Maven:org.glassfish.jersey.media:jersey-media-json-jackson:4.0.2"
+      license_choices:
+        - given: "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+          choice: "EPL-2.0"
+    - package_id: "Maven:org.glassfish.jersey.media:jersey-media-json-processing:4.0.2"
+      license_choices:
+        - given: "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+          choice: "EPL-2.0"
   repository_license_choices:
     - given: "GPL-2.0-only OR Apache-2.0"
       choice: "Apache-2.0"
