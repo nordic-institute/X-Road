@@ -31,6 +31,69 @@ To run a single test class or method directly:
 ./gradlew :security-server:e2e-test:e2eTest --tests "SsProxyMessageFlowTest"
 ```
 
+### ss0 as a sidecar container
+
+Compose mode also has an ss0-only stack switch, `-Pe2e.ss0-stack`, that swaps ss0 (ss1, the Central
+Server stack and hurl are unaffected) from today's per-service stack to one full sidecar container
+(embedded PostgreSQL, embedded OpenBao, every service under supervisord):
+
+| `-Pe2e.ss0-stack` | ss0 shape |
+|--------------------|-----------|
+| `default` | Today's ~17-container per-service stack |
+| `sidecar` | One `xroad-security-server-sidecar` container |
+
+The sidecar image is built from tree-built Ubuntu DEBs, not published packages. From
+`core/sidecar/`, after `core/scripts/packages/build-deb.sh` (or an equivalent tree build) has
+produced DEBs under `core/deployment/native-packages/build/ubuntu26.04`:
+
+```bash
+cd core/sidecar
+./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
+./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
+```
+
+This produces the local images `xroad-security-server-sidecar:8.0.0-slim` and
+`xroad-security-server-sidecar:8.0.0`. The harness resolves the sidecar image the same way it
+resolves every other service image — through the generated `.env` (`SIDECAR_IMG`, tagged
+`<registry>/xroad-security-server-sidecar:<tag>`) — so tag the locally built image under that
+reference before running the suite:
+
+```bash
+# <registry> = core/src/gradle.properties' xroadImageRegistry (localhost:5555)
+# <tag>      = its xroadVersion and xroadBuildType joined with a dash (just xroadVersion when
+#              xroadBuildType is RELEASE), unless -PxroadImageTag overrides it
+docker tag xroad-security-server-sidecar:8.0.0 <registry>/xroad-security-server-sidecar:<tag>
+```
+
+Unlike the other e2e services, the sidecar service declares no `pull_policy`, so Compose never
+contacts the registry for it: whichever local image already carries that tag wins, however stale,
+and a run against an outdated sidecar reads as a genuine result. Re-tag from a fresh build — or
+`docker pull` the reference — before every local run. The `xrd-registry` container still has to be
+up for the rest of the stack, whose services do pull; `core/scripts/build-images.sh` starts it if it
+is not already running.
+
+Then run the suite with the variant selected:
+
+```bash
+cd core/src
+./gradlew :security-server:e2e-test:e2eTest -Pe2e.ss0-stack=sidecar
+```
+
+The batch-signing and op-monitor configuration today's ss0 overlays seed via one-shot psql containers
+is seeded here by scripts mounted into the sidecar's first-boot hook directory
+(`/etc/xroad/entrypoint.d`, see `core/sidecar/SIDECAR.md`), calling the native `db_property.sh` tool
+instead. Messagelog DB and archive operations exec into the single container (psql against the
+embedded PostgreSQL, the archiver CLI as the `xroad` user) in place of the multi-container stack's
+dedicated `db-messagelog`/`message-log-cli` containers. The full suite — bootstrap, registration,
+message exchange in both directions, monitoring, batch signing, op-monitor, and the ss0 archive
+scenario — passes against the variant with the same self-skips as the default compose run (the three
+scenarios gated on `DsControlPlaneDbOps`, which only `K8sEnvSetup` and `LxdEnvSetup` implement).
+
+Softtoken-signer coverage is dropped from this variant: the sidecar image has no split-signer
+process, so a stack running it can never carry the softtoken-signer feature overlay. The k8s e2e mode
+keeps the split enabled on its ss0 and is this feature's documented coverage home; the LXD mode has
+never enabled it either.
+
 ## Running locally — LXD mode
 
 LXD mode assumes the LXD environment is already running and bootstrapped. The

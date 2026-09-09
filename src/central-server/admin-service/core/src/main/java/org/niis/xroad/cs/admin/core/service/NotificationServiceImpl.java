@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
@@ -40,6 +41,7 @@ import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Service;
@@ -69,19 +71,22 @@ public class NotificationServiceImpl implements NotificationService {
     private final AdminServiceProperties adminServiceProperties;
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalConfGenerationStatusService globalConfGenerationStatus;
+    private final DsTlsCertificateService dsTlsCertificateService;
 
     @Override
     public Set<AlertInfo> getAlerts() {
+        final Set<AlertInfo> alerts = new HashSet<>();
+        alerts.addAll(checkDsTlsAcmeEnrollment());
 
         final List<TokenInfo> tokens;
         try {
             tokens = signerProxyFacade.getTokens();
         } catch (Exception e) {
             log.error("Failed to get tokens", e);
-            return Set.of(new AlertInfo("status.signer_error"));
+            alerts.add(new AlertInfo("status.signer_error"));
+            return alerts;
         }
 
-        final Set<AlertInfo> alerts = new HashSet<>();
         if (isInitialized(tokens)) {
             alerts.addAll(checkGlobalConfGenerationStatus());
             alerts.addAll(checkConfigurationSigningKey(SOURCE_TYPE_INTERNAL, tokens));
@@ -90,6 +95,24 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
         return alerts;
+    }
+
+    private Set<AlertInfo> checkDsTlsAcmeEnrollment() {
+        final DsTlsEnrollmentStatus enrollmentStatus;
+        try {
+            enrollmentStatus = dsTlsCertificateService.getEnrollmentStatus();
+        } catch (Exception e) {
+            log.error("Failed to check DS TLS ACME enrollment status", e);
+            return Set.of(new AlertInfo("status.dataspace_tls_acme.status_check_failed"));
+        }
+        String lastError = enrollmentStatus.lastError();
+        if (lastError == null) {
+            return Set.of();
+        }
+        String errorCode = enrollmentStatus.method() == null
+                ? "status.dataspace_tls_acme.enrollment_failing"
+                : "status.dataspace_tls_acme.renewal_failing";
+        return Set.of(new AlertInfo(errorCode, lastError));
     }
 
     private boolean isInitialized(List<TokenInfo> tokens) {

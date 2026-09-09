@@ -29,11 +29,8 @@ import com.github.dockerjava.api.model.ContainerNetwork;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.test.apitest.core.config.ApiTestCoreProperties;
-import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 
-import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +48,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
  */
 @Slf4j
 @SuppressWarnings("checkstyle:magicnumber")
-public class SsStackSetup extends BaseComposeSetup {
+public class SsStackSetup extends AbstractSsStack {
 
     public static final String UI = "ui";
     public static final String PROXY = "proxy";
@@ -66,6 +63,8 @@ public class SsStackSetup extends BaseComposeSetup {
     public static final String DB_MESSAGELOG = "db-messagelog";
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
+    /** Not a compose service of this stack: a service-key token for {@code E2eEnvironment}'s test CA env. */
+    public static final String CA = "ca";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
@@ -141,9 +140,7 @@ public class SsStackSetup extends BaseComposeSetup {
         }
     }
 
-    /**
-     * Blocks until this stack's proxy reports readiness, including OCSP status for the auth key.
-     */
+    @Override
     public void awaitProxyReadiness() {
         var mapping = getContainerMapping(PROXY, Port.PROXY_HEALTHCHECK);
         var readinessUrl = "http://%s:%d/q/health/ready".formatted(mapping.host(), mapping.port());
@@ -195,14 +192,6 @@ public class SsStackSetup extends BaseComposeSetup {
                 "payload=@/gpg-keys/public-keys.asc");
     }
 
-    private Slf4jLogConsumer createLogConsumer(String envName, String containerName) {
-        return createLogConsumer("%s-%s".formatted(envName, containerName));
-    }
-
-    private File composeFile(String fileName) {
-        return new File(coreProperties.resourceDir() + fileName);
-    }
-
     /**
      * Exposed ports on an SS stack's containers.
      */
@@ -210,6 +199,8 @@ public class SsStackSetup extends BaseComposeSetup {
         public static final int UI = 4000;
         public static final int PROXY = 8080;
         public static final int PROXY_HEALTHCHECK = 5588;
+        /** Test CA's cert-issuance/serving port (the {@code ca-api} service port in the k8s fixtures chart). */
+        public static final int CA_API = 8888;
 
         private Port() {
         }

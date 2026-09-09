@@ -1,0 +1,58 @@
+services:
+  sidecar:
+    image: ${SIDECAR_IMG:-xroad-security-server-sidecar:8.0.0}
+    environment:
+      - XROAD_ADMIN_USER=xrd
+      - XROAD_ADMIN_PASSWORD=secret123!
+      - XROAD_DSP_PARTICIPANT_CONTEXT_ID=${XROAD_DSP_PARTICIPANT_CONTEXT_ID:-xrd-ss0}
+      # The admin-service's data space participant-context provisioning worker needs these on every
+      # scheduled tick, not only for DSP-specific scenarios: identity-hub-url/participant-id have no
+      # built-in default, so leaving them unset fails every tick with a NullPointerException instead
+      # of just leaving data space credentials unprovisioned. The identity-hub URL points at the
+      # identity hub's DID resolution port (7183), which in the sidecar is served by this container
+      # under its own ds-identity-hub network alias.
+      - XROAD_DATASPACE_IDENTITY_HUB_URL=https://${SS_NAME:-ss0}-ds-identity-hub:7183
+      - XROAD_DATASPACE_PARTICIPANT_ID=xrd-${SS_NAME:-ss0}
+      - XROAD_DATASPACE_ISSUER_DID=did:web:cs%3A6183:issuer
+      # xroad-ds-control-plane's own trusted-issuer check (its packaged application.yaml requires
+      # xroad.edc.iam.trusted-issuer.issuer.id with no fallback) otherwise falls back to the sidecar
+      # image's own placeholder DID, which does not match the shared CS issuer credentials are
+      # actually issued from, so every incoming catalog request is rejected as an untrusted issuer.
+      - XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID=did:web:cs%3A6183:issuer
+      # ds-control-plane builds its own self-callback URL (used even for a same-SS negotiation,
+      # e.g. the management Security Server registering its own clients) from this address. Without
+      # it, it falls back to the container's own auto-assigned Docker hostname, which is not in the
+      # provisioned DS TLS certificate's SAN list, so the callback's TLS handshake fails.
+      - EDC_DSP_CALLBACK_ADDRESS=https://${SS_NAME:-ss0}-ds-control-plane:8183/api/dsp/%s
+    volumes:
+      - ./container-files/etc/xroad/entrypoint.d:/etc/xroad/entrypoint.d:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 1536M
+        limits:
+          memory: 6144M
+    # Declared statically here (container creation time), not attached afterwards via the Docker API,
+    # so every alias resolves as soon as the container exists rather than only once the sidecar's slow
+    # cold start finishes. The one container answers to every alias the multi-container stack spreads
+    # across its ui, proxy, signer, configuration-client, ds-control-plane and ds-identity-hub services,
+    # plus the xrd-<name> messaging alias the proxy alone carries there. The ds-control-plane/
+    # ds-identity-hub aliases matter even though compose-mode DSP assertions self-skip: dataspace
+    # asset-access acquisition is the actual wire mechanism message exchange and management requests
+    # negotiate over, so a counterparty resolving those hostnames is required for any cross-SS call to
+    # reach the sidecar, not only for DSP-specific test scenarios.
+    networks:
+      xroad-network:
+        aliases:
+          - ${SS_NAME:-ss0}-ui
+          - ${SS_NAME:-ss0}-proxy
+          - ${SS_NAME:-ss0}-signer
+          - ${SS_NAME:-ss0}-configuration-client
+          - ${SS_NAME:-ss0}-ds-control-plane
+          - ${SS_NAME:-ss0}-ds-identity-hub
+          - xrd-${SS_NAME:-ss0}
+
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true

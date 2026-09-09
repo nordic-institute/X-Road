@@ -31,6 +31,7 @@ import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -40,6 +41,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
@@ -48,6 +51,31 @@ public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTe
 
     @Autowired
     EndpointService endpointService;
+
+    @MockitoBean
+    CatalogInvalidationNotifier catalogInvalidationNotifier;
+
+    @Test
+    public void updateEndpointNotifiesCatalogInvalidation() throws Exception {
+        endpointService.updateEndpoint(12L, "*", "/test");
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    @Test
+    public void deleteEndpointNotifiesCatalogInvalidation() throws Exception {
+        endpointService.deleteEndpoint(11L);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    @Test
+    public void deleteGeneratedEndpointDoesNotNotifyCatalogInvalidation() {
+        assertThrows(EndpointService.IllegalGeneratedEndpointRemoveException.class,
+                () -> endpointService.deleteEndpoint(10L));
+
+        verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
+    }
 
     @Test
     public void getServiceBaseEndpoints() throws Exception {

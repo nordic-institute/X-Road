@@ -46,6 +46,7 @@ import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +71,9 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
@@ -93,6 +97,9 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
     @Autowired
     ServiceDescriptionRepository serviceDescriptionRepository;
+
+    @MockitoBean
+    CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     public static final String BIG_ATTACHMENT_V1_SERVICECODE = "xroadBigAttachment.v1";
     public static final String SMALL_ATTACHMENT_V1_SERVICECODE = "xroadSmallAttachment.v1";
@@ -480,6 +487,17 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     }
 
     @Test
+    public void deleteServiceDescriptionNotifiesCatalogInvalidation() throws Exception {
+        ClientEntity clientEntity = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionEntity serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientEntity);
+        reset(catalogInvalidationNotifier);
+
+        serviceDescriptionService.deleteServiceDescription(serviceDescription.getId());
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    @Test
     public void removeWsdlServiceDescriptionRetainsEndointsAndAccessRightsIfDifferentVersionExists() throws Exception {
         ClientEntity clientEntity = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
@@ -783,6 +801,29 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         // should throw UrlAlreadyExistsException
         serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenApi3ServiceDescriptionNotifiesCatalogInvalidation() throws Exception {
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode", false);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3")
+    public void addOpenApi3ServiceDescriptionWithDuplicateUrlDoesNotNotifyAgain() throws Exception {
+        URL url = getClass().getResource("/openapiparser/valid.yaml");
+        serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode1", false);
+        reset(catalogInvalidationNotifier);
+
+        assertThrows(ServiceDescriptionService.UrlAlreadyExistsException.class,
+                () -> serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, url.toString(), "testcode2", false));
+
+        verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
     }
 
     @Test

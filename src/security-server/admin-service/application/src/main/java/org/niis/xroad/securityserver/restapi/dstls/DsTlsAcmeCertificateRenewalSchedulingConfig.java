@@ -26,7 +26,8 @@
 package org.niis.xroad.securityserver.restapi.dstls;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.acme.config.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
+import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeCertificateRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
@@ -48,6 +49,13 @@ import org.springframework.scheduling.TaskScheduler;
  * on the DataSpace feature flag ({@code AdminServiceConfigKeys#DATASPACE_ENABLED}) — there is no independent
  * DS-TLS-specific kill-switch, so disabling DataSpace is what disables this scheduler too.
  * <p>
+ * This deliberately stays a product-local class rather than moving into {@code lib/acme-spring} alongside the
+ * worker/service it wires: the {@link Conditional} evaluates before any bean exists (see
+ * {@link SpringConditionConfig}'s own javadoc), so the gating decision must come from a throwaway config read,
+ * never from a live {@code DsTlsAcmeHostContext} bean — forcing that bean to instantiate early just to answer
+ * "should I schedule" would fight Spring's own bean-creation order for no benefit. Each product that wires this
+ * scheduler owns an equivalent class reading its own config keys, matching this one's shape.
+ * <p>
  * Like any {@link Conditional} bean, this is evaluated once at context startup: enabling DataSpace while
  * admin-service is already running does not start this scheduler until the process restarts, same restart
  * requirement {@code AcmeCertificateRenewalSchedulingConfig}'s own {@code acme-renewal-active} flag already has.
@@ -63,7 +71,7 @@ public class DsTlsAcmeCertificateRenewalSchedulingConfig {
     @Order(Ordered.LOWEST_PRECEDENCE - 98)
     @Conditional(IsDsTlsAcmeSchedulingActive.class)
     CertificateRenewalScheduler dsTlsAcmeCertificateRenewalScheduler(DsTlsAcmeCertificateRenewalWorker dsTlsAcmeCertificateRenewalWorker,
-                                                                     TaskScheduler taskScheduler, AcmeConfig acmeConfig) {
+                                                                     TaskScheduler taskScheduler, AcmeSchedulingProperties acmeConfig) {
         var scheduler = new CertificateRenewalScheduler(dsTlsAcmeCertificateRenewalWorker, acmeConfig, taskScheduler);
         scheduler.init();
         return scheduler;

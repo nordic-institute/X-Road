@@ -171,3 +171,8 @@ port_forwards:
   - {name: ss1-proxy-ocsp, namespace: ss1, resource: svc/proxy, ports: "5578:5577"}
   - {name: ss1-proxy-8080, namespace: ss1, resource: svc/proxy, ports: "8081:8080"}
   - {name: ss1-proxy-8443, namespace: ss1, resource: svc/proxy, ports: "8444:8443"}
+  # Central Server admin API and test CA, both in the "cs" namespace (see central_server_namespace/
+  # e2e_fixtures_namespace above) — needed for the runtime-member e2e scenario, which approves a
+  # registration request against the CS and provisions its own sign certificate through the CA.
+  - {name: cs-ui-api, namespace: cs, resource: svc/central-server, ports: "4002:4000"}
+  - {name: cs-testca, namespace: cs, resource: svc/testca, ports: "8888:8888"}

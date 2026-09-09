@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.api.admin;
+package org.niis.xroad.edc.extension.catalog;
 
-import io.restassured.response.ValidatableResponse;
+import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.util.List;
 
 /**
- * RestAssured client for the SS-specific {@code /dataspace} admin API resource (security-server admin-service,
- * {@code DataspaceApiController}) — provisioning status and DS TLS certificate ACME enrollment status.
+ * Clears the underlying {@link ServerConfProvider}'s own cache, then fans
+ * {@link StoreEnumerationCache#invalidate()} out across every catalog store's cache instance.
+ *
+ * <p>Flushing only the store caches would leave a caching {@code ServerConfProvider} (used whenever
+ * {@code cachePeriod > 0}) serving stale reads underneath a freshly-rebuilt store cache, so the
+ * serverconf cache is cleared first — {@link ServerConfProvider#clearCache()} defaults to a no-op,
+ * so this is harmless against a non-caching provider too.</p>
  */
-public class DataspaceAdminClient {
+final class DefaultCatalogCacheInvalidator implements CatalogCacheInvalidator {
 
-    private final AdminApiSession session;
+    private final ServerConfProvider serverConfProvider;
+    private final List<StoreEnumerationCache<?>> caches;
 
-    public DataspaceAdminClient(AdminApiSession session) {
-        this.session = session;
+    DefaultCatalogCacheInvalidator(ServerConfProvider serverConfProvider, List<StoreEnumerationCache<?>> caches) {
+        this.serverConfProvider = serverConfProvider;
+        this.caches = List.copyOf(caches);
     }
 
-    /**
-     * Gets the current DS TLS certificate ACME enrollment status: enrollment method (NONE/MANUAL/ACME),
-     * next scheduled renewal time, and last enrollment/renewal error.
-     */
-    public ValidatableResponse getTlsCertificateEnrollmentStatus() {
-        return session.given()
-                .get("/dataspace/tls-certificate/enrollment-status")
-                .then();
+    @Override
+    public void invalidate() {
+        serverConfProvider.clearCache();
+        caches.forEach(StoreEnumerationCache::invalidate);
     }
 }

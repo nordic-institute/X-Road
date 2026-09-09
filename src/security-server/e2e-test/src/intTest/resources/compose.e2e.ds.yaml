@@ -136,7 +136,7 @@ services:
         reservations:
           memory: 64M
         limits:
-          memory: 256M
+          memory: 512M
     depends_on:
       db-ds-identity-hub:
         condition: service_healthy

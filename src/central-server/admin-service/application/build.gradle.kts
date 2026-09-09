@@ -25,6 +25,7 @@ dependencies {
   implementation(project(":central-server:openapi-model"))
   implementation(project(":common:common-db"))
   implementation(project(":lib:properties-spring"))
+  implementation(project(":lib:acme-spring"))
   implementation(libs.logback.classic)
 
   testImplementation(project(":common:common-test"))
@@ -33,6 +34,7 @@ dependencies {
   testImplementation(libs.springBoot.starterWebmvcTest)
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.liquibase:liquibase-core")
+  testImplementation(libs.systemStubs)
 }
 
 tasks.bootRun {

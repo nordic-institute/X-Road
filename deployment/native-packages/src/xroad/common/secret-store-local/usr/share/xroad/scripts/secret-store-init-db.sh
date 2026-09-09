@@ -138,9 +138,22 @@ configure_openbao_storage() {
   fi
 }
 
+# Group xroad read is required, not incidental: the backup driver runs as the
+# xroad user (xroad-auxiliary-service, which execs
+# backup_xroad_proxy_configuration.sh -> _backup_xroad.sh ->
+# backup_openbao_db.sh) and both sources this file for the pg_dump credentials
+# and archives /etc/openbao. No privileged path exists for that dump, so
+# narrowing this to root-only breaks backups. It grants raw OpenBao storage
+# access, not secret disclosure — the root token and unseal keys stay root-only.
+enforce_env_file_permissions() {
+  chmod 0640 /etc/openbao/openbao.env
+  chown openbao:xroad /etc/openbao/openbao.env
+}
+
 create_env_file_if_needed() {
   if [ -f /etc/openbao/openbao.env ]; then
     echo "/etc/openbao/openbao.env already exists, preserving existing credentials"
+    enforce_env_file_permissions
     return 0
   fi
 
@@ -159,8 +172,7 @@ BAO_PG_SCHEMA=${db_schema}
 # Full connection URL for OpenBao
 BAO_PG_CONNECTION_URL=postgres://${db_conn_user}:${db_password}@${db_addr}:${db_port}/${db_database}${db_options}
 EOF
-  chmod 0640 /etc/openbao/openbao.env
-  chown openbao:xroad /etc/openbao/openbao.env
+  enforce_env_file_permissions
 }
 
 setup_database() {

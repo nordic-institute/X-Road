@@ -17,7 +17,16 @@
     "description": "Use valid description characters only"
   },
   "dsTlsCertificate": {
-    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending"
+    "keyGeneratedPending": "DataSpace TLS key generated - certificate signing pending",
+    "enrollmentStatus": {
+      "method": {
+        "none": "Not configured",
+        "manual": "Manual",
+        "acme": "ACME"
+      },
+      "nextRenewal": "Next renewal",
+      "wasDue": "Was due"
+    }
   },
   "error_code": {
     "backup_deletion_failed": "Failed to delete backup",
@@ -506,6 +515,11 @@
     "unregistered": "Unregistered"
   },
   "status": {
+    "dataspace_tls_acme": {
+      "enrollment_failing": "DS TLS certificate ACME enrollment failing: {0}",
+      "renewal_failing": "DS TLS certificate ACME renewal failing: {0}",
+      "status_check_failed": "Failed to check DS TLS certificate ACME status"
+    },
     "global_conf_generation": {
       "failing": "Global configuration generation failing since {0}",
       "global_conf_expired": "Global configuration expired",

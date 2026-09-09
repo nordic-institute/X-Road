@@ -27,6 +27,176 @@ init_db_dir() {
   fi
 }
 
+configure_secret_store() {
+  log "Configuring secret store"
+  if ! bash /usr/share/xroad/scripts/sidecar/secret-store-init.sh 2>&1 | sed 's/^/    /'; then
+    warn "Secret store configuration failed"
+    return 1
+  fi
+}
+
+# TLS trust for the embedded secret store's vault clients. The OpenBao TLS
+# certificate is regenerated on every boot (see secret-store-init.sh), so it
+# cannot ride the native packages' install-time system/JVM trust-store route;
+# instead the services inherit the CA path through supervisord's environment.
+# With an external store nothing is exported — the operator supplies trust
+# configuration, and any value already present in the container environment
+# wins over the embedded default.
+configure_secret_store_trust_env() {
+  if [ -n "${XROAD_SECRET_STORE_HOST:-}" ]; then
+    return 0
+  fi
+  export QUARKUS_VAULT_TLS_CA_CERT="${QUARKUS_VAULT_TLS_CA_CERT:-/etc/xroad/ssl/openbao.crt}"
+  export SPRING_CLOUD_VAULT_SSL_TRUST_STORE="${SPRING_CLOUD_VAULT_SSL_TRUST_STORE:-file:/etc/xroad/ssl/openbao.crt}"
+  export SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE="${SPRING_CLOUD_VAULT_SSL_TRUST_STORE_TYPE:-PEM}"
+}
+
+seed_dsp_participant_context_id() {
+  log "Seeding DSP participant-context-id"
+  if ! bash /usr/share/xroad/scripts/sidecar/dsp-config-seed.sh 2>&1 | sed 's/^/    /'; then
+    warn "DSP participant-context-id seeding failed"
+    return 1
+  fi
+}
+
+# xroad.signer.autologin.enabled (XRDADR-34) is resolved by the signer's
+# XRoadConfig DSL from the serverconf configuration_properties table or its
+# packaged default only - unlike the per-token PINs
+# (XROAD_SIGNER_AUTOLOGIN_TOKENS__<id>__PIN, a plain smallrye @ConfigMapping
+# that reads the process environment directly), it has no environment or
+# JVM-system-property binding. XROAD_SIGNER_AUTOLOGIN_ENABLED is the
+# sidecar's operator-facing bridge from a docker-run variable to that row;
+# see signer-autologin-config-seed.sh for the full contract.
+seed_signer_autologin_enabled() {
+  log "Seeding signer autologin enable flag"
+  if ! bash /usr/share/xroad/scripts/sidecar/signer-autologin-config-seed.sh 2>&1 | sed 's/^/    /'; then
+    warn "Signer autologin enable-flag seeding failed"
+    return 1
+  fi
+}
+
+# The packaged xroad-proxy startup script (proxy.conf, via global.conf's
+# set_quarkus_profiles) always launches the JVM with -Dquarkus.profile=native,ss,
+# so proxy's own DeploymentMode stays NATIVE (org.niis.xroad.proxy.core.
+# configuration.ProxyConfig#deploymentMode checks for "containerized" in the
+# active profile list) - which is required: DeploymentMode.CONTAINERIZED also
+# flips xroad.common-global-conf.source to REMOTE and the gRPC peer hosts
+# (signer, configuration-client, ...) from 127.0.0.1 to service DNS names that
+# do not exist in this single-container image. Adding "containerized" to the
+# profile list is therefore not an option here.
+#
+# health-check-enabled is the one health-check key with a container-only
+# default (ProxyConfigKeys.HEALTH_CHECK_ENABLED: false natively, true under
+# "%containerized"); health-check-port and health-check-interface default the
+# same way in both modes, so only this one property needs forcing. Forced
+# directly as JVM system properties (ordinal 400, above the packaged
+# application.yaml's ordinal-255 defaults) through the documented local.conf
+# override point (see global.conf's apply_local_conf), so the proxy's
+# quarkus.http.host-enabled: ${xroad.proxy.health-check-enabled} interpolation
+# resolves true without touching quarkus.profile/DeploymentMode at all.
+configure_proxy_health_check_listener() {
+  local local_conf=/etc/xroad/services/local.conf
+  local marker="# xroad-sidecar: force-enable xroad-proxy's health-check HTTP listener"
+  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
+    return 0
+  fi
+  log "Force-enabling xroad-proxy's health-check HTTP listener"
+  cat >>"$local_conf" <<EOF
+$marker
+if [ "\$1" = "XROAD_PROXY_PARAMS" ]; then
+  PROXY_PARAMS="\$PROXY_PARAMS -Dxroad.proxy.health-check-enabled=true -Dquarkus.http.host-enabled=true"
+fi
+EOF
+  chown root:root "$local_conf"
+  chmod 644 "$local_conf"
+}
+
+# xroad-ds-control-plane's packaged application.yaml declares
+# edc.iam.trusted-issuer.issuer.id: ${xroad.edc.iam.trusted-issuer.issuer.id}
+# with no fallback (EdcConfigKeys.TRUSTED_ISSUER_ID is deliberately
+# without a default, so an unset value fails startup rather than silently
+# registering an empty trusted issuer). Every other deployment mode supplies
+# this as a plain environment variable pointing at a real issuer service
+# (the k8s chart's XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID); the sidecar has
+# no issuer service at all (out of scope, a Central Server component), so
+# this seeds a placeholder DID of the same shape purely so the service
+# starts - functional credential issuance needs a real issuer, configured by
+# the operator overriding the same environment variable.
+configure_ds_control_plane_trusted_issuer_default() {
+  local local_conf=/etc/xroad/services/local.conf
+  local marker="# xroad-sidecar: default xroad.edc.iam.trusted-issuer.issuer.id for xroad-ds-control-plane"
+  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
+    return 0
+  fi
+  log "Seeding a default DS trusted-issuer DID for xroad-ds-control-plane"
+  cat >>"$local_conf" <<EOF
+$marker
+if [ "\$1" = "XROAD_DS_CONTROL_PLANE_PARAMS" ]; then
+  : "\${XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID:=did:web:\${HOSTNAME:-localhost}%3A10100:issuer}"
+  export XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID
+fi
+EOF
+  chown root:root "$local_conf"
+  chmod 644 "$local_conf"
+}
+
+# xroad-opmonitor's packaged JVM flags fix -XX:MaxMetaspaceSize at 120m, sized
+# for a dedicated container with the daemon's own uncontended memory
+# allocation - every other deployment mode. In this image, op-monitor-daemon
+# is one of several JVMs sharing one container's resource envelope, so the
+# same request-driven metaspace growth has markedly less isolation here and
+# can exhaust the packaged ceiling under sustained load, failing live
+# requests with OutOfMemoryError: Metaspace. Raised here, in the documented
+# local.conf override point, rather than in the shared xroad-opmonitor
+# package config every deployment mode consumes.
+configure_opmonitor_metaspace() {
+  local local_conf=/etc/xroad/services/local.conf
+  local marker="# xroad-sidecar: raise xroad-opmonitor's Metaspace ceiling"
+  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
+    return 0
+  fi
+  log "Raising xroad-opmonitor's Metaspace ceiling for the shared single-container deployment"
+  cat >>"$local_conf" <<EOF
+$marker
+if [ "\$1" = "XROAD_OPMON_PARAMS" ]; then
+  OPMON_PARAMS="\$OPMON_PARAMS -XX:MaxMetaspaceSize=256m"
+fi
+EOF
+  chown root:root "$local_conf"
+  chmod 644 "$local_conf"
+}
+
+HOOK_DIR=/etc/xroad/entrypoint.d
+
+# Hooks are the last provisioning step: they run after every seed_*/configure_*
+# function above, once the dpkg-reconfigure step has succeeded - true by default
+# only on the container's first boot (see RECONFIG_REQUIRED), so a plain restart
+# does not re-run them. The local database started further down for the
+# reconfigure step is still running when they execute, so a hook can reach it.
+#
+# find -L follows symlinks so that hook files delivered as symlinks (every file
+# in a Kubernetes ConfigMap or Secret mount is one) are found; a symlink with no
+# target resolves to nothing and is not a regular file, so it is not run.
+run_first_boot_hooks() {
+  [ -d "$HOOK_DIR" ] || return 0
+  local hook rc
+  local -a hooks
+  mapfile -t hooks < <(find -L "$HOOK_DIR" -maxdepth 1 -type f -print | LC_ALL=C sort)
+  for hook in "${hooks[@]}"; do
+    if [ ! -x "$hook" ]; then
+      log "Skipping non-executable first-boot hook \"$hook\""
+      continue
+    fi
+    log "Running first-boot hook \"$hook\""
+    "$hook"
+    rc=$?
+    if [ "$rc" -ne 0 ]; then
+      warn "First-boot hook \"$hook\" exited with status $rc, aborting boot"
+      exit 1
+    fi
+  done
+}
+
 create_backup_dir_if_not_exists() {
   local xroadDir=/var/lib/xroad
   local backupDir=$xroadDir/backup
@@ -57,12 +227,19 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
-RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
-if [ -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf ]; then
+RECONFIG=(xroad-signer xroad-proxy xroad-proxy-ui-api xroad-confclient)
+if dpkg -s xroad-opmonitor &>/dev/null; then
   RECONFIG+=(xroad-opmonitor)
+fi
+if dpkg -s xroad-ds-control-plane &>/dev/null; then
+  RECONFIG+=(xroad-ds-control-plane)
+fi
+if dpkg -s xroad-ds-identity-hub &>/dev/null; then
+  RECONFIG+=(xroad-ds-identity-hub)
 fi
 
 LOCAL_DB=
+RECONFIGURED=false
 
 if [ -f /.xroad-reconfigured ]; then
   # restarted container, skip reconfigure by default
@@ -127,10 +304,8 @@ if [ ! -f ${DB_PROPERTIES} ]; then
   if [[ "${XROAD_DB_HOST}" != "127.0.0.1" ]]; then
     LOCAL_DB=false
     log "Using remote database $XROAD_DB_HOST:$XROAD_DB_PORT"
-    if [ -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-      messagelog=true
-    fi
-    if [ -f /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf ]; then
+    messagelog=true
+    if dpkg -s xroad-opmonitor &>/dev/null; then
       opmonitor=true
     fi
     echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
@@ -204,16 +379,12 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
 
   log "Reconfiguring packages"
   if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
-    echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
-    touch /.xroad-reconfigured
+    RECONFIGURED=true
+    seed_dsp_participant_context_id
+    seed_signer_autologin_enabled
   fi
-  if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 18 main stop
-    sleep 1
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
-  else
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
-  fi
+  # The local database, if any, is left running until the provisioning steps
+  # below (and the first-boot hooks that follow them) are done with it.
 fi
 XROAD_DB_PWD=
 
@@ -225,4 +396,32 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi
 
+configure_proxy_health_check_listener
+if dpkg -s xroad-ds-control-plane &>/dev/null; then
+  configure_ds_control_plane_trusted_issuer_default
+fi
+if dpkg -s xroad-opmonitor &>/dev/null; then
+  configure_opmonitor_metaspace
+fi
+configure_secret_store
+configure_secret_store_trust_env
 create_backup_dir_if_not_exists
+
+# The configuration is only recorded as provisioned once the operator's hooks
+# have succeeded too, so a hook that fails leaves the container retryable: the
+# next start finds no /.xroad-reconfigured, reconfigures again and re-runs it.
+if [[ "$RECONFIGURED" == "true" ]]; then
+  run_first_boot_hooks
+  echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
+  touch /.xroad-reconfigured
+fi
+
+if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
+  if [[ "$LOCAL_DB" == "true" ]]; then
+    pg_ctlcluster 18 main stop
+    sleep 1
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
+  else
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
+  fi
+fi

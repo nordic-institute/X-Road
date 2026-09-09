@@ -43,8 +43,8 @@ const allPermissions = [
   Permissions.UPLOAD_DS_TLS_CERT,
 ];
 
-const notConfiguredEnrollmentStatusHandler = specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-  response(200).json({ enrollment_method: 'NONE' }),
+const notConfiguredEnrollmentStatusHandler = specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+  HttpResponse.json({ enrollment_method: 'NONE' }),
 );
 
 describe('SS DS TLS Certificate — no key generated yet (Browser Mode)', () => {
@@ -201,8 +201,8 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
-        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-          response(200).json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
         ),
       ],
     });
@@ -220,8 +220,8 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
-        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-          response(200).json({ enrollment_method: 'ACME', next_renewal_time: '2020-01-01T00:00:00Z' }),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: '2020-01-01T00:00:00Z' }),
         ),
       ],
     });
@@ -239,8 +239,8 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
-        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-          response(200).json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME, last_error: longError }),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME, last_error: longError }),
         ),
       ],
     });
@@ -259,8 +259,8 @@ describe('SS DS TLS Certificate — enrollment status (Browser Mode)', () => {
       permissions: allPermissions,
       msw: [
         specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
-        specHttp.get('/dataspace/tls-certificate/enrollment-status', ({ response }) =>
-          response(200).json(
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json(
             certificateUploaded
               ? { enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }
               : { enrollment_method: 'MANUAL' },

@@ -140,20 +140,32 @@ class MailNotificationHelperTest {
         when(dataspace.isTlsCertificateRenewalFailureNotificationEnabled()).thenReturn(true);
         when(dataspace.getTlsCertificateNotificationContacts()).thenReturn(List.of("a@example.org"));
 
-        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, "CA unreachable");
+        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, false, "CA unreachable");
 
         ArgumentCaptor<String> subjectCaptor = ArgumentCaptor.forClass(String.class);
         verify(mailService, times(1)).sendMailAsync(eq("a@example.org"), subjectCaptor.capture(), anyString());
-        verify(notificationMessageSourceAccessor).getMessage(eq("acme_ds_tls_cert_renewal_failure_title"));
+        verify(notificationMessageSourceAccessor).getMessage("acme_ds_tls_cert_renewal_failure_title", new String[]{"enrollment"});
         verify(notificationMessageSourceAccessor).getMessage(eq("acme_ds_tls_cert_renewal_failure_content"),
-                eq(new String[]{HOSTNAME, "CA unreachable"}));
+                eq(new String[]{"enrollment", HOSTNAME, "CA unreachable"}));
+    }
+
+    @Test
+    void sendDsTlsAcmeFailureNotificationShouldDistinguishARenewalFromAnEnrollment() {
+        when(dataspace.isTlsCertificateRenewalFailureNotificationEnabled()).thenReturn(true);
+        when(dataspace.getTlsCertificateNotificationContacts()).thenReturn(List.of("a@example.org"));
+
+        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, true, "CA unreachable");
+
+        verify(notificationMessageSourceAccessor).getMessage("acme_ds_tls_cert_renewal_failure_title", new String[]{"renewal"});
+        verify(notificationMessageSourceAccessor).getMessage("acme_ds_tls_cert_renewal_failure_content",
+                new String[]{"renewal", HOSTNAME, "CA unreachable"});
     }
 
     @Test
     void sendDsTlsAcmeFailureNotificationShouldDoNothingWhenDisabled() {
         when(dataspace.isTlsCertificateRenewalFailureNotificationEnabled()).thenReturn(false);
 
-        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, "CA unreachable");
+        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, false, "CA unreachable");
 
         verifyNoInteractions(mailService);
     }
@@ -163,7 +175,7 @@ class MailNotificationHelperTest {
         when(dataspace.isTlsCertificateRenewalFailureNotificationEnabled()).thenReturn(true);
         when(dataspace.getTlsCertificateNotificationContacts()).thenReturn(List.of());
 
-        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, "CA unreachable");
+        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, false, "CA unreachable");
 
         verify(mailService, never()).sendMailAsync(any(), any(), any());
     }
@@ -174,7 +186,7 @@ class MailNotificationHelperTest {
         when(dataspace.isTlsCertificateRenewalFailureNotificationEnabled()).thenReturn(true);
         when(dataspace.getTlsCertificateNotificationContacts()).thenReturn(List.of("a@example.org"));
 
-        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, "CA unreachable");
+        helper.sendDsTlsAcmeFailureNotification(HOSTNAME, false, "CA unreachable");
 
         verify(mailService).sendMailAsync(eq("a@example.org"), anyString(), anyString());
         verifyNoInteractions(notificationConfig);

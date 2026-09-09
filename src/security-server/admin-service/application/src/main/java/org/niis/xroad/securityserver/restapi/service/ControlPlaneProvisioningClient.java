@@ -40,4 +40,9 @@ public interface ControlPlaneProvisioningClient {
      * Saves the STS-bound config for the Control Plane participant context.
      */
     void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
+
+    /**
+     * Flushes the Control Plane's catalog caches.
+     */
+    void invalidateCatalogCaches();
 }

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dstls;
+package org.niis.xroad.common.acme.spring.dstls;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.acme.AcmeAccountContext;
 import org.niis.xroad.common.acme.AcmeClient;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
-import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -51,26 +50,25 @@ import static org.mockito.Mockito.when;
 class DsTlsAcmeServiceTest {
 
     private static final String HOSTNAME = "ss.example.org";
+    private static final String EAB_ALIAS = "dataspace-tls";
 
     @Mock
     private AcmeClient acmeClient;
     @Mock
-    private AdminServiceProperties adminServiceProperties;
-    @Mock
-    private AdminServiceProperties.Dataspace dataspace;
+    private DsTlsAcmeHostContext hostContext;
 
     private DsTlsAcmeService dsTlsAcmeService;
 
     private DsTlsAcmeService service() {
         if (dsTlsAcmeService == null) {
-            lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
-            dsTlsAcmeService = new DsTlsAcmeService(acmeClient, adminServiceProperties);
+            lenient().when(hostContext.getEabAlias()).thenReturn(EAB_ALIAS);
+            dsTlsAcmeService = new DsTlsAcmeService(acmeClient, hostContext);
         }
         return dsTlsAcmeService;
     }
 
     @Test
-    void enrollShouldOrderUnderTheFixedAliasWithNoContactsWhenUnconfigured() {
+    void enrollShouldOrderUnderTheConfiguredAliasWithNoContactsWhenUnconfigured() {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         byte[] certRequest = {1, 2, 3};
         X509Certificate cert = mock(X509Certificate.class);
@@ -84,7 +82,7 @@ class DsTlsAcmeServiceTest {
         verify(acmeClient).orderCertificate(eq(HOSTNAME), eq(HOSTNAME), accountCaptor.capture(), eq(certRequest));
 
         AcmeAccountContext account = accountCaptor.getValue();
-        assertThat(account.accountAlias()).isEqualTo(DsTlsAcmeService.DS_TLS_ACME_ALIAS);
+        assertThat(account.accountAlias()).isEqualTo(EAB_ALIAS);
         assertThat(account.caName()).isEqualTo("Test CA");
         assertThat(account.acmeServerDirectoryUrl()).isEqualTo("http://testca:8887");
         assertThat(account.certificateProfileId()).isNull();
@@ -105,9 +103,9 @@ class DsTlsAcmeServiceTest {
     }
 
     @Test
-    void enrollShouldPassTheConfiguredTlsCertificateContacts() {
+    void enrollShouldPassTheConfiguredAccountContacts() {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
-        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
+        when(hostContext.getAccountContacts()).thenReturn(List.of("dstls@example.org"));
         when(acmeClient.orderCertificate(any(), any(), any(AcmeAccountContext.class), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
 
@@ -119,7 +117,7 @@ class DsTlsAcmeServiceTest {
     }
 
     @Test
-    void renewShouldReferenceTheCurrentCertificateUnderTheFixedAlias() {
+    void renewShouldReferenceTheCurrentCertificateUnderTheConfiguredAlias() {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
         X509Certificate currentCertificate = mock(X509Certificate.class);
         byte[] certRequest = {4, 5, 6};
@@ -131,13 +129,13 @@ class DsTlsAcmeServiceTest {
         assertThat(result).containsExactly(newCert);
         ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
         verify(acmeClient).renew(accountCaptor.capture(), eq(HOSTNAME), eq(currentCertificate), eq(certRequest));
-        assertThat(accountCaptor.getValue().accountAlias()).isEqualTo(DsTlsAcmeService.DS_TLS_ACME_ALIAS);
+        assertThat(accountCaptor.getValue().accountAlias()).isEqualTo(EAB_ALIAS);
     }
 
     @Test
-    void renewShouldPassTheConfiguredTlsCertificateContacts() {
+    void renewShouldPassTheConfiguredAccountContacts() {
         ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo("Test CA", "http://testca:8887");
-        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
+        when(hostContext.getAccountContacts()).thenReturn(List.of("dstls@example.org"));
         when(acmeClient.renew(any(AcmeAccountContext.class), any(), any(), any()))
                 .thenReturn(List.of(mock(X509Certificate.class)));
 
@@ -160,7 +158,7 @@ class DsTlsAcmeServiceTest {
         assertThat(result).isEqualTo(expected);
         ArgumentCaptor<AcmeAccountContext> accountCaptor = ArgumentCaptor.forClass(AcmeAccountContext.class);
         verify(acmeClient).getNextRenewalTime(accountCaptor.capture(), eq(certificate));
-        assertThat(accountCaptor.getValue().accountAlias()).isEqualTo(DsTlsAcmeService.DS_TLS_ACME_ALIAS);
+        assertThat(accountCaptor.getValue().accountAlias()).isEqualTo(EAB_ALIAS);
         assertThat(accountCaptor.getValue().caName()).isEqualTo("Test CA");
     }
 

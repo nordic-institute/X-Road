@@ -30,12 +30,12 @@ import * as api from '@/util/api';
 import {
   CertificateDetails,
   DistinguishedName,
+  DsTlsCertificateEnrollmentStatus,
   DsTlsCertificateStatus,
   buildFileFormData,
   multipartFormDataConfig,
   saveResponseAsFile,
 } from '@niis/shared-ui';
-import { DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
 
 export const useDsTlsCertificate = defineStore('ds-tls-certificate', {
   state: () => ({}),
@@ -46,7 +46,7 @@ export const useDsTlsCertificate = defineStore('ds-tls-certificate', {
       return api.get<DsTlsCertificateStatus>('/ds-tls-certificate').then((res) => res.data);
     },
     async fetchDsTlsCertificateEnrollmentStatus() {
-      return api.get<DataspaceTlsCertificateEnrollmentStatus>('/dataspace/tls-certificate/enrollment-status').then((res) => res.data);
+      return api.get<DsTlsCertificateEnrollmentStatus>('/ds-tls-certificate/enrollment-status').then((res) => res.data);
     },
     async fetchDsTlsCertificate() {
       return this.fetchDsTlsCertificateStatus().then((status) => status.certificate ?? ({ hash: '' } as CertificateDetails));
