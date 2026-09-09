@@ -64,8 +64,8 @@ repo="${3-}"
 dist="${4-}"
 repo_key="${5-}"
 
-# Prepare internal-package build args (only set when --packages-path is given)
-PACKAGE_BUILD_ARGS=()
+# Prepare internal-package build args. The Dockerfile bind-mounts the "packages"
+# build context unconditionally, so external builds get an empty stand-in directory.
 if [[ -n "$packages_path" ]]; then
   if [[ ! -d "$packages_path" ]] || [[ -z "$(ls -A "$packages_path" 2>/dev/null)" ]]; then
     echo "Packages path '$packages_path' does not exist or is empty." >&2
@@ -73,6 +73,10 @@ if [[ -n "$packages_path" ]]; then
     exit 1
   fi
   PACKAGE_BUILD_ARGS=(--build-arg "PACKAGE_SOURCE=internal" --build-context "packages=$packages_path")
+else
+  empty_packages_dir="$(mktemp -d)"
+  trap 'rm -rf "$empty_packages_dir"' EXIT
+  PACKAGE_BUILD_ARGS=(--build-context "packages=$empty_packages_dir")
 fi
 
 # Prepare mirror build args (unless --no-mirror flag is set)

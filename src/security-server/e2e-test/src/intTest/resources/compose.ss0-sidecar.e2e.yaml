@@ -1,6 +1,21 @@
 services:
   sidecar:
     image: ${SIDECAR_IMG:-xroad-security-server-sidecar:8.0.0}
+    # Internal-package build, declared in e2e scope only: `docker compose -f
+    # compose.ss0-sidecar.e2e.yaml build sidecar` rebuilds the image from the
+    # tree-built DEBs (build them first, e.g. scripts/packages/build-deb.sh
+    # resolute). `up` never builds on its own while the image tag above exists
+    # locally, so the CI flow that pre-builds via sidecar/docker-build.sh
+    # --packages-path is unaffected. Context paths resolve from this file's
+    # directory and identically from its copy under build/resources/intTest.
+    build:
+      context: ../../../../../../sidecar
+      args:
+        PACKAGE_SOURCE: internal
+      additional_contexts:
+        packages: ../../../../../../deployment/native-packages/build/ubuntu26.04
+        mirror-scripts: ../../../../../../deployment/.scripts
+        secret-store-scripts: ../../../../../../deployment/native-packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts
     environment:
       - XROAD_ADMIN_USER=xrd
       - XROAD_ADMIN_PASSWORD=secret123!

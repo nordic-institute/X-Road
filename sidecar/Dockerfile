@@ -29,10 +29,18 @@ RUN apt-get -qq update \
     --no-create-home --shell /bin/bash --group xroad \
   && adduser xroad sudo \
   && apt-get -qq install postgresql-18 \
-  && apt-get -qq clean
+  && apt-get -qq clean \
+  # Do not exclude man pages & other documentation from the X-Road packages
+  && rm -f /etc/dpkg/dpkg.cfg.d/excludes
 
-# X-Road packages from the remote apt repository
-FROM base AS xroad-external
+# Add OpenBao repo
+RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
+    --mount=type=secret,id=mirror_token \
+    /bin/bash /tmp/configure-mirror-openbao-deb.sh
+
+# The signed remote apt repository, for external builds. The Release ADD is a
+# cache-buster: a changed repository invalidates the install layer below.
+FROM base AS repo-external
 ARG DIST=resolute
 ARG REPO=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/debian
 ARG REPO_KEY=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/jenkins@niis.org.gpg
@@ -41,18 +49,17 @@ ARG COMPONENT=main
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 
-# Add OpenBao repo
-RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
-    --mount=type=secret,id=mirror_token \
-    /bin/bash /tmp/configure-mirror-openbao-deb.sh
-
 RUN gpg --dearmor -o /usr/share/keyrings/xroad-keyring.gpg '/tmp/repokey.gpg' \
-  && echo "deb [signed-by=/usr/share/keyrings/xroad-keyring.gpg] $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
-  # Do not exclude man pages & other documentation
-  && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
-  # Install
-  && apt-get -qq update \
-  && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
+  && echo "deb [signed-by=/usr/share/keyrings/xroad-keyring.gpg] $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list
+
+# Internal builds provision a temporary local repository from the bind-mounted
+# tree-built DEBs at install time (files/xroad-internal-repo.sh), so no repo
+# setup happens ahead of the install layer.
+FROM base AS repo-internal
+
+FROM repo-${PACKAGE_SOURCE} AS final
+ARG PACKAGE_SOURCE
+ARG XROAD_PACKAGES="\
     xroad-proxy \
     xroad-proxy-ui-api \
     xroad-database-remote \
@@ -63,46 +70,15 @@ RUN gpg --dearmor -o /usr/share/keyrings/xroad-keyring.gpg '/tmp/repokey.gpg' \
     xroad-message-log-archiver \
     xroad-ds-control-plane \
     xroad-ds-identity-hub \
-    openbao \
-  && apt-get -qq clean
+    openbao"
 
-# X-Road packages from a local directory of tree-built DEBs, no network X-Road repo
-FROM base AS xroad-internal
-
-# Add OpenBao repo
-RUN --mount=type=bind,from=mirror-scripts,source=configure-mirror-openbao-deb.sh,target=/tmp/configure-mirror-openbao-deb.sh \
-    --mount=type=secret,id=mirror_token \
-    /bin/bash /tmp/configure-mirror-openbao-deb.sh
-
-RUN --mount=type=bind,from=packages,target=/tmp/packages \
-    apt-get -qq install dpkg-dev \
-  && cp -r /tmp/packages /tmp/repo \
-  && cd /tmp/repo && dpkg-scanpackages -m . >Packages \
-  && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list \
-  # Do not exclude man pages & other documentation
-  && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
-  # Install
+RUN --mount=type=bind,source=files/xroad-internal-repo.sh,target=/tmp/xroad-internal-repo.sh \
+    --mount=type=bind,from=packages,target=/tmp/packages \
+    /bin/bash /tmp/xroad-internal-repo.sh provision "$PACKAGE_SOURCE" \
   && apt-get -qq update \
-  && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
-    xroad-proxy \
-    xroad-proxy-ui-api \
-    xroad-database-remote \
-    xroad-secret-store-remote \
-    xroad-monitor \
-    xroad-opmonitor \
-    xroad-auxiliary-service \
-    xroad-message-log-archiver \
-    xroad-ds-control-plane \
-    xroad-ds-identity-hub \
-    openbao \
-  && apt-get -qq remove dpkg-dev \
-  && apt-get -qq autoremove \
-  # the file: repo does not outlive this build stage, so its source list must go
-  # with it - a dangling trusted=yes source would fail every later apt-get update
-  && rm -rf /tmp/repo /etc/apt/sources.list.d/xroad.list \
+  && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install $XROAD_PACKAGES \
+  && /bin/bash /tmp/xroad-internal-repo.sh cleanup "$PACKAGE_SOURCE" \
   && apt-get -qq clean
-
-FROM xroad-${PACKAGE_SOURCE} AS final
 
 COPY --chown=xroad:xroad files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
 COPY --chown=root:root files/secret-store-local.conf /etc/xroad/services/secret-store-local.conf
