@@ -120,7 +120,6 @@ RUN rm -f \
 ##
 # create a backup of the configuration for version migration and
 # for initializing an empty config volume
-  && { test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini; } \
   && { test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties; } \
   && mkdir -p /etc/xroad/entrypoint.d \
   && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
@@ -128,8 +127,7 @@ RUN rm -f \
 # move files that should not be overwritten during migration to another folder
 # (these are needed when initializing an empty config volume)
   && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
-  && mv /usr/share/xroad/config/etc/xroad/conf.d/local.ini \
-    /usr/share/xroad/config/etc/xroad/services/local.properties \
+  && mv /usr/share/xroad/config/etc/xroad/services/local.properties \
     /usr/share/xroad/config/backup/ \
 ##
   && dpkg-query --showformat='${Version}' --show xroad-proxy >/usr/share/xroad/config/VERSION \

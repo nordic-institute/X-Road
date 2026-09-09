@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.26
+Version: 1.27
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -34,6 +34,7 @@ Doc. ID: UG-SS-SIDECAR
 | 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
 | 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
 | 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
+| 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
 
 ## License
 
@@ -63,11 +64,10 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.11 Health Checks](#211-health-checks)
   * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
 * [3 Initial configuration](#3-initial-configuration)
-  * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
-  * [3.2 Enabling ACME Support](#32-enabling-acme-support)
-  * [3.3 Configuring the memory allocation for the Proxy Service](#33-configuring-the-memory-allocation-for-the-proxy-service)
-  * [3.4 Installing Support for Hardware Tokens](#34-installing-support-for-hardware-tokens)
-  * [3.5 Autologin](#35-autologin)
+  * [3.1 Enabling ACME Support](#31-enabling-acme-support)
+  * [3.2 Configuring the memory allocation for the Proxy Service](#32-configuring-the-memory-allocation-for-the-proxy-service)
+  * [3.3 Installing Support for Hardware Tokens](#33-installing-support-for-hardware-tokens)
+  * [3.4 Autologin](#34-autologin)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -486,30 +486,18 @@ with `./entrypoint.d/10-seed-config.sh` executable on the host and containing th
 To configure the X-Road Security Server Sidecar, open a browser to `https://127.0.0.1:<admin port>` (assuming the container admin port 4000 is published to localhost) and log in using the admin credentials.
 See [IG-SS](#Ref_IG-SS) for configuration details.
 
-### 3.1 Changing the System Parameter Values in Configuration Files
-
-The configuration files are INI files [INI], where each section contains parameters for a particular server component.
-
-In order to override the default values of system parameters, create or edit the file
-
-```
-/etc/xroad/conf.d/local.ini
-```
-
-See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
-
-### 3.2 Enabling ACME Support
+### 3.1 Enabling ACME Support
 
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 For Sidecar, it is possible to use a different ACME challenge port from the default 80. For this, set the environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT` to the desired port number and map it to a host port 80 when starting the container (ACME Servers always use port 80 for HTTP-01 challenge).
 
-### 3.3 Configuring the memory allocation for the Proxy Service
+### 3.2 Configuring the memory allocation for the Proxy Service
 
 The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
-### 3.4 Installing Support for Hardware Tokens
+### 3.3 Installing Support for Hardware Tokens
 
 Security Server Sidecar provides built-in support for hardware security tokens, requiring only configuration.
 
@@ -522,7 +510,7 @@ Security Server Sidecar provides built-in support for hardware security tokens, 
     docker restart <sidecar container name>
     ```
 
-### 3.5 Autologin
+### 3.4 Autologin
 
 Autologin logs a token in to the signer automatically after the container starts or restarts, so unattended
 restarts do not require an operator to log the token in by hand. It is implemented inside the signer itself and is

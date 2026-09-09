@@ -276,7 +276,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
     # copy if not exists
     cp -a -n "$PACKAGED_CONFIG"/backup/devices.ini /etc/xroad/
-    cp -a -n "$PACKAGED_CONFIG"/backup/local.ini /etc/xroad/conf.d/
     cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
     # packages need to be reconfigured (runs possible db and config migrations)
     RECONFIG_REQUIRED=true
