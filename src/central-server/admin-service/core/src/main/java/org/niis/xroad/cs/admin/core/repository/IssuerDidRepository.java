@@ -28,8 +28,11 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 
-import java.util.Optional;
-
 public interface IssuerDidRepository extends GenericRepository<IssuerDidEntity, Integer> {
-    Optional<IssuerDidEntity> findByDid(String did);
+
+    /**
+     * Inserts a DID, silently doing nothing if it is already registered (the unique constraint on {@code did}
+     * is what makes this idempotent under concurrent registrations from different Central Server nodes).
+     */
+    void insertIgnoreConflict(String did);
 }

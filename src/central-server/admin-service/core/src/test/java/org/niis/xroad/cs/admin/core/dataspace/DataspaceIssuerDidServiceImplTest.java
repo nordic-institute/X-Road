@@ -35,11 +35,8 @@ import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,22 +56,17 @@ class DataspaceIssuerDidServiceImplTest {
         service = new DataspaceIssuerDidServiceImpl(issuerDidRepository);
     }
 
+    /**
+     * Idempotency lives entirely in the repository's conflict-ignoring insert (the database's
+     * {@code ON CONFLICT DO NOTHING}), so the service has no application-level branching to unit-test beyond
+     * this delegation — a genuine already-registered-DID scenario belongs in a real-database test of the
+     * repository method itself.
+     */
     @Test
-    void registerSavesUnseenDid() {
-        when(issuerDidRepository.findByDid(DID_1)).thenReturn(Optional.empty());
-
+    void registerDelegatesToTheConflictIgnoringInsert() {
         service.register(DID_1);
 
-        verify(issuerDidRepository).save(any(IssuerDidEntity.class));
-    }
-
-    @Test
-    void registerIsIdempotentForAlreadyRegisteredDid() {
-        when(issuerDidRepository.findByDid(DID_1)).thenReturn(Optional.of(new IssuerDidEntity(DID_1)));
-
-        service.register(DID_1);
-
-        verify(issuerDidRepository, never()).save(any());
+        verify(issuerDidRepository).insertIgnoreConflict(DID_1);
     }
 
     @Test

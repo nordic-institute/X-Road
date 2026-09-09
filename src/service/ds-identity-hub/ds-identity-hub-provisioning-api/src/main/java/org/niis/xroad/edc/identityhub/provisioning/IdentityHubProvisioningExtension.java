@@ -60,6 +60,8 @@ public class IdentityHubProvisioningExtension implements ServiceExtension {
     @Inject
     private Monitor monitor;
 
+    private IdentityHubProvisioningGrpcService grpcService;
+
     @Override
     public String name() {
         return EXTENSION_NAME;
@@ -67,9 +69,16 @@ public class IdentityHubProvisioningExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var grpcService = new IdentityHubProvisioningGrpcService(
+        grpcService = new IdentityHubProvisioningGrpcService(
                 participantContextService, credentialRequestManager, didResolverRegistry, new RpcResponseHandler());
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
+    }
+
+    @Override
+    public void shutdown() {
+        if (grpcService != null) {
+            grpcService.close();
+        }
     }
 }

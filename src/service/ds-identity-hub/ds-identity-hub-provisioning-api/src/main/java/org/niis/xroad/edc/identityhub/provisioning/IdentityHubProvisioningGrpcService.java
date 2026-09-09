@@ -71,7 +71,8 @@ import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateMan
  * delegating to the EDC IdentityHub services directly (no REST management API).
  */
 @RequiredArgsConstructor
-class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceGrpc.IdentityHubProvisioningServiceImplBase {
+class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceGrpc.IdentityHubProvisioningServiceImplBase
+        implements AutoCloseable {
 
     private static final String XROAD_MEMBER_ID_PROPERTY = "xroadMemberId";
     private static final String CREDENTIAL_SERVICE_TYPE = "CredentialService";
@@ -88,6 +89,11 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
     private final ExecutorService resolveExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private final Map<String, Instant> unreachableUntil = new ConcurrentHashMap<>();
+
+    @Override
+    public void close() {
+        resolveExecutor.shutdownNow();
+    }
 
     @Override
     public void createParticipantContext(CreateParticipantContextReq request,
@@ -165,45 +171,80 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
      * <p>
      * A single candidate is returned as-is: with no alternative to fail over to, probing it can only add
      * latency, and a lone issuer being temporarily down is the credential-request state machine's retry
-     * concern, not this one's. With two or more candidates, each is probed, in order, for a DID document
+     * concern, not this one's. With two or more candidates, all are probed concurrently for a DID document
      * carrying an {@link CredentialRequestManager#ISSUER_SERVICE_ENDPOINT_TYPE} service entry — the same
-     * targeting decision {@link CredentialRequestManager} itself makes once a request is in flight. Each
-     * probe is bounded by {@link #RESOLVE_TIMEOUT}; a candidate that fails to resolve, times out, or lacks
-     * the service entry is remembered as unreachable for {@link #UNREACHABLE_BACKOFF} and skipped by later
-     * calls, unless every candidate is currently within its backoff window, in which case all candidates are
-     * tried anyway rather than failing on stale memory.
+     * targeting decision {@link CredentialRequestManager} itself makes once a request is in flight — and the
+     * first one to resolve successfully wins.
+     * <p>
+     * Probes are never cancelled. Each records its own outcome — reachable, or remembered as unreachable for
+     * {@link #UNREACHABLE_BACKOFF} — whenever it finishes, whether that is before or after this call has
+     * already returned a winner or given up at the timeout. This is what makes racing a fast candidate against
+     * a slow one safe: a losing candidate that only fails after the winner has already been returned still
+     * gets recorded and still enters backoff, instead of being silently dropped and re-probed on every
+     * subsequent call.
+     * <p>
+     * The call itself is bounded by {@link #RESOLVE_TIMEOUT} regardless of candidate count, and returns early,
+     * before that bound, once every candidate has answered. Should the bound elapse first, an empty result is
+     * returned and the still-running probes are left to finish on their own; each is bounded by the resolver's
+     * own HTTP timeout, so nothing is left running indefinitely, and each still records its outcome once it
+     * concludes. A candidate that resolves but lacks the service entry, fails to resolve, or throws is
+     * remembered as unreachable and skipped by later calls, unless every candidate is currently within its
+     * backoff window, in which case all candidates are tried anyway rather than failing on stale memory.
      */
     private Optional<String> selectReachableIssuer(List<String> candidateDids) {
         if (candidateDids.size() == 1) {
             return Optional.of(candidateDids.getFirst());
         }
+        return probeConcurrently(eligibleCandidates(candidateDids));
+    }
 
+    private List<String> eligibleCandidates(List<String> candidateDids) {
         var now = Instant.now();
         var eligible = candidateDids.stream()
                 .filter(did -> now.isAfter(unreachableUntil.getOrDefault(did, Instant.MIN)))
                 .toList();
-        if (eligible.isEmpty()) {
-            eligible = candidateDids;
-        }
-
-        for (var did : eligible) {
-            if (resolvesToIssuerServiceWithinTimeout(did)) {
-                unreachableUntil.remove(did);
-                return Optional.of(did);
-            }
-            unreachableUntil.put(did, now.plus(UNREACHABLE_BACKOFF));
-        }
-        return Optional.empty();
+        return eligible.isEmpty() ? candidateDids : eligible;
     }
 
-    private boolean resolvesToIssuerServiceWithinTimeout(String did) {
-        var probe = CompletableFuture.supplyAsync(() -> resolvesToIssuerService(did), resolveExecutor);
+    private Optional<String> probeConcurrently(List<String> candidateDids) {
+        var winner = new CompletableFuture<String>();
+        var probes = candidateDids.stream()
+                .map(did -> CompletableFuture.supplyAsync(() -> probe(did), resolveExecutor)
+                        .whenComplete((reachable, throwable) -> recordOutcome(did, reachable, throwable, winner)))
+                .toList();
+        CompletableFuture.allOf(probes.toArray(CompletableFuture[]::new))
+                .whenComplete((ignoredResult, ignoredThrowable) -> winner.complete(null));
+
         try {
-            return probe.get(RESOLVE_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+            return Optional.ofNullable(winner.get(RESOLVE_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
+            return Optional.empty();
         } catch (ExecutionException | TimeoutException e) {
+            return Optional.empty();
+        }
+    }
+
+    private void recordOutcome(String did, Boolean reachable, Throwable throwable, CompletableFuture<String> winner) {
+        if (throwable == null && Boolean.TRUE.equals(reachable)) {
+            unreachableUntil.remove(did);
+            winner.complete(did);
+        } else {
+            markUnreachable(did);
+        }
+    }
+
+    private void markUnreachable(String did) {
+        unreachableUntil.put(did, Instant.now().plus(UNREACHABLE_BACKOFF));
+    }
+
+    private boolean probe(String did) {
+        try {
+            return resolvesToIssuerService(did);
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             return false;
         }
     }

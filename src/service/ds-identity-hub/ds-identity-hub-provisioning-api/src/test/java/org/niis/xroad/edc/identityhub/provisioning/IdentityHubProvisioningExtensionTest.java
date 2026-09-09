@@ -38,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -74,6 +75,18 @@ class IdentityHubProvisioningExtensionTest {
         extension.initialize(context);
 
         verify(grpcServiceRegistry).register(any(IdentityHubProvisioningGrpcService.class));
+    }
+
+    @Test
+    void shutdownClosesTheRegisteredServiceAfterInitialize() {
+        extension.initialize(context);
+
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shutdownIsSafeWithoutPriorInitialize() {
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {

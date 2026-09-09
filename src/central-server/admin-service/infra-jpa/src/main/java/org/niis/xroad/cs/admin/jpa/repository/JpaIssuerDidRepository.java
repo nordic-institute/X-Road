@@ -28,13 +28,17 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 @Repository
 public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, Integer>, IssuerDidRepository {
 
     @Override
-    Optional<IssuerDidEntity> findByDid(String did);
+    @Modifying
+    @Query(value = "INSERT INTO " + IssuerDidEntity.TABLE_NAME + " (id, did, created_at, updated_at) "
+            + "VALUES (nextval('" + IssuerDidEntity.TABLE_NAME + "_id_seq'), :did, now(), now()) "
+            + "ON CONFLICT (did) DO NOTHING", nativeQuery = true)
+    void insertIgnoreConflict(String did);
 }
