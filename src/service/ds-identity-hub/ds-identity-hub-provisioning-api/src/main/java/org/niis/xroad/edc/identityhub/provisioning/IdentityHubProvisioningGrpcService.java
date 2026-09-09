@@ -47,9 +47,18 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioning
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
@@ -69,11 +78,16 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
     private static final String CREDENTIAL_SERVICE_ID_SUFFIX = "-credential-service";
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
+    private static final Duration RESOLVE_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration UNREACHABLE_BACKOFF = Duration.ofSeconds(30);
 
     private final IdentityHubParticipantContextService participantContextService;
     private final CredentialRequestManager credentialRequestManager;
     private final DidResolverRegistry didResolverRegistry;
     private final RpcResponseHandler responseHandler;
+
+    private final ExecutorService resolveExecutor = Executors.newVirtualThreadPerTaskExecutor();
+    private final Map<String, Instant> unreachableUntil = new ConcurrentHashMap<>();
 
     @Override
     public void createParticipantContext(CreateParticipantContextReq request,
@@ -145,21 +159,60 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
     }
 
     /**
-     * Resolves each candidate DID's document, in order, and returns the first one that resolves and
-     * carries an {@link CredentialRequestManager#ISSUER_SERVICE_ENDPOINT_TYPE} service entry — the same
-     * targeting decision {@link CredentialRequestManager} itself makes once a request is in flight, done
-     * here before any {@link org.eclipse.edc.identityhub.spi.credential.request.model.HolderCredentialRequest}
-     * is created so an unreachable issuer never burns a holder request slot.
+     * Picks the issuer DID to target for a credential request, done before any
+     * {@link org.eclipse.edc.identityhub.spi.credential.request.model.HolderCredentialRequest} is created so an
+     * unreachable issuer never burns a holder request slot.
+     * <p>
+     * A single candidate is returned as-is: with no alternative to fail over to, probing it can only add
+     * latency, and a lone issuer being temporarily down is the credential-request state machine's retry
+     * concern, not this one's. With two or more candidates, each is probed, in order, for a DID document
+     * carrying an {@link CredentialRequestManager#ISSUER_SERVICE_ENDPOINT_TYPE} service entry — the same
+     * targeting decision {@link CredentialRequestManager} itself makes once a request is in flight. Each
+     * probe is bounded by {@link #RESOLVE_TIMEOUT}; a candidate that fails to resolve, times out, or lacks
+     * the service entry is remembered as unreachable for {@link #UNREACHABLE_BACKOFF} and skipped by later
+     * calls, unless every candidate is currently within its backoff window, in which case all candidates are
+     * tried anyway rather than failing on stale memory.
      */
     private Optional<String> selectReachableIssuer(List<String> candidateDids) {
-        return candidateDids.stream()
-                .filter(did -> {
-                    var resolved = didResolverRegistry.resolve(did);
-                    return resolved.succeeded() && resolved.getContent().getService().stream()
-                            .anyMatch(service -> service.getType().equalsIgnoreCase(
-                                    CredentialRequestManager.ISSUER_SERVICE_ENDPOINT_TYPE));
-                })
-                .findFirst();
+        if (candidateDids.size() == 1) {
+            return Optional.of(candidateDids.getFirst());
+        }
+
+        var now = Instant.now();
+        var eligible = candidateDids.stream()
+                .filter(did -> now.isAfter(unreachableUntil.getOrDefault(did, Instant.MIN)))
+                .toList();
+        if (eligible.isEmpty()) {
+            eligible = candidateDids;
+        }
+
+        for (var did : eligible) {
+            if (resolvesToIssuerServiceWithinTimeout(did)) {
+                unreachableUntil.remove(did);
+                return Optional.of(did);
+            }
+            unreachableUntil.put(did, now.plus(UNREACHABLE_BACKOFF));
+        }
+        return Optional.empty();
+    }
+
+    private boolean resolvesToIssuerServiceWithinTimeout(String did) {
+        var probe = CompletableFuture.supplyAsync(() -> resolvesToIssuerService(did), resolveExecutor);
+        try {
+            return probe.get(RESOLVE_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (ExecutionException | TimeoutException e) {
+            return false;
+        }
+    }
+
+    private boolean resolvesToIssuerService(String did) {
+        var resolved = didResolverRegistry.resolve(did);
+        return resolved.succeeded() && resolved.getContent().getService().stream()
+                .anyMatch(service -> service.getType().equalsIgnoreCase(
+                        CredentialRequestManager.ISSUER_SERVICE_ENDPOINT_TYPE));
     }
 
     private GetCredentialRequestStateResp getCredentialRequestStateInternal(GetCredentialRequestStateReq request) {

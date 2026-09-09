@@ -53,13 +53,17 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDi
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +72,7 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     private static final String REACHABLE_ISSUER_DID = "did:web:issuer.example.com";
     private static final String UNREACHABLE_ISSUER_DID = "did:web:unreachable.example.com";
+    private static final String OTHER_UNREACHABLE_ISSUER_DID = "did:web:also-unreachable.example.com";
 
     @Mock
     private IdentityHubParticipantContextService participantContextService;
@@ -129,8 +134,31 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void requestCredentialUsesSoleCandidateWithoutProbing() {
+        when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
+                .thenReturn(ServiceResult.success("issuer-pid-1"));
+
+        StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .addIssuerDids(REACHABLE_ISSUER_DID)
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        service.requestCredential(request, observer);
+
+        verify(didResolverRegistry, never()).resolve(any());
+        verify(credentialRequestManager).initiateRequest(eq("ctx-1"), eq(REACHABLE_ISSUER_DID), eq("holder-pid-1"), any());
+        verify(observer).onNext(any());
+        verify(observer, never()).onError(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void requestCredentialToleratesConflict() {
-        givenReachableIssuer(REACHABLE_ISSUER_DID);
         when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
                 .thenReturn(ServiceResult.conflict("already requested"));
 
@@ -154,7 +182,6 @@ class IdentityHubProvisioningGrpcServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void requestCredentialPropagatesNonConflictFailure() {
-        givenReachableIssuer(REACHABLE_ISSUER_DID);
         when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
                 .thenReturn(ServiceResult.unexpected("storage error"));
 
@@ -202,13 +229,77 @@ class IdentityHubProvisioningGrpcServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void requestCredentialFailsWithoutCreatingAnyRequestWhenNoCandidateIsReachable() {
-        givenUnreachableIssuer(UNREACHABLE_ISSUER_DID);
+    void requestCredentialFailsOverWhenFirstCandidateResolutionExceedsTheTimeout() {
+        var neverReleased = new CountDownLatch(1);
+        when(didResolverRegistry.resolve(UNREACHABLE_ISSUER_DID)).thenAnswer(invocation -> {
+            neverReleased.await();
+            return Result.failure("never reached");
+        });
+        givenReachableIssuer(REACHABLE_ISSUER_DID);
+        when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
+                .thenReturn(ServiceResult.success("issuer-pid-1"));
 
         StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
         var request = RequestCredentialReq.newBuilder()
                 .setParticipantContextId("ctx-1")
                 .addIssuerDids(UNREACHABLE_ISSUER_DID)
+                .addIssuerDids(REACHABLE_ISSUER_DID)
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        var start = System.nanoTime();
+        service.requestCredential(request, observer);
+        var elapsed = Duration.ofNanos(System.nanoTime() - start);
+
+        assertThat(elapsed).isLessThan(Duration.ofSeconds(9));
+        verify(credentialRequestManager).initiateRequest(eq("ctx-1"), eq(REACHABLE_ISSUER_DID), eq("holder-pid-1"), any());
+        verify(observer).onNext(any());
+        verify(observer, never()).onError(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void requestCredentialSkipsUnreachableCandidateDuringItsBackoffWindow() {
+        givenUnreachableIssuer(UNREACHABLE_ISSUER_DID);
+        givenReachableIssuer(REACHABLE_ISSUER_DID);
+        when(credentialRequestManager.initiateRequest(anyString(), eq(REACHABLE_ISSUER_DID), anyString(), any()))
+                .thenReturn(ServiceResult.success("issuer-pid-1"));
+
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .addIssuerDids(UNREACHABLE_ISSUER_DID)
+                .addIssuerDids(REACHABLE_ISSUER_DID)
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        StreamObserver<RequestCredentialResp> firstObserver = mock(StreamObserver.class);
+        service.requestCredential(request, firstObserver);
+        StreamObserver<RequestCredentialResp> secondObserver = mock(StreamObserver.class);
+        service.requestCredential(request, secondObserver);
+
+        verify(didResolverRegistry, times(1)).resolve(UNREACHABLE_ISSUER_DID);
+        verify(didResolverRegistry, times(2)).resolve(REACHABLE_ISSUER_DID);
+        verify(firstObserver).onNext(any());
+        verify(secondObserver).onNext(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void requestCredentialFailsWithoutCreatingAnyRequestWhenNoCandidateIsReachable() {
+        givenUnreachableIssuer(UNREACHABLE_ISSUER_DID);
+        givenUnreachableIssuer(OTHER_UNREACHABLE_ISSUER_DID);
+
+        StreamObserver<RequestCredentialResp> observer = mock(StreamObserver.class);
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .addIssuerDids(UNREACHABLE_ISSUER_DID)
+                .addIssuerDids(OTHER_UNREACHABLE_ISSUER_DID)
                 .setHolderPid("holder-pid-1")
                 .setCredentialDefinitionId("def-1")
                 .setCredentialType("MembershipCredential")
@@ -219,6 +310,33 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(observer).onError(any(StatusRuntimeException.class));
         verify(credentialRequestManager, never()).initiateRequest(any(), any(), any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void requestCredentialRetriesAllCandidatesWhenEveryOneIsWithinItsBackoffWindow() {
+        givenUnreachableIssuer(UNREACHABLE_ISSUER_DID);
+        givenUnreachableIssuer(OTHER_UNREACHABLE_ISSUER_DID);
+
+        var request = RequestCredentialReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .addIssuerDids(UNREACHABLE_ISSUER_DID)
+                .addIssuerDids(OTHER_UNREACHABLE_ISSUER_DID)
+                .setHolderPid("holder-pid-1")
+                .setCredentialDefinitionId("def-1")
+                .setCredentialType("MembershipCredential")
+                .setFormat("JWT_VC")
+                .build();
+
+        StreamObserver<RequestCredentialResp> firstObserver = mock(StreamObserver.class);
+        service.requestCredential(request, firstObserver);
+        StreamObserver<RequestCredentialResp> secondObserver = mock(StreamObserver.class);
+        service.requestCredential(request, secondObserver);
+
+        verify(didResolverRegistry, times(2)).resolve(UNREACHABLE_ISSUER_DID);
+        verify(didResolverRegistry, times(2)).resolve(OTHER_UNREACHABLE_ISSUER_DID);
+        verify(firstObserver).onError(any(StatusRuntimeException.class));
+        verify(secondObserver).onError(any(StatusRuntimeException.class));
     }
 
     @Test
