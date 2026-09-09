@@ -56,6 +56,7 @@ class ServiceContextResolverTest {
 
     private static final String HOST_CTX = "xroad-provider";
     private static final String MGMT_CTX = "xroad-provider-mgmt";
+    private static final String SYSTEM_CTX = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
 
     private static final ClientId.Conf MEMBER = ClientId.Conf.create("DEV", "GOV", "1111");
     private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
@@ -74,7 +75,7 @@ class ServiceContextResolverTest {
     private ParticipantContextService participantContextService;
 
     private ServiceContextResolver resolver() {
-        return new ServiceContextResolver(HOST_CTX, MGMT_CTX, globalConfProvider, participantContextService);
+        return new ServiceContextResolver(HOST_CTX, MGMT_CTX, SYSTEM_CTX, globalConfProvider, participantContextService);
     }
 
     @Test
@@ -209,6 +210,11 @@ class ServiceContextResolverTest {
         assertThat(resolver().normalizeRequestedContext(HOST_CTX)).isEqualTo(HOST_CTX);
         assertThat(resolver().normalizeRequestedContext(MGMT_CTX)).isEqualTo(MGMT_CTX);
         assertThat(resolver().normalizeRequestedContext(MEMBER_CTX)).isEqualTo(MEMBER_CTX);
+    }
+
+    @Test
+    void normalizeRequestedContextPassesThroughSystemCtx() {
+        assertThat(resolver().normalizeRequestedContext(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
     }
 
     @Test

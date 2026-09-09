@@ -44,6 +44,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -95,6 +96,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
     private String participantContextId;
     private String managementParticipantContextId;
+    private String systemParticipantContextId;
     private BuiltinServiceCatalog builtinServiceCatalog;
     private StoreCacheConfig cacheConfig;
     private ServiceContextResolver serviceContextResolver;
@@ -116,8 +118,10 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         participantContextId = context.getSetting(SETTING_PARTICIPANT_CONTEXT_ID, defaultContextId);
         managementParticipantContextId = context.getSetting(
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + "-mgmt");
+        systemParticipantContextId = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
         log.info("Participant context ID for catalog assets: {}", participantContextId);
         log.info("Management participant context ID for catalog assets: {}", managementParticipantContextId);
+        log.info("SYSTEM participant context ID for catalog assets: {}", systemParticipantContextId);
 
         var proxyMonitorEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_PROXY_MONITOR_ENABLED, true);
         var opMonitorEnabled = context.getSetting(BuiltinServiceCatalog.SETTING_OP_MONITOR_ENABLED, true);
@@ -137,7 +141,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 cacheEnabled, cacheTtlSeconds, cacheFindByIdMaxSize);
 
         serviceContextResolver = new ServiceContextResolver(
-                participantContextId, managementParticipantContextId, globalConfProvider, participantContextService);
+                participantContextId, managementParticipantContextId, systemParticipantContextId,
+                globalConfProvider, participantContextService);
         requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
         webService.registerResource(ApiContext.PROTOCOL,
                 new ParticipantContextCaptureFilter(requestedParticipantContext));
@@ -146,7 +151,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
                 cacheConfig.findByIdMaxSize(), "AssetIndex");
         assetIndexStore = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, participantContextId, managementParticipantContextId,
-                builtinServiceCatalog, assetIndexCache,
+                systemParticipantContextId, builtinServiceCatalog, assetIndexCache,
                 serviceContextResolver, requestedParticipantContext);
 
         policyDefinitionCache = new StoreEnumerationCache<>(cacheConfig.enabled(), cacheConfig.ttlSeconds(),
@@ -175,8 +180,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing PolicyDefinitionStore backed by ServerConf");
         return new PolicyDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider, new PolicyMapper(),
-                participantContextId, managementParticipantContextId, builtinServiceCatalog,
-                policyDefinitionCache,
+                participantContextId, managementParticipantContextId, systemParticipantContextId,
+                builtinServiceCatalog, policyDefinitionCache,
                 serviceContextResolver, requestedParticipantContext);
     }
 
@@ -185,7 +190,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         log.trace("Providing ContractDefinitionStore backed by ServerConf");
         return new ContractDefinitionServerConfStore(
                 serverConfProvider, globalConfProvider,
-                participantContextId, managementParticipantContextId,
+                participantContextId, managementParticipantContextId, systemParticipantContextId,
                 builtinServiceCatalog,
                 contractDefinitionCache,
                 serviceContextResolver, requestedParticipantContext);

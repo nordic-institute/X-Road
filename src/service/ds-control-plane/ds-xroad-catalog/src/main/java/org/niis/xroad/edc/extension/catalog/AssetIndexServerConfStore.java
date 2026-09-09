@@ -60,6 +60,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     private final GlobalConfProvider globalConfProvider;
     private final String participantContextId;
     private final String managementParticipantContextId;
+    private final String systemParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -103,9 +104,12 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+            assets.add(AssetMapper.toAsset(serviceId, systemParticipantContextId));
         }
         ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId)));
+        ManagementServiceCatalog.resolveSystemSyntheticServices(globalConfProvider, serverConfProvider)
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, systemParticipantContextId)));
         return assets;
     }
 
@@ -122,7 +126,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
-            return AssetMapper.toAsset(builtinServiceId, managementParticipantContextId);
+            return AssetMapper.toAsset(builtinServiceId, selectBuiltinContextId());
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
@@ -131,6 +135,9 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         if (log.isTraceEnabled()) {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
+        }
+        if (systemParticipantContextId.equals(requestedParticipantContext.get())) {
+            return findSystemAsset(serviceId);
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
             if (isLocallyRegisteredSubsystem(serviceId.getClientId())) {
@@ -144,6 +151,28 @@ class AssetIndexServerConfStore implements AssetIndex {
                 ? managementParticipantContextId
                 : selectContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
+    }
+
+    /** Built-ins are ungated (published under both SYSTEM and management on every server). */
+    private String selectBuiltinContextId() {
+        return systemParticipantContextId.equals(requestedParticipantContext.get())
+                ? systemParticipantContextId
+                : managementParticipantContextId;
+    }
+
+    /**
+     * A SYSTEM-addressed lookup only ever resolves to a synthetic entry eligible under SYSTEM
+     * ({@link ManagementServiceCatalog#isSystemEligible}) — never to a real service nor to the
+     * broader owner-only-synthesis fallback that {@link #findByIdInternal} otherwise applies, so a
+     * SYSTEM request for anything not published there is a clean not-found instead of a fallback
+     * to the legacy host context.
+     */
+    @Nullable
+    private Asset findSystemAsset(ServiceId.Conf serviceId) {
+        if (!ManagementServiceCatalog.isSystemEligible(serviceId, globalConfProvider, serverConfProvider)) {
+            return null;
+        }
+        return AssetMapper.toAsset(serviceId, systemParticipantContextId);
     }
 
     /**

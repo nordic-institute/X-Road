@@ -64,6 +64,7 @@ class CachingStoreTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
     private static final String MGMT_PARTICIPANT_CONTEXT_ID = "xroad-provider-mgmt";
+    private static final String SYSTEM_PARTICIPANT_CONTEXT_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
     private static final ServiceId.Conf SERVICE_1 = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "getRecords", "v1");
     private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1111", "ss0");
@@ -92,13 +93,14 @@ class CachingStoreTest {
         lenient().when(participantContextService.getParticipantContext(any()))
                 .thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
-                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, globalConfProvider, participantContextService);
+                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
+                globalConfProvider, participantContextService);
         requestedParticipantContext.clear();
     }
 
     private AssetIndexServerConfStore buildStore(StoreEnumerationCache<Asset> cache) {
         return new AssetIndexServerConfStore(serverConfProvider, globalConfProvider,
-                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 new BuiltinServiceCatalog(serverConfProvider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache,
                 serviceContextResolver, requestedParticipantContext);

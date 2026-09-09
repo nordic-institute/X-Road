@@ -66,6 +66,7 @@ class ServiceContextResolver {
 
     private final String hostParticipantContextId;
     private final String managementParticipantContextId;
+    private final String systemParticipantContextId;
     private final GlobalConfProvider globalConfProvider;
     private final ParticipantContextService participantContextService;
 
@@ -114,11 +115,11 @@ class ServiceContextResolver {
 
     /**
      * Normalizes a requested participant context for use as a by-id cache key: a value that is
-     * neither the host context, the management context, nor syntactically a valid member ctx-id
-     * collapses to {@code null} — the same key as "no context requested" — so that distinct garbage
-     * input never mints a distinct cache entry for what is, in every case, the same legacy-fallback
-     * record. The cache itself stays unaware of ctx-id scheme rules; this is the one place that
-     * decides what a plausible context looks like.
+     * neither the host context, the management context, the SYSTEM context, nor syntactically a
+     * valid member ctx-id collapses to {@code null} — the same key as "no context requested" — so
+     * that distinct garbage input never mints a distinct cache entry for what is, in every case,
+     * the same legacy-fallback record. The cache itself stays unaware of ctx-id scheme rules; this
+     * is the one place that decides what a plausible context looks like.
      */
     @Nullable
     String normalizeRequestedContext(@Nullable String requestedParticipantContextId) {
@@ -127,6 +128,7 @@ class ServiceContextResolver {
         }
         if (requestedParticipantContextId.equals(hostParticipantContextId)
                 || requestedParticipantContextId.equals(managementParticipantContextId)
+                || requestedParticipantContextId.equals(systemParticipantContextId)
                 || isMemberContextShape(requestedParticipantContextId)) {
             return requestedParticipantContextId;
         }

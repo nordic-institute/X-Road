@@ -29,12 +29,15 @@ package org.niis.xroad.edc.extension.catalog;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.annotation.Nullable;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -48,8 +51,10 @@ import java.util.stream.Stream;
 @UtilityClass
 class ManagementServiceCatalog {
 
+    private static final String AUTH_CERT_REG = "authCertReg";
+
     static final List<String> SERVICE_CODES = List.of(
-            "authCertReg",
+            AUTH_CERT_REG,
             "clientReg",
             "ownerChange",
             "clientDeletion",
@@ -62,23 +67,68 @@ class ManagementServiceCatalog {
             "maintenanceModeDisable"
     );
 
+    /**
+     * {@link #SERVICE_CODES} minus {@code authCertReg}: it is never negotiated over the
+     * dataspace protocol (it goes as direct HTTPS to the Central Server), so the SYSTEM
+     * publication excludes it while the {@code -mgmt} mirror keeps its full list.
+     */
+    static final Set<String> SYSTEM_SERVICE_CODES = SERVICE_CODES.stream()
+            .filter(code -> !AUTH_CERT_REG.equals(code))
+            .collect(Collectors.toUnmodifiableSet());
+
     static Stream<ServiceId.Conf> resolveSyntheticServices(GlobalConfProvider globalConfProvider,
                                                            ServerConfProvider serverConfProvider) {
-        ClientId managementSubsystem = globalConfProvider.getManagementRequestService();
-        if (managementSubsystem == null || managementSubsystem.getSubsystemCode() == null) {
-            return Stream.empty();
-        }
-        var thisServer = serverConfProvider.getIdentifier();
-        if (thisServer == null) {
-            return Stream.empty();
-        }
-        if (!globalConfProvider.isSecurityServerClient(managementSubsystem, thisServer)) {
-            return Stream.empty();
-        }
-        if (!serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
+        var managementSubsystem = resolveManagementSubsystem(globalConfProvider, serverConfProvider);
+        if (managementSubsystem == null) {
             return Stream.empty();
         }
         return SERVICE_CODES.stream()
                 .map(code -> ServiceId.Conf.create(managementSubsystem, code));
+    }
+
+    /**
+     * Same gate as {@link #resolveSyntheticServices}, filtered to the SYSTEM-eligible codes.
+     */
+    static Stream<ServiceId.Conf> resolveSystemSyntheticServices(GlobalConfProvider globalConfProvider,
+                                                                  ServerConfProvider serverConfProvider) {
+        var managementSubsystem = resolveManagementSubsystem(globalConfProvider, serverConfProvider);
+        if (managementSubsystem == null) {
+            return Stream.empty();
+        }
+        return SYSTEM_SERVICE_CODES.stream()
+                .map(code -> ServiceId.Conf.create(managementSubsystem, code));
+    }
+
+    /**
+     * Whether {@code serviceId} is one of the SYSTEM-eligible management-request synthetic
+     * services on this server: owned by the locally hosted management subsystem, and not
+     * {@code authCertReg}.
+     */
+    static boolean isSystemEligible(ServiceId serviceId, GlobalConfProvider globalConfProvider,
+                                     ServerConfProvider serverConfProvider) {
+        var managementSubsystem = resolveManagementSubsystem(globalConfProvider, serverConfProvider);
+        return managementSubsystem != null
+                && managementSubsystem.equals(serviceId.getClientId())
+                && SYSTEM_SERVICE_CODES.contains(serviceId.getServiceCode());
+    }
+
+    @Nullable
+    private static ClientId resolveManagementSubsystem(GlobalConfProvider globalConfProvider,
+                                                         ServerConfProvider serverConfProvider) {
+        ClientId managementSubsystem = globalConfProvider.getManagementRequestService();
+        if (managementSubsystem == null || managementSubsystem.getSubsystemCode() == null) {
+            return null;
+        }
+        var thisServer = serverConfProvider.getIdentifier();
+        if (thisServer == null) {
+            return null;
+        }
+        if (!globalConfProvider.isSecurityServerClient(managementSubsystem, thisServer)) {
+            return null;
+        }
+        if (!serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
+            return null;
+        }
+        return managementSubsystem;
     }
 }
