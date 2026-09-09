@@ -28,7 +28,7 @@ package org.niis.xroad.common.acme.spring.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
-import org.niis.xroad.common.acme.config.AcmeConfig;
+import org.niis.xroad.common.acme.config.AcmeChallengeProperties;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -47,14 +47,20 @@ public class AcmeChallengerConfig {
 
     @Bean
     @Profile("nontest")
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer(AcmeConfig acmeConfig) {
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer(AcmeChallengeProperties acmeConfig) {
         if (acmeConfig.isAcmeChallengePortEnabled()) {
             return factory -> {
                 var connector = new Connector(Http11NioProtocol.class.getName());
                 int acmeChallengePort = acmeConfig.getAcmeChallengePort();
                 connector.setScheme("http");
                 connector.setPort(acmeChallengePort);
-                log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
+                String bindAddress = acmeConfig.getAcmeChallengeBindAddress();
+                if (bindAddress != null) {
+                    connector.setProperty("address", bindAddress);
+                    log.info("ACME challenge port enabled, listening on {}:{}", bindAddress, acmeChallengePort);
+                } else {
+                    log.info("ACME challenge port enabled, listening on port {}", acmeChallengePort);
+                }
                 factory.addAdditionalConnectors(connector);
             };
         } else {

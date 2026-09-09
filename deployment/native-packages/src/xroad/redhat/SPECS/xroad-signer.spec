@@ -114,7 +114,7 @@ chmod 1750 /var/tmp/xroad
 chown xroad:xroad /var/tmp/xroad
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
-chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
+chmod -R u=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 
 %systemd_post xroad-signer.service

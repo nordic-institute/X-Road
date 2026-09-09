@@ -39,7 +39,7 @@
       <v-chip v-if="keyGeneratedPending" color="warning" variant="outlined" class="ml-2">
         {{ $t('dsTlsCertificate.keyGeneratedPending') }}
       </v-chip>
-      <DsTlsCertificateEnrollmentStatusChip class="ml-2" />
+      <XrdDsTlsCertificateEnrollmentStatusChip class="ml-2" :fetch-status="fetchDsTlsCertificateEnrollmentStatus" />
     </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
@@ -50,14 +50,26 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { XrdTlsCertificateView, TlsCertificatesHandler, TlsCertificate, DsTlsCertificateStatus } from '@niis/shared-ui';
+import {
+  XrdTlsCertificateView,
+  TlsCertificatesHandler,
+  TlsCertificate,
+  DsTlsCertificateStatus,
+  XrdDsTlsCertificateEnrollmentStatusChip,
+} from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
-import DsTlsCertificateEnrollmentStatusChip from '@/views/KeysAndCertificates/DsTlsCertificate/DsTlsCertificateEnrollmentStatusChip.vue';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 
 const { hasPermission } = useUser();
-const { fetchDsTlsCertificateStatus, downloadCertificate, uploadCertificate, generateCsr, generateKey } = useDsTlsCertificate();
+const {
+  fetchDsTlsCertificateStatus,
+  fetchDsTlsCertificateEnrollmentStatus,
+  downloadCertificate,
+  uploadCertificate,
+  generateCsr,
+  generateKey,
+} = useDsTlsCertificate();
 
 const certDetailsView = RouteName.DsTlsCertificateDetails;
 

@@ -34,7 +34,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 @EnableScheduling
-@SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.admin", "org.niis.xroad.restapi"})
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.admin", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
 public class Main {
 
     private static final String APP_NAME = "xroad-center";

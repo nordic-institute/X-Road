@@ -2,12 +2,17 @@
 # Manage rows in the X-Road configuration_properties table.
 #
 # Usage:
-#   db_property.sh set    <key> <value> [--yes|-y]
+#   db_property.sh get    <key>
+#   db_property.sh set    <key> <value> [--yes|-y] [--if-absent]
 #   db_property.sh remove <key>         [--yes|-y]
 #
 # Rows are keyed by property_key alone. Every process reads every row: the former per-application
 # `scope` column was dropped once the config source stopped filtering by it.
+# For `get`, the value is printed to stdout and the exit code is 0 if the row exists, 1 if it
+# does not, and 2 on any operational error (unreachable database, missing helper, bad usage).
 # For `set`, an existing row triggers an overwrite prompt unless --yes is given.
+# For `set --if-absent`, an existing row is left untouched and the command succeeds without
+# prompting; the value is inserted only when the key has no row yet.
 # For `remove`, an existing row triggers a delete prompt unless --yes is given;
 # if no matching row exists, the command is a no-op success.
 
@@ -17,14 +22,18 @@ readonly LOG_TAG="db_property"
 
 log()       { echo "$(date -Iseconds) ${LOG_TAG}: $*" >&2; }
 log_error() { echo "$(date -Iseconds) ${LOG_TAG} ERROR: $*" >&2; }
-die()       { log_error "$*"; exit 1; }
+die()       { log_error "$*"; exit 2; }
 
 usage() {
   cat >&2 <<EOF
 Usage: $(basename "$0") <command> [options]
 
 Commands:
-  set    <key> <value> [--yes|-y]
+  get    <key>
+         Print the value of a row from configuration_properties.
+         Exit status 1 if the row does not exist, 2 on operational error.
+
+  set    <key> <value> [--yes|-y] [--if-absent]
          Insert or update a row in configuration_properties.
 
   remove <key>         [--yes|-y]
@@ -34,23 +43,29 @@ Common options:
   -y, --yes   Skip interactive confirmation prompt
   -h, --help  Show this help
 
+Options for set:
+      --if-absent  Insert only when the key has no row yet; an existing row is
+                   left untouched and the command succeeds. Never prompts.
+
 Rows are keyed by property_key alone; there is no per-application scope.
 EOF
   exit 64
 }
 
-# Splits "$@" into ASSUME_YES (flag) and POS (positional args).
-# Subcommand callers validate POS arity themselves.
+# Splits "$@" into ASSUME_YES / IF_ABSENT (flags) and POS (positional args).
+# Subcommand callers validate POS arity themselves, and reject flags they do not support.
 parse_args() {
   ASSUME_YES=0
+  IF_ABSENT=0
   declare -ga POS=()
   while (($#)); do
     case "$1" in
-      -y|--yes)  ASSUME_YES=1 ;;
-      -h|--help) usage ;;
-      --)        shift; POS+=("$@"); break ;;
-      -*)        die "Unknown option: $1" ;;
-      *)         POS+=("$1") ;;
+      -y|--yes)    ASSUME_YES=1 ;;
+      --if-absent) IF_ABSENT=1 ;;
+      -h|--help)   usage ;;
+      --)          shift; POS+=("$@"); break ;;
+      -*)          die "Unknown option: $1" ;;
+      *)           POS+=("$1") ;;
     esac
     shift
   done
@@ -91,10 +106,15 @@ psql_q() {
        -U "$db_user" -d "$db_database" "$@"
 }
 
+# Succeeds when the row is present, fails when absent, dies on query failure — so a database
+# error can never masquerade as an absent (or present) row.
 row_exists() {
-  psql_q -v k="$KEY" <<'SQL'
+  local out
+  out=$(psql_q -v k="$KEY" <<'SQL'
 SELECT 1 FROM configuration_properties WHERE property_key = :'k' LIMIT 1;
 SQL
+  ) || die "Database query failed for '${KEY}'"
+  [[ -n "$out" ]]
 }
 
 # A third positional used to be the scope. Fail loudly rather than ignore it: the row it would have
@@ -111,6 +131,22 @@ confirm() {
   [[ "$ans" =~ ^[Yy]([Ee][Ss])?$ ]] || { log "Aborted."; exit 1; }
 }
 
+cmd_get() {
+  parse_args "$@"
+  (( ${#POS[@]} == 1 )) || usage
+  KEY="${POS[0]}"
+
+  load_db_properties
+
+  if ! row_exists; then
+    exit 1
+  fi
+
+  psql_q -v k="$KEY" <<'SQL' || die "Database query failed for '${KEY}'"
+SELECT property_value FROM configuration_properties WHERE property_key = :'k';
+SQL
+}
+
 cmd_set() {
   parse_args "$@"
   (( ${#POS[@]} == 3 )) && reject_scope_argument "${POS[2]}"
@@ -120,15 +156,23 @@ cmd_set() {
 
   load_db_properties
 
-  if [[ -n "$(row_exists)" && "$ASSUME_YES" -ne 1 ]]; then
+  if (( IF_ABSENT == 1 )); then
+    if row_exists; then
+      log "Already present, left as-is: ${KEY}"
+      exit 0
+    fi
+  elif row_exists && (( ASSUME_YES != 1 )); then
     confirm "Property '${KEY}' already exists. Overwrite?"
   fi
 
-  psql_q -v k="$KEY" -v v="$VALUE" <<'SQL'
+  local conflict_action="DO UPDATE SET property_value = EXCLUDED.property_value"
+  (( IF_ABSENT == 1 )) && conflict_action="DO NOTHING"
+
+  psql_q -v k="$KEY" -v v="$VALUE" <<SQL
 INSERT INTO configuration_properties (property_key, property_value)
 VALUES (:'k', :'v')
 ON CONFLICT (property_key)
-DO UPDATE SET property_value = EXCLUDED.property_value;
+${conflict_action};
 SQL
 
   log "Set: ${KEY}"
@@ -136,13 +180,14 @@ SQL
 
 cmd_remove() {
   parse_args "$@"
+  (( IF_ABSENT == 1 )) && die "--if-absent applies to 'set' only"
   (( ${#POS[@]} == 2 )) && reject_scope_argument "${POS[1]}"
   (( ${#POS[@]} == 1 )) || usage
   KEY="${POS[0]}"
 
   load_db_properties
 
-  if [[ -z "$(row_exists)" ]]; then
+  if ! row_exists; then
     log "Nothing to remove: ${KEY}"
     exit 0
   fi
@@ -166,6 +211,7 @@ main() {
   local subcommand="$1"
   shift
   case "$subcommand" in
+    get)               cmd_get "$@" ;;
     set)               cmd_set "$@" ;;
     remove)            cmd_remove "$@" ;;
     -h|--help|help)    usage ;;

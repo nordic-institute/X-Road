@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
-import org.niis.xroad.ss.test.api.admin.DataspaceAdminClient;
 import org.niis.xroad.ss.test.api.admin.DsTlsCertificateAdminClient;
 
 import java.time.Duration;
@@ -72,7 +71,6 @@ class DsTlsAcmeEnrollmentTest extends SsSharedStackDestructiveTest {
     @DisplayName("A DS TLS certificate is auto-enrolled via ACME with SAN matching the configured public hostname")
     void dsTlsCertificateIsAutoEnrolledViaAcme(SsApiTestContainerSetup stack) {
         var session = adminSession(stack);
-        var dataspace = new DataspaceAdminClient(session);
         var dsTlsCertificate = new DsTlsCertificateAdminClient(session);
 
         given("the pre-seeded DS TLS certificate slot is cleared to an empty, keyed state, so the worker's next "
@@ -85,7 +83,7 @@ class DsTlsAcmeEnrollmentTest extends SsSharedStackDestructiveTest {
                 await()
                         .pollInterval(POLL_INTERVAL)
                         .atMost(POLL_TIMEOUT)
-                        .until(() -> dataspace.getTlsCertificateEnrollmentStatus()
+                        .until(() -> dsTlsCertificate.getEnrollmentStatus()
                                         .extract()
                                         .jsonPath(),
                                 status -> "ACME".equals(status.getString("enrollment_method"))));

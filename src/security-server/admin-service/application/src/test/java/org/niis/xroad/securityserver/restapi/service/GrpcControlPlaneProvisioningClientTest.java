@@ -61,4 +61,11 @@ class GrpcControlPlaneProvisioningClientTest {
 
         verify(rpcClient).putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
     }
+
+    @Test
+    void invalidateCatalogCachesDelegatesToRpcClient() {
+        client.invalidateCatalogCaches();
+
+        verify(rpcClient).invalidateCatalogCaches();
+    }
 }

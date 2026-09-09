@@ -93,4 +93,14 @@ public class DsTlsCertificateAdminClient {
                 .get("/ds-tls-certificate/certificate")
                 .then();
     }
+
+    /**
+     * Gets the current DS TLS certificate ACME enrollment status: enrollment method (NONE/MANUAL/ACME),
+     * next scheduled renewal time, and last enrollment/renewal error.
+     */
+    public ValidatableResponse getEnrollmentStatus() {
+        return session.given()
+                .get("/ds-tls-certificate/enrollment-status")
+                .then();
+    }
 }

@@ -144,7 +144,8 @@ create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
   # we will run this through eval to get a multi-line list
   local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' \
-    -not -path '/etc/xroad/services/*.conf' -not -path '/etc/xroad/gpghome/*' -type f; \
+    -not -path '/etc/xroad/services/*.conf' -not -path '/etc/xroad/gpghome/*' \
+    -not -path '/etc/xroad/secret-store/*' -type f; \
     find /etc/nginx/ -name \"*xroad*\""
 
   if [ -x "${DATABASE_BACKUP_SCRIPT}" ] ; then

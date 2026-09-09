@@ -30,6 +30,7 @@ import { defineStore } from 'pinia';
 import {
   CertificateDetails,
   DistinguishedName,
+  DsTlsCertificateEnrollmentStatus,
   DsTlsCertificateStatus,
   buildFileFormData,
   multipartFormDataConfig,
@@ -43,6 +44,9 @@ export const useDsTlsCertificate = defineStore('dsTlsCertificate', {
   actions: {
     getStatus() {
       return api.get<DsTlsCertificateStatus>('/ds-tls-certificate').then((res) => res.data);
+    },
+    fetchDsTlsCertificateEnrollmentStatus() {
+      return api.get<DsTlsCertificateEnrollmentStatus>('/ds-tls-certificate/enrollment-status').then((res) => res.data);
     },
     getCertificate() {
       return this.getStatus().then((status) => status.certificate ?? ({ hash: '' } as CertificateDetails));

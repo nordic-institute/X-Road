@@ -47,6 +47,7 @@ import org.niis.xroad.serverconf.model.AccessRight;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,22 +68,17 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final String managementParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
+    private final ServiceContextResolver serviceContextResolver;
+    private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<PolicyDefinition> queryEvaluator =
             new QueryEvaluator<>(PolicyDefinition::getId, PolicyDefinition::getParticipantContextId);
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String resolveContextId(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : participantContextId;
-    }
 
     @Override
     @Nullable
     @WithSpan("dsp-find-acl")
     public PolicyDefinition findById(@SpanAttribute String policyId) {
-        return cache.findById(policyId, () -> findByIdInternal(policyId));
+        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
+        return cache.findById(policyId, cacheKeyContext, () -> findByIdInternal(policyId));
     }
 
     @Nullable
@@ -147,9 +143,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private List<PolicyDefinition> buildPolicyList() {
         var policies = new ArrayList<PolicyDefinition>();
+        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                collectPoliciesForService(serviceId, policies);
+                collectPoliciesForService(serviceId, policies, provisionedMemberContextIds);
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -212,15 +209,18 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(),
-                endpoints, resolveContextId(serviceId));
+        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
+        return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
 
     /**
      * Emits one owner-only policy per service (referenced by the paired owner-only
-     * ContractDefinition) plus one per-subject policy for each ACL entry.
+     * ContractDefinition) plus one per-subject policy per ACL entry, for each context the
+     * service is published under.
      */
-    private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies) {
+    private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies,
+                                           Set<String> provisionedMemberContextIds) {
         var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
         policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
                 serviceId.getClientId(), managementParticipantContextId));
@@ -237,6 +237,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
+        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();
@@ -246,8 +247,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                     .map(AccessRight::getEndpoint)
                     .toList();
 
-            policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
-                    subjectAccessRights.getFirst().getSubjectId(), endpoints, resolveContextId(serviceId)));
+            for (var ctxId : resolvedContexts) {
+                policies.add(policyMapper.toPolicyDefinition(compoundPolicyId,
+                        subjectAccessRights.getFirst().getSubjectId(), endpoints, ctxId));
+            }
         }
     }
 

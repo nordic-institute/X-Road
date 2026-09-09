@@ -1,0 +1,158 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.securityserver.restapi.dstls;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
+import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.restapi.service.DsTlsCertificateService;
+import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class SecurityServerDsTlsAcmeHostContextTest {
+
+    @Mock
+    private AdminServiceProperties adminServiceProperties;
+    @Mock
+    private AdminServiceProperties.Dataspace dataspace;
+    @Mock
+    private MailNotificationHelper mailNotificationHelper;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
+    @Mock
+    private DsTlsCertificateService dsTlsCertificateService;
+
+    private SecurityServerDsTlsAcmeHostContext hostContext;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        hostContext = new SecurityServerDsTlsAcmeHostContext(adminServiceProperties, mailNotificationHelper, globalConfProvider,
+                dsTlsCertificateService);
+    }
+
+    @Test
+    void getPublicHostnameShouldReturnNullWhenDataSpaceIsNotEnabled() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("");
+
+        assertThat(hostContext.getPublicHostname()).isNull();
+    }
+
+    @Test
+    void getPublicHostnameShouldReturnNullWhenIdentityHubUrlIsBlank() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("   ");
+
+        assertThat(hostContext.getPublicHostname()).isNull();
+    }
+
+    @Test
+    void getPublicHostnameShouldExtractTheHostFromTheConfiguredUrl() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("https://ds.example.org:7182");
+
+        assertThat(hostContext.getPublicHostname()).isEqualTo("ds.example.org");
+    }
+
+    @Test
+    void getPublicHostnameShouldThrowWhenTheConfiguredUrlHasNoHost() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("https://");
+
+        assertThatIllegalArgumentException().isThrownBy(() -> hostContext.getPublicHostname());
+    }
+
+    @Test
+    void getConfiguredHostnameSourceShouldReturnTheRawIdentityHubUrl() {
+        when(dataspace.getIdentityHubUrl()).thenReturn("https://");
+
+        assertThat(hostContext.getConfiguredHostnameSource()).isEqualTo("https://");
+    }
+
+    @Test
+    void getEabAliasShouldBeTheFixedDsTlsAlias() {
+        assertThat(hostContext.getEabAlias()).isEqualTo(SecurityServerDsTlsAcmeHostContext.DS_TLS_ACME_ALIAS);
+    }
+
+    @Test
+    void getAccountContactsShouldBeEmptyWhenUnconfigured() {
+        assertThat(hostContext.getAccountContacts()).isEmpty();
+    }
+
+    @Test
+    void getAccountContactsShouldReturnTheConfiguredContacts() {
+        when(dataspace.getTlsCertificateContacts()).thenReturn(List.of("dstls@example.org"));
+
+        assertThat(hostContext.getAccountContacts()).containsExactly("dstls@example.org");
+    }
+
+    @Test
+    void getDsTlsCertificationAuthoritiesShouldReturnTheOnesApprovedInGlobalconf() {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("DEV");
+        ApprovedDsTlsCaInfo caInfo = new ApprovedDsTlsCaInfo("Test CA", null, List.of(), "http://testca:8887", null, null);
+        when(globalConfProvider.getApprovedDsTlsCas("DEV")).thenReturn(List.of(caInfo));
+
+        assertThat(hostContext.getDsTlsCertificationAuthorities()).containsExactly(caInfo);
+    }
+
+    @Test
+    void notifyEnrollmentSuccessShouldDelegateToMailNotificationHelper() {
+        hostContext.notifyEnrollmentSuccess("ds.example.org", true);
+
+        verify(mailNotificationHelper).sendDsTlsAcmeSuccessNotification("ds.example.org", true);
+    }
+
+    @Test
+    void notifyEnrollmentFailureShouldReportAnEnrollmentFailureWhenNoCertificateIsStoredYet() {
+        when(dsTlsCertificateService.getEnrollmentStatus()).thenReturn(new DsTlsEnrollmentStatus(null, null, "boom"));
+
+        hostContext.notifyEnrollmentFailure("ds.example.org", "boom");
+
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification("ds.example.org", false, "boom");
+    }
+
+    @Test
+    void notifyEnrollmentFailureShouldReportARenewalFailureWhenACertificateIsAlreadyStored() {
+        when(dsTlsCertificateService.getEnrollmentStatus())
+                .thenReturn(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, "boom"));
+
+        hostContext.notifyEnrollmentFailure("ds.example.org", "boom");
+
+        verify(mailNotificationHelper).sendDsTlsAcmeFailureNotification("ds.example.org", true, "boom");
+    }
+}

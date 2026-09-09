@@ -13,7 +13,8 @@ dependencies {
 
 intTestComposeEnv {
     images(
-        "CS_IMG" to "central-server-dev"
+        "CS_IMG" to "central-server-dev",
+        "CA_IMG" to "testca-dev"
     )
 }
 

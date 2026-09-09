@@ -50,18 +50,22 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
-import { XrdStatusChip, formatDate, formatDateTime, useNotifications } from '@niis/shared-ui';
-import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
-import { DataspaceTlsCertificateEnrollmentStatus } from '@/openapi-types';
+import { XrdStatusChip } from '../../components';
+import { formatDate, formatDateTime } from '../../utils';
+import { useNotifications } from '../../composables';
+import { DsTlsCertificateEnrollmentStatus } from '../../openapi-types';
 
-const { fetchDsTlsCertificateEnrollmentStatus } = useDsTlsCertificate();
+const props = defineProps<{
+  fetchStatus: () => Promise<DsTlsCertificateEnrollmentStatus>;
+}>();
+
 const { addError } = useNotifications();
 
-const status = ref<DataspaceTlsCertificateEnrollmentStatus | null>(null);
+const status = ref<DsTlsCertificateEnrollmentStatus | null>(null);
 
-async function fetchStatus() {
+async function loadStatus() {
   try {
-    status.value = await fetchDsTlsCertificateEnrollmentStatus();
+    status.value = await props.fetchStatus();
   } catch (error) {
     status.value = null;
     addError(error);
@@ -69,7 +73,7 @@ async function fetchStatus() {
 }
 
 onMounted(() => {
-  fetchStatus();
+  loadStatus();
 });
 
 const methodChip = computed(() => {

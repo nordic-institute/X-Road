@@ -122,6 +122,7 @@ public class ServiceDescriptionService {
     private final IdentifierValidator identifierValidator;
     private final WsdlParser wsdlParser;
     private final ReservedServiceCodesProvider reservedServiceCodesProvider;
+    private final CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     /**
      * Disable 1 services
@@ -166,6 +167,7 @@ public class ServiceDescriptionService {
         }
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     /**
@@ -183,6 +185,7 @@ public class ServiceDescriptionService {
         cleanAccessRights(clientEntity, serviceDescriptionEntity);
         cleanEndpoints(clientEntity, serviceDescriptionEntity);
         clientEntity.getServiceDescriptions().remove(serviceDescriptionEntity);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     private void cleanEndpoints(ClientEntity clientEntity, ServiceDescriptionEntity serviceDescriptionEntity) {
@@ -291,6 +294,7 @@ public class ServiceDescriptionService {
 
         clientEntity.getEndpoints().addAll(endpointsToAdd);
         clientEntity.getServiceDescriptions().add(serviceDescriptionEntity);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return serviceDescriptionEntity;
     }
 
@@ -418,6 +422,7 @@ public class ServiceDescriptionService {
         clientEntity.getEndpoints().addAll(endpoints);
         clientEntity.getServiceDescriptions().add(serviceDescriptionEntity);
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return serviceDescriptionEntity;
     }
 
@@ -546,6 +551,7 @@ public class ServiceDescriptionService {
 
         serviceDescriptionRepository.persist(serviceDescriptionEntity);  // explicit persist to get the id to the return value
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return serviceDescriptionEntity;
     }
 
@@ -576,7 +582,9 @@ public class ServiceDescriptionService {
         if (serviceDescriptionEntity == null) {
             throw new ServiceDescriptionNotFoundException(id);
         }
-        return ServiceDescriptionMapper.get().toTarget(updateWsdlUrl(serviceDescriptionEntity, url, ignoreWarnings));
+        ServiceDescriptionEntity updatedServiceDescriptionEntity = updateWsdlUrl(serviceDescriptionEntity, url, ignoreWarnings);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
+        return ServiceDescriptionMapper.get().toTarget(updatedServiceDescriptionEntity);
     }
 
     /**
@@ -618,6 +626,7 @@ public class ServiceDescriptionService {
             serviceDescriptionEntity = refreshOpenApi3ServiceDescription(serviceDescriptionEntity, ignoreWarnings);
         }
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return ServiceDescriptionMapper.get().toTarget(serviceDescriptionEntity);
     }
 
@@ -746,6 +755,7 @@ public class ServiceDescriptionService {
         checkDuplicateServiceCodes(serviceDescriptionEntity);
         checkDuplicateUrl(serviceDescriptionEntity);
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return ServiceDescriptionMapper.get().toTarget(serviceDescriptionEntity);
     }
 
@@ -814,6 +824,7 @@ public class ServiceDescriptionService {
         checkDuplicateServiceCodes(serviceDescriptionEntity);
         checkDuplicateUrl(serviceDescriptionEntity);
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return ServiceDescriptionMapper.get().toTarget(serviceDescriptionEntity);
     }
 

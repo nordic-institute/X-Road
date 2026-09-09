@@ -178,7 +178,7 @@ chown xroad:xroad /var/tmp/xroad
 test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
-chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
+chmod -R u=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset

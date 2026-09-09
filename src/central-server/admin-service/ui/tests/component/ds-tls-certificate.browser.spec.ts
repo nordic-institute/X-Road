@@ -33,6 +33,8 @@ import { Permissions } from '@/global';
 
 const DS_TLS_CERTIFICATE_PATH = '/settings/ds-tls-certificate';
 
+const FUTURE_RENEWAL_TIME = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
 const allPermissions = [
   Permissions.VIEW_DS_TLS_CERT,
   Permissions.DOWNLOAD_DS_TLS_CERT,
@@ -179,5 +181,45 @@ describe('CS DS TLS Certificate — uploading mismatched cert shows error (Brows
     await page.getByTestId('dialog-save-button').click();
 
     await expect.element(page.getByText('The uploaded certificate does not match the DataSpace TLS key')).toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate — enrollment status (Browser Mode)', () => {
+  it('shows the ACME method chip in the page header, with the next scheduled renewal time', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-status')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
+    await expect.element(page.getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
+    await expect.element(page.getByText('Next renewal', { exact: false })).toBeVisible();
+    expect(page.getByTestId('ds-tls-enrollment-status').elements()).toHaveLength(1);
+  });
+
+  it('shows both the method chip and a separate error chip when the last enrollment attempt failed', async () => {
+    const longError =
+      'ACME order failed: the certificate authority rejected the request because the configured hostname could not be validated within the allotted time';
+
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME, last_error: longError }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-error')).toBeVisible();
   });
 });
