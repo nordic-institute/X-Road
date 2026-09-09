@@ -11,12 +11,25 @@ abort() {
 }
 log() { echo "xroad-center: $*" >&2; }
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
-get_yaml_prop() {
-  /usr/share/xroad/scripts/yaml_helper.sh get "$1" "$2" 2>/dev/null
-}
 
 gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"
+}
+
+# Checks whether a configuration_properties row exists for $1 (via db_property.sh, the only
+# channel the XRoadConfig DSL reads instance overrides from). Returns 0 when present, 1 when
+# absent, and aborts on a database error rather than treating it as absent — treating a query
+# failure as "absent" would let an unrelated DB outage clobber an instance-wide row on this
+# node's next configure run.
+db_row_present() {
+  local -r key="$1"
+  local rc=0
+  /usr/share/xroad/scripts/db_property.sh get "$key" >/dev/null || rc=$?
+  case "$rc" in
+    0) return 0 ;;
+    1) return 1 ;;
+    *) abort "Unable to read ${key} from the database. ABORTING." ;;
+  esac
 }
 
 # setup database and run migrations
@@ -198,15 +211,7 @@ configure_dataspace_issuer_host() {
     reconfiguring=1
   fi
 
-  local row_present=0 rc=0
-  /usr/share/xroad/scripts/db_property.sh get "$key" >/dev/null || rc=$?
-  case "$rc" in
-    0) row_present=1 ;;
-    1) row_present=0 ;;
-    *) abort "Unable to read ${key} from the database. ABORTING." ;;
-  esac
-
-  if [[ "$row_present" -eq 1 && "$reconfiguring" != "1" ]]; then
+  if db_row_present "$key" && [[ "$reconfiguring" != "1" ]]; then
     log "Dataspace issuer host is already configured, skipping"
     return
   fi
@@ -226,8 +231,36 @@ extract_dns_list() {
   echo "$1" | tr ',' '\n' | grep '^DNS:' | sed 's/^DNS://' | paste -sd,
 }
 
+# Writes the debconf-collected TLS certificate identity for the admin-service and
+# management-service vault-provisioned certificates to the CS configuration_properties DB —
+# the only place the XRoadConfig DSL resolves these keys from (see configure_dataspace_issuer_host
+# above for the same channel). Must run after setup_database() so the table exists.
+#
+# registration-service no longer provisions its own certificate (commit c64700480a): it reuses
+# the management-service certificate from Vault, so no xroad.registration-service.tls.* keys
+# are written here.
+#
+# Each service's three keys (common-name, alt-names, ip-subject-alt-names) are treated as one
+# group, keyed off common-name: existing rows are left untouched except under dpkg-reconfigure
+# (DEBCONF_RECONFIGURE=1, or "reconfigure" as $1 per debconf-devel(7) forward-compat guidance —
+# postinst itself always receives "configure").
+#
+# Skipped entirely when database migrations were skipped (operator-managed/legacy migration
+# installs): the schema may predate the configuration_properties table, and the debconf
+# questions can be (re-)asked later via dpkg-reconfigure once the schema is migrated.
 prepare_certificates_settings() {
-  CONFIG_FILE="/etc/xroad/conf.d/local-tls.yaml"
+  RET=""
+  db_get xroad-common/skip-cs-db-migrations || true
+  if [[ "$RET" == "true" ]]; then
+    log "Database migrations were skipped — not storing TLS certificate identity; run 'dpkg-reconfigure xroad-center' after migrating"
+    return
+  fi
+
+  local reconfiguring=""
+  if [[ "${DEBCONF_RECONFIGURE:-}" == "1" || "${1:-}" == "reconfigure" ]]; then
+    reconfiguring=1
+  fi
+
   HOST=$(hostname -f)
   if (( ${#HOST} > 64 )); then
     HOST="$(hostname -s)"
@@ -236,10 +269,9 @@ prepare_certificates_settings() {
   for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
   ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
-  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
-
+  if db_row_present "xroad.admin-service.tls.certificate-provisioning.common-name" && [[ "$reconfiguring" != "1" ]]; then
+    log "Center-admin-service certificate properties are set, skipping"
+  else
     log "Preparing center-admin-service certificate properties"
     db_subst xroad-common/admin-subject HOST "$HOST"
     db_subst xroad-common/admin-altsubject ALT "$ALT"
@@ -264,21 +296,18 @@ prepare_certificates_settings() {
     ip_list=$(extract_ip_list "$altn")
     dns_list=$(extract_dns_list "$altn")
 
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.common-name" "$subj"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.alt-names" "$dns_list"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-  else
-    log "Center-admin-service certificate properties are set, skipping"
+    /usr/share/xroad/scripts/db_property.sh set "xroad.admin-service.tls.certificate-provisioning.common-name" "$subj" --yes \
+      || abort "Failed to store admin-service TLS certificate-provisioning common-name in the database. ABORTING."
+    /usr/share/xroad/scripts/db_property.sh set "xroad.admin-service.tls.certificate-provisioning.alt-names" "$dns_list" --yes \
+      || abort "Failed to store admin-service TLS certificate-provisioning alt-names in the database. ABORTING."
+    /usr/share/xroad/scripts/db_property.sh set "xroad.admin-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list" --yes \
+      || abort "Failed to store admin-service TLS certificate-provisioning ip-subject-alt-names in the database. ABORTING."
   fi
 
-  if [[ -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names") && \
-        -z $(get_yaml_prop "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names") ]]; then
-
-    log "Preparing management and registration service certificate properties"
+  if db_row_present "xroad.management-service.tls.certificate-provisioning.common-name" && [[ "$reconfiguring" != "1" ]]; then
+    log "Management service certificate properties are set, skipping"
+  else
+    log "Preparing management service certificate properties"
     db_subst xroad-common/service-subject HOST "$HOST"
     db_subst xroad-common/service-altsubject ALT "$ALT"
 
@@ -302,23 +331,20 @@ prepare_certificates_settings() {
     ip_list=$(extract_ip_list "$altn")
     dns_list=$(extract_dns_list "$altn")
 
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.common-name" "$subj"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.alt-names" "$dns_list"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.registration-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.common-name" "$subj"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.alt-names" "$dns_list"
-    /usr/share/xroad/scripts/yaml_helper.sh set "$CONFIG_FILE" "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list"
-  else
-    log "Management and registration service certificate properties are set, skipping"
+    /usr/share/xroad/scripts/db_property.sh set "xroad.management-service.tls.certificate-provisioning.common-name" "$subj" --yes \
+      || abort "Failed to store management-service TLS certificate-provisioning common-name in the database. ABORTING."
+    /usr/share/xroad/scripts/db_property.sh set "xroad.management-service.tls.certificate-provisioning.alt-names" "$dns_list" --yes \
+      || abort "Failed to store management-service TLS certificate-provisioning alt-names in the database. ABORTING."
+    /usr/share/xroad/scripts/db_property.sh set "xroad.management-service.tls.certificate-provisioning.ip-subject-alt-names" "$ip_list" --yes \
+      || abort "Failed to store management-service TLS certificate-provisioning ip-subject-alt-names in the database. ABORTING."
   fi
 }
 
 
 case "$1" in
 configure | reconfigure)
-    prepare_certificates_settings
     setup_database
+    prepare_certificates_settings "$1"
     configure_dataspace_issuer_host "$1"
 
     RET=""
