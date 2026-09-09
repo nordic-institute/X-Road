@@ -1,6 +1,6 @@
 # Security Server Sidecar Security Guide <!-- omit in toc -->
 
-Version: 1.5  
+Version: 1.6  
 Doc. ID: UG-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -13,6 +13,7 @@ Doc. ID: UG-SS-SEC-SIDECAR
 | 06.07.2023 | 1.3     | Sidecar repo migration                    | Eneli Reimets       |
 | 23.12.2024 | 1.4     | Minor documentation updates               | Eneli Reimets       |
 | 18.08.2026 | 1.5     | Add relationship to other security guides | Petteri Kivimäki    |
+| 09.09.2026 | 1.6     | Remove the retired slim image             | Ričardas Bučiūnas   |
  
 ## License
 
@@ -67,7 +68,7 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 ### 1.2 Environment assumptions
 
-The Sidecar image includes message log, operational monitoring, environmental monitoring and dataspace service modules, and can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package. More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
+The Sidecar image includes the optional message log, operational monitoring, and environmental monitoring add-ons and can be used for both consuming and providing services. In addition, country-specific configuration versions are available, such as the Estonian and Finnish meta-packages. More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
 
 The Security Server Sidecar can run alongside the client or service information system in the same host but in separate containers. In a production environment, a single Security Server Sidecar container may be shared between different information systems. However, the footprint of the Sidecar container is relatively high compared to the footprint of average containers and it has to be taken into account for dimensioning the host where the containers should run. More information can be found on the Security Server Sidecar User Guide for the [requirements to run a Security Server Sidecar container](security_server_sidecar_user_guide.md#24-requirements-for-the-x-road-security-server-sidecar).
 

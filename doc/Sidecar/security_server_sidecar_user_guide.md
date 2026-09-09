@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.25
+Version: 1.26
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -33,6 +33,7 @@ Doc. ID: UG-SS-SIDECAR
 | 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
 | 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
 | 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
+| 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
 
 ## License
 
@@ -89,8 +90,7 @@ The Security Server Sidecar has several images with alternative configurations:
 
 All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration.
 
-A `slim` image that left out message logging, environmental and operational monitoring was retired in X-Road 8;
-that reduced footprint is now a matter of database-backed configuration on this one image, not a second image.
+The `slim` image, which didn't include message logging or environmental and operational monitoring, was removed in X-Road 8. Instead, the additional modules can now be enabled and disabled using the Security Server admin UI or the management REST API.
 
 ### 1.2 References
 

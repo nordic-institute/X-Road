@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.16  
+Version: 1.17  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -24,6 +24,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 21.03.2025 | 1.14    | Syntax and styling                                            | Pauline Dimmek            |
 | 01.09.2025 | 1.15    | Added link to "Enabling ACME Support" from Sidecar user guide | Mikk-Erik Bachmann        |
 | 14.10.2025 | 1.16    | Documented multiple token support for autologin               | Raido Kaju                |
+| 09.09.2026 | 1.17    | Remove the retired slim image                                 | Ričardas Bučiūnas         |
 
 ## License
 

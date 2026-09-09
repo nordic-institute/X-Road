@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.7
+Version: 1.8
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -15,6 +15,7 @@ Doc. ID: UG-K-SS-SEC-SIDECAR
 | 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
 | 26.03.2025 | 1.6     | Syntax and styling                           | Pauline Dimmek            |
 | 18.08.2026 | 1.7     | Add relationship to other security guides    | Petteri Kivimäki          |
+| 09.09.2026 | 1.8     | Update token autologin PIN examples          | Ričardas Bučiūnas         |
 
 ## License
 
