@@ -24,25 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
+
+import jakarta.annotation.Nullable;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Thread-local {@link RequestedParticipantContext}, written by {@link ParticipantContextCaptureFilter}
+ * for the thread handling a DSP protocol request and cleared once that request completes.
  */
-public interface ControlPlaneProvisioningClient {
+class ThreadLocalRequestedParticipantContext implements RequestedParticipantContext {
 
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, String did);
+    private final ThreadLocal<String> current = new ThreadLocal<>();
 
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
+    @Override
+    @Nullable
+    public String get() {
+        return current.get();
+    }
 
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    void set(String participantContextId) {
+        current.set(participantContextId);
+    }
+
+    void clear() {
+        current.remove();
+    }
 }

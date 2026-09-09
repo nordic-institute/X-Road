@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+  implementation(project(":common:common-core"))
+
   implementation(libs.edc.spi.core)
   implementation(libs.edc.boot)
   implementation(libs.edc.spi.dataplane.selector)

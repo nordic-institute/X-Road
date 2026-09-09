@@ -60,6 +60,7 @@ public class EndpointService {
     private final ClientRepository clientRepository;
     private final EndpointRepository endpointRepository;
     private final ServiceService serviceService;
+    private final CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     /**
      * Get endpoint by endpoint id
@@ -98,6 +99,7 @@ public class EndpointService {
         ClientEntity clientEntity = clientRepository.getClientByEndpointId(id);
         clientEntity.getAccessRights().removeIf(acl -> acl.getEndpoint().getId().equals(id));
         clientEntity.getEndpoints().removeIf(ep -> ep.getId().equals(id));
+        catalogInvalidationNotifier.invalidateCatalogCaches();
     }
 
     /**
@@ -152,6 +154,7 @@ public class EndpointService {
                     + "exists for this client");
         }
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return EndpointMapper.get().toTarget(endpoint);
     }
 

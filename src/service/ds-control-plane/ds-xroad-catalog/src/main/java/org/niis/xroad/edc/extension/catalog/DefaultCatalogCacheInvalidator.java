@@ -24,25 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
+
+import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.util.List;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Clears the underlying {@link ServerConfProvider}'s own cache, then fans
+ * {@link StoreEnumerationCache#invalidate()} out across every catalog store's cache instance.
+ *
+ * <p>Flushing only the store caches would leave a caching {@code ServerConfProvider} (used whenever
+ * {@code cachePeriod > 0}) serving stale reads underneath a freshly-rebuilt store cache, so the
+ * serverconf cache is cleared first — {@link ServerConfProvider#clearCache()} defaults to a no-op,
+ * so this is harmless against a non-caching provider too.</p>
  */
-public interface ControlPlaneProvisioningClient {
+final class DefaultCatalogCacheInvalidator implements CatalogCacheInvalidator {
 
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, String did);
+    private final ServerConfProvider serverConfProvider;
+    private final List<StoreEnumerationCache<?>> caches;
 
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
+    DefaultCatalogCacheInvalidator(ServerConfProvider serverConfProvider, List<StoreEnumerationCache<?>> caches) {
+        this.serverConfProvider = serverConfProvider;
+        this.caches = List.copyOf(caches);
+    }
 
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    @Override
+    public void invalidate() {
+        serverConfProvider.clearCache();
+        caches.forEach(StoreEnumerationCache::invalidate);
+    }
 }

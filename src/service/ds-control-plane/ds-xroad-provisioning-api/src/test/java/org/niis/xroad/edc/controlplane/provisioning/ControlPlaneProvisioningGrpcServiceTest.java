@@ -41,17 +41,24 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigResp;
+import org.niis.xroad.edc.extension.catalog.CatalogCacheInvalidator;
+import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 
 @ExtendWith(MockitoExtension.class)
 class ControlPlaneProvisioningGrpcServiceTest {
@@ -61,16 +68,23 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @Mock
     private ParticipantContextConfigService participantContextConfigService;
     @Mock
+    private DataPlaneContextRegistrar dataPlaneContextRegistrar;
+    @Mock
+    private CatalogCacheInvalidator catalogCacheInvalidator;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> createObserver;
     @Mock
     private StreamObserver<PutParticipantContextConfigResp> configObserver;
+    @Mock
+    private StreamObserver<InvalidateCatalogCachesResp> invalidateObserver;
 
     private ControlPlaneProvisioningGrpcService service;
 
     @BeforeEach
     void setUp() {
         service = new ControlPlaneProvisioningGrpcService(
-                participantContextService, participantContextConfigService, new RpcResponseHandler());
+                participantContextService, participantContextConfigService, dataPlaneContextRegistrar,
+                catalogCacheInvalidator, new RpcResponseHandler());
     }
 
     @ParameterizedTest
@@ -85,6 +99,7 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+        verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
     }
 
     @ParameterizedTest
@@ -99,10 +114,11 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+        verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
     }
 
     @Test
-    void createParticipantContextSucceeds() {
+    void createParticipantContextSucceedsRegistersDataPlaneAndInvalidatesCatalogCaches() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance()
                         .participantContextId("ctx-1")
@@ -119,10 +135,12 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onNext(any());
         verify(createObserver).onCompleted();
         verify(createObserver, never()).onError(any());
+        verify(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+        verify(catalogCacheInvalidator).invalidate();
     }
 
     @Test
-    void createParticipantContextToleratesConflict() {
+    void createParticipantContextToleratesConflictRegistersDataPlaneButNeverInvalidatesCatalogCaches() {
         when(participantContextService.createParticipantContext(any()))
                 .thenReturn(ServiceResult.conflict("already exists"));
 
@@ -136,6 +154,47 @@ class ControlPlaneProvisioningGrpcServiceTest {
         verify(createObserver).onNext(any());
         verify(createObserver).onCompleted();
         verify(createObserver, never()).onError(any());
+        verify(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+        verify(catalogCacheInvalidator, never()).invalidate();
+    }
+
+    @Test
+    void createParticipantContextDoesNotRegisterDataPlaneOrInvalidateCatalogCachesOnUnexpectedFailure() {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.unexpected("db down"));
+
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
+        verify(dataPlaneContextRegistrar, never()).registerParticipantContext(any());
+        verify(catalogCacheInvalidator, never()).invalidate();
+    }
+
+    @Test
+    void createParticipantContextSurfacesErrorWhenDataPlaneRegistrationFails() {
+        when(participantContextService.createParticipantContext(any()))
+                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance()
+                        .participantContextId("ctx-1")
+                        .identity("did:web:example.com")
+                        .build()));
+        doThrow(XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "no such details"))
+                .when(dataPlaneContextRegistrar).registerParticipantContext("ctx-1");
+
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onError(any(StatusRuntimeException.class));
+        verify(createObserver, never()).onCompleted();
     }
 
     @Test
@@ -197,5 +256,17 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(configObserver).onError(any(StatusRuntimeException.class));
         verify(configObserver, never()).onCompleted();
+    }
+
+    @Test
+    void invalidateCatalogCachesInvokesInvalidatorAndCompletes() {
+        var request = InvalidateCatalogCachesReq.getDefaultInstance();
+
+        service.invalidateCatalogCaches(request, invalidateObserver);
+
+        verify(catalogCacheInvalidator).invalidate();
+        verify(invalidateObserver).onNext(any());
+        verify(invalidateObserver).onCompleted();
+        verify(invalidateObserver, never()).onError(any());
     }
 }

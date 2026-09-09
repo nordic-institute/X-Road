@@ -24,25 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
+
+import jakarta.annotation.Nullable;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Read access to the participant context a DSP protocol request was addressed to, captured
+ * per request by {@link ParticipantContextCaptureFilter}. Returns {@code null} for callers
+ * outside the DSP protocol request path — internal, management and diagnostic callers — which
+ * the catalog stores treat as "no addressed context" and fall back to the legacy host context.
  */
-public interface ControlPlaneProvisioningClient {
+interface RequestedParticipantContext {
 
-    /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
-     */
-    void createParticipantContext(String participantContextId, String did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
-
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    @Nullable
+    String get();
 }

@@ -24,25 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.edc.extension.catalog;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Registers data-plane instances for a participant context under every configured data-plane entry.
+ *
+ * <p>Implementations must be idempotent: calling this repeatedly for the same participant context —
+ * including on provisioning retries — must not create duplicates or fail.</p>
  */
-public interface ControlPlaneProvisioningClient {
+public interface DataPlaneContextRegistrar {
 
     /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
+     * Registers a data-plane instance for the given participant context, one per configured data-plane entry.
+     *
+     * @param participantContextId the participant context to register data-plane instances for
      */
-    void createParticipantContext(String participantContextId, String did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
-
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    void registerParticipantContext(String participantContextId);
 }
