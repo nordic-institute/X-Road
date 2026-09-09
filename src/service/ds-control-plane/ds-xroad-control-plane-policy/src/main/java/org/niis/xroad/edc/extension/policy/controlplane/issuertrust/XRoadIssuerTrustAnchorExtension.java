@@ -26,10 +26,10 @@
  */
 package org.niis.xroad.edc.extension.policy.controlplane.issuertrust;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -50,11 +50,13 @@ import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoad
  *
  * <p>{@link GlobalConfProvider#getIssuerDids(String)} is an in-memory read over parsed globalconf, and
  * globalconf refreshes itself on the same basis the proxy relies on for every message — no TTL caching is
- * needed here. Registration is additive only: {@link TrustedIssuerRegistry} has no unregister operation,
- * and a Central Server node's DID going away is not this extension's concern (list order and membership
- * churn carry no meaning — cluster nodes are symmetric). A periodic re-read picks up newly distributed
- * DIDs within one refresh cycle, since {@link TrustedIssuerRegistry} is populated programmatically rather
- * than re-read by EDC itself.
+ * needed here. This extension exposes its own {@link XRoadTrustedIssuerRegistry} via an explicit
+ * {@link Provider} method rather than relying on EDC's built-in additive-only registry, so a DID dropped
+ * from globalconf (a compromised issuer removed by the Central Server operator) loses trust within one
+ * refresh cycle instead of surviving until process restart. An explicit, non-default {@code @Provider} is
+ * resolved by EDC ahead of any {@code isDefault} provider for the same type (the default in-memory registry
+ * is registered lazily, only as a last-resort fallback for an injection point still unsatisfied at resolve
+ * time), so every consumer that injects {@link TrustedIssuerRegistry} sees this implementation.
  */
 @Extension(value = EXTENSION_NAME)
 public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
@@ -70,8 +72,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     @Inject
     private GlobalConfProvider globalConfProvider;
 
-    @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
+    private final XRoadTrustedIssuerRegistry issuerRegistry = new XRoadTrustedIssuerRegistry();
 
     private final AtomicBoolean notEnabledLogged = new AtomicBoolean(false);
 
@@ -88,7 +89,7 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         var refreshIntervalSeconds = context.getSetting(SETTING_REFRESH_INTERVAL_SECONDS, DEFAULT_REFRESH_INTERVAL_SECONDS);
 
         var initialDids = loadTrustedIssuerDids(monitor);
-        registerAll(initialDids);
+        replaceTrustedIssuers(initialDids);
         monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, initialDids.size()));
 
         var initial = new PeriodicMaterialReloader.Loaded<>(initialDids, fingerprint(initialDids));
@@ -96,7 +97,16 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
                 MAX_RELOAD_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, () -> {
                     var dids = loadTrustedIssuerDids(monitor);
                     return new PeriodicMaterialReloader.Loaded<>(dids, fingerprint(dids));
-                }, this::registerAll, monitor);
+                }, this::replaceTrustedIssuers, monitor);
+    }
+
+    /**
+     * Exposes this extension's {@link XRoadTrustedIssuerRegistry} as the {@link TrustedIssuerRegistry} EDC
+     * resolves, ahead of its built-in {@code isDefault} in-memory registry.
+     */
+    @Provider
+    public TrustedIssuerRegistry trustedIssuerRegistry() {
+        return issuerRegistry;
     }
 
     @Override
@@ -120,8 +130,8 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         return dids;
     }
 
-    private void registerAll(Set<String> dids) {
-        dids.forEach(did -> trustedIssuerRegistry.register(new Issuer(did), TrustedIssuerRegistry.WILDCARD));
+    private void replaceTrustedIssuers(Set<String> dids) {
+        issuerRegistry.replaceAll(dids, TrustedIssuerRegistry.WILDCARD);
     }
 
     private static String fingerprint(Set<String> dids) {

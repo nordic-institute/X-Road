@@ -43,11 +43,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,8 +56,6 @@ class XRoadIssuerTrustAnchorExtensionTest {
 
     @Mock
     GlobalConfProvider globalConfProvider;
-    @Mock
-    TrustedIssuerRegistry trustedIssuerRegistry;
     @Mock
     ServiceExtensionContext context;
     @Mock
@@ -82,8 +77,9 @@ class XRoadIssuerTrustAnchorExtensionTest {
 
         extension.initialize(context);
 
-        verify(trustedIssuerRegistry).register(new Issuer(DID_1), TrustedIssuerRegistry.WILDCARD);
-        verify(trustedIssuerRegistry).register(new Issuer(DID_2), TrustedIssuerRegistry.WILDCARD);
+        var registry = extension.trustedIssuerRegistry();
+        assertThat(registry.getSupportedTypes(new Issuer(DID_1))).containsExactly(TrustedIssuerRegistry.WILDCARD);
+        assertThat(registry.getSupportedTypes(new Issuer(DID_2))).containsExactly(TrustedIssuerRegistry.WILDCARD);
     }
 
     @Test
@@ -94,7 +90,7 @@ class XRoadIssuerTrustAnchorExtensionTest {
 
         extension.initialize(context);
 
-        verify(trustedIssuerRegistry, never()).register(any(Issuer.class), anyString());
+        assertThat(extension.trustedIssuerRegistry().getSupportedTypes(new Issuer(DID_1))).isEmpty();
     }
 
     @Test
@@ -109,18 +105,21 @@ class XRoadIssuerTrustAnchorExtensionTest {
     }
 
     @Test
-    void refreshTickReReadsGlobalConfAndRegistersNewlyDistributedDids() {
+    void refreshTickReReadsGlobalConfDroppingDidsMissingFromTheNewSnapshot() {
         when(context.getMonitor()).thenReturn(monitor);
         when(context.getSetting(anyString(), anyLong())).thenReturn(1L);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of(DID_1))
-                .thenReturn(List.of(DID_1, DID_2));
+                .thenReturn(List.of(DID_2));
 
         extension.initialize(context);
+        var registry = extension.trustedIssuerRegistry();
         try {
             await().atMost(Duration.ofSeconds(5))
-                    .untilAsserted(() -> verify(trustedIssuerRegistry).register(new Issuer(DID_2), TrustedIssuerRegistry.WILDCARD));
+                    .untilAsserted(() -> assertThat(registry.getSupportedTypes(new Issuer(DID_2)))
+                            .containsExactly(TrustedIssuerRegistry.WILDCARD));
+            assertThat(registry.getSupportedTypes(new Issuer(DID_1))).isEmpty();
         } finally {
             extension.shutdown();
         }
