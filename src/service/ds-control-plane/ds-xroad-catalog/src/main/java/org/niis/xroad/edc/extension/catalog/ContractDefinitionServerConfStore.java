@@ -63,6 +63,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private final GlobalConfProvider globalConfProvider;
     private final String participantContextId;
     private final String managementParticipantContextId;
+    private final String systemParticipantContextId;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -97,7 +98,10 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById definitionId={} matched builtin", definitionId);
-            return toBuiltinContractDefinition(builtinServiceId);
+            return toBuiltinContractDefinition(builtinServiceId, selectBuiltinContextId());
+        }
+        if (systemParticipantContextId.equals(requestedParticipantContext.get())) {
+            return findSystemContractDefinition(policyId);
         }
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
             var assetIdStr = policyId.substring(0,
@@ -153,11 +157,15 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            definitions.add(toBuiltinContractDefinition(serviceId));
+            definitions.add(toBuiltinContractDefinition(serviceId, managementParticipantContextId));
+            definitions.add(toBuiltinContractDefinition(serviceId, systemParticipantContextId));
         }
         ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
                 .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                         serviceId, managementParticipantContextId)));
+        ManagementServiceCatalog.resolveSystemSyntheticServices(globalConfProvider, serverConfProvider)
+                .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
+                        serviceId, systemParticipantContextId)));
         return definitions;
     }
 
@@ -234,7 +242,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
     }
 
-    private ContractDefinition toBuiltinContractDefinition(ServiceId serviceId) {
+    private ContractDefinition toBuiltinContractDefinition(ServiceId serviceId, String contextId) {
         var assetId = AssetMapper.encodeAssetId(serviceId);
         var contractId = assetId + ContractDefinitionMapper.getContractDefinitionSuffix();
         return ContractDefinition.Builder.newInstance()
@@ -242,8 +250,34 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 .accessPolicyId(assetId)
                 .contractPolicyId(assetId)
                 .assetsSelectorCriterion(new Criterion(CoreConstants.EDC_NAMESPACE + "id", "=", assetId))
-                .participantContextId(managementParticipantContextId)
+                .participantContextId(contextId)
                 .build();
+    }
+
+    /** Built-ins are ungated (published under both SYSTEM and management on every server). */
+    private String selectBuiltinContextId() {
+        return systemParticipantContextId.equals(requestedParticipantContext.get())
+                ? systemParticipantContextId
+                : managementParticipantContextId;
+    }
+
+    /**
+     * A SYSTEM-addressed lookup only ever resolves to an owner-only definition for a synthetic
+     * entry eligible under SYSTEM ({@link ManagementServiceCatalog#isSystemEligible}) — never to a
+     * real service's owner-only or per-subject definition, so a SYSTEM request for anything not
+     * published there is a clean not-found instead of a fallback to the legacy host context.
+     */
+    @Nullable
+    private ContractDefinition findSystemContractDefinition(String policyId) {
+        if (!policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+            return null;
+        }
+        var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
+        var serviceId = AssetMapper.decodeAssetId(assetIdStr);
+        if (serviceId == null || !ManagementServiceCatalog.isSystemEligible(serviceId, globalConfProvider, serverConfProvider)) {
+            return null;
+        }
+        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, systemParticipantContextId);
     }
 
     private boolean isLocallyRegisteredSubsystem(ClientId clientId) {

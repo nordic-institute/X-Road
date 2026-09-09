@@ -41,6 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.ds.identity.BuiltinServiceCodes;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
@@ -60,6 +61,7 @@ class AssetIndexServerConfStoreTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "xroad-provider";
     private static final String MGMT_PARTICIPANT_CONTEXT_ID = "xroad-provider-mgmt";
+    private static final String SYSTEM_PARTICIPANT_CONTEXT_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
     private static final StoreEnumerationCache<Asset> DISABLED_CACHE =
             new StoreEnumerationCache<>(false, 60, 1000, "test");
 
@@ -99,10 +101,11 @@ class AssetIndexServerConfStoreTest {
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
         lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
-                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, globalConfProvider, participantContextService);
+                PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
+                globalConfProvider, participantContextService);
         requestedParticipantContext.clear();
         assetIndex = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 noBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
     }
 
@@ -252,11 +255,13 @@ class AssetIndexServerConfStoreTest {
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
-        assertThat(result).allSatisfy(asset -> {
-            assertThat(asset.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
-            assertThat(asset.getId()).startsWith(MGMT_CLIENT.asEncodedId());
-        });
+        var mgmtCtx = result.stream().filter(a -> MGMT_PARTICIPANT_CONTEXT_ID.equals(a.getParticipantContextId())).toList();
+        var systemCtx = result.stream().filter(a -> SYSTEM_PARTICIPANT_CONTEXT_ID.equals(a.getParticipantContextId())).toList();
+        assertThat(mgmtCtx).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
+        assertThat(systemCtx).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
+        assertThat(result).allSatisfy(asset -> assertThat(asset.getId()).startsWith(MGMT_CLIENT.asEncodedId()));
+        assertThat(systemCtx).noneSatisfy(asset ->
+                assertThat(asset.getId()).endsWith("authCertReg"));
     }
 
     @Test
@@ -394,34 +399,36 @@ class AssetIndexServerConfStoreTest {
     @Test
     void queryAssetsIncludesBuiltinsWhenNoServerconfServices() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(7);
+        assertThat(result).hasSize(14);
         assertThat(result).extracting(Asset::getId)
                 .allMatch(id -> id.startsWith("DEV:GOV:1111:"));
     }
 
     @Test
-    void queryAssetsBuiltinsTaggedWithMgmtContext() {
+    void queryAssetsBuiltinsTaggedWithMgmtAndSystemContext() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var result = store.queryAssets(QuerySpec.max()).toList();
 
         assertThat(result).allSatisfy(asset ->
-                assertThat(asset.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID));
+                assertThat(asset.getParticipantContextId()).isIn(MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID));
+        assertThat(result).filteredOn(asset -> MGMT_PARTICIPANT_CONTEXT_ID.equals(asset.getParticipantContextId())).hasSize(7);
+        assertThat(result).filteredOn(asset -> SYSTEM_PARTICIPANT_CONTEXT_ID.equals(asset.getParticipantContextId())).hasSize(7);
     }
 
     @Test
     void queryAssetsBuiltinsNeverTaggedWithHostContext() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -434,7 +441,7 @@ class AssetIndexServerConfStoreTest {
     @Test
     void queryAssetsHostCtxFilterExcludesBuiltins() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
@@ -450,7 +457,7 @@ class AssetIndexServerConfStoreTest {
     @Test
     void findByIdReturnsBuiltinAsset() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
@@ -464,7 +471,7 @@ class AssetIndexServerConfStoreTest {
     @Test
     void findByIdReturnsNullForUnknownBuiltinServiceCode() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
 
         var result = store.findById("DEV:GOV:1111:nonExistentService");
@@ -476,7 +483,7 @@ class AssetIndexServerConfStoreTest {
     @SuppressWarnings("deprecation")
     void resolveForAssetReturnsDataAddressForBuiltin() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
@@ -495,7 +502,7 @@ class AssetIndexServerConfStoreTest {
     @SuppressWarnings("deprecation")
     void resolveForAssetReturnsNullForDisabledBuiltin() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 noBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
 
@@ -534,12 +541,73 @@ class AssetIndexServerConfStoreTest {
     @Test
     void countAssetsIncludesBuiltins() {
         var store = new AssetIndexServerConfStore(
-                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID,
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
         when(serverConfProvider.getMembers()).thenReturn(List.of());
 
         var count = store.countAssets(List.of());
 
-        assertThat(count).isEqualTo(7);
+        assertThat(count).isEqualTo(14);
+    }
+
+    @Test
+    void findByIdBuiltinResolvesSystemContextWhenSystemRequested() {
+        var store = new AssetIndexServerConfStore(
+                serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
+                allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = store.findById(builtinAssetId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void findByIdMgmtServiceResolvesSystemContextWhenSystemRequestedAndEligible() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void findByIdAuthCertRegNotFoundUnderSystemContext() {
+        var authCertRegService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "authCertReg");
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(authCertRegService.asEncodedId());
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findByIdRealServiceNotFoundUnderSystemContext() {
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(SERVICE_1.asEncodedId());
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findByIdArbitraryLocallyRegisteredSubsystemAssetNotFoundUnderSystemContext() {
+        var customService = ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "customThing");
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(customService.asEncodedId());
+
+        assertThat(result).isNull();
     }
 }
