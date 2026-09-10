@@ -344,21 +344,17 @@ jobs:
           name: lxd-packages-ubuntu26.04
           path: deployment/native-packages/build/ubuntu26.04
 
-      # Builds slim then full from the tree-built DEBs via --packages-path. Order matters:
-      # the full image is `FROM <tag>:<version>-slim`, so the slim tag has to exist locally
-      # before the full build can resolve it. Both are tagged to match exactly what the
-      # e2e-test jar's generated .env already resolves SIDECAR_IMG to (build.gradle.kts's
-      # intTestComposeEnv resolves every service image, sidecar included, to
-      # $imageRegistry/<name>:$imageTag). No push:
+      # Builds the sidecar image from the tree-built DEBs via --packages-path. Tagged to
+      # match exactly what the e2e-test jar's generated .env already resolves SIDECAR_IMG
+      # to (build.gradle.kts's intTestComposeEnv resolves every service image, sidecar
+      # included, to $imageRegistry/<name>:$imageTag). No push:
       # docker compose's default pull policy only fetches an image it cannot find
       # locally, so a matching local tag is all the harness needs -- SIDECAR_IMG rides
       # the same generated env as every other service image, with no runtime override.
-      - name: Build sidecar images
+      - name: Build sidecar image
         if: inputs.variant == 'sidecar'
         working-directory: ./sidecar
         run: |
-          ./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04 \
-            "${{ env.SERVICE_IMAGE_TAG }}" "${{ env.IMAGE_REGISTRY }}/xroad-security-server-sidecar"
           ./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04 \
             "${{ env.SERVICE_IMAGE_TAG }}" "${{ env.IMAGE_REGISTRY }}/xroad-security-server-sidecar"
 

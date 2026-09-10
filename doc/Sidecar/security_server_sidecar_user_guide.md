@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.25
+Version: 1.28
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -33,6 +33,9 @@ Doc. ID: UG-SS-SIDECAR
 | 03.09.2026 | 1.23    | Document the first-boot hook directory                 | Ričardas Bučiūnas         |
 | 03.09.2026 | 1.24    | Document building from tree-built DEBs                 | Ričardas Bučiūnas         |
 | 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
+| 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
+| 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
+| 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
 
 ## License
 
@@ -62,11 +65,10 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.11 Health Checks](#211-health-checks)
   * [2.12 First-Boot Hook Scripts](#212-first-boot-hook-scripts)
 * [3 Initial configuration](#3-initial-configuration)
-  * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
-  * [3.2 Enabling ACME Support](#32-enabling-acme-support)
-  * [3.3 Configuring the memory allocation for the Proxy Service](#33-configuring-the-memory-allocation-for-the-proxy-service)
-  * [3.4 Installing Support for Hardware Tokens](#34-installing-support-for-hardware-tokens)
-  * [3.5 Autologin](#35-autologin)
+  * [3.1 Enabling ACME Support](#31-enabling-acme-support)
+  * [3.2 Configuring the memory allocation for the Proxy Service](#32-configuring-the-memory-allocation-for-the-proxy-service)
+  * [3.3 Installing Support for Hardware Tokens](#33-installing-support-for-hardware-tokens)
+  * [3.4 Autologin](#34-autologin)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -82,22 +84,14 @@ X-Road Security Server Sidecar is containerized, production ready, version of th
 
 The Security Server Sidecar has several images with alternative configurations:
 
-| **Image**                                                     | **Description**                                                                                              |
-|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| niis/xroad-security-server-sidecar:\<version>-slim            | Slim image with the minimum required packages and configuration to function.                                 |
-| niis/xroad-security-server-sidecar:\<version>                 | Full image uses the slim as the base and adds message logging, and environmental and operational monitoring. |
-| niis/xroad-security-server-sidecar:\<version>-slim-\<variant> | Same as the slim image but with the NIIS member/partner country variant (ee,fi,fo,is) settings included.     |
-| niis/xroad-security-server-sidecar:\<version>-\<variant>      | Same as the full image but with the NIIS member/partner country variant configuration settings included.     |
+| **Image**                                                | **Description**                                                                             |
+|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| niis/xroad-security-server-sidecar:\<version>            | Image with message logging, environmental monitoring, operational monitoring and dataspace services. |
+| niis/xroad-security-server-sidecar:\<version>-\<variant> | Same image but with the NIIS member/partner country variant (ee,fi,fo,is) configuration settings included. |
 
 All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration.
 
-| **Feature**              | **Sidecar** | **Sidecar Slim** |
-|--------------------------|-------------|------------------|
-| Consume services         | Yes         | Yes              |
-| Provide services         | Yes         | Yes              |
-| Message logging          | Yes         | No               |
-| Environmental monitoring | Yes         | No               |
-| Operational monitoring   | Yes         | No               |
+The `slim` image, which didn't include message logging or environmental and operational monitoring, was removed in X-Road 8. Instead, the additional modules can now be enabled and disabled using the Security Server admin UI or the management REST API.
 
 ### 1.2 References
 
@@ -115,7 +109,7 @@ Docker Desktop for Windows or macOS (x86-64) can be used in testing and developm
 
 Minimum container resource limits for running the Security Server Sidecar container:
 * CPUs: 2
-* Memory: 3 GiB (slim, 4GiB or more for a full container)
+* Memory: 4 GiB or more
 * 3 GiB free disk space
 
 ### 2.2 Reference data
@@ -151,7 +145,7 @@ The table below lists the required connections between different components.
 | Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
 | Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                         |
 | Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                         |
-| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*      |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  |                         |
 | Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                         |
 | Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network   |
 | Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                         |
@@ -171,24 +165,20 @@ See also [Docker Networking](https://docs.docker.com/network/)
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
 
 Alternatively, build the images locally with the [docker-build.sh script](../../sidecar/docker-build.sh) (in the
-`sidecar/` directory of the source tree). By default it builds every image variant; pass `--target=slim` or
-`--target=full` to build only one (`full` requires the `slim` tag to already exist locally, since it is built
-`FROM` it):
+`sidecar/` directory of the source tree). By default it builds every image variant; pass `--target=full` to build
+only the main image:
 
 ```bash
-./docker-build.sh --target=slim
 ./docker-build.sh --target=full
 ```
 
 Packages are installed from an X-Road apt repository by default (the `REPO` positional argument selects it,
 defaulting to the development repository; see `docker-build.sh --help`). To build from a local directory of
 tree-built `.deb` packages instead (for example `deployment/native-packages/build/ubuntu26.04`), pass
-`--packages-path`; it builds the slim and full images with `PACKAGE_SOURCE=internal` and the given directory
-bind-mounted as the `packages` build context (each image re-scans it into its own trusted repository, since
-`slim`'s trusted repository does not persist past that build):
+`--packages-path`; it builds the image with `PACKAGE_SOURCE=internal` and the given directory bind-mounted as
+the `packages` build context:
 
 ```bash
-./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
 ./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
 ```
 
@@ -234,7 +224,7 @@ In production use, either persistent volumes should be used. Using a separate da
     b3031affa4b7   niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago      Up 10 minutes  ...       <container name>
     ```
 
-2. Ensure from the command line that the X-Road services are running in the container. On the `full` image:
+2. Ensure from the command line that the X-Road services are running in the container:
     ```bash
     docker exec -t <container name> supervisorctl status
     cron                                     RUNNING   pid 1137, uptime 0:00:45
@@ -251,8 +241,6 @@ In production use, either persistent volumes should be used. Using a separate da
     xroad-services:xroad-proxy               RUNNING   pid 1339, uptime 0:00:43
     xroad-services:xroad-signer              RUNNING   pid 1335, uptime 0:00:43
     ```
-    `slim` runs the same `openbao`, `xroad-secret-store-gate`, `postgres`, `cron`, `xroad-proxy-ui-api` and the
-    `xroad-services` group's `xroad-signer`/`xroad-confclient`/`xroad-proxy`, and nothing else.
 
     `xroad-secret-store-gate` is a one-shot program: it unseals the secret store and releases the gated
     `xroad-services` group, then exits — `EXITED` with exit status `0` is its expected steady state, not a failure.
@@ -402,8 +390,6 @@ of `/etc/xroad/secret-store/` separately with the same care as the backup encryp
 
 ### 2.9 Message log archives
 
-Does not apply to *slim* image.
-
 The Security Server Sidecar periodically archives message log records in the folder `/var/lib/xroad/`.
 It is recommended to store the archives to a volume by adding a volume mapping for the archive directory.
 
@@ -501,43 +487,36 @@ with `./entrypoint.d/10-seed-config.sh` executable on the host and containing th
 To configure the X-Road Security Server Sidecar, open a browser to `https://127.0.0.1:<admin port>` (assuming the container admin port 4000 is published to localhost) and log in using the admin credentials.
 See [IG-SS](#Ref_IG-SS) for configuration details.
 
-### 3.1 Changing the System Parameter Values in Configuration Files
-
-The configuration files are INI files [INI], where each section contains parameters for a particular server component.
-
-In order to override the default values of system parameters, create or edit the file
-
-```
-/etc/xroad/conf.d/local.ini
-```
-
-See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
-
-### 3.2 Enabling ACME Support
+### 3.1 Enabling ACME Support
 
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 For Sidecar, it is possible to use a different ACME challenge port from the default 80. For this, set the environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT` to the desired port number and map it to a host port 80 when starting the container (ACME Servers always use port 80 for HTTP-01 challenge).
 
-### 3.3 Configuring the memory allocation for the Proxy Service
+### 3.2 Configuring the memory allocation for the Proxy Service
 
 The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
-### 3.4 Installing Support for Hardware Tokens
+### 3.3 Installing Support for Hardware Tokens
 
 Security Server Sidecar provides built-in support for hardware security tokens, requiring only configuration.
 
 1. Make the PKCS\#11 provider library (and any required additional files) available in the sidecar container by mounting them as volumes.
-2. Create the `devices.ini` file under your mount for `/etc/xroad` and add the path for the PKCS\#11 library inside it (note that the library path should match the path inside the container you chose in the last step).
-    * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
+2. Set the `xroad.signer.modules` configuration property to a JSON document describing the module, using `db_property.sh` inside the container (note that the library path inside the JSON document should match the path inside the container you chose in the last step):
+
+    ```bash
+    docker exec <sidecar container name> /usr/share/xroad/scripts/db_property.sh set xroad.signer.modules '{"<module id>":{"library":"<path to PKCS#11 library>"}}' --yes
+    ```
+
+    * More information on the JSON document's fields can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
 3. Restarting the Security Service Sidecar container might be required:
 
     ```bash
     docker restart <sidecar container name>
     ```
 
-### 3.5 Autologin
+### 3.4 Autologin
 
 Autologin logs a token in to the signer automatically after the container starts or restarts, so unattended
 restarts do not require an operator to log the token in by hand. It is implemented inside the signer itself and is
@@ -584,7 +563,7 @@ Upgrading to a new image is supported, provided that:
 * A volume is used for `/etc/xroad`.
 * A remote database is used, or a volume is mapped to `/var/lib/postgresql/18/main`.
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
-* The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
+* The same variant (ee, fi, ...) is used for the new container.
 
 If the prerequisites are met, upgrading is straightforward:
 

@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.7
+Version: 1.8
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -15,6 +15,7 @@ Doc. ID: UG-K-SS-SEC-SIDECAR
 | 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
 | 26.03.2025 | 1.6     | Syntax and styling                           | Pauline Dimmek            |
 | 18.08.2026 | 1.7     | Add relationship to other security guides    | Petteri Kivimäki          |
+| 09.09.2026 | 1.8     | Update token autologin PIN examples          | Ričardas Bučiūnas         |
 
 ## License
 
@@ -144,7 +145,8 @@ This example shows how to create a secret for the Security Server Sidecar as env
       namespace: <namespace_name>
     type: Opaque
     stringData:
-      XROAD_TOKEN_PIN: "<token pin>"
+      XROAD_SIGNER_AUTOLOGIN_ENABLED: "true"
+      XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN: "<token pin>"
       XROAD_ADMIN_USER: "<admin user>"
       XROAD_ADMIN_PASSWORD: "<admin password>"
       XROAD_DB_HOST: "<database host>"
@@ -182,7 +184,9 @@ containers:
     image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     env:
-    - name: XROAD_TOKEN_PIN
+    - name: XROAD_SIGNER_AUTOLOGIN_ENABLED
+      value: "true"
+    - name: XROAD_SIGNER_AUTOLOGIN_TOKENS__0__PIN
       value: "<token pin>"
     - name: XROAD_ADMIN_USER
       value: "<admin user>"
