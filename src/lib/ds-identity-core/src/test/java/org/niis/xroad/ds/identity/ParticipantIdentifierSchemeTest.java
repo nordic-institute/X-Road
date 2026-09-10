@@ -155,6 +155,18 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @Test
+    void shouldRoundTripBracketedIpv6HostWithPort() {
+        var member = ClientId.Conf.create("DEV", "COM", "222");
+        var hostWithPort = "[2001:db8::8]:7183";
+
+        var did = ParticipantIdentifierScheme.memberDid(member, hostWithPort);
+        assertThat(did).isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183:v1:DEV:COM:222");
+
+        var decoded = ParticipantIdentifierScheme.decodeDid(did);
+        assertThat(decoded.ssHost()).isEqualTo(hostWithPort);
+    }
+
+    @Test
     void shouldDeriveSystemIdentifiers() {
         assertThat(ParticipantIdentifierScheme.SYSTEM_SEGMENT).isEqualTo("system");
         assertThat(ParticipantIdentifierScheme.systemDid(SS_HOST)).isEqualTo("did:web:ss0.example.org:v1:system");

@@ -69,10 +69,10 @@ public class DspConventions {
      * and their DID documents served.
      *
      * @param ssAddress the Security Server's GlobalConf-registered address, without a port
-     * @return the DID authority, {@code {ssAddress}:7183}
+     * @return the DID authority, {@code {ssAddress}:7183}; an IPv6 literal address is bracketed
      */
     public static String didAuthority(String ssAddress) {
-        return ssAddress + ":" + DID_PORT;
+        return uriHost(ssAddress) + ":" + DID_PORT;
     }
 
     /**
@@ -116,10 +116,16 @@ public class DspConventions {
      *
      * @param member    the provider member; must not carry a subsystem code
      * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
-     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1}
+     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1};
+     *         an IPv6 literal address is bracketed
      */
     public static String memberCounterPartyAddress(ClientId member, String ssAddress) {
         return "https://%s:%d/api/dsp/%s/%s"
-                .formatted(ssAddress, DSP_PORT, ParticipantIdentifierScheme.memberCtxId(member), DSP_PROFILE_ID);
+                .formatted(uriHost(ssAddress), DSP_PORT, ParticipantIdentifierScheme.memberCtxId(member), DSP_PROFILE_ID);
+    }
+
+    private static String uriHost(String ssAddress) {
+        boolean bareIpv6Literal = ssAddress.indexOf(':') >= 0 && !ssAddress.startsWith("[");
+        return bareIpv6Literal ? "[" + ssAddress + "]" : ssAddress;
     }
 }

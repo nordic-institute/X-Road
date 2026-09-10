@@ -217,7 +217,8 @@ public class ParticipantIdentifierScheme {
         return XrdRuntimeException.systemException(INVALID_ENCODED_ID, message, args);
     }
 
-    // -- did:web host encoding: the authority's port separator ':' becomes '%3A', reversed on decode. --
+    // -- did:web host encoding: the authority's port separator ':' becomes '%3A', reversed on decode.
+    //    IPv6 literal brackets pass through unencoded. --
 
     private static String encodeHost(String ssHost) {
         requireNonBlank(ssHost, "ss-host");
@@ -235,7 +236,8 @@ public class ParticipantIdentifierScheme {
         return (c >= 'A' && c <= 'Z')
                 || (c >= 'a' && c <= 'z')
                 || (c >= '0' && c <= '9')
-                || c == '.' || c == '-' || c == '_';
+                || c == '.' || c == '-' || c == '_'
+                || c == '[' || c == ']';
     }
 
     private static String decodeHost(String encodedHost) {

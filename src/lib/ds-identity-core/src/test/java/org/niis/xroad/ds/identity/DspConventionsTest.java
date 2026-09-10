@@ -75,6 +75,24 @@ class DspConventionsTest {
     }
 
     @Test
+    void shouldBracketIpv6RegisteredAddress() {
+        assertThat(DspConventions.didAuthority("2001:db8::8")).isEqualTo("[2001:db8::8]:7183");
+        assertThat(DspConventions.hostDid("2001:db8::8")).isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183");
+        assertThat(DspConventions.managementDid("2001:db8::8")).isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183:mgmt");
+        assertThat(DspConventions.memberCounterPartyId(MEMBER, "2001:db8::8"))
+                .isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183:v1:DEV:COM:222");
+        assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "2001:db8::8"))
+                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldNotDoubleBracketAlreadyBracketedIpv6Address() {
+        assertThat(DspConventions.didAuthority("[2001:db8::8]")).isEqualTo("[2001:db8::8]:7183");
+        assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "[2001:db8::8]"))
+                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
+    }
+
+    @Test
     void shouldEncodeMemberSegmentsInCounterPartyCoordinates() {
         var member = ClientId.Conf.create("DEV", "COM", "A+B");
 
