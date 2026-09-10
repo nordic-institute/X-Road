@@ -23,25 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.dao;
+package org.niis.xroad.restapi.dao;
 
+import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
-import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
-import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 
-/**
- * Configuration property data access object implementation.
- */
-public class ConfigurationPropertyDAOImpl extends AbstractDAOImpl<ConfigurationPropertyEntity> {
+import java.util.List;
 
-    /**
-     * Find a configuration property by its property key.
-     *
-     * @param session     Hibernate session
-     * @param propertyKey the property key
-     * @return Entity object containing the property if found
-     */
-    public ConfigurationPropertyEntity getConfigurationProperty(Session session, String propertyKey) {
+public class ConfigurationPropertyDAOImpl {
+
+    public List<ConfigurationPropertyEntity> findAll(Session session, Class<ConfigurationPropertyEntity> clazz) {
+        final CriteriaQuery<ConfigurationPropertyEntity> q = session.getCriteriaBuilder().createQuery(clazz);
+        q.select(q.from(clazz));
+        return session.createQuery(q).getResultList();
+    }
+
+
+    public ConfigurationPropertyEntity findByPropertyKey(Session session, String propertyKey) {
         return session.createQuery(
                         "FROM ConfigurationPropertyEntity WHERE propertyKey = :propertyKey",
                         ConfigurationPropertyEntity.class)

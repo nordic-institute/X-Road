@@ -41,6 +41,7 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     INTERNAL_ERROR("internal_error"),
     BAD_REQUEST("bad_request"),
     NOT_FOUND("not_found"),
+    INVALID_PROPERTY_VALUE("invalid_property_value"),
     HTTP_ERROR("http_error"),
     UNKNOWN_HOST("unknown_host"),
     DATABASE_ERROR("database_error"),

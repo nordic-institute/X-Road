@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.ConfigurablePropertiesApi;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
+import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
@@ -63,7 +64,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;

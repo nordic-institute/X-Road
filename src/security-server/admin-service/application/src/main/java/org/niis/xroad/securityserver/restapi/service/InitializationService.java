@@ -41,6 +41,7 @@ import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
