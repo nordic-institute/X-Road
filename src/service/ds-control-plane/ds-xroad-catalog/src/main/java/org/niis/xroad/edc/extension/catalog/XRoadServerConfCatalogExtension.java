@@ -44,6 +44,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
+import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -119,6 +121,8 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         managementParticipantContextId = context.getSetting(
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + "-mgmt");
         systemParticipantContextId = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
+        requireDistinctFromSystemSegment(SETTING_PARTICIPANT_CONTEXT_ID, participantContextId);
+        requireDistinctFromSystemSegment(SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, managementParticipantContextId);
         log.info("Participant context ID for catalog assets: {}", participantContextId);
         log.info("Management participant context ID for catalog assets: {}", managementParticipantContextId);
         log.info("SYSTEM participant context ID for catalog assets: {}", systemParticipantContextId);
@@ -142,7 +146,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
         serviceContextResolver = new ServiceContextResolver(
                 participantContextId, managementParticipantContextId, systemParticipantContextId,
-                globalConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
         webService.registerResource(ApiContext.PROTOCOL,
                 new ParticipantContextCaptureFilter(requestedParticipantContext));
@@ -161,6 +165,19 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
 
         catalogCacheInvalidator = new DefaultCatalogCacheInvalidator(
                 serverConfProvider, List.of(assetIndexCache, policyDefinitionCache, contractDefinitionCache));
+    }
+
+    /**
+     * The SYSTEM segment is reserved (XRDADR-41): a configured host or management context ID that
+     * collides with it would make SYSTEM-addressed requests indistinguishable from that context's
+     * own. Fail fast rather than let the collision surface later as misrouted catalog entries.
+     */
+    private static void requireDistinctFromSystemSegment(String settingName, String configuredContextId) {
+        if (ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(configuredContextId)) {
+            throw XrdRuntimeException.systemException(ErrorCode.VALIDATION_ERROR,
+                    "Setting '%s' must not equal the reserved SYSTEM segment '%s'",
+                    settingName, ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        }
     }
 
     @Provider

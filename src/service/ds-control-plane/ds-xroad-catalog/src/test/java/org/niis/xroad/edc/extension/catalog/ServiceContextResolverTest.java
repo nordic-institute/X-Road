@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -39,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 import java.util.Set;
@@ -48,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,6 +64,8 @@ class ServiceContextResolverTest {
     private static final ClientId.Conf MEMBER = ClientId.Conf.create("DEV", "GOV", "1111");
     private static final ClientId.Conf MGMT_CLIENT = ClientId.Conf.create("DEV", "COM", "3333", "MANAGEMENT");
 
+    private static final SecurityServerId.Conf SS_ID = SecurityServerId.Conf.create("DEV", "GOV", "1111", "ss0");
+
     private static final ServiceId.Conf SUBSYSTEM_SERVICE =
             ServiceId.Conf.create("DEV", "GOV", "1111", "SubsystemA", "getRecords");
     private static final ServiceId.Conf MGMT_SERVICE =
@@ -72,10 +77,14 @@ class ServiceContextResolverTest {
     private GlobalConfProvider globalConfProvider;
 
     @Mock
+    private ServerConfProvider serverConfProvider;
+
+    @Mock
     private ParticipantContextService participantContextService;
 
     private ServiceContextResolver resolver() {
-        return new ServiceContextResolver(HOST_CTX, MGMT_CTX, SYSTEM_CTX, globalConfProvider, participantContextService);
+        return new ServiceContextResolver(
+                HOST_CTX, MGMT_CTX, SYSTEM_CTX, globalConfProvider, serverConfProvider, participantContextService);
     }
 
     @Test
@@ -222,6 +231,90 @@ class ServiceContextResolverTest {
         assertThat(resolver().normalizeRequestedContext(null)).isNull();
         assertThat(resolver().normalizeRequestedContext("not-a-real-ctx")).isNull();
         assertThat(resolver().normalizeRequestedContext(MEMBER_CTX + ":not-a-real-member-ctx")).isNull();
+    }
+
+    // --- isSystemEligible / resolveSyntheticServices / selectBuiltinContextId ---
+
+    private static final ServiceId.Conf MGMT_ELIGIBLE_SERVICE =
+            ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg");
+
+    @Test
+    void isSystemEligibleAcceptsVersionlessEligibleCode() {
+        stubEligibleManagementSubsystem();
+
+        assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemEligibleRejectsVersionedServiceIdEvenWhenCodeAndOwnerMatch() {
+        // Version check is the cheap short-circuit, so no management-subsystem resolution is stubbed.
+        var versioned = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg", "v1");
+
+        assertThat(resolver().isSystemEligible(versioned)).isFalse();
+    }
+
+    @Test
+    void isSystemEligibleRejectsAuthCertRegEvenWhenOwnerMatches() {
+        // Service-code check is the cheap short-circuit, so no management-subsystem resolution is stubbed.
+        var authCertReg = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "authCertReg");
+
+        assertThat(resolver().isSystemEligible(authCertReg)).isFalse();
+    }
+
+    @Test
+    void isSystemEligibleSkipsManagementSubsystemResolutionForIneligibleCode() {
+        var authCertReg = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "authCertReg");
+
+        assertThat(resolver().isSystemEligible(authCertReg)).isFalse();
+
+        verify(globalConfProvider, never()).getManagementRequestService();
+    }
+
+    @Test
+    void isSystemEligibleDegradesToFalseWhenManagementSubsystemResolutionThrows() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenThrow(new IllegalStateException("boom"));
+
+        assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void resolveSyntheticServicesResolvesManagementSubsystemOnceForBothLists() {
+        stubEligibleManagementSubsystem();
+
+        var result = resolver().resolveSyntheticServices();
+
+        assertThat(result.managementEntries()).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
+        assertThat(result.systemEntries()).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
+        verify(serverConfProvider, times(1)).getAllServices(MGMT_CLIENT);
+    }
+
+    @Test
+    void resolveSyntheticServicesReturnsEmptyListsWhenNoManagementSubsystem() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+
+        var result = resolver().resolveSyntheticServices();
+
+        assertThat(result.managementEntries()).isEmpty();
+        assertThat(result.systemEntries()).isEmpty();
+    }
+
+    @Test
+    void selectBuiltinContextIdReturnsSystemWhenSystemRequested() {
+        assertThat(resolver().selectBuiltinContextId(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
+    }
+
+    @Test
+    void selectBuiltinContextIdReturnsManagementOtherwise() {
+        assertThat(resolver().selectBuiltinContextId(HOST_CTX)).isEqualTo(MGMT_CTX);
+        assertThat(resolver().selectBuiltinContextId(null)).isEqualTo(MGMT_CTX);
+    }
+
+    private void stubEligibleManagementSubsystem() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
     }
 
     private static ParticipantContext participantContext(String contextId) {

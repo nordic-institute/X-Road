@@ -106,9 +106,10 @@ class AssetIndexServerConfStore implements AssetIndex {
             assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
             assets.add(AssetMapper.toAsset(serviceId, systemParticipantContextId));
         }
-        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
+        syntheticServices.managementEntries()
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId)));
-        ManagementServiceCatalog.resolveSystemSyntheticServices(globalConfProvider, serverConfProvider)
+        syntheticServices.systemEntries()
                 .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, systemParticipantContextId)));
         return assets;
     }
@@ -126,7 +127,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
-            return AssetMapper.toAsset(builtinServiceId, selectBuiltinContextId());
+            return AssetMapper.toAsset(builtinServiceId, serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
@@ -153,23 +154,16 @@ class AssetIndexServerConfStore implements AssetIndex {
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 
-    /** Built-ins are ungated (published under both SYSTEM and management on every server). */
-    private String selectBuiltinContextId() {
-        return systemParticipantContextId.equals(requestedParticipantContext.get())
-                ? systemParticipantContextId
-                : managementParticipantContextId;
-    }
-
     /**
      * A SYSTEM-addressed lookup only ever resolves to a synthetic entry eligible under SYSTEM
-     * ({@link ManagementServiceCatalog#isSystemEligible}) — never to a real service nor to the
+     * ({@link ServiceContextResolver#isSystemEligible}) — never to a real service nor to the
      * broader owner-only-synthesis fallback that {@link #findByIdInternal} otherwise applies, so a
      * SYSTEM request for anything not published there is a clean not-found instead of a fallback
      * to the legacy host context.
      */
     @Nullable
     private Asset findSystemAsset(ServiceId.Conf serviceId) {
-        if (!ManagementServiceCatalog.isSystemEligible(serviceId, globalConfProvider, serverConfProvider)) {
+        if (!serviceContextResolver.isSystemEligible(serviceId)) {
             return null;
         }
         return AssetMapper.toAsset(serviceId, systemParticipantContextId);
