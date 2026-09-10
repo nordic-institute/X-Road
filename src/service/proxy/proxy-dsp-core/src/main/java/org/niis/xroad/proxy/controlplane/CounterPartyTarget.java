@@ -69,19 +69,23 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
     public static Map<String, CounterPartyTarget> managementMap() {
         return Map.ofEntries(
                 //For E2E
-                mgmtEntry("xrd-ss0", "xrd-ss0"),
-                mgmtEntry("xrd-ss1", "xrd-ss1"),
-                mgmtEntry("xrd-ss2", "xrd-ss2"),
+                mgmtEntry("xrd-ss0"),
+                mgmtEntry("xrd-ss1"),
+                mgmtEntry("xrd-ss2"),
                 //For LXD
-                mgmtEntry("xrd-ss0.lxd", "xrd-ss0.lxd"),
-                mgmtEntry("xrd-ss1.lxd", "xrd-ss1.lxd"),
-                mgmtEntry("xrd-ss2.lxd", "xrd-ss2.lxd"),
+                mgmtEntry("xrd-ss0.lxd"),
+                mgmtEntry("xrd-ss1.lxd"),
+                mgmtEntry("xrd-ss2.lxd"),
                 //For docker compose system-test
-                mgmtEntry("ss0", "ss0"),
-                mgmtEntry("ss1", "ss1"),
+                mgmtEntry("ss0"),
+                mgmtEntry("ss1"),
                 //For k8s
                 mgmtEntry("proxy.ss0", "xrd-ss0"),
                 mgmtEntry("proxy.ss1", "xrd-ss1"));
+    }
+
+    private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress) {
+        return mgmtEntry(hostAddress, hostAddress);
     }
 
     private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress, String hostParticipantId) {
