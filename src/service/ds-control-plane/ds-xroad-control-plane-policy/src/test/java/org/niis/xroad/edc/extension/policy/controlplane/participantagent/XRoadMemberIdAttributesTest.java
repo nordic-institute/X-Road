@@ -134,6 +134,25 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
+    void attributesForBreaksIssuanceDateTieDeterministicallyRegardlessOfListOrder() {
+        var sameInstant = Instant.now();
+        var firstOwnerVc = membershipVc("CS", "ORG", "owner-a", sameInstant);
+        var secondOwnerVc = membershipVc("CS", "ORG", "owner-b", sameInstant);
+
+        var tokenAB = ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(firstOwnerVc, secondOwnerVc))
+                .build();
+        var tokenBA = ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(secondOwnerVc, firstOwnerVc))
+                .build();
+
+        var resultAB = sut.attributesFor(tokenAB);
+        var resultBA = sut.attributesFor(tokenBA);
+
+        assertThat(resultAB).isEqualTo(resultBA);
+    }
+
+    @Test
     void attributesForReturnsEmptyMapWhenNoVcListClaim() {
         var token = ClaimToken.Builder.newInstance().build();
 
