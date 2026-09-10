@@ -3,12 +3,13 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: docker-build.sh [--target=full] [--no-cache] [--no-mirror]
+Usage: docker-build.sh [--target=main] [--no-cache] [--no-mirror]
                         [--packages-path=DIR] [version] [tag] [repo] [dist] [repo_key]
 
-  --target=full        Build only the main image. With no --target, all
+  --target=main        Build only the main image. With no --target, all
                        images (main, country variants, kubernetesBalancer)
-                       are built, unchanged from before.
+                       are built. "--target=full" is accepted as an alias
+                       for "main".
   --no-cache           Pass --no-cache to every docker build.
   --no-mirror          Skip the package-mirror build args even if the
                        XROAD_MIRROR_* environment variables are set.
@@ -47,9 +48,11 @@ done
 set -- "${args_to_keep[@]+"${args_to_keep[@]}"}"
 
 case "$target" in
-    ""|full) ;;
+    "") ;;
+    full) target="main" ;;
+    main) ;;
     *)
-        echo "Unknown --target: $target (expected 'full')" >&2
+        echo "Unknown --target: $target (expected 'main')" >&2
         usage >&2
         exit 1
         ;;
@@ -138,7 +141,7 @@ else
   docker pull ubuntu:26.04
 fi
 
-if $build_all || [[ "$target" == "full" ]]; then
+if $build_all || [[ "$target" == "main" ]]; then
   build "$dir/Dockerfile" "" true
 fi
 
