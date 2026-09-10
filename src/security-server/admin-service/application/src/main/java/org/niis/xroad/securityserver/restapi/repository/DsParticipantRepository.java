@@ -36,6 +36,7 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -70,5 +71,25 @@ public class DsParticipantRepository {
      */
     public boolean decommissionMember(ClientId member) {
         return dsParticipantDAO.decommissionMember(persistenceUtils.getCurrentSession(), member);
+    }
+
+    /**
+     * Finds every bound participant row currently marked decommissioned, awaiting teardown convergence.
+     *
+     * @return the decommissioned rows
+     */
+    public List<DsParticipantEntity> findDecommissioned() {
+        return dsParticipantDAO.findDecommissioned(persistenceUtils.getCurrentSession());
+    }
+
+    /**
+     * Deletes the given participant row by id, in the caller's transaction. Idempotent: deleting an
+     * already-absent row is not an error.
+     *
+     * @param id the participant row id
+     * @return {@code true} if a row was deleted, {@code false} if none existed
+     */
+    public boolean delete(Long id) {
+        return dsParticipantDAO.delete(persistenceUtils.getCurrentSession(), id);
     }
 }

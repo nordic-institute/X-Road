@@ -42,6 +42,7 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -242,6 +243,24 @@ public class DsParticipantDAOImplTest {
         assertFalse(flipped);
         Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
         assertFalse(loaded.isPresent());
+    }
+
+    @Test
+    public void findDecommissionedReturnsOnlyDecommissionedRows() {
+        ClientId decommissionedMember = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-find-decom");
+        ClientId activeMember = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-find-active");
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.save(session, memberParticipant(session, decommissionedMember));
+            dao.save(session, memberParticipant(session, activeMember));
+            return null;
+        });
+
+        DATABASE_CTX.doInTransaction(session -> dao.decommissionMember(session, decommissionedMember));
+        List<DsParticipantEntity> decommissioned = DATABASE_CTX.doInTransaction(dao::findDecommissioned);
+
+        assertTrue(decommissioned.stream().allMatch(row -> row.getState() == ParticipantState.DECOMMISSIONED));
+        assertTrue(decommissioned.stream().anyMatch(row -> decommissionedMember.equals(row.getMemberIdentifier())));
+        assertTrue(decommissioned.stream().noneMatch(row -> activeMember.equals(row.getMemberIdentifier())));
     }
 
     @Test

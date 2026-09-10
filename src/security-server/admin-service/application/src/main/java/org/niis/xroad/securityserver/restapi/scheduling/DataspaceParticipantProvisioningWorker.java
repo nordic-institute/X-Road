@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -39,8 +40,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Level-triggered provisioning worker that drives data space participant context provisioning
- * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
+ * Level-triggered provisioning worker that drives data space participant context provisioning and
+ * teardown from real lifecycle state. One idempotent, non-blocking step is performed per tick; no
+ * success is cached, so convergence is re-derived every tick from serverconf and the binding table.
+ * Every tick — whether from {@link #scheduledProvision()} or {@link #provisionParticipantAsync()} —
+ * runs through {@link #provisionParticipantBestEffort()}, which is {@code synchronized} so at most
+ * one tick converges at a time within this node.
  */
 @Slf4j
 @Component
@@ -86,11 +91,13 @@ public class DataspaceParticipantProvisioningWorker {
     }
 
     /**
-     * Executes one idempotent provisioning step. A failure in one participant context is logged and
-     * does not block the remaining contexts; a context whose creation failed is skipped in the
-     * credential pass of the same tick.
+     * Executes one idempotent provisioning and teardown step. A failure in one participant context
+     * (or one tombstone) is logged and does not block the remaining ones; a context whose creation
+     * failed is skipped in the credential pass of the same tick.
      */
     public void provisionParticipant() {
+        teardownDecommissioned();
+
         var contexts = dataspaceProvisioningService.participantContexts(true);
         if (ownerUnknown(contexts)) {
             log.debug("Data space provisioning: SS owner not yet known, skipping");
@@ -112,6 +119,23 @@ public class DataspaceParticipantProvisioningWorker {
 
     private static boolean ownerUnknown(List<ParticipantContext> contexts) {
         return contexts.stream().anyMatch(context -> context.memberId() == null);
+    }
+
+    /**
+     * Converges every decommissioned binding one step closer to absence. A failure tearing down one
+     * tombstone is logged and does not block the rest; the row (and whichever steps did not complete)
+     * is left for the next tick.
+     */
+    private void teardownDecommissioned() {
+        List<TombstonedParticipant> tombstones = dataspaceProvisioningService.decommissionedParticipants();
+        for (var tombstone : tombstones) {
+            try {
+                dataspaceProvisioningService.teardownParticipant(tombstone);
+            } catch (Exception e) {
+                log.error("Data space provisioning: failed to tear down participant {}, continuing with the rest",
+                        tombstone.participantContextId(), e);
+            }
+        }
     }
 
     private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {

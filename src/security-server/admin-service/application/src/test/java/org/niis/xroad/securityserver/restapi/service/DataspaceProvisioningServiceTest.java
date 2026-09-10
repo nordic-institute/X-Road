@@ -64,6 +64,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -363,6 +364,23 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void participantContextsExcludesMemberWithUnconvergedTombstone() {
+        givenServerConfWithOwner(OWNER);
+        var registeredClient = clientWith(MEMBER, Client.STATUS_REGISTERED);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(registeredClient));
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
+        lenient().when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.empty());
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
+                .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
+                .containsExactly(ParticipantIdentifierScheme.memberCtxId(OWNER));
+    }
+
+    @Test
     void participantContextsReturnsOnlyHostWhenOwnerNotYetSet() {
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(null);
@@ -586,6 +604,33 @@ class DataspaceProvisioningServiceTest {
                 .thenThrow(new DataAccessResourceFailureException("connection lost"));
 
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNKNOWN);
+    }
+
+    // --- decommissionedParticipants / teardownParticipant ---
+
+    @Test
+    void decommissionedParticipantsReturnsBoundRowsMarkedDecommissioned() {
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        decommissioned.setId(42L);
+        when(dsParticipantRepository.findDecommissioned()).thenReturn(List.of(decommissioned));
+
+        var tombstones = service.decommissionedParticipants();
+
+        assertThat(tombstones).containsExactly(
+                new DataspaceProvisioningService.TombstonedParticipant(42L, ParticipantIdentifierScheme.memberCtxId(MEMBER)));
+    }
+
+    @Test
+    void teardownParticipantDeletesControlPlaneThenHubThenRow() {
+        var tombstone = new DataspaceProvisioningService.TombstonedParticipant(7L, PARTICIPANT_ID);
+
+        service.teardownParticipant(tombstone);
+
+        var order = inOrder(controlPlaneClient, identityHubClient, dsParticipantRepository);
+        order.verify(controlPlaneClient).deleteParticipantContext(PARTICIPANT_ID);
+        order.verify(identityHubClient).deleteParticipantContext(PARTICIPANT_ID);
+        order.verify(dsParticipantRepository).delete(7L);
     }
 
     private void givenServerConfWithOwner(ClientId owner) {

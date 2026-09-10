@@ -39,6 +39,7 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -96,6 +97,23 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         }
         existing.get().setState(ParticipantState.DECOMMISSIONED);
         return true;
+    }
+
+    /**
+     * Finds every bound participant row currently marked {@link ParticipantState#DECOMMISSIONED},
+     * i.e. awaiting teardown convergence.
+     *
+     * @param session the Hibernate session
+     * @return the decommissioned rows
+     */
+    public List<DsParticipantEntity> findDecommissioned(Session session) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+
+        query.select(root).where(cb.equal(root.get("state"), ParticipantState.DECOMMISSIONED));
+
+        return session.createQuery(query).list();
     }
 
     /**

@@ -80,6 +80,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       past slots in terminal ERROR.</li>
  *   <li>{@link #readCredentialStatus(String)} — returns the current credential status
  *       ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active) without polling.</li>
+ *   <li>{@link #decommissionedParticipants()} — enumerates the bound rows awaiting teardown
+ *       convergence.</li>
+ *   <li>{@link #teardownParticipant(TombstonedParticipant)} — idempotently deletes one tombstoned
+ *       participant's CP context, then its IH context, then its binding row; row deletion is the
+ *       convergence marker.</li>
  * </ul>
  *
  * <p>Slot semantics: each participant holds up to {@code maxHolderPidSlots} sequentially named holder-request
@@ -126,6 +131,15 @@ public class DataspaceProvisioningService {
                         "MEMBER participant context %s requires a member id", participantId);
             }
         }
+    }
+
+    /**
+     * One bound participant row awaiting teardown convergence.
+     *
+     * @param id                   the {@code ds_participant} row id, the target of the convergence-marking delete
+     * @param participantContextId the participant context id to tear down in Control Plane and IdentityHub
+     */
+    public record TombstonedParticipant(Long id, String participantContextId) {
     }
 
     /**
@@ -195,6 +209,32 @@ public class DataspaceProvisioningService {
                                     .formatted(hubDid, participantId, intendedDid))
                             .build();
                 });
+    }
+
+    /**
+     * Enumerates the bound participant rows awaiting teardown convergence: every {@code ds_participant}
+     * row currently marked {@link ParticipantState#DECOMMISSIONED}. A member with an entry here is
+     * excluded from {@link #participantContexts(boolean)} until its row is gone.
+     */
+    @Transactional(readOnly = true)
+    public List<TombstonedParticipant> decommissionedParticipants() {
+        return dsParticipantRepository.findDecommissioned().stream()
+                .map(row -> new TombstonedParticipant(row.getId(), row.getCtxId()))
+                .toList();
+    }
+
+    /**
+     * Converges one decommissioned binding toward absence: deletes the Control Plane participant
+     * context, then the IdentityHub participant context, then the binding row. Row deletion is the
+     * convergence marker; every step is idempotent, so a failure here simply leaves the row (and
+     * whichever steps did not complete) for the next tick to retry.
+     *
+     * @param participant the tombstoned participant row to tear down
+     */
+    public void teardownParticipant(TombstonedParticipant participant) {
+        controlPlaneClient.deleteParticipantContext(participant.participantContextId());
+        identityHubClient.deleteParticipantContext(participant.participantContextId());
+        dsParticipantRepository.delete(participant.id());
     }
 
     /**
@@ -273,6 +313,9 @@ public class DataspaceProvisioningService {
      * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
      * members as soon as they have a registered local client. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
+     * A member with an unconverged {@link ParticipantState#DECOMMISSIONED} row is excluded — it is
+     * never provisioned until that tombstone is gone, which prevents provision/teardown flapping on
+     * a rapid remove-then-re-add.
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
      */
@@ -290,10 +333,18 @@ public class DataspaceProvisioningService {
             contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
         }
 
-        ownerId.ifPresent(id -> hostedMembers(id).forEach(member ->
-                contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member))));
+        ownerId.ifPresent(id -> hostedMembers(id).stream()
+                .filter(member -> !isTombstoned(member))
+                .forEach(member -> contexts.add(
+                        new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member))));
 
         return contexts;
+    }
+
+    private boolean isTombstoned(ClientId member) {
+        return dsParticipantRepository.findByMemberIdentifier(member)
+                .map(row -> row.getState() == ParticipantState.DECOMMISSIONED)
+                .orElse(false);
     }
 
     private Optional<ClientId> ownerId() {
