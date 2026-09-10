@@ -92,7 +92,10 @@ RUN rm -f \
     /var/log/syslog \
     /var/log/xroad/* \
     /var/log/postgresql/* \
-  && sed -E -i 's/-Xmx[0-9]+./-XX:MaxRAMPercentage=25.0/' /etc/xroad/services/proxy.conf \
+  && (grep -qF 'echo "-Xms$default_xms -Xmx$default_xmx"' /usr/share/xroad/scripts/proxy_memory_helper.sh \
+      || { echo "ERROR: proxy_memory_helper.sh get-default line not found, refusing to patch proxy heap sizing" >&2; exit 1; }) \
+  && sed -i 's/echo "-Xms$default_xms -Xmx$default_xmx"/echo "-Xms$default_xms -XX:MaxRAMPercentage=25.0"/' \
+    /usr/share/xroad/scripts/proxy_memory_helper.sh \
 ##
 # create a backup of the configuration for version migration and
 # for initializing an empty config volume
