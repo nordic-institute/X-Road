@@ -27,6 +27,7 @@
 package org.niis.xroad.common.properties.config;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
 import org.niis.xroad.common.properties.util.DurationConverter;
 
 import java.time.Duration;
@@ -447,7 +448,8 @@ public abstract sealed class Prefix {
 
         private BooleanKeyBuilder(Prefix prefix, String shortKey) {
             super(prefix, shortKey, Boolean.class);
-            converter = Boolean::parseBoolean;
+            converter = BooleanUtils::toBooleanObject;
+            validator = Validator.bool();
         }
 
         public BooleanKeyBuilder withDefaultValue(Boolean defaultValue) {
