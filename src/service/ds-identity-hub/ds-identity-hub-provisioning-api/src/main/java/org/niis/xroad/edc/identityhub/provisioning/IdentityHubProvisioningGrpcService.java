@@ -126,40 +126,39 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
     }
 
     /**
-     * Best-effort wrapper around {@link #reanchorMemberId}: a read/update failure is logged and
-     * swallowed rather than failing the RPC, since {@code CONFLICT} on create was already a
-     * tolerated, infallible outcome before re-anchoring existed — the caller's provisioning loop
-     * retries on its next tick regardless. Returns whether the stored member id is confirmed to
-     * match {@code memberId} after this call.
+     * Re-points an already-existing participant context's stored member id to {@code memberId},
+     * leaving everything else about the context untouched. A no-op when the stored value already
+     * matches, so repeated calls with the same member id do not write on every tick.
+     *
+     * <p>Every read or write failure, reported or thrown, is logged and absorbed: {@code CONFLICT}
+     * on create is a tolerated outcome that never fails the RPC, and the caller's provisioning loop
+     * retries on its next tick. Returns whether the stored member id is confirmed to match.
      */
     private boolean tryReanchorMemberId(String participantContextId, String memberId) {
         try {
-            return reanchorMemberId(participantContextId, memberId);
+            var current = participantContextService.getParticipantContext(participantContextId);
+            if (current.failed()) {
+                logReanchorFailure(participantContextId, current.getFailureDetail());
+                return false;
+            }
+            if (memberId.equals(current.getContent().getProperties().get(XROAD_MEMBER_ID_PROPERTY))) {
+                return true;
+            }
+            var result = participantContextService.updateParticipant(participantContextId,
+                    ctx -> ctx.getProperties().put(XROAD_MEMBER_ID_PROPERTY, memberId));
+            if (result.failed()) {
+                logReanchorFailure(participantContextId, result.getFailureDetail());
+                return false;
+            }
+            return true;
         } catch (RuntimeException e) {
-            log.warn("Failed to re-anchor member id for participant context '{}': {}", participantContextId, e.getMessage());
+            logReanchorFailure(participantContextId, e.getMessage());
             return false;
         }
     }
 
-    /**
-     * Re-points an already-existing participant context's stored member id to {@code memberId},
-     * leaving everything else about the context untouched. A no-op when the stored value already
-     * matches, so repeated calls with the same member id do not write on every tick.
-     */
-    private boolean reanchorMemberId(String participantContextId, String memberId) {
-        var current = participantContextService.getParticipantContext(participantContextId);
-        if (current.failed()) {
-            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, current.getFailureDetail());
-        }
-        if (memberId.equals(current.getContent().getProperties().get(XROAD_MEMBER_ID_PROPERTY))) {
-            return true;
-        }
-        var result = participantContextService.updateParticipant(participantContextId,
-                ctx -> ctx.getProperties().put(XROAD_MEMBER_ID_PROPERTY, memberId));
-        if (result.failed()) {
-            throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, result.getFailureDetail());
-        }
-        return true;
+    private void logReanchorFailure(String participantContextId, String detail) {
+        log.warn("Failed to re-anchor member id for participant context '{}': {}", participantContextId, detail);
     }
 
     private RequestCredentialResp requestCredentialInternal(RequestCredentialReq request) {

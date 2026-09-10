@@ -209,6 +209,25 @@ class IdentityHubProvisioningGrpcServiceTest {
     }
 
     @Test
+    void createParticipantContextSwallowsThrownReanchorFailureAndReportsNotReanchored() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenThrow(new IllegalStateException("store unavailable"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/5678")
+                .setReanchorMemberIdOnConflict(true)
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(false).build());
+        verify(createObserver).onCompleted();
+        verify(createObserver, never()).onError(any());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void requestCredentialToleratesConflict() {
         when(credentialRequestManager.initiateRequest(anyString(), anyString(), anyString(), any()))
