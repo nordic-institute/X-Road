@@ -87,8 +87,9 @@ public class DataspaceParticipantProvisioningWorker {
 
     /**
      * Executes one idempotent provisioning step. A failure in one participant context is logged and
-     * does not block the remaining contexts; a context whose creation failed is skipped in the
-     * credential pass of the same tick.
+     * does not block the remaining contexts; a context whose creation failed, or whose SYSTEM member-id
+     * re-anchor the identity hub has not confirmed, is skipped in the credential pass of the same tick
+     * — see {@link #ensureContexts}.
      */
     public void provisionParticipant() {
         var contexts = dataspaceProvisioningService.participantContexts(true);
@@ -114,13 +115,25 @@ public class DataspaceParticipantProvisioningWorker {
         return contexts.stream().anyMatch(context -> context.memberId() == null);
     }
 
+    /**
+     * Ensures every context, then returns only those eligible for the credential pass in this tick:
+     * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
+     * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
+     * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
+     * still created/updated as usual, only its credential request is deferred to a later tick.
+     */
     private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
-                        context.memberId());
-                ensured.add(context);
+                var credentialIssuanceSafe = dataspaceProvisioningService.ensureParticipantContext(context.participantId(),
+                        context.kind(), context.memberId());
+                if (credentialIssuanceSafe) {
+                    ensured.add(context);
+                } else {
+                    log.debug("Data space provisioning: deferring credential issuance for participant {} until the "
+                            + "SYSTEM member-id re-anchor is confirmed", context.participantId());
+                }
             } catch (Exception e) {
                 log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
                         context.participantId(), e);
