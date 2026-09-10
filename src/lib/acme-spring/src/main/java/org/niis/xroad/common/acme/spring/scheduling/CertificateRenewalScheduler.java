@@ -49,6 +49,7 @@ public class CertificateRenewalScheduler implements DisposableBean {
     private static final Duration INITIAL_DELAY = Duration.of(5, SECONDS);
     private boolean retryMode;
     private boolean rescheduledDuringCycle;
+    private volatile boolean shuttingDown;
 
     public CertificateRenewalScheduler(AcmeRenewalWorker acmeRenewalWorker, AcmeSchedulingProperties acmeConfig,
                                        TaskScheduler taskScheduler) {
@@ -85,6 +86,7 @@ public class CertificateRenewalScheduler implements DisposableBean {
 
     @Override
     public void destroy() {
+        shuttingDown = true;
         cancelNext();
         if (ownsTaskScheduler) {
             log.info("Shutting down dedicated ACME renewal scheduler thread");
@@ -144,6 +146,9 @@ public class CertificateRenewalScheduler implements DisposableBean {
     }
 
     private void reschedule(Duration delay) {
+        if (shuttingDown) {
+            return;
+        }
         cancelNext();
         log.trace("Rescheduling job after {}", delay);
         this.scheduledFuture = taskScheduler.schedule(this::runJob, taskScheduler.getClock().instant().plus(delay));

@@ -36,6 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import java.lang.reflect.Field;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +58,14 @@ class CertificateRenewalSchedulerTest {
         scheduler.destroy();
 
         assertThat(dedicatedScheduler.getScheduledExecutor().isShutdown()).isTrue();
+    }
+
+    @Test
+    void rescheduleAfterDestroyIsANoOp() {
+        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(acmeRenewalWorker, acmeConfig, "test-shutdown-race-");
+        scheduler.destroy();
+
+        assertThatCode(scheduler::init).doesNotThrowAnyException();
     }
 
     @Test
