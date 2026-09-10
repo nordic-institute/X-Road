@@ -189,6 +189,9 @@ resolutions:
     - message: ".*CC-BY-SA-3.0 in Unmanaged::X-Road:.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The files meant by this license hit are not distributed with X-Road."
+    - message: ".*CC-BY-SA-2.5 in Unmanaged::X-Road:.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The files meant by this license hit are not distributed with X-Road."
   issues:
     - message: "ERROR: Timeout after 1200 seconds while scanning file 'package/dist/echarts.esm.mjs.map'."
       reason: "SCANNER_ISSUE"
