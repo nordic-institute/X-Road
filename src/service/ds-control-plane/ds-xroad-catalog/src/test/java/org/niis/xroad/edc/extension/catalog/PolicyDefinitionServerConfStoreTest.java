@@ -363,9 +363,9 @@ class PolicyDefinitionServerConfStoreTest {
         var mgmtCtx = result.stream().filter(p -> MGMT_PARTICIPANT_CTX.equals(p.getParticipantContextId())).toList();
         var systemCtx = result.stream().filter(p -> SYSTEM_PARTICIPANT_CTX.equals(p.getParticipantContextId())).toList();
         assertThat(mgmtCtx).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
-        assertThat(systemCtx).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
-        assertThat(systemCtx).noneSatisfy(p ->
-                assertThat(p.getId()).startsWith(MGMT_CLIENT.asEncodedId() + ":authCertReg"));
+        assertThat(systemCtx)
+                .hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size())
+                .noneSatisfy(p -> assertThat(p.getId()).startsWith(MGMT_CLIENT.asEncodedId() + ":authCertReg"));
     }
 
     @Test

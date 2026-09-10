@@ -399,9 +399,9 @@ class ContractDefinitionServerConfStoreTest {
         var mgmtCtx = result.stream().filter(d -> MGMT_PARTICIPANT_CTX.equals(d.getParticipantContextId())).toList();
         var systemCtx = result.stream().filter(d -> SYSTEM_PARTICIPANT_CTX.equals(d.getParticipantContextId())).toList();
         assertThat(mgmtCtx).hasSize(ManagementServiceCatalog.SERVICE_CODES.size());
-        assertThat(systemCtx).hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size());
-        assertThat(systemCtx).noneSatisfy(d ->
-                assertThat(d.getAccessPolicyId()).startsWith(MGMT_CLIENT.asEncodedId() + ":authCertReg"));
+        assertThat(systemCtx)
+                .hasSize(ManagementServiceCatalog.SYSTEM_SERVICE_CODES.size())
+                .noneSatisfy(d -> assertThat(d.getAccessPolicyId()).startsWith(MGMT_CLIENT.asEncodedId() + ":authCertReg"));
     }
 
     @Test
