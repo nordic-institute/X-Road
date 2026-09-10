@@ -98,9 +98,10 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
     }
 
     @Override
-    public AssetAccessResponse acquireAssetAccess(String assetId, String counterPartyId, String counterPartyAddress) {
+    public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
+                                                  String counterPartyAddress) {
         var cacheKey = new AssetAccessCache.CacheKey(
-                clientProperties.participantContextId(),
+                participantContextId,
                 assetId,
                 counterPartyId,
                 counterPartyAddress,

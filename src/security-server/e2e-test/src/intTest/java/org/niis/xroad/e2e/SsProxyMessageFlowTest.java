@@ -27,6 +27,9 @@ package org.niis.xroad.e2e;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -34,6 +37,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,6 +127,14 @@ class SsProxyMessageFlowTest extends E2eTest {
             {"data": 1.0, "service": "random"}
             """;
 
+    private static final String PROVIDER_ENV = "ss0";
+    private static final String GET_RANDOM_ASSET_ID = "DEV:COM:1234:TestService:getRandom:v1";
+    private static final String TEST_CLIENT_MEMBER_CTX_ID = "DEV:COM:4321";
+    private static final String TEST_CONSUMER_MEMBER_CTX_ID = "DEV:COM:1234";
+
+    private static final Duration NEGOTIATION_POLL_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration NEGOTIATION_POLL_INTERVAL = Duration.ofSeconds(2);
+
     @Test
     @Order(1)
     @DisplayName("Soap request is successful over proxy")
@@ -191,6 +206,57 @@ class SsProxyMessageFlowTest extends E2eTest {
             loginResponse.then().statusCode(200);
             assertThat(loginResponse.cookie("XSRF-TOKEN")).isNotBlank();
         });
+    }
+
+    /**
+     * Proves which identity each of the two SOAP exchanges above actually negotiated as: the provider's
+     * control plane records the consumer's DID as {@code counterparty_id}, and the sender member's derived
+     * DID ends in {@code :v1:{instance}:{class}:{code}}. Under the old single-context behaviour both
+     * exchanges would surface one host-context counterparty, so two distinct member suffixes for the same
+     * asset is direct evidence of per-sender negotiation, not an artifact the calls could produce anyway.
+     * Sends no traffic of its own — {@link SsMessagelogArchiveTest} asserts exact messagelog counts over
+     * this class's requests.
+     */
+    @Test
+    @Order(5)
+    @DisplayName("The two SOAP exchanges negotiated as their sender members' own participant identities")
+    void soapExchangesNegotiatedAsSenderMemberIdentities(E2eEnvironment env) {
+        Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
+                () -> "%s does not wire up ds-control-plane database access; negotiated-identity verification "
+                        + "is only available on k8s and LXD".formatted(env.getClass().getSimpleName()));
+        var dbOps = (DsControlPlaneDbOps) env;
+
+        then("ss0's control plane holds getRandom negotiations from two distinct sender-member identities", () ->
+                awaitSenderMemberCounterParties(dbOps));
+    }
+
+    private void awaitSenderMemberCounterParties(DsControlPlaneDbOps dbOps) {
+        var sql = "SELECT DISTINCT n.counterparty_id FROM edc_contract_negotiation n "
+                + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
+                + "WHERE a.asset_id = '" + GET_RANDOM_ASSET_ID + "'";
+        var lastSeen = new AtomicReference<>(List.<String>of());
+
+        try {
+            Awaitility.await()
+                    .pollInterval(NEGOTIATION_POLL_INTERVAL)
+                    .timeout(NEGOTIATION_POLL_TIMEOUT)
+                    .ignoreExceptions()
+                    .until(() -> {
+                        var counterParties = dbOps.execDsControlPlaneSql(PROVIDER_ENV, sql).lines().toList();
+                        lastSeen.set(counterParties);
+                        return hasMemberCounterParty(counterParties, TEST_CLIENT_MEMBER_CTX_ID)
+                                && hasMemberCounterParty(counterParties, TEST_CONSUMER_MEMBER_CTX_ID);
+                    });
+        } catch (ConditionTimeoutException e) {
+            throw new ConditionTimeoutException(
+                    ("Timed out waiting for getRandom negotiations from both sender members (counterparty DIDs "
+                            + "ending :v1:%s and :v1:%s) on ss0's control plane; last observed counterparty ids: %s")
+                            .formatted(TEST_CLIENT_MEMBER_CTX_ID, TEST_CONSUMER_MEMBER_CTX_ID, lastSeen.get()), e);
+        }
+    }
+
+    private static boolean hasMemberCounterParty(List<String> counterPartyDids, String memberCtxId) {
+        return counterPartyDids.stream().anyMatch(did -> did.endsWith(":v1:" + memberCtxId));
     }
 
     private ValidatableResponse sendSoapRequest(E2eEnvironment env, String body) {
