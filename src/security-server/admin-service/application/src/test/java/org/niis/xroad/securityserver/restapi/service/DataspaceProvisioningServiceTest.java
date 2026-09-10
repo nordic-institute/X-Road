@@ -101,8 +101,6 @@ class DataspaceProvisioningServiceTest {
     @Mock
     private ServerConfRepository serverConfRepository;
     @Mock
-    private ServerConfService serverConfService;
-    @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private GlobalConfProvider globalConfProvider;
@@ -120,10 +118,15 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
-        lenient().when(serverConfService.getSecurityServerId()).thenReturn(SERVER_ID);
+        var ownerEntity = mock(ClientEntity.class);
+        lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
+        var serverConf = mock(ServerConfEntity.class);
+        lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
+        lenient().when(serverConf.getServerCode()).thenReturn(SERVER_ID.getServerCode());
+        lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         lenient().when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, serverConfService, dsParticipantRepository, globalConfProvider);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
     }
 
     // --- ensureMembershipCredential ---

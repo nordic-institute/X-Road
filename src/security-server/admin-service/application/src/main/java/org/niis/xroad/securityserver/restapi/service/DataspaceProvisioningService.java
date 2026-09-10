@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -158,7 +159,6 @@ public class DataspaceProvisioningService {
     private final ControlPlaneProvisioningClient controlPlaneClient;
     private final ClientRepository clientRepository;
     private final ServerConfRepository serverConfRepository;
-    private final ServerConfService serverConfService;
     private final DsParticipantRepository dsParticipantRepository;
     private final GlobalConfProvider globalConfProvider;
 
@@ -387,8 +387,14 @@ public class DataspaceProvisioningService {
         return DspConventions.didAuthority(registeredAddress());
     }
 
+    /**
+     * Resolves the server id through the repository, not {@link ServerConfService}: callers include
+     * the unauthenticated scheduled provisioning worker, which the service's authentication guard
+     * would reject.
+     */
     private String registeredAddress() {
-        var serverId = serverConfService.getSecurityServerId();
+        var serverConf = serverConfRepository.getServerConf();
+        var serverId = SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
         var address = globalConfProvider.getSecurityServerAddress(serverId);
         if (address == null || address.isBlank()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,

@@ -27,7 +27,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,8 +89,6 @@ class DataspaceProvisioningStatusServiceTest {
     @Mock
     private ServerConfRepository serverConfRepository;
     @Mock
-    private ServerConfService serverConfService;
-    @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private GlobalConfProvider globalConfProvider;
@@ -114,15 +111,15 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
         var serverConf = mock(ServerConfEntity.class);
         lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
+        lenient().when(serverConf.getServerCode()).thenReturn("SS0");
         lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of());
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
-        lenient().when(serverConfService.getSecurityServerId()).thenReturn(SecurityServerId.Conf.create(OWNER, "SS0"));
         lenient().when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("ss.example.test");
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, serverConfService, dsParticipantRepository, globalConfProvider);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);
