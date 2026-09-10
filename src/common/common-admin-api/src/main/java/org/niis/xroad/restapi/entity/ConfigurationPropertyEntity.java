@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.entity;
 
-export * from './backups';
-export * from './basic-types';
-export * from './notifications';
-export * from './routing';
-export * from './theme';
-export * from './api-keys';
-export * from './tls-certificates';
-export * from './admin-users';
-export * from './configurable-properties';
+import jakarta.persistence.Access;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+import static jakarta.persistence.AccessType.FIELD;
+
+@Getter
+@Setter
+@Entity
+@Table(name = ConfigurationPropertyEntity.TABLE_NAME)
+@Access(FIELD)
+public class ConfigurationPropertyEntity {
+
+    public static final String TABLE_NAME = "configuration_properties";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", unique = true, nullable = false)
+    private Integer id;
+
+    @Column(name = "property_key", nullable = false, length = 1024)
+    private String propertyKey;
+
+    @Column(name = "property_value", nullable = false, length = 4096)
+    private String propertyValue;
+}

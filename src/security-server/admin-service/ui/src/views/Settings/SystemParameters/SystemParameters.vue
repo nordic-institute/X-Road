@@ -268,17 +268,13 @@
         </v-table>
       </XrdCard>
 
-      <XrdCard
-        v-if="hasPermission(Permissions.CHANGE_CONFIGURATION_PROPERTY)"
-        title="systemParameters.configurableProperties.title"
-        class="settings-block"
-      >
+      <XrdCard v-if="hasPermission(Permissions.CHANGE_CONFIGURATION_PROPERTY)" title="configurableProperties.title" class="settings-block">
         <template #title-actions>
           <XrdBtn
             v-if="hasAnyOpenScope"
             data-test="configurable-properties-collapse-all"
             variant="text"
-            text="systemParameters.configurableProperties.collapseAll"
+            text="configurableProperties.collapseAll"
             prepend-icon="keyboard_arrow_up"
             color="tertiary"
             @click="collapseAllScopes"
@@ -293,7 +289,7 @@
           density="compact"
           data-test="configurable-properties-restart-warning"
         >
-          {{ $t('systemParameters.configurableProperties.restartWarning', { scopes: [...modifiedScopes].join(', ') }) }}
+          {{ $t('configurableProperties.restartWarning', { scopes: [...modifiedScopes].join(', ') }) }}
         </v-alert>
 
         <div class="px-4">
@@ -301,7 +297,8 @@
             v-model="propertySearch"
             data-test="configurable-properties-search"
             autofocus
-            :label="$t('systemParameters.configurableProperties.search')" />
+            :label="$t('configurableProperties.search')"
+          />
         </div>
 
         <XrdEmptyPlaceholder
@@ -312,12 +309,8 @@
           :no-items-text="$t('noData.noConfigurableProperties')"
         />
 
-        <div
-          v-if="!loadingProperties && filteredScopeKeys.length > 0"
-          class="mt-3 mx-4 mb-4"
-          data-test="configurable-properties-panels"
-        >
-          <ScopePropertiesExpandable
+        <div v-if="!loadingProperties && filteredScopeKeys.length > 0" class="mt-3 mx-4 mb-4" data-test="configurable-properties-panels">
+          <XrdScopePropertiesExpandable
             v-for="(scope, index) in filteredScopeKeys"
             :key="scope"
             :class="{ 'mb-4': index < filteredScopeKeys.length - 1 }"
@@ -325,6 +318,7 @@
             :properties="filteredPropertiesByScope[scope]"
             :modified-properties="modifiedProperties"
             :is-open="openScopes[scope] ?? false"
+            :get-property-description="getPropertyDescription"
             @open="openScopes[scope] = $event"
             @edit-property="editingProperty = $event"
           />
@@ -337,9 +331,10 @@
       @cancel="showEditServerAddressDialog = false"
       @address-updated="addressChangeSubmitted"
     />
-    <EditConfigurablePropertyDialog
+    <XrdEditConfigurablePropertyDialog
       v-if="editingProperty"
       :property="editingProperty"
+      :configurable-properties-handler="configurablePropertiesHandler"
       @cancel="editingProperty = undefined"
       @saved="onPropertySaved"
     />
@@ -348,6 +343,7 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   saveResponseAsFile,
   useNotifications,
@@ -355,21 +351,22 @@ import {
   XrdCard,
   XrdDate,
   XrdDateTime,
+  XrdEditConfigurablePropertyDialog,
   XrdEmptyPlaceholder,
   XrdEmptyPlaceholderRow,
   XrdHashValue,
+  XrdScopePropertiesExpandable,
   XrdStatusChip,
   XrdStatusIcon,
   XrdSubView,
   XrdView,
 } from '@niis/shared-ui';
-import type { Anchor, CertificateAuthority, SecurityServerConfigurableProperty, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
+import type { ConfigurablePropertiesHandler, ConfigurablePropertyDto } from '@niis/shared-ui';
+import type { Anchor, CertificateAuthority, ServicePrioritizationStrategy, TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddTimestampingServiceDialog.vue';
-import EditConfigurablePropertyDialog from '@/views/Settings/SystemParameters/EditConfigurablePropertyDialog.vue';
-import ScopePropertiesExpandable from '@/views/Settings/SystemParameters/ScopePropertiesExpandable.vue';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
@@ -380,12 +377,15 @@ import { useTimestampingServices } from '@/store/modules/timestamping-services';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
 const { addError } = useNotifications();
+const { t, te } = useI18n();
 const {
   fetchConfigurationAnchor: apiFetchConfigurationAnchor,
   downloadAnchor: apiDownloadAnchor,
   fetchSecurityServerAddress,
   fetchConfigurableProperties,
+  updateConfigurableProperty,
 } = useSystem();
+const configurablePropertiesHandler: ConfigurablePropertiesHandler = { updateConfigurableProperty };
 const { fetchAddonStatus } = useDiagnostics();
 const { fetchSortedTimestampingServiced, fetchTimestampingPrioritizationStrategy: apiFetchTimestampingPrioritizationStrategy } =
   useTimestampingServices();
@@ -406,9 +406,9 @@ const messageLogEnabled = ref(false);
 const showEditServerAddressDialog = ref(false);
 const addressChangeInProgress = ref(false);
 const serverAddress = ref('');
-const configurableProperties = ref<SecurityServerConfigurableProperty[]>([]);
+const configurableProperties = ref<ConfigurablePropertyDto[]>([]);
 const loadingProperties = ref(false);
-const editingProperty = ref<SecurityServerConfigurableProperty | undefined>(undefined);
+const editingProperty = ref<ConfigurablePropertyDto | undefined>(undefined);
 const modifiedScopes = ref<Set<string>>(new Set());
 const modifiedProperties = ref<Set<string>>(new Set());
 const openScopes = ref<Record<string, boolean>>({});
@@ -418,8 +418,8 @@ const orderedCertificateAuthorities = computed<CertificateAuthority[]>(() =>
   [...certificateAuthorities.value].sort((a, b) => a.path.localeCompare(b.path)),
 );
 
-const propertiesByScope = computed<Record<string, SecurityServerConfigurableProperty[]>>(() => {
-  const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+const propertiesByScope = computed<Record<string, ConfigurablePropertyDto[]>>(() => {
+  const result: Record<string, ConfigurablePropertyDto[]> = {};
   for (const prop of configurableProperties.value) {
     const scope = prop.scope || 'common';
     if (!result[scope]) result[scope] = [];
@@ -431,11 +431,11 @@ const propertiesByScope = computed<Record<string, SecurityServerConfigurableProp
   return result;
 });
 
-const filteredPropertiesByScope = computed<Record<string, SecurityServerConfigurableProperty[]>>(() => {
+const filteredPropertiesByScope = computed<Record<string, ConfigurablePropertyDto[]>>(() => {
   const term = propertySearch.value.trim().toLowerCase();
   if (!term) return propertiesByScope.value;
 
-  const result: Record<string, SecurityServerConfigurableProperty[]> = {};
+  const result: Record<string, ConfigurablePropertyDto[]> = {};
   for (const [scope, props] of Object.entries(propertiesByScope.value)) {
     const matched = props.filter((p) => p.property_name?.toLowerCase().includes(term));
     if (matched.length > 0) result[scope] = matched;
@@ -444,14 +444,16 @@ const filteredPropertiesByScope = computed<Record<string, SecurityServerConfigur
 });
 
 const filteredScopeKeys = computed(() =>
-  Object.keys(filteredPropertiesByScope.value).sort((a, b) =>
-    a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b),
-  ),
+  Object.keys(filteredPropertiesByScope.value).sort((a, b) => (a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b))),
 );
 
-const hasAnyOpenScope = computed(() =>
-  filteredScopeKeys.value.some((scope) => openScopes.value[scope]),
-);
+const hasAnyOpenScope = computed(() => filteredScopeKeys.value.some((scope) => openScopes.value[scope]));
+
+function getPropertyDescription(propertyName: string | undefined): string {
+  if (!propertyName) return '-';
+  const key = 'systemParameters.configurableProperties.descriptions.' + propertyName;
+  return te(key) ? String(t(key)) : '-';
+}
 
 watch(filteredPropertiesByScope, (filtered) => {
   if (!propertySearch.value.trim()) return;

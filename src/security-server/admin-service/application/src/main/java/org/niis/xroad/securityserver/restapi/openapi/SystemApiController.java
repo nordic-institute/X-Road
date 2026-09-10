@@ -34,7 +34,11 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.openapi.ConfigurablePropertiesApi;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
+import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
@@ -57,12 +61,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerPropertyUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServicePrioritizationStrategyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.service.ConfigurablePropertiesService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
@@ -89,7 +90,7 @@ import java.util.Set;
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
-public class SystemApiController implements SystemApi {
+public class SystemApiController implements SystemApi, ConfigurablePropertiesApi {
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final ConfigurablePropertiesService configurablePropertiesService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -139,18 +140,16 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
-    public ResponseEntity<Set<SecurityServerConfigurablePropertyDto>> getConfigurableProperties() {
+    public ResponseEntity<Set<ConfigurablePropertyDto>> getConfigurableProperties() {
         return new ResponseEntity<>(configurablePropertiesService.getConfigurationProperties(), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CONFIGURATION_PROPERTY)
-    public ResponseEntity<Void> updateConfigurableProperty(
-            SecurityServerPropertyUpdateDto securityServerSystemParameterUpdateDto
-    ) {
-        var name = securityServerSystemParameterUpdateDto.getPropertyName();
-        var value = securityServerSystemParameterUpdateDto.getPropertyValue();
+    public ResponseEntity<Void> updateConfigurableProperty(ConfigurablePropertyUpdateDto configurablePropertyUpdateDto) {
+        var name = configurablePropertyUpdateDto.getPropertyName();
+        var value = configurablePropertyUpdateDto.getPropertyValue();
 
         configurablePropertiesService.updateConfigurableProperty(name, value);
 

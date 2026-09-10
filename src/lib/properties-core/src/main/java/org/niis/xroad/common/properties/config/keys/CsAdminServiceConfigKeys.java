@@ -60,6 +60,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
             .integer("global-configuration-generation-rate-in-seconds")
             .withDefaultValue(60)
             .publishedToFramework()
+            .exposedInUi()
             .build();
 
     // --- rate limiting ---
@@ -67,26 +68,31 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> RATE_LIMIT_ENABLED = ADMIN
             .bool("rate-limit-enabled")
             .withDefaultValue(true)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.rate-limit-requests-per-second}. */
     public static final ConfigKey<Integer> RATE_LIMIT_REQUESTS_PER_SECOND = ADMIN
             .integer("rate-limit-requests-per-second")
             .withDefaultValue(20)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.rate-limit-requests-per-minute}. */
     public static final ConfigKey<Integer> RATE_LIMIT_REQUESTS_PER_MINUTE = ADMIN
             .integer("rate-limit-requests-per-minute")
             .withDefaultValue(600)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.rate-limit-cache-size}. */
     public static final ConfigKey<Integer> RATE_LIMIT_CACHE_SIZE = ADMIN
             .integer("rate-limit-cache-size")
             .withDefaultValue(10000)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.rate-limit-expire-after-access-minutes}. */
     public static final ConfigKey<Integer> RATE_LIMIT_EXPIRE_AFTER_ACCESS_MINUTES = ADMIN
             .integer("rate-limit-expire-after-access-minutes")
             .withDefaultValue(5)
+            .exposedInUi()
             .build();
 
     // --- caching ---
@@ -94,11 +100,13 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Integer> CACHE_DEFAULT_TTL = ADMIN
             .integer("cache-default-ttl")
             .withDefaultValue(60)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.cache-api-key-ttl}. */
     public static final ConfigKey<Integer> CACHE_API_KEY_TTL = ADMIN
             .integer("cache-api-key-ttl")
             .withDefaultValue(60)
+            .exposedInUi()
             .build();
 
     // --- request handling ---
@@ -110,17 +118,20 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> STRICT_IDENTIFIER_CHECKS = ADMIN
             .bool("strict-identifier-checks")
             .withDefaultValue(true)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.request-size-limit-regular} — Spring {@code DataSize} string. */
     public static final ConfigKey<String> REQUEST_SIZE_LIMIT_REGULAR = ADMIN
             .string("request-size-limit-regular")
             .withDefaultValue("50KB")
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.request-size-limit-binary-upload} — Spring {@code DataSize} string. */
     public static final ConfigKey<String> REQUEST_SIZE_LIMIT_BINARY_UPLOAD = ADMIN
             .string("request-size-limit-binary-upload")
             .withDefaultValue("10MB")
             .publishedToFramework()
+            .exposedInUi()
             .build();
 
     // --- allowed files (Set<String>, modelled as string arrays) ---
@@ -163,11 +174,13 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<String> AUTHENTICATION_PROVIDER = ADMIN
             .string("authentication-provider")
             .withDefaultValue("PAM")
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.enforce-user-password-policy}. */
     public static final ConfigKey<Boolean> ENFORCE_USER_PASSWORD_POLICY = ADMIN
             .bool("enforce-user-password-policy")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
 
     // --- misc admin flags ---
@@ -175,6 +188,7 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> TRUSTED_ANCHORS_ALLOWED = ADMIN
             .bool("trusted-anchors-allowed")
             .withDefaultValue(true)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.conf-backup-path}. */
     public static final ConfigKey<String> CONF_BACKUP_PATH = ADMIN
@@ -395,16 +409,19 @@ public final class CsAdminServiceConfigKeys implements ConfigKeyProvider {
     public static final ConfigKey<Boolean> MANAGEMENT_REQUESTS_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = MANAGEMENT_REQUESTS
             .bool("auto-approve-auth-cert-reg-requests")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.management-requests.auto-approve-client-reg-requests}. */
     public static final ConfigKey<Boolean> MANAGEMENT_REQUESTS_AUTO_APPROVE_CLIENT_REG_REQUESTS = MANAGEMENT_REQUESTS
             .bool("auto-approve-client-reg-requests")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
     /** {@code xroad.admin-service.management-requests.auto-approve-owner-change-requests}. */
     public static final ConfigKey<Boolean> MANAGEMENT_REQUESTS_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = MANAGEMENT_REQUESTS
             .bool("auto-approve-owner-change-requests")
             .withDefaultValue(false)
+            .exposedInUi()
             .build();
 
     /**

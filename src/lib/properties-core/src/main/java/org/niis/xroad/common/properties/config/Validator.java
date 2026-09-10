@@ -85,6 +85,27 @@ public interface Validator<T> {
     }
 
     /**
+     * @return validator rejecting a value that failed to parse as a boolean, describing the literals
+     *         accepted by {@link org.apache.commons.lang3.BooleanUtils#toBooleanObject}
+     */
+    static Validator<Boolean> bool() {
+        var accepted = "true, false, TRUE, FALSE, True, False, 1, 0, Y, N, Yes, No, YES, NO, on, ON, off, OFF";
+        return new Validator<>() {
+            @Override
+            public Result validate(Boolean value) {
+                return value != null
+                        ? Result.ok()
+                        : Result.error("must be one of: " + accepted);
+            }
+
+            @Override
+            public Optional<String> describe() {
+                return Optional.of("one of: " + accepted);
+            }
+        };
+    }
+
+    /**
      * @param allowed permitted values
      * @return validator accepting only {@code allowed}
      */

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.restapi.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +33,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigKey;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.Prefix;
+import org.niis.xroad.common.properties.config.Validator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerConfigurablePropertyDto;
-import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
-import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
+import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,20 +62,53 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ConfigurablePropertiesServiceTest {
 
-    // an exposed key of AdminServiceConfigKeys — the catalogue is the only definition source
-    private static final String PROPERTY_NAME = "xroad.proxy-ui-api.acme-renewal-retry-delay";
+    private static final Prefix SCOPED = Prefix.of(Category.PROXY, "xroad.test-scoped");
+    private static final Prefix OTHER_SCOPED = Prefix.of(Category.SIGNER, "xroad.test-other-scoped");
+    private static final Prefix SCOPELESS = Prefix.of("xroad.test-common");
+
+    private static final ConfigKey<Integer> EXPOSED_KEY = SCOPED.integer("retry-count")
+            .withDefaultValue(60).exposedInUi().build();
+    private static final ConfigKey<Integer> CATALOGUE_KEY = OTHER_SCOPED.integer("port")
+            .withDefaultValue(5566).exposedInUi().build();
+    private static final ConfigKey<String> SCOPELESS_KEY = SCOPELESS.string("temp-files-path")
+            .withValidator(Validator.nonEmpty()).exposedInUi().build();
+    private static final ConfigKey<String> HIDDEN_KEY = SCOPED.string("hidden")
+            .withDefaultValue("secret").build();
+
+    private static final List<ConfigKeyProvider> PROVIDERS = List.of(
+            ConfigKeyProvider.forPrefix(SCOPED),
+            ConfigKeyProvider.forPrefix(OTHER_SCOPED),
+            ConfigKeyProvider.forPrefix(SCOPELESS));
+
+    private static final ConfigurablePropertySource TEST_SOURCE = new ConfigurablePropertySource() {
+        @Override
+        public List<ConfigKeyProvider> getConfigKeyProviders() {
+            return PROVIDERS;
+        }
+
+        @Override
+        public String categoryToScope(Category category) {
+            return switch (category) {
+                case PROXY -> "proxy";
+                case SIGNER -> "signer";
+                case COMMON -> null;
+                default -> throw new IllegalArgumentException("Unexpected category: " + category);
+            };
+        }
+    };
+
+    private static final String PROPERTY_NAME = EXPOSED_KEY.key();
     private static final String PROPERTY_VALUE = "10000";
     private static final String PROPERTY_VALUE_2 = "11000";
     private static final String DEFAULT_VALUE = "60";
-    private static final String SCOPE = "proxy-ui-api";
+    private static final String SCOPE = "proxy";
 
-    // a shared-scope key: its Category maps to a null scope, as the scope-less yaml entries used to
-    private static final String SCOPELESS_PROPERTY_NAME = "xroad.common.temp-files-path";
+    private static final String SCOPELESS_PROPERTY_NAME = SCOPELESS_KEY.key();
     private static final String SCOPELESS_PROPERTY_VALUE = "/var/tmp/xroad-test/";
 
-    private static final String CATALOGUE_PROPERTY_NAME = "xroad.proxy.admin-port";
+    private static final String CATALOGUE_PROPERTY_NAME = CATALOGUE_KEY.key();
     private static final String CATALOGUE_DEFAULT_VALUE = "5566";
-    private static final String CATALOGUE_SCOPE = "proxy";
+    private static final String CATALOGUE_SCOPE = "signer";
 
     @Mock
     private ConfigurationPropertyRepository repository;
@@ -83,26 +120,26 @@ class ConfigurablePropertiesServiceTest {
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(repository, auditDataHelper);
+        service = new ConfigurablePropertiesService(auditDataHelper, repository, TEST_SOURCE);
     }
 
     @Test
     void getConfigurationPropertiesOmitsKeysThatAreNotDeclaredExposed() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
         assertTrue(systemParameters.stream()
-                .noneMatch(p -> "xroad.signer.modules".equals(p.getPropertyName())));
+                .noneMatch(p -> HIDDEN_KEY.key().equals(p.getPropertyName())));
     }
 
     @Test
     void getConfigurationPropertiesIncludesDslCatalogueDerivedProperty() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, CATALOGUE_PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, CATALOGUE_PROPERTY_NAME);
         assertEquals(CATALOGUE_DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(CATALOGUE_SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
@@ -112,9 +149,9 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesNotInDatabase() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
@@ -127,9 +164,9 @@ class ConfigurablePropertiesServiceTest {
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(repository.findAll()).thenReturn(List.of(entity));
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(DEFAULT_VALUE, parameter.getDefaultValue());
         assertEquals(SCOPE, parameter.getScope());
         assertEquals(PROPERTY_VALUE_2, parameter.getCurrentValue());
@@ -138,13 +175,13 @@ class ConfigurablePropertiesServiceTest {
     @Test
     void getConfigurationPropertiesIgnoresStoredRowsForOtherKeys() {
         var entity = new ConfigurationPropertyEntity();
-        entity.setPropertyKey("xroad.proxy-ui-api.acme-renewal-interval");
+        entity.setPropertyKey(CATALOGUE_PROPERTY_NAME);
         entity.setPropertyValue(PROPERTY_VALUE_2);
         when(repository.findAll()).thenReturn(List.of(entity));
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
-        SecurityServerConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
+        ConfigurablePropertyDto parameter = findProperty(systemParameters, PROPERTY_NAME);
         assertEquals(SCOPE, parameter.getScope());
         assertNull(parameter.getCurrentValue());
     }
@@ -153,7 +190,7 @@ class ConfigurablePropertiesServiceTest {
     void getConfigurationPropertiesGroupsSharedKeysWithoutScope() {
         when(repository.findAll()).thenReturn(List.of());
 
-        Set<SecurityServerConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
+        Set<ConfigurablePropertyDto> systemParameters = service.getConfigurationProperties();
 
         assertNull(findProperty(systemParameters, SCOPELESS_PROPERTY_NAME).getScope());
     }
@@ -162,14 +199,14 @@ class ConfigurablePropertiesServiceTest {
     void updateConfigurablePropertyFoundInDatabase() {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyValue(PROPERTY_VALUE);
-        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
+        when(repository.findByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
 
-        verify(repository).saveOrUpdate(captor.capture());
+        verify(repository).save(captor.capture());
 
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_VALUE_2, capturedEntity.getPropertyValue());
@@ -177,14 +214,14 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabase() {
-        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
+        when(repository.findByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
 
-        verify(repository).saveOrUpdate(captor.capture());
+        verify(repository).save(captor.capture());
 
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
@@ -193,7 +230,7 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabaseForScopelessKey() {
-        when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME))
+        when(repository.findByPropertyKey(SCOPELESS_PROPERTY_NAME))
                 .thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
@@ -201,7 +238,7 @@ class ConfigurablePropertiesServiceTest {
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
 
-        verify(repository).saveOrUpdate(captor.capture());
+        verify(repository).save(captor.capture());
 
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(SCOPELESS_PROPERTY_NAME, capturedEntity.getPropertyKey());
@@ -217,7 +254,7 @@ class ConfigurablePropertiesServiceTest {
     @Test
     void updateConfigurablePropertyThrowsWhenKeyIsDeclaredButNotExposed() {
         assertThrows(NotFoundException.class,
-                () -> service.updateConfigurableProperty("xroad.signer.modules", PROPERTY_VALUE));
+                () -> service.updateConfigurableProperty(HIDDEN_KEY.key(), PROPERTY_VALUE));
     }
 
     @Test
@@ -241,14 +278,14 @@ class ConfigurablePropertiesServiceTest {
         var entity = new ConfigurationPropertyEntity();
         entity.setPropertyKey(PROPERTY_NAME);
         entity.setPropertyValue(PROPERTY_VALUE);
-        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
+        when(repository.findByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.of(entity));
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE_2);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
 
-        verify(repository).saveOrUpdate(captor.capture());
+        verify(repository).save(captor.capture());
 
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_VALUE_2, capturedEntity.getPropertyValue());
@@ -262,14 +299,14 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyNotFoundInDatabaseDoesNotAuditOldValue() {
-        when(repository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
+        when(repository.findByPropertyKey(PROPERTY_NAME)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(PROPERTY_NAME, PROPERTY_VALUE);
 
         ArgumentCaptor<ConfigurationPropertyEntity> captor =
                 ArgumentCaptor.forClass(ConfigurationPropertyEntity.class);
 
-        verify(repository).saveOrUpdate(captor.capture());
+        verify(repository).save(captor.capture());
 
         ConfigurationPropertyEntity capturedEntity = captor.getValue();
         assertEquals(PROPERTY_NAME, capturedEntity.getPropertyKey());
@@ -280,15 +317,15 @@ class ConfigurablePropertiesServiceTest {
 
     @Test
     void updateConfigurablePropertyForScopelessKeyAuditsEmptyScope() {
-        when(repository.findConfigurationPropertyByPropertyKey(SCOPELESS_PROPERTY_NAME)).thenReturn(Optional.empty());
+        when(repository.findByPropertyKey(SCOPELESS_PROPERTY_NAME)).thenReturn(Optional.empty());
 
         service.updateConfigurableProperty(SCOPELESS_PROPERTY_NAME, SCOPELESS_PROPERTY_VALUE);
 
         verify(auditDataHelper).put(RestApiAuditProperty.SYSTEM_PROPERTY_SCOPE, "");
     }
 
-    private static SecurityServerConfigurablePropertyDto findProperty(
-            Set<SecurityServerConfigurablePropertyDto> properties, String propertyName) {
+    private static ConfigurablePropertyDto findProperty(
+            Set<ConfigurablePropertyDto> properties, String propertyName) {
         return properties.stream()
                 .filter(p -> propertyName.equals(p.getPropertyName()))
                 .findFirst()

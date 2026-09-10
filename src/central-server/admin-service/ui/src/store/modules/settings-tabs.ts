@@ -49,6 +49,15 @@ const tabs: Tab[] = [
     permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
   },
   {
+    key: 'systemparameters-tab-button',
+    name: 'tab.settings.systemParameters',
+    icon: 'tune',
+    to: {
+      name: RouteName.SystemParameters,
+    },
+    permissions: [Permissions.CHANGE_CONFIGURATION_PROPERTY],
+  },
+  {
     key: 'backup-and-restore-tab-button',
     name: 'tab.settings.backupAndRestore',
     icon: 'cloud_upload',

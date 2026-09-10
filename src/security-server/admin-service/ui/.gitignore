@@ -15,7 +15,8 @@ pnpm-debug.log*
 
 # Generated type definitions
 src/openapi-types
-src/openapi-msw-paths.d.ts
+src/openapi-msw-paths.gen.d.ts
+src/openapi-msw-common-paths.gen.d.ts
 
 # Editor directories and files
 .idea
