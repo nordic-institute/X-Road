@@ -41,7 +41,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.scheduling.TaskScheduler;
 
 @Slf4j
 @Configuration
@@ -52,8 +51,9 @@ public class AcmeCertificateRenewalSchedulingConfig {
     @Order(Ordered.LOWEST_PRECEDENCE - 99)
     @Conditional(IsAcmeCertRenewalJobsActive.class)
     CertificateRenewalScheduler acmeCertificateRenewalScheduler(AcmeCertificateRenewalWorker acmeCertificateRenewalWorker,
-                                                                TaskScheduler taskScheduler, AcmeConfig acmeConfig) {
-        var scheduler = new CertificateRenewalScheduler(acmeCertificateRenewalWorker, acmeConfig, taskScheduler);
+                                                                AcmeConfig acmeConfig) {
+        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(acmeCertificateRenewalWorker, acmeConfig,
+                "acme-renewal-auth-sign-");
         scheduler.init();
         return scheduler;
     }

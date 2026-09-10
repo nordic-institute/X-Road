@@ -25,10 +25,11 @@
  */
 package org.niis.xroad.common.acme.spring.scheduling;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.config.AcmeSchedulingProperties;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
@@ -36,12 +37,12 @@ import java.util.concurrent.ScheduledFuture;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Slf4j
-@RequiredArgsConstructor
-public class CertificateRenewalScheduler {
+public class CertificateRenewalScheduler implements DisposableBean {
 
     private final AcmeRenewalWorker acmeRenewalWorker;
     private final AcmeSchedulingProperties acmeConfig;
     private final TaskScheduler taskScheduler;
+    private final boolean ownsTaskScheduler;
     private ScheduledFuture<?> scheduledFuture;
 
     private static final Duration RECOVER_FROM_INVALID_GLOBAL_CONF_DELAY = Duration.of(60, SECONDS);
@@ -49,8 +50,46 @@ public class CertificateRenewalScheduler {
     private boolean retryMode;
     private boolean rescheduledDuringCycle;
 
+    public CertificateRenewalScheduler(AcmeRenewalWorker acmeRenewalWorker, AcmeSchedulingProperties acmeConfig,
+                                       TaskScheduler taskScheduler) {
+        this(acmeRenewalWorker, acmeConfig, taskScheduler, false);
+    }
+
+    private CertificateRenewalScheduler(AcmeRenewalWorker acmeRenewalWorker, AcmeSchedulingProperties acmeConfig,
+                                        TaskScheduler taskScheduler, boolean ownsTaskScheduler) {
+        this.acmeRenewalWorker = acmeRenewalWorker;
+        this.acmeConfig = acmeConfig;
+        this.taskScheduler = taskScheduler;
+        this.ownsTaskScheduler = ownsTaskScheduler;
+    }
+
+    /**
+     * Creates a {@link CertificateRenewalScheduler} backed by its own single-thread {@link ThreadPoolTaskScheduler},
+     * isolated from any shared {@code TaskScheduler} used elsewhere in the application. The dedicated scheduler is
+     * started immediately and is shut down when this instance is {@linkplain #destroy() destroyed}.
+     */
+    public static CertificateRenewalScheduler withDedicatedScheduler(AcmeRenewalWorker acmeRenewalWorker,
+                                                                     AcmeSchedulingProperties acmeConfig,
+                                                                     String threadNamePrefix) {
+        var scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix(threadNamePrefix);
+        scheduler.initialize();
+        log.info("Started dedicated ACME renewal scheduler thread '{}'", threadNamePrefix);
+        return new CertificateRenewalScheduler(acmeRenewalWorker, acmeConfig, scheduler, true);
+    }
+
     public void init() {
         reschedule(INITIAL_DELAY);
+    }
+
+    @Override
+    public void destroy() {
+        cancelNext();
+        if (ownsTaskScheduler) {
+            log.info("Shutting down dedicated ACME renewal scheduler thread");
+            ((ThreadPoolTaskScheduler) taskScheduler).shutdown();
+        }
     }
 
     private Duration getNextDelay() {
