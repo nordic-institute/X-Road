@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.27
+Version: 1.28
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -35,6 +35,7 @@ Doc. ID: UG-SS-SIDECAR
 | 04.09.2026 | 1.25    | Document supplying a real DS-HTTPS certificate          | Ričardas Bučiūnas         |
 | 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
 | 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
+| 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
 
 ## License
 
@@ -502,8 +503,13 @@ The memory allocation for the Proxy Service can be configured using helper scrip
 Security Server Sidecar provides built-in support for hardware security tokens, requiring only configuration.
 
 1. Make the PKCS\#11 provider library (and any required additional files) available in the sidecar container by mounting them as volumes.
-2. Create the `devices.ini` file under your mount for `/etc/xroad` and add the path for the PKCS\#11 library inside it (note that the library path should match the path inside the container you chose in the last step).
-    * More information on how to configure the `devices.ini` file itself can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
+2. Set the `xroad.signer.modules` configuration property to a JSON document describing the module, using `db_property.sh` inside the container (note that the library path inside the JSON document should match the path inside the container you chose in the last step):
+
+    ```bash
+    docker exec <sidecar container name> /usr/share/xroad/scripts/db_property.sh set xroad.signer.modules '{"<module id>":{"library":"<path to PKCS#11 library>"}}' --yes
+    ```
+
+    * More information on the JSON document's fields can be found in the [Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#210-installing-the-support-for-hardware-tokens).
 3. Restarting the Security Service Sidecar container might be required:
 
     ```bash
