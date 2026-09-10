@@ -28,16 +28,25 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.MemberParticipantIdentity;
+import org.slf4j.LoggerFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -50,6 +59,7 @@ class DataspaceParticipantTombstoneServiceTest {
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
     private static final String CTX_ID = "TEST:ORG:MEMBER";
     private static final String DID = "did:web:ih.example.test:v1:TEST:ORG:MEMBER";
+    private static final String IDENTITY_HUB_URL = "https://ih.example.test";
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -62,16 +72,33 @@ class DataspaceParticipantTombstoneServiceTest {
 
     private DataspaceParticipantTombstoneService service;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger(DataspaceParticipantTombstoneService.class);
+    private Level originalLevel;
+
     @BeforeEach
     void setUp() {
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         service = new DataspaceParticipantTombstoneService(adminServiceProperties, dataspaceProvisioningService,
                 dsParticipantRepository);
+
+        originalLevel = logger.getLevel();
+        logger.setLevel(Level.WARN);
+        appender.start();
+        logger.addAppender(appender);
     }
 
-    @Test
-    void decommissionIsNoOpWhenDataspaceDisabled() {
-        when(dataspace.isEnabled()).thenReturn(false);
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(appender);
+        appender.stop();
+        logger.setLevel(originalLevel);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void skipsWithoutWritingWhenIdentityHubUrlIsBlank(String identityHubUrl) {
+        when(dataspace.getIdentityHubUrl()).thenReturn(identityHubUrl);
 
         service.decommission(MEMBER);
 
@@ -80,8 +107,34 @@ class DataspaceParticipantTombstoneServiceTest {
     }
 
     @Test
-    void decommissionDerivesIdentityAndWritesTombstoneWhenDataspaceEnabled() {
-        when(dataspace.isEnabled()).thenReturn(true);
+    void skipsWithoutWritingWhenIdentityCannotBeDerived() {
+        when(dataspace.getIdentityHubUrl()).thenReturn(IDENTITY_HUB_URL);
+        when(dataspaceProvisioningService.deriveMemberIdentity(MEMBER))
+                .thenThrow(new IllegalArgumentException("malformed identity-hub URL"));
+
+        service.decommission(MEMBER);
+
+        verify(dsParticipantRepository, never()).decommissionMember(any(), any(), any());
+        assertThat(appender.list).hasSize(1);
+        var logged = appender.list.getFirst();
+        assertThat(logged.getLevel()).isEqualTo(Level.WARN);
+        assertThat(logged.getThrowableProxy()).isNotNull();
+    }
+
+    @Test
+    void writesTombstoneEvenWhenDataspaceFeatureFlagIsDisabled() {
+        when(dataspace.getIdentityHubUrl()).thenReturn(IDENTITY_HUB_URL);
+        when(dataspaceProvisioningService.deriveMemberIdentity(MEMBER)).thenReturn(new MemberParticipantIdentity(CTX_ID, DID));
+
+        service.decommission(MEMBER);
+
+        verify(dsParticipantRepository).decommissionMember(MEMBER, CTX_ID, DID);
+        verify(dataspace, never()).isEnabled();
+    }
+
+    @Test
+    void writesTombstoneWhenIdentityHubUrlIsConfigured() {
+        when(dataspace.getIdentityHubUrl()).thenReturn(IDENTITY_HUB_URL);
         when(dataspaceProvisioningService.deriveMemberIdentity(MEMBER)).thenReturn(new MemberParticipantIdentity(CTX_ID, DID));
 
         service.decommission(MEMBER);

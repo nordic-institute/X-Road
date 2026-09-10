@@ -29,9 +29,12 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.springframework.stereotype.Service;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Writes the dataspace participant binding tombstone: called by the client-deletion domain flow when
@@ -39,9 +42,14 @@ import org.springframework.stereotype.Service;
  * The provisioning reconciler never calls this — it only ever reads and converges on tombstones
  * written here.
  *
- * <p>A no-op when the data space feature is disabled, consistent with {@link CatalogInvalidationNotifier}:
- * a non-dataspace deployment never attempts the derivation, which needs a configured identity-hub URL.
+ * <p>The tombstone is written whenever the member's dataspace identity is derivable — i.e. an
+ * identity-hub URL is configured — independent of the data space feature flag: the flag gates
+ * provisioning, not teardown, and a member provisioned while the flag was on must still be torn
+ * down after it is turned off. A blank or otherwise underivable configuration skips the write with
+ * a log message, since no participant context can exist for a server that never had an identity to
+ * publish it under.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataspaceParticipantTombstoneService {
@@ -59,10 +67,20 @@ public class DataspaceParticipantTombstoneService {
      * @param member the member whose last client on this server was just deleted
      */
     public void decommission(ClientId member) {
-        if (!adminServiceProperties.getDataspace().isEnabled()) {
+        String identityHubUrl = adminServiceProperties.getDataspace().getIdentityHubUrl();
+        if (isBlank(identityHubUrl)) {
+            log.info("skipping dataspace tombstone for {}: no identity-hub URL configured", member);
             return;
         }
-        var identity = dataspaceProvisioningService.deriveMemberIdentity(member);
+
+        DataspaceProvisioningService.MemberParticipantIdentity identity;
+        try {
+            identity = dataspaceProvisioningService.deriveMemberIdentity(member);
+        } catch (Exception e) {
+            log.warn("skipping dataspace tombstone for {}: could not derive participant identity", member, e);
+            return;
+        }
+
         dsParticipantRepository.decommissionMember(member, identity.ctxId(), identity.did());
     }
 }
