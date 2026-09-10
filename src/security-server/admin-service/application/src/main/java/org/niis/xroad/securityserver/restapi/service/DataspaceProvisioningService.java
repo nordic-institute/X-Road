@@ -74,7 +74,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       {@link ParticipantKind#SYSTEM} context with a bound {@code ds_participant} row, the row is
  *       verified against a fresh derivation and its DID is used; without a row the DID is derived on
  *       the fly. This service never writes rows — binding an identity belongs to an explicit,
- *       auditable action outside the reconciler.</li>
+ *       auditable action outside the reconciler. Returns whether it is safe to issue a membership
+ *       credential for this context in the same tick — see the method's own Javadoc for the SYSTEM
+ *       re-anchor case.</li>
  *   <li>{@link #ensureMembershipCredential(String, ParticipantKind, ClientId)} — leaves an active
  *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
  *       slot scan; advances past slots in terminal ERROR. For SYSTEM with no owner known yet, returns
@@ -178,17 +180,27 @@ public class DataspaceProvisioningService {
      * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
      * @param memberId      the credential subject this context's credential is issued to; for SYSTEM
      *                      this is the current owner member, not the (owner-free) SYSTEM identifier
+     * @return whether it is safe to issue a membership credential for this context in the same tick.
+     *         Trivially {@code true} for HOST, MANAGEMENT and MEMBER. For SYSTEM, {@code false} means
+     *         an owner change is in progress and the hub has not yet confirmed the stored member id was
+     *         re-anchored to the new owner — issuing now would submit a credential into the new owner's
+     *         holder-pid slot while the hub still builds the membership claim from the old member id, a
+     *         mismatch that a later tick's slot scan can no longer detect or correct. The caller must
+     *         skip the credential pass for this context and retry on the next tick; an older hub that
+     *         never sets the re-anchor ack always returns {@code false} here, so SYSTEM credential
+     *         issuance stays deferred until the hub is upgraded.
      */
-    public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
+    public boolean ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
         var did = didFor(identityHubHost, kind, memberId);
         requireNoHubDidDrift(participantId, did);
 
-        createIdentityHubContext(participantId, did, identityHubHost, kind, memberId);
+        var credentialIssuanceSafe = createIdentityHubContext(participantId, did, identityHubHost, kind, memberId);
         controlPlaneClient.createParticipantContext(participantId, did);
         controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+        return credentialIssuanceSafe;
     }
 
     private void requireNoHubDidDrift(String participantId, String intendedDid) {
@@ -509,8 +521,8 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private void createIdentityHubContext(String participantId, String did, String identityHubHost,
-                                          ParticipantKind kind, ClientId memberId) {
+    private boolean createIdentityHubContext(String participantId, String did, String identityHubHost,
+                                             ParticipantKind kind, ClientId memberId) {
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
                 UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
@@ -521,8 +533,10 @@ public class DataspaceProvisioningService {
                 memberId == null ? null : slashForm(memberId), credentialServiceUrl, keyId, privateKeyAlias, reanchorRequested);
         if (reanchorRequested && !reanchored) {
             log.warn("Data space: identity hub could not confirm the SYSTEM credential re-anchor for participant '{}' "
-                    + "— older hub, or the re-anchor read/update failed; will retry next tick", participantId);
+                    + "— older hub, or the re-anchor read/update failed; deferring SYSTEM credential issuance to next tick",
+                    participantId);
         }
+        return reanchored;
     }
 
     private String stsTokenUrl(String identityHubHost) {

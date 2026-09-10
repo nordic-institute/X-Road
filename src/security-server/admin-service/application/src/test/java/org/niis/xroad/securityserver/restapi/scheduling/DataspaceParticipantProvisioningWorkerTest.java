@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -75,6 +76,11 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @InjectMocks
     private DataspaceParticipantProvisioningWorker worker;
+
+    @BeforeEach
+    void setUp() {
+        when(dataspaceProvisioningService.ensureParticipantContext(anyString(), any(), any())).thenReturn(true);
+    }
 
     @Test
     void scheduledProvisionSwallowsFailures() {
@@ -166,5 +172,31 @@ class DataspaceParticipantProvisioningWorkerTest {
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
         verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
+    }
+
+    @Test
+    void provisionParticipantSkipsCredentialForSystemContextWhenReanchorUnconfirmed() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true))
+                .thenReturn(List.of(HOST_CONTEXT, SYSTEM_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER)).thenReturn(false);
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(HOST_ID, ParticipantKind.HOST, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MGMT_ID, ParticipantKind.MANAGEMENT, OWNER);
+        verify(dataspaceProvisioningService).ensureMembershipCredential(MEMBER_ID, ParticipantKind.MEMBER, MEMBER);
+    }
+
+    @Test
+    void provisionParticipantIssuesCredentialForSystemContextOnceReanchorConfirmed() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(SYSTEM_CONTEXT));
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER)).thenReturn(true);
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_ID, ParticipantKind.SYSTEM, OWNER);
     }
 }

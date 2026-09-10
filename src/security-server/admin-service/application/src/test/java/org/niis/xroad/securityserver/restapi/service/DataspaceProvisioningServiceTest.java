@@ -592,6 +592,42 @@ class DataspaceProvisioningServiceTest {
         verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
     }
 
+    // --- ensureParticipantContext credential-issuance-safe signal ---
+
+    @Test
+    void ensureParticipantContextReturnsTrueForHostWhenNoReanchorRequested() {
+        when(identityHubClient.createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any(), eq(false)))
+                .thenReturn(true);
+
+        var credentialIssuanceSafe = service.ensureParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, OWNER);
+
+        assertThat(credentialIssuanceSafe).isTrue();
+    }
+
+    @Test
+    void ensureParticipantContextReturnsFalseForSystemWhenReanchorUnconfirmed() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(identityHubClient.createParticipantContext(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(), any(), any(), any(),
+                any(), eq(true))).thenReturn(false);
+
+        var credentialIssuanceSafe = service.ensureParticipantContext(
+                ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, OWNER);
+
+        assertThat(credentialIssuanceSafe).isFalse();
+    }
+
+    @Test
+    void ensureParticipantContextReturnsTrueForSystemWhenReanchorConfirmed() {
+        when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
+        when(identityHubClient.createParticipantContext(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(), any(), any(), any(),
+                any(), eq(true))).thenReturn(true);
+
+        var credentialIssuanceSafe = service.ensureParticipantContext(
+                ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, OWNER);
+
+        assertThat(credentialIssuanceSafe).isTrue();
+    }
+
     // --- ensureMembershipCredential / readCredentialStatus (SYSTEM re-anchor) ---
 
     @Test
