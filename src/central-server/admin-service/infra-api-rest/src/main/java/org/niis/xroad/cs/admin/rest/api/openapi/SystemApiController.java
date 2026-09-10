@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
-import org.niis.xroad.cs.admin.api.service.ConfigurationPropertyService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
@@ -52,6 +51,7 @@ import org.niis.xroad.restapi.openapi.ConfigurablePropertiesApi;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyUpdateDto;
+import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,7 +73,7 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
 
     private final InitializationService initializationService;
     private final SystemParameterService systemParameterService;
-    private final ConfigurationPropertyService configurationPropertyService;
+    private final ConfigurablePropertiesService configurablePropertiesService;
     private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationService configurationService;
     private final AuditDataHelper auditDataHelper;
@@ -141,14 +141,14 @@ public class SystemApiController implements SystemApi, ConfigurablePropertiesApi
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
     public ResponseEntity<Set<ConfigurablePropertyDto>> getConfigurableProperties() {
-        return ResponseEntity.ok(configurationPropertyService.getConfigurationProperties());
+        return ResponseEntity.ok(configurablePropertiesService.getConfigurationProperties());
     }
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_CONFIGURATION_PROPERTY')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CONFIGURATION_PROPERTY)
     public ResponseEntity<Void> updateConfigurableProperty(ConfigurablePropertyUpdateDto configurablePropertyUpdateDto) {
-        configurationPropertyService.updateConfigurableProperty(
+        configurablePropertiesService.updateConfigurableProperty(
                 configurablePropertyUpdateDto.getPropertyName(),
                 configurablePropertyUpdateDto.getPropertyValue());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

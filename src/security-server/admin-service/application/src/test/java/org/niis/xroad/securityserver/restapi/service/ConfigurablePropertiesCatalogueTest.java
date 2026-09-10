@@ -33,7 +33,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.openapi.model.ConfigurablePropertyDto;
-import org.niis.xroad.securityserver.restapi.repository.ConfigurationPropertyRepository;
+import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
+import org.niis.xroad.restapi.service.ConfigurablePropertiesService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -129,7 +130,7 @@ class ConfigurablePropertiesCatalogueTest {
 
     @BeforeEach
     void setup() {
-        service = new ConfigurablePropertiesService(repository, auditDataHelper);
+        service = new ConfigurablePropertiesService(auditDataHelper, repository, new SsConfigurablePropertySource());
         when(repository.findAll()).thenReturn(List.of());
     }
 

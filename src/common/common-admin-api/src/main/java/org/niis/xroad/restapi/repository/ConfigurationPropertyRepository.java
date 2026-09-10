@@ -1,21 +1,20 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,18 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.jpa.repository;
+package org.niis.xroad.restapi.repository;
 
-import org.niis.xroad.cs.admin.core.entity.ConfigurationPropertyEntity;
-import org.niis.xroad.cs.admin.core.repository.ConfigurationPropertyRepository;
-import org.springframework.data.repository.CrudRepository;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.dao.ConfigurationPropertyDAOImpl;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for configurable system parameter overrides stored in {@code configuration_properties}.
+ * Shared by Central Server and Security Server; each product's own database has an identical table,
+ * built from the same Liquibase changelog.
+ */
 @Repository
-public interface JpaConfigurationPropertyRepository extends CrudRepository<ConfigurationPropertyEntity, Integer>,
-        ConfigurationPropertyRepository {
+@Transactional
+@RequiredArgsConstructor
+public class ConfigurationPropertyRepository {
 
-    Optional<ConfigurationPropertyEntity> findByPropertyKey(String propertyKey);
+    private final PersistenceUtils persistenceUtils;
+    private final ConfigurationPropertyDAOImpl configurationPropertyDAO = new ConfigurationPropertyDAOImpl();
+
+    public void save(ConfigurationPropertyEntity entity) {
+        persistenceUtils.getCurrentSession().merge(entity);
+    }
+
+    public List<ConfigurationPropertyEntity> findAll() {
+        return configurationPropertyDAO.findAll(persistenceUtils.getCurrentSession(), ConfigurationPropertyEntity.class);
+    }
+
+    public Optional<ConfigurationPropertyEntity> findByPropertyKey(String propertyKey) {
+        return Optional.ofNullable(configurationPropertyDAO.findByPropertyKey(
+                persistenceUtils.getCurrentSession(), propertyKey));
+    }
 }
