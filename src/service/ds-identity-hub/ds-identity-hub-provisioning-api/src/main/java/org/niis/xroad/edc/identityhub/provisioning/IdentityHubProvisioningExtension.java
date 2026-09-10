@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -51,10 +52,15 @@ public class IdentityHubProvisioningExtension implements ServiceExtension {
     private CredentialRequestManager credentialRequestManager;
 
     @Inject
+    private DidResolverRegistry didResolverRegistry;
+
+    @Inject
     private GrpcServiceRegistry grpcServiceRegistry;
 
     @Inject
     private Monitor monitor;
+
+    private IdentityHubProvisioningGrpcService grpcService;
 
     @Override
     public String name() {
@@ -63,9 +69,16 @@ public class IdentityHubProvisioningExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var grpcService = new IdentityHubProvisioningGrpcService(
-                participantContextService, credentialRequestManager, new RpcResponseHandler());
+        grpcService = new IdentityHubProvisioningGrpcService(
+                participantContextService, credentialRequestManager, didResolverRegistry, new RpcResponseHandler());
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
+    }
+
+    @Override
+    public void shutdown() {
+        if (grpcService != null) {
+            grpcService.close();
+        }
     }
 }

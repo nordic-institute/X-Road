@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,43 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.api.service;
 
-package org.niis.xroad.common.properties.config.keys;
-
-import org.niis.xroad.common.properties.config.Category;
-import org.niis.xroad.common.properties.config.ConfigKey;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Prefix;
-
-import java.util.Set;
+import java.util.List;
 
 /**
- * X-Road owned inputs to EDC settings ({@code xroad.edc.*}) that a packaged {@code application.yaml}
- * interpolates into a setting the EDC runtime reads itself through {@code QuarkusConfigBridge}, so the
- * value can arrive by any means the DSL supports (a stored override, an env var, {@code conf.d}) while
- * the EDC key itself stays declared by the packaged yaml.
+ * The Central Server's Issuer DID registry. Each Central Server node persists its own Issuer DID here at data
+ * space issuer provisioning time, so that whichever node generates globalconf can publish the complete cluster
+ * set as the dataspace issuer trust anchor.
  */
-public final class EdcConfigKeys implements ConfigKeyProvider {
+public interface DataspaceIssuerDidService {
 
-    private static final Prefix EDC = Prefix.of(Category.COMMON, "xroad.edc");
+    /**
+     * Registers the given Issuer DID for this Central Server node. Idempotent: registering the same DID again,
+     * as happens when a node re-provisions its issuer, does not create a duplicate entry.
+     *
+     * @param issuerDid the node's Issuer DID
+     */
+    void register(String issuerDid);
 
-    private static final EdcConfigKeys INSTANCE = new EdcConfigKeys();
-
-    private EdcConfigKeys() {
-    }
-
-    /** @return the provider singleton. */
-    public static EdcConfigKeys instance() {
-        return INSTANCE;
-    }
-
-    @Override
-    public String rootPath() {
-        return EDC.rootPath();
-    }
-
-    @Override
-    public Set<ConfigKey<?>> keys() {
-        return EDC.keys();
-    }
+    /**
+     * @return every Issuer DID registered by any Central Server node of this instance, or an empty list if none
+     * has provisioned a data space issuer.
+     */
+    List<String> findAll();
 }

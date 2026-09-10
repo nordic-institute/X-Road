@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
+                   logicalFilePath="centerui/202609081200-issuer-dids.xml">
+
+    <changeSet author="niis" id="202609081200-issuer-dids">
+        <comment>Central Server node Issuer DID registry (globalconf dataspaceParameters/issuerDid), one row per node.</comment>
+
+        <createTable tableName="issuer_dids">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="did" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="issuer_dids_did_key"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql splitStatements="false">
+            <![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON issuer_dids;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON issuer_dids
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

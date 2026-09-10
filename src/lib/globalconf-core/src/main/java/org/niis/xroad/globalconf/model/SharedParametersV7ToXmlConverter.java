@@ -41,6 +41,8 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.AcmeServer;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedCATypeV4;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedDsTlsCaType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.DataspaceIssuerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.DataspaceParametersType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalSettingsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MaintenanceMode;
@@ -67,6 +69,7 @@ abstract class SharedParametersV7ToXmlConverter {
     @Mapping(source = "approvedCAs", target = "approvedCA")
     @Mapping(source = "approvedTSAs", target = "approvedTSA")
     @Mapping(source = "approvedDsTlsCas", target = "approvedDsTlsCa")
+    @Mapping(source = "issuerDids", target = "dataspaceParameters")
     @Mapping(source = "members", target = "member")
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
@@ -107,6 +110,21 @@ abstract class SharedParametersV7ToXmlConverter {
 
     MemberType convertMember(SharedParameters.Member member, @Context Map<ClientId, Object> clientMap) {
         return (MemberType) clientMap.get(member.getId());
+    }
+
+    DataspaceParametersType convertDataspaceParameters(List<String> issuerDids) {
+        if (issuerDids == null || issuerDids.isEmpty()) {
+            return null;
+        }
+        var dataspaceParameters = OBJECT_FACTORY.createDataspaceParametersType();
+        dataspaceParameters.getIssuer().addAll(issuerDids.stream().map(this::toDataspaceIssuer).toList());
+        return dataspaceParameters;
+    }
+
+    private DataspaceIssuerType toDataspaceIssuer(String issuerDid) {
+        var issuer = OBJECT_FACTORY.createDataspaceIssuerType();
+        issuer.setDid(issuerDid);
+        return issuer;
     }
 
     MaintenanceMode convertMaintenanceMode(SharedParameters.MaintenanceMode mode) {

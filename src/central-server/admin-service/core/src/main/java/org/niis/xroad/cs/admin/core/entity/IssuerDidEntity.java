@@ -24,43 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.entity;
 
-package org.niis.xroad.common.properties.config.keys;
-
-import org.niis.xroad.common.properties.config.Category;
-import org.niis.xroad.common.properties.config.ConfigKey;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Prefix;
-
-import java.util.Set;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * X-Road owned inputs to EDC settings ({@code xroad.edc.*}) that a packaged {@code application.yaml}
- * interpolates into a setting the EDC runtime reads itself through {@code QuarkusConfigBridge}, so the
- * value can arrive by any means the DSL supports (a stored override, an env var, {@code conf.d}) while
- * the EDC key itself stays declared by the packaged yaml.
+ * A Central Server node's dataspace credential Issuer DID (globalconf {@code dataspaceParameters/issuerDid}
+ * entry). Under a high-availability Central Server, each node registers its own; the full set is the
+ * distributed dataspace issuer trust anchor.
  */
-public final class EdcConfigKeys implements ConfigKeyProvider {
+@Entity
+@Table(name = IssuerDidEntity.TABLE_NAME)
+@NoArgsConstructor
+public class IssuerDidEntity extends AuditableEntity {
 
-    private static final Prefix EDC = Prefix.of(Category.COMMON, "xroad.edc");
+    public static final String TABLE_NAME = "issuer_dids";
 
-    private static final EdcConfigKeys INSTANCE = new EdcConfigKeys();
+    @Id
+    @Column(name = "id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
+    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Getter
+    private int id;
 
-    private EdcConfigKeys() {
-    }
+    @Column(name = "did", unique = true, nullable = false, updatable = false)
+    @Getter
+    private String did;
 
-    /** @return the provider singleton. */
-    public static EdcConfigKeys instance() {
-        return INSTANCE;
-    }
-
-    @Override
-    public String rootPath() {
-        return EDC.rootPath();
-    }
-
-    @Override
-    public Set<ConfigKey<?>> keys() {
-        return EDC.keys();
+    public IssuerDidEntity(String did) {
+        this.did = did;
     }
 }

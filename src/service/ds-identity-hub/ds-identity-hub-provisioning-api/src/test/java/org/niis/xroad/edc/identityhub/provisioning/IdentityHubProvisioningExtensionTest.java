@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -37,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -47,6 +49,8 @@ class IdentityHubProvisioningExtensionTest {
     private IdentityHubParticipantContextService participantContextService;
     @Mock
     private CredentialRequestManager credentialRequestManager;
+    @Mock
+    private DidResolverRegistry didResolverRegistry;
     @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
@@ -61,6 +65,7 @@ class IdentityHubProvisioningExtensionTest {
         extension = new IdentityHubProvisioningExtension();
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "credentialRequestManager", credentialRequestManager);
+        setField(extension, "didResolverRegistry", didResolverRegistry);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }
@@ -70,6 +75,18 @@ class IdentityHubProvisioningExtensionTest {
         extension.initialize(context);
 
         verify(grpcServiceRegistry).register(any(IdentityHubProvisioningGrpcService.class));
+    }
+
+    @Test
+    void shutdownClosesTheRegisteredServiceAfterInitialize() {
+        extension.initialize(context);
+
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shutdownIsSafeWithoutPriorInitialize() {
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {

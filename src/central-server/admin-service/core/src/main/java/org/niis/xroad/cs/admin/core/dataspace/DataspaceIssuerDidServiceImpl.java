@@ -24,43 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.dataspace;
 
-package org.niis.xroad.common.properties.config.keys;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
+import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
+import org.springframework.stereotype.Service;
 
-import org.niis.xroad.common.properties.config.Category;
-import org.niis.xroad.common.properties.config.ConfigKey;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Prefix;
+import java.util.Comparator;
+import java.util.List;
 
-import java.util.Set;
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService {
 
-/**
- * X-Road owned inputs to EDC settings ({@code xroad.edc.*}) that a packaged {@code application.yaml}
- * interpolates into a setting the EDC runtime reads itself through {@code QuarkusConfigBridge}, so the
- * value can arrive by any means the DSL supports (a stored override, an env var, {@code conf.d}) while
- * the EDC key itself stays declared by the packaged yaml.
- */
-public final class EdcConfigKeys implements ConfigKeyProvider {
+    private final IssuerDidRepository issuerDidRepository;
 
-    private static final Prefix EDC = Prefix.of(Category.COMMON, "xroad.edc");
-
-    private static final EdcConfigKeys INSTANCE = new EdcConfigKeys();
-
-    private EdcConfigKeys() {
-    }
-
-    /** @return the provider singleton. */
-    public static EdcConfigKeys instance() {
-        return INSTANCE;
+    /**
+     * Registers a DID, relying on the repository's conflict-ignoring insert for idempotency rather than a
+     * check-then-write: a preceding existence check would only race the same unique constraint under
+     * concurrent registrations from different Central Server nodes, so the insert alone is both the check
+     * and the write.
+     */
+    @Override
+    public void register(String issuerDid) {
+        issuerDidRepository.insertIgnoreConflict(issuerDid);
     }
 
     @Override
-    public String rootPath() {
-        return EDC.rootPath();
-    }
-
-    @Override
-    public Set<ConfigKey<?>> keys() {
-        return EDC.keys();
+    public List<String> findAll() {
+        return issuerDidRepository.findAll().stream()
+                .map(IssuerDidEntity::getDid)
+                .sorted(Comparator.naturalOrder())
+                .toList();
     }
 }

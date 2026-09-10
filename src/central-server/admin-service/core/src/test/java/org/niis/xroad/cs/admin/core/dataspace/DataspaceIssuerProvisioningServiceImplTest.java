@@ -30,15 +30,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +59,8 @@ class DataspaceIssuerProvisioningServiceImplTest {
     private IssuerProvisioningRpcClient rpcClient;
     @Mock
     private DataspaceIssuerProperties properties;
+    @Mock
+    private DataspaceIssuerDidService dataspaceIssuerDidService;
 
     private DataspaceIssuerProvisioningServiceImpl service;
 
@@ -63,7 +70,7 @@ class DataspaceIssuerProvisioningServiceImplTest {
         when(properties.getDidPort()).thenReturn(DID_PORT);
         when(properties.getIssuancePort()).thenReturn(ISSUANCE_PORT);
         when(properties.getCredentialJsonSchemaUrl()).thenReturn(SCHEMA_URL);
-        service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties);
+        service = new DataspaceIssuerProvisioningServiceImpl(rpcClient, properties, dataspaceIssuerDidService);
     }
 
     @Test
@@ -134,6 +141,19 @@ class DataspaceIssuerProvisioningServiceImplTest {
                 eq("xroad-membership-attestation-definition"),
                 eq("holder")
         );
+    }
+
+    @Test
+    void provisionIssuerRegistersItsDidAfterProvisioningSucceeds() {
+        service.provisionIssuer();
+
+        verify(dataspaceIssuerDidService).register("did:web:" + HOST + "%3A" + DID_PORT + ":issuer");
+
+        InOrder order = inOrder(rpcClient, dataspaceIssuerDidService);
+        order.verify(rpcClient).createCredentialDefinition(
+                anyString(), anyString(), anyString(), anyString(), anyString(), anyString(),
+                anyLong(), anyList(), anyList());
+        order.verify(dataspaceIssuerDidService).register(anyString());
     }
 
 }

@@ -41,6 +41,7 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -98,11 +99,11 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
                 .build()));
     }
 
-    public String requestMembershipCredential(String participantContextId, String issuerDid, String holderPid,
+    public String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,
                                               String credentialDefinitionId, String credentialType, String format) {
         var response = exec(() -> stub.requestCredential(RequestCredentialReq.newBuilder()
                 .setParticipantContextId(participantContextId)
-                .setIssuerDid(issuerDid)
+                .addAllIssuerDids(issuerDids)
                 .setHolderPid(holderPid)
                 .setCredentialDefinitionId(credentialDefinitionId)
                 .setCredentialType(credentialType)

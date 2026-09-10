@@ -36,6 +36,8 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedDsTlsCaType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ApprovedTSAType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.CaInfoType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.DataspaceIssuerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v7.DataspaceParametersType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.GlobalSettingsType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v7.MemberClassType;
@@ -62,12 +64,13 @@ public class SharedParametersV7Converter {
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
         List<SharedParameters.ApprovedDsTlsCa> approvedDsTlsCas = getApprovedDsTlsCas(source.getApprovedDsTlsCa());
+        List<String> issuerDids = getIssuerDids(source.getDataspaceParameters());
         List<SharedParameters.Member> members = getMembers(instanceIdentifier, source.getMember());
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
         return new SharedParameters(instanceIdentifier, configurationSources, approvedCAs, approvedTSAs, approvedDsTlsCas,
-                members, securityServers, globalGroups, globalSettings);
+                issuerDids, members, securityServers, globalGroups, globalSettings);
     }
 
     private List<SharedParameters.ConfigurationSource> getConfigurationSources(List<ConfigurationSourceType> sources) {
@@ -101,6 +104,13 @@ public class SharedParametersV7Converter {
             approvedDsTlsCas.addAll(approvedDsTlsCaTypes.stream().map(this::toApprovedDsTlsCa).toList());
         }
         return approvedDsTlsCas;
+    }
+
+    private List<String> getIssuerDids(DataspaceParametersType dataspaceParameters) {
+        if (dataspaceParameters == null || dataspaceParameters.getIssuer() == null) {
+            return List.of();
+        }
+        return dataspaceParameters.getIssuer().stream().map(DataspaceIssuerType::getDid).toList();
     }
 
     private List<SharedParameters.Member> getMembers(String instanceIdentifier, List<MemberType> memberTypes) {

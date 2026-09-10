@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -50,9 +51,9 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     }
 
     @Override
-    public String requestMembershipCredential(String participantContextId, String issuerDid, String holderPid,
+    public String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,
                                               String credentialDefinitionId, String credentialType, String format) {
-        return rpcClient.requestMembershipCredential(participantContextId, issuerDid, holderPid,
+        return rpcClient.requestMembershipCredential(participantContextId, issuerDids, holderPid,
                 credentialDefinitionId, credentialType, format);
     }
 

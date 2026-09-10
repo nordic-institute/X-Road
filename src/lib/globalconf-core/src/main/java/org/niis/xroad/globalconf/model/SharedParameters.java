@@ -44,6 +44,7 @@ public class SharedParameters {
     private final List<ApprovedCA> approvedCAs;
     private final List<ApprovedTSA> approvedTSAs;
     private final List<ApprovedDsTlsCa> approvedDsTlsCas;
+    private final List<String> issuerDids;
     private final List<Member> members;
     private final List<SecurityServer> securityServers;
     private final List<GlobalGroup> globalGroups;
@@ -52,19 +53,21 @@ public class SharedParameters {
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
                             List<ApprovedTSA> approvedTSAs, List<Member> members, List<SecurityServer> securityServers,
                             List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
-        this(instanceIdentifier, sources, approvedCAs, approvedTSAs, null, members, securityServers, globalGroups,
+        this(instanceIdentifier, sources, approvedCAs, approvedTSAs, null, null, members, securityServers, globalGroups,
                 globalSettings);
     }
 
     @Builder(toBuilder = true)
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
-                            List<ApprovedTSA> approvedTSAs, List<ApprovedDsTlsCa> approvedDsTlsCas, List<Member> members,
-                            List<SecurityServer> securityServers, List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
+                            List<ApprovedTSA> approvedTSAs, List<ApprovedDsTlsCa> approvedDsTlsCas, List<String> issuerDids,
+                            List<Member> members, List<SecurityServer> securityServers, List<GlobalGroup> globalGroups,
+                            GlobalSettings globalSettings) {
         this.instanceIdentifier = instanceIdentifier;
         this.sources = sources;
         this.approvedCAs = approvedCAs;
         this.approvedTSAs = approvedTSAs;
         this.approvedDsTlsCas = approvedDsTlsCas != null ? approvedDsTlsCas : List.of();
+        this.issuerDids = issuerDids != null ? issuerDids : List.of();
         this.members = members;
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;

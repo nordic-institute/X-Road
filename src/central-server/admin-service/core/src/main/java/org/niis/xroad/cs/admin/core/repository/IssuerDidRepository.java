@@ -24,43 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.core.repository;
 
-package org.niis.xroad.common.properties.config.keys;
+import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
 
-import org.niis.xroad.common.properties.config.Category;
-import org.niis.xroad.common.properties.config.ConfigKey;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Prefix;
+public interface IssuerDidRepository extends GenericRepository<IssuerDidEntity, Integer> {
 
-import java.util.Set;
-
-/**
- * X-Road owned inputs to EDC settings ({@code xroad.edc.*}) that a packaged {@code application.yaml}
- * interpolates into a setting the EDC runtime reads itself through {@code QuarkusConfigBridge}, so the
- * value can arrive by any means the DSL supports (a stored override, an env var, {@code conf.d}) while
- * the EDC key itself stays declared by the packaged yaml.
- */
-public final class EdcConfigKeys implements ConfigKeyProvider {
-
-    private static final Prefix EDC = Prefix.of(Category.COMMON, "xroad.edc");
-
-    private static final EdcConfigKeys INSTANCE = new EdcConfigKeys();
-
-    private EdcConfigKeys() {
-    }
-
-    /** @return the provider singleton. */
-    public static EdcConfigKeys instance() {
-        return INSTANCE;
-    }
-
-    @Override
-    public String rootPath() {
-        return EDC.rootPath();
-    }
-
-    @Override
-    public Set<ConfigKey<?>> keys() {
-        return EDC.keys();
-    }
+    /**
+     * Inserts a DID, silently doing nothing if it is already registered (the unique constraint on {@code did}
+     * is what makes this idempotent under concurrent registrations from different Central Server nodes).
+     */
+    void insertIgnoreConflict(String did);
 }

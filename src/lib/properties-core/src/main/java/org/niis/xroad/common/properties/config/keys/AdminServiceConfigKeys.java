@@ -492,10 +492,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .withDefaultValue(false)
             .build();
 
-    public static final ConfigKey<String> DATASPACE_ISSUER_DID = DATASPACE
-            .string("issuer-did")
-            .build();
-
     public static final ConfigKey<String> DATASPACE_CREDENTIAL_DEFINITION_ID = DATASPACE
             .string("credential-definition-id")
             .withDefaultValue("xroad-membership-credential-definition")

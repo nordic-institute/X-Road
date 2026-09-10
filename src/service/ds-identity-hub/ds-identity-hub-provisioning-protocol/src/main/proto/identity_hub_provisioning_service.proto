@@ -51,7 +51,10 @@ message CreateParticipantContextResp {
 
 message RequestCredentialReq {
   string participant_context_id = 1;
-  string issuer_did = 2;
+  // The trusted-issuer candidate set to target, in no particular order; the identity hub resolves each
+  // in turn and uses the first one whose DID document is reachable and carries an issuer service
+  // endpoint, so a dead issuer never burns a holder request slot.
+  repeated string issuer_dids = 2;
   string holder_pid = 3;
   string credential_definition_id = 4;
   string credential_type = 5;
