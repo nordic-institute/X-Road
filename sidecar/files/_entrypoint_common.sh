@@ -302,8 +302,8 @@ if [ ! -f ${DB_PROPERTIES} ]; then
       chmod 640 /etc/xroad/db.properties
       set_db_props() {
         crudini --set --inplace "$ROOT_PROPERTIES" "" "$1.database.admin_user" "${XROAD_DATABASE_NAME}_$1_admin"
-        echo "$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
-        echo "$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+        echo "xroad.db.$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+        echo "xroad.db.$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
       }
       set_db_props serverconf
       if [ -n "$opmonitor" ]; then
@@ -330,7 +330,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   db_host="${XROAD_DB_HOST:-127.0.0.1}:${XROAD_DB_PORT:-5432}"
   if [ -z "$LOCAL_DB" ]; then
     # exising config, determine database location from db.properties
-    db_url=$(crudini --get '/etc/xroad/db.properties' "" 'serverconf.hibernate.connection.url' 2>/dev/null)
+    db_url=$(crudini --get '/etc/xroad/db.properties' "" 'xroad.db.serverconf.hibernate.connection.url' 2>/dev/null)
     pat='^jdbc:postgresql://([^/]*).*'
     if [[ "$db_url" =~ $pat ]]; then
       db_host="${BASH_REMATCH[1]:-$db_host}"
