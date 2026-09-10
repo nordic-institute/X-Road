@@ -105,7 +105,6 @@ RUN rm -f \
   && cp -a /etc/xroad /usr/share/xroad/config/etc/ \
 # move files that should not be overwritten during migration to another folder
 # (these are needed when initializing an empty config volume)
-  && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
   && mv /usr/share/xroad/config/etc/xroad/services/local.properties \
     /usr/share/xroad/config/backup/ \
 ##
