@@ -93,7 +93,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById policyId={} matched builtin", policyId);
-            return toBuiltinPolicyDefinition(policyId, selectBuiltinContextId());
+            return toBuiltinPolicyDefinition(policyId,
+                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
 
         if (systemParticipantContextId.equals(requestedParticipantContext.get())) {
@@ -159,11 +160,12 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             policies.add(toBuiltinPolicyDefinition(assetId, managementParticipantContextId));
             policies.add(toBuiltinPolicyDefinition(assetId, systemParticipantContextId));
         }
-        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
+        syntheticServices.managementEntries()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
                         serviceId.getClientId(), managementParticipantContextId)));
-        ManagementServiceCatalog.resolveSystemSyntheticServices(globalConfProvider, serverConfProvider)
+        syntheticServices.systemEntries()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
                         serviceId.getClientId(), systemParticipantContextId)));
@@ -275,16 +277,9 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .build();
     }
 
-    /** Built-ins are ungated (published under both SYSTEM and management on every server). */
-    private String selectBuiltinContextId() {
-        return systemParticipantContextId.equals(requestedParticipantContext.get())
-                ? systemParticipantContextId
-                : managementParticipantContextId;
-    }
-
     /**
      * A SYSTEM-addressed lookup only ever resolves to an owner-only policy for a synthetic entry
-     * eligible under SYSTEM ({@link ManagementServiceCatalog#isSystemEligible}) — never to a real
+     * eligible under SYSTEM ({@link ServiceContextResolver#isSystemEligible}) — never to a real
      * service's owner-only or per-subject policy, so a SYSTEM request for anything not published
      * there is a clean not-found instead of a fallback to the legacy host context.
      */
@@ -295,7 +290,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
         var serviceId = AssetMapper.decodeAssetId(assetIdStr);
-        if (serviceId == null || !ManagementServiceCatalog.isSystemEligible(serviceId, globalConfProvider, serverConfProvider)) {
+        if (serviceId == null || !serviceContextResolver.isSystemEligible(serviceId)) {
             return null;
         }
         return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), systemParticipantContextId);

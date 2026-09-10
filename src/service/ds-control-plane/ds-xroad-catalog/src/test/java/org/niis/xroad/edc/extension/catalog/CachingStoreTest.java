@@ -94,7 +94,7 @@ class CachingStoreTest {
                 .thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
-                globalConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
     }
 

@@ -41,6 +41,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +60,11 @@ import java.util.stream.Collectors;
  * since subsystems never hold participant identity (XRDADR-41). Provisioned member contexts are
  * read from EDC's {@link ParticipantContextService} and recognised by their three-segment ctx-id
  * shape, which separates them from the host and management ctx-ids held in the same store.
+ *
+ * <p>Also owns the SYSTEM-context routing decisions shared by the three ServerConf-backed catalog
+ * stores: which built-in/synthetic context a SYSTEM-addressed request resolves to, and which
+ * service ids are eligible for SYSTEM publication — one place instead of three near-identical
+ * copies.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -68,6 +74,7 @@ class ServiceContextResolver {
     private final String managementParticipantContextId;
     private final String systemParticipantContextId;
     private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
     private final ParticipantContextService participantContextService;
 
     /**
@@ -111,6 +118,80 @@ class ServiceContextResolver {
             return requestedParticipantContextId;
         }
         return resolvedContexts.getFirst();
+    }
+
+    /** Built-ins are ungated (published under both SYSTEM and management on every server). */
+    String selectBuiltinContextId(@Nullable String requestedParticipantContextId) {
+        return systemParticipantContextId.equals(requestedParticipantContextId)
+                ? systemParticipantContextId
+                : managementParticipantContextId;
+    }
+
+    /**
+     * The additive management-service synthetic entries for one catalog rebuild: the full,
+     * {@code -mgmt}-published set and the SYSTEM-eligible subset, derived from a single management
+     * subsystem resolution so a rebuild that needs both never resolves it twice.
+     */
+    SyntheticServices resolveSyntheticServices() {
+        var managementSubsystem = resolveManagementSubsystem();
+        if (managementSubsystem == null) {
+            return new SyntheticServices(List.of(), List.of());
+        }
+        var managementEntries = ManagementServiceCatalog.SERVICE_CODES.stream()
+                .map(code -> ServiceId.Conf.create(managementSubsystem, code))
+                .toList();
+        var systemEntries = ManagementServiceCatalog.SYSTEM_SERVICE_CODES.stream()
+                .map(code -> ServiceId.Conf.create(managementSubsystem, code))
+                .toList();
+        return new SyntheticServices(managementEntries, systemEntries);
+    }
+
+    /** The management-service synthetic entries for one catalog rebuild, split by publication context. */
+    record SyntheticServices(List<ServiceId.Conf> managementEntries, List<ServiceId.Conf> systemEntries) { }
+
+    /**
+     * Whether {@code serviceId} is one of the SYSTEM-eligible management-request synthetic
+     * services on this server: a versionless code from
+     * {@link ManagementServiceCatalog#SYSTEM_SERVICE_CODES}, owned by the locally hosted
+     * management subsystem. The version-suffixed form of an otherwise-eligible code is rejected —
+     * enumeration only ever publishes the versionless id, so a version-suffixed lookup must not
+     * resolve to it either.
+     *
+     * <p>Cheap checks (version, service code) run before the globalconf/serverconf resolution
+     * behind {@link #resolveManagementSubsystem()}, and a resolution failure degrades to
+     * not-eligible rather than propagating — a by-id lookup must fail closed, not throw.
+     */
+    boolean isSystemEligible(ServiceId serviceId) {
+        if (serviceId.getServiceVersion() != null
+                || !ManagementServiceCatalog.SYSTEM_SERVICE_CODES.contains(serviceId.getServiceCode())) {
+            return false;
+        }
+        try {
+            var managementSubsystem = resolveManagementSubsystem();
+            return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
+        } catch (RuntimeException e) {
+            log.warn("Failed to resolve SYSTEM eligibility for service '{}': {}", serviceId, e.getMessage());
+            return false;
+        }
+    }
+
+    @Nullable
+    private ClientId resolveManagementSubsystem() {
+        ClientId managementSubsystem = globalConfProvider.getManagementRequestService();
+        if (managementSubsystem == null || managementSubsystem.getSubsystemCode() == null) {
+            return null;
+        }
+        var thisServer = serverConfProvider.getIdentifier();
+        if (thisServer == null) {
+            return null;
+        }
+        if (!globalConfProvider.isSecurityServerClient(managementSubsystem, thisServer)) {
+            return null;
+        }
+        if (!serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
+            return null;
+        }
+        return managementSubsystem;
     }
 
     /**

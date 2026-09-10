@@ -206,7 +206,7 @@ class StoreCacheBenchmarkTest {
                 .thenReturn(ServiceResult.notFound("no such context"));
         var serviceContextResolver = new ServiceContextResolver(
                 "participant", "participant-mgmt", ParticipantIdentifierScheme.SYSTEM_SEGMENT,
-                globalConfProvider, participantContextService);
+                globalConfProvider, provider, participantContextService);
         return new AssetIndexServerConfStore(provider, globalConfProvider,
                 "participant", "participant-mgmt", ParticipantIdentifierScheme.SYSTEM_SEGMENT,
                 new BuiltinServiceCatalog(provider, false, false, false,

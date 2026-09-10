@@ -102,7 +102,7 @@ class AssetIndexServerConfStoreTest {
         lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
-                globalConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
         assetIndex = new AssetIndexServerConfStore(
                 serverConfProvider, globalConfProvider, PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID, SYSTEM_PARTICIPANT_CONTEXT_ID,
@@ -580,11 +580,9 @@ class AssetIndexServerConfStoreTest {
 
     @Test
     void findByIdAuthCertRegNotFoundUnderSystemContext() {
+        // authCertReg fails the cheap SYSTEM_SERVICE_CODES check before any globalconf/serverconf
+        // lookup runs, so no management-subsystem resolution needs to be stubbed here.
         var authCertRegService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "authCertReg");
-        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
-        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
-        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
-        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
 
         var result = assetIndex.findById(authCertRegService.asEncodedId());
