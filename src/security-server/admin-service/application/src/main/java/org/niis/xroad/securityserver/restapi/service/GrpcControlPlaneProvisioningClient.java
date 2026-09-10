@@ -50,6 +50,11 @@ public class GrpcControlPlaneProvisioningClient implements ControlPlaneProvision
     }
 
     @Override
+    public void deleteParticipantContext(String participantContextId) {
+        rpcClient.deleteParticipantContext(participantContextId);
+    }
+
+    @Override
     public void invalidateCatalogCaches() {
         rpcClient.invalidateCatalogCaches();
     }

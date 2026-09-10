@@ -42,6 +42,11 @@ public interface ControlPlaneProvisioningClient {
     void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
 
     /**
+     * Deletes (idempotently) the Control Plane participant context and its configuration for the given participant.
+     */
+    void deleteParticipantContext(String participantContextId);
+
+    /**
      * Flushes the Control Plane's catalog caches.
      */
     void invalidateCatalogCaches();

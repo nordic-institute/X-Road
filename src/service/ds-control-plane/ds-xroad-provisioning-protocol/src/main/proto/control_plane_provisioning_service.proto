@@ -33,6 +33,7 @@ option java_multiple_files = true;
 service ControlPlaneProvisioningService {
   rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
   rpc PutParticipantContextConfig(PutParticipantContextConfigReq) returns (PutParticipantContextConfigResp);
+  rpc DeleteParticipantContext(DeleteParticipantContextReq) returns (DeleteParticipantContextResp);
   rpc InvalidateCatalogCaches(InvalidateCatalogCachesReq) returns (InvalidateCatalogCachesResp);
 }
 
@@ -51,6 +52,13 @@ message PutParticipantContextConfigReq {
 }
 
 message PutParticipantContextConfigResp {
+}
+
+message DeleteParticipantContextReq {
+  string participant_context_id = 1;
+}
+
+message DeleteParticipantContextResp {
 }
 
 message InvalidateCatalogCachesReq {

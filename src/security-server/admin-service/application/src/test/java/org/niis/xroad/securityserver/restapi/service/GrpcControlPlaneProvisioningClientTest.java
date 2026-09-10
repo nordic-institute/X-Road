@@ -63,6 +63,13 @@ class GrpcControlPlaneProvisioningClientTest {
     }
 
     @Test
+    void deleteParticipantContextDelegatesToRpcClient() {
+        client.deleteParticipantContext(CTX_ID);
+
+        verify(rpcClient).deleteParticipantContext(CTX_ID);
+    }
+
+    @Test
     void invalidateCatalogCachesDelegatesToRpcClient() {
         client.invalidateCatalogCaches();
 

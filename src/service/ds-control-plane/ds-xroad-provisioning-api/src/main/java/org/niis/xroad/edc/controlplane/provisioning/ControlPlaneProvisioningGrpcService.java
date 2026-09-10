@@ -32,10 +32,13 @@ import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextCon
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.ControlPlaneProvisioningServiceGrpc;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.DeleteParticipantContextReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.DeleteParticipantContextResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
@@ -45,6 +48,7 @@ import org.niis.xroad.edc.extension.catalog.DataPlaneContextRegistrar;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.failure;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
@@ -64,6 +68,7 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
 
     private final ParticipantContextService participantContextService;
     private final ParticipantContextConfigService participantContextConfigService;
+    private final ParticipantContextConfigDeleter participantContextConfigDeleter;
     private final DataPlaneContextRegistrar dataPlaneContextRegistrar;
     private final CatalogCacheInvalidator catalogCacheInvalidator;
     private final RpcResponseHandler responseHandler;
@@ -78,6 +83,12 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
     public void putParticipantContextConfig(PutParticipantContextConfigReq request,
                                             StreamObserver<PutParticipantContextConfigResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> putParticipantContextConfigInternal(request));
+    }
+
+    @Override
+    public void deleteParticipantContext(DeleteParticipantContextReq request,
+                                         StreamObserver<DeleteParticipantContextResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> deleteParticipantContextInternal(request));
     }
 
     @Override
@@ -118,6 +129,19 @@ class ControlPlaneProvisioningGrpcService extends ControlPlaneProvisioningServic
         var result = participantContextConfigService.save(configuration);
         requireSuccessOrConflict(result, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
         return PutParticipantContextConfigResp.getDefaultInstance();
+    }
+
+    private DeleteParticipantContextResp deleteParticipantContextInternal(DeleteParticipantContextReq request) {
+        var participantContextId = request.getParticipantContextId();
+
+        var result = participantContextService.deleteParticipantContext(participantContextId);
+        if (result.failed() && result.reason() != ServiceFailure.Reason.NOT_FOUND) {
+            throw failure(DSP_PROVISIONING_FAILED, participantContextId, result.getFailureDetail());
+        }
+
+        participantContextConfigDeleter.deleteByParticipantContextId(participantContextId);
+
+        return DeleteParticipantContextResp.getDefaultInstance();
     }
 
     private InvalidateCatalogCachesResp invalidateCatalogCachesInternal() {
