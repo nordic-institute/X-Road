@@ -42,8 +42,9 @@ The image installs:
 `xroad-base`, `xroad-confclient` and `xroad-signer` arrive as dependencies of `xroad-proxy`.
 
 A `slim` image that left out message logging, environmental monitoring, operational monitoring, backup/restore and
-dataspace services was retired in X-Road 8; the reduced footprint it offered is now a matter of configuration on
-this one image, not a second image.
+dataspace services was retired in X-Road 8. On this one image those features are switched on and off through
+configuration; the service processes themselves stay resident regardless of the toggles, so the toggles change
+functional behavior, not the process set or its resource footprint.
 
 The image is built from pre-built X-Road software packages, either installed from an X-Road apt repository
 selected by the `REPO` build argument, or, for development builds, from a local directory of tree-built `.deb`
