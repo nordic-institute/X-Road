@@ -422,7 +422,7 @@ All possible properties of a module entry are described in the next table.
 | `read-only`                                | BOOLEAN      | `false`                                          | Indicates whether the module is opened read-only.                                                                                                                                                                                                                                                                                 |
 
 **Note 1:** Only property `library` is mandatory, all the others are optional.
-**Note 2:** The item separator of the type STRING LIST is ",".
+**Note 2:** Properties of the type STRING LIST are JSON arrays of strings, e.g. `["CKM_RSA_PKCS", "CKM_ECDSA"]`.
 
 Set the property with `db_property.sh`, installed at `/usr/share/xroad/scripts/db_property.sh`:
 
