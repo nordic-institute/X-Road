@@ -12,8 +12,16 @@ dependencies {
   implementation(libs.edc.spi.identity.did)
   implementation(libs.edc.spi.identityhub.vc)
   implementation(libs.edc.spi.identityhub.holdercredentialrequest)
+  implementation(libs.edc.lib.sql)
+  implementation(libs.edc.spi.transaction.datasource)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.edc.junit)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.testcontainers.junit)
+  testImplementation(libs.testcontainers.postgresql)
+  testImplementation(libs.edc.ih.sql.holder.credential.request)
+  testImplementation(testFixtures(libs.edc.sql.test.fixtures))
 }

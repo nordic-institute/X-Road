@@ -32,6 +32,7 @@ option java_multiple_files = true;
 
 service IdentityHubProvisioningService {
   rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
+  rpc DeleteParticipantContext(DeleteParticipantContextReq) returns (DeleteParticipantContextResp);
   rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
   rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
   rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
@@ -47,6 +48,13 @@ message CreateParticipantContextReq {
 }
 
 message CreateParticipantContextResp {
+}
+
+message DeleteParticipantContextReq {
+  string participant_context_id = 1;
+}
+
+message DeleteParticipantContextResp {
 }
 
 message RequestCredentialReq {

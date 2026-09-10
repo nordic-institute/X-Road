@@ -42,6 +42,13 @@ public interface IdentityHubProvisioningClient {
                                   String credentialServiceUrl, String keyId, String privateKeyAlias);
 
     /**
+     * Deletes (idempotently) the IdentityHub participant context for the given participant, along with
+     * its DID document, key material, STS account and stored credential and credential-request records.
+     * Deleting an already-absent context is a success.
+     */
+    void deleteParticipantContext(String participantContextId);
+
+    /**
      * Submits a membership credential request for the given participant and holder request id.
      *
      * @return the created request id

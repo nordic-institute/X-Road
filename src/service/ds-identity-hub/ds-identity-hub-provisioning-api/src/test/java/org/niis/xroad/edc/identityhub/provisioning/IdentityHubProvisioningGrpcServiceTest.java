@@ -42,6 +42,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
@@ -64,13 +66,16 @@ class IdentityHubProvisioningGrpcServiceTest {
     @Mock
     private CredentialRequestManager credentialRequestManager;
     @Mock
+    private ParticipantCredentialRecordsPurger recordsPurger;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> createObserver;
 
     private IdentityHubProvisioningGrpcService service;
 
     @BeforeEach
     void setUp() {
-        service = new IdentityHubProvisioningGrpcService(participantContextService, credentialRequestManager, new RpcResponseHandler());
+        service = new IdentityHubProvisioningGrpcService(
+                participantContextService, credentialRequestManager, recordsPurger, new RpcResponseHandler());
     }
 
     @ParameterizedTest
@@ -99,6 +104,53 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         verify(createObserver).onError(any(StatusRuntimeException.class));
         verify(participantContextService, never()).createParticipantContext(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteParticipantContextPurgesRecordsOnSuccess() {
+        when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.success());
+
+        StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, observer);
+
+        verify(observer).onNext(DeleteParticipantContextResp.getDefaultInstance());
+        verify(observer).onCompleted();
+        verify(observer, never()).onError(any());
+        verify(recordsPurger).purge("ctx-1");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteParticipantContextIsIdempotentForAlreadyAbsentContext() {
+        when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.notFound("gone already"));
+
+        StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, observer);
+
+        verify(observer).onNext(DeleteParticipantContextResp.getDefaultInstance());
+        verify(observer).onCompleted();
+        verify(observer, never()).onError(any());
+        verify(recordsPurger).purge("ctx-1");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteParticipantContextSurfacesErrorForNonNotFoundFailureAndSkipsPurge() {
+        when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.unexpected("db unreachable"));
+
+        StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, observer);
+
+        verify(observer).onError(any(StatusRuntimeException.class));
+        verify(observer, never()).onCompleted();
+        verify(recordsPurger, never()).purge(anyString());
     }
 
     @Test

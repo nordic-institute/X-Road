@@ -53,6 +53,18 @@ public final class EdcProvisioningHelper {
     }
 
     /**
+     * Succeeds silently if the result succeeded or failed with NOT_FOUND (idempotent-delete contract:
+     * deleting an already-absent resource is a success). Any other failure reason throws an
+     * {@link XrdRuntimeException}.
+     */
+    public static void requireSuccessOrNotFound(ServiceResult<?> result, ErrorCode errorCode, String metadata) {
+        if (result.succeeded() || result.reason() == ServiceFailure.Reason.NOT_FOUND) {
+            return;
+        }
+        throw failure(errorCode, metadata, result.getFailureDetail());
+    }
+
+    /**
      * Builds an {@link XrdRuntimeException} for a dataspace provisioning failure.
      */
     public static XrdRuntimeException failure(ErrorCode errorCode, String metadata, String detail) {

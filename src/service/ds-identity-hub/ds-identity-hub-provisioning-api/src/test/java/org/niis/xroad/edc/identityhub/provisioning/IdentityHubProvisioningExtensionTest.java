@@ -26,10 +26,16 @@
  */
 package org.niis.xroad.edc.identityhub.provisioning;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +45,7 @@ import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class IdentityHubProvisioningExtensionTest {
@@ -47,6 +54,16 @@ class IdentityHubProvisioningExtensionTest {
     private IdentityHubParticipantContextService participantContextService;
     @Mock
     private CredentialRequestManager credentialRequestManager;
+    @Mock
+    private CredentialStore credentialStore;
+    @Mock
+    private DataSourceRegistry dataSourceRegistry;
+    @Mock
+    private TransactionContext transactionContext;
+    @Mock
+    private TypeManager typeManager;
+    @Mock
+    private QueryExecutor queryExecutor;
     @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
@@ -58,9 +75,16 @@ class IdentityHubProvisioningExtensionTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        when(typeManager.getMapper()).thenReturn(new ObjectMapper());
+
         extension = new IdentityHubProvisioningExtension();
         setField(extension, "participantContextService", participantContextService);
         setField(extension, "credentialRequestManager", credentialRequestManager);
+        setField(extension, "credentialStore", credentialStore);
+        setField(extension, "dataSourceRegistry", dataSourceRegistry);
+        setField(extension, "transactionContext", transactionContext);
+        setField(extension, "typeManager", typeManager);
+        setField(extension, "queryExecutor", queryExecutor);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }
