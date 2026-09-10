@@ -83,7 +83,8 @@ RUN --mount=type=bind,source=files/xroad-internal-repo.sh,target=/tmp/xroad-inte
 COPY --chown=xroad:xroad files/*-logback*.xml files/variables-logback.properties /etc/xroad/conf.d/
 COPY --chown=root:root files/secret-store-local.conf /etc/xroad/services/secret-store-local.conf
 
-RUN rm -f \
+RUN --mount=type=bind,source=files/patch-proxy-heap.sh,target=/tmp/patch-proxy-heap.sh \
+    rm -f \
     /etc/xroad/db.properties \
     /etc/xroad.properties \
     /etc/xroad/ssl/*.crt \
@@ -92,28 +93,7 @@ RUN rm -f \
     /var/log/syslog \
     /var/log/xroad/* \
     /var/log/postgresql/* \
-  && (grep -qF 'echo "-Xms$default_xms -Xmx$default_xmx"' /usr/share/xroad/scripts/proxy_memory_helper.sh \
-      || { echo "ERROR: proxy_memory_helper.sh get-default line not found, refusing to patch proxy heap sizing" >&2; exit 1; }) \
-  && sed -i 's/echo "-Xms$default_xms -Xmx$default_xmx"/echo "-Xms$default_xms -XX:MaxRAMPercentage=25.0"/' \
-    /usr/share/xroad/scripts/proxy_memory_helper.sh \
-# xroad-proxy.postinst bakes a literal -Xmx into local.properties at every "configure"
-# run - both the package install above and the entrypoint's dpkg-reconfigure on first
-# boot - via this script's own apply-default action, which still writes $default_xmx
-# verbatim regardless of the get-default patch above; strip it there too, or a fresh
-# container's actual launch reverts to a hardcoded heap on every first boot
-  && (grep -qF '  apply_memory_config "XROAD_PROXY_PARAMS" "$default_xms" "$default_xmx"' \
-      /usr/share/xroad/scripts/proxy_memory_helper.sh \
-      || { echo "ERROR: proxy_memory_helper.sh apply-default line not found, refusing to patch proxy heap sizing" >&2; exit 1; }) \
-  && sed -i 's#  apply_memory_config "XROAD_PROXY_PARAMS" "$default_xms" "$default_xmx"#&\n  sed -E -i "/^XROAD_PROXY_PARAMS=/ s/ ?-Xmx[0-9]+[kKmMgG]?//g" /etc/xroad/services/local.properties#' \
-    /usr/share/xroad/scripts/proxy_memory_helper.sh \
-# the same postinst configure run bakes the same literal into local.properties itself
-# (before the guards above ever run for the build's own package-install pass); strip it
-# here so both the live file and the config-backup seed below are clean
-  && (test -f /etc/xroad/services/local.properties \
-      && sed -E -i '/^XROAD_PROXY_PARAMS=/ s/ ?-Xmx[0-9]+[kKmMgG]?//g' /etc/xroad/services/local.properties; \
-      true) \
-  && (! grep -qE -- '-Xmx[0-9]+[kKmMgG]?' /etc/xroad/services/local.properties 2>/dev/null \
-      || { echo "ERROR: literal -Xmx still present in /etc/xroad/services/local.properties, refusing to build" >&2; exit 1; }) \
+  && /bin/bash /tmp/patch-proxy-heap.sh \
 ##
 # create a backup of the configuration for version migration and
 # for initializing an empty config volume
