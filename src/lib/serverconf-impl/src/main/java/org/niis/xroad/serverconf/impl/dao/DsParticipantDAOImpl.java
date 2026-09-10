@@ -35,7 +35,6 @@ import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
-import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
@@ -81,33 +80,22 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
     }
 
     /**
-     * Marks the member's participant binding decommissioned: flips an existing row to
-     * {@link ParticipantState#DECOMMISSIONED} — a no-op if it already is — or inserts a new
-     * decommissioned row carrying the given derived ctx-id and DID when the member was never bound.
-     * Flip-or-insert against the one-row-per-member unique constraint, so a duplicate tombstone is
-     * structurally impossible.
+     * Flips the member's bound participant row to {@link ParticipantState#DECOMMISSIONED}, whatever
+     * its current state — a no-op if it already is. Does nothing when the member has no bound row:
+     * every bound member is provisioned with an {@code ACTIVE} row up front, so a missing row means
+     * there was never a published identity to tear down.
      *
      * @param session the Hibernate session
      * @param member  the member identifier
-     * @param ctxId   the member's derived ctx-id, used only when inserting a new row
-     * @param did     the member's derived DID, used only when inserting a new row
+     * @return {@code true} if the member had a bound row, {@code false} if it had none
      */
-    public void decommissionMember(Session session, ClientId member, String ctxId, String did) {
-        ClientIdEntity identifier = identifierDAO.findOrCreateClientId(session, member);
-        Optional<DsParticipantEntity> existing = findByMemberIdentifier(session, identifier);
-        if (existing.isPresent()) {
-            existing.get().setState(ParticipantState.DECOMMISSIONED);
-            return;
+    public boolean decommissionMember(Session session, ClientId member) {
+        Optional<DsParticipantEntity> existing = findByMemberIdentifier(session, member);
+        if (existing.isEmpty()) {
+            return false;
         }
-
-        DsParticipantEntity entity = new DsParticipantEntity();
-        entity.setParticipantType(ParticipantType.MEMBER);
-        entity.setMemberIdentifier(identifier);
-        entity.setCtxId(ctxId);
-        entity.setDid(did);
-        entity.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-        entity.setState(ParticipantState.DECOMMISSIONED);
-        save(session, entity);
+        existing.get().setState(ParticipantState.DECOMMISSIONED);
+        return true;
     }
 
     /**

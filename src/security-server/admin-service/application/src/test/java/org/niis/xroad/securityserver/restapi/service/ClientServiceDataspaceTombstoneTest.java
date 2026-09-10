@@ -52,6 +52,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -89,8 +90,6 @@ class ClientServiceDataspaceTombstoneTest {
     @Mock
     private CatalogInvalidationNotifier catalogInvalidationNotifier;
     @Mock
-    private DataspaceParticipantTombstoneService dataspaceParticipantTombstoneService;
-    @Mock
     private DsParticipantRepository dsParticipantRepository;
     @Mock
     private ServerConfEntity serverConfEntity;
@@ -103,32 +102,46 @@ class ClientServiceDataspaceTombstoneTest {
         clientService = new ClientService(clientRepository, null, globalConfProvider, serverConfService, null,
                 identifierRepository, localGroupRepository, accessRightRepository, null,
                 new CurrentSecurityServerId(SecurityServerId.Conf.create(OWNER, "SS1")), subsystemNameStatus,
-                auditDataHelper, catalogInvalidationNotifier, dataspaceParticipantTombstoneService, dsParticipantRepository,
+                auditDataHelper, catalogInvalidationNotifier, dsParticipantRepository,
                 mock(CurrentSecurityServerSignCertificates.class));
 
         clients = new HashSet<>();
         lenient().when(serverConfService.getServerConfEntity()).thenReturn(serverConfEntity);
         lenient().when(serverConfEntity.getClients()).thenReturn(clients);
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
+        lenient().when(dsParticipantRepository.decommissionMember(any())).thenReturn(false);
         lenient().when(globalConfProvider.getClientSecurityServers(any())).thenReturn(Set.of());
     }
 
     @Test
-    void decommissionsBindingWhenDeletedMemberHasNoClientsLeft() {
+    void flipsBindingWhenDeletedMemberHasNoClientsLeft() {
         ClientId member = ClientId.Conf.create("TEST", "ORG", "M1");
         ClientEntity memberClient = clientEntityFor(member);
         clients.add(memberClient);
         when(clientRepository.getClient(member)).thenReturn(memberClient);
+        when(dsParticipantRepository.decommissionMember(member)).thenReturn(true);
 
         clientService.deleteLocalClient(member);
 
-        verify(dataspaceParticipantTombstoneService).decommission(member);
+        verify(dsParticipantRepository).decommissionMember(member);
+    }
+
+    @Test
+    void writesNothingWhenDeletedMemberHasNoBoundParticipant() {
+        ClientId member = ClientId.Conf.create("TEST", "ORG", "M2");
+        ClientEntity memberClient = clientEntityFor(member);
+        clients.add(memberClient);
+        when(clientRepository.getClient(member)).thenReturn(memberClient);
+
+        assertDoesNotThrow(() -> clientService.deleteLocalClient(member));
+
+        verify(dsParticipantRepository).decommissionMember(member);
     }
 
     @Test
     void doesNotDecommissionBindingWhenMemberHasARemainingSubsystem() {
-        ClientId member = ClientId.Conf.create("TEST", "ORG", "M2");
-        ClientId subsystem = ClientId.Conf.create("TEST", "ORG", "M2", "SUB");
+        ClientId member = ClientId.Conf.create("TEST", "ORG", "M3");
+        ClientId subsystem = ClientId.Conf.create("TEST", "ORG", "M3", "SUB");
         ClientEntity memberClient = clientEntityFor(member);
         ClientEntity subsystemClient = clientEntityFor(subsystem);
         clients.add(memberClient);
@@ -137,20 +150,21 @@ class ClientServiceDataspaceTombstoneTest {
 
         clientService.deleteLocalClient(member);
 
-        verify(dataspaceParticipantTombstoneService, never()).decommission(any());
+        verify(dsParticipantRepository, never()).decommissionMember(any());
     }
 
     @Test
     void decommissionsBindingForBareMemberWhenLastRemainingClientIsASubsystem() {
-        ClientId member = ClientId.Conf.create("TEST", "ORG", "M3");
-        ClientId subsystem = ClientId.Conf.create("TEST", "ORG", "M3", "SUB");
+        ClientId member = ClientId.Conf.create("TEST", "ORG", "M4");
+        ClientId subsystem = ClientId.Conf.create("TEST", "ORG", "M4", "SUB");
         ClientEntity subsystemClient = clientEntityFor(subsystem);
         clients.add(subsystemClient);
         when(clientRepository.getClient(subsystem)).thenReturn(subsystemClient);
+        when(dsParticipantRepository.decommissionMember(member)).thenReturn(true);
 
         clientService.deleteLocalClient(subsystem);
 
-        verify(dataspaceParticipantTombstoneService).decommission(member);
+        verify(dsParticipantRepository).decommissionMember(member);
     }
 
     private ClientEntity clientEntityFor(ClientId id) {

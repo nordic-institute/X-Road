@@ -62,15 +62,13 @@ public class DsParticipantRepository {
     }
 
     /**
-     * Marks the member's participant binding decommissioned in the caller's transaction: flips an
-     * existing row (a no-op if already decommissioned), or inserts a new decommissioned row carrying
-     * the given derived ctx-id and DID when the member was never bound.
+     * Flips the member's bound participant row to decommissioned, in the caller's transaction — a
+     * no-op if it already is. Does nothing when the member has no bound row.
      *
      * @param member the member identifier
-     * @param ctxId  the member's derived ctx-id, used only when inserting a new row
-     * @param did    the member's derived DID, used only when inserting a new row
+     * @return {@code true} if the member had a bound row, {@code false} if it had none
      */
-    public void decommissionMember(ClientId member, String ctxId, String did) {
-        dsParticipantDAO.decommissionMember(persistenceUtils.getCurrentSession(), member, ctxId, did);
+    public boolean decommissionMember(ClientId member) {
+        return dsParticipantDAO.decommissionMember(persistenceUtils.getCurrentSession(), member);
     }
 }

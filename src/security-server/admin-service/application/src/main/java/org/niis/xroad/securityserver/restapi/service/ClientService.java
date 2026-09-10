@@ -136,7 +136,6 @@ public class ClientService {
     private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
     private final CatalogInvalidationNotifier catalogInvalidationNotifier;
-    private final DataspaceParticipantTombstoneService dataspaceParticipantTombstoneService;
     private final DsParticipantRepository dsParticipantRepository;
 
     // request scoped contains all certificates of type sign
@@ -886,8 +885,9 @@ public class ClientService {
     }
 
     /**
-     * Writes the dataspace participant binding tombstone, in this same transaction, once the deleted
-     * client was the member's last one on this server (own client and all subsystems counted).
+     * Flips the member's dataspace participant binding to decommissioned, in this same transaction,
+     * once the deleted client was the member's last one on this server (own client and all
+     * subsystems counted). Does nothing when the member was never bound.
      */
     private void decommissionDataspaceBindingIfLastClient(ClientEntity deletedClient, ServerConfEntity serverConfEntity) {
         ClientId member = deletedClient.getIdentifier().getMemberId();
@@ -895,8 +895,11 @@ public class ClientService {
                 .map(ClientEntity::getIdentifier)
                 .map(ClientId::getMemberId)
                 .anyMatch(member::equals);
-        if (!anyClientsRemain) {
-            dataspaceParticipantTombstoneService.decommission(member);
+        if (anyClientsRemain) {
+            return;
+        }
+        if (dsParticipantRepository.decommissionMember(member)) {
+            log.info("Data space participant binding for {} marked decommissioned", member);
         }
     }
 

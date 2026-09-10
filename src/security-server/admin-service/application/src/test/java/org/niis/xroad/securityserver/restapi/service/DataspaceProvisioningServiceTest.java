@@ -546,17 +546,6 @@ class DataspaceProvisioningServiceTest {
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNBOUND);
     }
 
-    // --- deriveMemberIdentity ---
-
-    @Test
-    void deriveMemberIdentityReturnsPureDerivationWithoutTouchingRepository() {
-        var identity = service.deriveMemberIdentity(MEMBER);
-
-        assertThat(identity.ctxId()).isEqualTo(ParticipantIdentifierScheme.memberCtxId(MEMBER));
-        assertThat(identity.did()).isEqualTo(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST));
-        verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
-    }
-
     // --- readIdentityStatus ---
 
     @Test

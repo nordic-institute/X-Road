@@ -393,28 +393,6 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Pure derivation of a member's intended ctx-id and DID under the current scheme — no external
-     * calls, no binding lookup. For domain flows that must derive a member's identity to bind
-     * without triggering provisioning, e.g. writing the decommissioned-binding tombstone on the
-     * member's last client deletion.
-     *
-     * @param memberId the X-Road member identifier
-     * @return the member's derived ctx-id and DID
-     */
-    public MemberParticipantIdentity deriveMemberIdentity(ClientId memberId) {
-        var identityHubHost = hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl());
-        var ssHost = didAuthority(identityHubHost);
-        return new MemberParticipantIdentity(ParticipantIdentifierScheme.memberCtxId(memberId),
-                ParticipantIdentifierScheme.memberDid(memberId, ssHost));
-    }
-
-    /**
-     * A member's derived ctx-id and DID under the current scheme.
-     */
-    public record MemberParticipantIdentity(String ctxId, String did) {
-    }
-
-    /**
      * Finds the member's bound participant row, ignored (treated as unbound) once it has been
      * decommissioned: a tombstone is not a live binding.
      */
