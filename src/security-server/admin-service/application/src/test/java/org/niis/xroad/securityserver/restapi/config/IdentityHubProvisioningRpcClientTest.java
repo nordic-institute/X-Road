@@ -68,6 +68,8 @@ class IdentityHubProvisioningRpcClientTest {
 
     private GetCredentialRequestStateResp configuredStateResp;
     private GetParticipantContextDidResp configuredDidResp;
+    private CreateParticipantContextResp configuredCreateResp =
+            CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
     private final AtomicReference<CreateParticipantContextReq> capturedCreateReq = new AtomicReference<>();
     private final AtomicReference<RequestCredentialReq> capturedRequestCredReq = new AtomicReference<>();
 
@@ -78,7 +80,7 @@ class IdentityHubProvisioningRpcClientTest {
             public void createParticipantContext(CreateParticipantContextReq request,
                                                  StreamObserver<CreateParticipantContextResp> responseObserver) {
                 capturedCreateReq.set(request);
-                responseObserver.onNext(CreateParticipantContextResp.newBuilder().build());
+                responseObserver.onNext(configuredCreateResp);
                 responseObserver.onCompleted();
             }
 
@@ -165,7 +167,7 @@ class IdentityHubProvisioningRpcClientTest {
 
     @Test
     void createIdentityHubParticipantContextForwardsAllFields() {
-        client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
+        var reanchored = client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
                 "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", true);
 
         var req = capturedCreateReq.get();
@@ -176,6 +178,17 @@ class IdentityHubProvisioningRpcClientTest {
         assertThat(req.getKeyId()).isEqualTo("did:web:example#key-1");
         assertThat(req.getPrivateKeyAlias()).isEqualTo("ctx-id-key");
         assertThat(req.getReanchorMemberIdOnConflict()).isTrue();
+        assertThat(reanchored).isTrue();
+    }
+
+    @Test
+    void createIdentityHubParticipantContextReturnsFalseWhenHubDoesNotConfirmReanchor() {
+        configuredCreateResp = CreateParticipantContextResp.getDefaultInstance();
+
+        var reanchored = client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
+                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", true);
+
+        assertThat(reanchored).isFalse();
     }
 
     @Test

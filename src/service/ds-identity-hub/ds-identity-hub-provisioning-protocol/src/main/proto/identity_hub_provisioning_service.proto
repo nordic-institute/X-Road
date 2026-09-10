@@ -50,6 +50,11 @@ message CreateParticipantContextReq {
 }
 
 message CreateParticipantContextResp {
+  // True once the stored member id is confirmed to match the request's: trivially on a fresh
+  // create, or after a successful re-anchor on CONFLICT. False when a requested re-anchor could
+  // not be confirmed — the request's read/update failed and was swallowed, or this hub predates
+  // the field (proto3 default) and never attempted it.
+  bool member_id_reanchored = 1;
 }
 
 message RequestCredentialReq {

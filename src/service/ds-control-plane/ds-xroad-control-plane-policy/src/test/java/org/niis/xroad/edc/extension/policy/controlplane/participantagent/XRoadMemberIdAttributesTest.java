@@ -34,6 +34,8 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,6 +106,34 @@ class XRoadMemberIdAttributesTest {
     }
 
     @Test
+    void attributesForSelectsMostRecentlyIssuedCredentialWhenSystemContextHoldsOldAndNewOwner() {
+        var now = Instant.now();
+        var oldOwnerVc = membershipVc("CS", "ORG", "old-owner", now.minus(1, ChronoUnit.DAYS));
+        var newOwnerVc = membershipVc("CS", "ORG", "new-owner", now);
+        var token = ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(oldOwnerVc, newOwnerVc))
+                .build();
+
+        var result = sut.attributesFor(token);
+
+        assertThat(result).containsEntry(XRD_MEMBER_CODE_ATTRIBUTE, "new-owner");
+    }
+
+    @Test
+    void attributesForSelectsMostRecentlyIssuedCredentialRegardlessOfListOrder() {
+        var now = Instant.now();
+        var newOwnerVc = membershipVc("CS", "ORG", "new-owner", now);
+        var oldOwnerVc = membershipVc("CS", "ORG", "old-owner", now.minus(1, ChronoUnit.DAYS));
+        var token = ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(newOwnerVc, oldOwnerVc))
+                .build();
+
+        var result = sut.attributesFor(token);
+
+        assertThat(result).containsEntry(XRD_MEMBER_CODE_ATTRIBUTE, "new-owner");
+    }
+
+    @Test
     void attributesForReturnsEmptyMapWhenNoVcListClaim() {
         var token = ClaimToken.Builder.newInstance().build();
 
@@ -135,19 +165,22 @@ class XRoadMemberIdAttributesTest {
     }
 
     private ClaimToken buildTokenWithMembershipVc(String xroadInstance, String memberClass, String memberCode) {
+        return ClaimToken.Builder.newInstance()
+                .claim("vc", List.of(membershipVc(xroadInstance, memberClass, memberCode, Instant.now())))
+                .build();
+    }
+
+    private VerifiableCredential membershipVc(String xroadInstance, String memberClass, String memberCode, Instant issuanceDate) {
         var subject = CredentialSubject.Builder.newInstance()
                 .claim(XRoadMemberIdAttributes.XROAD_INSTANCE_CLAIM, xroadInstance)
                 .claim(XRoadMemberIdAttributes.MEMBER_CLASS_CLAIM, memberClass)
                 .claim(XRoadMemberIdAttributes.MEMBER_CODE_CLAIM, memberCode)
                 .build();
-        var vc = VerifiableCredential.Builder.newInstance()
+        return VerifiableCredential.Builder.newInstance()
                 .type(XRoadMemberIdAttributes.MEMBERSHIP_CREDENTIAL_TYPE)
                 .issuer(new Issuer("did:web:test-issuer"))
-                .issuanceDate(java.time.Instant.now())
+                .issuanceDate(issuanceDate)
                 .credentialSubject(subject)
-                .build();
-        return ClaimToken.Builder.newInstance()
-                .claim("vc", List.of(vc))
                 .build();
     }
 }
