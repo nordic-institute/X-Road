@@ -77,10 +77,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       auditable action outside the reconciler.</li>
  *   <li>{@link #ensureMembershipCredential(String, ParticipantKind, ClientId)} — leaves an active
  *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
- *       slot scan; advances past slots in terminal ERROR.</li>
+ *       slot scan; advances past slots in terminal ERROR. For SYSTEM with no owner known yet, returns
+ *       {@code UNKNOWN} without scanning or submitting — see {@link #isSystemWithUnknownOwner}.</li>
  *   <li>{@link #readCredentialStatus(String, ParticipantKind, ClientId)} — returns the current credential
  *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
- *       without polling.</li>
+ *       without polling. Same SYSTEM-with-no-owner short-circuit as {@link #ensureMembershipCredential}.</li>
  * </ul>
  *
  * <p>Slot semantics: each participant holds up to {@code maxHolderPidSlots} sequentially named holder-request
@@ -221,7 +222,10 @@ public class DataspaceProvisioningService {
      *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
      *         {@code ERROR} when all slots are exhausted
      */
-    public CredentialStatus ensureMembershipCredential(String participantId, ParticipantKind kind, ClientId memberId) {
+    public CredentialStatus ensureMembershipCredential(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
+        if (isSystemWithUnknownOwner(kind, memberId)) {
+            return CredentialStatus.UNKNOWN;
+        }
         var ds = adminServiceProperties.getDataspace();
         var base = holderPidBase(participantId, kind, memberId);
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
@@ -260,6 +264,9 @@ public class DataspaceProvisioningService {
      */
     @Nullable
     public CredentialStatus readCredentialStatus(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
+        if (isSystemWithUnknownOwner(kind, memberId)) {
+            return CredentialStatus.UNKNOWN;
+        }
         var ds = adminServiceProperties.getDataspace();
         var base = holderPidBase(participantId, kind, memberId);
         boolean anyError = false;
@@ -281,15 +288,25 @@ public class DataspaceProvisioningService {
 
     /**
      * The holder-pid slot-base for a participant context: unsalted for HOST/MANAGEMENT/MEMBER, salted
-     * with the current owner for SYSTEM. A {@code null} owner (SYSTEM before the SS owner is known)
-     * falls back to the unsalted base — the caller never reaches this point with credential requests
-     * to make, but a status read may.
+     * with the current owner for SYSTEM. Never called for SYSTEM with a {@code null} owner — both
+     * callers return early via {@link #isSystemWithUnknownOwner} before reaching this point, since the
+     * unsalted namespace is one SYSTEM never writes to.
      */
     private String holderPidBase(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
         var unsalted = participantId + "-" + HOLDER_PID_BASE;
         return kind == ParticipantKind.SYSTEM && memberId != null
                 ? SystemCredentialAnchor.holderPidBase(unsalted, memberId)
                 : unsalted;
+    }
+
+    /**
+     * Whether {@code kind}/{@code memberId} is the per-server SYSTEM context before the SS owner is
+     * known. SYSTEM's holder-pid namespace is salted with the owner ({@link #holderPidBase}), so with
+     * no owner there is no salted namespace to scan or write to yet — the unsalted namespace is a
+     * decoy SYSTEM never uses, and probing it would only ever find guaranteed-empty slots.
+     */
+    private static boolean isSystemWithUnknownOwner(ParticipantKind kind, @Nullable ClientId memberId) {
+        return kind == ParticipantKind.SYSTEM && memberId == null;
     }
 
     private static CredentialStatus hubCredentialState(String state) {
@@ -499,8 +516,13 @@ public class DataspaceProvisioningService {
                 UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
-        identityHubClient.createParticipantContext(participantId, did, memberId == null ? null : slashForm(memberId),
-                credentialServiceUrl, keyId, privateKeyAlias, kind == ParticipantKind.SYSTEM);
+        var reanchorRequested = kind == ParticipantKind.SYSTEM;
+        var reanchored = identityHubClient.createParticipantContext(participantId, did,
+                memberId == null ? null : slashForm(memberId), credentialServiceUrl, keyId, privateKeyAlias, reanchorRequested);
+        if (reanchorRequested && !reanchored) {
+            log.warn("Data space: identity hub could not confirm the SYSTEM credential re-anchor for participant '{}' "
+                    + "— older hub, or the re-anchor read/update failed; will retry next tick", participantId);
+        }
     }
 
     private String stsTokenUrl(String identityHubHost) {

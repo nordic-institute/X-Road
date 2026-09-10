@@ -28,6 +28,7 @@ package org.niis.xroad.edc.identityhub.provisioning;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.identityhub.spi.credential.request.model.RequestedCredential;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
@@ -59,6 +60,7 @@ import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateMan
  * gRPC service that provisions IdentityHub participant contexts and holder credential requests by
  * delegating to the EDC IdentityHub services directly (no REST management API).
  */
+@Slf4j
 @RequiredArgsConstructor
 class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceGrpc.IdentityHubProvisioningServiceImplBase {
 
@@ -115,11 +117,28 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
         var result = participantContextService.createParticipantContext(manifest);
         if (result.failed() && result.reason() == ServiceFailure.Reason.CONFLICT && request.getReanchorMemberIdOnConflict()) {
-            reanchorMemberId(request.getParticipantContextId(), request.getMemberId());
-            return CreateParticipantContextResp.getDefaultInstance();
+            return CreateParticipantContextResp.newBuilder()
+                    .setMemberIdReanchored(tryReanchorMemberId(request.getParticipantContextId(), request.getMemberId()))
+                    .build();
         }
         requireSuccessOrConflict(result, DSP_PARTICIPANT_CONTEXT_FAILED, request.getParticipantContextId());
-        return CreateParticipantContextResp.getDefaultInstance();
+        return CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
+    }
+
+    /**
+     * Best-effort wrapper around {@link #reanchorMemberId}: a read/update failure is logged and
+     * swallowed rather than failing the RPC, since {@code CONFLICT} on create was already a
+     * tolerated, infallible outcome before re-anchoring existed — the caller's provisioning loop
+     * retries on its next tick regardless. Returns whether the stored member id is confirmed to
+     * match {@code memberId} after this call.
+     */
+    private boolean tryReanchorMemberId(String participantContextId, String memberId) {
+        try {
+            return reanchorMemberId(participantContextId, memberId);
+        } catch (RuntimeException e) {
+            log.warn("Failed to re-anchor member id for participant context '{}': {}", participantContextId, e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -127,19 +146,20 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
      * leaving everything else about the context untouched. A no-op when the stored value already
      * matches, so repeated calls with the same member id do not write on every tick.
      */
-    private void reanchorMemberId(String participantContextId, String memberId) {
+    private boolean reanchorMemberId(String participantContextId, String memberId) {
         var current = participantContextService.getParticipantContext(participantContextId);
         if (current.failed()) {
             throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, current.getFailureDetail());
         }
         if (memberId.equals(current.getContent().getProperties().get(XROAD_MEMBER_ID_PROPERTY))) {
-            return;
+            return true;
         }
         var result = participantContextService.updateParticipant(participantContextId,
                 ctx -> ctx.getProperties().put(XROAD_MEMBER_ID_PROPERTY, memberId));
         if (result.failed()) {
             throw failure(DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId, result.getFailureDetail());
         }
+        return true;
     }
 
     private RequestCredentialResp requestCredentialInternal(RequestCredentialReq request) {

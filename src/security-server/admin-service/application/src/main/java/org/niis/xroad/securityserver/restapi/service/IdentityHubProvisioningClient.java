@@ -40,10 +40,14 @@ public interface IdentityHubProvisioningClient {
      *
      * @param reanchorMemberIdOnConflict when the context already exists, update its stored member id
      *                                   to {@code memberId} instead of leaving it untouched
+     * @return whether the stored member id is confirmed to match {@code memberId} after this call —
+     *         trivially true on a fresh create or a tolerated conflict with no re-anchor requested;
+     *         after a requested re-anchor, true once applied or found already matching, false when
+     *         the hub could not confirm it (older hub, or the re-anchor read/update failed)
      */
-    void createParticipantContext(String participantContextId, String did, String memberId,
-                                  String credentialServiceUrl, String keyId, String privateKeyAlias,
-                                  boolean reanchorMemberIdOnConflict);
+    boolean createParticipantContext(String participantContextId, String did, String memberId,
+                                     String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                     boolean reanchorMemberIdOnConflict);
 
     /**
      * Submits a membership credential request for the given participant and holder request id.

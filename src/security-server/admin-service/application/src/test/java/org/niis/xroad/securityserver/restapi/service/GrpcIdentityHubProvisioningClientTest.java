@@ -62,15 +62,23 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, false);
+        when(rpcClient.createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, false))
+                .thenReturn(true);
 
+        var result = client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, false);
+
+        assertThat(result).isTrue();
         verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, false);
     }
 
     @Test
-    void createParticipantContextForwardsReanchorFlag() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, true);
+    void createParticipantContextForwardsReanchorFlagAndReturnedAck() {
+        when(rpcClient.createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, true))
+                .thenReturn(false);
 
+        var result = client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, true);
+
+        assertThat(result).isFalse();
         verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS, true);
     }
 

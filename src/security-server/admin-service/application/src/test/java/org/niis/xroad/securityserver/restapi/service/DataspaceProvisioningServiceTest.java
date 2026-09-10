@@ -682,6 +682,23 @@ class DataspaceProvisioningServiceTest {
         assertThat(status).isEqualTo(CredentialStatus.ISSUED);
     }
 
+    @Test
+    void ensureMembershipCredentialForSystemWithUnknownOwnerReturnsUnknownWithoutTouchingHub() {
+        var status = service.ensureMembershipCredential(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, null);
+
+        assertThat(status).isEqualTo(CredentialStatus.UNKNOWN);
+        verify(identityHubClient, never()).getCredentialRequestState(any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void readCredentialStatusForSystemWithUnknownOwnerReturnsUnknownWithoutTouchingHub() {
+        var status = service.readCredentialStatus(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, null);
+
+        assertThat(status).isEqualTo(CredentialStatus.UNKNOWN);
+        verify(identityHubClient, never()).getCredentialRequestState(any(), any());
+    }
+
     private static String ownerHolderPidSlot0(ClientId owner) {
         var unsaltedBase = ParticipantIdentifierScheme.SYSTEM_SEGMENT + "-xroad-membership-credential-request";
         return SystemCredentialAnchor.holderPidBase(unsaltedBase, owner);

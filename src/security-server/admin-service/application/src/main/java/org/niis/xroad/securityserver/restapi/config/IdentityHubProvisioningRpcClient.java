@@ -86,10 +86,14 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
         close();
     }
 
-    public void createIdentityHubParticipantContext(String participantContextId, String did, String memberId,
-                                                    String credentialServiceUrl, String keyId, String privateKeyAlias,
-                                                    boolean reanchorMemberIdOnConflict) {
-        exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
+    /**
+     * @return whether the stored member id is confirmed to match {@code memberId} after this call —
+     *         see {@link IdentityHubProvisioningClient#createParticipantContext}
+     */
+    public boolean createIdentityHubParticipantContext(String participantContextId, String did, String memberId,
+                                                        String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                                        boolean reanchorMemberIdOnConflict) {
+        var response = exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId(participantContextId)
                 .setDid(did)
                 .setMemberId(memberId)
@@ -98,6 +102,7 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
                 .setPrivateKeyAlias(privateKeyAlias)
                 .setReanchorMemberIdOnConflict(reanchorMemberIdOnConflict)
                 .build()));
+        return response.getMemberIdReanchored();
     }
 
     public String requestMembershipCredential(String participantContextId, String issuerDid, String holderPid,

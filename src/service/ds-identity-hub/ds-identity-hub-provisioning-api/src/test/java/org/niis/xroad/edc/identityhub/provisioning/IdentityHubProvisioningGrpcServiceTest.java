@@ -118,7 +118,7 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         service.createParticipantContext(request, createObserver);
 
-        verify(createObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build());
         verify(createObserver).onCompleted();
         verify(participantContextService, never()).getParticipantContext(anyString());
         verify(participantContextService, never()).updateParticipant(anyString(), any());
@@ -139,7 +139,7 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         service.createParticipantContext(request, createObserver);
 
-        verify(createObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build());
         verify(createObserver).onCompleted();
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Consumer<IdentityHubParticipantContext>> mutation = ArgumentCaptor.forClass(Consumer.class);
@@ -163,9 +163,49 @@ class IdentityHubProvisioningGrpcServiceTest {
 
         service.createParticipantContext(request, createObserver);
 
-        verify(createObserver).onNext(CreateParticipantContextResp.getDefaultInstance());
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build());
         verify(createObserver).onCompleted();
         verify(participantContextService, never()).updateParticipant(anyString(), any());
+    }
+
+    @Test
+    void createParticipantContextSwallowsReanchorReadFailureAndReportsNotReanchored() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.unexpected("db unreachable"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/5678")
+                .setReanchorMemberIdOnConflict(true)
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(false).build());
+        verify(createObserver).onCompleted();
+        verify(createObserver, never()).onError(any());
+        verify(participantContextService, never()).updateParticipant(anyString(), any());
+    }
+
+    @Test
+    void createParticipantContextSwallowsReanchorUpdateFailureAndReportsNotReanchored() {
+        when(participantContextService.createParticipantContext(any())).thenReturn(ServiceResult.conflict("exists"));
+        when(participantContextService.getParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.success(contextWithMemberId("TEST/GOV/1234")));
+        when(participantContextService.updateParticipant(anyString(), any())).thenReturn(ServiceResult.unexpected("db down"));
+        var request = CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId("ctx-1")
+                .setDid("did:web:example.com")
+                .setMemberId("TEST/GOV/5678")
+                .setReanchorMemberIdOnConflict(true)
+                .build();
+
+        service.createParticipantContext(request, createObserver);
+
+        verify(createObserver).onNext(CreateParticipantContextResp.newBuilder().setMemberIdReanchored(false).build());
+        verify(createObserver).onCompleted();
+        verify(createObserver, never()).onError(any());
     }
 
     @Test
