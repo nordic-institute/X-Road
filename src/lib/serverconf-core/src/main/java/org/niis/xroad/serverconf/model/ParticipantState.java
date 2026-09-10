@@ -27,9 +27,11 @@
 package org.niis.xroad.serverconf.model;
 
 /**
- * Lifecycle state of a bound dataspace participant row. Starts with a single value; later
- * provisioning stories extend it without a migration, since the column is stored as text.
+ * Lifecycle state of a bound dataspace participant row: {@code ACTIVE} for a live binding,
+ * {@code DECOMMISSIONED} for a tombstone recording a member whose identity must be torn down.
+ * Stored as text, so later provisioning stories can extend it without a migration.
  */
 public enum ParticipantState {
-    ACTIVE
+    ACTIVE,
+    DECOMMISSIONED
 }

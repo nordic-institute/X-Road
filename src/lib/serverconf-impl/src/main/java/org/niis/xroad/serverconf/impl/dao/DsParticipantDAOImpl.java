@@ -35,7 +35,9 @@ import org.hibernate.Session;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
 import java.util.Optional;
@@ -59,14 +61,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         if (identifier == null) {
             return Optional.empty();
         }
-
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
-        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
-
-        query.select(root).where(cb.equal(root.get("memberIdentifier"), identifier));
-
-        return session.createQuery(query).uniqueResultOptional();
+        return findByMemberIdentifier(session, identifier);
     }
 
     /**
@@ -81,6 +76,57 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
 
         query.select(root).where(cb.equal(root.get("participantType"), ParticipantType.SYSTEM));
+
+        return session.createQuery(query).uniqueResultOptional();
+    }
+
+    /**
+     * Marks the member's participant binding decommissioned: flips an existing row to
+     * {@link ParticipantState#DECOMMISSIONED} — a no-op if it already is — or inserts a new
+     * decommissioned row carrying the given derived ctx-id and DID when the member was never bound.
+     * Flip-or-insert against the one-row-per-member unique constraint, so a duplicate tombstone is
+     * structurally impossible.
+     *
+     * @param session the Hibernate session
+     * @param member  the member identifier
+     * @param ctxId   the member's derived ctx-id, used only when inserting a new row
+     * @param did     the member's derived DID, used only when inserting a new row
+     */
+    public void decommissionMember(Session session, ClientId member, String ctxId, String did) {
+        ClientIdEntity identifier = identifierDAO.findOrCreateClientId(session, member);
+        Optional<DsParticipantEntity> existing = findByMemberIdentifier(session, identifier);
+        if (existing.isPresent()) {
+            existing.get().setState(ParticipantState.DECOMMISSIONED);
+            return;
+        }
+
+        DsParticipantEntity entity = new DsParticipantEntity();
+        entity.setParticipantType(ParticipantType.MEMBER);
+        entity.setMemberIdentifier(identifier);
+        entity.setCtxId(ctxId);
+        entity.setDid(did);
+        entity.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
+        entity.setState(ParticipantState.DECOMMISSIONED);
+        save(session, entity);
+    }
+
+    /**
+     * Deletes the given participant row by id. Idempotent: a missing row is not an error.
+     *
+     * @param session the Hibernate session
+     * @param id      the participant row id
+     * @return {@code true} if a row was deleted, {@code false} if none existed
+     */
+    public boolean delete(Session session, Long id) {
+        return deleteById(session, DsParticipantEntity.class, id);
+    }
+
+    private Optional<DsParticipantEntity> findByMemberIdentifier(Session session, ClientIdEntity identifier) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+
+        query.select(root).where(cb.equal(root.get("memberIdentifier"), identifier));
 
         return session.createQuery(query).uniqueResultOptional();
     }

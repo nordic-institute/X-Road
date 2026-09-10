@@ -38,8 +38,10 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
@@ -161,9 +163,10 @@ public class DataspaceProvisioningService {
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
      *
-     * <p>For a {@link ParticipantKind#MEMBER} context with a bound {@code ds_participant} row, the
-     * row is verified against a fresh derivation and its DID is used — the bound row is never
-     * written or overwritten here. Without a row the DID is derived on the fly and not bound.
+     * <p>For a {@link ParticipantKind#MEMBER} context with an {@code ACTIVE} bound {@code ds_participant}
+     * row, the row is verified against a fresh derivation and its DID is used — the bound row is
+     * never written or overwritten here. Without an active row (none bound, or the bound row is
+     * decommissioned) the DID is derived on the fly and not bound.
      *
      * @param participantId the participant context id
      * @param kind          HOST, MANAGEMENT or MEMBER
@@ -381,12 +384,43 @@ public class DataspaceProvisioningService {
     }
 
     private String memberDid(ClientId member, String ssHost) {
-        var bound = dsParticipantRepository.findByMemberIdentifier(member);
+        var bound = activeBinding(member);
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), ssHost);
             return bound.get().getDid();
         }
         return ParticipantIdentifierScheme.memberDid(member, ssHost);
+    }
+
+    /**
+     * Pure derivation of a member's intended ctx-id and DID under the current scheme — no external
+     * calls, no binding lookup. For domain flows that must derive a member's identity to bind
+     * without triggering provisioning, e.g. writing the decommissioned-binding tombstone on the
+     * member's last client deletion.
+     *
+     * @param memberId the X-Road member identifier
+     * @return the member's derived ctx-id and DID
+     */
+    public MemberParticipantIdentity deriveMemberIdentity(ClientId memberId) {
+        var identityHubHost = hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl());
+        var ssHost = didAuthority(identityHubHost);
+        return new MemberParticipantIdentity(ParticipantIdentifierScheme.memberCtxId(memberId),
+                ParticipantIdentifierScheme.memberDid(memberId, ssHost));
+    }
+
+    /**
+     * A member's derived ctx-id and DID under the current scheme.
+     */
+    public record MemberParticipantIdentity(String ctxId, String did) {
+    }
+
+    /**
+     * Finds the member's bound participant row, ignored (treated as unbound) once it has been
+     * decommissioned: a tombstone is not a live binding.
+     */
+    private Optional<DsParticipantEntity> activeBinding(ClientId member) {
+        return dsParticipantRepository.findByMemberIdentifier(member)
+                .filter(bound -> bound.getState() == ParticipantState.ACTIVE);
     }
 
     /**
@@ -412,7 +446,7 @@ public class DataspaceProvisioningService {
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
         try {
             var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
-            var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
+            var bound = activeBinding(memberId);
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
             }

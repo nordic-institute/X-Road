@@ -523,6 +523,40 @@ class DataspaceProvisioningServiceTest {
         verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
     }
 
+    // --- decommissioned bindings are treated as unbound ---
+
+    @Test
+    void ensureParticipantContextDerivesUnboundDidWhenBoundRowIsDecommissioned() {
+        var decommissioned = boundParticipant(MEMBER, "ih.other.test:7183");
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
+
+        service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
+
+        verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any());
+    }
+
+    @Test
+    void readIdentityStatusReportsUnboundWhenBoundRowIsDecommissioned() {
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
+    // --- deriveMemberIdentity ---
+
+    @Test
+    void deriveMemberIdentityReturnsPureDerivationWithoutTouchingRepository() {
+        var identity = service.deriveMemberIdentity(MEMBER);
+
+        assertThat(identity.ctxId()).isEqualTo(ParticipantIdentifierScheme.memberCtxId(MEMBER));
+        assertThat(identity.did()).isEqualTo(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST));
+        verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
+    }
+
     // --- readIdentityStatus ---
 
     @Test

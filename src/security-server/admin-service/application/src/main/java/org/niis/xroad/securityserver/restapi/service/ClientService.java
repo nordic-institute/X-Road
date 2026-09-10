@@ -50,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.AccessRightRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
@@ -135,6 +136,8 @@ public class ClientService {
     private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
     private final CatalogInvalidationNotifier catalogInvalidationNotifier;
+    private final DataspaceParticipantTombstoneService dataspaceParticipantTombstoneService;
+    private final DsParticipantRepository dsParticipantRepository;
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -870,6 +873,8 @@ public class ClientService {
         }
         clientRepository.remove(clientEntity);
 
+        decommissionDataspaceBindingIfLastClient(clientEntity, serverConfEntity);
+
         if (!clientRegisteredOnOtherServers(clientEntity.getIdentifier())) {
             localGroupRepository.deleteGroupMembersByMemberId(clientEntity.getIdentifier());
             accessRightRepository.deleteBySubjectId(clientEntity.getIdentifier());
@@ -880,9 +885,31 @@ public class ClientService {
         }
     }
 
+    /**
+     * Writes the dataspace participant binding tombstone, in this same transaction, once the deleted
+     * client was the member's last one on this server (own client and all subsystems counted).
+     */
+    private void decommissionDataspaceBindingIfLastClient(ClientEntity deletedClient, ServerConfEntity serverConfEntity) {
+        ClientId member = deletedClient.getIdentifier().getMemberId();
+        boolean anyClientsRemain = serverConfEntity.getClients().stream()
+                .map(ClientEntity::getIdentifier)
+                .map(ClientId::getMemberId)
+                .anyMatch(member::equals);
+        if (!anyClientsRemain) {
+            dataspaceParticipantTombstoneService.decommission(member);
+        }
+    }
+
+    /**
+     * Whether the given (about-to-be-orphaned) identifier is still needed elsewhere: by a local
+     * group, an access right, or a dataspace participant binding — the last case covers a member's
+     * own identifier the moment its tombstone is written above, since that row's foreign key must
+     * never dangle.
+     */
     private boolean identifierReferenced(ClientIdEntity clientId) {
         return localGroupRepository.countGroupMembersByMemberId(clientId) > 0
-                || accessRightRepository.countBySubjectId(clientId) > 0;
+                || accessRightRepository.countBySubjectId(clientId) > 0
+                || dsParticipantRepository.findByMemberIdentifier(clientId).isPresent();
     }
 
     private boolean clientRegisteredOnOtherServers(ClientId clientId) {

@@ -42,6 +42,7 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -126,6 +127,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Autowired
     PersistenceUtils persistenceUtils;
 
+    @Autowired
+    DsParticipantRepository dsParticipantRepository;
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -379,6 +382,28 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         clientService.deleteLocalClient(memberId);
 
         verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    /**
+     * A member's identifier stays in the {@code identifier} table as long as a dataspace participant
+     * binding references it, even once nothing else (local group, access right) does — otherwise the
+     * binding's foreign key would dangle.
+     */
+    @Test
+    public void deleteLocalClientPreservesIdentifierStillBoundToDataspaceParticipant() throws Exception {
+        ClientId memberId = getClientId("FI:GOV:M3");
+        clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(), null, IsAuthentication.SSLAUTH, false);
+        dsParticipantRepository.decommissionMember(memberId, "FI:GOV:M3", "did:web:ss.example.test:v1:FI:GOV:M3");
+        persistenceUtils.flush();
+        int startIdentifiers = countIdentifiers();
+
+        clientService.deleteLocalClient(memberId);
+        persistenceUtils.flush();
+
+        assertEquals(startIdentifiers, countIdentifiers());
+        assertNull(clientService.getLocalClient(memberId));
+        assertTrue(dsParticipantRepository.findByMemberIdentifier(memberId).isPresent());
     }
 
     /**

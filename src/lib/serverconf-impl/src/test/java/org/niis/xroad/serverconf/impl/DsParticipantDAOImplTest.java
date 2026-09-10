@@ -196,6 +196,90 @@ public class DsParticipantDAOImplTest {
     }
 
     @Test
+    public void decommissionMemberInsertsRowWhenNoneExists() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-decom-new");
+        String ctxId = ParticipantIdentifierScheme.memberCtxId(member);
+        String did = ParticipantIdentifierScheme.memberDid(member, SS_HOST);
+
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.decommissionMember(session, member, ctxId, did);
+            return null;
+        });
+
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantType.MEMBER, loaded.get().getParticipantType());
+        assertEquals(ctxId, loaded.get().getCtxId());
+        assertEquals(did, loaded.get().getDid());
+        assertEquals(ParticipantIdentifierScheme.SCHEME_VERSION, loaded.get().getSchemeVersion());
+        assertEquals(ParticipantState.DECOMMISSIONED, loaded.get().getState());
+    }
+
+    @Test
+    public void decommissionMemberFlipsExistingActiveRowWithoutChangingIdentity() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-decom-flip");
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.save(session, memberParticipant(session, member));
+            return null;
+        });
+        String originalCtxId = ParticipantIdentifierScheme.memberCtxId(member);
+        String originalDid = ParticipantIdentifierScheme.memberDid(member, SS_HOST);
+
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.decommissionMember(session, member, "should-not-be-used", "did:should:not:be:used");
+            return null;
+        });
+
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantState.DECOMMISSIONED, loaded.get().getState());
+        assertEquals(originalCtxId, loaded.get().getCtxId());
+        assertEquals(originalDid, loaded.get().getDid());
+    }
+
+    @Test
+    public void decommissionMemberOnAlreadyDecommissionedRowIsNoOp() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-decom-idempotent");
+        String ctxId = ParticipantIdentifierScheme.memberCtxId(member);
+        String did = ParticipantIdentifierScheme.memberDid(member, SS_HOST);
+
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.decommissionMember(session, member, ctxId, did);
+            return null;
+        });
+
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.decommissionMember(session, member, ctxId, did);
+            return null;
+        });
+
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantState.DECOMMISSIONED, loaded.get().getState());
+    }
+
+    @Test
+    public void deleteRemovesRow() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-delete");
+        Long id = DATABASE_CTX.doInTransaction(session -> dao.save(session, memberParticipant(session, member)).getId());
+
+        boolean deleted = DATABASE_CTX.doInTransaction(session -> dao.delete(session, id));
+
+        assertTrue(deleted);
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+        assertFalse(loaded.isPresent());
+    }
+
+    @Test
+    public void deleteOfAbsentRowIsNotAnError() {
+        boolean deleted = DATABASE_CTX.doInTransaction(session -> dao.delete(session, Long.MAX_VALUE));
+
+        assertFalse(deleted);
+    }
+
+    @Test
     public void rejectsSecondSystemParticipant() {
         ensureSystemParticipant();
 
