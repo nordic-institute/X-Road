@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -126,9 +127,7 @@ public class DataspaceParticipantProvisioningWorker {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
-                var credentialIssuanceSafe = dataspaceProvisioningService.ensureParticipantContext(context.participantId(),
-                        context.kind(), context.memberId());
-                if (credentialIssuanceSafe) {
+                if (dataspaceProvisioningService.ensureParticipantContext(context) == MemberIdAnchor.CONFIRMED) {
                     ensured.add(context);
                 } else {
                     log.debug("Data space provisioning: deferring credential issuance for participant {} until the "
@@ -145,7 +144,7 @@ public class DataspaceParticipantProvisioningWorker {
     private void ensureCredentials(List<ParticipantContext> contexts) {
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureMembershipCredential(context.participantId(), context.kind(), context.memberId());
+                dataspaceProvisioningService.ensureMembershipCredential(context);
             } catch (Exception e) {
                 log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
