@@ -152,7 +152,7 @@ The table below lists the required connections between different components.
 | Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network   |
 | Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                         |
 | Outbound   | Sidecar                     | Mail server                 | 587              | tcp      |                         |
-| Outbound   | Sidecar                     | External secret store       | 8200 (default)   | https    | Only when `XROAD_SECRET_STORE_HOST` is set, see [2.10 Secret Store](#210-secret-store) |
+| Outbound   | Sidecar                     | External secret store       | 8200 (default)   | http(s)  | Only when `XROAD_SECRET_STORE_HOST` is set, see [2.10 Secret Store](#210-secret-store) |
 
 Notes:
 * Using a firewall to protect the Security Server is recommended. The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed.
