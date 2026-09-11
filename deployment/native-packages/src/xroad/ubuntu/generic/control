@@ -156,16 +156,22 @@ Pre-Depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Management Service
  X-Road Central Server management service component
 
+Package: xroad-secret-store-local-repo
+Architecture: all
+Conflicts: xroad-secret-store-remote
+Depends: xroad-base (=${binary:Version})
+Description: OpenBao APT repository and version gate for X-Road.
+
 Package: xroad-secret-store-local
 Architecture: all
 Conflicts: xroad-secret-store-remote
 Pre-Depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
-Depends: jq, gpg, openbao (<< 2.6.0), xroad-base (=${binary:Version})
+Depends: jq, gpg, openbao (<< 2.7.0), xroad-secret-store-local-repo (=${binary:Version}), xroad-base (=${binary:Version})
 Description: Meta-package for X-Road local secret store dependencies
- 
+
 Package: xroad-secret-store-remote
 Architecture: all
-Conflicts: xroad-secret-store-local
+Conflicts: xroad-secret-store-local, xroad-secret-store-local-repo
 Description: Meta-package for X-Road remote secret store dependencies
 
 Package: xroad-auxiliary-service

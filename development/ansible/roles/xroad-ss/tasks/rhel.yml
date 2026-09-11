@@ -58,6 +58,13 @@
   tags:
     - install-xroad-ss-packages
 
+- name: configure OpenBao repository gate ahead of openbao resolution
+  yum:
+    name: xroad-secret-store-local-repo
+    state: latest
+  tags:
+    - install-xroad-ss-packages
+
 - name: install xroad packages and dependencies from set up repository
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"

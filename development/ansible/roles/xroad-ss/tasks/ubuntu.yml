@@ -34,6 +34,13 @@
   tags:
     - install-xroad-ss-packages
 
+- name: configure OpenBao repository gate ahead of openbao resolution
+  apt:
+    name: xroad-secret-store-local-repo
+    state: latest
+  tags:
+    - install-xroad-ss-packages
+
 - name: install xroad security server packages
   apt:
     name: "{{ vars['xroad_varpkg_' + variant] }}"

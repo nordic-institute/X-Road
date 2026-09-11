@@ -11,7 +11,7 @@ Summary:            Meta-package for remote secret store dependencies
 Group:              Applications/Internet
 License:            MIT
 Requires:           xroad-base = %version-%release
-Conflicts:          xroad-secret-store-local
+Conflicts:          xroad-secret-store-local, xroad-secret-store-local-repo
 
 %description
 Prevents local installation of OpenBao when it is hosted remotely
