@@ -1,0 +1,21 @@
+serverconf.hibernate.jdbc.use_streams_for_binary = true
+serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+serverconf.hibernate.connection.driver_class = org.postgresql.Driver
+serverconf.hibernate.connection.url = jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/serverconf
+serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+serverconf.hibernate.connection.username = {{ serverconf_username }}
+serverconf.hibernate.connection.password = {{ serverconf_password }}
+
+messagelog.hibernate.jdbc.use_streams_for_binary = true
+messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+messagelog.hibernate.connection.url = jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/messagelog
+messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
+messagelog.hibernate.connection.username = {{ messagelog_username }}
+messagelog.hibernate.connection.password = {{ messagelog_password }}
+
+op-monitor.hibernate.jdbc.use_streams_for_binary = true
+op-monitor.hibernate.connection.driver_class = org.postgresql.Driver
+op-monitor.hibernate.connection.url = jdbc:postgresql://{{ _db_host }}:{{ _db_port }}/op-monitor
+op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
+op-monitor.hibernate.connection.username = {{ opmonitor_username }}
+op-monitor.hibernate.connection.password = {{ opmonitor_password }}
