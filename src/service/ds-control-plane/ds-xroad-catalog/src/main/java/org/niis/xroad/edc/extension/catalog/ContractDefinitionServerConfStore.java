@@ -105,20 +105,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                     : ContractDefinitionMapper.toOwnerOnlyContractDefinition(systemServiceId, contextIds.system());
         }
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            var assetIdStr = policyId.substring(0,
-                    policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
-            var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null) {
-                log.trace("findById definitionId={} owner-only candidate decode failed", definitionId);
-                return null;
-            }
-            if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
-                    && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
-                log.trace("findById definitionId={} owner-only candidate did not resolve", definitionId);
-                return null;
-            }
-            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                    ownerOnlyServiceId, contextIds.management());
+            return findOwnerOnlyContractDefinition(policyId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
@@ -133,6 +120,27 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, definitionId);
         log.trace("findById definitionId={} result={}", definitionId, result != null ? "found (5-part serviceId)" : "not found");
         return result;
+    }
+
+    /**
+     * The owner-only definition an id carrying {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}
+     * names, under the management context; {@code null} when the id does not decode or names no
+     * service this server resolves.
+     */
+    @Nullable
+    private ContractDefinition findOwnerOnlyContractDefinition(String policyId) {
+        var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
+        var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
+        if (ownerOnlyServiceId == null) {
+            log.trace("findById policyId={} owner-only candidate decode failed", policyId);
+            return null;
+        }
+        if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
+                && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
+            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
+            return null;
+        }
+        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(ownerOnlyServiceId, contextIds.management());
     }
 
     @Override

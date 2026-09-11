@@ -522,9 +522,8 @@ class DataspaceProvisioningServiceTest {
         var bound = boundParticipant(MEMBER, "ih.other.test:7183");
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(bound));
 
-        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-        assertThatThrownBy(() ->
-                service.ensureParticipantContext(new ParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER)))
+        var context = new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
+        assertThatThrownBy(() -> service.ensureParticipantContext(context))
                 .isInstanceOf(XrdRuntimeException.class);
 
         verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any(), any());
@@ -536,8 +535,9 @@ class DataspaceProvisioningServiceTest {
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
         when(identityHubClient.contextDid(memberCtxId))
                 .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(MEMBER, "ih.other.test:7183")));
+        var context = new ParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER);
 
-        assertThatThrownBy(() -> service.ensureParticipantContext(new ParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER)))
+        assertThatThrownBy(() -> service.ensureParticipantContext(context))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.DSP_PARTICIPANT_DID_DRIFT.code()));
