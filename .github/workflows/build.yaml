@@ -75,7 +75,6 @@ jobs:
         uses: ./.github/actions/setup-build-env
         with:
           gradle-cache-read-only: true
-          free-disk-space: true
 
       - name: Compile source
         working-directory: ./src
