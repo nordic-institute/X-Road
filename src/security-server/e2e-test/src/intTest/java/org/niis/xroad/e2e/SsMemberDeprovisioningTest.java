@@ -145,6 +145,13 @@ class SsMemberDeprovisioningTest extends E2eTest {
      */
     private static final String DID_DOCUMENT_PATH = "/v1/" + X_ROAD_INSTANCE + "/" + MEMBER_CLASS + "/" + MEMBER_CODE + "/did.json";
 
+    /**
+     * The identity hub's {@code did:web} resolver returns a {@code null} document for an unpublished
+     * DID, which its JAX-RS runtime serializes as {@code 204 No Content} with an empty body — never a
+     * {@code 404}.
+     */
+    private static final int DID_NOT_FOUND_STATUS = 204;
+
     private record AdminSession(Map<String, String> cookies, String xsrfToken) {
     }
 
@@ -545,7 +552,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
                     .pollInterval(TEARDOWN_POLL_INTERVAL)
                     .timeout(TEARDOWN_POLL_TIMEOUT)
                     .ignoreExceptions()
-                    .until(() -> RestAssuredFactory.given().get(didDocumentUrl).getStatusCode() == 404);
+                    .until(() -> RestAssuredFactory.given().get(didDocumentUrl).getStatusCode() == DID_NOT_FOUND_STATUS);
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
                     "Timed out waiting for the identity hub to stop serving %s's DID document at %s"
