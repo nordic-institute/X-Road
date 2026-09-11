@@ -81,11 +81,11 @@ if systemctl is-active %{name} &> /dev/null; then
   touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
 fi
 
-%define init_xroad_ds_control_plane_db()                       \
-    /usr/share/xroad/scripts/setup_ds_controlplane_db.sh ""
-
 %post -p /bin/bash
 umask 027
+
+# Run database setup script
+/usr/share/xroad/scripts/setup_ds_controlplane_db.sh "" || true
 
 # Temporary dev flow - copy admin credentials from xroad.properties to db.properties
 # This allows the application to use admin credentials for database access
@@ -126,8 +126,5 @@ fi
 
 %postun
 %systemd_postun_with_restart xroad-ds-control-plane.service
-
-%posttrans
-%init_xroad_ds_control_plane_db
 
 %changelog
