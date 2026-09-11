@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.28
+Version: 1.29
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -36,6 +36,7 @@ Doc. ID: UG-SS-SIDECAR
 | 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
 | 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
 | 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
+| 11.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
 
 ## License
 
@@ -142,6 +143,7 @@ The table below lists the required connections between different components.
 | Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                         |
 | Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network |
 | Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network |
+| Inbound    | Monitoring / orchestrator   | Sidecar                     | 5588             | http     | Health check, see [2.11 Health Checks](#211-health-checks) |
 | Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
 | Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                         |
 | Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                         |
@@ -150,6 +152,7 @@ The table below lists the required connections between different components.
 | Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network   |
 | Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                         |
 | Outbound   | Sidecar                     | Mail server                 | 587              | tcp      |                         |
+| Outbound   | Sidecar                     | External secret store       | 8200 (default)   | https    | Only when `XROAD_SECRET_STORE_HOST` is set, see [2.10 Secret Store](#210-secret-store) |
 
 Notes:
 * Using a firewall to protect the Security Server is recommended. The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed.

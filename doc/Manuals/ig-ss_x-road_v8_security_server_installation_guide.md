@@ -152,7 +152,7 @@ The table below lists the open ports for Security Server components utilizing th
 | Proxy                    | 5566      | tcp          | Proxy admin port                          |
 | Proxy                    | 5567      | tcp          | Proxy gRPC server port                    |
 | Configuration Client     | 5665      | tcp          | Configuration Client gRPC server port     |
-| Backup Manager           | 7665      | tcp          | Backup Manager gRPC server port           |
+| Auxiliary service        | 7665      | tcp          | Auxiliary service gRPC server port        |
 | Secret Store             | 8200      | tcp          | Local Secret Store (OpenBao) port         |
 | Audit Log                | 514       | udp          |                                           |
 

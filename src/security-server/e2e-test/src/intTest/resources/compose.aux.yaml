@@ -20,7 +20,7 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
     ports:
       - "0:4000" # Frontend
-      - "0:9994" # Signer debug
+      - "0:9955" # Signer debug
       - "0:5432" # DB
       - "0:6183" # Issuer DID resolution
       - "0:6185" # Issuer issuance API
