@@ -64,9 +64,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
-    private final String participantContextId;
-    private final String managementParticipantContextId;
-    private final String systemParticipantContextId;
+    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -97,8 +95,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                     serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
 
-        if (systemParticipantContextId.equals(requestedParticipantContext.get())) {
-            return findSystemPolicyDefinition(policyId);
+        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+            var systemServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+            return systemServiceId == null ? null : policyMapper.toOwnerOnlyPolicyDefinition(
+                    policyId, systemServiceId.getClientId(), contextIds.system());
         }
 
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
@@ -115,7 +115,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 return null;
             }
             return policyMapper.toOwnerOnlyPolicyDefinition(policyId,
-                    ownerOnlyServiceId.getClientId(), managementParticipantContextId);
+                    ownerOnlyServiceId.getClientId(), contextIds.management());
         }
 
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -157,18 +157,18 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             var assetId = AssetMapper.encodeAssetId(serviceId);
-            policies.add(toBuiltinPolicyDefinition(assetId, managementParticipantContextId));
-            policies.add(toBuiltinPolicyDefinition(assetId, systemParticipantContextId));
+            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.management()));
+            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
         }
         var syntheticServices = serviceContextResolver.resolveSyntheticServices();
         syntheticServices.managementEntries()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), managementParticipantContextId)));
+                        serviceId.getClientId(), contextIds.management())));
         syntheticServices.systemEntries()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), systemParticipantContextId)));
+                        serviceId.getClientId(), contextIds.system())));
         return policies;
     }
 
@@ -235,7 +235,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                                            Set<String> provisionedMemberContextIds) {
         var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
         policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
-                serviceId.getClientId(), managementParticipantContextId));
+                serviceId.getClientId(), contextIds.management()));
 
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
@@ -275,25 +275,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .policy(policy)
                 .participantContextId(contextId)
                 .build();
-    }
-
-    /**
-     * A SYSTEM-addressed lookup only ever resolves to an owner-only policy for a synthetic entry
-     * eligible under SYSTEM ({@link ServiceContextResolver#isSystemEligible}) — never to a real
-     * service's owner-only or per-subject policy, so a SYSTEM request for anything not published
-     * there is a clean not-found instead of a fallback to the legacy host context.
-     */
-    @Nullable
-    private PolicyDefinition findSystemPolicyDefinition(String policyId) {
-        if (!policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            return null;
-        }
-        var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
-        var serviceId = AssetMapper.decodeAssetId(assetIdStr);
-        if (serviceId == null || !serviceContextResolver.isSystemEligible(serviceId)) {
-            return null;
-        }
-        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), systemParticipantContextId);
     }
 
     private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
