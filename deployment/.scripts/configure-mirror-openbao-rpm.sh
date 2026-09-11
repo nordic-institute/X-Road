@@ -65,6 +65,11 @@ EOF
   rpm --import "$GPG_KEY_FILE"
   echo "OpenBao GPG key imported."
 
+  # dnf/rpm cannot enforce xroad-secret-store-local's `openbao < 2.7.0` "Requires:"
+  # — both `openbao` and `openbao-hsm` carry an unversioned `Provides: openbao`,
+  # which satisfies any version comparison on that capability regardless of the
+  # actual installed version, for any operator.
+  # Here `includepkgs` is what actually gates the version; it must be raised together with the spec's `Requires:`
   cat >/etc/yum.repos.d/openbao.repo <<EOF
 [openbao]
 name=openbao
@@ -72,6 +77,8 @@ baseurl=${OPENBAO_MIRROR_URL}
 repo_gpgcheck=0
 gpgcheck=1
 enabled=1
+includepkgs=openbao-2.6.*
+excludepkgs=openbao-hsm*
 gpgkey=file://${GPG_KEY_FILE}
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
