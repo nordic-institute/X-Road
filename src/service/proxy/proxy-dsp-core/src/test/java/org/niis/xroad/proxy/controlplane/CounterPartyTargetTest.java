@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,45 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e;
+package org.niis.xroad.proxy.controlplane;
 
-import org.niis.xroad.test.apitest.core.runner.AbstractConsoleApiTestRunner;
+import org.junit.jupiter.api.Test;
 
-/**
- * Fat-jar entry point for the e2e test suite.
- */
-public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public static void main(String[] args) {
-        new ConsoleE2ETestRunner().run();
-    }
+class CounterPartyTargetTest {
 
-    @Override
-    protected String[] resourceFiles() {
-        return new String[]{
-                "compose.aux.yaml",
-                "compose.main.yaml",
-                "compose.e2e.yaml",
-                "compose.e2e.ds.yaml",
-                "compose.ss-hsm.e2e.yaml",
-                "compose.ss-batch-signature-enabled.e2e.yaml",
-                "compose.ss-softtoken-signer-enabled.e2e.yaml",
-                "compose.ss-msglog-encryption.e2e.yaml",
-                "compose.ss-msglog.e2e.yaml",
-                "compose.ss-opmonitor.e2e.yaml",
-                "compose.ss0-sidecar.e2e.yaml",
-                ".env",
-                "container-files/",
-                "ds-gateway/",
-                "wiremock_mappings/",
-                "signer-with-hsm/",
-                "hurl/",
-                "gpg_keys/"
-        };
-    }
+    @Test
+    void managementMapTargetsRegisteredAddressWithSubstrateLocalContextId() {
+        var map = CounterPartyTarget.managementMap();
 
-    @Override
-    protected String phasedSuiteClassName() {
-        return E2eSuite.class.getName();
+        assertThat(map.get("xrd-ss0")).isEqualTo(new CounterPartyTarget(
+                "did:web:xrd-ss0%3A7183:mgmt",
+                "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
+        assertThat(map.get("xrd-ss0.lxd")).isEqualTo(new CounterPartyTarget(
+                "did:web:xrd-ss0.lxd%3A7183:mgmt",
+                "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/http-dsp-profile-2025-1"));
+        assertThat(map.get("ss0")).isEqualTo(new CounterPartyTarget(
+                "did:web:ss0%3A7183:mgmt",
+                "https://ss0:8183/api/dsp/ss0-mgmt/http-dsp-profile-2025-1"));
+        assertThat(map.get("proxy.ss0")).isEqualTo(new CounterPartyTarget(
+                "did:web:proxy.ss0%3A7183:mgmt",
+                "https://proxy.ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
     }
 }

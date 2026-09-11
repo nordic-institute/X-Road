@@ -37,6 +37,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_CLIENT_IDENTIFIER;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_ENCODED_ID;
@@ -71,8 +72,10 @@ public class ParticipantIdentifierScheme {
     private static final String DID_PREFIX_METHOD = "web";
     private static final String SEGMENT_SEPARATOR = ":";
 
-    /** did:web's fixed escape for the authority's port separator. */
-    private static final String HOST_PORT_ESCAPE = "3A";
+    /** did:web's fixed escapes for the authority's port separator and IPv6 literal brackets. */
+    private static final Map<Character, String> HOST_ESCAPES_BY_CHAR = Map.of(':', "3A", '[', "5B", ']', "5D");
+    private static final Map<String, Character> HOST_CHARS_BY_ESCAPE = Map.of("3A", ':', "5B", '[', "5D", ']');
+    private static final int HOST_ESCAPE_HEX_LENGTH = 2;
 
     /** Number of segments in a member ctx-id, and in a member DID's payload after {@link #SCHEME_VERSION}. */
     private static final int MEMBER_SEGMENT_COUNT = 3;
@@ -217,18 +220,24 @@ public class ParticipantIdentifierScheme {
         return XrdRuntimeException.systemException(INVALID_ENCODED_ID, message, args);
     }
 
-    // -- did:web host encoding: the authority's port separator ':' becomes '%3A', reversed on decode. --
+    // -- did:web host encoding: the authority's port separator ':' and IPv6 literal brackets become
+    //    percent-escapes ('%3A', '%5B', '%5D' — the only escapes a DID's idchar set allows for
+    //    them), reversed on decode. --
 
     private static String encodeHost(String ssHost) {
         requireNonBlank(ssHost, "ss-host");
         for (int i = 0; i < ssHost.length(); i++) {
             char c = ssHost.charAt(i);
-            if (!isHostChar(c) && c != ':') {
+            if (!isHostChar(c) && HOST_ESCAPES_BY_CHAR.get(c) == null) {
                 throw XrdRuntimeException.systemException(VALIDATION_ERROR,
                         "ss-host '%s' has an invalid character '%s' at index %d", ssHost, c, i);
             }
         }
-        return ssHost.replace(SEGMENT_SEPARATOR, "%" + HOST_PORT_ESCAPE);
+        var encoded = ssHost;
+        for (var escape : HOST_ESCAPES_BY_CHAR.entrySet()) {
+            encoded = encoded.replace(String.valueOf(escape.getKey()), "%" + escape.getValue());
+        }
+        return encoded;
     }
 
     private static boolean isHostChar(char c) {
@@ -248,16 +257,17 @@ public class ParticipantIdentifierScheme {
         while (i < encodedHost.length()) {
             char c = encodedHost.charAt(i);
             if (c == '%') {
-                int escapeEnd = i + 1 + HOST_PORT_ESCAPE.length();
+                int escapeEnd = i + 1 + HOST_ESCAPE_HEX_LENGTH;
                 if (escapeEnd > encodedHost.length()) {
                     throw malformed("DID host segment '%s' has a truncated percent-escape at index %d", encodedHost, i);
                 }
                 String escape = encodedHost.substring(i + 1, escapeEnd);
-                if (!HOST_PORT_ESCAPE.equals(escape)) {
+                Character escapedChar = HOST_CHARS_BY_ESCAPE.get(escape);
+                if (escapedChar == null) {
                     throw malformed("DID host segment '%s' has an unsupported percent-escape '%%%s' at index %d",
                             encodedHost, escape, i);
                 }
-                decoded.append(':');
+                decoded.append(escapedChar.charValue());
                 i = escapeEnd;
             } else if (isHostChar(c)) {
                 decoded.append(c);

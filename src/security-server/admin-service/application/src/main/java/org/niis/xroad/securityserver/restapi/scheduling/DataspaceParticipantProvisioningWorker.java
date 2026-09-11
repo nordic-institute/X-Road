@@ -96,6 +96,10 @@ public class DataspaceParticipantProvisioningWorker {
             log.debug("Data space provisioning: SS owner not yet known, skipping");
             return;
         }
+        if (!dataspaceProvisioningService.registeredAddressKnown()) {
+            log.debug("Data space provisioning: registered address not in GlobalConf yet, skipping");
+            return;
+        }
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);

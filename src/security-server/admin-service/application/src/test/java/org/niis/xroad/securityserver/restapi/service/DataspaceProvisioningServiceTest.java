@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -82,7 +84,9 @@ class DataspaceProvisioningServiceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "ORG", "OWNER");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "ORG", "OTHER");
-    private static final String SS_HOST = "ih.example.test:7183";
+    private static final SecurityServerId.Conf SERVER_ID = SecurityServerId.Conf.create(OWNER, "SS0");
+    private static final String SS_ADDRESS = "ss.example.test";
+    private static final String SS_HOST = SS_ADDRESS + ":7183";
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -98,6 +102,8 @@ class DataspaceProvisioningServiceTest {
     private ServerConfRepository serverConfRepository;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private DataspaceProvisioningService service;
 
@@ -108,13 +114,19 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
-        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        var ownerEntity = mock(ClientEntity.class);
+        lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
+        var serverConf = mock(ServerConfEntity.class);
+        lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
+        lenient().when(serverConf.getServerCode()).thenReturn(SERVER_ID.getServerCode());
+        lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+        lenient().when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
     }
 
     // --- ensureMembershipCredential ---
@@ -430,13 +442,12 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextUsesConfiguredIdentityHubPorts() {
-        when(dataspace.getIdentityHubDidPort()).thenReturn(8183);
+    void ensureParticipantContextUsesConfiguredStsAndCredentialsPorts() {
         when(dataspace.getIdentityHubStsPort()).thenReturn(8184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(8185);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, "ih.example.test:8183");
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
         service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER);
 
@@ -444,6 +455,31 @@ class DataspaceProvisioningServiceTest {
                 argThat(url -> url.startsWith("https://ih.example.test:8185/api/credentials/")), any(), any());
         verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
                 eq("https://ih.example.test:8184/api/sts/token"));
+    }
+
+    @Test
+    void ensureParticipantContextDerivesDidFromRegisteredAddressNotIdentityHubHost() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+
+        service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER);
+
+        verify(identityHubClient).createParticipantContext(eq(ctxId),
+                eq(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST)), any(),
+                argThat(url -> url.startsWith("https://ih.example.test:7185/api/credentials/")), any(), any());
+    }
+
+    @Test
+    void ensureParticipantContextRefusesToProvisionWithoutRegisteredAddress() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(
+                ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.DSP_PROVISIONING_FAILED.code()));
+
+        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any());
     }
 
     @Test

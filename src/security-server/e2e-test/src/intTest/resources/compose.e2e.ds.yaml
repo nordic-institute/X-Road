@@ -72,7 +72,9 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
-      - EDC_DSP_CALLBACK_ADDRESS=https://${ENV_PREFIX:-}ds-control-plane:8183/api/dsp/%s
+      # The registered-address form: counterparties derive this server's DSP endpoint from
+      # the GlobalConf address (ds-gateway below forwards 8183 to this container).
+      - EDC_DSP_CALLBACK_ADDRESS=https://${SS_ADDRESS:-xrd-ss}:8183/api/dsp/%s
       # Validity in ms (EDC default 900000); 1 ms ~= no cache, so revocation is seen immediately in the test.
       - EDC_IAM_CREDENTIAL_REVOCATION_CACHE_VALIDITY=1
       - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
@@ -112,7 +114,7 @@ services:
     environment:
       - HOSTNAME=${ENV_PREFIX:-}ds-identity-hub
       - XROAD_HOST=ds-identity-hub
-      - EDC_IH_DID_PUBLIC_HOSTNAME=${ENV_PREFIX:-}ds-identity-hub
+      - EDC_IH_DID_PUBLIC_HOSTNAME=${SS_ADDRESS:-xrd-ss}
       - XROAD_SECRET_STORE_HOST=openbao
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_SECRET_STORE_SCHEME=http
@@ -143,6 +145,35 @@ services:
     depends_on:
       db-ds-identity-hub:
         condition: service_healthy
+
+  # Owns this Security Server's GlobalConf-registered address (xrd-ssN) on the shared
+  # network and fans its ports out per backend: 5500/5577 to the proxy, 7183 to the
+  # identity hub (DID resolution), 8183 to the control plane (DSP). Counterparties derive
+  # all of these from the one registered address (XRDADR-41), so they must be served there.
+  ds-gateway:
+    image: nginxinc/nginx-unprivileged:stable-alpine
+    volumes:
+      - ./ds-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      xrd-ss-network: {}
+      xroad-network:
+        aliases:
+          - ${SS_ADDRESS:-xrd-ss}
+    deploy:
+      resources:
+        reservations:
+          memory: 16M
+        limits:
+          memory: 64M
+    # service_started (not healthy): nginx only needs the backends' DNS entries to exist
+    # when it resolves upstreams at startup.
+    depends_on:
+      proxy:
+        condition: service_started
+      ds-control-plane:
+        condition: service_started
+      ds-identity-hub:
+        condition: service_started
 
 networks:
   xroad-network:

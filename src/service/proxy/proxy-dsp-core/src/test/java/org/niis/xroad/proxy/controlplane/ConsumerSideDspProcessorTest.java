@@ -62,10 +62,11 @@ class ConsumerSideDspProcessorTest {
     private static final String INSTANCE = "DEV";
     private static final String HOST_A = "xrd-ss0.lxd";
     private static final String HOST_B = "xrd-ss1.lxd";
-    private static final String DID_A = "did:web:xrd-ss0.lxd%3A7183";
-    private static final String DID_B = "did:web:xrd-ss1.lxd%3A7183";
-    private static final String URL_A = "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd/http-dsp-profile-2025-1";
-    private static final String URL_B = "https://xrd-ss1.lxd:8183/api/dsp/xrd-ss1.lxd/http-dsp-profile-2025-1";
+    private static final String PROVIDER_MEMBER_CTX_ID = "DEV:COM:1234";
+    private static final String DID_A = "did:web:xrd-ss0.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
+    private static final String DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
+    private static final String URL_A = "https://xrd-ss0.lxd:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1";
+    private static final String URL_B = "https://xrd-ss1.lxd:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1";
     private static final String MGMT_DID_A = "did:web:xrd-ss0.lxd%3A7183:mgmt";
     private static final String MGMT_URL_A = "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/http-dsp-profile-2025-1";
     private static final String UNKNOWN_HOST = "unknown.example.com";
@@ -175,7 +176,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void counterPartyIdAndAddressLookedUpFromTargetMap() {
+    void counterPartyIdAndAddressDerivedFromProviderMemberAndCandidateAddress() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
@@ -188,6 +189,48 @@ class ConsumerSideDspProcessorTest {
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
         assertThat(idCaptor.getValue()).isEqualTo(DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
+    }
+
+    @Test
+    void memberTargetDerivedForAnyRegisteredAddress() {
+        when(providerSecurityServerResolver.resolve(serviceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(serviceId, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(),
+                eq("did:web:unknown.example.com%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID),
+                eq("https://unknown.example.com:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1"));
+    }
+
+    @Test
+    void providerSubsystemCollapsesToMemberInDerivedTarget() {
+        var otherSubsystemService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "OtherSub", "otherService");
+        when(providerSecurityServerResolver.resolve(otherSubsystemService, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(otherSubsystemService, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A));
+    }
+
+    @Test
+    void memberCodeRequiringEncodingIsPercentEncodedInDerivedTarget() {
+        var encodedMemberService = ServiceId.Conf.create(INSTANCE, "COM", "12+34", "Sub", "svc");
+        when(providerSecurityServerResolver.resolve(encodedMemberService, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(encodedMemberService, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(),
+                eq("did:web:xrd-ss0.lxd%3A7183:v1:DEV:COM:12%2B34"),
+                eq("https://xrd-ss0.lxd:8183/api/dsp/DEV:COM:12%252B34/http-dsp-profile-2025-1"));
     }
 
     @Test
@@ -284,27 +327,27 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void unmappedHostAddressIsSkippedAndOtherCandidateUsed() {
+    void unmappedHostAddressIsSkippedForManagementRequestAndOtherCandidateUsed() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
                         new ProviderAddress(null, UNKNOWN_HOST),
                         new ProviderAddress(null, HOST_A)));
         var expected = new AssetAccessResponse("http://dp.a/e", null);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A)))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(MGMT_DID_A), eq(MGMT_URL_A)))
                 .thenReturn(expected);
 
-        var result = processor.execute(new DspRequest(serviceId, SENDER, null, false));
+        var result = processor.execute(new DspRequest(serviceId, SENDER, null, true));
 
         assertThat(result).isSameAs(expected);
         verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any());
     }
 
     @Test
-    void allCandidatesUnmappedThrowsIoError() {
+    void allCandidatesUnmappedForManagementRequestThrowsIoError() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
 
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, true)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;
@@ -411,17 +454,17 @@ class ConsumerSideDspProcessorTest {
                 .thenReturn(List.of(
                         new ProviderAddress(null, UNKNOWN_HOST),
                         new ProviderAddress(null, HOST_A)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(DID_A), eq(URL_A)))
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(MGMT_DID_A), eq(MGMT_URL_A)))
                 .thenThrow(XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss"));
 
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, true)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
                         .isEqualTo(ErrorCode.IO_ERROR.code()));
     }
 
     @Test
-    void nonManagementRequestTargetsHostCtxDidAndUrl() {
+    void nonManagementRequestTargetsDerivedMemberDidAndUrl() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
@@ -454,7 +497,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void selfCallCandidateByServerIdUsesDefaultCtx() {
+    void selfCallCandidateByServerIdUsesMemberTarget() {
         var candidateServerId = SecurityServerId.Conf.create(INSTANCE, "COM", "1234", "ss0-local");
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(candidateServerId, HOST_A)));
@@ -471,7 +514,7 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void builtinServiceCodeOnSubsystemUsesHostCtx() {
+    void builtinServiceCodeOnSubsystemUsesMemberTarget() {
         var notBuiltin = ServiceId.Conf.create(INSTANCE, "COM", "1234", "Sub", "getSecurityServerMetrics");
         when(providerSecurityServerResolver.resolve(notBuiltin, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
@@ -561,10 +604,10 @@ class ConsumerSideDspProcessorTest {
                 });
     }
     @Test
-    void missingCounterPartyTargetYieldsIoErrorWithOriginalDspCode() {
+    void missingManagementCounterPartyTargetYieldsIoErrorWithOriginalDspCode() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, false)))
+        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, true)))
                 .isInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
                     var xrd = (XrdRuntimeException) ex;

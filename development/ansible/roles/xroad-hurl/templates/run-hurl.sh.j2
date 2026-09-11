@@ -64,8 +64,8 @@ hurl "${TEMP_FILE}" "$@" \
   --connect-timeout 15s \
   --insecure \
   --very-verbose \
-  --retry 12 \
-  --retry-interval 15000 \
+  --retry 30 \
+  --retry-interval 10000 \
   --report-html "${REPORT_DIR}"
 
 RESULT=$?

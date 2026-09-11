@@ -27,13 +27,16 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
@@ -55,6 +58,7 @@ import java.util.Set;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
@@ -146,7 +150,6 @@ public class DataspaceProvisioningService {
     }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
-    private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
@@ -157,6 +160,7 @@ public class DataspaceProvisioningService {
     private final ClientRepository clientRepository;
     private final ServerConfRepository serverConfRepository;
     private final DsParticipantRepository dsParticipantRepository;
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
@@ -169,11 +173,12 @@ public class DataspaceProvisioningService {
      * @param kind          HOST, MANAGEMENT or MEMBER
      * @param memberId      the X-Road member this context's credential is issued to
      */
+    @Transactional(readOnly = true)
     public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
-        var did = didFor(identityHubHost, kind, memberId);
+        var did = didFor(kind, memberId);
         requireNoHubDidDrift(participantId, did);
 
         createIdentityHubContext(participantId, did, identityHubHost, memberId);
@@ -284,7 +289,8 @@ public class DataspaceProvisioningService {
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, owner));
         if (managementRegistered) {
-            contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
+            contexts.add(new ParticipantContext(hostParticipantId + DspConventions.MANAGEMENT_CONTEXT_SUFFIX,
+                    ParticipantKind.MANAGEMENT, owner));
         }
 
         ownerId.ifPresent(id -> hostedMembers(id).forEach(member ->
@@ -317,13 +323,13 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Returns a read-only snapshot of one participant context's provisioning status. The gRPC reads
-     * hold no database connection; for a MEMBER context the identity-binding state is read afterwards
-     * in the repository's own short transaction. Does not trigger provisioning, poll, or sleep.
-     * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
+     * Returns a read-only snapshot of one participant context's provisioning status. Does not
+     * trigger provisioning, poll, or sleep. Tolerates backend unavailability — errors are reported
+     * as {@code UNKNOWN} status rather than thrown.
      *
      * @param context the participant context to report on
      */
+    @Transactional(readOnly = true)
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
         var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
@@ -358,26 +364,57 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(participantId)).orElse(CredentialStatus.ABSENT);
     }
 
-    private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
+    private String didFor(ParticipantKind kind, ClientId memberId) {
+        var address = registeredAddress();
         if (kind == ParticipantKind.MEMBER) {
-            return memberDid(memberId, didAuthority(identityHubHost));
+            return memberDid(memberId, DspConventions.didAuthority(address));
         }
-        var did = "did:web:" + didAuthority(identityHubHost).replace(":", "%3A");
-        return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
+        return kind == ParticipantKind.MANAGEMENT
+                ? DspConventions.managementDid(address)
+                : DspConventions.hostDid(address);
     }
 
     /**
-     * The authority (host:port) embedded in derived DIDs. Interim source: the identity-hub host
-     * plus its DID-serving port, because that is where DID documents are actually served. Target
-     * source, once registered-address DID serving exists: the GlobalConf-registered security
-     * server address ({@code GlobalConfProvider#getSecurityServerAddress}), with no port.
+     * The authority (host:port) embedded in derived DIDs: this Security Server's
+     * GlobalConf-registered address plus the fixed DID port ({@link DspConventions#DID_PORT}) — the
+     * same coordinates counter-parties derive for this server's participants from their own
+     * GlobalConf copy. The identity hub must serve DID documents on this authority.
      *
-     * <p>The port must match the identity hub's own {@code web.http.did.port}. It is part of every
-     * DID bound in {@code ds_participant}, so changing it after a member's identity has been
-     * bound makes that row fail verification.</p>
+     * <p>The authority is part of every DID bound in {@code ds_participant}, so changing the
+     * registered address after a member's identity has been bound makes that row fail
+     * verification.</p>
      */
-    private String didAuthority(String identityHubHost) {
-        return identityHubHost + ":" + adminServiceProperties.getDataspace().getIdentityHubDidPort();
+    private String didAuthority() {
+        return DspConventions.didAuthority(registeredAddress());
+    }
+
+    /**
+     * Whether the GlobalConf-registered address the participant DIDs derive from is resolvable yet.
+     * {@code false} until the server's owner is initialized and its registration has landed in
+     * GlobalConf — the normal state before registration, not an error.
+     */
+    @Transactional(readOnly = true)
+    public boolean registeredAddressKnown() {
+        return findRegisteredAddress().isPresent();
+    }
+
+    private String registeredAddress() {
+        return findRegisteredAddress().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                "this security server's owner or GlobalConf-registered address is not available yet; "
+                        + "cannot derive participant DIDs"));
+    }
+
+    /**
+     * Resolves the server id through the repository, not {@link ServerConfService}: callers include
+     * the unauthenticated scheduled provisioning worker, which the service's authentication guard
+     * would reject.
+     */
+    private Optional<String> findRegisteredAddress() {
+        return ownerId().flatMap(owner -> {
+            var serverId = SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode());
+            return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
+                    .filter(address -> !address.isBlank());
+        });
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -397,6 +434,7 @@ public class DataspaceProvisioningService {
      * @param memberId the member whose bound identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
      */
+    @Transactional(readOnly = true)
     public IdentityStatus readIdentityStatus(ClientId memberId) {
         return assessMemberIdentity(memberId).status();
     }
@@ -411,7 +449,7 @@ public class DataspaceProvisioningService {
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
         try {
-            var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
+            var ssHost = didAuthority();
             var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));

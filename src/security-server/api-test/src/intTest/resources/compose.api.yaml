@@ -34,10 +34,10 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:5558/q/health" ]
+    # The ss0 registered-address alias lives on the ds-gateway service (compose.api.ds.yaml,
+    # always layered on), which fans the address's ports out per backend.
     networks:
-      xrd-ss-network:
-        aliases:
-          - ss0
+      - xrd-ss-network
     volumes:
       - ./container-files/etc/xroad/conf.d:/etc/xroad/conf.d
       - ./container-files/etc/xroad/messagelog:/etc/xroad/messagelog

@@ -56,6 +56,7 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
     public static final String DS_CONTROL_PLANE = "ds-control-plane";
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
     public static final String DS_ISSUER_SERVICE = "ds-issuer-service";
+    public static final String DS_GATEWAY = "ds-gateway";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_API_FILE = "compose.api.yaml";
@@ -101,7 +102,8 @@ public class SsApiTestContainerSetup extends BaseComposeSetup {
                 .withLogConsumer(TESTCA, createLogConsumer(TESTCA))
                 .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(DS_CONTROL_PLANE))
                 .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(DS_IDENTITY_HUB))
-                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer(DS_ISSUER_SERVICE));
+                .withLogConsumer(DS_ISSUER_SERVICE, createLogConsumer(DS_ISSUER_SERVICE))
+                .withLogConsumer(DS_GATEWAY, createLogConsumer(DS_GATEWAY));
     }
 
     @Override

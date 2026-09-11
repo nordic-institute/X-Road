@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,10 +42,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ({@link SsProxyDspSelfCallTest}, {@link SsProxyDspRuntimeMemberTest}).
  *
  * <p>The asserted shape: the consumer side negotiates as the sender member's derived participant context
- * ({@code consumerMemberCtxId}), the provider side serves the offer under the environment's host context —
- * whose literal value differs per environment ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD), so no
- * host-context literal ever appears in a query. Each side persists its own per-context copy of the one wire
- * agreement, so the pair is grouped by the wire agreement id ({@code agr_agreement_id}) those copies share.
+ * ({@code consumerMemberCtxId}) and dials the provider member's derived context
+ * ({@code providerMemberCtxId}) — counter-party coordinates are derived per XRDADR-41, so no host-context
+ * literal ever appears in a query. Each side persists its agreement copy scoped to its own context, and the
+ * pair is grouped by the wire agreement id ({@code agr_agreement_id}) the copies share: two per-context
+ * copies when the contexts differ, one converged row (the store's composite-key upsert) when a same-member
+ * self-call puts both sides on one context.
  *
  * <p>The pair is identified by shape rather than by recency of creation, so a warm-cache rerun that reuses
  * an existing agreement is detected exactly as reliably as a freshly negotiated one. {@code HAVING COUNT(*) = 2}
@@ -84,17 +87,20 @@ final class DspNegotiationDbAssertions {
     private final String envName;
     private final String assetId;
     private final String consumerMemberCtxId;
+    private final String providerMemberCtxId;
 
-    DspNegotiationDbAssertions(DsControlPlaneDbOps dbOps, String envName, String assetId, String consumerMemberCtxId) {
+    DspNegotiationDbAssertions(DsControlPlaneDbOps dbOps, String envName, String assetId,
+                               String consumerMemberCtxId, String providerMemberCtxId) {
         this.dbOps = dbOps;
         this.envName = envName;
         this.assetId = assetId;
         this.consumerMemberCtxId = consumerMemberCtxId;
+        this.providerMemberCtxId = providerMemberCtxId;
     }
 
     /**
      * Polls until the asset's latest two-row negotiation group has exactly two FINALIZED rows — a CONSUMER
-     * row on {@code consumerMemberCtxId} and a PROVIDER row on a non-mgmt (host) context; returns the wire
+     * row on {@code consumerMemberCtxId} and a PROVIDER row on {@code providerMemberCtxId}; returns the wire
      * agreement id the pair shares.
      */
     String awaitNegotiationPair() {
@@ -130,9 +136,9 @@ final class DspNegotiationDbAssertions {
         } catch (ConditionTimeoutException e) {
             throw new ConditionTimeoutException(
                     ("Timed out waiting for a negotiation pair for asset '%s' (a FINALIZED CONSUMER row on context "
-                            + "'%s' and a FINALIZED PROVIDER row on a non-mgmt host context, sharing one wire agreement "
-                            + "id); last observed candidate group's rows (state|type|participant_context_id|agr_agreement_id): %s")
-                            .formatted(assetId, consumerMemberCtxId,
+                            + "'%s' and a FINALIZED PROVIDER row on context '%s', sharing one wire agreement id); "
+                            + "last observed candidate group's rows (state|type|participant_context_id|agr_agreement_id): %s")
+                            .formatted(assetId, consumerMemberCtxId, providerMemberCtxId,
                                     lastSeen.get().stream().map(row -> String.join("|", row)).toList()), e);
         }
 
@@ -146,30 +152,26 @@ final class DspNegotiationDbAssertions {
         }
         var consumerOnMemberCtx = rows.stream().anyMatch(row ->
                 TYPE_CONSUMER.equals(row[1]) && consumerMemberCtxId.equals(row[2]));
-        var providerOnHostCtx = rows.stream().anyMatch(row ->
-                TYPE_PROVIDER.equals(row[1]) && !row[2].endsWith("-mgmt") && !consumerMemberCtxId.equals(row[2]));
-        return consumerOnMemberCtx && providerOnHostCtx;
+        var providerOnMemberCtx = rows.stream().anyMatch(row ->
+                TYPE_PROVIDER.equals(row[1]) && providerMemberCtxId.equals(row[2]));
+        return consumerOnMemberCtx && providerOnMemberCtx;
     }
 
     /**
-     * Each side persists its own copy of the wire agreement scoped to its participant context, so exactly two
-     * copies must exist: the consumer's on {@code consumerMemberCtxId} and the provider's on the host context.
-     * Also verifies every negotiation row referencing a copy carries that copy's own context — the invariant
-     * the store's composite-key upsert exists to protect.
+     * Each side persists its agreement copy scoped to its own participant context: two per-context copies
+     * when consumer and provider contexts differ, one converged row (the store's composite-key upsert) when
+     * a same-member self-call puts both sides on one context. Also verifies every negotiation row
+     * referencing a copy carries that copy's own context — the invariant the upsert exists to protect.
      */
     void assertPerContextAgreementCopies(String wireAgreementId) {
+        var expectedContexts = Stream.of(consumerMemberCtxId, providerMemberCtxId).distinct().sorted().toList();
         var contexts = parseRows(dbOps.execDsControlPlaneSql(envName,
                 ("SELECT agr_participant_context_id FROM edc_contract_agreement "
                         + "WHERE agr_agreement_id = '%s' ORDER BY agr_participant_context_id")
                         .formatted(wireAgreementId))).stream().map(row -> row[0]).toList();
         assertThat(contexts)
                 .as("per-context edc_contract_agreement copies of wire agreement %s", wireAgreementId)
-                .hasSize(2)
-                .doesNotHaveDuplicates()
-                .contains(consumerMemberCtxId);
-        assertThat(contexts)
-                .as("no copy of wire agreement %s rides the mgmt companion context", wireAgreementId)
-                .noneMatch(ctx -> ctx.endsWith("-mgmt"));
+                .isEqualTo(expectedContexts);
 
         var mismatchedNegotiations = Integer.parseInt(dbOps.execDsControlPlaneSql(envName,
                 ("SELECT COUNT(*) FROM edc_contract_negotiation n "
