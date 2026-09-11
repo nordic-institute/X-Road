@@ -25,15 +25,12 @@
  */
 package org.niis.xroad.e2e;
 
-import io.restassured.specification.RequestSpecification;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
 import java.util.List;
@@ -41,6 +38,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
+import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
@@ -77,9 +77,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 @Order(60)
 @SuppressWarnings("checkstyle:magicnumber")
 class SsSystemParticipantContextTest extends E2eTest {
-
-    private static final String ADMIN_USERNAME = "xrd";
-    private static final String ADMIN_PASSWORD = "secret123!";
 
     private static final String SYSTEM_KIND = "SYSTEM";
     private static final String ISSUED_CREDENTIAL_STATUS = "ISSUED";
@@ -131,28 +128,5 @@ class SsSystemParticipantContextTest extends E2eTest {
                             + "{ it.kind == '%s' }): %s")
                             .formatted(envName, ISSUED_CREDENTIAL_STATUS, SYSTEM_KIND, lastSeen.get()), e);
         }
-    }
-
-    private String adminBaseUrl(E2eEnvironment env, String envName) {
-        var mapping = env.getContainerMapping(envName, SsStackSetup.UI, SsStackSetup.Port.UI);
-        return "https://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
-    private AdminSession login(String baseUrl) {
-        var response = RestAssuredFactory.given()
-                .formParam("username", ADMIN_USERNAME)
-                .formParam("password", ADMIN_PASSWORD)
-                .post(baseUrl + "/login");
-        assertThat(response.getStatusCode()).as("login to %s", baseUrl).isEqualTo(200);
-        return new AdminSession(response.getCookies(), response.getCookie("XSRF-TOKEN"));
-    }
-
-    private RequestSpecification authed(AdminSession session) {
-        return RestAssuredFactory.given()
-                .cookies(session.cookies())
-                .header("X-XSRF-TOKEN", session.xsrfToken());
-    }
-
-    private record AdminSession(Map<String, String> cookies, String xsrfToken) {
     }
 }
