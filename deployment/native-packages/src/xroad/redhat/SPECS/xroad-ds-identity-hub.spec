@@ -87,6 +87,19 @@ fi
 %post -p /bin/bash
 umask 027
 
+%systemd_post xroad-ds-identity-hub.service
+
+%preun
+%systemd_preun xroad-ds-identity-hub.service
+
+%postun
+%systemd_postun_with_restart xroad-ds-identity-hub.service
+
+%posttrans -p /bin/bash
+umask 027
+
+%init_xroad_ds_identity_hub_db
+
 # Temporary dev flow - copy admin credentials from xroad.properties to db.properties
 # This allows the application to use admin credentials for database access
 # Also updates JDBC URL with currentSchema for EDC compatibility
@@ -118,16 +131,5 @@ if [ -f "$root_properties" ] && [ -f "$db_properties" ]; then
     fi
   fi
 fi
-
-%systemd_post xroad-ds-identity-hub.service
-
-%preun
-%systemd_preun xroad-ds-identity-hub.service
-
-%postun
-%systemd_postun_with_restart xroad-ds-identity-hub.service
-
-%posttrans
-%init_xroad_ds_identity_hub_db
 
 %changelog
