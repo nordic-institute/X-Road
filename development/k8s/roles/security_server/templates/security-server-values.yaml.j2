@@ -149,7 +149,10 @@ services:
   op-monitor:
     enabled: true
 
-{% if ds_tls %}
+{# Gated on the same condition that renders the chart's ds-gateway ConfigMap
+   (dsp.participantContextId, set below) — a sidecar mounting an unrendered
+   ConfigMap wedges the proxy pod. #}
+{% if ds_tls and dsp_participant_context_id | length > 0 %}
   # The GlobalConf-registered address is the proxy Service, so the DSP surface
   # counterparties derive from it (7183 DID resolution, 8183 DSP) must be served
   # there too: an nginx stream sidecar in the proxy pod forwards those ports to

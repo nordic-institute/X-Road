@@ -137,19 +137,19 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         var remoteFailures = new ArrayList<RuntimeException>();
         var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
-            var target = targetFor(requestForcesMgmtCtx, serviceId, candidate.hostAddress());
-            if (target == null) {
-                var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
-                        .origin(DATASPACE)
-                        .details("No DSP counter-party target configured for provider host-address \"%s\""
-                                .formatted(candidate.hostAddress()))
-                        .build();
-                log.warn("No counter-party target for SS {} (address {}), trying next",
-                        candidate.serverId(), candidate.hostAddress(), ex);
-                localFailures.add(ex);
-                continue;
-            }
             try {
+                var target = targetFor(requestForcesMgmtCtx, serviceId, candidate.hostAddress());
+                if (target == null) {
+                    var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
+                            .origin(DATASPACE)
+                            .details("No DSP counter-party target configured for provider host-address \"%s\""
+                                    .formatted(candidate.hostAddress()))
+                            .build();
+                    log.warn("No counter-party target for SS {} (address {}), trying next",
+                            candidate.serverId(), candidate.hostAddress(), ex);
+                    localFailures.add(ex);
+                    continue;
+                }
                 return assetAccessAcquisitionService.acquireAssetAccess(
                         participantContextId, assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
@@ -163,7 +163,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     /**
      * The counter-party target of one candidate serving security server: derived for member
-     * targets (cannot miss — derivation failures surface on acquire and ride the per-candidate
+     * targets (a derivation failure is caught by the candidate loop and rides the per-candidate
      * failover), map-based for the legacy {@code -mgmt} targets ({@code null} on a lookup miss).
      */
     @Nullable

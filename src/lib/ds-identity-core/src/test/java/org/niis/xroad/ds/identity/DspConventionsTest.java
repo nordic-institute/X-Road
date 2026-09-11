@@ -32,6 +32,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -77,10 +80,10 @@ class DspConventionsTest {
     @Test
     void shouldBracketIpv6RegisteredAddress() {
         assertThat(DspConventions.didAuthority("2001:db8::8")).isEqualTo("[2001:db8::8]:7183");
-        assertThat(DspConventions.hostDid("2001:db8::8")).isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183");
-        assertThat(DspConventions.managementDid("2001:db8::8")).isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183:mgmt");
+        assertThat(DspConventions.hostDid("2001:db8::8")).isEqualTo("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183");
+        assertThat(DspConventions.managementDid("2001:db8::8")).isEqualTo("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:mgmt");
         assertThat(DspConventions.memberCounterPartyId(MEMBER, "2001:db8::8"))
-                .isEqualTo("did:web:[2001%3Adb8%3A%3A8]%3A7183:v1:DEV:COM:222");
+                .isEqualTo("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:DEV:COM:222");
         assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "2001:db8::8"))
                 .isEqualTo("https://[2001:db8::8]:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     }
@@ -99,7 +102,18 @@ class DspConventionsTest {
         assertThat(DspConventions.memberCounterPartyId(member, "ss0.example.org"))
                 .isEqualTo("did:web:ss0.example.org%3A7183:v1:DEV:COM:A%2BB");
         assertThat(DspConventions.memberCounterPartyAddress(member, "ss0.example.org"))
-                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%2BB/http-dsp-profile-2025-1");
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%252BB/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void counterPartyAddressContextSegmentDecodesBackToTheRegisteredCtxId() {
+        var member = ClientId.Conf.create("DEV", "COM", "A+B");
+
+        var address = DspConventions.memberCounterPartyAddress(member, "ss0.example.org");
+        var ctxIdSegment = address.split("/api/dsp/")[1].split("/")[0];
+
+        assertThat(URLDecoder.decode(ctxIdSegment, StandardCharsets.UTF_8))
+                .isEqualTo(ParticipantIdentifierScheme.memberCtxId(member));
     }
 
     @Test

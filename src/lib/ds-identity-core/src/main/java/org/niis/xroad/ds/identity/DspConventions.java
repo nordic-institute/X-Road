@@ -59,10 +59,18 @@ public class DspConventions {
     public static final String DSP_PROFILE_ID = "http-dsp-profile-2025-1";
 
     /**
-     * Suffix appended to the host participant context id (and its DID) for the legacy management
-     * companion context. Interim: dies with the SYSTEM-context migration.
+     * Suffix appended to the host participant context id for the legacy management companion
+     * context. Applies to context ids only; the DID form uses {@link #MANAGEMENT_DID_SUFFIX}.
+     * Interim: dies with the SYSTEM-context migration.
      */
     public static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
+
+    /**
+     * {@code did:web} path segment appended to the host DID for the legacy management companion
+     * context. Applies to DIDs only; the context id form uses {@link #MANAGEMENT_CONTEXT_SUFFIX}.
+     * Interim: dies with the SYSTEM-context migration.
+     */
+    public static final String MANAGEMENT_DID_SUFFIX = ":mgmt";
 
     /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
@@ -83,7 +91,8 @@ public class DspConventions {
      * @return the host context DID, e.g. {@code did:web:ss0.example.org%3A7183}
      */
     public static String hostDid(String ssAddress) {
-        return "did:web:" + didAuthority(ssAddress).replace(":", "%3A");
+        return "did:web:" + didAuthority(ssAddress)
+                .replace(":", "%3A").replace("[", "%5B").replace("]", "%5D");
     }
 
     /**
@@ -94,7 +103,7 @@ public class DspConventions {
      * @return the management context DID, e.g. {@code did:web:ss0.example.org%3A7183:mgmt}
      */
     public static String managementDid(String ssAddress) {
-        return hostDid(ssAddress) + ":mgmt";
+        return hostDid(ssAddress) + MANAGEMENT_DID_SUFFIX;
     }
 
     /**
@@ -114,16 +123,26 @@ public class DspConventions {
      * participant context and the DSP profile) of a member participant served at the given Security
      * Server address.
      *
+     * <p>The context id is embedded as a percent-encoded path segment: a ctx-id may itself contain
+     * literal {@code %} (from {@code enc()}-escaped member codes), and the provider's JAX-RS layer
+     * decodes the segment once, so the {@code %} must ride the wire as {@code %25} to decode back
+     * to the registered context id. {@code :} needs no escaping — it is a legal pchar.
+     *
      * @param member    the provider member; must not carry a subsystem code
      * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
      * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1};
      *         an IPv6 literal address is bracketed
      */
     public static String memberCounterPartyAddress(ClientId member, String ssAddress) {
+        var ctxIdPathSegment = ParticipantIdentifierScheme.memberCtxId(member).replace("%", "%25");
         return "https://%s:%d/api/dsp/%s/%s"
-                .formatted(uriHost(ssAddress), DSP_PORT, ParticipantIdentifierScheme.memberCtxId(member), DSP_PROFILE_ID);
+                .formatted(uriHost(ssAddress), DSP_PORT, ctxIdPathSegment, DSP_PROFILE_ID);
     }
 
+    /**
+     * A registered address is a hostname, an IPv4 literal, or a bare IPv6 literal — never
+     * {@code host:port} — so a colon can only mean IPv6, which URL authorities require bracketed.
+     */
     private static String uriHost(String ssAddress) {
         boolean bareIpv6Literal = ssAddress.indexOf(':') >= 0 && !ssAddress.startsWith("[");
         return bareIpv6Literal ? "[" + ssAddress + "]" : ssAddress;

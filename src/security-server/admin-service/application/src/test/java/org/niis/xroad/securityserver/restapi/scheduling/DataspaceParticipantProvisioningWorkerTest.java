@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -73,6 +74,11 @@ class DataspaceParticipantProvisioningWorkerTest {
     @InjectMocks
     private DataspaceParticipantProvisioningWorker worker;
 
+    @BeforeEach
+    void setUp() {
+        when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
+    }
+
     @Test
     void scheduledProvisionSwallowsFailures() {
         when(dataspaceProvisioningService.participantContexts(true)).thenThrow(new RuntimeException("boom"));
@@ -90,6 +96,17 @@ class DataspaceParticipantProvisioningWorkerTest {
     @Test
     void provisionParticipantSkipsWhenOwnerNotYetKnown() {
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(PRE_OWNER_HOST_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(anyString(), any(), any());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(anyString());
+    }
+
+    @Test
+    void provisionParticipantSkipsWhenRegisteredAddressNotYetKnown() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT));
+        when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(false);
 
         worker.provisionParticipant();
 

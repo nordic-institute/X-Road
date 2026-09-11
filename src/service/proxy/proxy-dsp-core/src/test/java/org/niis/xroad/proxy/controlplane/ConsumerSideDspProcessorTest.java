@@ -230,7 +230,7 @@ class ConsumerSideDspProcessorTest {
 
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(),
                 eq("did:web:xrd-ss0.lxd%3A7183:v1:DEV:COM:12%2B34"),
-                eq("https://xrd-ss0.lxd:8183/api/dsp/DEV:COM:12%2B34/http-dsp-profile-2025-1"));
+                eq("https://xrd-ss0.lxd:8183/api/dsp/DEV:COM:12%252B34/http-dsp-profile-2025-1"));
     }
 
     @Test

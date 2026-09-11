@@ -173,6 +173,7 @@ public class DataspaceProvisioningService {
      * @param kind          HOST, MANAGEMENT or MEMBER
      * @param memberId      the X-Road member this context's credential is issued to
      */
+    @Transactional(readOnly = true)
     public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
@@ -322,13 +323,13 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Returns a read-only snapshot of one participant context's provisioning status. The gRPC reads
-     * hold no database connection; for a MEMBER context the identity-binding state is read afterwards
-     * in the repository's own short transaction. Does not trigger provisioning, poll, or sleep.
-     * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
+     * Returns a read-only snapshot of one participant context's provisioning status. Does not
+     * trigger provisioning, poll, or sleep. Tolerates backend unavailability — errors are reported
+     * as {@code UNKNOWN} status rather than thrown.
      *
      * @param context the participant context to report on
      */
+    @Transactional(readOnly = true)
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
         var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
@@ -388,19 +389,32 @@ public class DataspaceProvisioningService {
     }
 
     /**
+     * Whether the GlobalConf-registered address the participant DIDs derive from is resolvable yet.
+     * {@code false} until the server's owner is initialized and its registration has landed in
+     * GlobalConf — the normal state before registration, not an error.
+     */
+    @Transactional(readOnly = true)
+    public boolean registeredAddressKnown() {
+        return findRegisteredAddress().isPresent();
+    }
+
+    private String registeredAddress() {
+        return findRegisteredAddress().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                "this security server's owner or GlobalConf-registered address is not available yet; "
+                        + "cannot derive participant DIDs"));
+    }
+
+    /**
      * Resolves the server id through the repository, not {@link ServerConfService}: callers include
      * the unauthenticated scheduled provisioning worker, which the service's authentication guard
      * would reject.
      */
-    private String registeredAddress() {
-        var serverConf = serverConfRepository.getServerConf();
-        var serverId = SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
-        var address = globalConfProvider.getSecurityServerAddress(serverId);
-        if (address == null || address.isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
-                    "security server %s has no GlobalConf-registered address; cannot derive participant DIDs", serverId);
-        }
-        return address;
+    private Optional<String> findRegisteredAddress() {
+        return ownerId().flatMap(owner -> {
+            var serverId = SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode());
+            return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
+                    .filter(address -> !address.isBlank());
+        });
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -420,6 +434,7 @@ public class DataspaceProvisioningService {
      * @param memberId the member whose bound identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
      */
+    @Transactional(readOnly = true)
     public IdentityStatus readIdentityStatus(ClientId memberId) {
         return assessMemberIdentity(memberId).status();
     }

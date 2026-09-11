@@ -442,7 +442,7 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextUsesConfiguredIdentityHubPorts() {
+    void ensureParticipantContextUsesConfiguredStsAndCredentialsPorts() {
         when(dataspace.getIdentityHubStsPort()).thenReturn(8184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(8185);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());

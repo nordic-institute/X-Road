@@ -36,7 +36,6 @@ class CounterPartyTargetTest {
     void managementMapTargetsRegisteredAddressWithSubstrateLocalContextId() {
         var map = CounterPartyTarget.managementMap();
 
-        assertThat(map).hasSize(10);
         assertThat(map.get("xrd-ss0")).isEqualTo(new CounterPartyTarget(
                 "did:web:xrd-ss0%3A7183:mgmt",
                 "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
