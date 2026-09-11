@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.ds.identity.BuiltinServiceCodes;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
@@ -45,14 +46,6 @@ import java.util.function.Predicate;
 @Slf4j
 @RequiredArgsConstructor
 class BuiltinServiceCatalog {
-
-    static final String PROXY_MONITOR_SERVICE_CODE = "getSecurityServerMetrics";
-    static final String OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE = "getSecurityServerOperationalData";
-    static final String OP_MONITOR_HEALTH_DATA_SERVICE_CODE = "getSecurityServerHealthData";
-    static final String META_LIST_METHODS_SERVICE_CODE = "listMethods";
-    static final String META_ALLOWED_METHODS_SERVICE_CODE = "allowedMethods";
-    static final String META_GET_WSDL_SERVICE_CODE = "getWsdl";
-    static final String META_GET_OPEN_API_SERVICE_CODE = "getOpenAPI";
 
     static final String SETTING_PROXY_MONITOR_ENABLED = "xroad.dsp.builtin-services.proxyMonitor.enabled";
     static final String SETTING_OP_MONITOR_ENABLED = "xroad.dsp.builtin-services.opMonitor.enabled";
@@ -106,15 +99,15 @@ class BuiltinServiceCatalog {
         var owner = serverConfProvider.getIdentifier().getOwner();
         var entries = new java.util.LinkedHashMap<String, ServiceId.Conf>();
 
-        addIfEnabled(entries, proxyMonitorEnabled, owner, PROXY_MONITOR_SERVICE_CODE);
+        addIfEnabled(entries, proxyMonitorEnabled, owner, BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE);
 
-        addIfEnabled(entries, opMonitorEnabled, owner, OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE);
-        addIfEnabled(entries, opMonitorEnabled, owner, OP_MONITOR_HEALTH_DATA_SERVICE_CODE);
+        addIfEnabled(entries, opMonitorEnabled, owner, BuiltinServiceCodes.OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE);
+        addIfEnabled(entries, opMonitorEnabled, owner, BuiltinServiceCodes.OP_MONITOR_HEALTH_DATA_SERVICE_CODE);
 
-        addIfEnabled(entries, metaservicesEnabled, owner, META_LIST_METHODS_SERVICE_CODE);
-        addIfEnabled(entries, metaservicesEnabled, owner, META_ALLOWED_METHODS_SERVICE_CODE);
-        addIfEnabled(entries, metaservicesEnabled, owner, META_GET_WSDL_SERVICE_CODE);
-        addIfEnabled(entries, metaservicesEnabled, owner, META_GET_OPEN_API_SERVICE_CODE);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_LIST_METHODS_SERVICE_CODE);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_ALLOWED_METHODS_SERVICE_CODE);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_GET_WSDL_SERVICE_CODE);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_GET_OPEN_API_SERVICE_CODE);
 
         log.debug("Built-in service catalog active entries: {}", entries.keySet());
         return Map.copyOf(entries);

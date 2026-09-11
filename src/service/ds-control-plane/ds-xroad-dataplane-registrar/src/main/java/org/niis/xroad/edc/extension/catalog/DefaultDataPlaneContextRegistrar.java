@@ -73,14 +73,20 @@ final class DefaultDataPlaneContextRegistrar implements DataPlaneContextRegistra
         }
 
         var instance = buildInstance(entry, participantContextId);
+        boolean firstRegistration = dataPlaneInstanceStore.findById(instance.getId()) == null;
         var result = dataPlaneInstanceStore.save(instance);
         if (result.failed()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
                     "Failed to register data plane '%s' (config node '%s') for participant context '%s': %s",
                     instance.getId(), node, participantContextId, result.getFailureDetail());
         }
-        log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
-                instance.getId(), participantContextId, node, instance.getUrl());
+        if (firstRegistration) {
+            log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
+                    instance.getId(), participantContextId, node, instance.getUrl());
+        } else {
+            log.debug("Refreshed data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
+                    instance.getId(), participantContextId, node, instance.getUrl());
+        }
     }
 
     private static DataPlaneInstance buildInstance(Config entry, String participantContextId) {

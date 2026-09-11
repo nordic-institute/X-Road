@@ -32,6 +32,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 
 import java.util.Optional;
 
@@ -62,9 +64,28 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        when(rpcClient.createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS,
+                ConflictPolicy.KEEP)).thenReturn(MemberIdAnchor.CONFIRMED);
 
-        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var result = client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS,
+                ConflictPolicy.KEEP);
+
+        assertThat(result).isEqualTo(MemberIdAnchor.CONFIRMED);
+        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS,
+                ConflictPolicy.KEEP);
+    }
+
+    @Test
+    void createParticipantContextForwardsConflictPolicyAndReturnedAnchor() {
+        when(rpcClient.createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS,
+                ConflictPolicy.REANCHOR)).thenReturn(MemberIdAnchor.UNCONFIRMED);
+
+        var result = client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS,
+                ConflictPolicy.REANCHOR);
+
+        assertThat(result).isEqualTo(MemberIdAnchor.UNCONFIRMED);
+        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS,
+                ConflictPolicy.REANCHOR);
     }
 
     @Test

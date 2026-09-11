@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -62,6 +63,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StoreCacheBenchmarkTest {
+
+    private static final CatalogContextIds CONTEXT_IDS = new CatalogContextIds(
+            "participant", "participant-mgmt", ParticipantIdentifierScheme.SYSTEM_SEGMENT);
 
     private static final int WARMUP = 50;
     private static final int K = 200;
@@ -204,9 +208,10 @@ class StoreCacheBenchmarkTest {
         lenient().when(participantContextService.getParticipantContext(any()))
                 .thenReturn(ServiceResult.notFound("no such context"));
         var serviceContextResolver = new ServiceContextResolver(
-                "participant", "participant-mgmt", globalConfProvider, participantContextService);
+                CONTEXT_IDS,
+                globalConfProvider, provider, participantContextService);
         return new AssetIndexServerConfStore(provider, globalConfProvider,
-                "participant", "participant-mgmt",
+                CONTEXT_IDS,
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),
                 cache, serviceContextResolver, new ThreadLocalRequestedParticipantContext());

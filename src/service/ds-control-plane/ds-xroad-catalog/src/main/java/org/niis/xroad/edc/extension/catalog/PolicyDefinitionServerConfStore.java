@@ -64,8 +64,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
-    private final String participantContextId;
-    private final String managementParticipantContextId;
+    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<PolicyDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -92,24 +91,18 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById policyId={} matched builtin", policyId);
-            return toBuiltinPolicyDefinition(policyId);
+            return toBuiltinPolicyDefinition(policyId,
+                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+        }
+
+        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+            var systemServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+            return systemServiceId == null ? null : policyMapper.toOwnerOnlyPolicyDefinition(
+                    policyId, systemServiceId.getClientId(), contextIds.system());
         }
 
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            var assetIdStr = policyId.substring(0,
-                    policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
-            var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null) {
-                log.trace("findById policyId={} owner-only candidate decode failed", policyId);
-                return null;
-            }
-            if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
-                    && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
-                log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
-                return null;
-            }
-            return policyMapper.toOwnerOnlyPolicyDefinition(policyId,
-                    ownerOnlyServiceId.getClientId(), managementParticipantContextId);
+            return findOwnerOnlyPolicyDefinition(policyId);
         }
 
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -126,6 +119,28 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
         log.trace("findById policyId={} result={}", policyId, result != null ? "found (5-part serviceId)" : "not found");
         return result;
+    }
+
+    /**
+     * The owner-only policy an id carrying {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX} names,
+     * under the management context; {@code null} when the id does not decode or names no service
+     * this server resolves.
+     */
+    @Nullable
+    private PolicyDefinition findOwnerOnlyPolicyDefinition(String policyId) {
+        var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
+        var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
+        if (ownerOnlyServiceId == null) {
+            log.trace("findById policyId={} owner-only candidate decode failed", policyId);
+            return null;
+        }
+        if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
+                && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
+            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
+            return null;
+        }
+        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(),
+                contextIds.management());
     }
 
     @Override
@@ -151,12 +166,18 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             var assetId = AssetMapper.encodeAssetId(serviceId);
-            policies.add(toBuiltinPolicyDefinition(assetId));
+            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.management()));
+            policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
         }
-        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
+        syntheticServices.managementEntries()
                 .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
                         ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
-                        serviceId.getClientId(), managementParticipantContextId)));
+                        serviceId.getClientId(), contextIds.management())));
+        syntheticServices.systemEntries()
+                .forEach(serviceId -> policies.add(policyMapper.toOwnerOnlyPolicyDefinition(
+                        ContractDefinitionMapper.ownerOnlyPolicyId(serviceId),
+                        serviceId.getClientId(), contextIds.system())));
         return policies;
     }
 
@@ -223,7 +244,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                                            Set<String> provisionedMemberContextIds) {
         var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
         policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
-                serviceId.getClientId(), managementParticipantContextId));
+                serviceId.getClientId(), contextIds.management()));
 
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
@@ -254,14 +275,14 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
     }
 
-    private PolicyDefinition toBuiltinPolicyDefinition(String policyId) {
+    private PolicyDefinition toBuiltinPolicyDefinition(String policyId, String contextId) {
         var policy = Policy.Builder.newInstance()
                 .type(PolicyType.SET)
                 .build();
         return PolicyDefinition.Builder.newInstance()
                 .id(policyId)
                 .policy(policy)
-                .participantContextId(managementParticipantContextId)
+                .participantContextId(contextId)
                 .build();
     }
 
