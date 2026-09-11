@@ -10,6 +10,7 @@ jersey = "4.0.2"
 jetty = "12.1.10"
 jaxb = "4.0.9"
 hibernate = "7.3.4.Final"
+bytebuddy = "1.18.8"
 mapstruct = "1.6.3"
 jackson = "3.2.0"
 jacksonAnnotations = "2.22"
@@ -32,7 +33,7 @@ protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.14"
 resilience4j = "2.4.0"
-quarkus = "3.33.1.1"
+quarkus = "3.39.3"
 quarkus-vault = "4.7.0"
 smallryeConfig = "3.17.2"
 microprofile = "3.1.1"
@@ -170,9 +171,10 @@ jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", 
 mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 
-hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
+hibernate-hikaricp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate" }
 hibernate-jpamodelgen = { module = "org.hibernate.orm:hibernate-processor", version.ref = "hibernate" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
+bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
 
 jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }

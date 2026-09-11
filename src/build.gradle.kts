@@ -71,6 +71,17 @@ allprojects {
           useVersion("1.41.1")
           because("XRDDEV-3176: Quarkus 3.33.1.1 -> opentelemetry-instrumentation-api 2.23.0 -> opentelemetry-semconv 1.37.0 is vulnerable to CVE-2026-29181 and CVE-2026-39883. Forcing patched 1.41.1.")
         }
+        if (requested.group == "org.bouncycastle") {
+          useVersion(libs.versions.bouncyCastle.get())
+          because("Quarkus platform manages Bouncy Castle past 1.84; newer releases reject X.509 'C' RDN values " +
+            "that aren't exactly 2 characters, but X-Road stores the X-Road instance identifier in that attribute, " +
+            "which is not an ISO 3166 country code. Keep the project-wide pin until identifier handling is redesigned.")
+        }
+        if (requested.group == "org.hibernate.orm") {
+          useVersion(libs.versions.hibernate.get())
+          because("Quarkus platform prefers a newer Hibernate ORM than libs.versions.toml pins; keep every " +
+            "Quarkus-hosted service on the same tested Hibernate line the plain Spring/Java modules use.")
+        }
       }
     }
   }
