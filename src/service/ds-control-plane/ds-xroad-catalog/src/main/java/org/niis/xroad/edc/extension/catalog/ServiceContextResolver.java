@@ -70,9 +70,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class ServiceContextResolver {
 
-    private final String hostParticipantContextId;
-    private final String managementParticipantContextId;
-    private final String systemParticipantContextId;
+    private final CatalogContextIds contextIds;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final ParticipantContextService participantContextService;
@@ -122,9 +120,39 @@ class ServiceContextResolver {
 
     /** Built-ins are ungated (published under both SYSTEM and management on every server). */
     String selectBuiltinContextId(@Nullable String requestedParticipantContextId) {
-        return systemParticipantContextId.equals(requestedParticipantContextId)
-                ? systemParticipantContextId
-                : managementParticipantContextId;
+        return isSystemAddressed(requestedParticipantContextId) ? contextIds.system() : contextIds.management();
+    }
+
+    /** Whether a DSP request was addressed to this server's SYSTEM context. */
+    boolean isSystemAddressed(@Nullable String requestedParticipantContextId) {
+        return contextIds.system().equals(requestedParticipantContextId);
+    }
+
+    /**
+     * The synthetic service a SYSTEM-addressed by-id lookup resolves {@code assetId} to, or
+     * {@code null} when nothing eligible is published there. A SYSTEM-addressed lookup only ever
+     * resolves to a synthetic entry eligible under SYSTEM ({@link #isSystemEligible}) — never to a
+     * real service, so a SYSTEM request for anything else is a clean not-found rather than a
+     * fallback to the legacy host context.
+     */
+    @Nullable
+    ServiceId.Conf resolveSystemService(String assetId) {
+        var serviceId = AssetMapper.decodeAssetId(assetId);
+        return serviceId != null && isSystemEligible(serviceId) ? serviceId : null;
+    }
+
+    /**
+     * Same as {@link #resolveSystemService}, for the owner-only policy and contract-definition ids
+     * that carry {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}. An id without that suffix
+     * resolves to {@code null}: under SYSTEM only owner-only entries are ever published.
+     */
+    @Nullable
+    ServiceId.Conf resolveSystemOwnerOnlyService(String ownerOnlyId) {
+        if (!ownerOnlyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+            return null;
+        }
+        return resolveSystemService(
+                ownerOnlyId.substring(0, ownerOnlyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length()));
     }
 
     /**
@@ -207,9 +235,9 @@ class ServiceContextResolver {
         if (requestedParticipantContextId == null) {
             return null;
         }
-        if (requestedParticipantContextId.equals(hostParticipantContextId)
-                || requestedParticipantContextId.equals(managementParticipantContextId)
-                || requestedParticipantContextId.equals(systemParticipantContextId)
+        if (requestedParticipantContextId.equals(contextIds.host())
+                || requestedParticipantContextId.equals(contextIds.management())
+                || requestedParticipantContextId.equals(contextIds.system())
                 || isMemberContextShape(requestedParticipantContextId)) {
             return requestedParticipantContextId;
         }
@@ -250,8 +278,8 @@ class ServiceContextResolver {
     private String legacyPublicationContextId(ServiceId serviceId) {
         var mgmtService = globalConfProvider.getManagementRequestService();
         return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : hostParticipantContextId;
+                ? contextIds.management()
+                : contextIds.host();
     }
 
     private Optional<String> memberContextId(ClientId owner, Set<String> provisionedMemberContextIds) {
