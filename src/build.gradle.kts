@@ -58,11 +58,7 @@ allprojects {
           useVersion("5.6.1")
           because("XRDDEV-3176: transitive 5.6 vulnerable to CVE-2026-40542; align with libs.versions.toml apache-httpclient5 = 5.6.1.")
         }
-        if (requested.group == "io.opentelemetry.semconv" && requested.name == "opentelemetry-semconv") {
-          useVersion("1.41.1")
-          because("XRDDEV-3176: Quarkus 3.39.3 -> opentelemetry-instrumentation-api 2.23.0 -> opentelemetry-semconv 1.37.0 is vulnerable to CVE-2026-29181 and CVE-2026-39883. Forcing patched 1.41.1.")
-        }
-        if (requested.group == "org.bouncycastle") {
+        if (requested.group == "org.bouncycastle" && requested.name.endsWith("-jdk18on")) {
           useVersion(libs.versions.bouncyCastle.get())
           because("Quarkus platform manages Bouncy Castle past 1.84; newer releases reject X.509 'C' RDN values " +
             "that aren't exactly 2 characters, but X-Road stores the X-Road instance identifier in that attribute, " +
@@ -70,8 +66,8 @@ allprojects {
         }
         if (requested.group == "org.hibernate.orm") {
           useVersion(libs.versions.hibernate.get())
-          because("Quarkus platform prefers a newer Hibernate ORM than libs.versions.toml pins; keep every " +
-            "Quarkus-hosted service on the same tested Hibernate line the plain Spring/Java modules use.")
+          because("Keep org.hibernate.orm aligned to the catalog version so the Quarkus platform BOM " +
+            "can't drift it in either direction.")
         }
       }
     }

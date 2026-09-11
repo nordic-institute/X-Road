@@ -3,10 +3,6 @@ spring:
   main:
     banner-mode: log
   cloud:
-    # The verifier's accepted-version allowlist only knows Boot 4.0.x; no Spring Cloud release
-    # train targeting Boot 4.1.x exists yet, though its actual code has no known incompatibility.
-    compatibility-verifier:
-      enabled: false
     vault:
       enabled: true
       host: ${XROAD_SECRET_STORE_HOST:127.0.0.1}

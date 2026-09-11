@@ -44,11 +44,6 @@ tasks.withType<Test>() {
 
   systemProperty("file.encoding", "UTF-8")
 
-  // A per-module test's own application.yml shadows the main sourceSet's spring.config.import of
-  // xroad-common.yaml, so the disabled Spring Cloud compatibility verifier there never reaches test
-  // contexts; a system property always wins regardless of that resource-loading order.
-  systemProperty("spring.cloud.compatibility-verifier.enabled", "false")
-
   testLogging {
     events(TestLogEvent.FAILED)
 
