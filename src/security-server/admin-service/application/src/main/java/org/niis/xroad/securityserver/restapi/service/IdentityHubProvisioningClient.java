@@ -35,19 +35,28 @@ import java.util.Optional;
  */
 public interface IdentityHubProvisioningClient {
 
+    /** What to do with an already-existing context's stored member id. */
+    enum ConflictPolicy {
+        /** Leave the stored member id untouched. */
+        KEEP,
+        /** Re-point the stored member id at this call's {@code memberId}. */
+        REANCHOR
+    }
+    /** Whether the context's stored member id is known to match the member id just requested for it. */
+    enum MemberIdAnchor { CONFIRMED, UNCONFIRMED }
     /**
      * Creates (idempotently) the IdentityHub participant context for the given participant.
      *
-     * @param reanchorMemberIdOnConflict when the context already exists, update its stored member id
-     *                                   to {@code memberId} instead of leaving it untouched
-     * @return whether the stored member id is confirmed to match {@code memberId} after this call —
-     *         trivially true on a fresh create or a tolerated conflict with no re-anchor requested;
-     *         after a requested re-anchor, true once applied or found already matching, false when
-     *         the hub could not confirm it (older hub, or the re-anchor read/update failed)
+     * @param conflictPolicy what to do when the context already exists
+     * @return {@code CONFIRMED} when the stored member id is known to match {@code memberId} —
+     *         trivially so on a fresh create or a tolerated conflict under {@code KEEP}; under
+     *         {@code REANCHOR}, once the re-anchor is applied or the stored value is found already
+     *         matching. {@code UNCONFIRMED} when a requested re-anchor could not be confirmed
+     *         (older hub, or the re-anchor read/update failed).
      */
-    boolean createParticipantContext(String participantContextId, String did, String memberId,
-                                     String credentialServiceUrl, String keyId, String privateKeyAlias,
-                                     boolean reanchorMemberIdOnConflict);
+    MemberIdAnchor createParticipantContext(String participantContextId, String did, @Nullable String memberId,
+                                            String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                            ConflictPolicy conflictPolicy);
 
     /**
      * Submits a membership credential request for the given participant and holder request id.

@@ -43,11 +43,11 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     private final IdentityHubProvisioningRpcClient rpcClient;
 
     @Override
-    public boolean createParticipantContext(String participantContextId, String did, String memberId,
-                                            String credentialServiceUrl, String keyId, String privateKeyAlias,
-                                            boolean reanchorMemberIdOnConflict) {
+    public MemberIdAnchor createParticipantContext(String participantContextId, String did, @Nullable String memberId,
+                                                   String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                                   ConflictPolicy conflictPolicy) {
         return rpcClient.createIdentityHubParticipantContext(participantContextId, did, memberId, credentialServiceUrl,
-                keyId, privateKeyAlias, reanchorMemberIdOnConflict);
+                keyId, privateKeyAlias, conflictPolicy);
     }
 
     @Override

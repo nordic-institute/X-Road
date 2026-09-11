@@ -38,6 +38,8 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
@@ -69,19 +71,19 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *       management (when registered) and per-member contexts to provision, member-level identity from
  *       the registered clients in {@link ClientRepository#getAllLocalClients()} plus the SS owner
  *       unconditionally.</li>
- *   <li>{@link #ensureParticipantContext(String, ParticipantKind, ClientId)} — idempotent context
+ *   <li>{@link #ensureParticipantContext(ParticipantContext)} — idempotent context
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} or
  *       {@link ParticipantKind#SYSTEM} context with a bound {@code ds_participant} row, the row is
  *       verified against a fresh derivation and its DID is used; without a row the DID is derived on
  *       the fly. This service never writes rows — binding an identity belongs to an explicit,
- *       auditable action outside the reconciler. Returns whether it is safe to issue a membership
+ *       auditable action outside the reconciler. Reports whether it is safe to issue a membership
  *       credential for this context in the same tick — see the method's own Javadoc for the SYSTEM
  *       re-anchor case.</li>
- *   <li>{@link #ensureMembershipCredential(String, ParticipantKind, ClientId)} — leaves an active
+ *   <li>{@link #ensureMembershipCredential(ParticipantContext)} — leaves an active
  *       (PENDING or ISSUED) request alone or submits a new one into the next available slot, in a single
  *       slot scan; advances past slots in terminal ERROR. For SYSTEM with no owner known yet, returns
  *       {@code UNKNOWN} without scanning or submitting — see {@link #isSystemWithUnknownOwner}.</li>
- *   <li>{@link #readCredentialStatus(String, ParticipantKind, ClientId)} — returns the current credential
+ *   <li>{@link #readCredentialStatus(ParticipantContext)} — returns the current credential
  *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
  *       without polling. Same SYSTEM-with-no-owner short-circuit as {@link #ensureMembershipCredential}.</li>
  * </ul>
@@ -92,7 +94,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * warning and returns without submitting. When all queried slots are in ERROR, {@link #readCredentialStatus}
  * returns {@link CredentialStatus#ERROR} so the status path can distinguish "failing" from "never requested".
  * For {@link ParticipantKind#SYSTEM}, the slot namespace itself is salted with the current owner —
- * see {@link SystemCredentialAnchor}.</p>
+ * see {@link #holderPidBase}.</p>
  *
  * <p>The identity hub reports raw EDC {@code HolderRequestState} names, which have no PENDING value:
  * CREATED, REQUESTING and REQUESTED all denote a request in flight and map to {@link CredentialStatus#PENDING}.</p>
@@ -176,31 +178,29 @@ public class DataspaceProvisioningService {
      * the bound row is never written or overwritten here. Without a row the DID is derived on the fly
      * and not bound.
      *
-     * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
-     * @param memberId      the credential subject this context's credential is issued to; for SYSTEM
-     *                      this is the current owner member, not the (owner-free) SYSTEM identifier
+     * @param context the participant context to create
      * @return whether it is safe to issue a membership credential for this context in the same tick.
-     *         Trivially {@code true} for HOST, MANAGEMENT and MEMBER. For SYSTEM, {@code false} means
-     *         an owner change is in progress and the hub has not yet confirmed the stored member id was
-     *         re-anchored to the new owner — issuing now would submit a credential into the new owner's
-     *         holder-pid slot while the hub still builds the membership claim from the old member id, a
-     *         mismatch that a later tick's slot scan can no longer detect or correct. The caller must
-     *         skip the credential pass for this context and retry on the next tick; an older hub that
-     *         never sets the re-anchor ack always returns {@code false} here, so SYSTEM credential
-     *         issuance stays deferred until the hub is upgraded.
+     *         Trivially {@code CONFIRMED} for HOST, MANAGEMENT and MEMBER. For SYSTEM,
+     *         {@code UNCONFIRMED} means an owner change is in progress and the hub has not yet
+     *         confirmed the stored member id was re-anchored to the new owner — issuing now would
+     *         submit a credential into the new owner's holder-pid slot while the hub still builds the
+     *         membership claim from the old member id, a mismatch that a later tick's slot scan can no
+     *         longer detect or correct. The caller must skip the credential pass for this context and
+     *         retry on the next tick; an older hub that never sets the re-anchor ack always reports
+     *         {@code UNCONFIRMED} here, so SYSTEM credential issuance stays deferred until the hub is
+     *         upgraded.
      */
-    public boolean ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
+    public MemberIdAnchor ensureParticipantContext(ParticipantContext context) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
-        var did = didFor(identityHubHost, kind, memberId);
-        requireNoHubDidDrift(participantId, did);
+        var did = didFor(identityHubHost, context.kind(), context.memberId());
+        requireNoHubDidDrift(context.participantId(), did);
 
-        var credentialIssuanceSafe = createIdentityHubContext(participantId, did, identityHubHost, kind, memberId);
-        controlPlaneClient.createParticipantContext(participantId, did);
-        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
-        return credentialIssuanceSafe;
+        var anchor = createIdentityHubContext(context, did, identityHubHost);
+        controlPlaneClient.createParticipantContext(context.participantId(), did);
+        controlPlaneClient.putParticipantContextConfig(context.participantId(), did, stsTokenUrl(identityHubHost));
+        return anchor;
     }
 
     private void requireNoHubDidDrift(String participantId, String intendedDid) {
@@ -223,23 +223,22 @@ public class DataspaceProvisioningService {
      * slots in terminal ERROR state only. Returns immediately — does not poll for the outcome.
      *
      * <p>For a {@link ParticipantKind#SYSTEM} context the slot namespace is salted with the current
-     * owner ({@link SystemCredentialAnchor#holderPidBase}): an owner change makes the scan land on an
-     * empty slot, so a fresh credential is issued on the new owner. The stale credential, parked under
-     * the previous owner's slot namespace, is left untouched and expires on its own — no revocation.
+     * owner ({@link #holderPidBase}): an owner change makes the scan land on an empty slot, so a fresh
+     * credential is issued on the new owner. The stale credential, parked under the previous owner's
+     * slot namespace, is left untouched and expires on its own — no revocation.
      *
-     * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
-     * @param memberId      the credential subject; for SYSTEM, the current owner
+     * @param context the participant context whose credential to ensure
      * @return {@code ISSUED} for a terminally issued credential, {@code PENDING} when a request is
      *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
      *         {@code ERROR} when all slots are exhausted
      */
-    public CredentialStatus ensureMembershipCredential(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
-        if (isSystemWithUnknownOwner(kind, memberId)) {
+    public CredentialStatus ensureMembershipCredential(ParticipantContext context) {
+        if (isSystemWithUnknownOwner(context)) {
             return CredentialStatus.UNKNOWN;
         }
+        var participantId = context.participantId();
         var ds = adminServiceProperties.getDataspace();
-        var base = holderPidBase(participantId, kind, memberId);
+        var base = holderPidBase(context);
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(base, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
@@ -250,7 +249,7 @@ public class DataspaceProvisioningService {
                 return CredentialStatus.PENDING;
             }
             var status = hubCredentialState(state);
-            if (SystemCredentialAnchor.decide(status) == SystemCredentialAnchor.Decision.SKIP) {
+            if (status != CredentialStatus.ERROR) {
                 return status;
             }
             // ERROR — advance to next slot
@@ -269,22 +268,20 @@ public class DataspaceProvisioningService {
      * namespace as {@link #ensureMembershipCredential}, so a SYSTEM context's status reflects the
      * credential anchored to the current owner even right after an owner change.
      *
-     * @param participantId the participant context id
-     * @param kind          HOST, MANAGEMENT, SYSTEM or MEMBER
-     * @param memberId      the credential subject; for SYSTEM, the current owner
+     * @param context the participant context to report on
      * @return {@code ISSUED}, {@code PENDING}, {@code ERROR}, {@code UNKNOWN}, or {@code null}
      */
     @Nullable
-    public CredentialStatus readCredentialStatus(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
-        if (isSystemWithUnknownOwner(kind, memberId)) {
+    public CredentialStatus readCredentialStatus(ParticipantContext context) {
+        if (isSystemWithUnknownOwner(context)) {
             return CredentialStatus.UNKNOWN;
         }
         var ds = adminServiceProperties.getDataspace();
-        var base = holderPidBase(participantId, kind, memberId);
+        var base = holderPidBase(context);
         boolean anyError = false;
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(base, slot);
-            var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
+            var state = identityHubClient.getCredentialRequestState(context.participantId(), holderPid);
             if (state == null) {
                 continue;
             }
@@ -300,25 +297,34 @@ public class DataspaceProvisioningService {
 
     /**
      * The holder-pid slot-base for a participant context: unsalted for HOST/MANAGEMENT/MEMBER, salted
-     * with the current owner for SYSTEM. Never called for SYSTEM with a {@code null} owner — both
-     * callers return early via {@link #isSystemWithUnknownOwner} before reaching this point, since the
-     * unsalted namespace is one SYSTEM never writes to.
+     * with the current owner for SYSTEM.
+     *
+     * <p>The SYSTEM identifier is owner-free by design (XRDADR-41), but its credential is issued to the
+     * current owner. Since the identity hub exposes no surface to read a credential's subject directly,
+     * the subject is tracked implicitly: salting the slot namespace with the owner means a slot found
+     * active there was necessarily requested for that owner. An owner change derives a different, still
+     * empty namespace — the scan lands on nothing and a fresh credential is issued there, while the one
+     * parked under the previous owner's namespace is left to expire on its own (no revocation).
+     *
+     * <p>Never called for SYSTEM with a {@code null} owner — both callers return early via
+     * {@link #isSystemWithUnknownOwner} before reaching this point, since the unsalted namespace is one
+     * SYSTEM never writes to.
      */
-    private String holderPidBase(String participantId, ParticipantKind kind, @Nullable ClientId memberId) {
-        var unsalted = participantId + "-" + HOLDER_PID_BASE;
-        return kind == ParticipantKind.SYSTEM && memberId != null
-                ? SystemCredentialAnchor.holderPidBase(unsalted, memberId)
+    private static String holderPidBase(ParticipantContext context) {
+        var unsalted = context.participantId() + "-" + HOLDER_PID_BASE;
+        return context.kind() == ParticipantKind.SYSTEM && context.memberId() != null
+                ? unsalted + "-" + ParticipantIdentifierScheme.memberCtxId(context.memberId())
                 : unsalted;
     }
 
     /**
-     * Whether {@code kind}/{@code memberId} is the per-server SYSTEM context before the SS owner is
-     * known. SYSTEM's holder-pid namespace is salted with the owner ({@link #holderPidBase}), so with
-     * no owner there is no salted namespace to scan or write to yet — the unsalted namespace is a
-     * decoy SYSTEM never uses, and probing it would only ever find guaranteed-empty slots.
+     * Whether {@code context} is the per-server SYSTEM context before the SS owner is known. SYSTEM's
+     * holder-pid namespace is salted with the owner ({@link #holderPidBase}), so with no owner there is
+     * no salted namespace to scan or write to yet — the unsalted namespace is a decoy SYSTEM never
+     * uses, and probing it would only ever find guaranteed-empty slots.
      */
-    private static boolean isSystemWithUnknownOwner(ParticipantKind kind, @Nullable ClientId memberId) {
-        return kind == ParticipantKind.SYSTEM && memberId == null;
+    private static boolean isSystemWithUnknownOwner(ParticipantContext context) {
+        return context.kind() == ParticipantKind.SYSTEM && context.memberId() == null;
     }
 
     private static CredentialStatus hubCredentialState(String state) {
@@ -400,7 +406,7 @@ public class DataspaceProvisioningService {
         try {
             var hubDid = identityHubClient.contextDid(participantId);
             var contextCreated = hubDid.isPresent();
-            var credentialStatus = resolveCredentialStatus(participantId, context.kind(), context.memberId(), contextCreated);
+            var credentialStatus = resolveCredentialStatus(context, contextCreated);
             return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus,
                     identityStatusOf(assessment, hubDid));
         } catch (Exception e) {
@@ -421,15 +427,14 @@ public class DataspaceProvisioningService {
         return assessment.status();
     }
 
-    private CredentialStatus resolveCredentialStatus(String participantId, ParticipantKind kind,
-                                                     @Nullable ClientId memberId, boolean contextCreated) {
+    private CredentialStatus resolveCredentialStatus(ParticipantContext context, boolean contextCreated) {
         if (!contextCreated) {
             return CredentialStatus.ABSENT;
         }
-        return Optional.ofNullable(readCredentialStatus(participantId, kind, memberId)).orElse(CredentialStatus.ABSENT);
+        return Optional.ofNullable(readCredentialStatus(context)).orElse(CredentialStatus.ABSENT);
     }
 
-    private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
+    private String didFor(String identityHubHost, ParticipantKind kind, @Nullable ClientId memberId) {
         if (kind == ParticipantKind.MEMBER) {
             return memberDid(memberId, didAuthority(identityHubHost));
         }
@@ -521,22 +526,23 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private boolean createIdentityHubContext(String participantId, String did, String identityHubHost,
-                                             ParticipantKind kind, ClientId memberId) {
+    private MemberIdAnchor createIdentityHubContext(ParticipantContext context, String did, String identityHubHost) {
+        var participantId = context.participantId();
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
                 UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
-        var reanchorRequested = kind == ParticipantKind.SYSTEM;
-        var reanchored = identityHubClient.createParticipantContext(participantId, did,
-                memberId == null ? null : slashForm(memberId), credentialServiceUrl, keyId, privateKeyAlias, reanchorRequested);
-        if (reanchorRequested && !reanchored) {
+        var conflictPolicy = context.kind() == ParticipantKind.SYSTEM ? ConflictPolicy.REANCHOR : ConflictPolicy.KEEP;
+        var anchor = identityHubClient.createParticipantContext(participantId, did,
+                context.memberId() == null ? null : slashForm(context.memberId()),
+                credentialServiceUrl, keyId, privateKeyAlias, conflictPolicy);
+        if (conflictPolicy == ConflictPolicy.REANCHOR && anchor == MemberIdAnchor.UNCONFIRMED) {
             log.warn("Data space: identity hub could not confirm the SYSTEM credential re-anchor for participant '{}' "
                     + "— older hub, or the re-anchor read/update failed; deferring SYSTEM credential issuance to next tick",
                     participantId);
         }
-        return reanchored;
+        return anchor;
     }
 
     private String stsTokenUrl(String identityHubHost) {
