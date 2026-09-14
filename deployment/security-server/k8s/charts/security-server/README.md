@@ -121,9 +121,10 @@ separate namespaces. Only the `.Release.Name`-prefixed resources
 starts. It travels as an ordinary env var on the service:
 
 - **Values:** `services.ds-control-plane.env.XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID`
-  (default `did:web:ds-issuer-service%3A10100:issuer`, the in-cluster
-  issuer). Hybrid dev envs override it with the dataspace-wide issuer —
-  the ansible overlay sets it from `trusted_issuer_host`.
+  (default `did:web:ds-issuer-service%3A6183:issuer`, the in-cluster
+  issuer — port 6183 is ds-issuer-service's declared did:web listener).
+  Hybrid dev envs override it with the dataspace-wide issuer — the
+  ansible overlay sets it from `trusted_issuer_host`.
 - **How it reaches EDC:** the runtime's packaged `application.yaml`
   declares `edc.iam.trusted-issuer.issuer.id:
   ${xroad.edc.iam.trusted-issuer.issuer.id}`, and the env var supplies
@@ -204,3 +205,25 @@ contract changes materially:
   `softtoken-signer` service (off by default, `services.softtoken-signer.replicas: 0`).
 - `appVersion` tracks the X-Road runtime version and is independent of
   the chart version.
+
+## 10. External exposure of DS ports (TCP/SNI passthrough — future work)
+
+Per XRDADR-42 (Dataspace TLS server certificates via ACME from a globalconf-designated
+approved CA, served from OpenBao), the DS TLS certificate is served entirely in-process
+by the owned Jetty module inside each `ds-*` pod — there is no reverse proxy and no L7
+termination point in front of it, in any deployment mode. Whatever mechanism eventually
+exposes `ds-control-plane`, `ds-identity-hub` and `ds-issuer-service` outside the
+cluster **must** carry every DS HTTPS port (DSP, did:web, credentials, issuance,
+statuslist) through as plain TCP, routed on SNI where routing is needed, with the TLS
+handshake terminating only in the destination pod. No WAF, no path-based routing, no
+other L7 feature may sit in front of these ports — ADR-42 states this as an accepted
+consequence, not an option.
+
+This chart does not implement that mechanism today: every rendered Service is
+implicitly `ClusterIP` (no template path emits a `type:` field), so none of these ports
+— or any other Security Server port — reach outside the cluster network without an
+operator adding their own routing in front of it. Selecting and building the exposure
+mechanism itself (Service `type` templating, a TCP-mode Gateway API resource, or
+similar — see `development/k8s/docs/EKS.md`'s NLB-vs-ALB note for the EKS case
+specifically) is out of scope for this chart's current contract and left for a future
+change.

@@ -118,6 +118,40 @@ Flags explained:
 | IAM                      | n/a                                         | IRSA — annotate SAs with `eks.amazonaws.com/role-arn: arn:aws:iam::<account>:role/<role>`                    |
 | Node count / sizing      | 1 CP + 2 workers                            | Managed node group; 3+ nodes minimum for HA OpenBao                                                          |
 
+## Dataspace (DS) ports — TCP/SNI passthrough only
+
+XRDADR-42 (Dataspace TLS server certificates via ACME from a globalconf-designated
+approved CA, served from OpenBao) decides that DS TLS always terminates **inside the
+ds-\* pod** — the owned Jetty module reads the certificate from OpenBao and serves it
+directly, with no reverse proxy or L7 termination in front of it, in every deployment
+mode including Kubernetes. Whatever
+mechanism eventually exposes the DS ports (`ds-control-plane`, `ds-identity-hub`,
+`ds-issuer-service`) outside the cluster on EKS — Service `type: LoadBalancer`,
+TCP-mode Gateway API, or another construct — **must** preserve that:
+
+- **NLB (Network Load Balancer), not ALB.** An NLB operates at L4 (TCP/SNI) and
+  forwards bytes without decrypting them — SNI-based routing without terminating the
+  handshake. An ALB (or any Ingress via the AWS Load Balancer Controller) operates at
+  L7: it terminates TLS to read HTTP headers/paths, which is exactly what ADR-42
+  forbids for these ports. DS traffic must route through NLB-equivalent TCP/SNI
+  passthrough, never through an Ingress/ALB listener.
+- **No WAF, no path-based routing, no L7 feature** on DSP or did:web traffic — ADR-42's
+  Negative Consequences state this explicitly: "the Kubernetes ingress must pass the DS
+  ports through at TCP/SNI level — no L7 features (WAF, routing) on DSP and did:web
+  traffic at the ingress."
+- This applies to every DS HTTPS port in ADR-42's protocol surface (DSP, did:web,
+  credentials, issuance, statuslist) alike — none of them may be L7-terminated at the
+  boundary.
+
+**Not yet implemented.** As of this writing the security-server chart's Service
+template never emits a `type:` field (every Service, DS included, renders ClusterIP
+implicitly) and this inventory's `service_type: LoadBalancer` group var is not
+consumed anywhere in the chart or the ansible roles — there is currently no mechanism
+that exposes the DS ports (or any other Security Server port) outside the cluster on
+EKS. Selecting and building that mechanism (Service `type` templating, a TCP-mode
+Gateway API `Gateway`/`TCPRoute`, or similar) is future work; this section records the
+constraint it must satisfy once built, not a description of what exists today.
+
 ## cert-manager issuer for OpenBao (recommended)
 
 ```yaml
