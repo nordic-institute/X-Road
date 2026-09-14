@@ -37,6 +37,7 @@ import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionRe
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import org.niis.xroad.edc.issuer.provisioning.proto.IssuerProvisioningServiceGrpc;
+import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -118,5 +119,19 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
                 .addAllAttestations(attestations)
                 .addAllMappings(mappings)
                 .build()));
+    }
+
+    /**
+     * Revokes the credential matching the given participant context and X-Road member identifier at the issuer.
+     * The issuer resolves the match by member claims and revokes the first matching credential it finds.
+     */
+    public boolean revokeCredential(String participantContextId, String xRoadInstance, String memberClass, String memberCode) {
+        var response = exec(() -> stub.revokeCredential(RevokeCredentialReq.newBuilder()
+                .setParticipantContextId(participantContextId)
+                .setXroadInstance(xRoadInstance)
+                .setMemberClass(memberClass)
+                .setMemberCode(memberCode)
+                .build()));
+        return response.getRevoked();
     }
 }
