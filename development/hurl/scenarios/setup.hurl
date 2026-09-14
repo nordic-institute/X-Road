@@ -266,8 +266,13 @@ HTTP 200
 
 # Initialize management Security Server
 
-# Check that the Security Server UI is up and running
+# Check that the Security Server UI is up and running. The ss0 stack is
+# created by the test harness after this script is already running, so retry
+# through the window where the host does not yet resolve.
 GET https://{{ss0_host}}:4000
+[Options]
+retry: 90
+retry-interval: 10000
 HTTP 200
 
 # Bootstrap the initial admin user (no-op once one exists)
@@ -693,8 +698,13 @@ HTTP 201
 
 # Initialize Security Server 1 (SS1)
 
-# Check that the Security Server UI is up and running
+# Check that the Security Server UI is up and running. The ss1 stack is
+# created by the test harness only after ss0 is fully up, so retry through
+# the window where the host does not yet resolve.
 GET https://{{ss1_host}}:4000
+[Options]
+retry: 90
+retry-interval: 10000
 HTTP 200
 
 # Bootstrap the initial admin user (no-op once one exists)
