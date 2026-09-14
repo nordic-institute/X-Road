@@ -27,6 +27,8 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -34,6 +36,7 @@ import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
+import org.niis.xroad.cs.admin.core.dataspace.ServerClientRemovedEvent;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
@@ -45,6 +48,7 @@ import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -68,6 +72,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     private final ClientRegistrationRequestRepository registrationRequests;
     private final ServerClientRepository serverClientRepository;
     private final RequestMapper requestMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public boolean canAutoApprove(ClientDeletionRequest request) {
@@ -112,9 +117,13 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
 
     private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {
         clients.findOneBy(clientId)
-                .ifPresentOrElse(client -> securityServer.getServerClients().stream()
-                                .filter(serverClient -> client.getId() == serverClient.getSecurityServerClient().getId())
-                                .forEach(serverClientRepository::delete),
+                .ifPresentOrElse(client -> {
+                            securityServer.getServerClients().stream()
+                                    .filter(serverClient -> client.getId() == serverClient.getSecurityServerClient().getId())
+                                    .forEach(serverClientRepository::delete);
+                            eventPublisher.publishEvent(new ServerClientRemovedEvent(
+                                    securityServer.getServerId(), clientId.getMemberId(), TimeUtils.getEpochMillisecond()));
+                        },
                         this::mrClientRegistrationNotFound
                 );
     }

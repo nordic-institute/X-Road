@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.core.dataspace.ServerClientRemovedEvent;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -52,6 +54,7 @@ import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -89,6 +92,7 @@ public class MemberServiceImpl implements MemberService {
     private final SecurityServerClientMapper securityServerClientMapper;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
     private final AuditDataHelper auditData;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public XRoadMember add(MemberCreationRequest request) {
@@ -189,6 +193,8 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.build()));
 
         serverClientRepository.delete(serverClient);
+        eventPublisher.publishEvent(
+                new ServerClientRemovedEvent(securityServerId, memberId.getMemberId(), TimeUtils.getEpochMillisecond()));
     }
 
     @Override
