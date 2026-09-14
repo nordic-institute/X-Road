@@ -93,7 +93,7 @@ dependencies {
   testImplementation(libs.springBoot.starterSecurityTest)
   testImplementation(libs.hsqldb)
   testImplementation(libs.jsonUnit.assertj)
-  testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
+  testImplementation(libs.springCloud.contractWiremock)
   testImplementation(testFixtures(project(":common:common-api-throttling")))
   testImplementation(libs.systemStubs)
   testRuntimeOnly(libs.junit.vintageEngine)
