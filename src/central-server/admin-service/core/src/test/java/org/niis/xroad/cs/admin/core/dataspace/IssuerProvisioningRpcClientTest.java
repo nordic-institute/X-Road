@@ -93,25 +93,24 @@ class IssuerProvisioningRpcClientTest {
     }
 
     @Test
-    void revokeCredentialForwardsAllFieldsAndReturnsRevokedTrue() {
-        configuredRevokeResp = RevokeCredentialResp.newBuilder().setRevoked(true).build();
+    void revokeCredentialForwardsAllFieldsAndReturnsRevokedCount() {
+        configuredRevokeResp = RevokeCredentialResp.newBuilder().setRevokedCount(2).build();
 
-        var revoked = client.revokeCredential("ctx-id", "XROAD-INSTANCE", "GOV", "1234");
+        var revokedCount = client.revokeCredential("ctx-id", "did:web:ss1.example.com", 1_700_000_000_000L);
 
-        assertThat(revoked).isTrue();
+        assertThat(revokedCount).isEqualTo(2);
         var req = capturedRevokeReq.get();
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
-        assertThat(req.getXroadInstance()).isEqualTo("XROAD-INSTANCE");
-        assertThat(req.getMemberClass()).isEqualTo("GOV");
-        assertThat(req.getMemberCode()).isEqualTo("1234");
+        assertThat(req.getHolderDid()).isEqualTo("did:web:ss1.example.com");
+        assertThat(req.getIssuedBefore()).isEqualTo(1_700_000_000_000L);
     }
 
     @Test
-    void revokeCredentialReturnsRevokedFalseWhenNotRevoked() {
-        configuredRevokeResp = RevokeCredentialResp.newBuilder().setRevoked(false).build();
+    void revokeCredentialReturnsZeroWhenNoCredentialsRevoked() {
+        configuredRevokeResp = RevokeCredentialResp.newBuilder().setRevokedCount(0).build();
 
-        var revoked = client.revokeCredential("ctx-id", "XROAD-INSTANCE", "GOV", "1234");
+        var revokedCount = client.revokeCredential("ctx-id", "did:web:ss1.example.com", 1_700_000_000_000L);
 
-        assertThat(revoked).isFalse();
+        assertThat(revokedCount).isZero();
     }
 }

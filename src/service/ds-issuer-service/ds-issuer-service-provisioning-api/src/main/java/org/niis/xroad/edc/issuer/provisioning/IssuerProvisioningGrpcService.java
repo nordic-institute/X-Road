@@ -79,8 +79,8 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
     private static final String MGMT_HOLDER_DID_SUFFIX = ":mgmt";
-    private static final String CREDENTIAL_SUBJECT_PATH = "verifiableCredential.credential.credentialSubject.";
     private static final String EQ_OPERATOR = "=";
+    private static final String LT_OPERATOR = "<";
 
     private final IdentityHubParticipantContextService participantContextService;
     private final AttestationDefinitionService attestationDefinitionService;
@@ -175,29 +175,27 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         var queryResult = credentialStatusService.queryCredentials(hostCredentialQuery(request));
         requireSuccessOrConflict(queryResult, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
 
-        var credentialId = queryResult.getContent().stream()
+        var credentialIds = queryResult.getContent().stream()
                 .filter(resource -> resource.getVerifiableCredential() != null
                         && resource.getVerifiableCredential().credential() != null)
                 .filter(resource -> resource.getVerifiableCredential().credential().getCredentialSubject().stream()
                         .noneMatch(subject -> subject.getId() != null && subject.getId().endsWith(MGMT_HOLDER_DID_SUFFIX)))
                 .map(VerifiableCredentialResource::getId)
-                .findFirst()
-                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
-                        "No HOST credential found for member %s/%s/%s".formatted(
-                                request.getXroadInstance(), request.getMemberClass(), request.getMemberCode())));
+                .toList();
 
-        var revokeResult = credentialStatusService.revokeCredential(credentialId);
-        requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
+        for (var credentialId : credentialIds) {
+            var revokeResult = credentialStatusService.revokeCredential(credentialId);
+            requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
+        }
 
-        return RevokeCredentialResp.newBuilder().setRevoked(true).build();
+        return RevokeCredentialResp.newBuilder().setRevokedCount(credentialIds.size()).build();
     }
 
     private QuerySpec hostCredentialQuery(RevokeCredentialReq request) {
         return QuerySpec.Builder.newInstance()
                 .filter(Criterion.criterion("participantContextId", EQ_OPERATOR, request.getParticipantContextId()))
-                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "xroadInstance", EQ_OPERATOR, request.getXroadInstance()))
-                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberClass", EQ_OPERATOR, request.getMemberClass()))
-                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberCode", EQ_OPERATOR, request.getMemberCode()))
+                .filter(Criterion.criterion("holderId", EQ_OPERATOR, request.getHolderDid()))
+                .filter(Criterion.criterion("timestamp", LT_OPERATOR, request.getIssuedBefore()))
                 .limit(Integer.MAX_VALUE)
                 .build();
     }
@@ -206,14 +204,11 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         if (request.getParticipantContextId() == null || request.getParticipantContextId().isBlank()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
         }
-        if (request.getXroadInstance() == null || request.getXroadInstance().isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "xroadInstance must not be blank");
+        if (request.getHolderDid() == null || request.getHolderDid().isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "holderDid must not be blank");
         }
-        if (request.getMemberClass() == null || request.getMemberClass().isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "memberClass must not be blank");
-        }
-        if (request.getMemberCode() == null || request.getMemberCode().isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "memberCode must not be blank");
+        if (request.getIssuedBefore() <= 0) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "issuedBefore must be positive");
         }
     }
 

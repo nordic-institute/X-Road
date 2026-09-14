@@ -80,11 +80,10 @@ message CreateCredentialDefinitionResp {
 
 message RevokeCredentialReq {
   string participant_context_id = 1;
-  string xroad_instance = 2;
-  string member_class = 3;
-  string member_code = 4;
+  string holder_did = 2;
+  int64 issued_before = 3;
 }
 
 message RevokeCredentialResp {
-  bool revoked = 1;
+  int32 revoked_count = 1;
 }

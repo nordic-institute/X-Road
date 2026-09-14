@@ -122,16 +122,17 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
     }
 
     /**
-     * Revokes the credential matching the given participant context and X-Road member identifier at the issuer.
-     * The issuer resolves the match by member claims and revokes the first matching credential it finds.
+     * Revokes every credential at the issuer matching the given participant context and holder DID that was
+     * issued before the given cut-off timestamp (POSIX milliseconds).
+     *
+     * @return the number of credentials revoked
      */
-    public boolean revokeCredential(String participantContextId, String xRoadInstance, String memberClass, String memberCode) {
+    public int revokeCredential(String participantContextId, String holderDid, long issuedBefore) {
         var response = exec(() -> stub.revokeCredential(RevokeCredentialReq.newBuilder()
                 .setParticipantContextId(participantContextId)
-                .setXroadInstance(xRoadInstance)
-                .setMemberClass(memberClass)
-                .setMemberCode(memberCode)
+                .setHolderDid(holderDid)
+                .setIssuedBefore(issuedBefore)
                 .build()));
-        return response.getRevoked();
+        return response.getRevokedCount();
     }
 }
