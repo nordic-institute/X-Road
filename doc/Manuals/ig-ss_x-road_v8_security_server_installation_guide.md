@@ -2,16 +2,17 @@
 
 **X-ROAD 8**
 
-Version: 1.0
+Version: 1.1
 Doc. ID: IG-SS-8
 
 ---
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description     | Author          |
-|------------|---------|-----------------|-----------------|
-| 01.12.2014 | 1.0     | Initial version | Justas Samuolis |
+| Date       | Version | Description                          | Author          |
+|------------|---------|--------------------------------------|-----------------|
+| 20.10.2025 | 1.0     | Initial version                      | Justas Samuolis |
+| 14.09.2026 | 1.1     | Updated component name for port 7665 | Eneli Reimets   |
 
 ## License
 

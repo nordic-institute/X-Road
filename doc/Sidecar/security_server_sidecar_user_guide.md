@@ -36,7 +36,7 @@ Doc. ID: UG-SS-SIDECAR
 | 09.09.2026 | 1.26    | Remove the retired slim image                           | Ričardas Bučiūnas         |
 | 09.09.2026 | 1.27    | Remove the retired local.ini configuration instructions | Ričardas Bučiūnas         |
 | 10.09.2026 | 1.28    | Document hardware token configuration via `xroad.signer.modules` | Ričardas Bučiūnas         |
-| 11.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
+| 14.09.2026 | 1.29    | Added health-check and external secret store network ports | Eneli Reimets             |
 
 ## License
 
