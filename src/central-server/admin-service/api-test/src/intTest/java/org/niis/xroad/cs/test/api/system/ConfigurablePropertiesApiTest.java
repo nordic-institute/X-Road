@@ -48,6 +48,7 @@ class ConfigurablePropertiesApiTest extends CsApiTest {
     private static final String RATE_LIMIT_PROP = "xroad.admin-service.rate-limit-cache-size";
     private static final String NOT_EXPOSED_PROP = "xroad.admin-service.allowed-hostnames";
     private static final String UNKNOWN_PROP = "xroad.admin-service.does-not-exist";
+    private static final String OCSP_CACHE_PERIOD_PROP = "xroad.common-ocsp-verifier.cache-period";
 
     @Test
     void listReturnsDeclaredExposedPropertiesWithDefaultValue(CsBaselineSeeder seeder) {
@@ -56,14 +57,16 @@ class ConfigurablePropertiesApiTest extends CsApiTest {
         var properties = when("configurable properties are listed", () ->
                 system.listConfigurablePropertiesRaw());
 
-        then("the list is non-empty and includes an exposed key from each of the three processes", () ->
+        then("the list is non-empty and includes an exposed key from each of the three processes"
+                + " plus a common-scope key", () ->
                 assertThat(properties)
                         .isNotEmpty()
                         .extracting(p -> p.get("property_name"))
                         .contains(
                                 "xroad.admin-service.rate-limit-cache-size",
                                 "xroad.management-service.rate-limit-cache-size",
-                                "xroad.registration-service.rate-limit-cache-size")
+                                "xroad.registration-service.rate-limit-cache-size",
+                                OCSP_CACHE_PERIOD_PROP)
                         .doesNotContain(NOT_EXPOSED_PROP));
     }
 
@@ -85,6 +88,28 @@ class ConfigurablePropertiesApiTest extends CsApiTest {
         } finally {
             if (priorValue != null) {
                 system.updateConfigurableProperty(RATE_LIMIT_PROP, priorValue).statusCode(204);
+            }
+        }
+    }
+
+    @Test
+    @ResourceLock("configurable-property")
+    void updateCommonScopePropertyPersistsAndIsReflectedOnNextRead(CsBaselineSeeder seeder) {
+        var system = new SystemAdminClient(seeder.newSession());
+
+        var priorValue = given("the effective value of the OCSP cache-period property is captured for restore", () ->
+                system.getConfigurablePropertyEffectiveValue(OCSP_CACHE_PERIOD_PROP));
+
+        try {
+            when("the OCSP cache-period property is updated to '120'", () ->
+                    system.updateConfigurableProperty(OCSP_CACHE_PERIOD_PROP, "120")
+                            .statusCode(204));
+
+            then("the current value of the property is now '120'", () ->
+                    assertThat(system.getConfigurablePropertyValue(OCSP_CACHE_PERIOD_PROP)).isEqualTo("120"));
+        } finally {
+            if (priorValue != null) {
+                system.updateConfigurableProperty(OCSP_CACHE_PERIOD_PROP, priorValue).statusCode(204);
             }
         }
     }

@@ -29,10 +29,16 @@ package org.niis.xroad.cs.admin.core.service;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.properties.config.Category;
 import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CsAdminServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CsManagementServiceConfigKeys;
 import org.niis.xroad.common.properties.config.keys.CsRegistrationServiceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.DataspaceConfigKeys;
+import org.niis.xroad.common.properties.config.keys.GlobalConfConfigKeys;
+import org.niis.xroad.common.properties.config.keys.OcspVerifierConfigKeys;
 import org.niis.xroad.restapi.service.ConfigurablePropertySource;
+import org.niis.xroad.signer.common.config.SignerConfigKeys;
+import org.niis.xroad.signer.common.config.SignerKeyConfigKeys;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -47,7 +53,13 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
     private static final List<ConfigKeyProvider> CS_PROVIDERS = List.of(
             CsAdminServiceConfigKeys.instance(),
             CsManagementServiceConfigKeys.instance(),
-            CsRegistrationServiceConfigKeys.instance());
+            CsRegistrationServiceConfigKeys.instance(),
+            GlobalConfConfigKeys.instance(),
+            OcspVerifierConfigKeys.instance(),
+            CommonRpcConfigKeys.instance(),
+            DataspaceConfigKeys.instance(),
+            SignerConfigKeys.instance(),
+            SignerKeyConfigKeys.instance());
 
     @Override
     public List<ConfigKeyProvider> getConfigKeyProviders() {
@@ -60,6 +72,7 @@ public class CsConfigurablePropertySource implements ConfigurablePropertySource 
             case ADMIN_SERVICE -> "admin-service";
             case MANAGEMENT_SERVICE -> "management-service";
             case REGISTRATION_SERVICE -> "registration-service";
+            case SIGNER -> "signer";
             case COMMON -> null;
             default -> throw XrdRuntimeException.systemInternalError(
                     "Unmapped category for configurable properties catalogue: " + category);

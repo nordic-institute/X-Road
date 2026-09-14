@@ -596,6 +596,97 @@
               "retry-exponential-backoff-multiplier": "Multiplier applied to the retry delay after each failed Vault (OpenBao) request attempt.",
               "retry-max-attempts": "Maximum number of retry attempts when a Vault (OpenBao) request fails."
             }
+          },
+          "common-global-conf": {
+            "source": "Source backend for global configuration. Possible values: FILESYSTEM (read from local files, the default) or REMOTE (used in containerized deployments).",
+            "refresh-rate": "How often the shared global configuration cache is refreshed from the configured source (e.g. 60S).",
+            "configuration-path": "File system path where the global configuration files are stored."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "How long (in seconds) OCSP verification results are cached before being re-checked."
+          },
+          "common-rpc": {
+            "use-tls": "When enabled, mutual TLS is used for gRPC communication between the Central Server's co-located services.",
+            "certificate-provisioning": {
+              "refresh-interval": "How often services check whether their gRPC TLS certificate needs to be renewed (e.g. 5H).",
+              "retry-delay": "Initial delay between gRPC TLS certificate provisioning retry attempts (e.g. 5S).",
+              "retry-exponential-backoff-multiplier": "Multiplier applied to the retry delay on each subsequent certificate provisioning attempt.",
+              "retry-max-attempts": "Maximum number of gRPC TLS certificate provisioning retry attempts.",
+              "retry-timeout": "Total time limit for all gRPC TLS certificate provisioning retry attempts (e.g. 60S)."
+            },
+            "channel": {
+              "op-monitor": {
+                "host": "Hostname used to connect to the operational monitoring daemon gRPC server.",
+                "port": "Port used to connect to the operational monitoring daemon gRPC server.",
+                "deadline-after": "Milliseconds before a gRPC call to the operational monitoring daemon times out."
+              },
+              "env-monitor": {
+                "host": "Hostname used to connect to the env-monitor gRPC server.",
+                "port": "Port used to connect to the env-monitor gRPC server.",
+                "deadline-after": "Milliseconds before a gRPC call to the env-monitor times out."
+              },
+              "configuration-client": {
+                "host": "Hostname used to connect to the configuration client gRPC server.",
+                "port": "Port used to connect to the configuration client gRPC server.",
+                "deadline-after": "Milliseconds before a gRPC call to the configuration client times out."
+              },
+              "proxy": {
+                "host": "Hostname used to connect to the proxy gRPC server.",
+                "port": "Port used to connect to the proxy gRPC server.",
+                "deadline-after": "Milliseconds before a gRPC call to the proxy times out."
+              },
+              "auxiliary-service": {
+                "host": "Hostname used to connect to the auxiliary service gRPC server.",
+                "port": "Port used to connect to the auxiliary service gRPC server.",
+                "deadline-after": "Milliseconds before a gRPC call to the auxiliary service times out."
+              }
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Digest algorithm used when creating self-signed certificates.",
+            "csr-signature-digest-algorithm": "Certificate Signing Request signature digest algorithm. Possible values are - SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7)",
+            "ocsp-response-retrieval-active": "This property is used as an override to deactivate periodic OCSP-response retrieval for components that don't need that functionality, but still use signer. Values: false - OCSP-response retrieval jobs are never scheduled. true - periodic OCSP-response retrieval is active based on ocspFetchInterval. Note that if the entire property is missing, it is interpreted as true. This property is delivered as an override and only for the components where the OCSP-response retrieval jobs need to be deactivated. The property is missing for components that require OCSP-response retrieval to be activated.",
+            "ocsp-retry-delay": "OCSP retry delay for signer when fetching OCSP responses fail. After failing to fetch OCSP responses signer waits for the time period defined by \"ocsp-retry-delay\" before trying again. This is repeated until fetching OCSP responses succeeds. After successfully fetching OCSP responses signer returns to normal OCSP refresh schedule defined by \"ocspFetchInterval\". If the value of \"ocsp-retry-delay\" is higher than \"ocspFetchInterval\", the value of \"ocspFetchInterval\" is used as OCSP retry delay.",
+            "ocsp-cache-path": "Absolute path to the directory where the cached OCSP responses are stored.",
+            "ocsp-prioritization-strategy": "OCSP prioritization strategy, that determines what OCSP responders and in what order are used to get OCSP responses. Possible values are: ONLY_FREE - Only free OCSP responders are used. ONLY_PAID - only paid OCSP responders are used. FREE_FIRST - free OCSP responders are used first, then if no successful responses, then paid responders are used next, finally OCSP responders whose cost type is undefined are used last. PAID_FIRST - paid OCSP responders are used first, then if no successful responses, then free responders are used next, finally OCSP responders whose cost type is undefined are used last. NONE - no new ordering nor filtering is added (same as before adding cost type to OCSP endpoints.)",
+            "module-manager-update-interval": "HSM module manager update interval in seconds.",
+            "soft-token-rsa-sign-mechanism": "PKCS#11 mechanism used for RSA signing on the software token.",
+            "soft-token-ec-sign-mechanism": "PKCS#11 mechanism used for EC signing on the software token.",
+            "soft-token-pin-keystore-algorithm": "Key algorithm used for creating PIN keystore for software token. Possible values are RSA and EC. (since version 7.6)",
+            "key-length": "Key length for generating authentication and signing keys (since version 6.7)",
+            "key-named-curve": "Named curve for generating authentication and signing keys in case EC algorithms are used (since version 7.6)",
+            "autologin": {
+              "enabled": "Enable automatic token login on startup.",
+              "retry": {
+                "retry-delay": "Initial delay between autologin retry attempts (e.g. 3S).",
+                "retry-exponential-backoff-multiplier": "Multiplier applied to the retry delay on each subsequent autologin attempt.",
+                "retry-max-attempts": "Maximum number of autologin retry attempts.",
+                "retry-timeout": "Total time limit for all autologin retry attempts (e.g. 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Enable the hardware token (HSM) add-on.",
+                "session-pool-enabled": "Enable pooling of PKCS#11 sessions for the hardware token.",
+                "session-pool-max-total": "Maximum total PKCS#11 sessions in the hardware token session pool.",
+                "session-pool-min-idle": "Minimum number of idle PKCS#11 sessions kept in the hardware token pool.",
+                "session-pool-max-idle": "Maximum number of idle PKCS#11 sessions kept in the hardware token pool.",
+                "session-acquire-timeout": "Maximum time to wait when acquiring a PKCS#11 session from the pool (e.g. 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Enable the Signer gRPC server.",
+              "listen-address": "IP address on which the Signer gRPC server listens.",
+              "port": "Port on which the Signer gRPC server listens."
+            },
+            "pin-hasher": {
+              "iterations": "Argon2 iteration count used when hashing token PINs.",
+              "memory-kb": "Argon2 memory cost in kilobytes used when hashing token PINs.",
+              "parallelism": "Argon2 parallelism degree used when hashing token PINs.",
+              "hash-length": "Output hash length in bytes used when hashing token PINs.",
+              "salt-length": "Salt length in bytes used when hashing token PINs."
+            }
           }
         }
       }

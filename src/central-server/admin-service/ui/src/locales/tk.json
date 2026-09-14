@@ -564,6 +564,97 @@
               "retry-exponential-backoff-multiplier": "Vault (OpenBao) haýyşynyň her şowsuz synanyşygyndan soň gaýtadan synanyşyk gijikdirmesine ulanylýan köpeldiji.",
               "retry-max-attempts": "Vault (OpenBao) haýyşy şowsuz bolanda gaýtadan synanyşyklaryň iň köp sany."
             }
+          },
+          "common-global-conf": {
+            "source": "Global konfigurasiýa üçin çeşme binasy. Mümkin bolan gymmatlar: FILESYSTEM (ýerli faýllardan okamak, deslapky baha) ýa-da REMOTE (konteýnerleşdirilen ýaýlymlarda ulanylýar).",
+            "refresh-rate": "Paýlaşylan global konfigurasiýa önümçisiniň sazlanan çeşmesinden näçe wagtdan bir täzelenýändigi (meselem, 60S).",
+            "configuration-path": "Global konfigurasiýa faýllarynyň saklanylan faýl ulgamy ýoly."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "OCSP barlag netijelerini täzeden barlamanka önümçide saklanýan wagt (sekunt)."
+          },
+          "common-rpc": {
+            "use-tls": "Işledilen halatynda, Merkezi Serweriň bilelikde ýerleşdirilen hyzmatlary arasyndaky gRPC aragatnaşygy üçin özara TLS ulanylýar.",
+            "certificate-provisioning": {
+              "refresh-interval": "Hyzmatlaryň gRPC TLS sertifikatyny täzelemek gerekdigi barlaýan ýygylygy (meselem, 5H).",
+              "retry-delay": "gRPC TLS sertifikat üpjünçiligi gaýtalamalarynyň arasyndaky başlangyç gijikdirme (meselem, 5S).",
+              "retry-exponential-backoff-multiplier": "Sertifikat üpjünçiliginiň her soňraky synanyşygynda gaýtalamalaryň gijikdirme köpeýjisi.",
+              "retry-max-attempts": "gRPC TLS sertifikat üpjünçiliginiň iň köp synanyşyk sany.",
+              "retry-timeout": "gRPC TLS sertifikat üpjünçiliginiň ähli synanyşyklary üçin umumy wagt çägi (meselem, 60S)."
+            },
+            "channel": {
+              "op-monitor": {
+                "host": "Operasion gözegçilik demony gRPC serwere birikme üçin ulanylýan hosta ady.",
+                "port": "Operasion gözegçilik demony gRPC serwere birikme üçin ulanylýan port.",
+                "deadline-after": "Operasion gözegçilik demonyna gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
+              },
+              "env-monitor": {
+                "host": "Env-monitor gRPC serwere birikme üçin ulanylýan hosta ady.",
+                "port": "Env-monitor gRPC serwere birikme üçin ulanylýan port.",
+                "deadline-after": "Env-monitora gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
+              },
+              "configuration-client": {
+                "host": "Konfigurasiýa müşderi gRPC serwere birikme üçin ulanylýan hosta ady.",
+                "port": "Konfigurasiýa müşderi gRPC serwere birikme üçin ulanylýan port.",
+                "deadline-after": "Konfigurasiýa müşderisine gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
+              },
+              "proxy": {
+                "host": "Proksi gRPC serwere birikme üçin ulanylýan hosta ady.",
+                "port": "Proksi gRPC serwere birikme üçin ulanylýan port.",
+                "deadline-after": "Proksä gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
+              },
+              "auxiliary-service": {
+                "host": "Kömekçi hyzmat gRPC serwere birikme üçin ulanylýan hosta ady.",
+                "port": "Kömekçi hyzmat gRPC serwere birikme üçin ulanylýan port.",
+                "deadline-after": "Kömekçi hyzmate gRPC çagyryşynyň möhleti dolmazdan öňki millisekuntlar."
+              }
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Öz-özüne gol çekilen şahadatnamalar döredilende ulanylýan şifrlemesi algoritmi.",
+            "csr-signature-digest-algorithm": "Şahadatnama Gol Çekme Talaby gol şifrlemesi algoritmi. Mümkin bahalar: SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Token pin syýasatyny güýçlendirmegi dolandyrýar. Dogry edilende, programma üpjünçiliginiň token pini azyndan 4 nyşan klassydan (kiçi harplar, uly harplar, sanlar, ýörite nyşanlar) azyndan 10 ASCII nyşandan ybarat bolmaly. (6.7.7 wersiýasyndan bäri)",
+            "ocsp-response-retrieval-active": "Bu häsiýet bu wezipä mätäç bolmadyk, ýöne entek imzaçyny ulanýan komponentler üçin döwürleýin OCSP-jogap almany işsizleştirmek üçin ýazdyrma hökmünde ulanylýar. Bahalar: false - OCSP-jogap almak işleri hiç wagt planlanylmaýar. true - döwürleýin OCSP-jogap almak ocspFetchInterval esasynda işjeňdir. Eger ähli häsiýet ýok bolsa, dogry hökmünde düşünilýändigini ýadyňyzda saklaň. Bu häsiýet diňe OCSP-jogap almak işleriniň işsizleşdirilmeli komponentleri üçin ýazdyrma hökmünde iberilýär. Bu häsiýet OCSP-jogap almagy işjeň bolmagyny talap edýän komponentler üçin ýokdur.",
+            "ocsp-retry-delay": "OCSP jogaplaryny almak şowsuz bolanda imzaçy üçin OCSP gaýtalama gijikmesi. OCSP jogaplaryny almak şowsuz bolansoň imzaçy \"ocsp-retry-delay\" tarapyndan kesgitlenen wagt döwri üçin garaşýar, soň ýene synanyşýar. Bu OCSP jogaplaryny almak üstünlikli bolýança gaýtalanýar. OCSP jogaplaryny üstünlikli alansoň imzaçy \"ocspFetchInterval\" tarapyndan kesgitlenen adaty OCSP täzelenme tertibine dolanýar. Eger \"ocsp-retry-delay\" bahasy \"ocspFetchInterval\"-dan uly bolsa, \"ocspFetchInterval\" bahasy OCSP gaýtalama gijikmesi hökmünde ulanylýar.",
+            "ocsp-cache-path": "Keşlenen OCSP jogaplarynyň saklanylýan katalogyna doly ýol.",
+            "ocsp-prioritization-strategy": "OCSP ileri tutulma strategiýasy, nähili OCSP jogap beriş gulluklarynyň we haýsy tertipde OCSP jogaplaryny almak üçin ulanylýandygyny kesgitleýär. Mümkin bahalar: ONLY_FREE - Diňe mugt OCSP jogap beriş gulluklary ulanylýar. ONLY_PAID - Diňe tölegli OCSP jogap beriş gulluklary ulanylýar. FREE_FIRST - Ilki mugt OCSP jogap beriş gulluklary ulanylýar, üstünlikli jogap ýok bolsa, soňra tölegli jogap beriş gulluklary ulanylýar, ahyrynda çykdajy görnüşi kesgitlenmedik OCSP jogap beriş gulluklary soňunda ulanylýar. PAID_FIRST - Ilki tölegli OCSP jogap beriş gulluklary ulanylýar, üstünlikli jogap ýok bolsa, soňra mugt jogap beriş gulluklary ulanylýar, ahyrynda çykdajy görnüşi kesgitlenmedik OCSP jogap beriş gulluklary soňunda ulanylýar. NONE - Täze tertip ýa-da süzgüç goşulmaýar (OCSP nokatlaryna çykdajy görnüşi goşulmazdan öňküsi ýaly).",
+            "module-manager-update-interval": "HSM modul dolandyryjy täzeleme aralygny sekuntlarda.",
+            "soft-token-rsa-sign-mechanism": "Programma üpjünçiliginiň tokeninde RSA gol çekme üçin ulanylýan PKCS#11 mehanizmi.",
+            "soft-token-ec-sign-mechanism": "Programma üpjünçiliginiň tokeninde EC gol çekme üçin ulanylýan PKCS#11 mehanizmi.",
+            "soft-token-pin-keystore-algorithm": "Programma üpjünçiliginiň tokeni üçin PIN açar dükany döretmek üçin ulanylýan açar algoritmi. Mümkin bahalar: RSA we EC. (7.6 wersiýasyndan bäri)",
+            "key-length": "Tassyklama we gol çekme açarlaryny döretmek üçin açar uzynlygy (6.7 wersiýasyndan bäri).",
+            "key-named-curve": "EC algoritmleri ulanylýan ýagdaýynda tassyklama we gol çekme açarlaryny döretmek üçin görkezilen egri (7.6 wersiýasyndan bäri).",
+            "autologin": {
+              "enabled": "Başlangyçda awtomatiki token girişini işe giriziň.",
+              "retry": {
+                "retry-delay": "Awtomatiki giriş gaýtalama synanyşyklarynyň arasynda başlangyç gijikme (mysal üçin 3S).",
+                "retry-exponential-backoff-multiplier": "Her soňraky awtomatiki giriş synanyşygynda gaýtalama gijikgesine ulanylýan köpeldiji.",
+                "retry-max-attempts": "Awtomatiki giriş gaýtalama synanyşyklarynyň iň köp sany.",
+                "retry-timeout": "Ähli awtomatiki giriş gaýtalama synanyşyklary üçin jemi wagt çägi (mysal üçin 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Enjam tokeni (HSM) goşundy dwigateli işe giriziň.",
+                "session-pool-enabled": "Enjam tokeni üçin PKCS#11 seans howuzlanmasyny işe giriziň.",
+                "session-pool-max-total": "Enjam tokeni seans howuzyndaky iň köp jemi PKCS#11 seans sany.",
+                "session-pool-min-idle": "Enjam tokeni howuzunda saklanylýan iň az boş PKCS#11 seans sany.",
+                "session-pool-max-idle": "Enjam tokeni howuzunda saklanylýan iň köp boş PKCS#11 seans sany.",
+                "session-acquire-timeout": "Howuzdan PKCS#11 seans almak üçin iň köp garaşma wagty (mysal üçin 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Imzaçy gRPC serweri işe giriziň.",
+              "listen-address": "Imzaçy gRPC serweri diňleýän IP salgysy.",
+              "port": "Imzaçy gRPC serweri diňleýän porty."
+            },
+            "pin-hasher": {
+              "iterations": "Token PINlerini şifrläp işlenende ulanylýan Argon2 gaýtalama sany.",
+              "memory-kb": "Token PINlerini şifrläp işlenende ulanylýan Argon2 kilobaýtlardaky hakyda çykdajysy.",
+              "parallelism": "Token PINlerini şifrläp işlenende ulanylýan Argon2 parallellik derejesi.",
+              "hash-length": "Token PINlerini şifrläp işlenende ulanylýan baýtlardaky çykyş şifrlemesi uzynlygy.",
+              "salt-length": "Token PINlerini şifrläp işlenende ulanylýan baýtlardaky duz uzynlygy."
+            }
           }
         }
       }

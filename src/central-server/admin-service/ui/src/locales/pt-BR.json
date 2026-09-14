@@ -580,6 +580,97 @@
               "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa após cada tentativa malsucedida de uma solicitação ao Vault (OpenBao).",
               "retry-max-attempts": "Número máximo de novas tentativas quando uma solicitação ao Vault (OpenBao) falha."
             }
+          },
+          "common-global-conf": {
+            "source": "Backend de origem para a configuração global. Valores possíveis: FILESYSTEM (ler de arquivos locais, o padrão) ou REMOTE (usado em implantações em contêineres).",
+            "refresh-rate": "Com que frequência o cache de configuração global compartilhado é atualizado a partir da fonte configurada (ex.: 60S).",
+            "configuration-path": "Caminho no sistema de arquivos onde os arquivos de configuração global são armazenados."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "Por quanto tempo (em segundos) os resultados de verificação OCSP são armazenados em cache antes de serem reverificados."
+          },
+          "common-rpc": {
+            "use-tls": "Quando habilitado, o TLS mútuo é usado para a comunicação gRPC entre os serviços colocalizados do Servidor Central.",
+            "certificate-provisioning": {
+              "refresh-interval": "Com que frequência os serviços verificam se seu certificado TLS gRPC precisa ser renovado (ex.: 5H).",
+              "retry-delay": "Atraso inicial entre tentativas de provisionamento de certificado TLS gRPC (ex.: 5S).",
+              "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa em cada tentativa subsequente de provisionamento de certificado.",
+              "retry-max-attempts": "Número máximo de tentativas de provisionamento de certificado TLS gRPC.",
+              "retry-timeout": "Limite de tempo total para todas as tentativas de provisionamento de certificado TLS gRPC (ex.: 60S)."
+            },
+            "channel": {
+              "op-monitor": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do daemon de monitoramento operacional.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do daemon de monitoramento operacional.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao daemon de monitoramento operacional expirar."
+              },
+              "env-monitor": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do env-monitor.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do env-monitor.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao env-monitor expirar."
+              },
+              "configuration-client": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do cliente de configuração.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do cliente de configuração.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao cliente de configuração expirar."
+              },
+              "proxy": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do proxy.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do proxy.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao proxy expirar."
+              },
+              "auxiliary-service": {
+                "host": "Hostname utilizado para conectar ao servidor gRPC do serviço auxiliar.",
+                "port": "Porta utilizada para conectar ao servidor gRPC do serviço auxiliar.",
+                "deadline-after": "Milissegundos antes de uma chamada gRPC ao serviço auxiliar expirar."
+              }
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Algoritmo de resumo utilizado ao criar certificados autoassinados.",
+            "csr-signature-digest-algorithm": "Algoritmo de resumo de assinatura da Solicitação de Assinatura de Certificado (CSR). Os valores possíveis são - SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Controla a aplicação da política de PIN do token. Quando definido como true, o PIN do token de software deve ter pelo menos 10 caracteres ASCII de pelo menos três classes de caracteres (letras minúsculas, letras maiúsculas, dígitos, caracteres especiais). (desde a versão 6.7.7)",
+            "ocsp-response-retrieval-active": "Esta propriedade é utilizada como substituição para desativar a recuperação periódica de respostas OCSP para componentes que não necessitam dessa funcionalidade, mas ainda utilizam o signer. Valores: false - os jobs de recuperação de respostas OCSP nunca são agendados. true - a recuperação periódica de respostas OCSP está ativa com base no ocspFetchInterval. Observe que, se a propriedade estiver ausente, ela é interpretada como true.",
+            "ocsp-retry-delay": "Atraso de nova tentativa OCSP para o signer quando a busca de respostas OCSP falha. Após uma falha, o signer aguarda o período definido por \"ocsp-retry-delay\" antes de tentar novamente. Isso se repete até a busca ser bem-sucedida. Após o sucesso, o signer retorna ao agendamento normal de atualização OCSP definido por \"ocspFetchInterval\". Se o valor de \"ocsp-retry-delay\" for maior que \"ocspFetchInterval\", o valor de \"ocspFetchInterval\" é utilizado como atraso de nova tentativa OCSP.",
+            "ocsp-cache-path": "Caminho absoluto para o diretório onde as respostas OCSP em cache são armazenadas.",
+            "ocsp-prioritization-strategy": "Estratégia de priorização OCSP, que determina quais respondedores OCSP e em que ordem são utilizados para obter respostas OCSP. Os valores possíveis são: ONLY_FREE - Apenas respondedores OCSP gratuitos são utilizados. ONLY_PAID - Apenas respondedores OCSP pagos são utilizados. FREE_FIRST - Respondedores gratuitos são utilizados primeiro; se não houver respostas bem-sucedidas, então respondedores pagos são utilizados; por fim, respondedores cujo tipo de custo é indefinido são utilizados por último. PAID_FIRST - Respondedores pagos são utilizados primeiro; se não houver respostas bem-sucedidas, então respondedores gratuitos são utilizados; por fim, respondedores cujo tipo de custo é indefinido são utilizados por último. NONE - Nenhuma nova ordenação ou filtragem é adicionada.",
+            "module-manager-update-interval": "Intervalo de atualização do gerenciador de módulos HSM em segundos.",
+            "soft-token-rsa-sign-mechanism": "Mecanismo PKCS#11 utilizado para assinatura RSA no token de software.",
+            "soft-token-ec-sign-mechanism": "Mecanismo PKCS#11 utilizado para assinatura EC no token de software.",
+            "soft-token-pin-keystore-algorithm": "Algoritmo de chave utilizado para criar o keystore de PIN do token de software. Os valores possíveis são RSA e EC. (desde a versão 7.6)",
+            "key-length": "Comprimento da chave para geração de chaves de autenticação e assinatura. (desde a versão 6.7)",
+            "key-named-curve": "Curva nomeada para geração de chaves de autenticação e assinatura quando algoritmos EC são utilizados. (desde a versão 7.6)",
+            "autologin": {
+              "enabled": "Habilitar o login automático do token na inicialização.",
+              "retry": {
+                "retry-delay": "Atraso inicial entre tentativas de autologin (ex.: 3S).",
+                "retry-exponential-backoff-multiplier": "Multiplicador aplicado ao atraso de nova tentativa em cada tentativa de autologin subsequente.",
+                "retry-max-attempts": "Número máximo de tentativas de autologin.",
+                "retry-timeout": "Limite de tempo total para todas as tentativas de autologin (ex.: 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Habilitar o complemento de token de hardware (HSM).",
+                "session-pool-enabled": "Habilitar o pool de sessões PKCS#11 para o token de hardware.",
+                "session-pool-max-total": "Total máximo de sessões PKCS#11 no pool de sessões do token de hardware.",
+                "session-pool-min-idle": "Número mínimo de sessões PKCS#11 ociosas mantidas no pool do token de hardware.",
+                "session-pool-max-idle": "Número máximo de sessões PKCS#11 ociosas mantidas no pool do token de hardware.",
+                "session-acquire-timeout": "Tempo máximo de espera para adquirir uma sessão PKCS#11 do pool (ex.: 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Habilitar o servidor gRPC do Signer.",
+              "listen-address": "Endereço IP no qual o servidor gRPC do Signer escuta.",
+              "port": "Porta na qual o servidor gRPC do Signer escuta."
+            },
+            "pin-hasher": {
+              "iterations": "Contagem de iterações Argon2 utilizada ao fazer hash dos PINs do token.",
+              "memory-kb": "Custo de memória Argon2 em kilobytes utilizado ao fazer hash dos PINs do token.",
+              "parallelism": "Grau de paralelismo Argon2 utilizado ao fazer hash dos PINs do token.",
+              "hash-length": "Comprimento do hash de saída em bytes utilizado ao fazer hash dos PINs do token.",
+              "salt-length": "Comprimento do salt em bytes utilizado ao fazer hash dos PINs do token."
+            }
           }
         }
       }
