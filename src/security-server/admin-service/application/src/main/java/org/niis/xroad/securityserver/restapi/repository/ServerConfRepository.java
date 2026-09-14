@@ -32,14 +32,12 @@ import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * repository for working with ServerConfEntity / serverconf table
  */
 @Slf4j
 @Repository
-@Transactional
 @RequiredArgsConstructor
 public class ServerConfRepository {
 
