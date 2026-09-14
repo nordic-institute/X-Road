@@ -43,6 +43,15 @@ services:
         name: postgres
       - port: 6183
         name: issuer-did
+      # Co-located Issuer Service — STS. The image bundles the same ds-issuer-service unit
+      # the standalone SS deployment runs (development/docker/central-server/files/etc/xroad/
+      # services/local.conf sets XROAD_DS_ISSUER_SERVICE_PARAMS), so it binds the same
+      # web.http.sts.port (6184) declared in ds-issuer-service's application.yaml — a real,
+      # live listener, previously undeclared here. No caller found in src/ or the k8s/ansible
+      # trees (see the matching comment on the security-server chart's ds-issuer-service
+      # sts port); declared for inventory accuracy, not asserted as ADR-42 cross-host surface.
+      - port: 6184
+        name: issuer-sts
       - port: 6185
         name: issuer-issuance
       - port: 6187
