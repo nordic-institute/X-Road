@@ -90,7 +90,13 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
         close();
     }
 
-    /** @see IdentityHubProvisioningClient#createParticipantContext */
+    /**
+     * Under {@link ConflictPolicy#KEEP} the hub is asked to confirm nothing, so its ack carries no
+     * information and the anchor is {@code CONFIRMED} regardless — including against a hub that
+     * predates the ack field and leaves it at the proto3 default on every response.
+     *
+     * @see IdentityHubProvisioningClient#createParticipantContext
+     */
     public MemberIdAnchor createIdentityHubParticipantContext(String participantContextId, String did,
                                                               @Nullable String memberId, String credentialServiceUrl,
                                                               String keyId, String privateKeyAlias,
@@ -104,6 +110,9 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
                 .setPrivateKeyAlias(privateKeyAlias)
                 .setReanchorMemberIdOnConflict(conflictPolicy == ConflictPolicy.REANCHOR)
                 .build()));
+        if (conflictPolicy == ConflictPolicy.KEEP) {
+            return MemberIdAnchor.CONFIRMED;
+        }
         return response.getMemberIdReanchored() ? MemberIdAnchor.CONFIRMED : MemberIdAnchor.UNCONFIRMED;
     }
 

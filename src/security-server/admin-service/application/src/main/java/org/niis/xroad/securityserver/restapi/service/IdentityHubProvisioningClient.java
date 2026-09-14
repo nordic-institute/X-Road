@@ -49,11 +49,12 @@ public interface IdentityHubProvisioningClient {
      * Creates (idempotently) the IdentityHub participant context for the given participant.
      *
      * @param conflictPolicy what to do when the context already exists
-     * @return {@code CONFIRMED} when the stored member id is known to match {@code memberId} —
-     *         trivially so on a fresh create or a tolerated conflict under {@code KEEP}; under
-     *         {@code REANCHOR}, once the re-anchor is applied or the stored value is found already
-     *         matching. {@code UNCONFIRMED} when a requested re-anchor could not be confirmed
-     *         (older hub, or the re-anchor read/update failed).
+     * @return {@code CONFIRMED} when the stored member id is known to match {@code memberId}. Under
+     *         {@code KEEP} that is always — nothing was asked of the hub, so nothing can be left
+     *         unconfirmed, and the caller must not defer on this result. Under {@code REANCHOR},
+     *         once the re-anchor is applied or the stored value is found already matching;
+     *         {@code UNCONFIRMED} there when it could not be confirmed (older hub, or the re-anchor
+     *         read/update failed).
      */
     MemberIdAnchor createParticipantContext(String participantContextId, String did, @Nullable String memberId,
                                             String credentialServiceUrl, String keyId, String privateKeyAlias,

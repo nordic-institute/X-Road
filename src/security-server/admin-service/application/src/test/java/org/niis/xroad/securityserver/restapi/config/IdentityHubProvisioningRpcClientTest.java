@@ -184,6 +184,16 @@ class IdentityHubProvisioningRpcClientTest {
     }
 
     @Test
+    void createIdentityHubParticipantContextReportsConfirmedUnderKeepEvenWhenHubSendsNoAck() {
+        configuredCreateResp = CreateParticipantContextResp.getDefaultInstance();
+
+        var anchor = client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
+                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", ConflictPolicy.KEEP);
+
+        assertThat(anchor).isEqualTo(MemberIdAnchor.CONFIRMED);
+    }
+
+    @Test
     void createIdentityHubParticipantContextSendsEmptyMemberIdWhenOwnerUnknown() {
         client.createIdentityHubParticipantContext("ctx-id", "did:web:example", null,
                 "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", ConflictPolicy.KEEP);
