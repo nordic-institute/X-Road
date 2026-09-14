@@ -49,6 +49,10 @@ import java.util.Optional;
  * self-signed in development and test environments) is unrelated to the DS TLS CA list a governing authority
  * curates. The exception is deliberately narrow — one exact host and port, resolved once at construction time
  * from configuration — so it cannot widen into a general-purpose trust anchor for arbitrary DataSpace peers.
+ *
+ * <p>Vault is co-installed infrastructure, not a DataSpace peer: when no explicit CA is configured for it, the
+ * exception falls back to the JVM's own default trust manager (the host's system PKI store) instead of leaving
+ * the vault endpoint to the DS TLS CA list. An explicit CA, when configured, always wins over this fallback.
  */
 public final class VaultEndpointTrust {
 
@@ -68,13 +72,24 @@ public final class VaultEndpointTrust {
     /**
      * @param vaultUrlSetting the value of the {@code edc.vault.hashicorp.url} setting, or {@code null}/blank if unset
      * @param caCertPath      path to the PEM file trusted for the vault endpoint (the same file the Quarkus vault
-     *                        client uses), or {@code null}/blank if unset
-     * @return the vault trust exception, or empty if the exception cannot be built for any reason (not configured,
-     * an unparseable vault URL, or an unreadable/invalid CA file) — every such case degrades to relying on the
-     * DataSpace TLS CA list alone, never to widening trust.
+     *                        client uses), or {@code null}/blank to fall back to the JVM's default trust manager
+     * @return the vault trust exception, or empty if the exception cannot be built for any reason (no vault URL
+     * configured, an unparseable vault URL, an unreadable/invalid explicit CA file, or a JVM default trust manager
+     * that cannot be initialized) — every such case degrades to relying on the DataSpace TLS CA list alone, never
+     * to widening trust.
      */
     public static Optional<VaultEndpointTrust> from(String vaultUrlSetting, String caCertPath, Monitor monitor) {
-        if (isBlank(vaultUrlSetting) || isBlank(caCertPath)) {
+        return from(vaultUrlSetting, caCertPath, monitor, VaultEndpointTrust::jvmDefaultTrustManager);
+    }
+
+    /**
+     * Package-private overload letting tests supply the trust manager the {@code caCertPath}-blank fallback
+     * resolves to, without depending on whatever the test-running JVM's own default trust store happens to
+     * contain.
+     */
+    static Optional<VaultEndpointTrust> from(String vaultUrlSetting, String caCertPath, Monitor monitor,
+            DefaultTrustManagerSource defaultTrustManagerSource) {
+        if (isBlank(vaultUrlSetting)) {
             return Optional.empty();
         }
 
@@ -90,11 +105,17 @@ public final class VaultEndpointTrust {
 
         X509TrustManager trustManager;
         try {
-            trustManager = loadTrustManager(caCertPath);
+            trustManager = isBlank(caCertPath) ? defaultTrustManagerSource.get() : loadTrustManager(caCertPath);
         } catch (GeneralSecurityException | IOException | RuntimeException e) {
-            monitor.warning("Could not load the OpenBao TLS CA certificate from '%s'; DataSpace TLS clients will rely on "
-                    .formatted(caCertPath)
-                    + "the DS TLS CA list alone to reach the vault: %s".formatted(e.getMessage()));
+            if (isBlank(caCertPath)) {
+                monitor.warning("Could not build the OpenBao vault trust exception from the JVM's default trust store; "
+                        + "DataSpace TLS clients will rely on the DS TLS CA list alone to reach the vault: %s"
+                                .formatted(e.getMessage()));
+            } else {
+                monitor.warning("Could not load the OpenBao TLS CA certificate from '%s'; DataSpace TLS clients will rely on "
+                        .formatted(caCertPath)
+                        + "the DS TLS CA list alone to reach the vault: %s".formatted(e.getMessage()));
+            }
             return Optional.empty();
         }
 
@@ -170,14 +191,39 @@ public final class VaultEndpointTrust {
 
         var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
+        return extractX509TrustManager(trustManagerFactory, "the configured vault CA");
+    }
+
+    /**
+     * The JVM's own idea of a trusted root, exactly as any other JVM-default-trusting client would see it
+     * (system PKI store on distributions that wire one in, the bundled {@code cacerts} otherwise) — resolved
+     * once, at construction time, like the explicit-CA path above.
+     */
+    private static X509TrustManager jvmDefaultTrustManager() throws GeneralSecurityException {
+        var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init((KeyStore) null);
+        return extractX509TrustManager(trustManagerFactory, "the JVM's default trust store");
+    }
+
+    private static X509TrustManager extractX509TrustManager(TrustManagerFactory trustManagerFactory, String source) {
         return Arrays.stream(trustManagerFactory.getTrustManagers())
                 .filter(X509TrustManager.class::isInstance)
                 .map(X509TrustManager.class::cast)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
-                        "The JVM's default TrustManagerFactory did not produce an X509TrustManager for the vault CA"));
+                        "The TrustManagerFactory did not produce an X509TrustManager for " + source));
     }
 
     private record HostPort(String host, int port) {
+    }
+
+    /**
+     * Supplies the trust manager the {@code caCertPath}-blank fallback resolves to. A seam purely for testing:
+     * production always resolves to {@link #jvmDefaultTrustManager()}, but a test needs the fallback's behaviour
+     * without depending on what the build machine's real JVM trust store happens to contain.
+     */
+    @FunctionalInterface
+    interface DefaultTrustManagerSource {
+        X509TrustManager get() throws GeneralSecurityException;
     }
 }

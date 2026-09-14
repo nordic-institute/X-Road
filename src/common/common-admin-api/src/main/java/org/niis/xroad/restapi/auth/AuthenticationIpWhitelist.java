@@ -35,6 +35,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 /**
@@ -134,11 +136,29 @@ public class AuthenticationIpWhitelist {
      */
     void validateIpAddress(String ipAddress) {
         for (String whitelistEntry : whitelistEntries) {
-            if (new IpAddressMatcher(whitelistEntry).matches(ipAddress)) {
+            if (sameAddressFamily(whitelistEntry, ipAddress) && new IpAddressMatcher(whitelistEntry).matches(ipAddress)) {
                 return;
             }
         }
         throw new BadRemoteAddressException("Invalid IP Address " + ipAddress);
+    }
+
+    /**
+     * Spring Security 7.1's IpAddressMatcher (now backed by IpInetAddressMatcher) dropped the
+     * address-family check its own class Javadoc still promises: a whitelist entry with a /0 mask,
+     * e.g. "0.0.0.0/0", now matches any address regardless of IPv4/IPv6. Enforce the documented,
+     * family-strict contract here so an operator-configured IPv4-only (or IPv6-only) entry cannot
+     * silently widen to also admit the other address family.
+     */
+    private static boolean sameAddressFamily(String whitelistEntry, String ipAddress) {
+        String entryAddress = whitelistEntry.contains("/")
+                ? whitelistEntry.substring(0, whitelistEntry.indexOf('/'))
+                : whitelistEntry;
+        try {
+            return InetAddress.getByName(entryAddress).getClass().equals(InetAddress.getByName(ipAddress).getClass());
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 
     public static class BadRemoteAddressException extends AuthenticationException {

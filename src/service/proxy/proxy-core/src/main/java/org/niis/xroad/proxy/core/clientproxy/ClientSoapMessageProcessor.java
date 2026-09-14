@@ -234,10 +234,10 @@ public class ClientSoapMessageProcessor {
         log.trace("processRequest()");
         clientRequestPreparationService.recordServiceSecurityServerAddress(
                 decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(), ctx, opMonitoringData);
-        // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         AssetAccessResponse assetAccess = proxyProperties.dspEnabled()
                 ? consumerSideDspProcessor.execute(new DspRequest(
-                        decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
+                        decoder.getServiceId(), decoder.getRequestSoap().getClient(),
+                        decoder.getRequestSoap().getSecurityServer(),
                         isManagementRequest(decoder.getServiceId())))
                 : null;
         ProxyMessage response;
