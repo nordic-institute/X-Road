@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -41,7 +40,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.AccessRight;
 
@@ -62,7 +60,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
     private final PolicyMapper policyMapper;
     private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
@@ -96,9 +93,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
 
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
-            var systemServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
-            return systemServiceId == null ? null : policyMapper.toOwnerOnlyPolicyDefinition(
-                    policyId, systemServiceId.getClientId(), contextIds.system());
+            return findSystemPolicyDefinition(policyId);
         }
 
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
@@ -121,26 +116,26 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         return result;
     }
 
-    /**
-     * The owner-only policy an id carrying {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX} names,
-     * under the management context; {@code null} when the id does not decode or names no service
-     * this server resolves.
-     */
+    /** The SYSTEM-context owner-only policy {@code policyId} names, if one is published there. */
     @Nullable
-    private PolicyDefinition findOwnerOnlyPolicyDefinition(String policyId) {
-        var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
-        var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-        if (ownerOnlyServiceId == null) {
-            log.trace("findById policyId={} owner-only candidate decode failed", policyId);
+    private PolicyDefinition findSystemPolicyDefinition(String policyId) {
+        var serviceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+        if (serviceId == null) {
+            log.trace("findById policyId={} not published under SYSTEM", policyId);
             return null;
         }
-        if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
-                && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
+        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), contextIds.system());
+    }
+
+    /** The management-context owner-only policy {@code policyId} names, if this server serves it. */
+    @Nullable
+    private PolicyDefinition findOwnerOnlyPolicyDefinition(String policyId) {
+        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
+        if (serviceId == null) {
             log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
             return null;
         }
-        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(),
-                contextIds.management());
+        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), contextIds.management());
     }
 
     @Override
@@ -284,19 +279,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .policy(policy)
                 .participantContextId(contextId)
                 .build();
-    }
-
-    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
-        }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (Exception e) {
-            log.warn("Failed to read global-conf for synthetic policy definition check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
     }
 
     private static String joinParts(String[] parts, int from, int to) {

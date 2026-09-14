@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -40,7 +39,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -60,7 +58,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
     private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
@@ -100,9 +97,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                     serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
-            var systemServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
-            return systemServiceId == null ? null
-                    : ContractDefinitionMapper.toOwnerOnlyContractDefinition(systemServiceId, contextIds.system());
+            return findSystemContractDefinition(policyId);
         }
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
             return findOwnerOnlyContractDefinition(policyId);
@@ -122,25 +117,26 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         return result;
     }
 
-    /**
-     * The owner-only definition an id carrying {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}
-     * names, under the management context; {@code null} when the id does not decode or names no
-     * service this server resolves.
-     */
+    /** The SYSTEM-context owner-only definition {@code policyId} names, if one is published there. */
     @Nullable
-    private ContractDefinition findOwnerOnlyContractDefinition(String policyId) {
-        var assetIdStr = policyId.substring(0, policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
-        var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-        if (ownerOnlyServiceId == null) {
-            log.trace("findById policyId={} owner-only candidate decode failed", policyId);
+    private ContractDefinition findSystemContractDefinition(String policyId) {
+        var serviceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+        if (serviceId == null) {
+            log.trace("findById policyId={} not published under SYSTEM", policyId);
             return null;
         }
-        if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
-                && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
+        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.system());
+    }
+
+    /** The management-context owner-only definition {@code policyId} names, if this server serves it. */
+    @Nullable
+    private ContractDefinition findOwnerOnlyContractDefinition(String policyId) {
+        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
+        if (serviceId == null) {
             log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
             return null;
         }
-        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(ownerOnlyServiceId, contextIds.management());
+        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.management());
     }
 
     @Override
@@ -262,19 +258,6 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 .assetsSelectorCriterion(new Criterion(CoreConstants.EDC_NAMESPACE + "id", "=", assetId))
                 .participantContextId(contextId)
                 .build();
-    }
-
-    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
-        }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (Exception e) {
-            log.warn("Failed to read global-conf for synthetic contract definition check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
     }
 
     private static String joinParts(String[] parts, int from, int to) {

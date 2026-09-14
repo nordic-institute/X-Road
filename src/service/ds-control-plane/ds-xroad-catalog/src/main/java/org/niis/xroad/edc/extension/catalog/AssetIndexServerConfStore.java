@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.annotation.Nullable;
@@ -39,7 +38,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -57,7 +55,6 @@ class AssetIndexServerConfStore implements AssetIndex {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
     private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
@@ -140,7 +137,7 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
-            if (isLocallyRegisteredSubsystem(serviceId.getClientId())) {
+            if (serviceContextResolver.isLocallyRegisteredSubsystem(serviceId.getClientId())) {
                 log.trace("findById assetId={} synthesizing owner-only asset for locally registered subsystem", assetId);
                 return AssetMapper.toAsset(serviceId, contextIds.management());
             }
@@ -166,19 +163,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
         return ServiceContextResolver.select(resolvedContexts, requested);
-    }
-
-    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
-        }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (Exception e) {
-            log.warn("Failed to read global-conf for synthetic asset check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
     }
 
     @Override

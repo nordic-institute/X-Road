@@ -210,7 +210,7 @@ class StoreCacheBenchmarkTest {
         var serviceContextResolver = new ServiceContextResolver(
                 CONTEXT_IDS,
                 globalConfProvider, provider, participantContextService);
-        return new AssetIndexServerConfStore(provider, globalConfProvider,
+        return new AssetIndexServerConfStore(provider,
                 CONTEXT_IDS,
                 new BuiltinServiceCatalog(provider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL),

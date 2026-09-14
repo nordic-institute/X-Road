@@ -101,7 +101,7 @@ class CachingStoreTest {
     }
 
     private AssetIndexServerConfStore buildStore(StoreEnumerationCache<Asset> cache) {
-        return new AssetIndexServerConfStore(serverConfProvider, globalConfProvider,
+        return new AssetIndexServerConfStore(serverConfProvider,
                 CONTEXT_IDS,
                 new BuiltinServiceCatalog(serverConfProvider, false, false, false,
                         BuiltinServiceCatalog.DEFAULT_SERVER_PROXY_URL), cache,

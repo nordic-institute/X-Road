@@ -148,10 +148,50 @@ class ServiceContextResolver {
      */
     @Nullable
     ServiceId.Conf resolveSystemOwnerOnlyService(String ownerOnlyId) {
+        var serviceId = decodeOwnerOnlyId(ownerOnlyId);
+        return serviceId != null && isSystemEligible(serviceId) ? serviceId : null;
+    }
+
+    /**
+     * The service an owner-only id names outside the SYSTEM context: a service this server actually
+     * serves, or one of a locally registered subsystem, for which the owner-only entry is
+     * synthesized on the fly even with nothing in serverconf. {@code null} when the id carries no
+     * owner-only suffix, does not decode, or names neither.
+     */
+    @Nullable
+    ServiceId.Conf resolveOwnerOnlyService(String ownerOnlyId) {
+        var serviceId = decodeOwnerOnlyId(ownerOnlyId);
+        if (serviceId == null) {
+            return null;
+        }
+        return serverConfProvider.serviceExists(serviceId) || isLocallyRegisteredSubsystem(serviceId.getClientId())
+                ? serviceId
+                : null;
+    }
+
+    /**
+     * Whether {@code clientId} is a subsystem registered on this security server. A global-conf read
+     * failure degrades to not-registered rather than propagating — a by-id lookup must fail closed.
+     */
+    boolean isLocallyRegisteredSubsystem(@Nullable ClientId clientId) {
+        if (clientId == null || clientId.getSubsystemCode() == null) {
+            return false;
+        }
+        try {
+            var thisServer = serverConfProvider.getIdentifier();
+            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
+        } catch (RuntimeException e) {
+            log.warn("Failed to read global-conf for synthetic entry check '{}': {}", clientId, e.getMessage());
+            return false;
+        }
+    }
+
+    @Nullable
+    private static ServiceId.Conf decodeOwnerOnlyId(String ownerOnlyId) {
         if (!ownerOnlyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
             return null;
         }
-        return resolveSystemService(
+        return AssetMapper.decodeAssetId(
                 ownerOnlyId.substring(0, ownerOnlyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length()));
     }
 
