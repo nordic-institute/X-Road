@@ -173,7 +173,6 @@ public class DataspaceProvisioningService {
      * @param kind          HOST, MANAGEMENT or MEMBER
      * @param memberId      the X-Road member this context's credential is issued to
      */
-    @Transactional(readOnly = true)
     public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
@@ -325,11 +324,11 @@ public class DataspaceProvisioningService {
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
      * trigger provisioning, poll, or sleep. Tolerates backend unavailability — errors are reported
-     * as {@code UNKNOWN} status rather than thrown.
+     * as {@code UNKNOWN} status rather than thrown. The remote reads hold no database connection:
+     * repository reads run in their own short transactions.
      *
      * @param context the participant context to report on
      */
-    @Transactional(readOnly = true)
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
         var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
@@ -393,7 +392,6 @@ public class DataspaceProvisioningService {
      * {@code false} until the server's owner is initialized and its registration has landed in
      * GlobalConf — the normal state before registration, not an error.
      */
-    @Transactional(readOnly = true)
     public boolean registeredAddressKnown() {
         return findRegisteredAddress().isPresent();
     }
@@ -434,7 +432,6 @@ public class DataspaceProvisioningService {
      * @param memberId the member whose bound identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
      */
-    @Transactional(readOnly = true)
     public IdentityStatus readIdentityStatus(ClientId memberId) {
         return assessMemberIdentity(memberId).status();
     }
