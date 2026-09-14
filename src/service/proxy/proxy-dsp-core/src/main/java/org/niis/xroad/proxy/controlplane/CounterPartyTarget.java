@@ -43,8 +43,8 @@ import java.util.Map;
  * EDC appends the protocol version path and per-message subpath at dispatch time.
  *
  * <p>Member targets are derived from GlobalConf data ({@link DspConventions}); only the legacy
- * {@code -mgmt} synthetic targets remain map-based ({@link #managementMap()}) until the consumer
- * SYSTEM-routing story replaces them.
+ * {@code -mgmt} synthetic targets remain map-based ({@link #managementMap()}) until consumer
+ * SYSTEM-context routing replaces them.
  *
  * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183:mgmt})
  * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/…})

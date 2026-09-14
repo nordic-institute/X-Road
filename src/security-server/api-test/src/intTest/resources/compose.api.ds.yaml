@@ -199,6 +199,11 @@ services:
     image: nginxinc/nginx-unprivileged:stable-alpine
     volumes:
       - ./ds-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "5500"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       xrd-ss-network:
         aliases:

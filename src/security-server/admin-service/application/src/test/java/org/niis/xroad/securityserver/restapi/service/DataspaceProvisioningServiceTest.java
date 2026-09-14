@@ -594,11 +594,51 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void readIdentityStatusReportsUnknownWhenRepositoryFails() {
+    void readIdentityStatusPropagatesRepositoryFailures() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
                 .thenThrow(new DataAccessResourceFailureException("connection lost"));
 
+        assertThatThrownBy(() -> service.readIdentityStatus(MEMBER))
+                .isInstanceOf(DataAccessResourceFailureException.class);
+    }
+
+    @Test
+    void readIdentityStatusReportsUnboundWithoutRegisteredAddressWhenNoRowExists() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
+    @Test
+    void readIdentityStatusReportsUnknownWithoutRegisteredAddressWhenRowIsBound() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
+                .thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
+
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNKNOWN);
+    }
+
+    // --- registeredAddressKnown ---
+
+    @Test
+    void registeredAddressKnownIsFalseWhileGlobalConfIsNotReadable() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID))
+                .thenThrow(XrdRuntimeException.systemInternalError("Shared params for instance identifier TEST not found"));
+
+        assertThat(service.registeredAddressKnown()).isFalse();
+    }
+
+    @Test
+    void registeredAddressKnownIsFalseWhileRegistrationIsNotInGlobalConf() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThat(service.registeredAddressKnown()).isFalse();
+    }
+
+    @Test
+    void registeredAddressKnownIsTrueForRegisteredServer() {
+        assertThat(service.registeredAddressKnown()).isTrue();
     }
 
     private void givenServerConfWithOwner(ClientId owner) {

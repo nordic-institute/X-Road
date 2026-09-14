@@ -324,8 +324,8 @@ public class DataspaceProvisioningService {
 
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
-     * trigger provisioning, poll, or sleep. Tolerates backend unavailability — errors are reported
-     * as {@code UNKNOWN} status rather than thrown.
+     * trigger provisioning, poll, or sleep. Tolerates dataspace-backend unavailability — those
+     * errors are reported as {@code UNKNOWN} status rather than thrown; database failures propagate.
      *
      * @param context the participant context to report on
      */
@@ -364,6 +364,13 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(participantId)).orElse(CredentialStatus.ABSENT);
     }
 
+    /**
+     * The DID to provision for one participant context, derived from the GlobalConf-registered
+     * address (the same coordinates counter-parties derive from their own GlobalConf copy; the
+     * identity hub must serve DID documents on that authority). The authority is part of every DID
+     * bound in {@code ds_participant}, so changing the registered address after a member's identity
+     * has been bound makes that row fail verification.
+     */
     private String didFor(ParticipantKind kind, ClientId memberId) {
         var address = registeredAddress();
         if (kind == ParticipantKind.MEMBER) {
@@ -375,23 +382,10 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * The authority (host:port) embedded in derived DIDs: this Security Server's
-     * GlobalConf-registered address plus the fixed DID port ({@link DspConventions#DID_PORT}) — the
-     * same coordinates counter-parties derive for this server's participants from their own
-     * GlobalConf copy. The identity hub must serve DID documents on this authority.
-     *
-     * <p>The authority is part of every DID bound in {@code ds_participant}, so changing the
-     * registered address after a member's identity has been bound makes that row fail
-     * verification.</p>
-     */
-    private String didAuthority() {
-        return DspConventions.didAuthority(registeredAddress());
-    }
-
-    /**
      * Whether the GlobalConf-registered address the participant DIDs derive from is resolvable yet.
-     * {@code false} until the server's owner is initialized and its registration has landed in
-     * GlobalConf — the normal state before registration, not an error.
+     * {@code false} until the server's owner is initialized, GlobalConf has been downloaded, and
+     * the server's registration has landed in it — all normal states before and during
+     * registration, not errors.
      */
     @Transactional(readOnly = true)
     public boolean registeredAddressKnown() {
@@ -407,13 +401,19 @@ public class DataspaceProvisioningService {
     /**
      * Resolves the server id through the repository, not {@link ServerConfService}: callers include
      * the unauthenticated scheduled provisioning worker, which the service's authentication guard
-     * would reject.
+     * would reject. A GlobalConf that is not yet downloaded reads as "no address yet", same as a
+     * registration that has not landed.
      */
     private Optional<String> findRegisteredAddress() {
         return ownerId().flatMap(owner -> {
             var serverId = SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode());
-            return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
-                    .filter(address -> !address.isBlank());
+            try {
+                return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
+                        .filter(address -> !address.isBlank());
+            } catch (XrdRuntimeException e) {
+                log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
+                return Optional.empty();
+            }
         });
     }
 
@@ -428,8 +428,9 @@ public class DataspaceProvisioningService {
 
     /**
      * Reports the identity-binding state of one member's participant context without provisioning
-     * anything. Tolerates backend unavailability — errors are reported as
-     * {@link IdentityStatus#UNKNOWN} rather than thrown.
+     * anything. Tolerates dataspace-backend unavailability and a not-yet-known registered address —
+     * those are reported as {@link IdentityStatus#UNKNOWN} rather than thrown; database failures
+     * propagate.
      *
      * @param memberId the member whose bound identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
@@ -448,12 +449,20 @@ public class DataspaceProvisioningService {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
-        try {
-            var ssHost = didAuthority();
-            var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
+        var address = findRegisteredAddress();
+        var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
+        if (address.isEmpty()) {
             if (bound.isEmpty()) {
-                return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
+                return new MemberIdentity(IdentityStatus.UNBOUND, null);
             }
+            log.debug("Data space: registered address not in GlobalConf yet, cannot verify bound identity of {}", memberId);
+            return new MemberIdentity(IdentityStatus.UNKNOWN, null);
+        }
+        var ssHost = DspConventions.didAuthority(address.get());
+        if (bound.isEmpty()) {
+            return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
+        }
+        try {
             ParticipantBindingCheck.verify(bound.get(), ssHost);
             return new MemberIdentity(IdentityStatus.OK, bound.get().getDid());
         } catch (XrdRuntimeException e) {
@@ -463,9 +472,6 @@ public class DataspaceProvisioningService {
             if (DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED.code().equals(e.getErrorCode())) {
                 return new MemberIdentity(IdentityStatus.VERSION_UNSUPPORTED, null);
             }
-            log.warn("Data space: could not read identity status for member {}", memberId, e);
-            return new MemberIdentity(IdentityStatus.UNKNOWN, null);
-        } catch (Exception e) {
             log.warn("Data space: could not read identity status for member {}", memberId, e);
             return new MemberIdentity(IdentityStatus.UNKNOWN, null);
         }
