@@ -5,9 +5,9 @@ usage() {
   cat <<'USAGE'
 Usage: verify.sh [options]
 
-Builds the sidecar slim and full images, boots the full image with no
-configuration and no volumes, and probes it until every check below passes
-or the timeout is reached, then removes the container it started:
+Builds the sidecar image, boots it with no configuration and no volumes, and
+probes it until every check below passes or the timeout is reached, then
+removes the container it started:
 
   - every supervisord program (except --exclude) reaches RUNNING and stays
     RUNNING with an unchanged pid across a sampling window (a program that
@@ -121,11 +121,7 @@ cleanup() {
 trap cleanup EXIT
 
 if $do_build; then
-  log "Building slim image ($tag:$version-slim)"
-  if ! "$dir/docker-build.sh" --target=slim "$version" "$tag"; then
-    fail "docker-build.sh --target=slim failed"
-  fi
-  log "Building full image ($tag:$version)"
+  log "Building image ($tag:$version)"
   if ! "$dir/docker-build.sh" --target=full "$version" "$tag"; then
     fail "docker-build.sh --target=full failed"
   fi

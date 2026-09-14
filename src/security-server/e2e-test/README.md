@@ -48,12 +48,11 @@ produced DEBs under `core/deployment/native-packages/build/ubuntu26.04`:
 
 ```bash
 cd core/sidecar
-./docker-build.sh --target=slim --packages-path=../deployment/native-packages/build/ubuntu26.04
 ./docker-build.sh --target=full --packages-path=../deployment/native-packages/build/ubuntu26.04
 ```
 
-This produces the local images `xroad-security-server-sidecar:8.0.0-slim` and
-`xroad-security-server-sidecar:8.0.0`. The harness resolves the sidecar image the same way it
+This produces the local image `xroad-security-server-sidecar:8.0.0`. The harness resolves the
+sidecar image the same way it
 resolves every other service image — through the generated `.env` (`SIDECAR_IMG`, tagged
 `<registry>/xroad-security-server-sidecar:<tag>`) — so tag the locally built image under that
 reference before running the suite:
