@@ -185,7 +185,7 @@ public class ParticipantIdentifierScheme {
 
     private static String didPrefix(String ssHost) {
         return DID_PREFIX_SCHEME + SEGMENT_SEPARATOR + DID_PREFIX_METHOD
-                + SEGMENT_SEPARATOR + encodeHost(ssHost) + SEGMENT_SEPARATOR + SCHEME_VERSION;
+                + SEGMENT_SEPARATOR + didWebHost(ssHost) + SEGMENT_SEPARATOR + SCHEME_VERSION;
     }
 
     private static ClientId toClientId(String[] segments, int offset) {
@@ -224,7 +224,17 @@ public class ParticipantIdentifierScheme {
     //    percent-escapes ('%3A', '%5B', '%5D' — the only escapes a DID's idchar set allows for
     //    them), reversed on decode. --
 
-    private static String encodeHost(String ssHost) {
+    /**
+     * Encodes a {@code host} or {@code host:port} authority as a {@code did:web} host segment:
+     * the port separator and IPv6 literal brackets become percent-escapes, everything else must
+     * already be a legal host character.
+     *
+     * @param ssHost the authority to encode
+     * @return the encoded {@code did:web} host segment, e.g. {@code %5B2001%3Adb8%3A%3A8%5D%3A7183}
+     * @throws XrdRuntimeException if the authority contains a character that is neither a host
+     *                             character nor escapable
+     */
+    public static String didWebHost(String ssHost) {
         requireNonBlank(ssHost, "ss-host");
         for (int i = 0; i < ssHost.length(); i++) {
             char c = ssHost.charAt(i);

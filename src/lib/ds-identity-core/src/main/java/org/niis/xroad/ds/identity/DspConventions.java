@@ -91,8 +91,7 @@ public class DspConventions {
      * @return the host context DID, e.g. {@code did:web:ss0.example.org%3A7183}
      */
     public static String hostDid(String ssAddress) {
-        return "did:web:" + didAuthority(ssAddress)
-                .replace(":", "%3A").replace("[", "%5B").replace("]", "%5D");
+        return "did:web:" + ParticipantIdentifierScheme.didWebHost(didAuthority(ssAddress));
     }
 
     /**
