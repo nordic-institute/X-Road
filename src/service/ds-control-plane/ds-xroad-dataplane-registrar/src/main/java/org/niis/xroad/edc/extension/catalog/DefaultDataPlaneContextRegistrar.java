@@ -64,11 +64,6 @@ final class DefaultDataPlaneContextRegistrar implements DataPlaneContextRegistra
         entries.forEach(entry -> register(entry, participantContextId));
     }
 
-    /**
-     * Registers one configured data plane for one participant context. The control plane calls this
-     * on every provisioning tick for every context, so only the save that actually creates the
-     * instance is logged at INFO — the unchanged re-saves that follow it every tick are DEBUG.
-     */
     private void register(Config entry, String participantContextId) {
         var node = entry.currentNode();
         boolean enabled = entry.getBoolean(KEY_ENABLED, true);
@@ -78,20 +73,14 @@ final class DefaultDataPlaneContextRegistrar implements DataPlaneContextRegistra
         }
 
         var instance = buildInstance(entry, participantContextId);
-        boolean firstRegistration = dataPlaneInstanceStore.findById(instance.getId()) == null;
         var result = dataPlaneInstanceStore.save(instance);
         if (result.failed()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
                     "Failed to register data plane '%s' (config node '%s') for participant context '%s': %s",
                     instance.getId(), node, participantContextId, result.getFailureDetail());
         }
-        if (firstRegistration) {
-            log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
-                    instance.getId(), participantContextId, node, instance.getUrl());
-        } else {
-            log.debug("Refreshed data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
-                    instance.getId(), participantContextId, node, instance.getUrl());
-        }
+        log.debug("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
+                instance.getId(), participantContextId, node, instance.getUrl());
     }
 
     private static DataPlaneInstance buildInstance(Config entry, String participantContextId) {
