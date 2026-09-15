@@ -250,6 +250,6 @@ hurl:
     cs_ds_tls_dn: CN=central-server.cs
     cs_ds_tls_san: DNS:central-server,DNS:central-server.cs,DNS:ds-issuer-service,DNS:ds-issuer-service.cs,DNS:localhost
     ss0_ds_tls_dn: CN=xrd-ss0
-    ss0_ds_tls_san: DNS:ds-identity-hub.ss0,DNS:ds-control-plane.ss0,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:xrd-ss0,DNS:localhost
+    ss0_ds_tls_san: DNS:proxy.ss0,DNS:ds-identity-hub.ss0,DNS:ds-control-plane.ss0,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:xrd-ss0,DNS:localhost
     ss1_ds_tls_dn: CN=xrd-ss1
-    ss1_ds_tls_san: DNS:ds-identity-hub.ss1,DNS:ds-control-plane.ss1,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:xrd-ss1,DNS:localhost
+    ss1_ds_tls_san: DNS:proxy.ss1,DNS:ds-identity-hub.ss1,DNS:ds-control-plane.ss1,DNS:ds-identity-hub,DNS:ds-control-plane,DNS:xrd-ss1,DNS:localhost

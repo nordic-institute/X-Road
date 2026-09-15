@@ -72,27 +72,25 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p><b>Which participant contexts the exchange actually rides.</b> Publication is additive during this
  * epic (the legacy host-context publication is removed only by a later cutover story), so the new
  * client's service is published under the host context in addition to its own {@code DEV:COM:4321}
- * context, and the consumer proxy still addresses the provider's host-context DSP endpoint. The exchange
- * therefore splits: the consumer side negotiates on the sender member's context ({@code DEV:COM:1234}),
- * the provider side serves the offer on the host context — whose literal value differs per environment
- * ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD), which is why the DB assertions never compare it
- * against a constant. Each side persists its own per-context copy of the one wire agreement. This
- * scenario does <b>not</b> exercise the new member's own participant context as the provider side's
- * context — {@link #awaitMemberContextIssued} still confirms that context and its membership credential
- * are independently provisioned, proving the runtime member is a genuine dataspace participant, just not
- * the one this particular offer happens to be served under.
+ * context — but the consumer proxy derives the counter-party coordinates from the provider member id
+ * (XRDADR-41), so it dials the {@code DEV:COM:4321} context directly. The exchange therefore rides two
+ * member contexts: the consumer side negotiates on the sender member's context ({@code DEV:COM:1234}),
+ * the provider side serves the offer on the new member's <b>own</b> context ({@code DEV:COM:4321}), and
+ * each side persists its own per-context copy of the one wire agreement. The runtime member's context is
+ * thus exercised end-to-end as the provider side's negotiation identity;
+ * {@link #awaitMemberContextIssued} additionally confirms the context and its membership credential are
+ * provisioned before any traffic flows.
  *
- * <p><b>Per-member data-plane registration is exercised for the consumer's member, not the new one.</b>
- * The consumer side's transfer runs under {@code DEV:COM:1234}, so data-plane selection resolves the
- * member-context instance the registrar created for that context — a transfer under a member context with
- * no registered instance terminates with "No dataplane found". A runtime-registered instance scoped to
- * {@code DEV:COM:4321} is <i>not</i> what this transfer uses. The EDC data-plane instance store is
- * in-memory in the control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d}
- * on the live database lists no data-plane-instance table) and no externally reachable listing endpoint
- * the control port exposes (that port carries data-plane signaling callbacks, not a selector query API) —
- * so the new member's own record is not directly observable from an end-to-end test; its registration
- * path is proven by {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests
- * instead.
+ * <p><b>Per-member data-plane registration is exercised for both members' contexts.</b> The provider
+ * side's transfer runs under {@code DEV:COM:4321}, so data-plane selection resolves the member-context
+ * instance the registrar created for that context at runtime — a transfer under a member context with no
+ * registered instance terminates with "No dataplane found", so the transfer succeeding is itself the
+ * end-to-end proof of the runtime registration. The EDC data-plane instance store is in-memory in the
+ * control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d} on the live
+ * database lists no data-plane-instance table) and no externally reachable listing endpoint the control
+ * port exposes (that port carries data-plane signaling callbacks, not a selector query API) — so the
+ * record itself is not directly observable; the registration mechanics are covered by
+ * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests.
  *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
@@ -160,10 +158,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     /**
      * The DSP asset id for the new client's service — its full client id and the REST service code,
      * colon-joined, confirmed live against {@code edc_contract_agreement.asset_id}. Unique to this
-     * scenario, so full-string equality on it alone identifies this negotiation. The provider side's
-     * context is the environment's host context — {@code xrd-ss0} on k8s but {@code xrd-ss0.lxd} on
-     * LXD — so it is read from the matched rows and asserted for consistency, never against a literal;
-     * the only literal exclusion is the {@code -mgmt} companion context.
+     * scenario, so full-string equality on it alone identifies this negotiation.
      */
     private static final String ASSET_ID = NEW_CLIENT_ID + ":" + REST_SERVICE_CODE;
 
@@ -218,7 +213,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 () -> "%s does not run the dataspace protocol stack; runtime member provisioning is only wired for k8s and LXD"
                         .formatted(env.getClass().getSimpleName()));
         var dspAssertions = new DspNegotiationDbAssertions((DsControlPlaneDbOps) env,
-                SS0_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID);
+                SS0_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID, NEW_MEMBER_CTX_ID);
 
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
@@ -268,7 +263,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         var wireAgreementId = then(
                 "the negotiation completes: a CONSUMER row on the sender member's context and a PROVIDER row on the "
-                        + "host context share one wire agreement",
+                        + "new member's own context share one wire agreement",
                 () -> dspAssertions.awaitNegotiationPair());
 
         and("exactly one per-context edc_contract_agreement copy exists for each side of that wire agreement", () ->

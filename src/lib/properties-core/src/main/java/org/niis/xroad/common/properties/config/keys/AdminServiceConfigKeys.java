@@ -472,11 +472,6 @@ public final class AdminServiceConfigKeys implements ConfigKeyProvider {
             .string("participant-id")
             .build();
 
-    public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_DID_PORT = DATASPACE
-            .integer("identity-hub-did-port")
-            .withDefaultValue(7183)
-            .build();
-
     public static final ConfigKey<Integer> DATASPACE_IDENTITY_HUB_STS_PORT = DATASPACE
             .integer("identity-hub-sts-port")
             .withDefaultValue(7184)
