@@ -26,55 +26,66 @@
  */
 package org.niis.xroad.edc.extension.policy.controlplane.issuertrust;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(DependencyInjectionExtension.class)
 class XRoadIssuerTrustAnchorExtensionTest {
 
     private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final String DID_1 = "did:web:cs1.example.test%3A6183:issuer";
     private static final String DID_2 = "did:web:cs2.example.test%3A6183:issuer";
 
-    @Mock
-    GlobalConfProvider globalConfProvider;
-    @Mock
-    ServiceExtensionContext context;
-    @Mock
-    Monitor monitor;
+    private final GlobalConfProvider globalConfProvider = mock();
 
-    @InjectMocks
-    XRoadIssuerTrustAnchorExtension extension;
+    private XRoadIssuerTrustAnchorExtension extension;
+
+    @BeforeEach
+    void setUp(ServiceExtensionContext context) {
+        context.registerService(GlobalConfProvider.class, globalConfProvider);
+        context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (extension != null) {
+            extension.shutdown();
+        }
+    }
 
     @Test
-    void nameReturnsExpectedValue() {
+    void nameReturnsExpectedValue(ObjectFactory factory) {
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
+
         assertThat(extension.name()).isEqualTo(XRoadIssuerTrustAnchorExtension.EXTENSION_NAME);
     }
 
     @Test
-    void initializeRegistersEveryDistributedIssuerDidAsWildcardTrusted() {
-        stubSettings();
+    void initializeRegistersEveryDistributedIssuerDidAsWildcardTrusted(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1, DID_2));
 
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
 
         var registry = extension.trustedIssuerRegistry();
@@ -83,50 +94,44 @@ class XRoadIssuerTrustAnchorExtensionTest {
     }
 
     @Test
-    void initializeRegistersNothingWhenNotDataspaceEnabled() {
-        stubSettings();
+    void initializeRegistersNothingWhenNotDataspaceEnabled(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
 
         assertThat(extension.trustedIssuerRegistry().getSupportedTypes(new Issuer(DID_1))).isEmpty();
     }
 
     @Test
-    void shutdownIsSafeAfterInitialize() {
-        stubSettings();
+    void shutdownIsSafeAfterInitialize(ServiceExtensionContext context, ObjectFactory factory) {
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of(DID_1));
 
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
 
         assertThat(catchThrowable(extension::shutdown)).isNull();
     }
 
     @Test
-    void refreshTickReReadsGlobalConfDroppingDidsMissingFromTheNewSnapshot() {
-        when(context.getMonitor()).thenReturn(monitor);
-        when(context.getSetting(anyString(), anyLong())).thenReturn(1L);
+    void refreshTickReReadsGlobalConfDroppingDidsMissingFromTheNewSnapshot(ServiceExtensionContext context, ObjectFactory factory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(
+                Map.of(XRoadIssuerTrustAnchorExtension.SETTING_REFRESH_INTERVAL_SECONDS, "1")));
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of(DID_1))
                 .thenReturn(List.of(DID_2));
 
+        extension = factory.constructInstance(XRoadIssuerTrustAnchorExtension.class);
         extension.initialize(context);
-        var registry = extension.trustedIssuerRegistry();
-        try {
-            await().atMost(Duration.ofSeconds(5))
-                    .untilAsserted(() -> assertThat(registry.getSupportedTypes(new Issuer(DID_2)))
-                            .containsExactly(TrustedIssuerRegistry.WILDCARD));
-            assertThat(registry.getSupportedTypes(new Issuer(DID_1))).isEmpty();
-        } finally {
-            extension.shutdown();
-        }
-    }
+        extension.start();
 
-    private void stubSettings() {
-        when(context.getMonitor()).thenReturn(monitor);
-        when(context.getSetting(anyString(), anyLong())).thenReturn(3600L);
+        var registry = extension.trustedIssuerRegistry();
+        await().atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> assertThat(registry.getSupportedTypes(new Issuer(DID_2)))
+                        .containsExactly(TrustedIssuerRegistry.WILDCARD));
+        assertThat(registry.getSupportedTypes(new Issuer(DID_1))).isEmpty();
     }
 }

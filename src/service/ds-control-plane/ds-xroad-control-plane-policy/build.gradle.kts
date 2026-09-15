@@ -13,7 +13,6 @@ dependencies {
 
     implementation(project(":lib:globalconf-core"))
     implementation(project(":lib:serverconf-core"))
-    implementation(project(":lib:edc-tls-reload"))
     implementation(project(":common:common-domain"))
 
     testImplementation(libs.assertj.core)

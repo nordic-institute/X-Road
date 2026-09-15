@@ -30,16 +30,18 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerReg
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.edc.reload.PeriodicMaterialReloader;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 
-import java.time.Duration;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoadIssuerTrustAnchorExtension.EXTENSION_NAME;
 
@@ -66,17 +68,27 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     static final String SETTING_REFRESH_INTERVAL_SECONDS = "xroad.dsp.issuer-trust.refresh-interval-seconds";
 
     private static final long DEFAULT_REFRESH_INTERVAL_SECONDS = 60L;
-    private static final int MAX_RELOAD_ATTEMPTS_PER_CYCLE = 3;
-    private static final Duration RELOAD_RETRY_DELAY = Duration.ofSeconds(5);
+
+    @Setting(key = SETTING_REFRESH_INTERVAL_SECONDS,
+            description = "Period (in seconds) at which the trusted issuer set is refreshed from globalconf; <= 0 disables the refresh",
+            defaultValue = DEFAULT_REFRESH_INTERVAL_SECONDS + "")
+    private long refreshIntervalSeconds;
 
     @Inject
     private GlobalConfProvider globalConfProvider;
+
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
+    @Inject
+    private Monitor monitor;
 
     private final XRoadTrustedIssuerRegistry issuerRegistry = new XRoadTrustedIssuerRegistry();
 
     private final AtomicBoolean notEnabledLogged = new AtomicBoolean(false);
 
-    private PeriodicMaterialReloader<Set<String>> reloader;
+    private volatile Set<String> currentDids;
+    private ScheduledExecutorService scheduledExecutorService;
 
     @Override
     public String name() {
@@ -85,19 +97,15 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-        var refreshIntervalSeconds = context.getSetting(SETTING_REFRESH_INTERVAL_SECONDS, DEFAULT_REFRESH_INTERVAL_SECONDS);
+        currentDids = loadTrustedIssuerDids();
+        replaceTrustedIssuers(currentDids);
+        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, currentDids.size()));
 
-        var initialDids = loadTrustedIssuerDids(monitor);
-        replaceTrustedIssuers(initialDids);
-        monitor.info("%s: trusting %d issuer DID(s) from globalconf".formatted(EXTENSION_NAME, initialDids.size()));
-
-        var initial = new PeriodicMaterialReloader.Loaded<>(initialDids, fingerprint(initialDids));
-        reloader = PeriodicMaterialReloader.schedule(EXTENSION_NAME, initial, Duration.ofSeconds(refreshIntervalSeconds),
-                MAX_RELOAD_ATTEMPTS_PER_CYCLE, RELOAD_RETRY_DELAY, () -> {
-                    var dids = loadTrustedIssuerDids(monitor);
-                    return new PeriodicMaterialReloader.Loaded<>(dids, fingerprint(dids));
-                }, this::replaceTrustedIssuers, monitor);
+        if (refreshIntervalSeconds > 0) {
+            scheduledExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), EXTENSION_NAME);
+        } else {
+            monitor.info("%s: periodic refresh is disabled (%s <= 0)".formatted(EXTENSION_NAME, SETTING_REFRESH_INTERVAL_SECONDS));
+        }
     }
 
     /**
@@ -110,13 +118,35 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     }
 
     @Override
-    public void shutdown() {
-        if (reloader != null) {
-            reloader.close();
+    public void start() {
+        if (scheduledExecutorService != null && !scheduledExecutorService.isShutdown()) {
+            scheduledExecutorService.scheduleAtFixedRate(this::refreshSafely, refreshIntervalSeconds, refreshIntervalSeconds,
+                    TimeUnit.SECONDS);
         }
     }
 
-    private Set<String> loadTrustedIssuerDids(Monitor monitor) {
+    @Override
+    public void shutdown() {
+        if (scheduledExecutorService != null) {
+            scheduledExecutorService.shutdownNow();
+        }
+    }
+
+    private void refreshSafely() {
+        try {
+            var dids = loadTrustedIssuerDids();
+            if (!dids.equals(currentDids)) {
+                replaceTrustedIssuers(dids);
+                currentDids = dids;
+                monitor.info("%s: trusted issuer set changed, now %d DID(s)".formatted(EXTENSION_NAME, dids.size()));
+            }
+        } catch (Throwable t) {
+            // an escaping exception silently cancels all further scheduleAtFixedRate iterations, so every failure is swallowed here
+            monitor.severe("%s: refresh failed; keeping previous trusted issuer set".formatted(EXTENSION_NAME), t);
+        }
+    }
+
+    private Set<String> loadTrustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
@@ -132,9 +162,5 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
 
     private void replaceTrustedIssuers(Set<String> dids) {
         issuerRegistry.replaceAll(dids, TrustedIssuerRegistry.WILDCARD);
-    }
-
-    private static String fingerprint(Set<String> dids) {
-        return dids.stream().sorted().collect(Collectors.joining(","));
     }
 }

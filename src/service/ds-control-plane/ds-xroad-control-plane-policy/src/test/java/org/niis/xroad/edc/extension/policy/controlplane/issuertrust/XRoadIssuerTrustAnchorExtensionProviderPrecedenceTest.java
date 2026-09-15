@@ -34,6 +34,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerReg
 import org.eclipse.edc.junit.extensions.TestServiceExtensionContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -73,6 +74,7 @@ class XRoadIssuerTrustAnchorExtensionProviderPrecedenceTest {
         when(globalConfProvider.getIssuerDids("TEST")).thenReturn(List.of());
         context.registerService(GlobalConfProvider.class, globalConfProvider);
         context.registerService(CriterionOperatorRegistry.class, mock(CriterionOperatorRegistry.class));
+        context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
 
         var consumer = new TrustedIssuerRegistryConsumer();
         var extensions = List.of(extensionA, extensionB, consumer);
