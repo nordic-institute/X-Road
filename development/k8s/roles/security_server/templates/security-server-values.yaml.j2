@@ -135,7 +135,7 @@ configSeed:
     - key: xroad.proxy-ui-api.dataspace.enabled
       value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
-      value: "https://{{ ds_ih_host }}:7182"
+      value: "https://{{ ds_ih_host }}"
     - key: xroad.proxy-ui-api.dataspace.issuer-did
       value: "did:web:{{ trusted_issuer_host | default('xrd-cs') }}%3A6183:issuer"
     # Seconds (prod default 60); short so a fixture-written dataset is visible to the
@@ -173,10 +173,10 @@ services:
 {% endif %}
 {# Only these two need service-specific env entries here (trusted-issuer id / callback
    address for ds-control-plane, public DID hostname for ds-identity-hub). ds-issuer-service
-   has none — it is not "excluded"; EDC_IAM_DID_WEB_USE_HTTPS is no longer set per-service at
-   all, for any of the three, since the chart's own default is now "true" for all of them
-   (see the security-server chart values.yaml comment on ds-control-plane's
-   EDC_IAM_DID_WEB_USE_HTTPS — upstream EDC's own default, decompile-verified). #}
+   has none — it is not "excluded"; EDC_IAM_DID_WEB_USE_HTTPS is not set anywhere (neither
+   here nor in the security-server chart) because upstream EDC's own default is already
+   "true" (decompile-verified: identity-did-web's WebDidExtension,
+   getSetting("edc.iam.did.web.use.https", true)) and nothing in the stack overrides it. #}
 {% if ds_tls and svc in ['ds-control-plane', 'ds-identity-hub'] %}
     env:
 {% if svc == 'ds-control-plane' %}

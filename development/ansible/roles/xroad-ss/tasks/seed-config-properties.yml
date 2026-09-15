@@ -31,7 +31,7 @@
     - key: xroad.dsp.catalog.cache.ttl-seconds
       value: "5"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
-      value: "https://{{ inventory_hostname }}.lxd:7182"
+      value: "https://{{ inventory_hostname }}.lxd"
     - key: xroad.proxy-ui-api.dataspace.participant-id
       value: "{{ inventory_hostname }}.lxd"
     - key: xroad.proxy-ui-api.dataspace.issuer-did
