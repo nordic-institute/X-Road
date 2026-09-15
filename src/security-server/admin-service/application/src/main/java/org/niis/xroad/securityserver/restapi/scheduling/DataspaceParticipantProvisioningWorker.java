@@ -26,10 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -52,6 +56,7 @@ public class DataspaceParticipantProvisioningWorker {
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
+    private final DataspaceParticipantBindingService participantBindingService;
 
     /**
      * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
@@ -100,6 +105,8 @@ public class DataspaceParticipantProvisioningWorker {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
+        participantBindingService.bindMembersIfAbsent(memberIdsOf(contexts));
+
         var ensuredContexts = ensureContexts(contexts);
 
         if (!authCertRegistered) {
@@ -108,6 +115,13 @@ public class DataspaceParticipantProvisioningWorker {
         }
 
         ensureCredentials(ensuredContexts);
+    }
+
+    private static List<ClientId> memberIdsOf(List<ParticipantContext> contexts) {
+        return contexts.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .map(ParticipantContext::memberId)
+                .toList();
     }
 
     private static boolean ownerUnknown(List<ParticipantContext> contexts) {
