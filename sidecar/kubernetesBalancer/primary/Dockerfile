@@ -19,8 +19,6 @@ RUN adduser --system --shell /bin/bash --home /home/xroad-slave --ingroup xroad 
   && crudini --set /etc/xroad/conf.d/node.ini node type 'master' \
   && chown xroad:xroad /etc/xroad/conf.d/node.ini \
   && cp -a /etc/xroad/conf.d/node.ini /usr/share/xroad/config/etc/xroad/conf.d/ \
-  && crudini --set /etc/xroad/conf.d/override-docker.ini proxy server-support-clients-pooled-connections 'false' \
-  && cp -a /etc/xroad/conf.d/override-docker.ini /usr/share/xroad/config/etc/xroad/conf.d/ \
   && echo "StrictModes no" >>/etc/ssh/sshd_config \
   && echo "PasswordAuthentication no" >>/etc/ssh/sshd_config \
   && echo "X11Forwarding no" >>/etc/ssh/sshd_config \

@@ -835,8 +835,7 @@
     "noClientData": "Kliendi andmed puuduvad",
     "noLocalGroups": "Lokaalsed grupid puuduvad",
     "noServiceClients": "Teenuse kliendid puuduvad",
-    "noTimestampingServices": "Ajatempli teenused puuduvad",
-    "noConfigurableProperties": "Konfigureeritavad omadused puuduvad"
+    "noTimestampingServices": "Ajatempli teenused puuduvad"
   },
   "serviceClientType": {
     "globalGroup": "GLOBAALNE RÜHM",
@@ -1039,23 +1038,6 @@
     },
     "title": "Süsteemi parameetrid",
     "configurableProperties": {
-      "title": "Konfigureeritavad süsteemi omadused",
-      "search": "Otsi omadusi...",
-      "restartWarning": "Muudatuste jõustumiseks tuleb järgmised teenused taaskäivitada: {scopes}.",
-      "propertyRestartWarning": "Muudatuste jõustumiseks on vajalik taaskäivitamine.",
-      "collapseAll": "Ahenda kõik",
-      "updateSuccess": "Omadus edukalt uuendatud",
-      "editDialog": {
-        "title": "Muuda omaduse väärtust"
-      },
-      "table": {
-        "header": {
-          "propertyName": "Omaduse nimi",
-          "currentValue": "Praegune väärtus",
-          "defaultValue": "Vaikeväärtus",
-          "description": "Kirjeldus"
-        }
-      },
       "descriptions": {
         "xroad": {
           "proxy-ui-api": {

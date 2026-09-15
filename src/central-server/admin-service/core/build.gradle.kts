@@ -27,6 +27,7 @@ dependencies {
   implementation(project(":lib:properties-spring"))
   implementation(project(":lib:ds-identity-core"))
   implementation(project(":service:ds-issuer-service:ds-issuer-service-provisioning-protocol"))
+  implementation(project(":service:signer:signer-common"))
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.springBoot.starterTest)

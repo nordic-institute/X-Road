@@ -175,7 +175,7 @@ class ClientRestMessageProcessorTest {
         var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
 
         // isManagementRequest drives the management flag in the DspRequest constructed by sendRequest.
-        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        var dspRequest = new DspRequest(serviceId, serviceId.getClientId(), null, processor.isManagementRequest(serviceId));
         assertThat(dspRequest.managementSubsystem()).isTrue();
     }
 
@@ -189,7 +189,7 @@ class ClientRestMessageProcessorTest {
 
         var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
 
-        var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
+        var dspRequest = new DspRequest(serviceId, serviceId.getClientId(), null, processor.isManagementRequest(serviceId));
         assertThat(dspRequest.managementSubsystem()).isFalse();
     }
 

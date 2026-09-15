@@ -158,6 +158,25 @@
     "rsaExp": "Экспонента открытого RSA ключа",
     "rsaModulus": "Модуль открытого RSA ключа"
   },
+  "configurableProperties": {
+    "title": "Настраиваемые системные свойства",
+    "search": "Поиск свойств...",
+    "restartWarning": "Для вступления изменений в силу необходимо перезапустить следующие службы: {scopes}.",
+    "propertyRestartWarning": "Для вступления изменений в силу требуется перезапуск.",
+    "collapseAll": "Свернуть все",
+    "updateSuccess": "Свойство успешно обновлено",
+    "editDialog": {
+      "title": "Редактировать значение свойства"
+    },
+    "table": {
+      "header": {
+        "propertyName": "Название свойства",
+        "currentValue": "Текущее значение",
+        "defaultValue": "Значение по умолчанию",
+        "description": "Описание"
+      }
+    }
+  },
   "error_code": {
     "api_key_not_found": "API ключ не найден",
     "backup_file_not_found": "Файл резервной копии не найден",
@@ -242,6 +261,7 @@
     "noBackups": "Резервных копий пока нет",
     "noCertificate": "Нет сертификата",
     "noCertificates": "Нет сертификатов",
+    "noConfigurableProperties": "Нет настраиваемых свойств",
     "noData": "Нет данных",
     "noMatches": "Нет элементов, соответствующих критериям",
     "noServices": "Нет сервисов",

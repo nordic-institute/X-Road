@@ -133,10 +133,13 @@ public interface JpaSecurityServerRepository extends
         final Join<SecurityServerEntity, XRoadMemberEntity> owner = root.join(SecurityServerEntity_.owner);
         final Join<XRoadMemberEntity, ClientIdEntity> identifier =
                 owner.join(SecurityServerClientEntity_.identifier);
+        // XRoadMemberEntity is a SINGLE_TABLE subtype of SecurityServerClientEntity; an explicit treat() is
+        // required to reach a subtype-only attribute such as "name" via this association.
+        final Join<SecurityServerEntity, XRoadMemberEntity> ownerAsMember = builder.treat(owner, XRoadMemberEntity.class);
 
         return builder.or(
                 CriteriaBuilderUtil.caseInsensitiveLike(builder, q, root.get(SecurityServerEntity_.serverCode)),
-                CriteriaBuilderUtil.caseInsensitiveLike(builder, q, owner.get(XRoadMemberEntity_.name)),
+                CriteriaBuilderUtil.caseInsensitiveLike(builder, q, ownerAsMember.get(XRoadMemberEntity_.NAME)),
                 CriteriaBuilderUtil.caseInsensitiveLike(builder, q, identifier.get(XRoadMemberEntity_.MEMBER_CLASS)),
                 CriteriaBuilderUtil.caseInsensitiveLike(builder, q, identifier.get(XRoadMemberEntity_.MEMBER_CODE))
         );

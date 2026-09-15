@@ -124,7 +124,6 @@ class AssetAccessRpcClientTest {
         when(channelProperties.host()).thenReturn("localhost");
         when(channelProperties.port()).thenReturn(server.getPort());
         when(rpcChannelFactory.createChannel(channelProperties)).thenReturn(channel);
-        when(clientProperties.participantContextId()).thenReturn("test-participant-ctx");
         when(clientProperties.protocol()).thenReturn("http-dsp-profile-2025-1");
         when(clientProperties.cache()).thenReturn(cacheProperties);
         when(cacheProperties.enabled()).thenReturn(true);
@@ -152,7 +151,7 @@ class AssetAccessRpcClientTest {
                 .setAuthorization("token-abc-123")
                 .build();
 
-        var result = client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        var result = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
 
         assertThat(result.endpoint()).isEqualTo("http://provider/api/data");
         assertThat(result.authorization()).isEqualTo("token-abc-123");
@@ -171,7 +170,7 @@ class AssetAccessRpcClientTest {
                 .setEndpoint("http://provider/api/data")
                 .build();
 
-        var result = client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        var result = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
 
         assertThat(result.endpoint()).isEqualTo("http://provider/api/data");
         assertThat(result.authorization()).isNull();
@@ -181,7 +180,7 @@ class AssetAccessRpcClientTest {
     void acquireFailureThrowsStatusRuntimeException() {
         configuredError = new StatusRuntimeException(Status.INTERNAL);
 
-        assertThatThrownBy(() -> client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp"))
+        assertThatThrownBy(() -> client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp"))
                 .isInstanceOf(StatusRuntimeException.class)
                 .satisfies(ex -> assertThat(((StatusRuntimeException) ex).getStatus().getCode())
                         .isEqualTo(Status.INTERNAL.getCode()));
@@ -195,8 +194,8 @@ class AssetAccessRpcClientTest {
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
 
-        var result1 = client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
-        var result2 = client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        var result1 = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
+        var result2 = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
 
         assertThat(result1.endpoint()).isEqualTo("http://provider/api/data");
         assertThat(result2.endpoint()).isEqualTo("http://provider/api/data");
@@ -211,8 +210,8 @@ class AssetAccessRpcClientTest {
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
 
-        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
-        client.acquireAssetAccess("asset-2", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-2", "provider-1", "http://provider/dsp");
 
         assertThat(requestCount.get()).isEqualTo(2);
     }
@@ -224,11 +223,8 @@ class AssetAccessRpcClientTest {
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
 
-        // Sequential stubbing: first call resolves to ctx-a, second call to ctx-b.
-        when(clientProperties.participantContextId()).thenReturn("ctx-a", "ctx-b");
-
-        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
-        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("ctx-a", "asset-1", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("ctx-b", "asset-1", "provider-1", "http://provider/dsp");
 
         assertThat(requestCount.get()).isEqualTo(2);
     }
@@ -240,8 +236,8 @@ class AssetAccessRpcClientTest {
                 .setExpiresAtEpochSeconds(Instant.now().getEpochSecond() + 3600)
                 .build();
 
-        client.acquireAssetAccess("asset-1", "provider-1", "http://providerA/dsp");
-        client.acquireAssetAccess("asset-1", "provider-1", "http://providerB/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://providerA/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://providerB/dsp");
 
         assertThat(requestCount.get()).isEqualTo(2);
     }
@@ -252,8 +248,8 @@ class AssetAccessRpcClientTest {
                 .setEndpoint("http://provider/api/data")
                 .build();
 
-        var result1 = client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
-        var result2 = client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        var result1 = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
+        var result2 = client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
 
         assertThat(result1.endpoint()).isEqualTo("http://provider/api/data");
         assertThat(result2.endpoint()).isEqualTo("http://provider/api/data");
@@ -278,7 +274,7 @@ class AssetAccessRpcClientTest {
             for (int i = 0; i < threadCount; i++) {
                 futures.add(executor.submit(() -> {
                     startGate.await();
-                    return client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+                    return client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
                 }));
             }
             startGate.countDown();
@@ -318,8 +314,8 @@ class AssetAccessRpcClientTest {
         client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
         client.init();
 
-        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
-        client.acquireAssetAccess("asset-1", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://provider/dsp");
 
         assertThat(requestCount.get()).isEqualTo(2);
     }
@@ -367,7 +363,7 @@ class AssetAccessRpcClientTest {
         client = new AssetAccessRpcClient(rpcChannelFactory, channelProperties, clientProperties);
         client.init();
 
-        client.acquireAssetAccess("asset-1", "provider-1", "http://p/dsp");
+        client.acquireAssetAccess("test-participant-ctx", "asset-1", "provider-1", "http://p/dsp");
 
         assertThat(deadlineRef.get()).isNotNull();
     }

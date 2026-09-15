@@ -43,11 +43,10 @@ class AssetAccessCache {
 
     /**
      * Cache key for acquired asset access responses. A cache must key on every field that
-     * affects the response.
+     * affects the response; {@code participantContextId} varies per request with the sender.
      *
-     * <p>Planned: {@code participantContextId} will become per-request-configurable;
-     * {@code counterPartyAddress} will be resolved from GlobalConf; multiple {@code protocol}
-     * versions are foreseeable.
+     * <p>Planned: {@code counterPartyAddress} will be resolved from GlobalConf; multiple
+     * {@code protocol} versions are foreseeable.
      */
     record CacheKey(String participantContextId, String assetId, String counterPartyId,
                     String counterPartyAddress, String protocol) { }

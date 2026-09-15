@@ -37,12 +37,10 @@ import {
   NodeType,
   NodeTypeResponse,
   SecurityServerAddressStatus,
-  SecurityServerConfigurableProperty,
-  SecurityServerPropertyUpdate,
   VersionInfo,
 } from '@/openapi-types';
 import * as api from '@/util/api';
-import { buildFileFormData, multipartFormDataConfig } from '@niis/shared-ui';
+import { buildFileFormData, ConfigurablePropertyDto, ConfigurablePropertyUpdateDto, multipartFormDataConfig } from '@niis/shared-ui';
 
 export interface SystemState {
   securityServerVersion: VersionInfo;
@@ -114,9 +112,9 @@ export const useSystem = defineStore('system', {
       return api.put('/system/server-address', body);
     },
     async fetchConfigurableProperties() {
-      return api.get<SecurityServerConfigurableProperty[]>('/system/property').then((resp) => resp.data);
+      return api.get<ConfigurablePropertyDto[]>('/system/property').then((resp) => resp.data);
     },
-    async updateConfigurableProperty(update: SecurityServerPropertyUpdate) {
+    async updateConfigurableProperty(update: ConfigurablePropertyUpdateDto) {
       return api.patch('/system/property', update);
     },
     async uploadAnchor(initMode: boolean, anchorFile: File) {

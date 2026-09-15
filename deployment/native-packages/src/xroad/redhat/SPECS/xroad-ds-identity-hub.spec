@@ -81,11 +81,24 @@ if systemctl is-active %{name} &> /dev/null; then
   touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
 fi
 
+%define init_xroad_ds_identity_hub_db()                       \
+    /usr/share/xroad/scripts/setup_ds_identityhub_db.sh ""
+
 %post -p /bin/bash
 umask 027
 
-# Run database setup script
-/usr/share/xroad/scripts/setup_ds_identityhub_db.sh "" || true
+%systemd_post xroad-ds-identity-hub.service
+
+%preun
+%systemd_preun xroad-ds-identity-hub.service
+
+%postun
+%systemd_postun_with_restart xroad-ds-identity-hub.service
+
+%posttrans -p /bin/bash
+umask 027
+
+%init_xroad_ds_identity_hub_db
 
 # Temporary dev flow - copy admin credentials from xroad.properties to db.properties
 # This allows the application to use admin credentials for database access
@@ -118,13 +131,5 @@ if [ -f "$root_properties" ] && [ -f "$db_properties" ]; then
     fi
   fi
 fi
-
-%systemd_post xroad-ds-identity-hub.service
-
-%preun
-%systemd_preun xroad-ds-identity-hub.service
-
-%postun
-%systemd_postun_with_restart xroad-ds-identity-hub.service
 
 %changelog
