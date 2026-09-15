@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
@@ -157,6 +158,7 @@ public class DataspaceProvisioningService {
     private final ClientRepository clientRepository;
     private final ServerConfRepository serverConfRepository;
     private final DsParticipantRepository dsParticipantRepository;
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
@@ -203,16 +205,22 @@ public class DataspaceProvisioningService {
      * @param participantId the participant context id
      * @return {@code ISSUED} for a terminally issued credential, {@code PENDING} when a request is
      *         active or was just submitted, {@code UNKNOWN} for an unrecognized hub state,
-     *         {@code ERROR} when all slots are exhausted
+     *         {@code ERROR} when all slots are exhausted, {@code ABSENT} when the instance is not
+     *         dataspace-enabled (no distributed issuer trust anchor) — no request is submitted
      */
     public CredentialStatus ensureMembershipCredential(String participantId) {
+        var trustedIssuerDids = trustedIssuerDids();
+        if (trustedIssuerDids.isEmpty()) {
+            return CredentialStatus.ABSENT;
+        }
+
         var ds = adminServiceProperties.getDataspace();
         for (int slot = 0; slot < ds.getMaxHolderPidSlots(); slot++) {
             var holderPid = holderPid(participantId, slot);
             var state = identityHubClient.getCredentialRequestState(participantId, holderPid);
             if (state == null) {
                 log.info("Data space provisioning: submitting credential request for participant {}", participantId);
-                identityHubClient.requestMembershipCredential(participantId, ds.getIssuerDid(), holderPid,
+                identityHubClient.requestMembershipCredential(participantId, trustedIssuerDids, holderPid,
                         ds.getCredentialDefinitionId(), CREDENTIAL_TYPE, CREDENTIAL_FORMAT);
                 return CredentialStatus.PENDING;
             }
@@ -262,6 +270,21 @@ public class DataspaceProvisioningService {
             return CredentialStatus.PENDING;
         }
         return EnumUtils.getEnum(CredentialStatus.class, state, CredentialStatus.UNKNOWN);
+    }
+
+    /**
+     * The dataspace issuer trust anchor: every Issuer DID published by any Central Server node of this
+     * X-Road instance's globalconf. Empty when the instance is not dataspace-enabled (no
+     * {@code dataspaceParameters} in the distributed shared parameters).
+     */
+    private Set<String> trustedIssuerDids() {
+        var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
+        var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
+        if (dids.isEmpty()) {
+            log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no dataspaceParameters "
+                    + "in globalconf); dataspace issuance and trust are not enabled", instanceIdentifier);
+        }
+        return dids;
     }
 
     /**

@@ -37,6 +37,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -89,6 +90,8 @@ class DataspaceProvisioningStatusServiceTest {
     private ServerConfRepository serverConfRepository;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceProvisioningStatusService statusService;
@@ -97,7 +100,6 @@ class DataspaceProvisioningStatusServiceTest {
     void setUp() {
         lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
-        lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
@@ -114,7 +116,7 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);

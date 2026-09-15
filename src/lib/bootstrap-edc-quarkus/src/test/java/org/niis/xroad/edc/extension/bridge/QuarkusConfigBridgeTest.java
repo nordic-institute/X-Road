@@ -327,48 +327,49 @@ class QuarkusConfigBridgeTest {
      * some enumerable config source declares that exact dotted name. SmallRye enumerates an environment
      * variable by turning every underscore into a dot, so an env var cannot introduce a setting whose name
      * contains a hyphen — it can only override one that yaml (or another enumerable source) already declares.
-     * This is why per-environment EDC settings such as {@code edc.iam.trusted-issuer.issuer.id} are supplied
-     * through {@code /etc/xroad/conf.d/local-ds-control-plane.yaml} rather than as an env var.
+     * This is why a hyphenated EDC-native setting such as {@code edc.tasks.poll.max-retry} needs its value
+     * supplied by an enumerable source (a packaged or mounted yaml, a properties file) rather than by an
+     * env var alone.
      */
     @Nested
     class EnumerationTests {
 
-        private static final String HYPHENATED_KEY = "edc.iam.trusted-issuer.issuer.id";
+        private static final String HYPHENATED_KEY = "edc.tasks.poll.max-retry";
 
         @Test
         void envVarAloneCannotIntroduceAHyphenatedSetting() {
             var config = new SmallRyeConfigBuilder()
-                    .withSources(new EnvConfigSource(Map.of("EDC_IAM_TRUSTED_ISSUER_ISSUER_ID", "did:web:issuer"), 300))
+                    .withSources(new EnvConfigSource(Map.of("EDC_TASKS_POLL_MAX_RETRY", "5"), 300))
                     .build();
 
             var bridge = new QuarkusConfigBridge(config);
 
             assertEquals("<missing>", bridge.getString(HYPHENATED_KEY, "<missing>"));
-            assertTrue(bridge.hasKey("edc.iam.trusted.issuer.issuer.id"),
+            assertTrue(bridge.hasKey("edc.tasks.poll.max.retry"),
                     "SmallRye enumerates the env var with dots in place of every underscore");
         }
 
         @Test
         void envVarOverridesAHyphenatedSettingDeclaredByAnEnumerableSource() {
             var config = new SmallRyeConfigBuilder()
-                    .withSources(new EnvConfigSource(Map.of("EDC_IAM_TRUSTED_ISSUER_ISSUER_ID", "did:web:from-env"), 300))
-                    .withSources(new PropertiesConfigSource(Map.of(HYPHENATED_KEY, "did:web:from-yaml"), "yaml", 255))
+                    .withSources(new EnvConfigSource(Map.of("EDC_TASKS_POLL_MAX_RETRY", "5"), 300))
+                    .withSources(new PropertiesConfigSource(Map.of(HYPHENATED_KEY, "3"), "yaml", 255))
                     .build();
 
             var bridge = new QuarkusConfigBridge(config);
 
-            assertEquals("did:web:from-env", bridge.getString(HYPHENATED_KEY));
+            assertEquals("5", bridge.getString(HYPHENATED_KEY));
         }
 
         @Test
         void enumerableSourceIntroducesAHyphenatedSettingOnItsOwn() {
             var config = new SmallRyeConfigBuilder()
-                    .withSources(new PropertiesConfigSource(Map.of(HYPHENATED_KEY, "did:web:from-yaml"), "yaml", 255))
+                    .withSources(new PropertiesConfigSource(Map.of(HYPHENATED_KEY, "3"), "yaml", 255))
                     .build();
 
             var bridge = new QuarkusConfigBridge(config);
 
-            assertEquals("did:web:from-yaml", bridge.getString(HYPHENATED_KEY));
+            assertEquals("3", bridge.getString(HYPHENATED_KEY));
         }
     }
 

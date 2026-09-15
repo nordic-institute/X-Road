@@ -24,58 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.cs.admin.core.entity;
 
-package org.niis.xroad.edc.identityhub.provisioning.proto;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-option java_multiple_files = true;
+/**
+ * A Central Server node's dataspace credential Issuer DID (globalconf {@code dataspaceParameters/issuerDid}
+ * entry). Under a high-availability Central Server, each node registers its own; the full set is the
+ * distributed dataspace issuer trust anchor.
+ */
+@Entity
+@Table(name = IssuerDidEntity.TABLE_NAME)
+@NoArgsConstructor
+public class IssuerDidEntity extends AuditableEntity {
 
-service IdentityHubProvisioningService {
-  rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
-  rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
-  rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
-  rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
-}
+    public static final String TABLE_NAME = "issuer_dids";
 
-message CreateParticipantContextReq {
-  string participant_context_id = 1;
-  string did = 2;
-  string member_id = 3;
-  string credential_service_url = 4;
-  string key_id = 5;
-  string private_key_alias = 6;
-}
+    @Id
+    @Column(name = "id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
+    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Getter
+    private int id;
 
-message CreateParticipantContextResp {
-}
+    @Column(name = "did", unique = true, nullable = false, updatable = false)
+    @Getter
+    private String did;
 
-message RequestCredentialReq {
-  string participant_context_id = 1;
-  repeated string issuer_dids = 2;
-  string holder_pid = 3;
-  string credential_definition_id = 4;
-  string credential_type = 5;
-  string format = 6;
-}
-
-message RequestCredentialResp {
-  string request_id = 1;
-}
-
-message GetCredentialRequestStateReq {
-  string participant_context_id = 1;
-  string holder_pid = 2;
-}
-
-message GetCredentialRequestStateResp {
-  bool found = 1;
-  string status = 2;
-}
-
-message GetParticipantContextDidReq {
-  string participant_context_id = 1;
-}
-
-message GetParticipantContextDidResp {
-  optional string did = 1;
+    public IssuerDidEntity(String did) {
+        this.did = did;
+    }
 }

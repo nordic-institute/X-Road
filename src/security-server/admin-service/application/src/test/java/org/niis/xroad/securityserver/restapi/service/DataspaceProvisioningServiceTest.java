@@ -39,6 +39,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -57,6 +58,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -74,6 +76,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DataspaceProvisioningServiceTest {
 
+    private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final String PARTICIPANT_ID = "test-participant";
     private static final String HOLDER_PID_SLOT0 = PARTICIPANT_ID + "-xroad-membership-credential-request";
     private static final String HOLDER_PID_SLOT1 = PARTICIPANT_ID + "-xroad-membership-credential-request-1";
@@ -98,6 +101,8 @@ class DataspaceProvisioningServiceTest {
     private ServerConfRepository serverConfRepository;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private DataspaceProvisioningService service;
 
@@ -105,7 +110,6 @@ class DataspaceProvisioningServiceTest {
     void setUp() {
         lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
-        lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
@@ -113,8 +117,11 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        lenient().when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
+                .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
     }
 
     // --- ensureMembershipCredential ---
@@ -125,7 +132,7 @@ class DataspaceProvisioningServiceTest {
 
         assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.PENDING);
 
-        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT0),
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), any(), eq(HOLDER_PID_SLOT0),
                 anyString(), anyString(), anyString());
     }
 
@@ -155,7 +162,7 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureMembershipCredential(PARTICIPANT_ID);
 
-        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT1),
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), any(), eq(HOLDER_PID_SLOT1),
                 anyString(), anyString(), anyString());
     }
 
@@ -167,7 +174,7 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureMembershipCredential(PARTICIPANT_ID);
 
-        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), anyString(), eq(HOLDER_PID_SLOT2),
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), any(), eq(HOLDER_PID_SLOT2),
                 anyString(), anyString(), anyString());
     }
 
@@ -180,6 +187,28 @@ class DataspaceProvisioningServiceTest {
         assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.ERROR);
 
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ensureMembershipCredentialReturnsAbsentAndAttemptsNothingWhenNotDataspaceEnabled() {
+        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
+
+        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.ABSENT);
+
+        verify(identityHubClient, never()).getCredentialRequestState(any(), any());
+        verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ensureMembershipCredentialPassesTheFullTrustedIssuerSetToTheIdentityHub() {
+        var trustedDids = Set.of("did:web:cs1.example.test%3A6183:issuer", "did:web:cs2.example.test%3A6183:issuer");
+        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.copyOf(trustedDids));
+        when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
+
+        service.ensureMembershipCredential(PARTICIPANT_ID);
+
+        verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), eq(trustedDids), eq(HOLDER_PID_SLOT0),
+                anyString(), anyString(), anyString());
     }
 
     // --- readCredentialStatus ---

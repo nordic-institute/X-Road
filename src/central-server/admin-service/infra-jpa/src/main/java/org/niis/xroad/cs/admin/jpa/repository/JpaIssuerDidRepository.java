@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,58 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.cs.admin.jpa.repository;
 
-package org.niis.xroad.edc.identityhub.provisioning.proto;
+import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
+import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-option java_multiple_files = true;
+@Repository
+public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, Integer>, IssuerDidRepository {
 
-service IdentityHubProvisioningService {
-  rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
-  rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
-  rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
-  rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
-}
-
-message CreateParticipantContextReq {
-  string participant_context_id = 1;
-  string did = 2;
-  string member_id = 3;
-  string credential_service_url = 4;
-  string key_id = 5;
-  string private_key_alias = 6;
-}
-
-message CreateParticipantContextResp {
-}
-
-message RequestCredentialReq {
-  string participant_context_id = 1;
-  repeated string issuer_dids = 2;
-  string holder_pid = 3;
-  string credential_definition_id = 4;
-  string credential_type = 5;
-  string format = 6;
-}
-
-message RequestCredentialResp {
-  string request_id = 1;
-}
-
-message GetCredentialRequestStateReq {
-  string participant_context_id = 1;
-  string holder_pid = 2;
-}
-
-message GetCredentialRequestStateResp {
-  bool found = 1;
-  string status = 2;
-}
-
-message GetParticipantContextDidReq {
-  string participant_context_id = 1;
-}
-
-message GetParticipantContextDidResp {
-  optional string did = 1;
+    @Override
+    @Modifying
+    @Query(value = "INSERT INTO " + IssuerDidEntity.TABLE_NAME + " (id, did, created_at, updated_at) "
+            + "VALUES (nextval('" + IssuerDidEntity.TABLE_NAME + "_id_seq'), :did, now(), now()) "
+            + "ON CONFLICT (did) DO NOTHING", nativeQuery = true)
+    void insertIgnoreConflict(String did);
 }

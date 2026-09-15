@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,58 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.cs.admin.api.service;
 
-package org.niis.xroad.edc.identityhub.provisioning.proto;
+import java.util.List;
 
-option java_multiple_files = true;
+/**
+ * The Central Server's Issuer DID registry. Each Central Server node persists its own Issuer DID here at data
+ * space issuer provisioning time, so that whichever node generates globalconf can publish the complete cluster
+ * set as the dataspace issuer trust anchor.
+ */
+public interface DataspaceIssuerDidService {
 
-service IdentityHubProvisioningService {
-  rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
-  rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
-  rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
-  rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
-}
+    /**
+     * Registers the given Issuer DID for this Central Server node. Idempotent: registering the same DID again,
+     * as happens when a node re-provisions its issuer, does not create a duplicate entry.
+     *
+     * @param issuerDid the node's Issuer DID
+     */
+    void register(String issuerDid);
 
-message CreateParticipantContextReq {
-  string participant_context_id = 1;
-  string did = 2;
-  string member_id = 3;
-  string credential_service_url = 4;
-  string key_id = 5;
-  string private_key_alias = 6;
-}
-
-message CreateParticipantContextResp {
-}
-
-message RequestCredentialReq {
-  string participant_context_id = 1;
-  repeated string issuer_dids = 2;
-  string holder_pid = 3;
-  string credential_definition_id = 4;
-  string credential_type = 5;
-  string format = 6;
-}
-
-message RequestCredentialResp {
-  string request_id = 1;
-}
-
-message GetCredentialRequestStateReq {
-  string participant_context_id = 1;
-  string holder_pid = 2;
-}
-
-message GetCredentialRequestStateResp {
-  bool found = 1;
-  string status = 2;
-}
-
-message GetParticipantContextDidReq {
-  string participant_context_id = 1;
-}
-
-message GetParticipantContextDidResp {
-  optional string did = 1;
+    /**
+     * @return every Issuer DID registered by any Central Server node of this instance, or an empty list if none
+     * has provisioned a data space issuer.
+     */
+    List<String> findAll();
 }

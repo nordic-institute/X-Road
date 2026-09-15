@@ -24,58 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.cs.admin.core.dataspace;
 
-package org.niis.xroad.edc.identityhub.provisioning.proto;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
+import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
+import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
+import org.springframework.stereotype.Service;
 
-option java_multiple_files = true;
+import java.util.Comparator;
+import java.util.List;
 
-service IdentityHubProvisioningService {
-  rpc CreateParticipantContext(CreateParticipantContextReq) returns (CreateParticipantContextResp);
-  rpc RequestCredential(RequestCredentialReq) returns (RequestCredentialResp);
-  rpc GetCredentialRequestState(GetCredentialRequestStateReq) returns (GetCredentialRequestStateResp);
-  rpc GetParticipantContextDid(GetParticipantContextDidReq) returns (GetParticipantContextDidResp);
-}
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class DataspaceIssuerDidServiceImpl implements DataspaceIssuerDidService {
 
-message CreateParticipantContextReq {
-  string participant_context_id = 1;
-  string did = 2;
-  string member_id = 3;
-  string credential_service_url = 4;
-  string key_id = 5;
-  string private_key_alias = 6;
-}
+    private final IssuerDidRepository issuerDidRepository;
 
-message CreateParticipantContextResp {
-}
+    /**
+     * Registers a DID, relying on the repository's conflict-ignoring insert for idempotency rather than a
+     * check-then-write: a preceding existence check would only race the same unique constraint under
+     * concurrent registrations from different Central Server nodes, so the insert alone is both the check
+     * and the write.
+     */
+    @Override
+    public void register(String issuerDid) {
+        issuerDidRepository.insertIgnoreConflict(issuerDid);
+    }
 
-message RequestCredentialReq {
-  string participant_context_id = 1;
-  repeated string issuer_dids = 2;
-  string holder_pid = 3;
-  string credential_definition_id = 4;
-  string credential_type = 5;
-  string format = 6;
-}
-
-message RequestCredentialResp {
-  string request_id = 1;
-}
-
-message GetCredentialRequestStateReq {
-  string participant_context_id = 1;
-  string holder_pid = 2;
-}
-
-message GetCredentialRequestStateResp {
-  bool found = 1;
-  string status = 2;
-}
-
-message GetParticipantContextDidReq {
-  string participant_context_id = 1;
-}
-
-message GetParticipantContextDidResp {
-  optional string did = 1;
+    @Override
+    public List<String> findAll() {
+        return issuerDidRepository.findAll().stream()
+                .map(IssuerDidEntity::getDid)
+                .sorted(Comparator.naturalOrder())
+                .toList();
+    }
 }

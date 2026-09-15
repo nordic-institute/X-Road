@@ -111,35 +111,6 @@ EOF
   chmod 644 "$local_conf"
 }
 
-# xroad-ds-control-plane's packaged application.yaml declares
-# edc.iam.trusted-issuer.issuer.id: ${xroad.edc.iam.trusted-issuer.issuer.id}
-# with no fallback (EdcConfigKeys.TRUSTED_ISSUER_ID is deliberately
-# without a default, so an unset value fails startup rather than silently
-# registering an empty trusted issuer). Every other deployment mode supplies
-# this as a plain environment variable pointing at a real issuer service
-# (the k8s chart's XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID); the sidecar has
-# no issuer service at all (out of scope, a Central Server component), so
-# this seeds a placeholder DID of the same shape purely so the service
-# starts - functional credential issuance needs a real issuer, configured by
-# the operator overriding the same environment variable.
-configure_ds_control_plane_trusted_issuer_default() {
-  local local_conf=/etc/xroad/services/local.conf
-  local marker="# xroad-sidecar: default xroad.edc.iam.trusted-issuer.issuer.id for xroad-ds-control-plane"
-  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
-    return 0
-  fi
-  log "Seeding a default DS trusted-issuer DID for xroad-ds-control-plane"
-  cat >>"$local_conf" <<EOF
-$marker
-if [ "\$1" = "XROAD_DS_CONTROL_PLANE_PARAMS" ]; then
-  : "\${XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID:=did:web:\${HOSTNAME:-localhost}%3A10100:issuer}"
-  export XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID
-fi
-EOF
-  chown root:root "$local_conf"
-  chmod 644 "$local_conf"
-}
-
 # xroad-opmonitor's packaged JVM flags fix -XX:MaxMetaspaceSize at 120m, sized
 # for a dedicated container with the daemon's own uncontended memory
 # allocation - every other deployment mode. In this image, op-monitor-daemon
@@ -383,7 +354,6 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
 fi
 
 configure_proxy_health_check_listener
-configure_ds_control_plane_trusted_issuer_default
 configure_opmonitor_metaspace
 configure_secret_store
 configure_secret_store_trust_env
