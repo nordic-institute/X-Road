@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
@@ -59,6 +60,7 @@ import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.REVOKED
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_REGISTRATION_NOT_FOUND;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -121,8 +123,11 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
                             securityServer.getServerClients().stream()
                                     .filter(serverClient -> client.getId() == serverClient.getSecurityServerClient().getId())
                                     .forEach(serverClientRepository::delete);
-                            eventPublisher.publishEvent(new ServerClientRemovedEvent(
-                                    securityServer.getServerId(), clientId.getMemberId(), TimeUtils.getEpochMillisecond()));
+                            var event = new ServerClientRemovedEvent(
+                                    securityServer.getServerId(), clientId.getMemberId(), TimeUtils.getEpochMillisecond());
+                            log.debug("Publishing server-client-removed event for member {} on security server {}",
+                                    event.memberId(), event.securityServerId());
+                            eventPublisher.publishEvent(event);
                         },
                         this::mrClientRegistrationNotFound
                 );

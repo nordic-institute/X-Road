@@ -34,6 +34,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.credential.request.model.HolderCredentialRequest;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.AfterEach;
@@ -88,14 +89,16 @@ class IdentityHubProvisioningGrpcServiceTest {
     @Mock
     private DidResolverRegistry didResolverRegistry;
     @Mock
+    private Monitor monitor;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> createObserver;
 
     private IdentityHubProvisioningGrpcService service;
 
     @BeforeEach
     void setUp() {
-        service = new IdentityHubProvisioningGrpcService(
-                participantContextService, credentialRequestManager, recordsPurger, didResolverRegistry, new RpcResponseHandler());
+        service = new IdentityHubProvisioningGrpcService(participantContextService, credentialRequestManager,
+                recordsPurger, didResolverRegistry, new RpcResponseHandler(), monitor);
     }
 
     @AfterEach
@@ -148,6 +151,7 @@ class IdentityHubProvisioningGrpcServiceTest {
     @SuppressWarnings("unchecked")
     void deleteParticipantContextPurgesRecordsOnSuccess() {
         when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.success());
+        when(recordsPurger.purge("ctx-1")).thenReturn(new ParticipantCredentialRecordsPurger.PurgeCounts(2, 1));
 
         StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
         var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
@@ -164,6 +168,7 @@ class IdentityHubProvisioningGrpcServiceTest {
     @SuppressWarnings("unchecked")
     void deleteParticipantContextIsIdempotentForAlreadyAbsentContext() {
         when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.notFound("gone already"));
+        when(recordsPurger.purge("ctx-1")).thenReturn(new ParticipantCredentialRecordsPurger.PurgeCounts(0, 0));
 
         StreamObserver<DeleteParticipantContextResp> observer = mock(StreamObserver.class);
         var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();

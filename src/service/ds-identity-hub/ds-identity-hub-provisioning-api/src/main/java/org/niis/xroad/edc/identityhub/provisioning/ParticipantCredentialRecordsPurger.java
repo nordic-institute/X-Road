@@ -54,6 +54,12 @@ class ParticipantCredentialRecordsPurger extends AbstractSqlStore {
     private static final String DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL =
             "DELETE FROM edc_holder_credentialrequest WHERE participant_context_id = ?";
 
+    /**
+     * Counts of records purged for one participant context.
+     */
+    record PurgeCounts(int credentialCount, int holderRequestCount) {
+    }
+
     private final CredentialStore credentialStore;
 
     ParticipantCredentialRecordsPurger(CredentialStore credentialStore, DataSourceRegistry dataSourceRegistry, String dataSourceName,
@@ -62,12 +68,13 @@ class ParticipantCredentialRecordsPurger extends AbstractSqlStore {
         this.credentialStore = credentialStore;
     }
 
-    void purge(String participantContextId) {
-        purgeCredentials(participantContextId);
-        purgeHolderCredentialRequests(participantContextId);
+    PurgeCounts purge(String participantContextId) {
+        var credentialCount = purgeCredentials(participantContextId);
+        var holderRequestCount = purgeHolderCredentialRequests(participantContextId);
+        return new PurgeCounts(credentialCount, holderRequestCount);
     }
 
-    private void purgeCredentials(String participantContextId) {
+    private int purgeCredentials(String participantContextId) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(new Criterion(PARTICIPANT_CONTEXT_ID_PROPERTY, "=", participantContextId))
                 .limit(Integer.MAX_VALUE)
@@ -78,13 +85,15 @@ class ParticipantCredentialRecordsPurger extends AbstractSqlStore {
             throw new EdcPersistenceException("Failed to query verifiable credentials for participant context '%s': %s"
                     .formatted(participantContextId, result.getFailureDetail()));
         }
-        result.getContent().forEach(vc -> credentialStore.deleteById(vc.getId()));
+        var credentials = result.getContent();
+        credentials.forEach(vc -> credentialStore.deleteById(vc.getId()));
+        return credentials.size();
     }
 
-    private void purgeHolderCredentialRequests(String participantContextId) {
-        transactionContext.execute(() -> {
+    private int purgeHolderCredentialRequests(String participantContextId) {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                queryExecutor.execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, participantContextId);
+                return queryExecutor.execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, participantContextId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

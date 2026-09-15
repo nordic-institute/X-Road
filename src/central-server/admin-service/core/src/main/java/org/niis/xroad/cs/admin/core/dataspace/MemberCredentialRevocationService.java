@@ -82,23 +82,38 @@ public class MemberCredentialRevocationService {
             return;
         }
         if (ClientId.equals(server.getOwner().getIdentifier(), event.memberId())) {
+            log.debug("Dataspace credential revocation: skipping member {} on security server {}, member is the server's owner",
+                    event.memberId(), event.securityServerId());
             return;
         }
         XRoadMemberEntity member = members.findMember(event.memberId()).orElse(null);
-        if (member == null || hasRemainingClientRows(server, member)) {
+        if (member == null) {
+            return;
+        }
+        long remainingClientRows = countRemainingClientRows(server, member);
+        if (remainingClientRows > 0) {
+            log.debug("Dataspace credential revocation: skipping member {} on security server {}, {} client row(s) remain",
+                    event.memberId(), event.securityServerId(), remainingClientRows);
             return;
         }
 
         String holderDid = ParticipantIdentifierScheme.memberDid(event.memberId(), server.getAddress());
+        log.info("Dataspace credential revocation: revoking credentials for holder {} issued before {}",
+                holderDid, event.removedAt());
         int revokedCount = rpcClient.revokeCredential(ISSUER_PARTICIPANT_ID, holderDid, event.removedAt());
 
-        log.info("Revoked {} dataspace credential(s) for member {} on security server {}",
-                revokedCount, event.memberId(), event.securityServerId());
+        if (revokedCount == 0) {
+            log.info("Dataspace credential revocation: no credentials matched holder {} (member {}, security server {})",
+                    holderDid, event.memberId(), event.securityServerId());
+        } else {
+            log.info("Dataspace credential revocation: revoked {} credential(s) for holder {} (member {}, security server {})",
+                    revokedCount, holderDid, event.memberId(), event.securityServerId());
+        }
     }
 
-    private boolean hasRemainingClientRows(SecurityServerEntity server, XRoadMemberEntity member) {
+    private long countRemainingClientRows(SecurityServerEntity server, XRoadMemberEntity member) {
         Set<SecurityServerClientEntity> memberAndSubsystems = new HashSet<>(member.getSubsystems());
         memberAndSubsystems.add(member);
-        return serverClients.countBySecurityServerAndSecurityServerClientIn(server, memberAndSubsystems) > 0;
+        return serverClients.countBySecurityServerAndSecurityServerClientIn(server, memberAndSubsystems);
     }
 }

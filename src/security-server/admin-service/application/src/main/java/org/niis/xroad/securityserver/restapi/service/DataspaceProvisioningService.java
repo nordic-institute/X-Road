@@ -235,8 +235,12 @@ public class DataspaceProvisioningService {
      */
     public void teardownParticipant(TombstonedParticipant participant) {
         controlPlaneClient.deleteParticipantContext(participant.participantContextId());
+        log.debug("Data space provisioning: control plane context deleted for participant {}", participant.participantContextId());
         identityHubClient.deleteParticipantContext(participant.participantContextId());
+        log.debug("Data space provisioning: identity hub context deleted for participant {}", participant.participantContextId());
         dsParticipantRepository.delete(participant.id());
+        log.info("Data space provisioning: teardown converged for participant {} (control plane, identity hub and binding row deleted)",
+                participant.participantContextId());
     }
 
     /**
@@ -365,9 +369,13 @@ public class DataspaceProvisioningService {
     }
 
     private boolean isTombstoned(ClientId member) {
-        return dsParticipantRepository.findByMemberIdentifier(member)
+        boolean tombstoned = dsParticipantRepository.findByMemberIdentifier(member)
                 .map(row -> row.getState() == ParticipantState.DECOMMISSIONED)
                 .orElse(false);
+        if (tombstoned) {
+            log.debug("Data space provisioning: member {} blocked from provisioning by an unconverged tombstone", member);
+        }
+        return tombstoned;
     }
 
     private Optional<ClientId> ownerId() {

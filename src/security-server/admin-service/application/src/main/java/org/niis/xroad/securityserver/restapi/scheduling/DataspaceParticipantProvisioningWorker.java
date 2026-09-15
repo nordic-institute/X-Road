@@ -129,6 +129,8 @@ public class DataspaceParticipantProvisioningWorker {
     private void teardownDecommissioned() {
         List<TombstonedParticipant> tombstones = dataspaceProvisioningService.decommissionedParticipants();
         for (var tombstone : tombstones) {
+            log.debug("Data space provisioning: tearing down tombstoned participant {} (row id {})",
+                    tombstone.participantContextId(), tombstone.id());
             try {
                 dataspaceProvisioningService.teardownParticipant(tombstone);
             } catch (Exception e) {

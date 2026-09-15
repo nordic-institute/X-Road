@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
@@ -75,6 +76,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLA
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -193,8 +195,10 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.build()));
 
         serverClientRepository.delete(serverClient);
-        eventPublisher.publishEvent(
-                new ServerClientRemovedEvent(securityServerId, memberId.getMemberId(), TimeUtils.getEpochMillisecond()));
+        var event = new ServerClientRemovedEvent(securityServerId, memberId.getMemberId(), TimeUtils.getEpochMillisecond());
+        log.debug("Publishing server-client-removed event for member {} on security server {}",
+                event.memberId(), event.securityServerId());
+        eventPublisher.publishEvent(event);
     }
 
     @Override

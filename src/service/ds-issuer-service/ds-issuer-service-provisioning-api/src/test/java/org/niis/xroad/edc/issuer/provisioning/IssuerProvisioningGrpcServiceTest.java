@@ -38,6 +38,7 @@ import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCre
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -63,6 +64,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,6 +81,8 @@ class IssuerProvisioningGrpcServiceTest {
     @Mock
     private CredentialStatusService credentialStatusService;
     @Mock
+    private Monitor monitor;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> participantContextResponseObserver;
     @Mock
     private StreamObserver<RevokeCredentialResp> revokeResponseObserver;
@@ -90,7 +94,7 @@ class IssuerProvisioningGrpcServiceTest {
     @BeforeEach
     void setUp() {
         service = new IssuerProvisioningGrpcService(participantContextService, attestationDefinitionService,
-                credentialDefinitionService, credentialStatusService, new RpcResponseHandler());
+                credentialDefinitionService, credentialStatusService, new RpcResponseHandler(), monitor);
     }
 
     @ParameterizedTest
@@ -220,6 +224,11 @@ class IssuerProvisioningGrpcServiceTest {
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(0).build());
         verify(revokeResponseObserver).onCompleted();
         verify(revokeResponseObserver, never()).onError(any());
+
+        ArgumentCaptor<String> infoMessages = ArgumentCaptor.forClass(String.class);
+        verify(monitor, atLeastOnce()).info(infoMessages.capture());
+        assertThat(infoMessages.getAllValues())
+                .anySatisfy(message -> assertThat(message).contains("no credentials matched holder did:web:ss1.example.com"));
     }
 
     @ParameterizedTest

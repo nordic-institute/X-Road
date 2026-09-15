@@ -29,6 +29,10 @@ package org.niis.xroad.cs.admin.core.dataspace;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +50,7 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.annotation.Async;
@@ -60,6 +65,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -100,10 +106,24 @@ class MemberCredentialRevocationServiceTest {
 
     private MemberCredentialRevocationService service;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger(MemberCredentialRevocationService.class);
+
     @BeforeEach
     void setUp() {
         server.setAddress(SS_ADDRESS);
         service = new MemberCredentialRevocationService(securityServers, members, serverClients, rpcClient);
+
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.DEBUG);
+    }
+
+    @AfterEach
+    void tearDownLogging() {
+        logger.detachAppender(appender);
+        appender.stop();
+        logger.setLevel(null);
     }
 
     @Test
@@ -205,6 +225,42 @@ class MemberCredentialRevocationServiceTest {
                 .doesNotThrowAnyException();
 
         verify(rpcClient).revokeCredential(eq(ISSUER_PARTICIPANT_ID), anyString(), eq(CUTOFF));
+    }
+
+    @Test
+    @DisplayName("Logs the revocation attempt with the derived holder DID and issued-before cutoff")
+    void logsRevocationAttemptWithHolderDidAndCutoff() {
+        when(securityServers.findBy(securityServerId)).thenReturn(Optional.of(server));
+        when(members.findMember(memberId)).thenReturn(Optional.of(member));
+        when(member.getSubsystems()).thenReturn(Set.of());
+        when(serverClients.countBySecurityServerAndSecurityServerClientIn(eq(server), any())).thenReturn(0L);
+        when(rpcClient.revokeCredential(eq(ISSUER_PARTICIPANT_ID), anyString(), eq(CUTOFF))).thenReturn(1);
+
+        service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
+
+        var expectedDid = ParticipantIdentifierScheme.memberDid(memberId, SS_ADDRESS);
+        assertThat(appender.list)
+                .extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
+                .contains(tuple(Level.INFO,
+                        "Dataspace credential revocation: revoking credentials for holder %s issued before %d"
+                                .formatted(expectedDid, CUTOFF)));
+    }
+
+    @Test
+    @DisplayName("Phrases a zero-match outcome to name the searched holder DID")
+    void logsZeroMatchOutcomeNamingTheSearchedHolderDid() {
+        when(securityServers.findBy(securityServerId)).thenReturn(Optional.of(server));
+        when(members.findMember(memberId)).thenReturn(Optional.of(member));
+        when(member.getSubsystems()).thenReturn(Set.of());
+        when(serverClients.countBySecurityServerAndSecurityServerClientIn(eq(server), any())).thenReturn(0L);
+        when(rpcClient.revokeCredential(eq(ISSUER_PARTICIPANT_ID), anyString(), eq(CUTOFF))).thenReturn(0);
+
+        service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
+
+        var expectedDid = ParticipantIdentifierScheme.memberDid(memberId, SS_ADDRESS);
+        assertThat(appender.list)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .anySatisfy(message -> assertThat(message).contains("no credentials matched holder " + expectedDid));
     }
 
     @Nested

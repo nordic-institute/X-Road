@@ -39,6 +39,7 @@ import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.Credentia
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -87,6 +88,7 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private final CredentialDefinitionService credentialDefinitionService;
     private final CredentialStatusService credentialStatusService;
     private final RpcResponseHandler responseHandler;
+    private final Monitor monitor;
 
     @Override
     public void createParticipantContext(CreateParticipantContextReq request,
@@ -171,6 +173,8 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
 
     private RevokeCredentialResp revokeCredentialInternal(RevokeCredentialReq request) {
         validateRevokeFields(request);
+        monitor.info("Issuer: revoke request received for holder %s issued before %d"
+                .formatted(request.getHolderDid(), request.getIssuedBefore()));
 
         var queryResult = credentialStatusService.queryCredentials(hostCredentialQuery(request));
         requireSuccessOrConflict(queryResult, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
@@ -186,6 +190,13 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
         for (var credentialId : credentialIds) {
             var revokeResult = credentialStatusService.revokeCredential(credentialId);
             requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
+            monitor.debug("Issuer: revoked credential %s".formatted(credentialId));
+        }
+
+        if (credentialIds.isEmpty()) {
+            monitor.info("Issuer: no credentials matched holder %s".formatted(request.getHolderDid()));
+        } else {
+            monitor.info("Issuer: revoked %d credential(s) for holder %s".formatted(credentialIds.size(), request.getHolderDid()));
         }
 
         return RevokeCredentialResp.newBuilder().setRevokedCount(credentialIds.size()).build();
@@ -201,10 +212,12 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     }
 
     private void validateRevokeFields(RevokeCredentialReq request) {
-        if (request.getParticipantContextId() == null || request.getParticipantContextId().isBlank()) {
+        request.getParticipantContextId();
+        if (request.getParticipantContextId().isBlank()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
         }
-        if (request.getHolderDid() == null || request.getHolderDid().isBlank()) {
+        request.getHolderDid();
+        if (request.getHolderDid().isBlank()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "holderDid must not be blank");
         }
         if (request.getIssuedBefore() <= 0) {

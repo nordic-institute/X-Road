@@ -96,10 +96,13 @@ class ParticipantCredentialRecordsPurgerTest {
         when(vc2.getId()).thenReturn("vc-2");
         when(credentialStore.query(any())).thenReturn(StoreResult.success(List.of(vc1, vc2)));
         when(credentialStore.deleteById(anyString())).thenReturn(StoreResult.success());
+        when(queryExecutor.execute(eq(connection), eq(DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL), eq(PARTICIPANT_CONTEXT_ID))).thenReturn(3);
         stubJdbcConnection();
 
-        purger.purge(PARTICIPANT_CONTEXT_ID);
+        var counts = purger.purge(PARTICIPANT_CONTEXT_ID);
 
+        assertThat(counts.credentialCount()).isEqualTo(2);
+        assertThat(counts.holderRequestCount()).isEqualTo(3);
         var querySpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
         verify(credentialStore).query(querySpecCaptor.capture());
         assertThat(querySpecCaptor.getValue().getFilterExpression())
@@ -120,8 +123,10 @@ class ParticipantCredentialRecordsPurgerTest {
         when(credentialStore.query(any())).thenReturn(StoreResult.success(List.of()));
         stubJdbcConnection();
 
-        purger.purge(PARTICIPANT_CONTEXT_ID);
+        var counts = purger.purge(PARTICIPANT_CONTEXT_ID);
 
+        assertThat(counts.credentialCount()).isZero();
+        assertThat(counts.holderRequestCount()).isZero();
         verify(credentialStore, never()).deleteById(anyString());
         verify(queryExecutor).execute(eq(connection), eq(DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL), eq(PARTICIPANT_CONTEXT_ID));
     }
@@ -155,8 +160,8 @@ class ParticipantCredentialRecordsPurgerTest {
 
     private void stubTransactionExecutesImmediately() {
         doAnswer(invocation -> {
-            ((TransactionContext.TransactionBlock) invocation.getArgument(0)).execute();
-            return null;
-        }).when(transactionContext).execute(any(TransactionContext.TransactionBlock.class));
+            TransactionContext.ResultTransactionBlock<?> block = invocation.getArgument(0);
+            return block.execute();
+        }).when(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 }

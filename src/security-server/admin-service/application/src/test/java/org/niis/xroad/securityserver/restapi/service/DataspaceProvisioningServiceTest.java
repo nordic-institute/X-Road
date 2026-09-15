@@ -28,6 +28,11 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +59,7 @@ import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
@@ -107,8 +113,14 @@ class DataspaceProvisioningServiceTest {
 
     private DataspaceProvisioningService service;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger(DataspaceProvisioningService.class);
+
     @BeforeEach
     void setUp() {
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.DEBUG);
         lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
@@ -123,6 +135,13 @@ class DataspaceProvisioningServiceTest {
                 .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
+    }
+
+    @AfterEach
+    void tearDownLogging() {
+        logger.detachAppender(appender);
+        appender.stop();
+        logger.setLevel(null);
     }
 
     // --- ensureMembershipCredential ---
@@ -660,6 +679,22 @@ class DataspaceProvisioningServiceTest {
         order.verify(controlPlaneClient).deleteParticipantContext(PARTICIPANT_ID);
         order.verify(identityHubClient).deleteParticipantContext(PARTICIPANT_ID);
         order.verify(dsParticipantRepository).delete(7L);
+    }
+
+    @Test
+    void teardownParticipantLogsConvergenceOutcome() {
+        var tombstone = new DataspaceProvisioningService.TombstonedParticipant(7L, PARTICIPANT_ID);
+
+        service.teardownParticipant(tombstone);
+
+        assertThat(appender.list)
+                .filteredOn(event -> event.getLevel() == Level.INFO)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .anySatisfy(message -> assertThat(message)
+                        .contains(PARTICIPANT_ID)
+                        .containsIgnoringCase("control plane")
+                        .containsIgnoringCase("identity hub")
+                        .containsIgnoringCase("row"));
     }
 
     private void givenServerConfWithOwner(ClientId owner) {
