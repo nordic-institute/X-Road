@@ -54,26 +54,31 @@ public final class CsRegistrationServiceConfigKeys implements ConfigKeyProvider 
     public static final ConfigKey<Boolean> RATE_LIMIT_ENABLED = REGISTRATION
             .bool("rate-limit-enabled")
             .withDefaultValue(true)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.rate-limit-requests-per-second}. */
     public static final ConfigKey<Integer> RATE_LIMIT_REQUESTS_PER_SECOND = REGISTRATION
             .integer("rate-limit-requests-per-second")
             .withDefaultValue(-1)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.rate-limit-requests-per-minute}. */
     public static final ConfigKey<Integer> RATE_LIMIT_REQUESTS_PER_MINUTE = REGISTRATION
             .integer("rate-limit-requests-per-minute")
             .withDefaultValue(10)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.rate-limit-cache-size}. */
     public static final ConfigKey<Integer> RATE_LIMIT_CACHE_SIZE = REGISTRATION
             .integer("rate-limit-cache-size")
             .withDefaultValue(10000)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.rate-limit-expire-after-access-minutes}. */
     public static final ConfigKey<Integer> RATE_LIMIT_EXPIRE_AFTER_ACCESS_MINUTES = REGISTRATION
             .integer("rate-limit-expire-after-access-minutes")
             .withDefaultValue(2)
+            .exposedInUi()
             .build();
 
     // --- admin API client ---
@@ -92,26 +97,31 @@ public final class CsRegistrationServiceConfigKeys implements ConfigKeyProvider 
     public static final ConfigKey<Integer> HTTP_CLIENT_MAX_CONNECTIONS_PER_ROUTE = HTTP_CLIENT
             .integer("max-connections-per-route")
             .withDefaultValue(50)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.http-client-properties.max-connections-total}. */
     public static final ConfigKey<Integer> HTTP_CLIENT_MAX_CONNECTIONS_TOTAL = HTTP_CLIENT
             .integer("max-connections-total")
             .withDefaultValue(50)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.http-client-properties.connection-timeout-seconds}. */
     public static final ConfigKey<Integer> HTTP_CLIENT_CONNECTION_TIMEOUT_SECONDS = HTTP_CLIENT
             .integer("connection-timeout-seconds")
             .withDefaultValue(5)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.http-client-properties.connection-request-timeout-seconds}. */
     public static final ConfigKey<Integer> HTTP_CLIENT_CONNECTION_REQUEST_TIMEOUT_SECONDS = HTTP_CLIENT
             .integer("connection-request-timeout-seconds")
             .withDefaultValue(10)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.http-client-properties.response-timeout-seconds}. */
     public static final ConfigKey<Integer> HTTP_CLIENT_RESPONSE_TIMEOUT_SECONDS = HTTP_CLIENT
             .integer("response-timeout-seconds")
             .withDefaultValue(5)
+            .exposedInUi()
             .build();
 
     // --- vault-retry ---
@@ -119,16 +129,19 @@ public final class CsRegistrationServiceConfigKeys implements ConfigKeyProvider 
     public static final ConfigKey<Integer> VAULT_RETRY_RETRY_MAX_ATTEMPTS = VAULT_RETRY
             .integer("retry-max-attempts")
             .withDefaultValue(5)
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.vault-retry.retry-delay}. */
     public static final ConfigKey<Duration> VAULT_RETRY_RETRY_DELAY = VAULT_RETRY
             .keyDuration("retry-delay")
             .withDefaultValue(Duration.ofSeconds(2))
+            .exposedInUi()
             .build();
     /** {@code xroad.registration-service.vault-retry.retry-exponential-backoff-multiplier} — parsed to double. */
     public static final ConfigKey<String> VAULT_RETRY_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = VAULT_RETRY
             .string("retry-exponential-backoff-multiplier")
             .withDefaultValue("2.0")
+            .exposedInUi()
             .build();
 
     private CsRegistrationServiceConfigKeys() {

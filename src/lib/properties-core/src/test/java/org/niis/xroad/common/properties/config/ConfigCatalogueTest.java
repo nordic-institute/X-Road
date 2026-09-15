@@ -57,12 +57,24 @@ class ConfigCatalogueTest {
     @Test
     void entryForUnvalidatedKeyHasNoSummary() {
         var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
-        prefix.bool("enforce-token-pin-policy").withDefaultValue(false).build();
+        prefix.string("enforce-token-pin-policy").withDefaultValue("foo").build();
         ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
 
         var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
 
         assertThat(entry.validationSummary()).isEmpty();
+    }
+
+    @Test
+    void booleanEntriesHaveDefaultValidator() {
+        var prefix = Prefix.of(Category.SIGNER, "xroad.signer");
+        prefix.bool("enforce-token-pin-policy").withDefaultValue(true).build();
+        ConfigKeyProvider provider = ConfigKeyProvider.forPrefix(prefix);
+
+        var entry = ConfigCatalogue.from(List.of(provider)).getFirst();
+
+        assertThat(entry.validationSummary())
+                .contains("one of: true, false, TRUE, FALSE, True, False, 1, 0, Y, N, Yes, No, YES, NO, on, ON, off, OFF");
     }
 
     @Test

@@ -514,6 +514,157 @@
       }
     }
   },
+  "systemParameters": {
+    "configurableProperties": {
+      "descriptions": {
+        "xroad": {
+          "admin-service": {
+            "auto-approve-auth-cert-reg-requests": "Si está habilitado, las solicitudes de registro de certificados de autenticación se aprueban automáticamente sin esperar la aprobación del administrador.",
+            "auto-approve-client-reg-requests": "Si está habilitado, las solicitudes de registro de clientes se aprueban automáticamente sin esperar la aprobación del administrador.",
+            "auto-approve-owner-change-requests": "Si está habilitado, las solicitudes de cambio de propietario se aprueban automáticamente sin esperar la aprobación del administrador.",
+            "authentication-provider": "Proveedor de autenticación utilizado para el inicio de sesión en la interfaz. Los valores posibles son PAM o DATABASE.",
+            "cache-api-key-ttl": "Configura la caducidad de la caché de claves de API en segundos. Si el valor es -1, la caché se deshabilita.",
+            "cache-default-ttl": "Configura la caducidad de la caché predeterminada en segundos. La caché se utiliza durante las solicitudes de autenticación. Si el valor es -1, la caché se deshabilita.",
+            "enforce-user-password-policy": "Si está habilitado, las contraseñas de usuario deben cumplir con la política de contraseñas configurada.",
+            "global-configuration-generation-rate-in-seconds": "Frecuencia, en segundos, con la que el Servidor Central regenera la configuración global.",
+            "rate-limit-cache-size": "Controla cuántas direcciones IP se pueden recordar en la caché de límite de solicitudes. Compromiso entre el uso de memoria y la protección frente a un ataque masivo.",
+            "rate-limit-enabled": "Habilita el límite de velocidad de solicitudes para la API de administración.",
+            "rate-limit-expire-after-access-minutes": "Controla cuánto tiempo son válidas las entradas de la caché de límite de solicitudes.",
+            "rate-limit-requests-per-minute": "Límite de solicitudes por minuto para la API de administración. Los límites se aplican por cada IP solicitante.",
+            "rate-limit-requests-per-second": "Límite de solicitudes por segundo para la API de administración. Los límites se aplican por cada IP solicitante.",
+            "request-size-limit-binary-upload": "Tamaño máximo de las solicitudes a la API de administración para la carga de archivos.",
+            "request-size-limit-regular": "Tamaño máximo de las solicitudes a la API de administración.",
+            "strict-identifier-checks": "Configura la validación de los identificadores de entrada (código de miembro, código de subsistema, etc.). Valores: true - los identificadores deben coincidir con el patrón ^[a-zA-Z0-9'()+,-.=?]*. false - los identificadores no deben contener dos puntos (:), punto y coma (;), barras (/\\), porcentaje (%) ni caracteres de control.",
+            "trusted-anchors-allowed": "Si está habilitado, permite cargar anclas de configuración de confianza adicionales además de la propia del Servidor Central."
+          },
+          "management-service": {
+            "rate-limit-cache-size": "Controla cuántas direcciones IP se pueden recordar en la caché de límite de solicitudes. Compromiso entre el uso de memoria y la protección frente a un ataque masivo.",
+            "rate-limit-enabled": "Habilita el límite de velocidad de solicitudes para el servicio de administración.",
+            "rate-limit-expire-after-access-minutes": "Controla cuánto tiempo son válidas las entradas de la caché de límite de solicitudes.",
+            "rate-limit-requests-per-minute": "Límite de solicitudes por minuto para el servicio de administración. Los límites se aplican por cada IP solicitante.",
+            "rate-limit-requests-per-second": "Límite de solicitudes por segundo para el servicio de administración. Un valor de -1 lo deshabilita. Los límites se aplican por cada IP solicitante.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Segundos de espera para que una conexión esté disponible en el grupo de conexiones.",
+              "connection-timeout-seconds": "Segundos de espera al establecer una conexión con la API de administración.",
+              "max-connections-per-route": "Número máximo de conexiones simultáneas que el cliente HTTP del servicio de administración mantiene abiertas por ruta.",
+              "max-connections-total": "Número máximo de conexiones simultáneas que el cliente HTTP del servicio de administración mantiene abiertas en total.",
+              "response-timeout-seconds": "Segundos de espera para recibir una respuesta de la API de administración."
+            }
+          },
+          "registration-service": {
+            "rate-limit-cache-size": "Controla cuántas direcciones IP se pueden recordar en la caché de límite de solicitudes. Compromiso entre el uso de memoria y la protección frente a un ataque masivo.",
+            "rate-limit-enabled": "Habilita el límite de velocidad de solicitudes para el servicio de registro.",
+            "rate-limit-expire-after-access-minutes": "Controla cuánto tiempo son válidas las entradas de la caché de límite de solicitudes.",
+            "rate-limit-requests-per-minute": "Límite de solicitudes por minuto para el servicio de registro. Los límites se aplican por cada IP solicitante.",
+            "rate-limit-requests-per-second": "Límite de solicitudes por segundo para el servicio de registro. Un valor de -1 lo deshabilita. Los límites se aplican por cada IP solicitante.",
+            "http-client-properties": {
+              "connection-request-timeout-seconds": "Segundos de espera para que una conexión esté disponible en el grupo de conexiones.",
+              "connection-timeout-seconds": "Segundos de espera al establecer una conexión con la API de administración.",
+              "max-connections-per-route": "Número máximo de conexiones simultáneas que el cliente HTTP del servicio de registro mantiene abiertas por ruta.",
+              "max-connections-total": "Número máximo de conexiones simultáneas que el cliente HTTP del servicio de registro mantiene abiertas en total.",
+              "response-timeout-seconds": "Segundos de espera para recibir una respuesta de la API de administración."
+            },
+            "vault-retry": {
+              "retry-delay": "Retraso antes del primer reintento de una solicitud fallida a Vault (OpenBao).",
+              "retry-exponential-backoff-multiplier": "Multiplicador aplicado al retraso de reintento después de cada intento fallido de una solicitud a Vault (OpenBao).",
+              "retry-max-attempts": "Número máximo de reintentos cuando falla una solicitud a Vault (OpenBao)."
+            }
+          },
+          "common-global-conf": {
+            "source": "Backend de origen para la configuración global. Valores posibles: FILESYSTEM (leer desde archivos locales, el valor predeterminado) o REMOTE (usado en implementaciones en contenedores).",
+            "refresh-rate": "Con qué frecuencia se actualiza la caché de configuración global compartida desde el origen configurado (p. ej. 60S).",
+            "configuration-path": "Ruta del sistema de archivos donde se almacenan los archivos de configuración global."
+          },
+          "common-ocsp-verifier": {
+            "cache-period": "Tiempo en segundos que los resultados de verificación OCSP se almacenan en caché antes de volver a verificarse."
+          },
+          "common-rpc": {
+            "use-tls": "Cuando está habilitado, se utiliza TLS mutuo para la comunicación gRPC entre los servicios colocalizados del Servidor Central.",
+            "certificate-provisioning": {
+              "refresh-interval": "Con qué frecuencia los servicios verifican si su certificado TLS de gRPC necesita renovarse (p. ej. 5H).",
+              "retry-delay": "Retraso inicial entre intentos de aprovisionamiento de certificados TLS de gRPC (p. ej. 5S).",
+              "retry-exponential-backoff-multiplier": "Multiplicador aplicado al retraso de reintento en cada intento de aprovisionamiento de certificado posterior.",
+              "retry-max-attempts": "Número máximo de intentos de aprovisionamiento de certificados TLS de gRPC.",
+              "retry-timeout": "Límite de tiempo total para todos los intentos de aprovisionamiento de certificados TLS de gRPC (p. ej. 60S)."
+            },
+            "channel": {
+              "op-monitor": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del daemon de monitoreo operacional.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del daemon de monitoreo operacional.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al daemon de monitoreo operacional agote el tiempo de espera."
+              },
+              "env-monitor": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC de env-monitor.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC de env-monitor.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC a env-monitor agote el tiempo de espera."
+              },
+              "configuration-client": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del cliente de configuración.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del cliente de configuración.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al cliente de configuración agote el tiempo de espera."
+              },
+              "proxy": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del proxy.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del proxy.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al proxy agote el tiempo de espera."
+              },
+              "auxiliary-service": {
+                "host": "Nombre de host utilizado para conectarse al servidor gRPC del servicio auxiliar.",
+                "port": "Puerto utilizado para conectarse al servidor gRPC del servicio auxiliar.",
+                "deadline-after": "Milisegundos antes de que una llamada gRPC al servicio auxiliar agote el tiempo de espera."
+              }
+            }
+          },
+          "signer": {
+            "selfsigned-cert-digest-algorithm": "Algoritmo de resumen utilizado al crear certificados autofirmados.",
+            "csr-signature-digest-algorithm": "Algoritmo de resumen de firma de la Solicitud de Firma de Certificado. Los valores posibles son - SHA-256, SHA-384, SHA-512.",
+            "enforce-token-pin-policy": "Controla la aplicación de la política de PIN del token. Cuando se establece en true, se requiere que el PIN del token de software tenga al menos 10 caracteres ASCII de al menos tres clases de caracteres (letras minúsculas, letras mayúsculas, dígitos, caracteres especiales). (desde la versión 6.7.7)",
+            "ocsp-response-retrieval-active": "Esta propiedad se utiliza como anulación para desactivar la recuperación periódica de respuestas OCSP para componentes que no necesitan esa funcionalidad, pero que aún usan signer. Valores: false - los trabajos de recuperación de respuestas OCSP nunca se programan. true - la recuperación periódica de respuestas OCSP está activa según ocspFetchInterval. Tenga en cuenta que si falta toda la propiedad, se interpreta como true. Esta propiedad se entrega como anulación y solo para los componentes donde los trabajos de recuperación de respuestas OCSP necesitan desactivarse. La propiedad falta para los componentes que requieren que la recuperación de respuestas OCSP esté activada.",
+            "ocsp-retry-delay": "Retardo de reintento de OCSP para signer cuando falla la obtención de respuestas OCSP. Después de fallar en la obtención de respuestas OCSP, signer espera el período de tiempo definido por \"ocsp-retry-delay\" antes de volver a intentarlo. Esto se repite hasta que la obtención de respuestas OCSP tiene éxito. Después de obtener exitosamente las respuestas OCSP, signer vuelve al programa normal de actualización de OCSP definido por \"ocspFetchInterval\". Si el valor de \"ocsp-retry-delay\" es mayor que \"ocspFetchInterval\", el valor de \"ocspFetchInterval\" se usa como retardo de reintento de OCSP.",
+            "ocsp-cache-path": "Ruta absoluta al directorio donde se almacenan las respuestas OCSP en caché.",
+            "ocsp-prioritization-strategy": "Estrategia de priorización de OCSP, que determina qué respondedores OCSP se usan y en qué orden para obtener respuestas OCSP. Los valores posibles son: ONLY_FREE - Solo se usan respondedores OCSP gratuitos. ONLY_PAID - Solo se usan respondedores OCSP de pago. FREE_FIRST - Se usan primero los respondedores gratuitos; si no hay respuestas exitosas, se usan los de pago, y finalmente los respondedores OCSP cuyo tipo de costo no está definido. PAID_FIRST - Se usan primero los respondedores de pago; si no hay respuestas exitosas, se usan los gratuitos, y finalmente los respondedores OCSP cuyo tipo de costo no está definido. NONE - No se agrega ningún orden ni filtro nuevo (igual que antes de agregar el tipo de costo a los endpoints OCSP.)",
+            "module-manager-update-interval": "Intervalo de actualización del gestor de módulos HSM en segundos.",
+            "soft-token-rsa-sign-mechanism": "Mecanismo PKCS#11 utilizado para la firma RSA en el token de software.",
+            "soft-token-ec-sign-mechanism": "Mecanismo PKCS#11 utilizado para la firma EC en el token de software.",
+            "soft-token-pin-keystore-algorithm": "Algoritmo de clave utilizado para crear el almacén de claves PIN para el token de software. Los valores posibles son RSA y EC. (desde la versión 7.6)",
+            "key-length": "Longitud de clave para generar claves de autenticación y firma. (desde la versión 6.7)",
+            "key-named-curve": "Curva con nombre para generar claves de autenticación y firma en caso de que se usen algoritmos EC. (desde la versión 7.6)",
+            "autologin": {
+              "enabled": "Habilitar el inicio de sesión automático del token al arrancar.",
+              "retry": {
+                "retry-delay": "Retardo inicial entre intentos de reintento de inicio de sesión automático (p. ej. 3S).",
+                "retry-exponential-backoff-multiplier": "Multiplicador aplicado al retardo de reintento en cada intento sucesivo de inicio de sesión automático.",
+                "retry-max-attempts": "Número máximo de intentos de reintento de inicio de sesión automático.",
+                "retry-timeout": "Límite de tiempo total para todos los intentos de reintento de inicio de sesión automático (p. ej. 60S)."
+              }
+            },
+            "addon": {
+              "hwtoken": {
+                "enabled": "Habilitar el complemento de token de hardware (HSM).",
+                "session-pool-enabled": "Habilitar el pool de sesiones PKCS#11 para el token de hardware.",
+                "session-pool-max-total": "Total máximo de sesiones PKCS#11 en el pool de sesiones del token de hardware.",
+                "session-pool-min-idle": "Número mínimo de sesiones PKCS#11 inactivas mantenidas en el pool del token de hardware.",
+                "session-pool-max-idle": "Número máximo de sesiones PKCS#11 inactivas mantenidas en el pool del token de hardware.",
+                "session-acquire-timeout": "Tiempo máximo de espera al adquirir una sesión PKCS#11 del pool (p. ej. 15S)."
+              }
+            },
+            "rpc": {
+              "enabled": "Habilitar el servidor gRPC de Signer.",
+              "listen-address": "Dirección IP en la que escucha el servidor gRPC de Signer.",
+              "port": "Puerto en el que escucha el servidor gRPC de Signer."
+            },
+            "pin-hasher": {
+              "iterations": "Número de iteraciones de Argon2 utilizado al hacer hash de los PIN de los tokens.",
+              "memory-kb": "Costo de memoria de Argon2 en kilobytes utilizado al hacer hash de los PIN de los tokens.",
+              "parallelism": "Grado de paralelismo de Argon2 utilizado al hacer hash de los PIN de los tokens.",
+              "hash-length": "Longitud del hash de salida en bytes utilizado al hacer hash de los PIN de los tokens.",
+              "salt-length": "Longitud de la sal en bytes utilizada al hacer hash de los PIN de los tokens."
+            }
+          }
+        }
+      }
+    }
+  },
   "systemSettings": {
     "addMemberClassTitle": "Agregar clase del miembro",
     "centralServerAddress": "Dirección del servidor central",
@@ -580,6 +731,7 @@
       "apiKeys": "Claves de API",
       "backupAndRestore": "Copia de seguridad y restauración",
       "globalResources": "Recursos globales",
+      "systemParameters": "Parámetros del sistema",
       "systemSettings": "Configuración del sistema",
       "tlsCertificates": "Certificados TLS"
     }
