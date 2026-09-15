@@ -48,7 +48,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
-import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
 import org.niis.xroad.proxy.core.dsp.DspRequestProcessor;
 import org.niis.xroad.proxy.core.service.ClientVerificationService;
@@ -69,12 +68,53 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.core.exception.ErrorCode.UNKNOWN_MEMBER;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
 class ClientRestMessageProcessorTest {
+
+    // Held as fields so a test can assert on what the send path drove. JUnit builds a new test
+    // instance per method, so these are fresh for every test.
+    private final ClientRequestPreparationService clientRequestPreparationService =
+            mock(ClientRequestPreparationService.class);
+    private final DspRequestProcessor consumerSideDspProcessor = mock(DspRequestProcessor.class);
+
+    @SneakyThrows
+    @Test
+    void dspPathNegotiatesAndThenSendsToTheAddressesResolvedForTheMember() {
+        var processor = createProcessor(mock(GlobalConfProvider.class), mock(ServerConfProvider.class), Map.of());
+
+        assertThrows(XrdRuntimeException.class, () -> processor.process(restContext()));
+
+        // The DSP exchange runs for the agreement it establishes; the send then resolves its
+        // targets from globalconf like the non-DSP branch, rather than routing to an endpoint the
+        // acquisition returned. Order matters: negotiate first, then send.
+        var inOrder = inOrder(consumerSideDspProcessor, clientRequestPreparationService);
+        inOrder.verify(consumerSideDspProcessor).execute(any());
+        inOrder.verify(clientRequestPreparationService).prepareRequest(any(), any(), any(), any(), any(), any());
+    }
+
+    @SneakyThrows
+    @Test
+    void nonDspPathSendsWithoutNegotiating() {
+        var processor = createProcessor(mock(GlobalConfProvider.class), mock(ServerConfProvider.class),
+                Map.of("xroad.proxy.dsp-enabled", "false"));
+
+        assertThrows(XrdRuntimeException.class, () -> processor.process(restContext()));
+
+        verify(consumerSideDspProcessor, never()).execute(any());
+        verify(clientRequestPreparationService).prepareRequest(any(), any(), any(), any(), any(), any());
+    }
+
+    private RestRequestContext restContext() {
+        return new RestRequestContext(RequestWrapper.of(getMockedRequest()), mock(ResponseWrapper.class),
+                new OpMonitoringData(CLIENT, 100));
+    }
 
     @SneakyThrows
     @Test
@@ -82,7 +122,7 @@ class ClientRestMessageProcessorTest {
         var opMonitoringData = new OpMonitoringData(CLIENT, 100);
         var globalConfProvider = mock(GlobalConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
-        var processor = createProcessor(globalConfProvider, serverConfProvider);
+        var processor = createProcessor(globalConfProvider, serverConfProvider, Map.of());
 
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
         var respWrapper = mock(ResponseWrapper.class);
@@ -93,10 +133,13 @@ class ClientRestMessageProcessorTest {
         verifyOpMonitoringData(opMonitoringData.getData());
     }
 
+
     private ClientRestMessageProcessor createProcessor(GlobalConfProvider globalConfProvider,
-                                                       ServerConfProvider serverConfProvider) {
+                                                       ServerConfProvider serverConfProvider,
+                                                       Map<String, String> proxyOverrides) {
         var proxyProperties = new ProxyProperties(XRoadConfigBuilder.create()
                 .register(ProxyConfigKeys.instance())
+                .overrides(proxyOverrides)
                 .build());
         var commonProperties = new XRoadConfigCommonProperties(XRoadConfigBuilder.create()
                 .register(CommonConfigKeys.instance())
@@ -105,13 +148,9 @@ class ClientRestMessageProcessorTest {
         var httpSenderProvider = mock(HttpSenderProvider.class);
         var messageSigningService = mock(MessageSigningService.class);
         var clientVerificationService = mock(ClientVerificationService.class);
-        var clientRequestPreparationService = mock(ClientRequestPreparationService.class);
         when(httpSenderProvider.createClientHttpSender()).thenReturn(mock(HttpSender.class));
-        when(clientRequestPreparationService.prepareRequest(any(), any(), any(URI.class), any(), any(), any()))
+        when(clientRequestPreparationService.prepareRequest(any(), any(), any(), any(), any(), any()))
                 .thenThrow(XrdRuntimeException.systemException(UNKNOWN_MEMBER, "No address found"));
-        var consumerSideDspProcessor = mock(DspRequestProcessor.class);
-        when(consumerSideDspProcessor.execute(any()))
-                .thenReturn(new AssetAccessResponse("https://localhost:5500/", null));
 
         return new ClientRestMessageProcessor(
                 messageSigningService,
@@ -135,7 +174,7 @@ class ClientRestMessageProcessorTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(management);
         var serviceId = ServiceId.Conf.create(management, "clientReg");
 
-        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class), Map.of());
 
         assertThat(processor.isManagementRequest(serviceId)).isTrue();
     }
@@ -148,7 +187,7 @@ class ClientRestMessageProcessorTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(management);
         var serviceId = ServiceId.Conf.create(other, "mock1");
 
-        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class), Map.of());
 
         assertThat(processor.isManagementRequest(serviceId)).isFalse();
     }
@@ -160,7 +199,7 @@ class ClientRestMessageProcessorTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
         var serviceId = ServiceId.Conf.create(other, "mock1");
 
-        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class), Map.of());
 
         assertThat(processor.isManagementRequest(serviceId)).isFalse();
     }
@@ -172,7 +211,7 @@ class ClientRestMessageProcessorTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(management);
         var serviceId = ServiceId.Conf.create(management, "clientReg");
 
-        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class), Map.of());
 
         // isManagementRequest drives the management flag in the DspRequest constructed by sendRequest.
         var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
@@ -187,7 +226,7 @@ class ClientRestMessageProcessorTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(management);
         var serviceId = ServiceId.Conf.create(other, "testService");
 
-        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class));
+        var processor = createProcessor(globalConfProvider, mock(ServerConfProvider.class), Map.of());
 
         var dspRequest = new DspRequest(serviceId, null, processor.isManagementRequest(serviceId));
         assertThat(dspRequest.managementSubsystem()).isFalse();

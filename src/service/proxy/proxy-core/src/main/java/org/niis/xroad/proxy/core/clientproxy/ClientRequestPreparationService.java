@@ -126,27 +126,6 @@ public class ClientRequestPreparationService {
                 ctx, opMonitoringData, originalSoapAction);
     }
 
-    /**
-     * Prepares an {@link HttpSender} for a client proxy request targeting the DSP-negotiated
-     * data-plane endpoint, then sets SSL attributes, connection pool user token, timeouts, and
-     * common request headers.
-     *
-     * @param httpSender         the HTTP sender to configure
-     * @param requestServiceId   the service identifier for the outgoing request
-     * @param dataPlaneEndpoint  the DSP-negotiated endpoint to send the request to
-     * @param ctx                the per-request proxy context
-     * @param opMonitoringData   operational monitoring data to update, or null if not collected
-     * @param originalSoapAction the original SOAP action header value (SOAP path only), or null for REST
-     * @return the single-element array holding the data-plane endpoint
-     */
-    public URI[] prepareRequest(HttpSender httpSender, ServiceId requestServiceId,
-                                URI dataPlaneEndpoint, ProxyRequestContext ctx,
-                                OpMonitoringData opMonitoringData,
-                                @Nullable String originalSoapAction) {
-        return configureSender(httpSender, requestServiceId, new URI[]{dataPlaneEndpoint},
-                ctx, opMonitoringData, originalSoapAction);
-    }
-
     private URI[] configureSender(HttpSender httpSender, ServiceId requestServiceId, URI[] addresses,
                                   ProxyRequestContext ctx, OpMonitoringData opMonitoringData,
                                   @Nullable String originalSoapAction) {
