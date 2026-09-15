@@ -32,6 +32,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 
 import java.util.Optional;
 import java.util.Set;
@@ -63,9 +66,36 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var request = createRequest(ConflictPolicy.KEEP);
+        when(rpcClient.createIdentityHubParticipantContext(request)).thenReturn(MemberIdAnchor.CONFIRMED);
 
-        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var result = client.createParticipantContext(request);
+
+        assertThat(result).isEqualTo(MemberIdAnchor.CONFIRMED);
+        verify(rpcClient).createIdentityHubParticipantContext(request);
+    }
+
+    @Test
+    void createParticipantContextForwardsConflictPolicyAndReturnedAnchor() {
+        var request = createRequest(ConflictPolicy.REANCHOR);
+        when(rpcClient.createIdentityHubParticipantContext(request)).thenReturn(MemberIdAnchor.UNCONFIRMED);
+
+        var result = client.createParticipantContext(request);
+
+        assertThat(result).isEqualTo(MemberIdAnchor.UNCONFIRMED);
+        verify(rpcClient).createIdentityHubParticipantContext(request);
+    }
+
+    private static CreateParticipantContextRequest createRequest(ConflictPolicy conflictPolicy) {
+        return CreateParticipantContextRequest.builder()
+                .participantContextId(CTX_ID)
+                .did(DID)
+                .memberId(MEMBER_ID)
+                .credentialServiceUrl(CRED_SERVICE_URL)
+                .keyId(KEY_ID)
+                .privateKeyAlias(KEY_ALIAS)
+                .conflictPolicy(conflictPolicy)
+                .build();
     }
 
     @Test

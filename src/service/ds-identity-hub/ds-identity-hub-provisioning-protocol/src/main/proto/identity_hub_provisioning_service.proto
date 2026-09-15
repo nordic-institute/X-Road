@@ -44,9 +44,17 @@ message CreateParticipantContextReq {
   string credential_service_url = 4;
   string key_id = 5;
   string private_key_alias = 6;
+  // When the context already exists, update its stored member id to this request's member_id
+  // instead of leaving the existing context untouched.
+  bool reanchor_member_id_on_conflict = 7;
 }
 
 message CreateParticipantContextResp {
+  // True once the stored member id is confirmed to match the request's: trivially on a fresh
+  // create, or after a successful re-anchor on CONFLICT. False when a requested re-anchor could
+  // not be confirmed — the request's read/update failed and was swallowed, or this hub predates
+  // the field (proto3 default) and never attempted it.
+  bool member_id_reanchored = 1;
 }
 
 message RequestCredentialReq {

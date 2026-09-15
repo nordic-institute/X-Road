@@ -38,6 +38,10 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestSta
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -87,16 +91,27 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
         close();
     }
 
-    public void createIdentityHubParticipantContext(String participantContextId, String did, String memberId,
-                                                    String credentialServiceUrl, String keyId, String privateKeyAlias) {
-        exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
-                .setParticipantContextId(participantContextId)
-                .setDid(did)
-                .setMemberId(memberId)
-                .setCredentialServiceUrl(credentialServiceUrl)
-                .setKeyId(keyId)
-                .setPrivateKeyAlias(privateKeyAlias)
+    /**
+     * Under {@link ConflictPolicy#KEEP} the hub is asked to confirm nothing, so its ack carries no
+     * information and the anchor is {@code CONFIRMED} regardless — including against a hub that
+     * predates the ack field and leaves it at the proto3 default on every response.
+     *
+     * @see IdentityHubProvisioningClient#createParticipantContext
+     */
+    public MemberIdAnchor createIdentityHubParticipantContext(CreateParticipantContextRequest request) {
+        var response = exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
+                .setParticipantContextId(request.participantContextId())
+                .setDid(request.did())
+                .setMemberId(request.memberId() == null ? "" : request.memberId())
+                .setCredentialServiceUrl(request.credentialServiceUrl())
+                .setKeyId(request.keyId())
+                .setPrivateKeyAlias(request.privateKeyAlias())
+                .setReanchorMemberIdOnConflict(request.conflictPolicy() == ConflictPolicy.REANCHOR)
                 .build()));
+        if (request.conflictPolicy() == ConflictPolicy.KEEP) {
+            return MemberIdAnchor.CONFIRMED;
+        }
+        return response.getMemberIdReanchored() ? MemberIdAnchor.CONFIRMED : MemberIdAnchor.UNCONFIRMED;
     }
 
     public String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,

@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
+import lombok.Builder;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -36,11 +37,37 @@ import java.util.Optional;
  */
 public interface IdentityHubProvisioningClient {
 
+    /** What to do with an already-existing context's stored member id. */
+    enum ConflictPolicy {
+        /** Leave the stored member id untouched. */
+        KEEP,
+        /** Re-point the stored member id at this call's {@code memberId}. */
+        REANCHOR
+    }
+    /** Whether the context's stored member id is known to match the member id just requested for it. */
+    enum MemberIdAnchor { CONFIRMED, UNCONFIRMED }
+
+    /**
+     * Everything the hub needs to create a participant context, plus the {@link ConflictPolicy} to
+     * apply when the context already exists.
+     */
+    @Builder
+    record CreateParticipantContextRequest(String participantContextId, String did, @Nullable String memberId,
+                                           String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                           ConflictPolicy conflictPolicy) {
+    }
+
     /**
      * Creates (idempotently) the IdentityHub participant context for the given participant.
+     *
+     * @return {@code CONFIRMED} when the stored member id is known to match the requested member id.
+     *         Under {@code KEEP} that is always — nothing was asked of the hub, so nothing can be left
+     *         unconfirmed, and the caller must not defer on this result. Under {@code REANCHOR},
+     *         once the re-anchor is applied or the stored value is found already matching;
+     *         {@code UNCONFIRMED} there when it could not be confirmed (older hub, or the re-anchor
+     *         read/update failed).
      */
-    void createParticipantContext(String participantContextId, String did, String memberId,
-                                  String credentialServiceUrl, String keyId, String privateKeyAlias);
+    MemberIdAnchor createParticipantContext(CreateParticipantContextRequest request);
 
     /**
      * Submits a membership credential request for the given participant and holder request id, targeting

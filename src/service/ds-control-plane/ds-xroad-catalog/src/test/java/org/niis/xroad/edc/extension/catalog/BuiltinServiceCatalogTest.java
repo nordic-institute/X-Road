@@ -36,13 +36,13 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_ALLOWED_METHODS_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_GET_OPEN_API_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_GET_WSDL_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.META_LIST_METHODS_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.OP_MONITOR_HEALTH_DATA_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE;
-import static org.niis.xroad.edc.extension.catalog.BuiltinServiceCatalog.PROXY_MONITOR_SERVICE_CODE;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.ALLOWED_METHODS;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.GET_OPENAPI;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.GET_SECURITY_SERVER_HEALTH_DATA;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.GET_SECURITY_SERVER_OPERATIONAL_DATA;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.GET_WSDL;
+import static org.niis.xroad.common.core.BuiltinServiceCodes.LIST_METHODS;
 
 @ExtendWith(MockitoExtension.class)
 class BuiltinServiceCatalogTest {
@@ -68,13 +68,13 @@ class BuiltinServiceCatalogTest {
                 .toList();
 
         assertThat(codes).containsExactlyInAnyOrder(
-                PROXY_MONITOR_SERVICE_CODE,
-                OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE,
-                OP_MONITOR_HEALTH_DATA_SERVICE_CODE,
-                META_LIST_METHODS_SERVICE_CODE,
-                META_ALLOWED_METHODS_SERVICE_CODE,
-                META_GET_WSDL_SERVICE_CODE,
-                META_GET_OPEN_API_SERVICE_CODE
+                GET_SECURITY_SERVER_METRICS,
+                GET_SECURITY_SERVER_OPERATIONAL_DATA,
+                GET_SECURITY_SERVER_HEALTH_DATA,
+                LIST_METHODS,
+                ALLOWED_METHODS,
+                GET_WSDL,
+                GET_OPENAPI
         );
     }
 
@@ -84,7 +84,7 @@ class BuiltinServiceCatalogTest {
 
         var codes = cat.activeServiceIds().stream().map(s -> s.getServiceCode()).toList();
 
-        assertThat(codes).doesNotContain(PROXY_MONITOR_SERVICE_CODE);
+        assertThat(codes).doesNotContain(GET_SECURITY_SERVER_METRICS);
         assertThat(codes).hasSize(6);
     }
 
@@ -94,7 +94,7 @@ class BuiltinServiceCatalogTest {
 
         var codes = cat.activeServiceIds().stream().map(s -> s.getServiceCode()).toList();
 
-        assertThat(codes).doesNotContain(OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE, OP_MONITOR_HEALTH_DATA_SERVICE_CODE);
+        assertThat(codes).doesNotContain(GET_SECURITY_SERVER_OPERATIONAL_DATA, GET_SECURITY_SERVER_HEALTH_DATA);
         assertThat(codes).hasSize(5);
     }
 
@@ -104,8 +104,8 @@ class BuiltinServiceCatalogTest {
 
         var codes = cat.activeServiceIds().stream().map(s -> s.getServiceCode()).toList();
 
-        assertThat(codes).doesNotContain(META_LIST_METHODS_SERVICE_CODE, META_ALLOWED_METHODS_SERVICE_CODE,
-                META_GET_WSDL_SERVICE_CODE, META_GET_OPEN_API_SERVICE_CODE);
+        assertThat(codes).doesNotContain(LIST_METHODS, ALLOWED_METHODS,
+                GET_WSDL, GET_OPENAPI);
         assertThat(codes).hasSize(3);
     }
 
@@ -122,14 +122,14 @@ class BuiltinServiceCatalogTest {
         var cat = catalog(true, true, true);
 
         var proxyMonitorId = cat.activeServiceIds().stream()
-                .filter(s -> PROXY_MONITOR_SERVICE_CODE.equals(s.getServiceCode()))
+                .filter(s -> GET_SECURITY_SERVER_METRICS.equals(s.getServiceCode()))
                 .findFirst()
                 .orElseThrow();
 
         var found = cat.findServiceId(proxyMonitorId.asEncodedId());
 
         assertThat(found).isNotNull();
-        assertThat(found.getServiceCode()).isEqualTo(PROXY_MONITOR_SERVICE_CODE);
+        assertThat(found.getServiceCode()).isEqualTo(GET_SECURITY_SERVER_METRICS);
     }
 
     @Test
@@ -162,13 +162,13 @@ class BuiltinServiceCatalogTest {
 
     @Test
     void settingConstantsMatchExpectedNames() {
-        assertThat(PROXY_MONITOR_SERVICE_CODE).isEqualTo("getSecurityServerMetrics");
-        assertThat(OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE).isEqualTo("getSecurityServerOperationalData");
-        assertThat(OP_MONITOR_HEALTH_DATA_SERVICE_CODE).isEqualTo("getSecurityServerHealthData");
-        assertThat(META_LIST_METHODS_SERVICE_CODE).isEqualTo("listMethods");
-        assertThat(META_ALLOWED_METHODS_SERVICE_CODE).isEqualTo("allowedMethods");
-        assertThat(META_GET_WSDL_SERVICE_CODE).isEqualTo("getWsdl");
-        assertThat(META_GET_OPEN_API_SERVICE_CODE).isEqualTo("getOpenAPI");
+        assertThat(GET_SECURITY_SERVER_METRICS).isEqualTo("getSecurityServerMetrics");
+        assertThat(GET_SECURITY_SERVER_OPERATIONAL_DATA).isEqualTo("getSecurityServerOperationalData");
+        assertThat(GET_SECURITY_SERVER_HEALTH_DATA).isEqualTo("getSecurityServerHealthData");
+        assertThat(LIST_METHODS).isEqualTo("listMethods");
+        assertThat(ALLOWED_METHODS).isEqualTo("allowedMethods");
+        assertThat(GET_WSDL).isEqualTo("getWsdl");
+        assertThat(GET_OPENAPI).isEqualTo("getOpenAPI");
     }
 
     @Test
@@ -177,7 +177,7 @@ class BuiltinServiceCatalogTest {
         var predicate = cat.isBuiltinAssetId();
 
         var proxyMonitorAssetId = cat.activeServiceIds().stream()
-                .filter(s -> PROXY_MONITOR_SERVICE_CODE.equals(s.getServiceCode()))
+                .filter(s -> GET_SECURITY_SERVER_METRICS.equals(s.getServiceCode()))
                 .findFirst()
                 .orElseThrow()
                 .asEncodedId();
@@ -203,7 +203,7 @@ class BuiltinServiceCatalogTest {
 
         var opMonitorCat = catalog(true, true, true);
         var proxyMonitorAssetId = opMonitorCat.activeServiceIds().stream()
-                .filter(s -> PROXY_MONITOR_SERVICE_CODE.equals(s.getServiceCode()))
+                .filter(s -> GET_SECURITY_SERVER_METRICS.equals(s.getServiceCode()))
                 .findFirst()
                 .orElseThrow()
                 .asEncodedId();

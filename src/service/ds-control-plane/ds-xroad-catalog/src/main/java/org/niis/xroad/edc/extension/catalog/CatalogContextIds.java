@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,23 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.util;
-
-import org.niis.xroad.common.core.BuiltinServiceCodes;
+package org.niis.xroad.edc.extension.catalog;
 
 /**
- * Contains String constants for metadata request names.
+ * The three server-level participant contexts every ServerConf-backed catalog store publishes
+ * under. Kept together so callers pass one named value instead of three interchangeable strings.
+ *
+ * @param host       the legacy host context, this server's own DSP identity
+ * @param management the distinct identity for MANAGEMENT-subsystem entities
+ * @param system     the per-server SYSTEM context (XRDADR-41)
  */
-public final class MetadataRequests {
-
-    private MetadataRequests() {
-    }
-
-    public static final String LIST_CLIENTS = "/listClients";
-    public static final String LIST_METHODS = BuiltinServiceCodes.LIST_METHODS;
-    public static final String ALLOWED_METHODS = BuiltinServiceCodes.ALLOWED_METHODS;
-    public static final String GET_OPENAPI = BuiltinServiceCodes.GET_OPENAPI;
-    public static final String GET_WSDL = BuiltinServiceCodes.GET_WSDL;
-    public static final String ASIC = "/asic";
-    public static final String VERIFICATIONCONF = "/verificationconf";
+record CatalogContextIds(String host, String management, String system) {
 }

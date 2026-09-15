@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -40,7 +39,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -60,9 +58,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
-    private final String participantContextId;
-    private final String managementParticipantContextId;
+    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<ContractDefinition> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -97,23 +93,14 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         var builtinServiceId = builtinServiceCatalog.findServiceId(policyId);
         if (builtinServiceId != null) {
             log.trace("findById definitionId={} matched builtin", definitionId);
-            return toBuiltinContractDefinition(builtinServiceId);
+            return toBuiltinContractDefinition(builtinServiceId,
+                    serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+        }
+        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+            return findSystemContractDefinition(policyId);
         }
         if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
-            var assetIdStr = policyId.substring(0,
-                    policyId.length() - ContractDefinitionMapper.OWNER_ONLY_SUFFIX.length());
-            var ownerOnlyServiceId = AssetMapper.decodeAssetId(assetIdStr);
-            if (ownerOnlyServiceId == null) {
-                log.trace("findById definitionId={} owner-only candidate decode failed", definitionId);
-                return null;
-            }
-            if (!serverConfProvider.serviceExists(ownerOnlyServiceId)
-                    && !isLocallyRegisteredSubsystem(ownerOnlyServiceId.getClientId())) {
-                log.trace("findById definitionId={} owner-only candidate did not resolve", definitionId);
-                return null;
-            }
-            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                    ownerOnlyServiceId, managementParticipantContextId);
+            return findOwnerOnlyContractDefinition(policyId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
         if (parts.length < AssetMapper.SERVICE_ID_PARTS_WITH_VERSION) {
@@ -128,6 +115,28 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, definitionId);
         log.trace("findById definitionId={} result={}", definitionId, result != null ? "found (5-part serviceId)" : "not found");
         return result;
+    }
+
+    /** The SYSTEM-context owner-only definition {@code policyId} names, if one is published there. */
+    @Nullable
+    private ContractDefinition findSystemContractDefinition(String policyId) {
+        var serviceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+        if (serviceId == null) {
+            log.trace("findById policyId={} not published under SYSTEM", policyId);
+            return null;
+        }
+        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.system());
+    }
+
+    /** The management-context owner-only definition {@code policyId} names, if this server serves it. */
+    @Nullable
+    private ContractDefinition findOwnerOnlyContractDefinition(String policyId) {
+        var serviceId = serviceContextResolver.resolveOwnerOnlyService(policyId);
+        if (serviceId == null) {
+            log.trace("findById policyId={} owner-only candidate did not resolve", policyId);
+            return null;
+        }
+        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.management());
     }
 
     @Override
@@ -153,11 +162,16 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            definitions.add(toBuiltinContractDefinition(serviceId));
+            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.management()));
+            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
-        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
+        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
+        syntheticServices.managementEntries()
                 .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                        serviceId, managementParticipantContextId)));
+                        serviceId, contextIds.management())));
+        syntheticServices.systemEntries()
+                .forEach(serviceId -> definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
+                        serviceId, contextIds.system())));
         return definitions;
     }
 
@@ -213,7 +227,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
     private void collectContractDefinitionsForService(ServiceId serviceId, List<ContractDefinition> definitions,
                                                        Set<String> provisionedMemberContextIds) {
         definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
-                serviceId, managementParticipantContextId));
+                serviceId, contextIds.management()));
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
         }
@@ -234,7 +248,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
     }
 
-    private ContractDefinition toBuiltinContractDefinition(ServiceId serviceId) {
+    private ContractDefinition toBuiltinContractDefinition(ServiceId serviceId, String contextId) {
         var assetId = AssetMapper.encodeAssetId(serviceId);
         var contractId = assetId + ContractDefinitionMapper.getContractDefinitionSuffix();
         return ContractDefinition.Builder.newInstance()
@@ -242,21 +256,8 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 .accessPolicyId(assetId)
                 .contractPolicyId(assetId)
                 .assetsSelectorCriterion(new Criterion(CoreConstants.EDC_NAMESPACE + "id", "=", assetId))
-                .participantContextId(managementParticipantContextId)
+                .participantContextId(contextId)
                 .build();
-    }
-
-    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
-        }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (Exception e) {
-            log.warn("Failed to read global-conf for synthetic contract definition check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
     }
 
     private static String joinParts(String[] parts, int from, int to) {
