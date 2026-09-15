@@ -52,7 +52,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
@@ -160,8 +159,6 @@ public class DataspaceProvisioningService {
     private final ServerConfRepository serverConfRepository;
     private final DsParticipantRepository dsParticipantRepository;
     private final GlobalConfProvider globalConfProvider;
-
-    private final AtomicBoolean notEnabledLogged = new AtomicBoolean(false);
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
@@ -278,19 +275,14 @@ public class DataspaceProvisioningService {
     /**
      * The dataspace issuer trust anchor: every Issuer DID published by any Central Server node of this
      * X-Road instance's globalconf. Empty when the instance is not dataspace-enabled (no
-     * {@code dataspaceParameters} in the distributed shared parameters); the not-enabled state is logged
-     * once per transition rather than on every call.
+     * {@code dataspaceParameters} in the distributed shared parameters).
      */
     private Set<String> trustedIssuerDids() {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
-            if (notEnabledLogged.compareAndSet(false, true)) {
-                log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no dataspaceParameters "
-                        + "in globalconf); dataspace issuance and trust are not enabled", instanceIdentifier);
-            }
-        } else {
-            notEnabledLogged.set(false);
+            log.info("Data space provisioning: instance '{}' has no distributed issuer DIDs (no dataspaceParameters "
+                    + "in globalconf); dataspace issuance and trust are not enabled", instanceIdentifier);
         }
         return dids;
     }

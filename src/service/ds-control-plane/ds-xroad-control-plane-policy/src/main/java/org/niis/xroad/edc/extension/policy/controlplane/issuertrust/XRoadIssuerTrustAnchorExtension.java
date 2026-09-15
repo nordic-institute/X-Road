@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.edc.extension.policy.controlplane.issuertrust.XRoadIssuerTrustAnchorExtension.EXTENSION_NAME;
 
@@ -84,8 +83,6 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
     private Monitor monitor;
 
     private final XRoadTrustedIssuerRegistry issuerRegistry = new XRoadTrustedIssuerRegistry();
-
-    private final AtomicBoolean notEnabledLogged = new AtomicBoolean(false);
 
     private volatile Set<String> currentDids;
     private ScheduledExecutorService scheduledExecutorService;
@@ -150,12 +147,8 @@ public class XRoadIssuerTrustAnchorExtension implements ServiceExtension {
         var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         var dids = Set.copyOf(globalConfProvider.getIssuerDids(instanceIdentifier));
         if (dids.isEmpty()) {
-            if (notEnabledLogged.compareAndSet(false, true)) {
-                monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no dataspaceParameters in globalconf); "
-                        + "dataspace issuance and trust are not enabled").formatted(EXTENSION_NAME, instanceIdentifier));
-            }
-        } else {
-            notEnabledLogged.set(false);
+            monitor.info(("%s: instance '%s' has no distributed issuer DIDs (no dataspaceParameters in globalconf); "
+                    + "dataspace issuance and trust are not enabled").formatted(EXTENSION_NAME, instanceIdentifier));
         }
         return dids;
     }
