@@ -64,6 +64,11 @@ final class DefaultDataPlaneContextRegistrar implements DataPlaneContextRegistra
         entries.forEach(entry -> register(entry, participantContextId));
     }
 
+    /**
+     * Registers one configured data plane for one participant context. The control plane calls this
+     * on every provisioning tick for every context, so only the save that actually creates the
+     * instance is logged at INFO — the unchanged re-saves that follow it every tick are DEBUG.
+     */
     private void register(Config entry, String participantContextId) {
         var node = entry.currentNode();
         boolean enabled = entry.getBoolean(KEY_ENABLED, true);
