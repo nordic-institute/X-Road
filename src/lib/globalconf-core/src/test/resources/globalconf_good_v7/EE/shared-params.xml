@@ -109,6 +109,14 @@
             <dsTlsCertificateProfileId>ds-tls-profile</dsTlsCertificateProfileId>
         </acmeServer>
     </approvedDsTlsCa>
+    <dataspaceParameters>
+        <issuer>
+            <did>did:web:cs1.ee%3A443:issuer</did>
+        </issuer>
+        <issuer>
+            <did>did:web:cs2.ee%3A443:issuer</did>
+        </issuer>
+    </dataspaceParameters>
     <member id="id0">
         <memberClass>
             <code>BUSINESS</code>

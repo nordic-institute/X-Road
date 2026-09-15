@@ -54,6 +54,19 @@ class DspConfigKeysTest {
     }
 
     @Test
+    void issuerTrustRefreshIntervalSecondsRejectsZeroAndNegative() {
+        assertThat(DspConfigKeys.ISSUER_TRUST_REFRESH_INTERVAL_SECONDS.validate(0L).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_TRUST_REFRESH_INTERVAL_SECONDS.validate(-1L).valid()).isFalse();
+        assertThat(DspConfigKeys.ISSUER_TRUST_REFRESH_INTERVAL_SECONDS.validate(1L).valid()).isTrue();
+    }
+
+    @Test
+    void issuerTrustRefreshIntervalSecondsAcceptsPositiveValueAndDefault() {
+        assertThat(DspConfigKeys.ISSUER_TRUST_REFRESH_INTERVAL_SECONDS.validate(5L).valid()).isTrue();
+        assertThat(DspConfigKeys.ISSUER_TRUST_REFRESH_INTERVAL_SECONDS.convertedDefaultValue()).isEqualTo(60L);
+    }
+
+    @Test
     void serverProxyUrlRejectsBlank() {
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate("").valid()).isFalse();
         assertThat(DspConfigKeys.BUILTIN_SERVICES_SERVER_PROXY_URL.validate(null).valid()).isFalse();
@@ -82,7 +95,8 @@ class DspConfigKeysTest {
                         "xroad.dsp.builtin-services.proxyMonitor.enabled",
                         "xroad.dsp.builtin-services.opMonitor.enabled",
                         "xroad.dsp.builtin-services.metaservices.enabled",
-                        "xroad.dsp.builtin-services.server-proxy-url");
+                        "xroad.dsp.builtin-services.server-proxy-url",
+                        "xroad.dsp.issuer-trust.refresh-interval-seconds");
     }
 
     @Test

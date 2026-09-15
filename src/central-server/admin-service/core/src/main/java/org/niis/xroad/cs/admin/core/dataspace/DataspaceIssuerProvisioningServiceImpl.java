@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.dataspace;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
     private static final String CREDENTIAL_SUBJECT_PREFIX = "credentialSubject.";
     private final IssuerProvisioningRpcClient rpcClient;
     private final DataspaceIssuerProperties properties;
+    private final DataspaceIssuerDidService dataspaceIssuerDidService;
 
     @Override
     public void provisionIssuer() {
@@ -66,6 +68,8 @@ public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerPr
         rpcClient.createCredentialDefinition(ISSUER_PARTICIPANT_ID, CREDENTIAL_DEFINITION_ID, CREDENTIAL_TYPE,
                 CREDENTIAL_FORMAT, CREDENTIAL_JSON_SCHEMA, properties.getCredentialJsonSchemaUrl(),
                 CREDENTIAL_VALIDITY_SECONDS, List.of(ATTESTATION_DEFINITION_ID), membershipMappings());
+
+        dataspaceIssuerDidService.register(did);
     }
 
     private List<CredentialMapping> membershipMappings() {

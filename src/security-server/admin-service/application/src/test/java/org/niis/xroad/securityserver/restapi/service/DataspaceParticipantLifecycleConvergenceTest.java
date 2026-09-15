@@ -39,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -79,6 +80,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
 
     private static final String HOST_ID = "xrd-ss0";
     private static final String IDENTITY_HUB_HOST = "ih.example.test:7183";
+    private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
     private static final String MEMBER_CTX_ID = ParticipantIdentifierScheme.memberCtxId(MEMBER);
@@ -96,6 +98,8 @@ class DataspaceParticipantLifecycleConvergenceTest {
     private DataspaceReadinessPredicates readinessPredicates;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private final FakeIdentityHubProvisioningClient identityHubClient = new FakeIdentityHubProvisioningClient();
     private final FakeControlPlaneProvisioningClient controlPlaneClient = new FakeControlPlaneProvisioningClient();
@@ -107,7 +111,6 @@ class DataspaceParticipantLifecycleConvergenceTest {
     void setUp() {
         when(dataspace.getParticipantId()).thenReturn(HOST_ID);
         when(dataspace.getIdentityHubUrl()).thenReturn("https://" + IDENTITY_HUB_HOST.split(":")[0]);
-        when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
@@ -116,11 +119,13 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of("did:web:issuer.example.test"));
         bindingTable.wireOnto(dsParticipantRepository);
         givenServerOwnedBy(OWNER);
 
         var service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
         worker = new DataspaceParticipantProvisioningWorker(service, readinessPredicates);
     }
 

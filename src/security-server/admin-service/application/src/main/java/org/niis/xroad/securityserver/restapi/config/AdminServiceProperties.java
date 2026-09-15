@@ -380,10 +380,6 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
             return config.value(AdminServiceConfigKeys.DATASPACE_IDENTITY_HUB_CREDENTIALS_PORT);
         }
 
-        public String getIssuerDid() {
-            return config.value(AdminServiceConfigKeys.DATASPACE_ISSUER_DID);
-        }
-
         public String getCredentialDefinitionId() {
             return config.value(AdminServiceConfigKeys.DATASPACE_CREDENTIAL_DEFINITION_ID);
         }

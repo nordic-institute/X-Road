@@ -64,10 +64,6 @@ external_service_host: host.docker.internal
 # No cross-substrate bridges, no hybrid ss2 (LXD) — fully self-contained, in-cluster topology.
 external_service_bridges: []
 
-# The Issuer Service is co-located in the Central Server dev image (port 6183), reached
-# cross-namespace — same as e2e.
-trusted_issuer_host: central-server.cs
-
 # Two Security Server chart releases in separate namespaces, mirroring e2e's ss0/ss1 topology.
 # ss0 enables the softtoken-signer split (security_server role's softtoken_signer_enabled var)
 # and ss1 enables the signer image override toggle (signer_hsm_enabled): the shared hurl

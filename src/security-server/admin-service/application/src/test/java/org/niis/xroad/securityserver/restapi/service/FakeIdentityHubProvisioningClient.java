@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -74,7 +75,7 @@ final class FakeIdentityHubProvisioningClient implements IdentityHubProvisioning
     }
 
     @Override
-    public String requestMembershipCredential(String participantContextId, String issuerDid, String holderPid,
+    public String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,
                                               String credentialDefinitionId, String credentialType, String format) {
         if (failRequestCredentialFor.remove(participantContextId)) {
             throw new FakeProvisioningException("identity hub: requestMembershipCredential " + participantContextId);

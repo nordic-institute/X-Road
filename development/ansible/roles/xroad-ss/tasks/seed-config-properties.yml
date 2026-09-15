@@ -34,8 +34,6 @@
       value: "https://{{ inventory_hostname }}.lxd:7182"
     - key: xroad.proxy-ui-api.dataspace.participant-id
       value: "{{ inventory_hostname }}.lxd"
-    - key: xroad.proxy-ui-api.dataspace.issuer-did
-      value: "did:web:{{ groups['cs_servers'] | first }}%3A6183:issuer"
     # The ds services are co-located on this host and the DSL host defaults are
     # the docker compose service names, which do not resolve here. Ports are left
     # alone: ds-control-plane ships on 5461 and ds-identity-hub on 5460.

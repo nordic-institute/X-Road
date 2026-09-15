@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.identityhub.provisioning;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
@@ -43,9 +44,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.edc.extension.rpc.GrpcServiceRegistry;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class IdentityHubProvisioningExtensionTest {
@@ -65,6 +67,8 @@ class IdentityHubProvisioningExtensionTest {
     @Mock
     private QueryExecutor queryExecutor;
     @Mock
+    private DidResolverRegistry didResolverRegistry;
+    @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
     private Monitor monitor;
@@ -75,7 +79,7 @@ class IdentityHubProvisioningExtensionTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        when(typeManager.getMapper()).thenReturn(new ObjectMapper());
+        lenient().when(typeManager.getMapper()).thenReturn(new ObjectMapper());
 
         extension = new IdentityHubProvisioningExtension();
         setField(extension, "participantContextService", participantContextService);
@@ -85,6 +89,7 @@ class IdentityHubProvisioningExtensionTest {
         setField(extension, "transactionContext", transactionContext);
         setField(extension, "typeManager", typeManager);
         setField(extension, "queryExecutor", queryExecutor);
+        setField(extension, "didResolverRegistry", didResolverRegistry);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
         setField(extension, "monitor", monitor);
     }
@@ -94,6 +99,18 @@ class IdentityHubProvisioningExtensionTest {
         extension.initialize(context);
 
         verify(grpcServiceRegistry).register(any(IdentityHubProvisioningGrpcService.class));
+    }
+
+    @Test
+    void shutdownClosesTheRegisteredServiceAfterInitialize() {
+        extension.initialize(context);
+
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shutdownIsSafeWithoutPriorInitialize() {
+        assertThatCode(extension::shutdown).doesNotThrowAnyException();
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {

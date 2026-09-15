@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,43 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.jpa.repository;
 
-package org.niis.xroad.common.properties.config.keys;
+import org.niis.xroad.cs.admin.core.entity.IssuerDidEntity;
+import org.niis.xroad.cs.admin.core.repository.IssuerDidRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-import org.niis.xroad.common.properties.config.Category;
-import org.niis.xroad.common.properties.config.ConfigKey;
-import org.niis.xroad.common.properties.config.ConfigKeyProvider;
-import org.niis.xroad.common.properties.config.Prefix;
-
-import java.util.Set;
-
-/**
- * X-Road owned inputs to EDC settings ({@code xroad.edc.*}) that a packaged {@code application.yaml}
- * interpolates into a setting the EDC runtime reads itself through {@code QuarkusConfigBridge}, so the
- * value can arrive by any means the DSL supports (a stored override, an env var, {@code conf.d}) while
- * the EDC key itself stays declared by the packaged yaml.
- */
-public final class EdcConfigKeys implements ConfigKeyProvider {
-
-    private static final Prefix EDC = Prefix.of(Category.COMMON, "xroad.edc");
-
-    private static final EdcConfigKeys INSTANCE = new EdcConfigKeys();
-
-    private EdcConfigKeys() {
-    }
-
-    /** @return the provider singleton. */
-    public static EdcConfigKeys instance() {
-        return INSTANCE;
-    }
+@Repository
+public interface JpaIssuerDidRepository extends JpaRepository<IssuerDidEntity, Integer>, IssuerDidRepository {
 
     @Override
-    public String rootPath() {
-        return EDC.rootPath();
-    }
-
-    @Override
-    public Set<ConfigKey<?>> keys() {
-        return EDC.keys();
-    }
+    @Modifying
+    @Query(value = "INSERT INTO " + IssuerDidEntity.TABLE_NAME + " (id, did, created_at, updated_at) "
+            + "VALUES (nextval('" + IssuerDidEntity.TABLE_NAME + "_id_seq'), :did, now(), now()) "
+            + "ON CONFLICT (did) DO NOTHING", nativeQuery = true)
+    void insertIgnoreConflict(String did);
 }

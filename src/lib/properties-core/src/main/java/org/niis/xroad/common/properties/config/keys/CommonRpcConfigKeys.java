@@ -297,7 +297,7 @@ public final class CommonRpcConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.common-rpc.channel.auxiliary-service.port}. */
     public static final ConfigKey<Integer> CHANNEL_AUXILIARY_SERVICE_PORT = CHANNEL_AUXILIARY_SERVICE
             .integer("port")
-            .withDefaultValue(7665)
+            .withDefaultValue(5666)
             .exposedInUi()
             .build();
 

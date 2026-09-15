@@ -24,4 +24,5 @@ dependencies {
   testImplementation(libs.testcontainers.postgresql)
   testImplementation(libs.edc.ih.sql.holder.credential.request)
   testImplementation(testFixtures(libs.edc.sql.test.fixtures))
+  testImplementation(libs.awaitility)
 }
