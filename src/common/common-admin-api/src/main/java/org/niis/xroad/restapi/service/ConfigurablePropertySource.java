@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.service;
 
-export * from './backups';
-export * from './basic-types';
-export * from './notifications';
-export * from './routing';
-export * from './theme';
-export * from './api-keys';
-export * from './tls-certificates';
-export * from './admin-users';
-export * from './configurable-properties';
+import org.niis.xroad.common.properties.config.Category;
+import org.niis.xroad.common.properties.config.ConfigKeyProvider;
+
+import java.util.List;
+
+/**
+ * Per-product plug-in point for {@link ConfigurablePropertiesService}: supplies the
+ * {@link ConfigKeyProvider}s whose declared keys make up a product's configurable-properties
+ * catalogue, and maps a key's {@link Category} to the scope string the REST contract and UI
+ * grouping use.
+ */
+public interface ConfigurablePropertySource {
+
+    /** @return the providers whose exposed keys make up this product's catalogue */
+    List<ConfigKeyProvider> getConfigKeyProviders();
+
+    /**
+     * @param category UI grouping declared on a key
+     * @return the scope string identifying which process owns the property, {@code null} for a
+     *         shared/common category
+     */
+    String categoryToScope(Category category);
+}

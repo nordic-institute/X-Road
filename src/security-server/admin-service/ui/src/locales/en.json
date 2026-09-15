@@ -865,7 +865,6 @@
     "noClientData": "No client data",
     "noLocalGroups": "No local groups",
     "noServiceClients": "No service clients",
-    "noConfigurableProperties": "No configurable properties",
     "noTimestampingServices": "No timestamping services"
   },
   "serviceClientType": {
@@ -1076,23 +1075,6 @@
       "title": "Timestamping Services"
     },
     "configurableProperties": {
-      "title": "Configurable System Properties",
-      "search": "Search configurable properties",
-      "restartWarning": "The following services need to be restarted for the changes to take effect: {scopes}.",
-      "propertyRestartWarning": "Restart required for changes to take effect.",
-      "collapseAll": "Collapse All",
-      "updateSuccess": "Property updated successfully",
-      "editDialog": {
-        "title": "Edit Property Value"
-      },
-      "table": {
-        "header": {
-          "propertyName": "Property Name",
-          "currentValue": "Current Value",
-          "defaultValue": "Default Value",
-          "description": "Description"
-        }
-      },
       "descriptions": {
         "xroad": {
           "proxy-ui-api": {

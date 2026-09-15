@@ -27,8 +27,9 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
+import org.niis.xroad.restapi.repository.ConfigurationPropertyRepository;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -57,51 +58,51 @@ public class ConfigurationPropertyRepositoryIntegrationTest extends AbstractFaca
     }
 
     @Test
-    public void findConfigurationPropertyByPropertyKey() {
+    public void findByPropertyKey() {
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME);
+                configurationPropertyRepository.findByPropertyKey(PROPERTY_NAME);
 
         assertTrue(found.isPresent());
         assertEquals(PROPERTY_VALUE, found.get().getPropertyValue());
     }
 
     @Test
-    public void findConfigurationPropertyByPropertyKeyNotFound() {
+    public void findByPropertyKeyNotFound() {
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey("not_found");
+                configurationPropertyRepository.findByPropertyKey("not_found");
 
         assertTrue(found.isEmpty());
     }
 
     @Test
-    public void saveOrUpdate() {
+    public void save() {
         Optional<ConfigurationPropertyEntity> initial =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME);
+                configurationPropertyRepository.findByPropertyKey(PROPERTY_NAME);
 
         assertTrue(initial.isPresent());
         assertEquals(PROPERTY_VALUE, initial.get().getPropertyValue());
 
         initial.get().setPropertyValue(PROPERTY_VALUE_2);
-        configurationPropertyRepository.saveOrUpdate(initial.get());
+        configurationPropertyRepository.save(initial.get());
 
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME);
+                configurationPropertyRepository.findByPropertyKey(PROPERTY_NAME);
 
         assertTrue(found.isPresent());
         assertEquals(PROPERTY_VALUE_2, found.get().getPropertyValue());
     }
 
     @Test
-    public void saveOrUpdateValueThatDoesNotExist() {
+    public void saveValueThatDoesNotExist() {
         Optional<ConfigurationPropertyEntity> initial =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME_2);
+                configurationPropertyRepository.findByPropertyKey(PROPERTY_NAME_2);
 
         assertTrue(initial.isEmpty());
 
-        configurationPropertyRepository.saveOrUpdate(getConfigurationPropertyEntity());
+        configurationPropertyRepository.save(getConfigurationPropertyEntity());
 
         Optional<ConfigurationPropertyEntity> found =
-                configurationPropertyRepository.findConfigurationPropertyByPropertyKey(PROPERTY_NAME_2);
+                configurationPropertyRepository.findByPropertyKey(PROPERTY_NAME_2);
 
         assertTrue(found.isPresent());
         assertEquals(PROPERTY_VALUE_2, found.get().getPropertyValue());
