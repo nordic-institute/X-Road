@@ -30,7 +30,8 @@ import { page } from 'vitest/browser';
 import { renderRoute } from '../setup/render-route';
 import { specHttp, validateBody } from '../setup/spec-http';
 import { Permissions } from '@/global';
-import type { MaintenanceMode, SecurityServerConfigurableProperty } from '@/openapi-types';
+import type { MaintenanceMode } from '@/openapi-types';
+import type { ConfigurablePropertyDto } from '@niis/shared-ui';
 
 // ── AJV schemas ───────────────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ const maintenanceModeDisabledMgmtFixture: MaintenanceMode = {
   is_management_services_provider: true,
 };
 
-const configurablePropertiesFixture: SecurityServerConfigurableProperty[] = [
+const configurablePropertiesFixture: ConfigurablePropertyDto[] = [
   {
     property_name: 'xroad.proxy-ui-api.rate-limit-requests-per-second',
     current_value: '20',

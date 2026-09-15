@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,15 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.repository;
+package org.niis.xroad.restapi.repository;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.dao.ConfigurationPropertyDAOImpl;
+import org.niis.xroad.restapi.entity.ConfigurationPropertyEntity;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.impl.dao.ConfigurationPropertyDAOImpl;
-import org.niis.xroad.serverconf.impl.entity.ConfigurationPropertyEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,46 +36,28 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Configuration property repository
+ * Repository for configurable system parameter overrides stored in {@code configuration_properties}.
+ * Shared by Central Server and Security Server; each product's own database has an identical table,
+ * built from the same Liquibase changelog.
  */
-@Slf4j
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ConfigurationPropertyRepository extends AbstractRepository<ConfigurationPropertyEntity> {
+public class ConfigurationPropertyRepository {
 
-    @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
-
     private final ConfigurationPropertyDAOImpl configurationPropertyDAO = new ConfigurationPropertyDAOImpl();
 
-    /**
-     * Find all stored configuration property overrides.
-     *
-     * @return list of all configuration property entities
-     */
+    public void save(ConfigurationPropertyEntity entity) {
+        persistenceUtils.getCurrentSession().merge(entity);
+    }
+
     public List<ConfigurationPropertyEntity> findAll() {
         return configurationPropertyDAO.findAll(persistenceUtils.getCurrentSession(), ConfigurationPropertyEntity.class);
     }
 
-    /**
-     * Find a configuration property by its key.
-     *
-     * @param propertyKey the property key
-     * @return Optional containing the property if found
-     */
-    public Optional<ConfigurationPropertyEntity> findConfigurationPropertyByPropertyKey(String propertyKey) {
-        return Optional.ofNullable(configurationPropertyDAO.getConfigurationProperty(
+    public Optional<ConfigurationPropertyEntity> findByPropertyKey(String propertyKey) {
+        return Optional.ofNullable(configurationPropertyDAO.findByPropertyKey(
                 persistenceUtils.getCurrentSession(), propertyKey));
     }
-
-    /**
-     * Save or update a configuration property entity.
-     *
-     * @param entity the entity to save or update
-     */
-    public void saveOrUpdate(ConfigurationPropertyEntity entity) {
-        persistenceUtils.getCurrentSession().merge(entity);
-    }
-
 }

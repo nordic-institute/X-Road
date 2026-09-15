@@ -66,6 +66,7 @@ import GlobalGroupView from '@/views/Settings/GlobalResources/GlobalGroup/Global
 import GlobalGroupsList from '@/views/Settings/GlobalResources/GlobalGroupsList.vue';
 import GlobalResourcesView from '@/views/Settings/GlobalResources/GlobalResourcesView.vue';
 import SettingsView from '@/views/Settings/SettingsView.vue';
+import SystemParametersView from '@/views/Settings/SystemParameters/SystemParameters.vue';
 import SystemSettingsView from '@/views/Settings/SystemSettings/SystemSettingsView.vue';
 import DsTlsCertificate from '@/views/Settings/TlsCertificates/DsTlsCertificate.vue';
 import DsTlsCertificateView from '@/views/Settings/TlsCertificates/DsTlsCertificateView.vue';
@@ -122,6 +123,7 @@ const routes = [
             Permissions.VIEW_SECURITY_SERVERS,
             Permissions.BACKUP_CONFIGURATION,
             Permissions.VIEW_API_KEYS,
+            Permissions.CHANGE_CONFIGURATION_PROPERTY,
           ],
         },
         components: {
@@ -162,6 +164,13 @@ const routes = [
             component: SystemSettingsView,
             props: true,
             meta: { permissions: [Permissions.VIEW_SYSTEM_SETTINGS] },
+          },
+          {
+            name: RouteName.SystemParameters,
+            path: 'system-parameters',
+            component: SystemParametersView,
+            props: true,
+            meta: { permissions: [Permissions.CHANGE_CONFIGURATION_PROPERTY] },
           },
           {
             name: RouteName.BackupAndRestore,
