@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorCode;
@@ -50,6 +51,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
@@ -463,8 +465,10 @@ class DataspaceProvisioningServiceTest {
     void ensureParticipantContextCreatesIhAndCpForHostParticipant() {
         service.ensureParticipantContext(HOST_CONTEXT);
 
-        verify(identityHubClient).createParticipantContext(eq(PARTICIPANT_ID), any(), eq(slashForm(OWNER)), any(), any(), any(),
-                eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(PARTICIPANT_ID);
+        assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
         verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
         verify(controlPlaneClient).putParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
         verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
@@ -476,8 +480,11 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(new ParticipantContext(mgmtId, ParticipantKind.MANAGEMENT, OWNER));
 
-        verify(identityHubClient).createParticipantContext(eq(mgmtId), argThatEndsWith(":mgmt"), eq(slashForm(OWNER)), any(), any(), any(),
-                eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(mgmtId);
+        assertThat(request.did()).endsWith(":mgmt");
+        assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
     }
 
     // --- ensureParticipantContext (MEMBER) ---
@@ -489,8 +496,10 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(MEMBER_CONTEXT);
 
-        verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any(),
-                eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.did()).isEqualTo(expectedDid);
+        assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
     }
 
     @Test
@@ -504,8 +513,11 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER));
 
-        verify(identityHubClient).createParticipantContext(eq(ctxId), eq(expectedDid), any(),
-                argThat(url -> url.startsWith("https://ih.example.test:8185/api/credentials/")), any(), any(), eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(ctxId);
+        assertThat(request.did()).isEqualTo(expectedDid);
+        assertThat(request.credentialServiceUrl()).startsWith("https://ih.example.test:8185/api/credentials/");
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
         verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
                 eq("https://ih.example.test:8184/api/sts/token"));
     }
@@ -519,7 +531,7 @@ class DataspaceProvisioningServiceTest {
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.VALIDATION_ERROR.code()));
 
-        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).createParticipantContext(any());
     }
 
     @Test
@@ -531,8 +543,10 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, memberWithPlus));
 
-        verify(identityHubClient).createParticipantContext(eq(ctxId), any(), any(),
-                argThat(url -> url.endsWith("/api/credentials/v1/participants/TEST:ORG:222%252BA")), any(), any(), eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(ctxId);
+        assertThat(request.credentialServiceUrl()).endsWith("/api/credentials/v1/participants/TEST:ORG:222%252BA");
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
     }
 
     @Test
@@ -542,8 +556,10 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(MEMBER_CONTEXT);
 
-        verify(identityHubClient).createParticipantContext(any(), eq(bound.getDid()), eq(slashForm(MEMBER)), any(), any(), any(),
-                eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.did()).isEqualTo(bound.getDid());
+        assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
     }
 
     @Test
@@ -555,7 +571,7 @@ class DataspaceProvisioningServiceTest {
         assertThatThrownBy(() -> service.ensureParticipantContext(context))
                 .isInstanceOf(XrdRuntimeException.class);
 
-        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).createParticipantContext(any());
     }
 
     @Test
@@ -571,7 +587,7 @@ class DataspaceProvisioningServiceTest {
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.DSP_PARTICIPANT_DID_DRIFT.code()));
 
-        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).createParticipantContext(any());
         verify(controlPlaneClient, never()).createParticipantContext(any(), any());
     }
 
@@ -584,8 +600,10 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(new ParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER));
 
-        verify(identityHubClient).createParticipantContext(any(), eq(expectedDid), eq(slashForm(MEMBER)), any(), any(), any(),
-                eq(ConflictPolicy.KEEP));
+        var request = capturedIhCreateRequest();
+        assertThat(request.did()).isEqualTo(expectedDid);
+        assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
     }
 
     // --- ensureParticipantContext (SYSTEM) ---
@@ -597,8 +615,11 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(SYSTEM_CONTEXT);
 
-        verify(identityHubClient).createParticipantContext(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), eq(expectedDid),
-                eq(slashForm(OWNER)), any(), any(), any(), eq(ConflictPolicy.REANCHOR));
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+        assertThat(request.did()).isEqualTo(expectedDid);
+        assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.REANCHOR);
     }
 
     @Test
@@ -608,8 +629,10 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(SYSTEM_CONTEXT);
 
-        verify(identityHubClient).createParticipantContext(any(), eq(bound.getDid()), eq(slashForm(OWNER)), any(), any(), any(),
-                eq(ConflictPolicy.REANCHOR));
+        var request = capturedIhCreateRequest();
+        assertThat(request.did()).isEqualTo(bound.getDid());
+        assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
+        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.REANCHOR);
     }
 
     @Test
@@ -622,7 +645,7 @@ class DataspaceProvisioningServiceTest {
                 .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code()));
 
-        verify(identityHubClient, never()).createParticipantContext(any(), any(), any(), any(), any(), any(), any());
+        verify(identityHubClient, never()).createParticipantContext(any());
     }
 
     @Test
@@ -639,7 +662,8 @@ class DataspaceProvisioningServiceTest {
 
     @Test
     void ensureParticipantContextReportsConfirmedForHostWhenNoReanchorRequested() {
-        when(identityHubClient.createParticipantContext(eq(PARTICIPANT_ID), any(), any(), any(), any(), any(), eq(ConflictPolicy.KEEP)))
+        when(identityHubClient.createParticipantContext(argThat(request ->
+                PARTICIPANT_ID.equals(request.participantContextId()) && request.conflictPolicy() == ConflictPolicy.KEEP)))
                 .thenReturn(MemberIdAnchor.CONFIRMED);
 
         var anchor = service.ensureParticipantContext(HOST_CONTEXT);
@@ -650,8 +674,10 @@ class DataspaceProvisioningServiceTest {
     @Test
     void ensureParticipantContextReportsUnconfirmedForSystemWhenReanchorUnconfirmed() {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
-        when(identityHubClient.createParticipantContext(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(), any(), any(), any(),
-                any(), eq(ConflictPolicy.REANCHOR))).thenReturn(MemberIdAnchor.UNCONFIRMED);
+        when(identityHubClient.createParticipantContext(argThat(request ->
+                ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(request.participantContextId())
+                        && request.conflictPolicy() == ConflictPolicy.REANCHOR)))
+                .thenReturn(MemberIdAnchor.UNCONFIRMED);
 
         var anchor = service.ensureParticipantContext(SYSTEM_CONTEXT);
 
@@ -661,8 +687,10 @@ class DataspaceProvisioningServiceTest {
     @Test
     void ensureParticipantContextReportsConfirmedForSystemWhenReanchorConfirmed() {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
-        when(identityHubClient.createParticipantContext(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(), any(), any(), any(),
-                any(), eq(ConflictPolicy.REANCHOR))).thenReturn(MemberIdAnchor.CONFIRMED);
+        when(identityHubClient.createParticipantContext(argThat(request ->
+                ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(request.participantContextId())
+                        && request.conflictPolicy() == ConflictPolicy.REANCHOR)))
+                .thenReturn(MemberIdAnchor.CONFIRMED);
 
         var anchor = service.ensureParticipantContext(SYSTEM_CONTEXT);
 
@@ -866,7 +894,9 @@ class DataspaceProvisioningServiceTest {
         return "%s/%s/%s".formatted(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
     }
 
-    private static String argThatEndsWith(String suffix) {
-        return argThat(value -> value != null && value.endsWith(suffix));
+    private CreateParticipantContextRequest capturedIhCreateRequest() {
+        var captor = ArgumentCaptor.forClass(CreateParticipantContextRequest.class);
+        verify(identityHubClient).createParticipantContext(captor.capture());
+        return captor.getValue();
     }
 }

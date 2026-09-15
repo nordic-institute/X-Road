@@ -48,6 +48,7 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioning
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 
 import java.util.List;
@@ -169,8 +170,7 @@ class IdentityHubProvisioningRpcClientTest {
 
     @Test
     void createIdentityHubParticipantContextForwardsAllFields() {
-        var anchor = client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
-                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", ConflictPolicy.REANCHOR);
+        var anchor = client.createIdentityHubParticipantContext(createRequest("member-id", ConflictPolicy.REANCHOR));
 
         var req = capturedCreateReq.get();
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
@@ -187,16 +187,14 @@ class IdentityHubProvisioningRpcClientTest {
     void createIdentityHubParticipantContextReportsConfirmedUnderKeepEvenWhenHubSendsNoAck() {
         configuredCreateResp = CreateParticipantContextResp.getDefaultInstance();
 
-        var anchor = client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
-                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", ConflictPolicy.KEEP);
+        var anchor = client.createIdentityHubParticipantContext(createRequest("member-id", ConflictPolicy.KEEP));
 
         assertThat(anchor).isEqualTo(MemberIdAnchor.CONFIRMED);
     }
 
     @Test
     void createIdentityHubParticipantContextSendsEmptyMemberIdWhenOwnerUnknown() {
-        client.createIdentityHubParticipantContext("ctx-id", "did:web:example", null,
-                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", ConflictPolicy.KEEP);
+        client.createIdentityHubParticipantContext(createRequest(null, ConflictPolicy.KEEP));
 
         var req = capturedCreateReq.get();
         assertThat(req.getMemberId()).isEmpty();
@@ -207,10 +205,21 @@ class IdentityHubProvisioningRpcClientTest {
     void createIdentityHubParticipantContextReportsUnconfirmedWhenHubDoesNotConfirmReanchor() {
         configuredCreateResp = CreateParticipantContextResp.getDefaultInstance();
 
-        var anchor = client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
-                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key", ConflictPolicy.REANCHOR);
+        var anchor = client.createIdentityHubParticipantContext(createRequest("member-id", ConflictPolicy.REANCHOR));
 
         assertThat(anchor).isEqualTo(MemberIdAnchor.UNCONFIRMED);
+    }
+
+    private static CreateParticipantContextRequest createRequest(String memberId, ConflictPolicy conflictPolicy) {
+        return CreateParticipantContextRequest.builder()
+                .participantContextId("ctx-id")
+                .did("did:web:example")
+                .memberId(memberId)
+                .credentialServiceUrl("https://cred.example/v1")
+                .keyId("did:web:example#key-1")
+                .privateKeyAlias("ctx-id-key")
+                .conflictPolicy(conflictPolicy)
+                .build();
     }
 
     @Test

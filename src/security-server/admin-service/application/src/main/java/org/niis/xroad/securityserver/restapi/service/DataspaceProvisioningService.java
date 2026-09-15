@@ -40,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
@@ -556,9 +557,15 @@ public class DataspaceProvisioningService {
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         var conflictPolicy = context.kind() == ParticipantKind.SYSTEM ? ConflictPolicy.REANCHOR : ConflictPolicy.KEEP;
-        var anchor = identityHubClient.createParticipantContext(participantId, did,
-                context.memberId() == null ? null : slashForm(context.memberId()),
-                credentialServiceUrl, keyId, privateKeyAlias, conflictPolicy);
+        var anchor = identityHubClient.createParticipantContext(CreateParticipantContextRequest.builder()
+                .participantContextId(participantId)
+                .did(did)
+                .memberId(context.memberId() == null ? null : slashForm(context.memberId()))
+                .credentialServiceUrl(credentialServiceUrl)
+                .keyId(keyId)
+                .privateKeyAlias(privateKeyAlias)
+                .conflictPolicy(conflictPolicy)
+                .build());
         if (conflictPolicy == ConflictPolicy.REANCHOR && anchor == MemberIdAnchor.UNCONFIRMED) {
             log.warn("Data space: identity hub could not confirm the SYSTEM credential re-anchor for participant '{}' "
                     + "— older hub, or the re-anchor read/update failed; deferring SYSTEM credential issuance to next tick",

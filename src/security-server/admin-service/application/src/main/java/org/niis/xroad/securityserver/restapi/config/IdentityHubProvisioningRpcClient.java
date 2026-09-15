@@ -40,6 +40,7 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioning
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -97,20 +98,17 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
      *
      * @see IdentityHubProvisioningClient#createParticipantContext
      */
-    public MemberIdAnchor createIdentityHubParticipantContext(String participantContextId, String did,
-                                                              @Nullable String memberId, String credentialServiceUrl,
-                                                              String keyId, String privateKeyAlias,
-                                                              ConflictPolicy conflictPolicy) {
+    public MemberIdAnchor createIdentityHubParticipantContext(CreateParticipantContextRequest request) {
         var response = exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
-                .setParticipantContextId(participantContextId)
-                .setDid(did)
-                .setMemberId(memberId == null ? "" : memberId)
-                .setCredentialServiceUrl(credentialServiceUrl)
-                .setKeyId(keyId)
-                .setPrivateKeyAlias(privateKeyAlias)
-                .setReanchorMemberIdOnConflict(conflictPolicy == ConflictPolicy.REANCHOR)
+                .setParticipantContextId(request.participantContextId())
+                .setDid(request.did())
+                .setMemberId(request.memberId() == null ? "" : request.memberId())
+                .setCredentialServiceUrl(request.credentialServiceUrl())
+                .setKeyId(request.keyId())
+                .setPrivateKeyAlias(request.privateKeyAlias())
+                .setReanchorMemberIdOnConflict(request.conflictPolicy() == ConflictPolicy.REANCHOR)
                 .build()));
-        if (conflictPolicy == ConflictPolicy.KEEP) {
+        if (request.conflictPolicy() == ConflictPolicy.KEEP) {
             return MemberIdAnchor.CONFIRMED;
         }
         return response.getMemberIdReanchored() ? MemberIdAnchor.CONFIRMED : MemberIdAnchor.UNCONFIRMED;
