@@ -20,7 +20,6 @@ quarkus:
       locations:
         - xroad-common.yaml
         - xroad-logging.yaml
-        - /etc/xroad/conf.d/local-tls.yaml
         - /etc/xroad/conf.d/local.yaml
         - /etc/xroad/conf.d/local-ds-issuer-service.yaml
         - /etc/xroad/db.properties

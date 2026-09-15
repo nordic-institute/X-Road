@@ -1,17 +1,10 @@
 ---
-# TEMPORARY (dataspaces dev): remove stale systemd drop-in that set jwks.url
-# via Environment= (superseded by local-ds-issuer-service.yaml placed by
-# pre-cs-install.yml). The drop-in dir is created by the package, so this
-# must run after install. Remove once the packages never shipped this drop-in.
-- name: drop legacy ds-issuer-service systemd override (now in YAML)
-  file:
-    path: /etc/systemd/system/xroad-ds-issuer-service.service.d/jwks.conf
-    state: absent
-
-# The XRoadConfig DSL resolves DB overrides and packaged defaults only — env vars
-# and conf.d yaml are ignored — so these are seeded straight into the centerui
-# configuration_properties table. Deterministic upsert; restart xroad-center
-# because it resolved the DSL config before the rows existed.
+# Dev-only tuning, applied as post-install reconfiguration (not install
+# convergence — a fresh install is healthy without it). The XRoadConfig DSL
+# resolves DB overrides and packaged defaults only — env vars and conf.d yaml
+# are ignored — so these are seeded straight into the centerui
+# configuration_properties table. Deterministic upsert; the consumers are
+# restarted because the DSL resolves once at process start.
 - name: seed dev-cadence configuration into centerui configuration_properties
   become: true
   command:
@@ -41,38 +34,4 @@
 - name: restart xroad-ds-issuer-service to resolve the seeded configuration
   systemd:
     name: xroad-ds-issuer-service
-    state: restarted
-
-# TEMPORARY FIX — race in ManagementServiceSslBundleRegistrar
-# (core/src/common/common-management-service/.../ManagementServiceSslBundleRegistrar.java).
-# Both xroad-center-management-service and xroad-center-registration-service share
-# the vault path `tls/management-service` and each calls `ensureTlsKeyPresent()`
-# at startup. On a clean install the path is empty, so BOTH services provision a
-# fresh keypair via `vaultKeyClient.provisionNewCerts()` and `createManagementServiceTlsCredentials`
-# overwrites whichever wrote first. The losing service stays in memory with cert A
-# while vault (and the second service) hold cert B; admin-service's globalconf-generator
-# (PrivateParametersLoader.java:73) then publishes cert B as authCertRegServiceCert
-# while port 4001 (registration-service) actually presents cert A → SS auth-cert
-# registration fails with "Central server TLS certificate does not match in global conf".
-#
-# The proper fix is to make ensureTlsKeyPresent idempotent across services
-# (one writer, others read-only) — see ManagementServiceSslBundleRegistrar.
-# Until then: restart registration-service AFTER both have settled. The restarted
-# instance will read the now-populated vault entry and serve whichever cert
-# management-service wrote (also what globalconf advertises). One sync point is
-# enough — vault state is then stable.
-- name: wait for management & registration services to be active (race resolution prerequisite)
-  systemd:
-    name: "{{ item }}"
-  register: cs_mgmt_reg_state
-  until: cs_mgmt_reg_state.status.ActiveState == "active"
-  retries: 30
-  delay: 2
-  loop:
-    - xroad-center-management-service
-    - xroad-center-registration-service
-
-- name: restart xroad-center-registration-service so its TLS bundle reloads from vault
-  systemd:
-    name: xroad-center-registration-service
     state: restarted
