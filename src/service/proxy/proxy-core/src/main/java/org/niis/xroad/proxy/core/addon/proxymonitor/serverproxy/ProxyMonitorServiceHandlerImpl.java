@@ -41,6 +41,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -76,7 +77,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.ACCESS_DENIED;
 @Slf4j
 public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
-    public static final String SERVICE_CODE = "getSecurityServerMetrics";
+    public static final String SERVICE_CODE = BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
     public static final String MONITOR_REQ_PARAM_NODE_NAME = "outputField";
     public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
 

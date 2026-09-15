@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.ds.identity.BuiltinServiceCodes;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -461,7 +461,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, CONTEXT_IDS,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
 
         var result = store.findById(builtinAssetId);
 
@@ -487,7 +487,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, CONTEXT_IDS,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
 
         var result = store.resolveForAsset(builtinAssetId);
 
@@ -506,7 +506,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, CONTEXT_IDS,
                 noBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
 
         var result = store.resolveForAsset(builtinAssetId);
 
@@ -557,7 +557,7 @@ class AssetIndexServerConfStoreTest {
         var store = new AssetIndexServerConfStore(
                 serverConfProvider, CONTEXT_IDS,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1111:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
 
         var result = store.findById(builtinAssetId);

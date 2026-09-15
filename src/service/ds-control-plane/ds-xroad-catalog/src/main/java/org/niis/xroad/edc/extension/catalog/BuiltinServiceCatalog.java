@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.ds.identity.BuiltinServiceCodes;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
@@ -99,15 +99,15 @@ class BuiltinServiceCatalog {
         var owner = serverConfProvider.getIdentifier().getOwner();
         var entries = new java.util.LinkedHashMap<String, ServiceId.Conf>();
 
-        addIfEnabled(entries, proxyMonitorEnabled, owner, BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE);
+        addIfEnabled(entries, proxyMonitorEnabled, owner, BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS);
 
-        addIfEnabled(entries, opMonitorEnabled, owner, BuiltinServiceCodes.OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE);
-        addIfEnabled(entries, opMonitorEnabled, owner, BuiltinServiceCodes.OP_MONITOR_HEALTH_DATA_SERVICE_CODE);
+        addIfEnabled(entries, opMonitorEnabled, owner, BuiltinServiceCodes.GET_SECURITY_SERVER_OPERATIONAL_DATA);
+        addIfEnabled(entries, opMonitorEnabled, owner, BuiltinServiceCodes.GET_SECURITY_SERVER_HEALTH_DATA);
 
-        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_LIST_METHODS_SERVICE_CODE);
-        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_ALLOWED_METHODS_SERVICE_CODE);
-        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_GET_WSDL_SERVICE_CODE);
-        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.META_GET_OPEN_API_SERVICE_CODE);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.LIST_METHODS);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.ALLOWED_METHODS);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.GET_WSDL);
+        addIfEnabled(entries, metaservicesEnabled, owner, BuiltinServiceCodes.GET_OPENAPI);
 
         log.debug("Built-in service catalog active entries: {}", entries.keySet());
         return Map.copyOf(entries);

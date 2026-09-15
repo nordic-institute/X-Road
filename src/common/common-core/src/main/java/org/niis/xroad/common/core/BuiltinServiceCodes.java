@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,38 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ds.identity;
+package org.niis.xroad.common.core;
 
 import lombok.experimental.UtilityClass;
 
 import java.util.Set;
 
 /**
- * The service codes of the built-in synthetic services served by every Security Server: proxy
- * monitoring, operational monitoring and metaservices. Single DSP-facing definition, shared by the
- * consumer-side built-in detector and the provider-side built-in catalog so the two lists cannot
- * drift apart.
+ * Service codes of the built-in services every Security Server answers itself rather than routing
+ * to a provider: proxy monitoring, operational monitoring and the metaservices. The single
+ * definition for the whole codebase — the SOAP and REST metaservice handlers, the operational
+ * monitoring handlers, and the data space catalog and consumer-side detector all read these, so the
+ * lists cannot drift apart.
  */
 @UtilityClass
 public class BuiltinServiceCodes {
 
-    public static final String PROXY_MONITOR_SERVICE_CODE = "getSecurityServerMetrics";
-    public static final String OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE = "getSecurityServerOperationalData";
-    public static final String OP_MONITOR_HEALTH_DATA_SERVICE_CODE = "getSecurityServerHealthData";
-    public static final String META_LIST_METHODS_SERVICE_CODE = "listMethods";
-    public static final String META_ALLOWED_METHODS_SERVICE_CODE = "allowedMethods";
-    public static final String META_GET_WSDL_SERVICE_CODE = "getWsdl";
-    public static final String META_GET_OPEN_API_SERVICE_CODE = "getOpenAPI";
+    public static final String GET_SECURITY_SERVER_METRICS = "getSecurityServerMetrics";
+    public static final String GET_SECURITY_SERVER_OPERATIONAL_DATA = "getSecurityServerOperationalData";
+    public static final String GET_SECURITY_SERVER_HEALTH_DATA = "getSecurityServerHealthData";
+    public static final String LIST_METHODS = "listMethods";
+    public static final String ALLOWED_METHODS = "allowedMethods";
+    public static final String GET_WSDL = "getWsdl";
+    public static final String GET_OPENAPI = "getOpenAPI";
 
-    /**
-     * All seven built-in service codes.
-     */
+    /** All seven built-in service codes. */
     public static final Set<String> ALL = Set.of(
-            PROXY_MONITOR_SERVICE_CODE,
-            OP_MONITOR_OPERATIONAL_DATA_SERVICE_CODE,
-            OP_MONITOR_HEALTH_DATA_SERVICE_CODE,
-            META_LIST_METHODS_SERVICE_CODE,
-            META_ALLOWED_METHODS_SERVICE_CODE,
-            META_GET_WSDL_SERVICE_CODE,
-            META_GET_OPEN_API_SERVICE_CODE);
+            GET_SECURITY_SERVER_METRICS,
+            GET_SECURITY_SERVER_OPERATIONAL_DATA,
+            GET_SECURITY_SERVER_HEALTH_DATA,
+            LIST_METHODS,
+            ALLOWED_METHODS,
+            GET_WSDL,
+            GET_OPENAPI);
 }

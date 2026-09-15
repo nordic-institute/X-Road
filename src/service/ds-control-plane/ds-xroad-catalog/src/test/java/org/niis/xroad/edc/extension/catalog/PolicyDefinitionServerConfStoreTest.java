@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.ds.identity.BuiltinServiceCodes;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -448,7 +448,7 @@ class PolicyDefinitionServerConfStoreTest {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, new PolicyMapper(), CONTEXT_IDS,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
 
         var result = builtinStore.findById(builtinAssetId);
 
@@ -603,7 +603,7 @@ class PolicyDefinitionServerConfStoreTest {
         var builtinStore = new PolicyDefinitionServerConfStore(
                 serverConfProvider, new PolicyMapper(), CONTEXT_IDS,
                 allBuiltins(), DISABLED_CACHE, serviceContextResolver, requestedParticipantContext);
-        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.PROXY_MONITOR_SERVICE_CODE;
+        var builtinAssetId = "DEV:GOV:1234:" + BuiltinServiceCodes.GET_SECURITY_SERVER_METRICS;
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
 
         var result = builtinStore.findById(builtinAssetId);
