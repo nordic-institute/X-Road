@@ -9,10 +9,10 @@ Doc. ID: IG-SS-8
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                          | Author          |
-|------------|---------|--------------------------------------|-----------------|
-| 20.10.2025 | 1.0     | Initial version                      | Justas Samuolis |
-| 14.09.2026 | 1.1     | Updated component name for port 7665 | Eneli Reimets   |
+| Date       | Version | Description                                                          | Author          |
+|------------|---------|----------------------------------------------------------------------|-----------------|
+| 20.10.2025 | 1.0     | Initial version                                                      | Justas Samuolis |
+| 15.09.2026 | 1.1     | Updated component name and port for auxiliary service (7665 -> 5666) | Eneli Reimets   |
 
 ## License
 
@@ -153,7 +153,7 @@ The table below lists the open ports for Security Server components utilizing th
 | Proxy                    | 5566      | tcp          | Proxy admin port                          |
 | Proxy                    | 5567      | tcp          | Proxy gRPC server port                    |
 | Configuration Client     | 5665      | tcp          | Configuration Client gRPC server port     |
-| Auxiliary service        | 7665      | tcp          | Auxiliary service gRPC server port        |
+| Auxiliary service        | 5666      | tcp          | Auxiliary service gRPC server port        |
 | Secret Store             | 8200      | tcp          | Local Secret Store (OpenBao) port         |
 | Audit Log                | 514       | udp          |                                           |
 

@@ -417,7 +417,7 @@ services:
     ports:
       - port: 4099
         name: http
-      - port: 7665
+      - port: 5666
         name: grpc
     readinessProbe:
       path: "/q/health/ready"
