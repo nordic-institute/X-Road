@@ -94,9 +94,9 @@ MUST map to a Helm template; every env var, port, probe, and
 | `db-ds-control-plane` | external (cloudnative_pg ansible role) — chart expects bare Service `db-ds-control-plane` and Secret `db-ds-control-plane/password` | — (provisioned outside chart) | 5432 | CNPG-managed | — (no depends_on) | compose lines 19–42 |
 | `db-ds-identity-hub` | external (cloudnative_pg ansible role) — chart expects bare Service `db-ds-identity-hub` and Secret `db-ds-identity-hub/password` | — (provisioned outside chart) | 5432 | CNPG-managed | — (no depends_on) | compose lines 93–114 |
 | `db-ds-issuer-service` | external (cloudnative_pg ansible role) — chart expects bare Service `db-ds-issuer-service` and Secret `db-ds-issuer-service/password` | — (provisioned outside chart) | 5432 | CNPG-managed | — (no depends_on) | compose lines 150–171 |
-| `ds-control-plane` | `services.ds-control-plane` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `EDC_IAM_DID_WEB_USE_HTTPS`, `XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID`, `DB_CONFIG_SOURCE_URL`, `DB_CONFIG_SOURCE_USERNAME`, `DB_CONFIG_SOURCE_PASSWORD` (secretKeyRef) | 8181, 8183, 8184, 8185, 5461, 4099, 9999 | `httpGet :4099/q/health` (HTTP) — 5s/40/initialDelay=5s | `db-ds-control-plane` → `wait-db`; `configuration-client` → `wait-config-client`; `ds-identity-hub` → `wait-identity-hub` | compose lines 44–91 |
-| `ds-identity-hub` | `services.ds-identity-hub` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `EDC_IH_DID_PUBLIC_HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `EDC_IAM_DID_WEB_USE_HTTPS`, `DEBUG` | 7181, 7182, 7183, 7184, 7185, 5460, 9999 | `httpGet :7181/api/check/health` (HTTP) | `db-ds-identity-hub` → `wait-db` | compose lines 116–148 |
-| `ds-issuer-service` | `services.ds-issuer-service` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `EDC_IAM_DID_WEB_USE_HTTPS`, `DEBUG` | 6181, 6183, 6184, 6185, 6187, 9999 | `httpGet :6181/api/check/health` (HTTP) | `db-ds-issuer-service` → `wait-db` | compose lines 173–213 |
+| `ds-control-plane` | `services.ds-control-plane` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID`, `DB_CONFIG_SOURCE_URL`, `DB_CONFIG_SOURCE_USERNAME`, `DB_CONFIG_SOURCE_PASSWORD` (secretKeyRef) | 8181, 8183, 8184, 8185, 5461, 4099, 9999 | `httpGet :4099/q/health` (HTTP) — 5s/40/initialDelay=5s | `db-ds-control-plane` → `wait-db`; `configuration-client` → `wait-config-client`; `ds-identity-hub` → `wait-identity-hub` | compose lines 44–91 |
+| `ds-identity-hub` | `services.ds-identity-hub` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `EDC_IH_DID_PUBLIC_HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DEBUG` | 7181, 7183, 7184, 7185, 5460, 4099, 9999 | `httpGet :7181/api/check/health` (HTTP) | `db-ds-identity-hub` → `wait-db` | compose lines 116–148 |
+| `ds-issuer-service` | `services.ds-issuer-service` in `values.yaml` + `templates/services/all.yaml` | `HOSTNAME`, `XROAD_SECRET_STORE_HOST`, `XROAD_SECRET_STORE_TOKEN` (secretKeyRef), `XROAD_SECRET_STORE_SCHEME`, `XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME`, `XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_PASSWORD` (secretKeyRef), `DEBUG` | 6181, 6183, 6184, 6185, 6187, 4099, 9999 | `httpGet :6181/api/check/health` (HTTP) | `db-ds-issuer-service` → `wait-db` | compose lines 173–213 |
 
 ## 6. Single-release-per-namespace constraint (dsp)
 
@@ -121,9 +121,10 @@ separate namespaces. Only the `.Release.Name`-prefixed resources
 starts. It travels as an ordinary env var on the service:
 
 - **Values:** `services.ds-control-plane.env.XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID`
-  (default `did:web:ds-issuer-service%3A10100:issuer`, the in-cluster
-  issuer). Hybrid dev envs override it with the dataspace-wide issuer —
-  the ansible overlay sets it from `trusted_issuer_host`.
+  (default `did:web:ds-issuer-service%3A6183:issuer`, the in-cluster
+  issuer — port 6183 is ds-issuer-service's declared did:web listener).
+  Hybrid dev envs override it with the dataspace-wide issuer — the
+  ansible overlay sets it from `trusted_issuer_host`.
 - **How it reaches EDC:** the runtime's packaged `application.yaml`
   declares `edc.iam.trusted-issuer.issuer.id:
   ${xroad.edc.iam.trusted-issuer.issuer.id}`, and the env var supplies
@@ -204,3 +205,25 @@ contract changes materially:
   `softtoken-signer` service (off by default, `services.softtoken-signer.replicas: 0`).
 - `appVersion` tracks the X-Road runtime version and is independent of
   the chart version.
+
+## 10. External exposure of DS ports (TCP/SNI passthrough — future work)
+
+Per XRDADR-42 (Dataspace TLS server certificates via ACME from a globalconf-designated
+approved CA, served from OpenBao), the DS TLS certificate is served entirely in-process
+by the owned Jetty module inside each `ds-*` pod — there is no reverse proxy and no L7
+termination point in front of it, in any deployment mode. Whatever mechanism eventually
+exposes `ds-control-plane`, `ds-identity-hub` and `ds-issuer-service` outside the
+cluster **must** carry every DS HTTPS port (DSP, did:web, credentials, issuance,
+statuslist) through as plain TCP, routed on SNI where routing is needed, with the TLS
+handshake terminating only in the destination pod. No WAF, no path-based routing, no
+other L7 feature may sit in front of these ports — ADR-42 states this as an accepted
+consequence, not an option.
+
+This chart does not implement that mechanism today: every rendered Service is
+implicitly `ClusterIP` (no template path emits a `type:` field), so none of these ports
+— or any other Security Server port — reach outside the cluster network without an
+operator adding their own routing in front of it. Selecting and building the exposure
+mechanism itself (Service `type` templating, a TCP-mode Gateway API resource, or
+similar — see `development/k8s/docs/EKS.md`'s NLB-vs-ALB note for the EKS case
+specifically) is out of scope for this chart's current contract and left for a future
+change.

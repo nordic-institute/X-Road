@@ -537,6 +537,17 @@ services:
         memory: "256M"
       limits:
         memory: "640M"
+    # Port-surface classification (XRDADR-42 + XRDADR-38 evidence; verified against
+    # application.yaml under src/service/ds-control-plane/ds-control-plane-application):
+    #   8181 http       — EDC default web context (framework-internal; no ADR-42 role)
+    #   8183 dsp         — cross-host, ADR-42 protocol surface (DSP endpoint)
+    #   8184 control      \_ live listeners (web.http.control/.signaling in application.yaml);
+    #   8185 signaling    /  neither covered nor excluded by ADR-42's HTTPS-surface inventory —
+    #                        classification pending an ADR-42 amendment (not decided here)
+    #   5461 asset-access — internal, xroad.ds.rpc.port: X-Road gRPC-over-mTLS (XRDADR-38),
+    #                        not DS TLS; provisioning channel, same trust as signer/proxy
+    #   4099 health       — internal, Quarkus SmallRye health (/q/health); k8s probe only
+    #   9999 debug        — internal, JDWP debug agent (dev only)
     ports:
       - port: 8181
         name: http
@@ -576,12 +587,15 @@ services:
       # this X-Road key. The EDC key cannot be set by an env var directly: EDC reads it through
       # QuarkusConfigBridge, which snapshots config.getPropertyNames(), and SmallRye enumerates an env
       # var with dots in place of every underscore — so a hyphenated key never matches.
-      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:ds-issuer-service%3A10100:issuer"
+      # Port 6183 is ds-issuer-service's declared did:web listener (web.http.did.port in its
+      # application.yaml) — the only did:web context it actually serves; matches the value the
+      # containerized reference stack uses (compose.api.ds.yaml). The former %3A10100 default
+      # named no listener ds-issuer-service (or anything else) ever binds.
+      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:ds-issuer-service%3A6183:issuer"
       XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_USERNAME: "ds_control_plane"
-      EDC_IAM_DID_WEB_USE_HTTPS: "false"
       DB_CONFIG_SOURCE_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
       DB_CONFIG_SOURCE_USERNAME: "serverconf"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf:5432/serverconf"
@@ -626,11 +640,22 @@ services:
         memory: 256Mi
       limits:
         memory: 896Mi
+    # Port-surface classification (XRDADR-42 + XRDADR-38 evidence; verified against
+    # application.yaml under src/service/ds-identity-hub/ds-identity-hub-application):
+    #   7181 health       — internal, EDC default/health web context
+    #   7183 did          — cross-host, ADR-42 protocol surface (did:web, SS)
+    #   7184 sts          — internal, EDC-internal (control-plane -> identity-hub STS), covered
+    #                        by the DS TLS certificate per ADR-42 Technical Details
+    #   7185 creds        — cross-host, ADR-42 protocol surface (credentials endpoint)
+    #   5460 provisioning — internal, xroad.ds.rpc.port: X-Road gRPC-over-mTLS (XRDADR-38)
+    #   9999 debug        — internal, JDWP debug agent (dev only)
+    #   4099 health       — internal, Quarkus SmallRye health (/q/health); undeclared real
+    #                        listener (quarkus.http.port, xroad-common.yaml %containerized
+    #                        profile — active here via libs.bundles.quarkus.containerized,
+    #                        same as ds-control-plane); added for inventory accuracy
     ports:
       - port: 7181
         name: health
-      - port: 7182
-        name: identity
       - port: 7183
         name: did
       - port: 7184
@@ -639,6 +664,8 @@ services:
         name: creds
       - port: 5460
         name: provisioning
+      - port: 4099
+        name: health-quarkus
       - port: 9999
         name: debug
     readinessProbe:
@@ -672,7 +699,6 @@ services:
       XROAD_HOST: "ds-identity-hub"
       XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-identity-hub:5432/ds-identity-hub"
       XROAD_DB_DS_IDENTITY_HUB_HIBERNATE_CONNECTION_USERNAME: "ds_identity_hub"
-      EDC_IAM_DID_WEB_USE_HTTPS: "false"
       DEBUG: "true"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
@@ -699,6 +725,23 @@ services:
         memory: "256M"
       limits:
         memory: "640M"
+    # Port-surface classification (XRDADR-42 + XRDADR-38 evidence; verified against
+    # application.yaml under src/service/ds-issuer-service/ds-issuer-service-application):
+    #   6181 health        — internal, EDC default/health web context
+    #   6183 did           — cross-host, ADR-42 protocol surface (did:web, CS issuer profile;
+    #                         same listener this standalone SS deployment serves)
+    #   6184 sts           — live listener (web.http.sts.port in application.yaml). No caller
+    #                         found anywhere in src/ or the k8s/ansible trees (grepped for
+    #                         "6184"); unlike identity-hub's STS (7184, dialed via
+    #                         DataspaceProvisioningService.stsTokenUrl/getIdentityHubStsPort),
+    #                         nothing constructs an issuer-STS URL today. Left declared (it is a
+    #                         real listener) but not classified as ADR-42 cross-host surface —
+    #                         annotated per absence of evidence, not asserted either way.
+    #   6185 issuance      — cross-host, ADR-42 protocol surface (DCP issuance endpoint)
+    #   6187 statuslist    — cross-host, ADR-42 protocol surface (statuslist endpoint)
+    #   9999 debug         — internal, JDWP debug agent (dev only)
+    #   4099 health-quarkus — internal, Quarkus SmallRye health (/q/health); undeclared real
+    #                         listener, same rationale as ds-identity-hub above
     ports:
       - port: 6181
         name: health
@@ -710,6 +753,8 @@ services:
         name: issuance
       - port: 6187
         name: statuslist
+      - port: 4099
+        name: health-quarkus
       - port: 9999
         name: debug
     readinessProbe:
@@ -733,7 +778,6 @@ services:
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-issuer-service:5432/ds-issuer-service"
       XROAD_DB_DS_ISSUER_SERVICE_HIBERNATE_CONNECTION_USERNAME: "ds_issuer_service"
-      EDC_IAM_DID_WEB_USE_HTTPS: "false"
       DEBUG: "true"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
