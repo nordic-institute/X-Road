@@ -50,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.AccessRightRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
@@ -128,6 +129,7 @@ public class ClientService {
     private final ServerConfService serverConfService;
     private final IdentifierService identifierService;
     private final IdentifierRepository identifierRepository;
+    private final DsParticipantRepository dsParticipantRepository;
     private final LocalGroupRepository localGroupRepository;
     private final AccessRightRepository accessRightRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
@@ -882,7 +884,8 @@ public class ClientService {
 
     private boolean identifierReferenced(ClientIdEntity clientId) {
         return localGroupRepository.countGroupMembersByMemberId(clientId) > 0
-                || accessRightRepository.countBySubjectId(clientId) > 0;
+                || accessRightRepository.countBySubjectId(clientId) > 0
+                || dsParticipantRepository.findByMemberIdentifier(clientId).isPresent();
     }
 
     private boolean clientRegisteredOnOtherServers(ClientId clientId) {

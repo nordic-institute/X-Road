@@ -121,7 +121,8 @@ class DataspaceProvisioningServiceTest {
         lenient().when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider,
+                new DataspaceDidAuthority(adminServiceProperties));
     }
 
     // --- ensureMembershipCredential ---
@@ -305,9 +306,22 @@ class DataspaceProvisioningServiceTest {
     // --- participantContexts ---
 
     @Test
-    void participantContextsReturnsOnlyHostAndOwnerWhenManagementNotRegisteredAndNoOtherClients() {
+    void participantContextsReturnsOnlyHostWhenNoClientIsRegisteredYet() {
         givenServerConfWithOwner(OWNER);
-        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        var savedOwner = clientWith(OWNER, Client.STATUS_SAVED);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(savedOwner));
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).containsExactly(
+                new DataspaceProvisioningService.ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, OWNER));
+    }
+
+    @Test
+    void participantContextsAddsOwnerMemberContextOnceItsOwnClientIsRegistered() {
+        givenServerConfWithOwner(OWNER);
+        var ownerClient = clientWith(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerClient));
 
         var contexts = service.participantContexts(false);
 
@@ -320,7 +334,8 @@ class DataspaceProvisioningServiceTest {
     @Test
     void participantContextsIncludesManagementContextWhenManagementRegistered() {
         givenServerConfWithOwner(OWNER);
-        when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        var ownerClient = clientWith(OWNER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerClient));
 
         var contexts = service.participantContexts(true);
 
@@ -332,8 +347,9 @@ class DataspaceProvisioningServiceTest {
     @Test
     void participantContextsAddsOneMemberContextPerHostedMember() {
         givenServerConfWithOwner(OWNER);
+        var ownerClient = clientWith(OWNER);
         var memberClient = clientWith(MEMBER);
-        when(clientRepository.getAllLocalClients()).thenReturn(List.of(memberClient));
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerClient, memberClient));
 
         var contexts = service.participantContexts(false);
 
@@ -353,26 +369,26 @@ class DataspaceProvisioningServiceTest {
 
         var contexts = service.participantContexts(false);
 
-        // owner + MEMBER once, even though a subsystem of MEMBER is also a local client
-        assertThat(contexts).hasSize(3);
+        // MEMBER once, even though a subsystem of MEMBER is also a local client
+        assertThat(contexts).hasSize(2);
         assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
                 .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
-                .containsExactlyInAnyOrder(ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
+                .containsExactly(ParticipantIdentifierScheme.memberCtxId(MEMBER));
     }
 
     @Test
     void participantContextsSkipsMembersWithoutAnyRegisteredClient() {
         givenServerConfWithOwner(OWNER);
+        var savedOwner = clientWith(OWNER, Client.STATUS_SAVED);
         var savedClient = clientWith(MEMBER, Client.STATUS_SAVED);
         var registeredOther = clientWith(OTHER_MEMBER, Client.STATUS_REGISTERED);
-        when(clientRepository.getAllLocalClients()).thenReturn(List.of(savedClient, registeredOther));
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(savedOwner, savedClient, registeredOther));
 
         var contexts = service.participantContexts(false);
 
         assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
                 .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
-                .containsExactlyInAnyOrder(
-                        ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER));
+                .containsExactly(ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER));
     }
 
     @Test
@@ -387,8 +403,7 @@ class DataspaceProvisioningServiceTest {
 
         assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
                 .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
-                .containsExactlyInAnyOrder(
-                        ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
+                .containsExactly(ParticipantIdentifierScheme.memberCtxId(MEMBER));
     }
 
     @Test

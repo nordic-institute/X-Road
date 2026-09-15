@@ -50,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
@@ -109,14 +110,16 @@ class DataspaceProvisioningStatusServiceTest {
 
         var ownerEntity = mock(ClientEntity.class);
         lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
+        lenient().when(ownerEntity.getClientStatus()).thenReturn(Client.STATUS_REGISTERED);
         var serverConf = mock(ServerConfEntity.class);
         lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
         lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
-        lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerEntity));
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider,
+                new DataspaceDidAuthority(adminServiceProperties));
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);

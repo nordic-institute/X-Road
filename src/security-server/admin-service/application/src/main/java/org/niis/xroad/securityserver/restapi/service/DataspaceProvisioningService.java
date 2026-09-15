@@ -45,7 +45,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -68,12 +67,12 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * <ul>
  *   <li>{@link #participantContexts(boolean)} — enumerates the host, management (when registered)
  *       and per-member contexts to provision, member-level identity from the registered clients in
- *       {@link ClientRepository#getAllLocalClients()} plus the SS owner unconditionally.</li>
+ *       {@link ClientRepository#getAllLocalClients()}.</li>
  *   <li>{@link #ensureParticipantContext(String, ParticipantKind, ClientId)} — idempotent context
  *       creation for one participant (IH + CP). For a {@link ParticipantKind#MEMBER} context with a
  *       bound {@code ds_participant} row, the row is verified against a fresh derivation and its
  *       DID is used; without a row the DID is derived on the fly. This service never writes rows —
- *       binding an identity belongs to an explicit, auditable action outside the reconciler.</li>
+ *       {@link DataspaceParticipantBindingService} is the only writer.</li>
  *   <li>{@link #ensureMembershipCredential(String)} — leaves an active (PENDING or ISSUED) request
  *       alone or submits a new one into the next available slot, in a single slot scan; advances
  *       past slots in terminal ERROR.</li>
@@ -159,23 +158,24 @@ public class DataspaceProvisioningService {
     private final ServerConfRepository serverConfRepository;
     private final DsParticipantRepository dsParticipantRepository;
     private final GlobalConfProvider globalConfProvider;
+    private final DataspaceDidAuthority didAuthority;
 
     /**
      * Creates (idempotently) the IdentityHub and Control Plane participant context for a single participant.
      *
      * <p>For a {@link ParticipantKind#MEMBER} context with a bound {@code ds_participant} row, the
      * row is verified against a fresh derivation and its DID is used — the bound row is never
-     * written or overwritten here. Without a row the DID is derived on the fly and not bound.
+     * written or overwritten here. Without a row the DID is derived on the fly and not bound;
+     * binding is {@link DataspaceParticipantBindingService}'s job.
      *
      * @param participantId the participant context id
      * @param kind          HOST, MANAGEMENT or MEMBER
      * @param memberId      the X-Road member this context's credential is issued to
      */
     public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
-        var ds = adminServiceProperties.getDataspace();
-        var identityHubHost = hostOf(ds.getIdentityHubUrl());
+        var identityHubHost = didAuthority.identityHubHost();
 
-        var did = didFor(identityHubHost, kind, memberId);
+        var did = didFor(kind, memberId);
         requireNoHubDidDrift(participantId, did);
 
         createIdentityHubContext(participantId, did, identityHubHost, memberId);
@@ -290,8 +290,8 @@ public class DataspaceProvisioningService {
     /**
      * Enumerates the participant contexts to provision or report on: the host context, the management
      * context when {@code managementRegistered}, and one member context per distinct X-Road member
-     * (subsystems collapsed) hosted on this Security Server — the SS owner unconditionally, other
-     * members as soon as they have a registered local client. Member ctx-ids follow the v1 scheme
+     * (subsystems collapsed) hosted on this Security Server — a member appears once it has a
+     * registered local client, the SS owner included. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
      *
      * @param managementRegistered whether the MANAGEMENT subsystem is registered on this security server
@@ -310,8 +310,10 @@ public class DataspaceProvisioningService {
             contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
         }
 
-        ownerId.ifPresent(id -> hostedMembers(id).forEach(member ->
-                contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member))));
+        if (ownerId.isPresent()) {
+            hostedMembers().forEach(member -> contexts.add(
+                    new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
+        }
 
         return contexts;
     }
@@ -328,9 +330,8 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private Set<ClientId> hostedMembers(ClientId owner) {
+    private Set<ClientId> hostedMembers() {
         Set<ClientId> members = new LinkedHashSet<>();
-        members.add(owner);
         for (var client : clientRepository.getAllLocalClients()) {
             if (Client.STATUS_REGISTERED.equals(client.getClientStatus())) {
                 members.add(client.getIdentifier().getMemberId());
@@ -381,26 +382,12 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(participantId)).orElse(CredentialStatus.ABSENT);
     }
 
-    private String didFor(String identityHubHost, ParticipantKind kind, ClientId memberId) {
+    private String didFor(ParticipantKind kind, ClientId memberId) {
         if (kind == ParticipantKind.MEMBER) {
-            return memberDid(memberId, didAuthority(identityHubHost));
+            return memberDid(memberId, didAuthority.current());
         }
-        var did = "did:web:" + didAuthority(identityHubHost).replace(":", "%3A");
+        var did = "did:web:" + didAuthority.current().replace(":", "%3A");
         return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
-    }
-
-    /**
-     * The authority (host:port) embedded in derived DIDs. Interim source: the identity-hub host
-     * plus its DID-serving port, because that is where DID documents are actually served. Target
-     * source, once registered-address DID serving exists: the GlobalConf-registered security
-     * server address ({@code GlobalConfProvider#getSecurityServerAddress}), with no port.
-     *
-     * <p>The port must match the identity hub's own {@code web.http.did.port}. It is part of every
-     * DID bound in {@code ds_participant}, so changing it after a member's identity has been
-     * bound makes that row fail verification.</p>
-     */
-    private String didAuthority(String identityHubHost) {
-        return identityHubHost + ":" + adminServiceProperties.getDataspace().getIdentityHubDidPort();
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -434,7 +421,7 @@ public class DataspaceProvisioningService {
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
         try {
-            var ssHost = didAuthority(hostOf(adminServiceProperties.getDataspace().getIdentityHubUrl()));
+            var ssHost = didAuthority.current();
             var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
@@ -469,15 +456,6 @@ public class DataspaceProvisioningService {
     private String stsTokenUrl(String identityHubHost) {
         return "https://%s:%d/api/sts/token"
                 .formatted(identityHubHost, adminServiceProperties.getDataspace().getIdentityHubStsPort());
-    }
-
-    private String hostOf(String url) {
-        var host = URI.create(url).getHost();
-        if (host == null || host.isBlank()) {
-            throw XrdRuntimeException.systemException(VALIDATION_ERROR,
-                    "dataspace identity-hub URL '%s' has no resolvable host", url);
-        }
-        return host;
     }
 
     private String holderPid(String participantId, int slot) {
