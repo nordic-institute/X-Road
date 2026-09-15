@@ -207,7 +207,7 @@ class DataspaceProvisioningServiceTest {
     void ensureMembershipCredentialReturnsAbsentAndAttemptsNothingWhenNotDataspaceEnabled() {
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.of());
 
-        assertThat(service.ensureMembershipCredential(PARTICIPANT_ID)).isEqualTo(CredentialStatus.ABSENT);
+        assertThat(service.ensureMembershipCredential(HOST_CONTEXT)).isEqualTo(CredentialStatus.ABSENT);
 
         verify(identityHubClient, never()).getCredentialRequestState(any(), any());
         verify(identityHubClient, never()).requestMembershipCredential(any(), any(), any(), any(), any(), any());
@@ -219,7 +219,7 @@ class DataspaceProvisioningServiceTest {
         when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER)).thenReturn(List.copyOf(trustedDids));
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(null);
 
-        service.ensureMembershipCredential(PARTICIPANT_ID);
+        service.ensureMembershipCredential(HOST_CONTEXT);
 
         verify(identityHubClient).requestMembershipCredential(eq(PARTICIPANT_ID), eq(trustedDids), eq(HOLDER_PID_SLOT0),
                 anyString(), anyString(), anyString());
@@ -714,7 +714,7 @@ class DataspaceProvisioningServiceTest {
         var status = service.ensureMembershipCredential(SYSTEM_CONTEXT);
 
         assertThat(status).isEqualTo(CredentialStatus.PENDING);
-        verify(identityHubClient).requestMembershipCredential(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), anyString(),
+        verify(identityHubClient).requestMembershipCredential(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(),
                 eq(ownerHolderPidSlot0(OWNER)), anyString(), anyString(), anyString());
     }
 
@@ -731,9 +731,9 @@ class DataspaceProvisioningServiceTest {
         var status = service.ensureMembershipCredential(SYSTEM_CONTEXT_OTHER_OWNER);
 
         assertThat(status).isEqualTo(CredentialStatus.PENDING);
-        verify(identityHubClient).requestMembershipCredential(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), anyString(),
+        verify(identityHubClient).requestMembershipCredential(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(),
                 eq(ownerHolderPidSlot0(OTHER_MEMBER)), anyString(), anyString(), anyString());
-        verify(identityHubClient, never()).requestMembershipCredential(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), anyString(),
+        verify(identityHubClient, never()).requestMembershipCredential(eq(ParticipantIdentifierScheme.SYSTEM_SEGMENT), any(),
                 eq(ownerHolderPidSlot0(OWNER)), anyString(), anyString(), anyString());
     }
 
