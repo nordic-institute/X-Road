@@ -120,6 +120,7 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      *
      * @return immutable map keyed by host-address, targeting the mgmt participant context
      */
+    // TODO transitional; remove with the -mgmt participant-context cutover
     @SuppressWarnings("deprecation")
     public static Map<String, CounterPartyTarget> managementMap() {
         var base = defaultMap();

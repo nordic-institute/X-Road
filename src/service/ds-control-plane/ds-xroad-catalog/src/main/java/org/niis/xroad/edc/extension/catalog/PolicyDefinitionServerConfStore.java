@@ -161,6 +161,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
             var assetId = AssetMapper.encodeAssetId(serviceId);
+            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
             policies.add(toBuiltinPolicyDefinition(assetId, contextIds.management()));
             policies.add(toBuiltinPolicyDefinition(assetId, contextIds.system()));
         }

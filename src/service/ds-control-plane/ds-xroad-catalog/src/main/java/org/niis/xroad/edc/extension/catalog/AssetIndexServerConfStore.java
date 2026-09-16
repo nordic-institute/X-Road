@@ -98,6 +98,7 @@ class AssetIndexServerConfStore implements AssetIndex {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
+            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
             assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
             assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
         }

@@ -75,6 +75,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
      * (SS hosting MANAGEMENT locally) avoids the {@code edc_contract_negotiation} unique-constraint
      * collision. Defaults to {@code ${xroad.dsp.participant-context-id}-mgmt}.
      */
+    // TODO transitional; remove with the -mgmt participant-context cutover (SYSTEM replaces it)
     static final String SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID = "xroad.dsp.management-participant-context-id";
 
     static final String SETTING_CACHE_ENABLED = "xroad.dsp.catalog.cache.enabled";
@@ -119,6 +120,7 @@ public class XRoadServerConfCatalogExtension implements ServiceExtension {
         var managementContextId = context.getSetting(
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, hostContextId + "-mgmt");
         requireDistinctFromSystemSegment(SETTING_PARTICIPANT_CONTEXT_ID, hostContextId);
+        // TODO remove this call with the -mgmt cutover; the host-context check above stays
         requireDistinctFromSystemSegment(SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, managementContextId);
         contextIds = new CatalogContextIds(
                 hostContextId, managementContextId, ParticipantIdentifierScheme.SYSTEM_SEGMENT);

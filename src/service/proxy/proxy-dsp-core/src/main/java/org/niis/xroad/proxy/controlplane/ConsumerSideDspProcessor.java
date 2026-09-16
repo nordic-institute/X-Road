@@ -105,6 +105,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
+        // TODO with the -mgmt cutover, route builtin requests via the provider's SYSTEM context instead
         var requestForcesMgmtCtx = request.managementSubsystem() || isBuiltinService(serviceId);
 
         var candidates = new ArrayList<>(

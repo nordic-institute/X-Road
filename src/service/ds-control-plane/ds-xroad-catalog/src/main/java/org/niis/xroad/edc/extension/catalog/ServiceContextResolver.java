@@ -119,6 +119,7 @@ class ServiceContextResolver {
     }
 
     /** Built-ins are ungated (published under both SYSTEM and management on every server). */
+    // TODO with the -mgmt cutover, built-ins are SYSTEM-only; collapse the management fallback
     String selectBuiltinContextId(@Nullable String requestedParticipantContextId) {
         return isSystemAddressed(requestedParticipantContextId) ? contextIds.system() : contextIds.management();
     }

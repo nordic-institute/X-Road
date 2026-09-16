@@ -162,6 +162,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
+            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
             definitions.add(toBuiltinContractDefinition(serviceId, contextIds.management()));
             definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
