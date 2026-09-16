@@ -299,6 +299,16 @@ public interface GlobalConfProvider {
     }
 
     /**
+     * @param instanceIdentifier the instance identifier
+     * @return the distributed dataspace issuer trust anchor: every Issuer DID published by any Central Server
+     * node of this instance. Empty when the instance is not dataspace-enabled.
+     */
+    default Collection<String> getIssuerDids(
+            String instanceIdentifier) {
+        return Collections.emptyList();
+    }
+
+    /**
      * @param parameters the authentication certificate profile info parameters
      * @param cert       the certificate
      * @return auth certificate profile info for this certificate

@@ -47,7 +47,7 @@ services:
         name: issuer-issuance
       - port: 6187
         name: issuer-status
-      - port: 9994
+      - port: 9955
         name: signer-debug
     readinessProbe:
       # empty-path placeholder: no unauthenticated health endpoint identified yet

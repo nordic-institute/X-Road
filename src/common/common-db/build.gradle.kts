@@ -13,6 +13,10 @@ dependencies {
   implementation(libs.hikariCP)
   implementation(libs.postgresql)
 
+  // Quarkus platform's managed hibernate-core dependency excludes byte-buddy, assuming consumers use
+  // Quarkus's own build-time entity enhancement instead of Hibernate's classic bootstrap that this module uses.
+  runtimeOnly(libs.bytebuddy)
+
   // DB layer tests use HSQLDB with in-memory tables
   testImplementation(libs.hsqldb)
   testImplementation(project(":common:common-test"))

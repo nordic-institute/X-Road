@@ -35,6 +35,7 @@ import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 
 import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -61,5 +62,13 @@ public class GlobalConfVer7Test {
         assertEquals("http://testca.com/acme", dsTlsCa.getAcmeServerDirectoryUrl());
         assertEquals("192.99.88.7", dsTlsCa.getAcmeServerIpAddress());
         assertEquals("ds-tls-profile", dsTlsCa.getDsTlsCertificateProfileId());
+    }
+
+    @Test
+    public void getIssuerDids() {
+        Collection<String> eeIssuerDids = globalConfProvider.getIssuerDids("EE");
+
+        assertEquals(2, eeIssuerDids.size());
+        assertEquals(Set.of("did:web:cs1.ee%3A443:issuer", "did:web:cs2.ee%3A443:issuer"), Set.copyOf(eeIssuerDids));
     }
 }

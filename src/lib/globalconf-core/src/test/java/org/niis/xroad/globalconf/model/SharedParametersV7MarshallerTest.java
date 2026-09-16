@@ -67,9 +67,12 @@ class SharedParametersV7MarshallerTest {
                 "ds-tls-profile"));
         sharedParamsBuilder.approvedDsTlsCas(List.of(approvedDsTlsCa));
 
+        sharedParamsBuilder.issuerDids(List.of("did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer"));
+
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
+        assertThat(result).contains("dataspaceParameters", "did:web:cs1.example%3A443:issuer", "did:web:cs2.example%3A443:issuer");
         System.out.println(result);
     }
 

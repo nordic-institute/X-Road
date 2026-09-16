@@ -192,7 +192,7 @@ public final class AuxiliaryServiceConfigKeys implements ConfigKeyProvider {
     /** {@code xroad.auxiliary-service.rpc.port}. */
     public static final ConfigKey<Integer> RPC_PORT = RPC
             .integer("port")
-            .withDefaultValue(7665)
+            .withDefaultValue(5666)
             .exposedInUi()
             .build();
 

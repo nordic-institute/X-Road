@@ -52,6 +52,7 @@ import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.DataspaceIssuerDidService;
 import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
@@ -92,6 +93,8 @@ class SharedParametersLoaderTest {
     private static final byte[] DS_TLS_INTERMEDIATE_CA_CERT = "ds tls intermediate ca cert".getBytes(UTF_8);
     private static final String DS_TLS_CA_ACME_SERVER_URL = "https://acme-v02.api.letsencrypt.org/directory";
     private static final String DS_TLS_CERTIFICATE_PROFILE_ID = "xrd-ds-tls";
+    private static final String ISSUER_DID_1 = "did:web:cs1.example%3A443:issuer";
+    private static final String ISSUER_DID_2 = "did:web:cs2.example%3A443:issuer";
     private static final String TSA_NAME = "TSA name";
     private static final String TSA_URL = "TSA url";
     private static final byte[] TSA_CERT = "TSA cert".getBytes(UTF_8);
@@ -118,6 +121,8 @@ class SharedParametersLoaderTest {
     @Mock
     DsTlsCertificationAuthoritiesService dsTlsCertificationAuthoritiesService;
     @Mock
+    DataspaceIssuerDidService dataspaceIssuerDidService;
+    @Mock
     ClientService clientService;
     @Mock
     SecurityServerService securityServerService;
@@ -135,6 +140,44 @@ class SharedParametersLoaderTest {
 
     @Test
     void loadSharedParameters() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1, ISSUER_DID_2));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters).isNotNull();
+        assertThat(parameters.getInstanceIdentifier()).isEqualTo(XROAD_INSTANCE);
+        assertNodeAddressesWithConfigurationSigningKeys(parameters);
+        assertApprovedCa(parameters);
+        assertApproveTsa(parameters);
+        assertApprovedDsTlsCas(parameters);
+        assertThat(parameters.getIssuerDids()).containsExactlyInAnyOrder(ISSUER_DID_1, ISSUER_DID_2);
+        assertSecurityServers(parameters);
+        assertGlobalGroups(parameters);
+        assertGlobalSettings(parameters);
+    }
+
+    @Test
+    void loadSharedParametersWithSingleIssuerDid() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of(ISSUER_DID_1));
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getIssuerDids()).containsExactly(ISSUER_DID_1);
+    }
+
+    @Test
+    void loadSharedParametersOmitsIssuerDidsWhenRegistryIsEmpty() {
+        stubDependencies();
+        when(dataspaceIssuerDidService.findAll()).thenReturn(List.of());
+
+        var parameters = sharedParametersLoader.load();
+
+        assertThat(parameters.getIssuerDids()).isEmpty();
+    }
+
+    private void stubDependencies() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn(XROAD_INSTANCE);
         when(configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys())
                 .thenReturn(getNodeAddressesWithConfigurationSigningKeys());
@@ -155,18 +198,6 @@ class SharedParametersLoaderTest {
 
         when(memberClassService.findAll()).thenReturn(List.of(new MemberClass(MEMBER_CLASS_CODE, MEMBER_CLASS_DESCRIPTION)));
         when(systemParameterService.getOcspFreshnessSeconds()).thenReturn(OCSP_FRESHNESS_SECONDS);
-
-        var parameters = sharedParametersLoader.load();
-
-        assertThat(parameters).isNotNull();
-        assertThat(parameters.getInstanceIdentifier()).isEqualTo(XROAD_INSTANCE);
-        assertNodeAddressesWithConfigurationSigningKeys(parameters);
-        assertApprovedCa(parameters);
-        assertApproveTsa(parameters);
-        assertApprovedDsTlsCas(parameters);
-        assertSecurityServers(parameters);
-        assertGlobalGroups(parameters);
-        assertGlobalSettings(parameters);
     }
 
     private void assertApprovedDsTlsCas(SharedParameters parameters) {

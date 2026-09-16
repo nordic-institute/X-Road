@@ -165,6 +165,25 @@
   "common": {
     "restartingService": "Teenus taaskäivitub"
   },
+  "configurableProperties": {
+    "title": "Konfigureeritavad süsteemi omadused",
+    "search": "Otsi omadusi...",
+    "restartWarning": "Muudatuste jõustumiseks tuleb järgmised teenused taaskäivitada: {scopes}.",
+    "propertyRestartWarning": "Muudatuste jõustumiseks on vajalik taaskäivitamine.",
+    "collapseAll": "Ahenda kõik",
+    "updateSuccess": "Omadus edukalt uuendatud",
+    "editDialog": {
+      "title": "Muuda omaduse väärtust"
+    },
+    "table": {
+      "header": {
+        "propertyName": "Omaduse nimi",
+        "currentValue": "Praegune väärtus",
+        "defaultValue": "Vaikeväärtus",
+        "description": "Kirjeldus"
+      }
+    }
+  },
   "error_code": {
     "api_key_not_found": "API võtit ei leitud",
     "backup_file_not_found": "Varufaili ei leitud",
@@ -251,6 +270,7 @@
     "noBackups": "Varukoopiaid pole",
     "noCertificate": "Sertifikaat puudub",
     "noCertificates": "Sertifikaadid puuduvad",
+    "noConfigurableProperties": "Konfigureeritavad omadused puuduvad",
     "noData": "Andmed puuduvad",
     "noMatches": "Kriteeriumidele vastavad elemendid puuduvad",
     "noServices": "Teenused puuduvad",

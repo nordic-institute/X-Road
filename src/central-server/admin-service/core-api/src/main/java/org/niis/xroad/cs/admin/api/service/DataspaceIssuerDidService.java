@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,39 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.entity;
+package org.niis.xroad.cs.admin.api.service;
 
-import jakarta.persistence.Access;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.common.jpa.entity.AuditableEntity;
+import java.util.List;
 
-import static jakarta.persistence.AccessType.FIELD;
+/**
+ * The Central Server's Issuer DID registry. Each Central Server node persists its own Issuer DID here at data
+ * space issuer provisioning time, so that whichever node generates globalconf can publish the complete cluster
+ * set as the dataspace issuer trust anchor.
+ */
+public interface DataspaceIssuerDidService {
 
-@Getter
-@Setter
-@Entity
-@Table(name = ConfigurationPropertyEntity.TABLE_NAME)
-@Access(FIELD)
-public class ConfigurationPropertyEntity extends AuditableEntity {
+    /**
+     * Registers the given Issuer DID for this Central Server node. Idempotent: registering the same DID again,
+     * as happens when a node re-provisions its issuer, does not create a duplicate entry.
+     *
+     * @param issuerDid the node's Issuer DID
+     */
+    void register(String issuerDid);
 
-    public static final String TABLE_NAME = "configuration_properties";
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    private Integer id;
-
-    @Column(name = "property_key", nullable = false, length = 1024)
-    private String propertyKey;
-
-    @Column(name = "property_value", nullable = false, length = 4096)
-    private String propertyValue;
-
+    /**
+     * @return every Issuer DID registered by any Central Server node of this instance, or an empty list if none
+     * has provisioned a data space issuer.
+     */
+    List<String> findAll();
 }

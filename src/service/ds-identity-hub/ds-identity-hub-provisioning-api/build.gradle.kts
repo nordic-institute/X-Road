@@ -16,4 +16,5 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.awaitility)
 }
