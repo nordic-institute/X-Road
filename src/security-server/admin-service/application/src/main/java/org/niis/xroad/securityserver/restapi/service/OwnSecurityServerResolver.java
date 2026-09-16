@@ -60,6 +60,28 @@ public class OwnSecurityServerResolver {
 
     @Transactional(readOnly = true)
     public Optional<ClientId> owner() {
+        return readOwner();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SecurityServerId.Conf> serverId() {
+        return readServerId();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<String> registeredAddress() {
+        return readServerId().flatMap(serverId -> {
+            try {
+                return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
+                        .filter(address -> !address.isBlank());
+            } catch (XrdRuntimeException e) {
+                log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
+                return Optional.empty();
+            }
+        });
+    }
+
+    private Optional<ClientId> readOwner() {
         try {
             return Optional.ofNullable(serverConfRepository.getServerConf().getOwner())
                     .map(owner -> (ClientId) owner.getIdentifier());
@@ -71,21 +93,7 @@ public class OwnSecurityServerResolver {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Optional<SecurityServerId.Conf> serverId() {
-        return owner().map(owner -> SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode()));
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<String> registeredAddress() {
-        return serverId().flatMap(serverId -> {
-            try {
-                return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
-                        .filter(address -> !address.isBlank());
-            } catch (XrdRuntimeException e) {
-                log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
-                return Optional.empty();
-            }
-        });
+    private Optional<SecurityServerId.Conf> readServerId() {
+        return readOwner().map(owner -> SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode()));
     }
 }
