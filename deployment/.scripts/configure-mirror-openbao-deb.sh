@@ -60,14 +60,6 @@ configure_openbao_deb() {
     echo "deb [signed-by=$OPENBAO_KEYRING] $OPENBAO_MIRROR_URL/ stable main" \
         > /etc/apt/sources.list.d/openbao.list
 
-    # Keeps the apt candidate below xroad-secret-store-local's `openbao (<< 2.6.0)` control-file
-    # cap; must be raised together with that cap.
-    cat <<'EOF' > /etc/apt/preferences.d/openbao.pref
-Package: openbao
-Pin: version 2.5.*
-Pin-Priority: 1001
-EOF
-
     echo "OpenBao APT repository configured."
 }
 
