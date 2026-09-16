@@ -17,4 +17,8 @@ dependencies {
 
     testImplementation(libs.assertj.core)
     testImplementation(libs.mockito.jupiter)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.edc.boot)
+    testImplementation(libs.edc.junit)
+    testImplementation(libs.edc.iam.dcp.core)
 }

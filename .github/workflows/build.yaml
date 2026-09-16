@@ -12,7 +12,7 @@ on:
       - 'deployment/**'
       - 'development/**'
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
     paths:
       - 'src/**'
       - '.github/**'
@@ -41,16 +41,44 @@ jobs:
   # github-actions[bot]; that sync event has sender.login ==
   # 'github-actions[bot]' and runs Build on the fixed commit.
   # See gradle-dependency-verification.md.
+  # Draft PRs run only compile-check below; the full pipeline runs on non-draft
+  # events (ready_for_review re-triggers this workflow when a draft is marked ready).
   build-and-package:
     name: build & package
     if: >
       !(startsWith(github.head_ref, 'dependabot/gradle/')
         && github.event.sender.login == 'dependabot[bot]')
+      && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
     uses: ./.github/workflows/_build-and-package.yml
     secrets: inherit
     with:
       ref: ${{ github.ref }}
       sha: ${{ github.sha }}
+
+  # Same invocation as the "Build source" step of _build-and-package.yml, minus
+  # tests, packaging and images - a fast signal for drafts off the 8c runner.
+  compile-check:
+    name: compile check (draft)
+    if: >
+      github.event_name == 'pull_request'
+      && github.event.pull_request.draft == true
+      && !(startsWith(github.head_ref, 'dependabot/gradle/')
+        && github.event.sender.login == 'dependabot[bot]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build-env
+        with:
+          gradle-cache-read-only: true
+
+      - name: Compile source
+        working-directory: ./src
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build -x test --parallel
 
   test-central-server:
     name: cs-tests
@@ -80,6 +108,7 @@ jobs:
     if: >
       !(startsWith(github.head_ref, 'dependabot/gradle/')
         && github.event.sender.login == 'dependabot[bot]')
+      && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
     strategy:
       fail-fast: false
       matrix:
@@ -121,6 +150,8 @@ jobs:
 
   chart-lint-smoke:
     name: chart-lint-smoke
+    if: >
+      github.event_name != 'pull_request' || github.event.pull_request.draft == false
     uses: ./.github/workflows/_test-charts.yml
     secrets: inherit
     with:
@@ -129,7 +160,7 @@ jobs:
 
   build-summary:
     name: Build Summary
-    needs: [build-and-package, test-central-server, test-security-server, test-e2e, test-services, chart-lint-smoke]
+    needs: [build-and-package, compile-check, test-central-server, test-security-server, test-e2e, test-services, chart-lint-smoke]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -141,6 +172,7 @@ jobs:
           | Job | Status | Duration |
           |-----|--------|----------|
           | Build and Package | ${{ needs.build-and-package.result == 'success' && '✅ Success' || needs.build-and-package.result == 'failure' && '❌ Failed' || needs.build-and-package.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
+          | Compile Check (draft) | ${{ needs.compile-check.result == 'success' && '✅ Success' || needs.compile-check.result == 'failure' && '❌ Failed' || needs.compile-check.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Central Server Tests | ${{ needs.test-central-server.result == 'success' && '✅ Success' || needs.test-central-server.result == 'failure' && '❌ Failed' || needs.test-central-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | Security Server Tests | ${{ needs.test-security-server.result == 'success' && '✅ Success' || needs.test-security-server.result == 'failure' && '❌ Failed' || needs.test-security-server.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |
           | E2E Tests (all lanes) | ${{ needs.test-e2e.result == 'success' && '✅ Success' || needs.test-e2e.result == 'failure' && '❌ Failed' || needs.test-e2e.result == 'cancelled' && '⏹️ Cancelled' || '⏳ Skipped' }} | - |

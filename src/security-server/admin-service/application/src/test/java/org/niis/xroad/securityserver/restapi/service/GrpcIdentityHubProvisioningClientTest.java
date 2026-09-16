@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,7 @@ class GrpcIdentityHubProvisioningClientTest {
     private static final String CRED_SERVICE_URL = "https://cred.example/v1";
     private static final String KEY_ID = DID + "#key-1";
     private static final String KEY_ALIAS = CTX_ID + "-key";
-    private static final String ISSUER_DID = "did:web:issuer.example";
+    private static final Set<String> ISSUER_DIDS = Set.of("did:web:issuer.example");
     private static final String HOLDER_PID = "holder-pid-0";
     private static final String CRED_DEF_ID = "xroad-membership-credential-definition";
     private static final String CRED_TYPE = "XRoadMembershipCredential";
@@ -69,13 +70,13 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void requestMembershipCredentialDelegatesToRpcClientAndReturnsRequestId() {
-        when(rpcClient.requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT))
+        when(rpcClient.requestMembershipCredential(CTX_ID, ISSUER_DIDS, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT))
                 .thenReturn("req-id-1");
 
-        var result = client.requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
+        var result = client.requestMembershipCredential(CTX_ID, ISSUER_DIDS, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
 
         assertThat(result).isEqualTo("req-id-1");
-        verify(rpcClient).requestMembershipCredential(CTX_ID, ISSUER_DID, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
+        verify(rpcClient).requestMembershipCredential(CTX_ID, ISSUER_DIDS, HOLDER_PID, CRED_DEF_ID, CRED_TYPE, FORMAT);
     }
 
     @Test

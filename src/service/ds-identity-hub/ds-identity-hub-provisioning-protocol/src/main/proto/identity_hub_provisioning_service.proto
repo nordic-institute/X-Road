@@ -51,7 +51,7 @@ message CreateParticipantContextResp {
 
 message RequestCredentialReq {
   string participant_context_id = 1;
-  string issuer_did = 2;
+  repeated string issuer_dids = 2;
   string holder_pid = 3;
   string credential_definition_id = 4;
   string credential_type = 5;

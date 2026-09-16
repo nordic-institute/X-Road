@@ -585,6 +585,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public Collection<String> getIssuerDids(String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getIssuerDids();
+    }
+
+    @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
             AuthCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws CertificateEncodingException, IOException, CertificateParsingException {

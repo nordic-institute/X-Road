@@ -417,7 +417,7 @@ services:
     ports:
       - port: 4099
         name: http
-      - port: 7665
+      - port: 5666
         name: grpc
     readinessProbe:
       path: "/q/health/ready"
@@ -583,15 +583,6 @@ services:
       HOSTNAME: "ds-control-plane"
       XROAD_HOST: "ds-control-plane"
       XROAD_DSP_PARTICIPANT_CONTEXT_ID: "security-server"
-      # Feeds edc.iam.trusted-issuer.issuer.id, which the packaged application.yaml interpolates from
-      # this X-Road key. The EDC key cannot be set by an env var directly: EDC reads it through
-      # QuarkusConfigBridge, which snapshots config.getPropertyNames(), and SmallRye enumerates an env
-      # var with dots in place of every underscore — so a hyphenated key never matches.
-      # Port 6183 is ds-issuer-service's declared did:web listener (web.http.did.port in its
-      # application.yaml) — the only did:web context it actually serves; matches the value the
-      # containerized reference stack uses (compose.api.ds.yaml). The former %3A10100 default
-      # named no listener ds-issuer-service (or anything else) ever binds.
-      XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID: "did:web:ds-issuer-service%3A6183:issuer"
       XROAD_PROXY_DATAPLANE_URL: "http://proxy:5590/full/api/v1/dataflows"
       XROAD_SECRET_STORE_HOST: "openbao"
       XROAD_DB_DS_CONTROL_PLANE_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-ds-control-plane:5432/ds-control-plane"
