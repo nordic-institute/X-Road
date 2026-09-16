@@ -60,6 +60,15 @@ import static org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioning
 @RequiredArgsConstructor
 public class MemberCredentialRevocationService {
 
+    /**
+     * Temporary stopgap. Security Servers currently publish member DIDs whose authority is the
+     * identity-hub host and DID port rather than the registered server address, so the issuer's
+     * holder ids all carry this port and revocation must derive the same authority to match.
+     * Assumes every server runs the identity hub's default {@code web.http.did.port}. Remove once
+     * DID documents are served from the registered server address.
+     */
+    static final String INTERIM_IDENTITY_HUB_DID_PORT = "7183";
+
     private final SecurityServerRepository securityServers;
     private final XRoadMemberRepository members;
     private final ServerClientRepository serverClients;
@@ -97,7 +106,8 @@ public class MemberCredentialRevocationService {
             return;
         }
 
-        String holderDid = ParticipantIdentifierScheme.memberDid(event.memberId(), server.getAddress());
+        String holderDid = ParticipantIdentifierScheme.memberDid(
+                event.memberId(), server.getAddress() + ":" + INTERIM_IDENTITY_HUB_DID_PORT);
         log.info("Dataspace credential revocation: revoking credentials for holder {} issued before {}",
                 holderDid, event.removedAt());
         int revokedCount = rpcClient.revokeCredential(ISSUER_PARTICIPANT_ID, holderDid, event.removedAt());

@@ -83,6 +83,8 @@ class MemberCredentialRevocationServiceTest {
     private static final String MEMBER_CODE = "MEMBER";
     private static final String SERVER_CODE = "SERVER";
     private static final String SS_ADDRESS = "ss1.example.test";
+    private static final String SS_DID_AUTHORITY =
+            SS_ADDRESS + ":" + MemberCredentialRevocationService.INTERIM_IDENTITY_HUB_DID_PORT;
     private static final long CUTOFF = 9_000L;
 
     private final ClientId memberId = ClientId.Conf.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE);
@@ -139,7 +141,7 @@ class MemberCredentialRevocationServiceTest {
 
         ArgumentCaptor<String> didCaptor = ArgumentCaptor.forClass(String.class);
         verify(rpcClient).revokeCredential(eq(ISSUER_PARTICIPANT_ID), didCaptor.capture(), eq(CUTOFF));
-        assertThat(didCaptor.getValue()).isEqualTo(ParticipantIdentifierScheme.memberDid(memberId, SS_ADDRESS));
+        assertThat(didCaptor.getValue()).isEqualTo(ParticipantIdentifierScheme.memberDid(memberId, SS_DID_AUTHORITY));
     }
 
     @Test
@@ -238,7 +240,7 @@ class MemberCredentialRevocationServiceTest {
 
         service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
 
-        var expectedDid = ParticipantIdentifierScheme.memberDid(memberId, SS_ADDRESS);
+        var expectedDid = ParticipantIdentifierScheme.memberDid(memberId, SS_DID_AUTHORITY);
         assertThat(appender.list)
                 .extracting(ILoggingEvent::getLevel, ILoggingEvent::getFormattedMessage)
                 .contains(tuple(Level.INFO,
@@ -257,7 +259,7 @@ class MemberCredentialRevocationServiceTest {
 
         service.onServerClientRemoved(new ServerClientRemovedEvent(securityServerId, memberId, CUTOFF));
 
-        var expectedDid = ParticipantIdentifierScheme.memberDid(memberId, SS_ADDRESS);
+        var expectedDid = ParticipantIdentifierScheme.memberDid(memberId, SS_DID_AUTHORITY);
         assertThat(appender.list)
                 .extracting(ILoggingEvent::getFormattedMessage)
                 .anySatisfy(message -> assertThat(message).contains("no credentials matched holder " + expectedDid));
