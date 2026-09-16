@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.springframework.stereotype.Component;
 
@@ -60,6 +61,14 @@ public class DataspaceDidAuthority {
      */
     public String current() {
         return identityHubHost() + ":" + adminServiceProperties.getDataspace().getIdentityHubDidPort();
+    }
+
+    /**
+     * @return the authority encoded for embedding in a {@code did:web} identifier
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the authority is not a valid host
+     */
+    public String encodedAuthority() {
+        return ParticipantIdentifierScheme.encodeHost(current());
     }
 
     /**

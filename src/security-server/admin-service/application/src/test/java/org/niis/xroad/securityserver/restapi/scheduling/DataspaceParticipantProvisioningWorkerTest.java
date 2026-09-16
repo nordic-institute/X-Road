@@ -46,6 +46,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -100,15 +101,37 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
-    void provisionParticipantBindsMemberIdentitiesBeforeEnsuringContexts() {
+    void provisionParticipantBindsMemberIdentitiesOnlyAfterTheirContextIsEnsured() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true))
                 .thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
 
         worker.provisionParticipant();
 
-        var order = inOrder(participantBindingService, dataspaceProvisioningService);
-        order.verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER));
+        var order = inOrder(dataspaceProvisioningService, participantBindingService);
         order.verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        order.verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), true);
+    }
+
+    @Test
+    void provisionParticipantLeavesADriftedMemberUnbound() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
+        doThrow(new RuntimeException("DID drift")).when(dataspaceProvisioningService)
+                .ensureParticipantContext(MEMBER_CONTEXT);
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService).bindMembersIfAbsent(List.of(), false);
+    }
+
+    @Test
+    void provisionParticipantBindsNothingUntilTheAuthCertIsRegistered() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), false);
     }
 
     @Test
@@ -117,7 +140,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         worker.provisionParticipant();
 
-        verify(participantBindingService, never()).bindMembersIfAbsent(any());
+        verify(participantBindingService, never()).bindMembersIfAbsent(any(), anyBoolean());
     }
 
     @Test

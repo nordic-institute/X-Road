@@ -95,6 +95,11 @@ public class DataspaceParticipantProvisioningWorker {
      * does not block the remaining contexts; a context whose creation failed, or whose SYSTEM member-id
      * re-anchor the identity hub has not confirmed, is skipped in the credential pass of the same tick
      * — see {@link #ensureContexts}.
+     *
+     * <p>Members are bound only after their participant context has been ensured, so the DID written
+     * to {@code ds_participant} is one the identity hub has just confirmed or been created with. A
+     * member whose context is in DID drift is left unbound and stays recoverable by correcting the
+     * configuration the DID is derived from.
      */
     public void provisionParticipant() {
         var contexts = dataspaceProvisioningService.participantContexts(true);
@@ -106,9 +111,9 @@ public class DataspaceParticipantProvisioningWorker {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        participantBindingService.bindMembersIfAbsent(memberIdsOf(contexts));
-
         var ensuredContexts = ensureContexts(contexts);
+
+        participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
 
         if (!authCertRegistered) {
             log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");

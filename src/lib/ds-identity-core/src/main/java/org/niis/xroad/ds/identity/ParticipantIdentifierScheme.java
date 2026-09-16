@@ -219,7 +219,17 @@ public class ParticipantIdentifierScheme {
 
     // -- did:web host encoding: the authority's port separator ':' becomes '%3A', reversed on decode. --
 
-    private static String encodeHost(String ssHost) {
+    /**
+     * Encodes a Security Server address for embedding in a {@code did:web} identifier: the port
+     * separator becomes {@code %3A}. Rejects an address carrying characters a host name cannot hold,
+     * so a malformed address cannot reach a DID that is served or bound.
+     *
+     * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
+     * @return the encoded address
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the address is blank or has an
+     *         invalid character
+     */
+    public static String encodeHost(String ssHost) {
         requireNonBlank(ssHost, "ss-host");
         for (int i = 0; i < ssHost.length(); i++) {
             char c = ssHost.charAt(i);

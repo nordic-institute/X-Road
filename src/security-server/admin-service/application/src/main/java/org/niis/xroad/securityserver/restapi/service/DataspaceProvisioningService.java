@@ -380,10 +380,13 @@ public class DataspaceProvisioningService {
             contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
         }
 
-        if (ownerId.isPresent()) {
-            hostedMembers().forEach(member -> contexts.add(
-                    new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
+        if (ownerId.isEmpty()) {
+            // serverconf is not initialised: reading local clients would throw MALFORMED_SERVERCONF
+            return contexts;
         }
+
+        hostedMembers().forEach(member -> contexts.add(
+                new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
 
         return contexts;
     }
@@ -459,7 +462,7 @@ public class DataspaceProvisioningService {
         if (kind == ParticipantKind.SYSTEM) {
             return systemDid(didAuthority.current());
         }
-        var did = "did:web:" + didAuthority.current().replace(":", "%3A");
+        var did = "did:web:" + didAuthority.encodedAuthority();
         return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
     }
 

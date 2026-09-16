@@ -66,8 +66,6 @@ class DataspaceParticipantBindingServiceTest {
     private Dataspace dataspace;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
-    @Mock
-    private DataspaceReadinessPredicates readinessPredicates;
 
     private DataspaceParticipantBindingService service;
 
@@ -77,16 +75,15 @@ class DataspaceParticipantBindingServiceTest {
         lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
 
-        service = new DataspaceParticipantBindingService(dsParticipantRepository, readinessPredicates,
+        service = new DataspaceParticipantBindingService(dsParticipantRepository,
                 new DataspaceDidAuthority(adminServiceProperties));
     }
 
     @Test
     void bindsDerivedIdentifiersForEveryUnboundMember() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).isEqualTo(2);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), true)).isEqualTo(2);
 
         verify(dsParticipantRepository).bindMemberParticipant(MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(MEMBER),
@@ -101,30 +98,28 @@ class DataspaceParticipantBindingServiceTest {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
                 .thenReturn(Optional.of(mock(DsParticipantEntity.class)));
         when(dsParticipantRepository.findByMemberIdentifier(OTHER_MEMBER)).thenReturn(Optional.empty());
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).isEqualTo(1);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), true)).isEqualTo(1);
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(eq(MEMBER), anyString(), anyString());
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
     }
 
     @Test
-    void readsNoServerStateWhenEveryMemberIsAlreadyBound() {
+    void writesNothingWhenEveryMemberIsAlreadyBound() {
         when(dsParticipantRepository.findByMemberIdentifier(any()))
                 .thenReturn(Optional.of(mock(DsParticipantEntity.class)));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isZero();
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER), true)).isZero();
 
-        verify(readinessPredicates, never()).hasRegisteredAuthCert();
+        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }
 
     @Test
     void bindsNothingBeforeTheServerHasARegisteredAuthenticationCertificate() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).isZero();
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), false)).isZero();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }
@@ -132,11 +127,10 @@ class DataspaceParticipantBindingServiceTest {
     @Test
     void keepsBindingTheRemainingMembersWhenOneFails() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dsParticipantRepository.bindMemberParticipant(eq(MEMBER), anyString(), anyString()))
                 .thenThrow(new DataIntegrityViolationException("uniq_ds_participant_member_identifier"));
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER))).isEqualTo(1);
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), true)).isEqualTo(1);
 
         verify(dsParticipantRepository).bindMemberParticipant(eq(OTHER_MEMBER), anyString(), anyString());
     }
@@ -144,10 +138,9 @@ class DataspaceParticipantBindingServiceTest {
     @Test
     void reportsAMisconfiguredIdentityHubUrlInsteadOfPropagating() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspace.getIdentityHubUrl()).thenReturn("not-a-url");
 
-        assertThat(service.bindMembersIfAbsent(List.of(MEMBER))).isZero();
+        assertThat(service.bindMembersIfAbsent(List.of(MEMBER), true)).isZero();
 
         verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
     }

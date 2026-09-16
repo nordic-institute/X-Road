@@ -45,9 +45,11 @@ import java.util.List;
  * row, so a member is bound once it is a registered client of this Security Server and stays bound
  * from then on. A bound row is authoritative and is never rewritten.
  *
- * <p>The pass binds nothing until this server has a registered authentication certificate. Binding
- * an interim or misconfigured host would freeze a DID that can then only be repaired by hand, and a
- * member that stays unbound simply keeps deriving its DID on the fly until a later pass binds it.
+ * <p>The pass binds nothing until this server has a registered authentication certificate, and the
+ * caller passes only members whose participant context the identity hub has already confirmed.
+ * Binding an interim or misconfigured host would freeze a DID that can then only be repaired by
+ * hand, and a member that stays unbound simply keeps deriving its DID on the fly until a later pass
+ * binds it.
  */
 @Slf4j
 @Service
@@ -55,17 +57,18 @@ import java.util.List;
 public class DataspaceParticipantBindingService {
 
     private final DsParticipantRepository dsParticipantRepository;
-    private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceDidAuthority didAuthority;
 
     /**
      * Binds the derived ctx-id and DID of every given member that is not bound yet. Existing rows
      * are left untouched. Never throws: a member that cannot be bound now is left for a later pass.
      *
-     * @param members the hosted members to bind
+     * @param members            the hosted members whose participant context has been ensured
+     * @param authCertRegistered whether this server has a registered authentication certificate;
+     *                           nothing is bound until it has
      * @return the number of rows written
      */
-    public int bindMembersIfAbsent(Collection<ClientId> members) {
+    public int bindMembersIfAbsent(Collection<ClientId> members, boolean authCertRegistered) {
         try {
             List<ClientId> unbound = members.stream()
                     .filter(member -> dsParticipantRepository.findByMemberIdentifier(member).isEmpty())
@@ -73,7 +76,7 @@ public class DataspaceParticipantBindingService {
             if (unbound.isEmpty()) {
                 return 0;
             }
-            if (!readinessPredicates.hasRegisteredAuthCert()) {
+            if (!authCertRegistered) {
                 log.debug("Data space: no registered authentication certificate, leaving {} member(s) unbound",
                         unbound.size());
                 return 0;
