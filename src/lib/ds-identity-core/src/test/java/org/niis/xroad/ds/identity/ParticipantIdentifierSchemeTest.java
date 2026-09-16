@@ -161,6 +161,14 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @Test
+    void shouldDeriveHostAndManagementDids() {
+        assertThat(ParticipantIdentifierScheme.hostDid(SS_HOST)).isEqualTo("did:web:ss0.example.org");
+        assertThat(ParticipantIdentifierScheme.hostDid("ss0.example.org:7183")).isEqualTo("did:web:ss0.example.org%3A7183");
+        assertThat(ParticipantIdentifierScheme.managementDid("ss0.example.org:7183"))
+                .isEqualTo("did:web:ss0.example.org%3A7183:mgmt");
+    }
+
+    @Test
     void shouldRoundTripSystemDid() {
         var did = ParticipantIdentifierScheme.systemDid(SS_HOST);
 
@@ -310,13 +318,17 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"   ", "ss0.example.org%3A7183", "ss0 example.org", "ss0.example.org/path"})
+    @ValueSource(strings = {"   ", "ss0.example.org%3A7183", "ss0 example.org", "ss0.example.org/path", "[::1]:7183"})
     void encodingShouldRejectInvalidHost(String invalidHost) {
         var member = ClientId.Conf.create("DEV", "COM", "222");
 
         assertThatThrownBy(() -> ParticipantIdentifierScheme.memberDid(member, invalidHost))
                 .isInstanceOf(XrdRuntimeException.class);
         assertThatThrownBy(() -> ParticipantIdentifierScheme.systemDid(invalidHost))
+                .isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.hostDid(invalidHost))
+                .isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.managementDid(invalidHost))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 }

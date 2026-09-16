@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -37,9 +39,10 @@ import java.net.URI;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
- * The authority (host:port) embedded in derived participant DIDs, and the identity-hub host it is
- * built from. Single switch point for both the provisioning reader and the binding writer, so a
- * bound DID and a freshly derived one can never disagree because of two derivations.
+ * The authority (host:port) embedded in derived participant DIDs, the identity-hub host it is
+ * built from, and the DIDs derived for it. Single switch point for both the provisioning reader
+ * and the binding writer, so a bound DID and a freshly derived one can never disagree because of
+ * two derivations.
  *
  * <p>Interim source: the identity-hub host plus its DID-serving port, because that is where DID
  * documents are actually served. Target source, once registered-address DID serving exists: the
@@ -64,11 +67,29 @@ public class DataspaceDidAuthority {
     }
 
     /**
-     * @return the authority encoded for embedding in a {@code did:web} identifier
+     * @return the HOST participant context's DID for the current authority
      * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the authority is not a valid host
      */
-    public String encodedAuthority() {
-        return ParticipantIdentifierScheme.encodeHost(current());
+    public String hostDid() {
+        return ParticipantIdentifierScheme.hostDid(current());
+    }
+
+    /**
+     * @return the MANAGEMENT participant context's DID for the current authority
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the authority is not a valid host
+     */
+    public String managementDid() {
+        return ParticipantIdentifierScheme.managementDid(current());
+    }
+
+    /**
+     * @param member the X-Road member identifier
+     * @return the member's freshly derived DID for the current authority
+     * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the authority is not a valid host
+     *         or the member identifier cannot be encoded
+     */
+    public String memberDid(ClientId member) {
+        return ParticipantIdentifierScheme.memberDid(member, current());
     }
 
     /**

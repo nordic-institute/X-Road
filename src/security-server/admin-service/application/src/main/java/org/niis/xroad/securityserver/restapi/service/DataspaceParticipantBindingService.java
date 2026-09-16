@@ -82,17 +82,16 @@ public class DataspaceParticipantBindingService {
                 return 0;
             }
 
-            var ssHost = didAuthority.current();
-            return (int) unbound.stream().filter(member -> bindMember(member, ssHost)).count();
+            return (int) unbound.stream().filter(this::bindMember).count();
         } catch (Exception e) {
             log.warn("Data space: participant identity binding pass failed", e);
             return 0;
         }
     }
 
-    private boolean bindMember(ClientId member, String ssHost) {
+    private boolean bindMember(ClientId member) {
         var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
-        var did = ParticipantIdentifierScheme.memberDid(member, ssHost);
+        var did = didAuthority.memberDid(member);
         try {
             dsParticipantRepository.bindMemberParticipant(member, ctxId, did);
             log.info("Data space: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId, did);

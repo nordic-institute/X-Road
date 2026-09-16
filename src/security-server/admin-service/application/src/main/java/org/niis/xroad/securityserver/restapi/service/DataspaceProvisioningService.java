@@ -456,23 +456,21 @@ public class DataspaceProvisioningService {
     }
 
     private String didFor(ParticipantKind kind, @Nullable ClientId memberId) {
-        if (kind == ParticipantKind.MEMBER) {
-            return memberDid(memberId, didAuthority.current());
-        }
-        if (kind == ParticipantKind.SYSTEM) {
-            return systemDid(didAuthority.current());
-        }
-        var did = "did:web:" + didAuthority.encodedAuthority();
-        return kind == ParticipantKind.MANAGEMENT ? did + ":mgmt" : did;
+        return switch (kind) {
+            case HOST -> didAuthority.hostDid();
+            case MANAGEMENT -> didAuthority.managementDid();
+            case SYSTEM -> systemDid(didAuthority.current());
+            case MEMBER -> boundOrDerivedMemberDid(memberId);
+        };
     }
 
-    private String memberDid(ClientId member, String ssHost) {
+    private String boundOrDerivedMemberDid(ClientId member) {
         var bound = dsParticipantRepository.findByMemberIdentifier(member);
         if (bound.isPresent()) {
-            ParticipantBindingCheck.verify(bound.get(), ssHost);
+            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return bound.get().getDid();
         }
-        return ParticipantIdentifierScheme.memberDid(member, ssHost);
+        return didAuthority.memberDid(member);
     }
 
     /**
@@ -511,12 +509,11 @@ public class DataspaceProvisioningService {
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
         try {
-            var ssHost = didAuthority.current();
             var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (bound.isEmpty()) {
-                return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
+                return new MemberIdentity(IdentityStatus.UNBOUND, didAuthority.memberDid(memberId));
             }
-            ParticipantBindingCheck.verify(bound.get(), ssHost);
+            ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return new MemberIdentity(IdentityStatus.OK, bound.get().getDid());
         } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
