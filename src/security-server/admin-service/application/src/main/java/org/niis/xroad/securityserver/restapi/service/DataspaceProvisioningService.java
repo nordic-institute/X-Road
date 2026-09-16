@@ -27,7 +27,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
@@ -59,7 +57,6 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
@@ -158,7 +155,7 @@ public class DataspaceProvisioningService {
     private final IdentityHubProvisioningClient identityHubClient;
     private final ControlPlaneProvisioningClient controlPlaneClient;
     private final ClientRepository clientRepository;
-    private final ServerConfRepository serverConfRepository;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final DsParticipantRepository dsParticipantRepository;
     private final GlobalConfProvider globalConfProvider;
 
@@ -173,7 +170,6 @@ public class DataspaceProvisioningService {
      * @param kind          HOST, MANAGEMENT or MEMBER
      * @param memberId      the X-Road member this context's credential is issued to
      */
-    @Transactional(readOnly = true)
     public void ensureParticipantContext(String participantId, ParticipantKind kind, ClientId memberId) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
@@ -304,7 +300,7 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         var hostParticipantId = ds.getParticipantId();
 
-        var ownerId = ownerId();
+        var ownerId = ownSecurityServerResolver.owner();
         var owner = ownerId.orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
@@ -318,18 +314,6 @@ public class DataspaceProvisioningService {
                 contexts.add(new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member))));
 
         return contexts;
-    }
-
-    private Optional<ClientId> ownerId() {
-        try {
-            return Optional.ofNullable(serverConfRepository.getServerConf().getOwner())
-                    .map(owner -> (ClientId) owner.getIdentifier());
-        } catch (XrdRuntimeException e) {
-            if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
-                return Optional.empty();
-            }
-            throw e;
-        }
     }
 
     private Set<ClientId> hostedMembers(ClientId owner) {
@@ -350,7 +334,6 @@ public class DataspaceProvisioningService {
      *
      * @param context the participant context to report on
      */
-    @Transactional(readOnly = true)
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
         var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
@@ -408,34 +391,15 @@ public class DataspaceProvisioningService {
      * the server's registration has landed in it — all normal states before and during
      * registration, not errors.
      */
-    @Transactional(readOnly = true)
     public boolean registeredAddressKnown() {
-        return findRegisteredAddress().isPresent();
+        return ownSecurityServerResolver.registeredAddress().isPresent();
     }
 
     private String registeredAddress() {
-        return findRegisteredAddress().orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
-                "this security server's owner or GlobalConf-registered address is not available yet; "
-                        + "cannot derive participant DIDs"));
-    }
-
-    /**
-     * Resolves the server id through the repository, not {@link ServerConfService}: callers include
-     * the unauthenticated scheduled provisioning worker, which the service's authentication guard
-     * would reject. A GlobalConf that is not yet downloaded reads as "no address yet", same as a
-     * registration that has not landed.
-     */
-    private Optional<String> findRegisteredAddress() {
-        return ownerId().flatMap(owner -> {
-            var serverId = SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode());
-            try {
-                return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
-                        .filter(address -> !address.isBlank());
-            } catch (XrdRuntimeException e) {
-                log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
-                return Optional.empty();
-            }
-        });
+        return ownSecurityServerResolver.registeredAddress()
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                        "this security server's owner or GlobalConf-registered address is not available yet; "
+                                + "cannot derive participant DIDs"));
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -456,7 +420,6 @@ public class DataspaceProvisioningService {
      * @param memberId the member whose bound identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
      */
-    @Transactional(readOnly = true)
     public IdentityStatus readIdentityStatus(ClientId memberId) {
         return assessMemberIdentity(memberId).status();
     }
@@ -470,7 +433,7 @@ public class DataspaceProvisioningService {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
-        var address = findRegisteredAddress();
+        var address = ownSecurityServerResolver.registeredAddress();
         var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
         if (address.isEmpty()) {
             if (bound.isEmpty()) {

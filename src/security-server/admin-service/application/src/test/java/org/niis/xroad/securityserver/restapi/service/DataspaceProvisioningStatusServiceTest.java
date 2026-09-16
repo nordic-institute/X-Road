@@ -118,7 +118,8 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("ss.example.test");
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
+                clientRepository, new OwnSecurityServerResolver(serverConfRepository, globalConfProvider), dsParticipantRepository,
+                globalConfProvider);
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);
