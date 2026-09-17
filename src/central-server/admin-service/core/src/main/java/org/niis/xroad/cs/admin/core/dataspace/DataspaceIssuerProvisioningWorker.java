@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
@@ -33,8 +34,8 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Level-triggered worker that provisions the co-located data space issuer once the Central Server
@@ -53,20 +54,22 @@ public class DataspaceIssuerProvisioningWorker {
 
     private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     private final SystemParameterService systemParameterService;
+    private final DataspaceIssuerProperties dataspaceIssuerProperties;
 
-    private final AtomicBoolean provisioned = new AtomicBoolean(false);
+    @Getter
+    private volatile ProvisioningState state = new ProvisioningState(Status.WAITING_FOR_CONFIGURATION, null, null);
 
     /**
-     * Scheduled provisioning tick. Skips until the Central Server is initialized, then retries
-     * on every tick until one full provisioning pass succeeds; failures are non-fatal.
+     * Scheduled provisioning tick. While preconditions are unmet, this is a silent no-op; once met,
+     * it retries on every tick until one full provisioning pass succeeds. Failures are non-fatal.
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     public void scheduledProvision() {
-        if (provisioned.get()) {
+        if (state.status() == Status.PROVISIONED) {
             return;
         }
-        if (systemParameterService.getInstanceIdentifier().isEmpty()) {
-            log.debug("Data space issuer provisioning: Central Server not yet initialized, skipping");
+        if (!preconditionsMet()) {
+            log.debug("Dataspace issuer provisioning: preconditions not met, skipping");
             return;
         }
         provisionBestEffort();
@@ -81,16 +84,32 @@ public class DataspaceIssuerProvisioningWorker {
         CompletableFuture.runAsync(this::provisionBestEffort);
     }
 
+    private boolean preconditionsMet() {
+        return !systemParameterService.getInstanceIdentifier().isEmpty()
+                && !systemParameterService.getCentralServerAddress().isEmpty()
+                && dataspaceIssuerProperties.isHostConfigured();
+    }
+
     private synchronized void provisionBestEffort() {
-        if (provisioned.get()) {
+        if (state.status() == Status.PROVISIONED || !preconditionsMet()) {
             return;
         }
         try {
             dataspaceIssuerProvisioningService.provisionIssuer();
-            provisioned.set(true);
+            state = new ProvisioningState(Status.PROVISIONED, null, Instant.now());
             log.info("Data space issuer provisioned");
         } catch (Exception e) {
+            state = new ProvisioningState(Status.FAILING, e, Instant.now());
             log.error("Data space issuer provisioning failed; will retry once the issuer service becomes available", e);
         }
+    }
+
+    public enum Status {
+        WAITING_FOR_CONFIGURATION,
+        FAILING,
+        PROVISIONED
+    }
+
+    public record ProvisioningState(Status status, Exception lastError, Instant lastAttemptAt) {
     }
 }

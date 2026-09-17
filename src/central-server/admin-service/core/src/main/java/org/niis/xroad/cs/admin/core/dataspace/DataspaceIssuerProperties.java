@@ -43,6 +43,10 @@ public class DataspaceIssuerProperties {
         return config.value(DataspaceConfigKeys.ISSUER_HOST);
     }
 
+    public boolean isHostConfigured() {
+        return config.get(DataspaceConfigKeys.ISSUER_HOST).isOverridden();
+    }
+
     public int getDidPort() {
         return config.value(DataspaceConfigKeys.ISSUER_DID_PORT);
     }

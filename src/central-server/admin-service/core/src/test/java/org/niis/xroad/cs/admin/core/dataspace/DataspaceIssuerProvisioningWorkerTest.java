@@ -33,7 +33,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioningWorker.Status;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -44,43 +46,102 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DataspaceIssuerProvisioningWorkerTest {
 
+    private static final String INSTANCE_IDENTIFIER = "TEST";
+    private static final String CENTRAL_SERVER_ADDRESS = "cs.example";
+
     @Mock
     private DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     @Mock
     private SystemParameterService systemParameterService;
+    @Mock
+    private DataspaceIssuerProperties dataspaceIssuerProperties;
 
     @InjectMocks
     private DataspaceIssuerProvisioningWorker worker;
 
     @Test
-    void skipsUntilInitialized() {
+    void startsInWaitingForConfigurationState() {
+        assertThat(worker.getState().status()).isEqualTo(Status.WAITING_FOR_CONFIGURATION);
+        assertThat(worker.getState().lastError()).isNull();
+        assertThat(worker.getState().lastAttemptAt()).isNull();
+    }
+
+    @Test
+    void skipsWhileNotInitialized() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn("");
 
         worker.scheduledProvision();
 
         verify(dataspaceIssuerProvisioningService, never()).provisionIssuer();
+        assertThat(worker.getState().status()).isEqualTo(Status.WAITING_FOR_CONFIGURATION);
     }
 
     @Test
-    void provisionsOnceAndStops() {
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("TEST");
+    void skipsWhileCentralServerAddressNotSet() {
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(systemParameterService.getCentralServerAddress()).thenReturn("");
+
+        worker.scheduledProvision();
+
+        verify(dataspaceIssuerProvisioningService, never()).provisionIssuer();
+        assertThat(worker.getState().status()).isEqualTo(Status.WAITING_FOR_CONFIGURATION);
+    }
+
+    @Test
+    void skipsWhileIssuerHostNotConfigured() {
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(systemParameterService.getCentralServerAddress()).thenReturn(CENTRAL_SERVER_ADDRESS);
+        when(dataspaceIssuerProperties.isHostConfigured()).thenReturn(false);
+
+        worker.scheduledProvision();
+
+        verify(dataspaceIssuerProvisioningService, never()).provisionIssuer();
+        assertThat(worker.getState().status()).isEqualTo(Status.WAITING_FOR_CONFIGURATION);
+    }
+
+    @Test
+    void startsPromptlyOnceBothPreconditionsAreMet() {
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("", INSTANCE_IDENTIFIER);
+        when(systemParameterService.getCentralServerAddress()).thenReturn(CENTRAL_SERVER_ADDRESS);
+        when(dataspaceIssuerProperties.isHostConfigured()).thenReturn(true);
 
         worker.scheduledProvision();
         worker.scheduledProvision();
 
         verify(dataspaceIssuerProvisioningService, times(1)).provisionIssuer();
+        assertThat(worker.getState().status()).isEqualTo(Status.PROVISIONED);
+    }
+
+    @Test
+    void provisionsOnceAndStops() {
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(systemParameterService.getCentralServerAddress()).thenReturn(CENTRAL_SERVER_ADDRESS);
+        when(dataspaceIssuerProperties.isHostConfigured()).thenReturn(true);
+
+        worker.scheduledProvision();
+        worker.scheduledProvision();
+
+        verify(dataspaceIssuerProvisioningService, times(1)).provisionIssuer();
+        assertThat(worker.getState().status()).isEqualTo(Status.PROVISIONED);
     }
 
     @Test
     void retriesAfterFailure() {
-        when(systemParameterService.getInstanceIdentifier()).thenReturn("TEST");
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        when(systemParameterService.getCentralServerAddress()).thenReturn(CENTRAL_SERVER_ADDRESS);
+        when(dataspaceIssuerProperties.isHostConfigured()).thenReturn(true);
         doThrow(new RuntimeException("issuer unreachable"))
                 .doNothing()
                 .when(dataspaceIssuerProvisioningService).provisionIssuer();
 
         assertThatCode(() -> worker.scheduledProvision()).doesNotThrowAnyException();
+        assertThat(worker.getState().status()).isEqualTo(Status.FAILING);
+        assertThat(worker.getState().lastError()).isNotNull();
+        assertThat(worker.getState().lastAttemptAt()).isNotNull();
+
         worker.scheduledProvision();
 
         verify(dataspaceIssuerProvisioningService, times(2)).provisionIssuer();
+        assertThat(worker.getState().status()).isEqualTo(Status.PROVISIONED);
     }
 }
