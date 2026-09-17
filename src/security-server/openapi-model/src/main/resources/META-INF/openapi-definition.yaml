@@ -8532,6 +8532,7 @@ components:
           enum:
             - HOST
             - MANAGEMENT
+            - SYSTEM
             - MEMBER
         context_created:
           type: boolean

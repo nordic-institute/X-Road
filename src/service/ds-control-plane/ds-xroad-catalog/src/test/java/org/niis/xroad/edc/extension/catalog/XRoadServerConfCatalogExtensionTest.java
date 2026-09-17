@@ -36,14 +36,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,6 +113,40 @@ class XRoadServerConfCatalogExtensionTest {
     @Test
     void catalogCacheInvalidatorIsSharedAcrossCalls() {
         assertThat(extension.catalogCacheInvalidator()).isSameAs(extension.catalogCacheInvalidator());
+    }
+
+    @Test
+    void initializeFailsWhenParticipantContextIdEqualsSystemSegment() throws Exception {
+        var badExtension = new XRoadServerConfCatalogExtension();
+        setField(badExtension, "serverConfProvider", serverConfProvider);
+        setField(badExtension, "globalConfProvider", globalConfProvider);
+        setField(badExtension, "participantContextService", participantContextService);
+        setField(badExtension, "webService", webService);
+        var badContext = mock(ServiceExtensionContext.class);
+        when(badContext.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));
+        when(badContext.getSetting(eq(XRoadServerConfCatalogExtension.SETTING_PARTICIPANT_CONTEXT_ID), anyString()))
+                .thenReturn(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+
+        assertThatThrownBy(() -> badExtension.initialize(badContext))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(XRoadServerConfCatalogExtension.SETTING_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void initializeFailsWhenManagementParticipantContextIdEqualsSystemSegment() throws Exception {
+        var badExtension = new XRoadServerConfCatalogExtension();
+        setField(badExtension, "serverConfProvider", serverConfProvider);
+        setField(badExtension, "globalConfProvider", globalConfProvider);
+        setField(badExtension, "participantContextService", participantContextService);
+        setField(badExtension, "webService", webService);
+        var badContext = mock(ServiceExtensionContext.class);
+        when(badContext.getSetting(anyString(), anyString())).thenAnswer(inv -> inv.getArgument(1));
+        when(badContext.getSetting(eq(XRoadServerConfCatalogExtension.SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID), anyString()))
+                .thenReturn(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
+
+        assertThatThrownBy(() -> badExtension.initialize(badContext))
+                .isInstanceOf(XrdRuntimeException.class)
+                .hasMessageContaining(XRoadServerConfCatalogExtension.SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID);
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {
