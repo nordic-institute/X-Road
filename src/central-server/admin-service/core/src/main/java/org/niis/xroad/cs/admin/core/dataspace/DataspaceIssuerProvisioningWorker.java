@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
@@ -56,7 +56,7 @@ import java.util.concurrent.ScheduledFuture;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataspaceIssuerProvisioningWorker {
+public class DataspaceIssuerProvisioningWorker implements InitializingBean, DisposableBean {
 
     private static final Duration INITIAL_DELAY = Duration.ofSeconds(30);
     private static final Duration RECHECK_INTERVAL = Duration.ofSeconds(30);
@@ -82,13 +82,13 @@ public class DataspaceIssuerProvisioningWorker {
     private BackOffExecution backOffExecution;
     private ScheduledFuture<?> scheduledFuture;
 
-    @PostConstruct
-    private void start() {
+    @Override
+    public void afterPropertiesSet() {
         reschedule(INITIAL_DELAY);
     }
 
-    @PreDestroy
-    private void stop() {
+    @Override
+    public void destroy() {
         cancelNext();
     }
 
