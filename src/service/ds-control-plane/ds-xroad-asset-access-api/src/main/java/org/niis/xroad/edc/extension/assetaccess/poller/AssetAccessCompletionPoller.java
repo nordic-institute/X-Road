@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -67,9 +68,11 @@ public class AssetAccessCompletionPoller {
 
     private static final String THREAD_NAME = "AssetAccessCompletionPoller";
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5;
+    private static final String DEFAULT_TERMINATION_DETAIL = "provider terminated";
 
     private final ContractNegotiationStore negotiationStore;
     private final TransferProcessStore transferProcessStore;
+    private final DataAddressStore dataAddressStore;
     private final TransactionContext transactionContext;
     private final Clock clock;
     private final Monitor monitor;
@@ -82,6 +85,7 @@ public class AssetAccessCompletionPoller {
 
     public AssetAccessCompletionPoller(ContractNegotiationStore negotiationStore,
                                         TransferProcessStore transferProcessStore,
+                                        DataAddressStore dataAddressStore,
                                         TransactionContext transactionContext,
                                         ExecutorInstrumentation executorInstrumentation,
                                         Clock clock,
@@ -89,6 +93,7 @@ public class AssetAccessCompletionPoller {
                                         Duration pollInterval) {
         this.negotiationStore = negotiationStore;
         this.transferProcessStore = transferProcessStore;
+        this.dataAddressStore = dataAddressStore;
         this.transactionContext = transactionContext;
         this.clock = clock;
         this.monitor = monitor;
@@ -115,10 +120,11 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Registers a transfer process id to await; the returned future completes with the content data
-     * address once the transfer reaches {@link TransferProcessStates#STARTED}, fails with the stored
-     * error detail once it reaches {@link TransferProcessStates#TERMINATED}, or fails with a timeout
-     * once {@code timeout} passes without a terminal state.
+     * Registers a transfer process id to await; the returned future completes with the data address
+     * resolved through {@link DataAddressStore} once the transfer reaches
+     * {@link TransferProcessStates#STARTED}, fails with the stored error detail once it reaches
+     * {@link TransferProcessStates#TERMINATED}, or fails with a timeout once {@code timeout} passes
+     * without a terminal state.
      */
     public CompletableFuture<DataAddress> awaitTransfer(String transferProcessId, Duration timeout) {
         return register(transferWaiters, transferProcessId, timeout);
@@ -152,6 +158,8 @@ public class AssetAccessCompletionPoller {
     private void runTick() {
         try {
             poll();
+        } catch (Exception e) {
+            monitor.severe("Asset access completion poll pass failed", e);
         } finally {
             scheduleNextTick();
         }
@@ -196,7 +204,7 @@ public class AssetAccessCompletionPoller {
         }
         if (state == ContractNegotiationStates.TERMINATED) {
             monitor.debug("Negotiation %s reached TERMINATED".formatted(id));
-            fail(negotiationWaiters, id, waiter, negotiationFailure(id, negotiation.getErrorDetail()));
+            fail(negotiationWaiters, id, waiter, negotiationFailure(id, errorDetailOrDefault(negotiation.getErrorDetail())));
             return true;
         }
         return false;
@@ -215,16 +223,28 @@ public class AssetAccessCompletionPoller {
         var state = TransferProcessStates.from(transferProcess.getState());
         if (state == TransferProcessStates.STARTED) {
             monitor.debug("Transfer process %s reached STARTED".formatted(id));
-            complete(transferWaiters, id, waiter, transferProcess.getContentDataAddress());
+            completeFromResolvedAddress(id, waiter, transferProcess);
             return true;
         }
         if (state == TransferProcessStates.TERMINATED) {
             monitor.debug("Transfer process %s reached TERMINATED".formatted(id));
-            var errorDetail = transferProcess.getErrorDetail() != null ? transferProcess.getErrorDetail() : "provider terminated";
-            fail(transferWaiters, id, waiter, transferFailure(id, errorDetail));
+            fail(transferWaiters, id, waiter, transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail())));
             return true;
         }
         return false;
+    }
+
+    private void completeFromResolvedAddress(String id, Waiter<DataAddress> waiter, TransferProcess transferProcess) {
+        var resolved = dataAddressStore.resolve(transferProcess);
+        if (resolved.succeeded()) {
+            complete(transferWaiters, id, waiter, resolved.getContent());
+        } else {
+            fail(transferWaiters, id, waiter, transferFailure(id, resolved.getFailureDetail()));
+        }
+    }
+
+    private static String errorDetailOrDefault(String errorDetail) {
+        return errorDetail != null ? errorDetail : DEFAULT_TERMINATION_DETAIL;
     }
 
     private <T> void expireIfPastDeadline(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter) {

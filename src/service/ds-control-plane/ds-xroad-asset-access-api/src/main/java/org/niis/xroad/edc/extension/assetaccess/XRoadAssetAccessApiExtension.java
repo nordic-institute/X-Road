@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogServic
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
@@ -51,6 +52,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessOrchestrator;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore;
@@ -78,6 +80,9 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore transferProcessStore;
+
+    @Inject
+    private DataAddressStore dataAddressStore;
 
     @Inject
     private TransactionContext transactionContext;
@@ -120,6 +125,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
 
     private AssetAccessOrchestrator assetAccessOrchestrator;
     private AssetAccessCompletionPoller completionPoller;
+    private ReusableAgreementLookup reusableAgreementLookup;
     private TypeTransformerRegistry assetAccessTransformerRegistry;
 
     @Override
@@ -134,11 +140,14 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
         completionPoller = new AssetAccessCompletionPoller(
                 contractNegotiationStore,
                 transferProcessStore,
+                dataAddressStore,
                 transactionContext,
                 executorInstrumentation,
                 clock,
                 monitor,
                 Duration.ofMillis(pollIntervalMillis));
+
+        reusableAgreementLookup = new ReusableAgreementLookup(contractNegotiationStore, transactionContext);
 
         assetAccessTransformerRegistry = transformerRegistry.forContext("xrd-asset-access-api");
 
@@ -165,6 +174,7 @@ public class XRoadAssetAccessApiExtension implements ServiceExtension {
         if (assetAccessOrchestrator == null) {
             assetAccessOrchestrator = new AssetAccessOrchestrator(
                     new AssetAccessStateStore(),
+                    reusableAgreementLookup,
                     catalogService,
                     contractNegotiationService,
                     transferProcessService,
