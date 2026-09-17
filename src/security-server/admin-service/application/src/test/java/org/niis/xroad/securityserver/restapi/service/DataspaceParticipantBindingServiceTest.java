@@ -51,6 +51,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -116,12 +117,10 @@ class DataspaceParticipantBindingServiceTest {
     }
 
     @Test
-    void bindsNothingBeforeTheServerHasARegisteredAuthenticationCertificate() {
-        when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-
+    void readsNoMemberStateBeforeTheServerHasARegisteredAuthenticationCertificate() {
         assertThat(service.bindMembersIfAbsent(List.of(MEMBER, OTHER_MEMBER), false)).isZero();
 
-        verify(dsParticipantRepository, never()).bindMemberParticipant(any(), anyString(), anyString());
+        verifyNoInteractions(dsParticipantRepository);
     }
 
     @Test

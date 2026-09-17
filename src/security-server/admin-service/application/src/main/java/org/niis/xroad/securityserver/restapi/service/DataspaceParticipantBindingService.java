@@ -65,22 +65,20 @@ public class DataspaceParticipantBindingService {
      *
      * @param members            the hosted members whose participant context has been ensured
      * @param authCertRegistered whether this server has a registered authentication certificate;
-     *                           nothing is bound until it has
+     *                           until it has, the pass returns without reading any member's state
      * @return the number of rows written
      */
     public int bindMembersIfAbsent(Collection<ClientId> members, boolean authCertRegistered) {
+        if (!authCertRegistered) {
+            log.debug("Data space: no registered authentication certificate, leaving {} member(s) unbound",
+                    members.size());
+            return 0;
+        }
+
         try {
             List<ClientId> unbound = members.stream()
                     .filter(member -> dsParticipantRepository.findByMemberIdentifier(member).isEmpty())
                     .toList();
-            if (unbound.isEmpty()) {
-                return 0;
-            }
-            if (!authCertRegistered) {
-                log.debug("Data space: no registered authentication certificate, leaving {} member(s) unbound",
-                        unbound.size());
-                return 0;
-            }
 
             return (int) unbound.stream().filter(this::bindMember).count();
         } catch (Exception e) {
