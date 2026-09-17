@@ -95,7 +95,7 @@ class DataspaceIssuerProvisioningWorkerTest {
         verify(dataspaceIssuerProvisioningService, never()).provisionIssuer();
         assertThat(worker.getState().status()).isEqualTo(Status.WAITING_FOR_CONFIGURATION);
         verify(taskScheduler).schedule(any(Runnable.class),
-                eq(NOW.plus(DataspaceIssuerProvisioningWorker.RECHECK_INTERVAL)));
+                eq(NOW.plus(Duration.ofSeconds(30))));
     }
 
     @Test

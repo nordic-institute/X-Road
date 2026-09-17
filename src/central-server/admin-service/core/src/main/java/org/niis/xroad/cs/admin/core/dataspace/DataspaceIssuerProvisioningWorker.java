@@ -58,12 +58,12 @@ import java.util.concurrent.ScheduledFuture;
 @RequiredArgsConstructor
 public class DataspaceIssuerProvisioningWorker {
 
-    static final Duration INITIAL_DELAY = Duration.ofSeconds(30);
-    static final Duration RECHECK_INTERVAL = Duration.ofSeconds(30);
+    private static final Duration INITIAL_DELAY = Duration.ofSeconds(30);
+    private static final Duration RECHECK_INTERVAL = Duration.ofSeconds(30);
 
-    static final Duration BACKOFF_INITIAL_INTERVAL = Duration.ofSeconds(30);
-    static final double BACKOFF_MULTIPLIER = 2.0;
-    static final Duration BACKOFF_MAX_INTERVAL = Duration.ofMinutes(5);
+    private static final Duration BACKOFF_INITIAL_INTERVAL = Duration.ofSeconds(30);
+    private static final double BACKOFF_MULTIPLIER = 2.0;
+    private static final Duration BACKOFF_MAX_INTERVAL = Duration.ofMinutes(5);
 
     private static BackOffExecution initBackOffExecution() {
         var backOff = new ExponentialBackOff(BACKOFF_INITIAL_INTERVAL.toMillis(), BACKOFF_MULTIPLIER);
