@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import io.github.resilience4j.core.IntervalFunction;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +36,12 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
-import org.springframework.util.backoff.BackOffExecution;
-import org.springframework.util.backoff.ExponentialBackOff;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Level-triggered worker that provisions the co-located dataspace issuer once the Central Server
@@ -61,15 +61,10 @@ public class DataspaceIssuerProvisioningWorker implements InitializingBean, Disp
     private static final Duration INITIAL_DELAY = Duration.ofSeconds(30);
     private static final Duration RECHECK_INTERVAL = Duration.ofSeconds(30);
 
-    private static final Duration BACKOFF_INITIAL_INTERVAL = Duration.ofSeconds(30);
-    private static final double BACKOFF_MULTIPLIER = 2.0;
-    private static final Duration BACKOFF_MAX_INTERVAL = Duration.ofMinutes(5);
+    private static final IntervalFunction BACKOFF_INTERVAL_FUNCTION = IntervalFunction.ofExponentialBackoff(
+            Duration.ofSeconds(30), 2.0, Duration.ofMinutes(5));
 
-    private static BackOffExecution initBackOffExecution() {
-        var backOff = new ExponentialBackOff(BACKOFF_INITIAL_INTERVAL.toMillis(), BACKOFF_MULTIPLIER);
-        backOff.setMaxInterval(BACKOFF_MAX_INTERVAL.toMillis());
-        return backOff.start();
-    }
+    private final AtomicInteger consecutiveFailures = new AtomicInteger(0);
 
     private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     private final SystemParameterService systemParameterService;
@@ -79,8 +74,8 @@ public class DataspaceIssuerProvisioningWorker implements InitializingBean, Disp
     @Getter
     private volatile ProvisioningState state = new ProvisioningState(Status.WAITING_FOR_CONFIGURATION, null, null);
 
-    private BackOffExecution backOffExecution;
     private ScheduledFuture<?> scheduledFuture;
+    private volatile boolean shuttingDown;
 
     @Override
     public void afterPropertiesSet() {
@@ -89,6 +84,7 @@ public class DataspaceIssuerProvisioningWorker implements InitializingBean, Disp
 
     @Override
     public void destroy() {
+        shuttingDown = true;
         cancelNext();
     }
 
@@ -102,25 +98,37 @@ public class DataspaceIssuerProvisioningWorker implements InitializingBean, Disp
     }
 
     private void scheduledProvision() {
-        if (state.status() == Status.PROVISIONED) {
-            return;
-        }
-        if (!preconditionsMet()) {
-            log.debug("Dataspace issuer provisioning: preconditions not met, skipping");
-            reschedule(RECHECK_INTERVAL);
-            return;
-        }
-        provisionBestEffort();
-        if (state.status() == Status.FAILING) {
-            reschedule(nextBackoffDelay());
+        try {
+            if (state.status() == Status.PROVISIONED) {
+                return;
+            }
+            if (!preconditionsMet()) {
+                log.debug("Dataspace issuer provisioning: preconditions not met, skipping");
+                // Clears any error/timestamp left over from a previous failing attempt.
+                state = new ProvisioningState(Status.WAITING_FOR_CONFIGURATION, null, null);
+                return;
+            }
+            provisionBestEffort();
+        } catch (Exception e) {
+            state = new ProvisioningState(Status.FAILING, e, Instant.now());
+            log.warn("Dataspace issuer provisioning failed unexpectedly: {}", e.getMessage(), e);
+        } finally {
+            switch (state.status()) {
+                case WAITING_FOR_CONFIGURATION -> {
+                    resetFailures();
+                    reschedule(RECHECK_INTERVAL);
+                }
+                case FAILING -> reschedule(nextBackoffDelay(incrementFailures()));
+                default -> resetFailures();
+            }
         }
     }
 
     private synchronized void provisionBestEffort() {
-        if (state.status() == Status.PROVISIONED || !preconditionsMet()) {
-            return;
-        }
         try {
+            if (state.status() == Status.PROVISIONED || !preconditionsMet()) {
+                return;
+            }
             dataspaceIssuerProvisioningService.provisionIssuer();
             state = new ProvisioningState(Status.PROVISIONED, null, Instant.now());
             log.info("Dataspace issuer provisioned");
@@ -137,14 +145,24 @@ public class DataspaceIssuerProvisioningWorker implements InitializingBean, Disp
                 && dataspaceIssuerProperties.isHostConfigured();
     }
 
-    private Duration nextBackoffDelay() {
-        if (backOffExecution == null) {
-            backOffExecution = initBackOffExecution();
-        }
-        return Duration.ofMillis(backOffExecution.nextBackOff());
+    private Duration nextBackoffDelay(int attempts) {
+        return Duration.ofMillis(BACKOFF_INTERVAL_FUNCTION.apply(attempts));
+    }
+
+    private void resetFailures() {
+        consecutiveFailures.set(0);
+    }
+
+    private int incrementFailures() {
+        // No cap on the counter: the delay itself is already capped by BACKOFF_INTERVAL_FUNCTION,
+        // and reaching Integer.MAX_VALUE would take ~20,000 years of continuous failures every 5 minutes.
+        return consecutiveFailures.incrementAndGet();
     }
 
     private void reschedule(Duration delay) {
+        if (shuttingDown) {
+            return;
+        }
         cancelNext();
         log.trace("Rescheduling dataspace issuer provisioning in {}", delay);
         this.scheduledFuture = taskScheduler.schedule(this::scheduledProvision, taskScheduler.getClock().instant().plus(delay));

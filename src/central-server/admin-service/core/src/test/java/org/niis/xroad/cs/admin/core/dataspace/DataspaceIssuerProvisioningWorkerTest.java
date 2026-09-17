@@ -196,4 +196,54 @@ class DataspaceIssuerProvisioningWorkerTest {
         assertThat(worker.getState().status()).isEqualTo(Status.FAILING);
         verify(dataspaceIssuerProvisioningService, times(6)).provisionIssuer();
     }
+
+    @Test
+    void returnsToWaitingForConfigurationAfterAFailureAndResetsBackoff() {
+        when(systemParameterService.getCentralServerAddress()).thenReturn(CENTRAL_SERVER_ADDRESS);
+        when(dataspaceIssuerProperties.isHostConfigured()).thenReturn(true);
+        doThrow(new RuntimeException("issuer unreachable")).when(dataspaceIssuerProvisioningService).provisionIssuer();
+
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        ReflectionTestUtils.invokeMethod(worker, "scheduledProvision");
+
+        assertThat(worker.getState().status()).isEqualTo(Status.FAILING);
+        verify(taskScheduler).schedule(any(Runnable.class), eq(NOW.plus(Duration.ofSeconds(30))));
+
+        when(systemParameterService.getInstanceIdentifier()).thenReturn("");
+        ReflectionTestUtils.invokeMethod(worker, "scheduledProvision");
+
+        assertThat(worker.getState().status()).isEqualTo(Status.WAITING_FOR_CONFIGURATION);
+        assertThat(worker.getState().lastError()).isNull();
+        assertThat(worker.getState().lastAttemptAt()).isNull();
+        verify(taskScheduler, times(2)).schedule(any(Runnable.class), eq(NOW.plus(Duration.ofSeconds(30))));
+
+        when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
+        ReflectionTestUtils.invokeMethod(worker, "scheduledProvision");
+
+        assertThat(worker.getState().status()).isEqualTo(Status.FAILING);
+        verify(taskScheduler, times(3)).schedule(any(Runnable.class), eq(NOW.plus(Duration.ofSeconds(30))));
+        verify(taskScheduler, never()).schedule(any(Runnable.class), eq(NOW.plus(Duration.ofSeconds(60))));
+    }
+
+    @Test
+    void treatsAnUnexpectedPreconditionCheckFailureAsFailingAndBacksOff() {
+        when(systemParameterService.getInstanceIdentifier()).thenThrow(new RuntimeException("db unavailable"));
+
+        assertThatCode(() -> ReflectionTestUtils.invokeMethod(worker, "scheduledProvision")).doesNotThrowAnyException();
+
+        assertThat(worker.getState().status()).isEqualTo(Status.FAILING);
+        assertThat(worker.getState().lastError()).isNotNull();
+        assertThat(worker.getState().lastAttemptAt()).isNotNull();
+        verify(dataspaceIssuerProvisioningService, never()).provisionIssuer();
+        verify(taskScheduler).schedule(any(Runnable.class), eq(NOW.plus(Duration.ofSeconds(30))));
+    }
+
+    @Test
+    void stopsReschedulingAfterDestroy() {
+        worker.destroy();
+
+        ReflectionTestUtils.invokeMethod(worker, "scheduledProvision");
+
+        verify(taskScheduler, never()).schedule(any(Runnable.class), any(Instant.class));
+    }
 }
