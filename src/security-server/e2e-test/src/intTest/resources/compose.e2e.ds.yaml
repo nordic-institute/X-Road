@@ -148,9 +148,10 @@ services:
   # identity hub (DID resolution), 8183 to the control plane (DSP). Counterparties derive
   # all of these from the one registered address (XRDADR-41), so they must be served there.
   ds-gateway:
-    image: nginxinc/nginx-unprivileged:stable-alpine
-    volumes:
-      - ./ds-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    image: ${DS_GATEWAY_IMG}
+    environment:
+      - DS_GATEWAY_PROXY_HOST=proxy
+      - DS_GATEWAY_RESOLVER=127.0.0.11
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "5500"]
       interval: 5s

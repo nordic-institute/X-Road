@@ -36,7 +36,7 @@ public class ConsoleApiTestRunner extends AbstractConsoleApiTestRunner {
     @Override
     protected String[] resourceFiles() {
         return new String[]{"compose.main.yaml", "compose.api.yaml", "compose.api.ds.yaml", ".env",
-                "container-files/", "nginx-container-files/", "ds-gateway/"};
+                "container-files/", "nginx-container-files/"};
     }
 
     @Override

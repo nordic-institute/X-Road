@@ -147,14 +147,13 @@ services:
   op-monitor:
     enabled: true
 
-{# Gated on the same condition that renders the chart's ds-gateway ConfigMap
-   (dsp.participantContextId, set below) — a sidecar mounting an unrendered
-   ConfigMap wedges the proxy pod. #}
 {% if ds_tls and dsp_participant_context_id | length > 0 %}
   # The GlobalConf-registered address is the proxy Service, so the DSP surface
   # counterparties derive from it (7183 DID resolution, 8183 DSP) must be served
-  # there too: an nginx stream sidecar in the proxy pod forwards those ports to
-  # the ds-* Services (config: the chart's ds-gateway ConfigMap).
+  # there too: the ds-gateway-dev stream sidecar in the proxy pod forwards those
+  # ports to the ds-* Services (development/docker/ds-gateway). Dev-only stand-in
+  # for the Gateway API TLS passthrough XRDADR-42 targets. The proxy's own ports
+  # need no forwarding here: the sidecar shares the pod's network namespace.
   proxy:
     extraServicePorts:
       - port: 7183
@@ -163,7 +162,7 @@ services:
         name: dsp
     extraContainers:
       - name: ds-gateway
-        image: nginxinc/nginx-unprivileged:stable-alpine
+        image: {{ (xroad_image_registry ~ '/') if xroad_image_registry | length > 0 else '' }}ds-gateway-dev:{{ xroad_image_tag if xroad_image_tag | length > 0 else 'latest' }}
         securityContext:
           runAsNonRoot: true
           readOnlyRootFilesystem: true
@@ -179,14 +178,11 @@ services:
         volumeMounts:
           - name: tmp-volume
             mountPath: /tmp
-          - name: ds-gateway-config
-            mountPath: /etc/nginx/nginx.conf
-            subPath: nginx.conf
-            readOnly: true
+          - name: ds-gateway-stream
+            mountPath: /etc/nginx/stream.d
     volumes:
-      - name: ds-gateway-config
-        configMap:
-          name: ds-gateway-config
+      - name: ds-gateway-stream
+        emptyDir: {}
 {% endif %}
 
   # DSP services — bump replicas from chart default of 0. DB clusters are

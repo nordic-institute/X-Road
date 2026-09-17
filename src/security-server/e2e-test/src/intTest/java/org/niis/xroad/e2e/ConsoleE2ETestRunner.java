@@ -52,7 +52,6 @@ public class ConsoleE2ETestRunner extends AbstractConsoleApiTestRunner {
                 "compose.ss0-sidecar.e2e.yaml",
                 ".env",
                 "container-files/",
-                "ds-gateway/",
                 "wiremock_mappings/",
                 "signer-with-hsm/",
                 "hurl/",
