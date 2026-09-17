@@ -74,6 +74,8 @@ import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -120,12 +122,15 @@ class AssetAccessOrchestratorTest {
 
     AssetAccessOrchestrator orchestrator;
 
+    private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
+
     @BeforeEach
     void setUp() {
         lenient().when(reusableAgreementLookup.find(any(), any(), any())).thenReturn(Optional.empty());
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
             TransferProcess transferProcess = invocation.getArgument(0);
-            return transferProcess == null ? null : StoreResult.success(transferProcess.getContentDataAddress());
+            var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
+            return address != null ? StoreResult.success(address) : StoreResult.notFound("no data address stored");
         });
         completionPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
                 new NoopTransactionContext(), ExecutorInstrumentation.noop(), Clock.systemUTC(), monitor, Duration.ofMillis(250));
@@ -556,10 +561,10 @@ class AssetAccessOrchestratorTest {
     }
 
     private TransferProcess startedTransfer(String id, DataAddress dataAddress) {
+        resolvableAddresses.put(id, dataAddress);
         return TransferProcess.Builder.newInstance()
                 .id(id)
                 .state(TransferProcessStates.STARTED.code())
-                .contentDataAddress(dataAddress)
                 .build();
     }
 

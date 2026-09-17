@@ -55,6 +55,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,6 +84,7 @@ class AssetAccessCompletionPollerTest {
     Monitor monitor;
 
     private final MutableClock clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
+    private final Map<String, DataAddress> resolvableAddresses = new HashMap<>();
 
     private AssetAccessCompletionPoller poller;
 
@@ -89,7 +92,8 @@ class AssetAccessCompletionPollerTest {
     void setUp() {
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
             TransferProcess transferProcess = invocation.getArgument(0);
-            return transferProcess == null ? null : StoreResult.success(transferProcess.getContentDataAddress());
+            var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
+            return address != null ? StoreResult.success(address) : StoreResult.notFound("no data address stored");
         });
         poller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore, new NoopTransactionContext(),
                 ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
@@ -327,10 +331,12 @@ class AssetAccessCompletionPollerTest {
     }
 
     private TransferProcess buildTransferProcess(TransferProcessStates state, DataAddress dataAddress, String errorDetail) {
+        if (dataAddress != null) {
+            resolvableAddresses.put("tp-1", dataAddress);
+        }
         return TransferProcess.Builder.newInstance()
                 .id("tp-1")
                 .state(state.code())
-                .contentDataAddress(dataAddress)
                 .errorDetail(errorDetail)
                 .build();
     }
