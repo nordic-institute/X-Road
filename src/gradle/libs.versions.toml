@@ -268,6 +268,7 @@ edc-core-participantcontext-connector-classic = { module = "org.eclipse.edc:part
 
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-controlplane-contract-tasks = { module = "org.eclipse.edc:control-plane-contract-task-executor", version.ref = "edc" }
+edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-transfer", version.ref = "edc" }
 edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
 edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
 edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }

@@ -27,9 +27,13 @@ dependencies {
   testImplementation(libs.awaitility)
   testImplementation(libs.junit.jupiter.params)
 
+  testImplementation(project(":service:ds-control-plane:ds-xroad-contract-negotiation-store"))
+
   testImplementation(libs.edc.junit)
   testImplementation(libs.edc.lib.json)
   testImplementation(libs.edc.sql.contract.negotiation)
+  testImplementation(libs.edc.sql.transfer.process)
+  testImplementation(libs.edc.core.controlplane.transfer)
   testImplementation(libs.edc.spi.transaction.datasource)
   testImplementation(libs.edc.lib.sql)
   testImplementation(libs.edc.sql.lease)
