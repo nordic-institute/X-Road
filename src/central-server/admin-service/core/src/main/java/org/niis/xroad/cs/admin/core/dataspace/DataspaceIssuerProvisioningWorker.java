@@ -26,53 +26,70 @@
  */
 package org.niis.xroad.cs.admin.core.dataspace;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.service.DataspaceIssuerProvisioningService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.backoff.BackOffExecution;
+import org.springframework.util.backoff.ExponentialBackOff;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
 
 /**
- * Level-triggered worker that provisions the co-located data space issuer once the Central Server
+ * Level-triggered worker that provisions the co-located dataspace issuer once the Central Server
  * is initialized. The issuer service cannot start before its DS TLS certificate is provisioned,
  * and that certificate is obtained after initialization (ACME enrollment or the manual CSR
  * upload), so initialization must not depend on a live issuer; this worker retries until the
- * issuer accepts the provisioning calls, which are idempotent on the issuer side.
+ * issuer accepts the provisioning calls, which are idempotent on the issuer side. While
+ * preconditions are unmet it rechecks on a fixed cadence; once an attempt has actually been made
+ * and failed, further attempts back off exponentially so a persistent fault doesn't spam the log
+ * or the issuer with a call every few seconds.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DataspaceIssuerProvisioningWorker {
 
-    static final int JOB_REPEAT_INTERVAL_MS = 30000;
-    static final int INITIAL_DELAY_MS = 30000;
+    static final Duration INITIAL_DELAY = Duration.ofSeconds(30);
+    static final Duration RECHECK_INTERVAL = Duration.ofSeconds(30);
+
+    static final Duration BACKOFF_INITIAL_INTERVAL = Duration.ofSeconds(30);
+    static final double BACKOFF_MULTIPLIER = 2.0;
+    static final Duration BACKOFF_MAX_INTERVAL = Duration.ofMinutes(5);
+
+    private static BackOffExecution initBackOffExecution() {
+        var backOff = new ExponentialBackOff(BACKOFF_INITIAL_INTERVAL.toMillis(), BACKOFF_MULTIPLIER);
+        backOff.setMaxInterval(BACKOFF_MAX_INTERVAL.toMillis());
+        return backOff.start();
+    }
 
     private final DataspaceIssuerProvisioningService dataspaceIssuerProvisioningService;
     private final SystemParameterService systemParameterService;
     private final DataspaceIssuerProperties dataspaceIssuerProperties;
+    private final TaskScheduler taskScheduler;
 
     @Getter
     private volatile ProvisioningState state = new ProvisioningState(Status.WAITING_FOR_CONFIGURATION, null, null);
 
-    /**
-     * Scheduled provisioning tick. While preconditions are unmet, this is a silent no-op; once met,
-     * it retries on every tick until one full provisioning pass succeeds. Failures are non-fatal.
-     */
-    @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
-    public void scheduledProvision() {
-        if (state.status() == Status.PROVISIONED) {
-            return;
-        }
-        if (!preconditionsMet()) {
-            log.debug("Dataspace issuer provisioning: preconditions not met, skipping");
-            return;
-        }
-        provisionBestEffort();
+    private BackOffExecution backOffExecution;
+    private ScheduledFuture<?> scheduledFuture;
+
+    @PostConstruct
+    private void start() {
+        reschedule(INITIAL_DELAY);
+    }
+
+    @PreDestroy
+    private void stop() {
+        cancelNext();
     }
 
     /**
@@ -84,10 +101,19 @@ public class DataspaceIssuerProvisioningWorker {
         CompletableFuture.runAsync(this::provisionBestEffort);
     }
 
-    private boolean preconditionsMet() {
-        return !systemParameterService.getInstanceIdentifier().isEmpty()
-                && !systemParameterService.getCentralServerAddress().isEmpty()
-                && dataspaceIssuerProperties.isHostConfigured();
+    private void scheduledProvision() {
+        if (state.status() == Status.PROVISIONED) {
+            return;
+        }
+        if (!preconditionsMet()) {
+            log.debug("Dataspace issuer provisioning: preconditions not met, skipping");
+            reschedule(RECHECK_INTERVAL);
+            return;
+        }
+        provisionBestEffort();
+        if (state.status() == Status.FAILING) {
+            reschedule(nextBackoffDelay());
+        }
     }
 
     private synchronized void provisionBestEffort() {
@@ -97,10 +123,36 @@ public class DataspaceIssuerProvisioningWorker {
         try {
             dataspaceIssuerProvisioningService.provisionIssuer();
             state = new ProvisioningState(Status.PROVISIONED, null, Instant.now());
-            log.info("Data space issuer provisioned");
+            log.info("Dataspace issuer provisioned");
         } catch (Exception e) {
             state = new ProvisioningState(Status.FAILING, e, Instant.now());
-            log.error("Data space issuer provisioning failed; will retry once the issuer service becomes available", e);
+            log.warn("Dataspace issuer provisioning failed: {}. Dataspace features stay unavailable until "
+                    + "provisioned; check the issuer service is running and its DS TLS certificate is ready.", e.getMessage(), e);
+        }
+    }
+
+    private boolean preconditionsMet() {
+        return !systemParameterService.getInstanceIdentifier().isEmpty()
+                && !systemParameterService.getCentralServerAddress().isEmpty()
+                && dataspaceIssuerProperties.isHostConfigured();
+    }
+
+    private Duration nextBackoffDelay() {
+        if (backOffExecution == null) {
+            backOffExecution = initBackOffExecution();
+        }
+        return Duration.ofMillis(backOffExecution.nextBackOff());
+    }
+
+    private void reschedule(Duration delay) {
+        cancelNext();
+        log.trace("Rescheduling dataspace issuer provisioning in {}", delay);
+        this.scheduledFuture = taskScheduler.schedule(this::scheduledProvision, taskScheduler.getClock().instant().plus(delay));
+    }
+
+    private void cancelNext() {
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
         }
     }
 
