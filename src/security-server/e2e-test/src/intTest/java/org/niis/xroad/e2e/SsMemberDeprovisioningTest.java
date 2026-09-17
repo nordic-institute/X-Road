@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.e2e;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -50,7 +53,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 /**
  * Proves the feature's end-to-end teardown guarantee against real dataspace services: deleting a
  * member's last client should make its dataspace presence disappear — the DID document stops resolving
- * at the identity hub, and the participant context is gone from the control plane.
+ * at the identity hub, the participant context is gone from the control plane, and the Central Server
+ * revokes the member's membership credential at the collocated issuer, without touching anyone else's.
  *
  * <p>Registers a dedicated member ({@code DEV:COM:5678:DeprovisioningService}), new to this run,
  * entirely through ss0's own admin API — local client add, sign-key CSR generation, signing by the test
@@ -60,16 +64,23 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * later "gone" assertions prove an actual removal, not a state that was never reached), its only client
  * is unregistered and deleted. Deleting a member's last client is, once binding rows are written at
  * provisioning time, what flips the member's participant binding to decommissioned in the same
- * transaction as the delete — the trigger the background reconciler then converges on. The scenario
- * polls the identity hub and the control-plane database directly, the way a counter-party or an operator
- * would observe the removal, rather than the internal {@code /dataspace/provisioning-status} admin
- * endpoint — that endpoint only reports live contexts and simply drops a member once teardown converges,
- * so it cannot distinguish "torn down" from "never provisioned".
+ * transaction as the delete — the trigger the background reconciler then converges on; the same delete
+ * also removes the member's registration record on the Central Server, which independently fires the
+ * credential-revocation listener there. The scenario polls the identity hub, the control-plane database
+ * and the issuer's credential store directly, the way a counter-party or an operator would observe the
+ * removal, rather than the internal {@code /dataspace/provisioning-status} admin endpoint — that endpoint
+ * only reports live contexts and simply drops a member once teardown converges, so it cannot distinguish
+ * "torn down" from "never provisioned".
  *
  * <p><b>Ships disabled.</b> Nothing writes an {@code ACTIVE} participant-binding row at provisioning
  * time yet — that lands in a later story. Without a bound row, deleting the member's last client has no
  * binding to flip, so teardown never starts and the polls below can never converge against a real stack.
- * Removing the {@link Disabled} annotation is that story's job, not this one's.
+ * Removing the {@link Disabled} annotation is that story's job, not this one's. The credential-revocation
+ * assertions added alongside the teardown ones need no additional precondition of their own — the
+ * Central Server's revocation trigger fires off its own registration-removal event, independent of the
+ * dataspace binding row — but they need {@link CsIssuerDbOps} to reach the issuer's credential store,
+ * which today only the LXD adapter implements; on any other environment this scenario runs the teardown
+ * assertions and self-skips the revocation ones via a second {@link Assumptions} check.
  *
  * <p>Only k8s and LXD run the dataspace protocol stack; the Compose facade does not implement
  * {@link DsControlPlaneDbOps}, so this scenario self-skips there via {@link Assumptions}, exactly like
@@ -83,7 +94,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
 @Order(375)
 @Disabled("participant binding rows are not written at provisioning time yet, so deleting a member's last "
         + "client never flips a binding row to decommissioned and teardown never starts against a real "
-        + "stack; enable once provisioning writes ACTIVE binding rows")
+        + "stack; enable once provisioning writes ACTIVE binding rows. The credential-revocation "
+        + "assertions here additionally run only where the environment implements CsIssuerDbOps (LXD today)")
 @Slf4j
 @SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
 class SsMemberDeprovisioningTest extends E2eTest {
@@ -106,6 +118,20 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for this member. */
     private static final String MEMBER_CTX_ID = X_ROAD_INSTANCE + ":" + MEMBER_CLASS + ":" + MEMBER_CODE;
+
+    /**
+     * ss0's own owner member, provisioned once at environment bring-up and left untouched by this
+     * scenario's deletions. Its credential must survive the revocation this scenario triggers — both
+     * because it belongs to a different member entirely, and because it is ss0's current owner, which
+     * {@code MemberCredentialRevocationService} excludes from revocation by design.
+     */
+    private static final String OWNER_MEMBER_CLASS = "COM";
+    private static final String OWNER_MEMBER_CODE = "1234";
+
+    /** {@code VcStatus.ISSUED.code()} (EDC 0.18) — the {@code credential_resource.vc_state} of a valid, unrevoked credential. */
+    private static final int VC_STATE_ISSUED = 500;
+    /** {@code VcStatus.REVOKED.code()} (EDC 0.18) — the {@code credential_resource.vc_state} after issuer-side revocation. */
+    private static final int VC_STATE_REVOKED = 600;
 
     /**
      * ss0's own token, addressed the same way {@code setup.hurl}'s ss0 sign-key block does
@@ -217,6 +243,18 @@ class SsMemberDeprovisioningTest extends E2eTest {
 
         and("the control-plane participant context for the member is gone", () ->
                 awaitControlPlaneContextAbsent(dbOps));
+
+        Assumptions.assumeTrue(env instanceof CsIssuerDbOps,
+                () -> ("%s does not expose the Central Server's issuer database; credential-revocation "
+                        + "assertions only run where the environment implements CsIssuerDbOps")
+                        .formatted(env.getClass().getSimpleName()));
+        var issuerDbOps = (CsIssuerDbOps) env;
+
+        then("the issuer revokes every credential it holds for the member on ss0", () ->
+                awaitCredentialRevoked(issuerDbOps, expectedHolderDid(env, MEMBER_CLASS, MEMBER_CODE)));
+
+        and("ss0's owner member keeps its own credential issued, unaffected by the removal", () ->
+                assertCredentialRemainsIssued(issuerDbOps, expectedHolderDid(env, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE)));
     }
 
     private String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -578,5 +616,58 @@ class SsMemberDeprovisioningTest extends E2eTest {
             throw new ConditionTimeoutException(
                     "Timed out waiting for the control-plane participant context %s to be deleted".formatted(MEMBER_CTX_ID), e);
         }
+    }
+
+    /**
+     * The holder DID the issuer records for a member's credential on ss0, derived the same way
+     * {@code MemberCredentialRevocationService} derives it: the member identifier plus ss0's registered
+     * address extended with the identity hub's DID-serving port — the interim stopgap the Central Server
+     * applies until DID documents are served from the registered server address directly.
+     */
+    private String expectedHolderDid(E2eEnvironment env, String memberClass, String memberCode) {
+        var member = ClientId.Conf.create(X_ROAD_INSTANCE, memberClass, memberCode);
+        var ssHost = env.securityServerAddress(SS0_ENV) + ":" + IDENTITY_HUB_DID_PORT;
+        return ParticipantIdentifierScheme.memberDid(member, ssHost);
+    }
+
+    /**
+     * Polls the issuer's own {@code credential_resource} table directly for the holder's credential(s)
+     * reaching {@code VcStatus.REVOKED}, the same way a counter-party checking the issuer's revocation
+     * status would. Waits for at least one row so a holder the issuer never provisioned in the first
+     * place — which would vacuously show zero non-revoked rows — cannot be mistaken for a revoked one.
+     */
+    private void awaitCredentialRevoked(CsIssuerDbOps dbOps, String holderDid) {
+        var sql = ("SELECT COUNT(*), COUNT(*) FILTER (WHERE vc_state <> %d) "
+                + "FROM credential_resource WHERE holder_id = '%s'")
+                .formatted(VC_STATE_REVOKED, holderDid);
+
+        try {
+            Awaitility.await()
+                    .pollInterval(TEARDOWN_POLL_INTERVAL)
+                    .timeout(TEARDOWN_POLL_TIMEOUT)
+                    .ignoreExceptions()
+                    .until(() -> {
+                        var counts = dbOps.execCsIssuerSql(CS_ENV, sql).split("\\|", -1);
+                        return Integer.parseInt(counts[0].trim()) > 0 && Integer.parseInt(counts[1].trim()) == 0;
+                    });
+        } catch (ConditionTimeoutException e) {
+            throw new ConditionTimeoutException(
+                    "Timed out waiting for the issuer to revoke every credential for holder '%s'".formatted(holderDid), e);
+        }
+    }
+
+    /**
+     * Confirms an unrelated holder's credential is still {@code VcStatus.ISSUED}, proving the revocation
+     * this scenario triggered stayed scoped to {@link #MEMBER_CTX_ID} rather than sweeping up every
+     * credential the issuer holds. A one-shot check, not a poll: nothing in this scenario's flow ever
+     * touches this holder, so there is no expected transition to wait out.
+     */
+    private void assertCredentialRemainsIssued(CsIssuerDbOps dbOps, String holderDid) {
+        var sql = ("SELECT COUNT(*) FROM credential_resource WHERE holder_id = '%s' AND vc_state = %d")
+                .formatted(holderDid, VC_STATE_ISSUED);
+        var issuedCount = Integer.parseInt(dbOps.execCsIssuerSql(CS_ENV, sql).trim());
+        assertThat(issuedCount)
+                .as("holder '%s' keeps at least one ISSUED credential, unaffected by the other member's removal", holderDid)
+                .isPositive();
     }
 }
