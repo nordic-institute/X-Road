@@ -26,7 +26,7 @@
  -->
 <template>
   <XrdSimpleDialog
-    title="tlsCertificates.generateCsr.title"
+    :title="`${translationsPrefix}.generateCsr.title`"
     save-button-text="action.generateCsr"
     cancel-button-text="action.cancel"
     submittable
@@ -36,7 +36,7 @@
     @save="submit"
   >
     <template #text>
-      {{ $t('tlsCertificates.generateCsr.content') }}
+      {{ $t(`${translationsPrefix}.generateCsr.content`) }}
     </template>
     <template #content>
       <XrdFormBlock>
@@ -47,9 +47,9 @@
             class="xrd"
             autofocus
             data-test="enter-distinguished-name"
-            :placeholder="$t('tlsCertificates.generateCsr.example')"
-            :label="$t('tlsCertificates.generateCsr.distinguishedName')"
-            :hint="$t('tlsCertificates.generateCsr.tooltip')"
+            :placeholder="$t(`${translationsPrefix}.generateCsr.example`)"
+            :label="$t(`${translationsPrefix}.generateCsr.distinguishedName`)"
+            :hint="$t(`${translationsPrefix}.generateCsr.tooltip`)"
             persistent-hint
           >
           </v-text-field>
@@ -73,6 +73,10 @@ const props = defineProps({
   handler: {
     type: Object as PropType<TlsCertificatesHandler>,
     required: true,
+  },
+  translationsPrefix: {
+    type: String,
+    default: 'tlsCertificates',
   },
 });
 

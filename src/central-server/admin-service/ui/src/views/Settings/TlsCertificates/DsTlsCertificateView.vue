@@ -27,6 +27,7 @@
 <template>
   <XrdTlsCertificateView
     title="tab.settings.dsTlsCertificate"
+    translations-prefix="dsTlsCertificates"
     :cert-details-view-name="detailsViewName"
     :can-download="hasPermissionToDownloadCertificate"
     :can-generate-csr="hasPermissionToGenerateCsr"

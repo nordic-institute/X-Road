@@ -269,6 +269,25 @@
       "rowsPerPage": "Rows per page:"
     }
   },
+  "dsTlsCertificates": {
+    "downloadCertificate": "Download certificate",
+    "downloadSuccess": "Dataspace TLS certificate successfully downloaded",
+    "generateCsr": {
+      "button": "Generate CSR",
+      "content": "First, provide a distinguished name. Then, generate a new CSR and save it into a safe place",
+      "distinguishedName": "Enter Distinguished name",
+      "title": "Generate Dataspace TLS Certificate Signing Request",
+      "tooltip": "The Distinguished Name (DN) uniquely identifies an entity in an X.509 certificate. The following attribute types are commonly found in the DN: CN = Common name, O = Organization name, C = Country code."
+    },
+    "generateKey": {
+      "button": "Re-create key"
+    },
+    "keyText": "Dataspace TLS Key",
+    "uploadCertificate": {
+      "button": "Upload certificate",
+      "label": "Upload the certificate file from your computer"
+    }
+  },
   "error_code": {
     "api_key_not_found": "API key not found",
     "backup_file_not_found": "Backup was not found",

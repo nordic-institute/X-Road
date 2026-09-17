@@ -98,7 +98,7 @@ describe('SS DS TLS Certificate — key generated, certificate pending (Browser 
       ],
     });
 
-    await expect.element(page.getByText('DataSpace TLS key generated')).toBeVisible();
+    await expect.element(page.getByText('Dataspace TLS key generated')).toBeVisible();
     await expect.element(page.getByTestId('management-service-certificate-generateCsr')).toBeVisible();
 
     await page.getByTestId('management-service-certificate-generateCsr').click();
@@ -191,7 +191,7 @@ describe('SS DS TLS Certificate — uploading mismatched cert shows error (Brows
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     await page.getByTestId('dialog-save-button').click();
 
-    await expect.element(page.getByText('The uploaded certificate does not match the DataSpace TLS key')).toBeVisible();
+    await expect.element(page.getByText('The uploaded certificate does not match the Dataspace TLS key')).toBeVisible();
   });
 });
 

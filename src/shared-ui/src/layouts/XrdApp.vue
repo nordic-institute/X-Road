@@ -28,9 +28,14 @@
 <template>
   <v-app>
     <slot />
-    <XrdConfirmDialog v-if="appStateStore.isRestarting()" data-test="restarting-app-dialog" title="common.restartingService" persistent
-                      hide-cancel-button
-                      hide-accept-button>
+    <XrdConfirmDialog
+      v-if="appStateStore.isRestarting()"
+      data-test="restarting-app-dialog"
+      title="common.restartingService"
+      persistent
+      hide-cancel-button
+      hide-accept-button
+    >
       <template #text>
         <div v-if="restartingMessage" class="font-weight-regular body-regular mb-4">{{ $t(restartingMessage) }}</div>
         <v-progress-linear indeterminate class="xrd" />
@@ -45,9 +50,9 @@
 <script lang="ts" setup>
 import XrdLogoutDialog from '../components/XrdLogoutDialog.vue';
 import XrdSnackBar from '../components/XrdSnackBar.vue';
-import { XrdConfirmDialog } from "../components";
-import { computed, watch } from "vue";
-import { useAppState } from "../stores";
+import { XrdConfirmDialog } from '../components';
+import { computed, watch } from 'vue';
+import { useAppState } from '../stores';
 
 defineProps({
   loginView: {

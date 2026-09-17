@@ -27,7 +27,7 @@
 <template>
   <XrdSimpleDialog
     ref="dialog"
-    title="tlsCertificates.uploadCertificate.title"
+    :title="`${translationsPrefix}.uploadCertificate.title`"
     save-button-text="action.upload"
     cancel-button-text="action.cancel"
     submittable
@@ -39,7 +39,7 @@
     <template #content>
       <XrdFormBlock>
         <XrdFormBlockRow full-length>
-          <XrdCertificateFileUpload v-model:file="certFile" autofocus label="tlsCertificates.uploadCertificate.label" />
+          <XrdCertificateFileUpload v-model:file="certFile" autofocus :label="`${translationsPrefix}.uploadCertificate.label`" />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
@@ -58,6 +58,10 @@ const props = defineProps({
     type: Object as PropType<TlsCertificatesHandler>,
     required: true,
   },
+  translationsPrefix: {
+    type: String,
+    default: 'tlsCertificates',
+  },
 });
 
 const emit = defineEmits(['cancel', 'upload']);
@@ -73,7 +77,7 @@ function upload(evt: Event, handler: DialogSaveHandler): void {
   props.handler
     .uploadCertificate(certFile.value)
     .then(() => {
-      addSuccessMessage('tlsCertificates.uploadCertificate.success');
+      addSuccessMessage(`${props.translationsPrefix}.uploadCertificate.success`);
       emit('upload');
     })
     .catch((error) => {

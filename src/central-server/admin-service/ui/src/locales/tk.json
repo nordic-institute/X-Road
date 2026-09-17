@@ -123,7 +123,7 @@
     "authenticationCertificateProfileId": "Hakykylyk şahadatnamasynyň profil id-si",
     "certFile": "Şahadatnamanyň faýly",
     "certProfile": "Şahadatnamanyň profiliniň maglumaty",
-    "dsTlsCertificateProfileId": "DS TLS şahadatnama profil ID",
+    "dsTlsCertificateProfileId": "Dataspace TLS şahadatnama profil ID",
     "distinguishedName": "Tapawutly at",
     "init": {
       "address": "Merkezi serweriň salgysy",
@@ -484,9 +484,9 @@
   },
   "status": {
     "dataspace_tls_acme": {
-      "enrollment_failing": "DS TLS şahadatnamasynyň ACME arkaly hasaba alynmagy amala aşmady, sebäbi {0}",
-      "renewal_failing": "DS TLS şahadatnamasynyň ACME arkaly täzelenmegi amala aşmady, sebäbi {0}",
-      "status_check_failed": "DS TLS şahadatnamasynyň ACME ýagdaýyny barlap bolmady"
+      "enrollment_failing": "Dataspace TLS şahadatnamasynyň ACME arkaly hasaba alynmagy amala aşmady, sebäbi {0}",
+      "renewal_failing": "Dataspace TLS şahadatnamasynyň ACME arkaly täzelenmegi amala aşmady, sebäbi {0}",
+      "status_check_failed": "Dataspace TLS şahadatnamasynyň ACME ýagdaýyny barlap bolmady"
     },
     "global_conf_generation": {
       "failing": "Global konfigurasiýanyň emele gelmegi amala aşmady, sebäbi {0}",
@@ -779,20 +779,20 @@
     "certificationServices": "Şahadatnama boýunça hyzmatlary",
     "defaultCsrFormat": "Deslapky CSR formaty",
     "dsTls": {
-      "addDsTlsCertificationAuthority": "DS TLS CA goş",
+      "addDsTlsCertificationAuthority": "Dataspace TLS CA goş",
       "delete": {
         "confirmationDialog": {
-          "message": "Siz dogurdanam \"{name}\" DS TLS CA-ny pozmak isleýärsiňizmi?",
+          "message": "Siz dogurdanam \"{name}\" Dataspace TLS CA-ny pozmak isleýärsiňizmi?",
           "title": "Tassyklaýarsyňyzmy?"
         },
-        "success": "DS TLS CA üstünlikli pozuldy"
+        "success": "Dataspace TLS CA üstünlikli pozuldy"
       },
-      "dsTlsCertificateProfileIdExplanation": "DS TLS şahadatnamasyny sargyt edilende, käbir ACME serwerleriniň şahadatnamanyň ulanyş görnüşini bilmegi üçin ulanylýan profil ID.",
-      "dsTlsCertificationAuthorities": "DS TLS CA-lar",
-      "dsTlsCertificationAuthority": "DS TLS CA",
+      "dsTlsCertificateProfileIdExplanation": "Dataspace TLS şahadatnamasyny sargyt edilende, käbir ACME serwerleriniň şahadatnamanyň ulanyş görnüşini bilmegi üçin ulanylýan profil ID.",
+      "dsTlsCertificationAuthorities": "Dataspace TLS CA-lar",
+      "dsTlsCertificationAuthority": "Dataspace TLS CA",
       "nameExplanation": "Bu şahadatnama edarasyny kesgitleýän erkin ady, mysal üçin \"Let's Encrypt\".",
       "settings": {
-        "title": "DS TLS CA sazlamalary"
+        "title": "Dataspace TLS CA sazlamalary"
       }
     },
     "timestampingService": {

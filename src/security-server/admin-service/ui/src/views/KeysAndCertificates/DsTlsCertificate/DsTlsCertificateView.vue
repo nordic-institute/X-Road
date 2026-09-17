@@ -27,6 +27,7 @@
 <template>
   <XrdTlsCertificateView
     title="tab.keys.dsTlsCertificate"
+    translations-prefix="dsTlsCertificates"
     :can-view-certificate="true"
     :can-upload="uploadCertificateVisible"
     :can-generate-csr="generateCsrVisible"
