@@ -11,6 +11,7 @@ dependencies {
   implementation(libs.edc.spi.dsp.v2025)
   implementation(libs.edc.spi.jsonld)
   implementation(libs.edc.spi.transfer)
+  implementation(libs.edc.spi.transaction)
   implementation(libs.edc.spi.web)
   implementation(libs.jakarta.annotationApi)
 
