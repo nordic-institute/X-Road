@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,7 @@ import java.util.Optional;
 import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 
 /**
- * This Security Server as GlobalConf knows it: owner member, server id and registered address.
+ * This Security Server as GlobalConf knows it: owner member and registered address.
  *
  * <p>Reads serverconf through the repository, not {@link ServerConfService}, because callers include
  * the unauthenticated scheduled provisioning worker, which the service's authentication guard would
@@ -60,31 +61,19 @@ public class OwnSecurityServerResolver {
 
     @Transactional(readOnly = true)
     public Optional<ClientId> owner() {
-        return readOwner();
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<SecurityServerId.Conf> serverId() {
-        return readServerId();
+        return serverConf().flatMap(OwnSecurityServerResolver::ownerOf);
     }
 
     @Transactional(readOnly = true)
     public Optional<String> registeredAddress() {
-        return readServerId().flatMap(serverId -> {
-            try {
-                return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
-                        .filter(address -> !address.isBlank());
-            } catch (XrdRuntimeException e) {
-                log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
-                return Optional.empty();
-            }
-        });
+        return serverConf()
+                .flatMap(conf -> ownerOf(conf).map(owner -> SecurityServerId.Conf.create(owner, conf.getServerCode())))
+                .flatMap(this::registeredAddressOf);
     }
 
-    private Optional<ClientId> readOwner() {
+    private Optional<ServerConfEntity> serverConf() {
         try {
-            return Optional.ofNullable(serverConfRepository.getServerConf().getOwner())
-                    .map(owner -> (ClientId) owner.getIdentifier());
+            return Optional.of(serverConfRepository.getServerConf());
         } catch (XrdRuntimeException e) {
             if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
                 return Optional.empty();
@@ -93,7 +82,17 @@ public class OwnSecurityServerResolver {
         }
     }
 
-    private Optional<SecurityServerId.Conf> readServerId() {
-        return readOwner().map(owner -> SecurityServerId.Conf.create(owner, serverConfRepository.getServerConf().getServerCode()));
+    private static Optional<ClientId> ownerOf(ServerConfEntity conf) {
+        return Optional.ofNullable(conf.getOwner()).map(owner -> (ClientId) owner.getIdentifier());
+    }
+
+    private Optional<String> registeredAddressOf(SecurityServerId serverId) {
+        try {
+            return Optional.ofNullable(globalConfProvider.getSecurityServerAddress(serverId))
+                    .filter(address -> !address.isBlank());
+        } catch (XrdRuntimeException e) {
+            log.debug("GlobalConf not readable yet, registered address of {} unknown", serverId, e);
+            return Optional.empty();
+        }
     }
 }

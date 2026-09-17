@@ -115,6 +115,7 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
+        lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
         lenient().when(dataspace.getIdentityHubStsPort()).thenReturn(7184);
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
@@ -482,6 +483,18 @@ class DataspaceProvisioningServiceTest {
                 argThat(url -> url.startsWith("https://ih.example.test:8185/api/credentials/")), any(), any());
         verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
                 eq("https://ih.example.test:8184/api/sts/token"));
+    }
+
+    @Test
+    void ensureParticipantContextMintsDidUnderConfiguredDidPort() {
+        when(dataspace.getIdentityHubDidPort()).thenReturn(8183);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_ADDRESS + ":8183");
+
+        service.ensureParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER);
+
+        verify(identityHubClient).createParticipantContext(eq(ctxId), eq(expectedDid), any(), any(), any(), any());
     }
 
     @Test

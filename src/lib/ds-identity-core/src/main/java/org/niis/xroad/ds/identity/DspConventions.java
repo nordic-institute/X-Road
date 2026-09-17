@@ -74,35 +74,50 @@ public class DspConventions {
 
     /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
-     * and their DID documents served.
+     * and their DID documents served, at the ecosystem-wide {@link #DID_PORT}. This is the form
+     * every counter-party derives from GlobalConf alone.
      *
      * @param ssAddress the Security Server's GlobalConf-registered address, without a port
      * @return the DID authority, {@code {ssAddress}:7183}; an IPv6 literal address is bracketed
      */
     public static String didAuthority(String ssAddress) {
-        return uriHost(ssAddress) + ":" + DID_PORT;
+        return didAuthority(ssAddress, DID_PORT);
+    }
+
+    /**
+     * {@link #didAuthority(String)} at the given DID port. A provider minting its own DIDs uses its
+     * configured identity hub DID port here; counter-parties can only derive
+     * {@link #didAuthority(String)}, so the two agree only while the configured port is
+     * {@link #DID_PORT}.
+     *
+     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
+     * @param didPort   the identity hub's DID resolution port
+     * @return the DID authority, {@code {ssAddress}:{didPort}}; an IPv6 literal address is bracketed
+     */
+    public static String didAuthority(String ssAddress, int didPort) {
+        return uriHost(ssAddress) + ":" + didPort;
     }
 
     /**
      * The interim MVP DID of a Security Server's HOST participant context: the bare authority as a
      * {@code did:web}, no scheme version. Interim: dies with the SYSTEM-context migration.
      *
-     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
+     * @param didAuthority the server's DID authority, see {@link #didAuthority(String)}
      * @return the host context DID, e.g. {@code did:web:ss0.example.org%3A7183}
      */
-    public static String hostDid(String ssAddress) {
-        return "did:web:" + ParticipantIdentifierScheme.didWebHost(didAuthority(ssAddress));
+    public static String hostDid(String didAuthority) {
+        return "did:web:" + ParticipantIdentifierScheme.didWebHost(didAuthority);
     }
 
     /**
      * The interim MVP DID of a Security Server's management companion context: the host DID plus the
      * {@code :mgmt} path segment. Interim: dies with the SYSTEM-context migration.
      *
-     * @param ssAddress the Security Server's GlobalConf-registered address, without a port
+     * @param didAuthority the server's DID authority, see {@link #didAuthority(String)}
      * @return the management context DID, e.g. {@code did:web:ss0.example.org%3A7183:mgmt}
      */
-    public static String managementDid(String ssAddress) {
-        return hostDid(ssAddress) + MANAGEMENT_DID_SUFFIX;
+    public static String managementDid(String didAuthority) {
+        return hostDid(didAuthority) + MANAGEMENT_DID_SUFFIX;
     }
 
     /**

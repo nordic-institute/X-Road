@@ -376,30 +376,33 @@ public class DataspaceProvisioningService {
      * has been bound makes that row fail verification.
      */
     private String didFor(ParticipantKind kind, ClientId memberId) {
-        var address = registeredAddress();
-        if (kind == ParticipantKind.MEMBER) {
-            return memberDid(memberId, DspConventions.didAuthority(address));
-        }
-        return kind == ParticipantKind.MANAGEMENT
-                ? DspConventions.managementDid(address)
-                : DspConventions.hostDid(address);
+        var didAuthority = ownDidAuthority()
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
+                        "this security server's owner or GlobalConf-registered address is not available yet; "
+                                + "cannot derive participant DIDs"));
+        return switch (kind) {
+            case MEMBER -> memberDid(memberId, didAuthority);
+            case MANAGEMENT -> DspConventions.managementDid(didAuthority);
+            case HOST -> DspConventions.hostDid(didAuthority);
+        };
+    }
+
+    /**
+     * The authority this server mints its DIDs under: the GlobalConf-registered address at the
+     * configured identity hub DID port. Empty until the server's owner is initialized, GlobalConf
+     * has been downloaded, and the server's registration has landed in it — all normal states
+     * before and during registration, not errors.
+     */
+    private Optional<String> ownDidAuthority() {
+        var didPort = adminServiceProperties.getDataspace().getIdentityHubDidPort();
+        return ownSecurityServerResolver.registeredAddress().map(address -> DspConventions.didAuthority(address, didPort));
     }
 
     /**
      * Whether the GlobalConf-registered address the participant DIDs derive from is resolvable yet.
-     * {@code false} until the server's owner is initialized, GlobalConf has been downloaded, and
-     * the server's registration has landed in it — all normal states before and during
-     * registration, not errors.
      */
     public boolean registeredAddressKnown() {
         return ownSecurityServerResolver.registeredAddress().isPresent();
-    }
-
-    private String registeredAddress() {
-        return ownSecurityServerResolver.registeredAddress()
-                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
-                        "this security server's owner or GlobalConf-registered address is not available yet; "
-                                + "cannot derive participant DIDs"));
     }
 
     private String memberDid(ClientId member, String ssHost) {
@@ -433,16 +436,16 @@ public class DataspaceProvisioningService {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
-        var address = ownSecurityServerResolver.registeredAddress();
+        var didAuthority = ownDidAuthority();
         var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
-        if (address.isEmpty()) {
+        if (didAuthority.isEmpty()) {
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, null);
             }
             log.debug("Data space: registered address not in GlobalConf yet, cannot verify bound identity of {}", memberId);
             return new MemberIdentity(IdentityStatus.UNKNOWN, null);
         }
-        var ssHost = DspConventions.didAuthority(address.get());
+        var ssHost = didAuthority.get();
         if (bound.isEmpty()) {
             return new MemberIdentity(IdentityStatus.UNBOUND, ParticipantIdentifierScheme.memberDid(memberId, ssHost));
         }

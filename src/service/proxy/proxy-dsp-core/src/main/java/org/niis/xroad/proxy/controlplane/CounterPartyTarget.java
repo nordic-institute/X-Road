@@ -91,6 +91,6 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
     private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress, String hostParticipantId) {
         var url = "https://%s:%d/api/dsp/%s%s/%s".formatted(hostAddress, DspConventions.DSP_PORT,
                 hostParticipantId, DspConventions.MANAGEMENT_CONTEXT_SUFFIX, DspConventions.DSP_PROFILE_ID);
-        return Map.entry(hostAddress, new CounterPartyTarget(DspConventions.managementDid(hostAddress), url));
+        return Map.entry(hostAddress, new CounterPartyTarget(DspConventions.managementDid(DspConventions.didAuthority(hostAddress)), url));
     }
 }
