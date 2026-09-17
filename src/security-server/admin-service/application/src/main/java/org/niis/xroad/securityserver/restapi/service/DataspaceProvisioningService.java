@@ -39,9 +39,7 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
-import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
@@ -183,27 +181,26 @@ public class DataspaceProvisioningService {
      *
      * @param context the participant context to create
      * @return whether it is safe to issue a membership credential for this context in the same tick.
-     *         Trivially {@code CONFIRMED} for HOST, MANAGEMENT and MEMBER. For SYSTEM,
-     *         {@code UNCONFIRMED} means an owner change is in progress and the hub has not yet
-     *         confirmed the stored member id was re-anchored to the new owner — issuing now would
-     *         submit a credential into the new owner's holder-pid slot while the hub still builds the
-     *         membership claim from the old member id, a mismatch that a later tick's slot scan can no
-     *         longer detect or correct. The caller must skip the credential pass for this context and
-     *         retry on the next tick; an older hub that never sets the re-anchor ack always reports
-     *         {@code UNCONFIRMED} here, so SYSTEM credential issuance stays deferred until the hub is
-     *         upgraded.
+     *         Trivially {@code true} for HOST, MANAGEMENT and MEMBER. For SYSTEM, {@code false} means
+     *         an owner change is in progress and the hub has not yet confirmed the stored member id
+     *         was re-anchored to the new owner — issuing now would submit a credential into the new
+     *         owner's holder-pid slot while the hub still builds the membership claim from the old
+     *         member id, a mismatch that a later tick's slot scan can no longer detect or correct.
+     *         The caller must skip the credential pass for this context and retry on the next tick;
+     *         an older hub that never sets the re-anchor ack always reports {@code false} here, so
+     *         SYSTEM credential issuance stays deferred until the hub is upgraded.
      */
-    public MemberIdAnchor ensureParticipantContext(ParticipantContext context) {
+    public boolean ensureParticipantContext(ParticipantContext context) {
         var ds = adminServiceProperties.getDataspace();
         var identityHubHost = hostOf(ds.getIdentityHubUrl());
 
         var did = didFor(identityHubHost, context.kind(), context.memberId());
         requireNoHubDidDrift(context.participantId(), did);
 
-        var anchor = createIdentityHubContext(context, did, identityHubHost);
+        var anchorConfirmed = createIdentityHubContext(context, did, identityHubHost);
         controlPlaneClient.createParticipantContext(context.participantId(), did);
         controlPlaneClient.putParticipantContextConfig(context.participantId(), did, stsTokenUrl(identityHubHost));
-        return anchor;
+        return anchorConfirmed;
     }
 
     private void requireNoHubDidDrift(String participantId, String intendedDid) {
@@ -549,29 +546,29 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private MemberIdAnchor createIdentityHubContext(ParticipantContext context, String did, String identityHubHost) {
+    private boolean createIdentityHubContext(ParticipantContext context, String did, String identityHubHost) {
         var participantId = context.participantId();
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
                 UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
-        var conflictPolicy = context.kind() == ParticipantKind.SYSTEM ? ConflictPolicy.REANCHOR : ConflictPolicy.KEEP;
-        var anchor = identityHubClient.createParticipantContext(CreateParticipantContextRequest.builder()
+        var reanchor = context.kind() == ParticipantKind.SYSTEM;
+        var anchorConfirmed = identityHubClient.createParticipantContext(CreateParticipantContextRequest.builder()
                 .participantContextId(participantId)
                 .did(did)
                 .memberId(context.memberId() == null ? null : slashForm(context.memberId()))
                 .credentialServiceUrl(credentialServiceUrl)
                 .keyId(keyId)
                 .privateKeyAlias(privateKeyAlias)
-                .conflictPolicy(conflictPolicy)
+                .reanchorMemberIdOnConflict(reanchor)
                 .build());
-        if (conflictPolicy == ConflictPolicy.REANCHOR && anchor == MemberIdAnchor.UNCONFIRMED) {
+        if (reanchor && !anchorConfirmed) {
             log.warn("Data space: identity hub could not confirm the SYSTEM credential re-anchor for participant '{}' "
                     + "— older hub, or the re-anchor read/update failed; deferring SYSTEM credential issuance to next tick",
                     participantId);
         }
-        return anchor;
+        return anchorConfirmed;
     }
 
     private String stsTokenUrl(String identityHubHost) {

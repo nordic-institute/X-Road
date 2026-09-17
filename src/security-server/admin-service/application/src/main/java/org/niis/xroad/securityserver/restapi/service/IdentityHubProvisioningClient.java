@@ -37,37 +37,28 @@ import java.util.Optional;
  */
 public interface IdentityHubProvisioningClient {
 
-    /** What to do with an already-existing context's stored member id. */
-    enum ConflictPolicy {
-        /** Leave the stored member id untouched. */
-        KEEP,
-        /** Re-point the stored member id at this call's {@code memberId}. */
-        REANCHOR
-    }
-    /** Whether the context's stored member id is known to match the member id just requested for it. */
-    enum MemberIdAnchor { CONFIRMED, UNCONFIRMED }
-
     /**
-     * Everything the hub needs to create a participant context, plus the {@link ConflictPolicy} to
-     * apply when the context already exists.
+     * Everything the hub needs to create a participant context. {@code reanchorMemberIdOnConflict}
+     * says what to do when the context already exists: re-point its stored member id at this call's
+     * {@code memberId}, or ({@code false}) leave it untouched.
      */
     @Builder
     record CreateParticipantContextRequest(String participantContextId, String did, @Nullable String memberId,
                                            String credentialServiceUrl, String keyId, String privateKeyAlias,
-                                           ConflictPolicy conflictPolicy) {
+                                           boolean reanchorMemberIdOnConflict) {
     }
 
     /**
      * Creates (idempotently) the IdentityHub participant context for the given participant.
      *
-     * @return {@code CONFIRMED} when the stored member id is known to match the requested member id.
-     *         Under {@code KEEP} that is always — nothing was asked of the hub, so nothing can be left
-     *         unconfirmed, and the caller must not defer on this result. Under {@code REANCHOR},
-     *         once the re-anchor is applied or the stored value is found already matching;
-     *         {@code UNCONFIRMED} there when it could not be confirmed (older hub, or the re-anchor
+     * @return whether the stored member id is known to match the requested member id. Without
+     *         {@code reanchorMemberIdOnConflict} that is always the case — nothing was asked of the
+     *         hub, so nothing can be left unconfirmed, and the caller must not defer on this result.
+     *         With it, {@code true} once the re-anchor is applied or the stored value is found already
+     *         matching; {@code false} when it could not be confirmed (older hub, or the re-anchor
      *         read/update failed).
      */
-    MemberIdAnchor createParticipantContext(CreateParticipantContextRequest request);
+    boolean createParticipantContext(CreateParticipantContextRequest request);
 
     /**
      * Submits a membership credential request for the given participant and holder request id, targeting

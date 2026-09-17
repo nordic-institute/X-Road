@@ -44,7 +44,7 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     private final IdentityHubProvisioningRpcClient rpcClient;
 
     @Override
-    public MemberIdAnchor createParticipantContext(CreateParticipantContextRequest request) {
+    public boolean createParticipantContext(CreateParticipantContextRequest request) {
         return rpcClient.createIdentityHubParticipantContext(request);
     }
 

@@ -50,9 +50,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
-import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.ConflictPolicy;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
-import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
@@ -468,7 +466,7 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.participantContextId()).isEqualTo(PARTICIPANT_ID);
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
         verify(controlPlaneClient).createParticipantContext(eq(PARTICIPANT_ID), any());
         verify(controlPlaneClient).putParticipantContextConfig(eq(PARTICIPANT_ID), any(), any());
         verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
@@ -484,7 +482,7 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.participantContextId()).isEqualTo(mgmtId);
         assertThat(request.did()).endsWith(":mgmt");
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
 
     // --- ensureParticipantContext (MEMBER) ---
@@ -499,7 +497,7 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
 
     @Test
@@ -517,7 +515,7 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.participantContextId()).isEqualTo(ctxId);
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.credentialServiceUrl()).startsWith("https://ih.example.test:8185/api/credentials/");
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
         verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
                 eq("https://ih.example.test:8184/api/sts/token"));
     }
@@ -546,7 +544,7 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.participantContextId()).isEqualTo(ctxId);
         assertThat(request.credentialServiceUrl()).endsWith("/api/credentials/v1/participants/TEST:ORG:222%252BA");
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
 
     @Test
@@ -559,7 +557,7 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.did()).isEqualTo(bound.getDid());
         assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
 
     @Test
@@ -603,7 +601,7 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.KEEP);
+        assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
 
     // --- ensureParticipantContext (SYSTEM) ---
@@ -619,7 +617,7 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.participantContextId()).isEqualTo(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.REANCHOR);
+        assertThat(request.reanchorMemberIdOnConflict()).isTrue();
     }
 
     @Test
@@ -632,7 +630,7 @@ class DataspaceProvisioningServiceTest {
         var request = capturedIhCreateRequest();
         assertThat(request.did()).isEqualTo(bound.getDid());
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
-        assertThat(request.conflictPolicy()).isEqualTo(ConflictPolicy.REANCHOR);
+        assertThat(request.reanchorMemberIdOnConflict()).isTrue();
     }
 
     @Test
@@ -663,12 +661,12 @@ class DataspaceProvisioningServiceTest {
     @Test
     void ensureParticipantContextReportsConfirmedForHostWhenNoReanchorRequested() {
         when(identityHubClient.createParticipantContext(argThat(request ->
-                PARTICIPANT_ID.equals(request.participantContextId()) && request.conflictPolicy() == ConflictPolicy.KEEP)))
-                .thenReturn(MemberIdAnchor.CONFIRMED);
+                PARTICIPANT_ID.equals(request.participantContextId()) && !request.reanchorMemberIdOnConflict())))
+                .thenReturn(true);
 
         var anchor = service.ensureParticipantContext(HOST_CONTEXT);
 
-        assertThat(anchor).isEqualTo(MemberIdAnchor.CONFIRMED);
+        assertThat(anchor).isTrue();
     }
 
     @Test
@@ -676,12 +674,12 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
         when(identityHubClient.createParticipantContext(argThat(request ->
                 ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(request.participantContextId())
-                        && request.conflictPolicy() == ConflictPolicy.REANCHOR)))
-                .thenReturn(MemberIdAnchor.UNCONFIRMED);
+                        && request.reanchorMemberIdOnConflict())))
+                .thenReturn(false);
 
         var anchor = service.ensureParticipantContext(SYSTEM_CONTEXT);
 
-        assertThat(anchor).isEqualTo(MemberIdAnchor.UNCONFIRMED);
+        assertThat(anchor).isFalse();
     }
 
     @Test
@@ -689,12 +687,12 @@ class DataspaceProvisioningServiceTest {
         when(dsParticipantRepository.findSystemParticipant()).thenReturn(Optional.empty());
         when(identityHubClient.createParticipantContext(argThat(request ->
                 ParticipantIdentifierScheme.SYSTEM_SEGMENT.equals(request.participantContextId())
-                        && request.conflictPolicy() == ConflictPolicy.REANCHOR)))
-                .thenReturn(MemberIdAnchor.CONFIRMED);
+                        && request.reanchorMemberIdOnConflict())))
+                .thenReturn(true);
 
         var anchor = service.ensureParticipantContext(SYSTEM_CONTEXT);
 
-        assertThat(anchor).isEqualTo(MemberIdAnchor.CONFIRMED);
+        assertThat(anchor).isTrue();
     }
 
     // --- ensureMembershipCredential / readCredentialStatus (SYSTEM re-anchor) ---

@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
-import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -127,7 +126,7 @@ public class DataspaceParticipantProvisioningWorker {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
-                if (dataspaceProvisioningService.ensureParticipantContext(context) == MemberIdAnchor.CONFIRMED) {
+                if (dataspaceProvisioningService.ensureParticipantContext(context)) {
                     ensured.add(context);
                 } else {
                     log.debug("Data space provisioning: deferring credential issuance for participant {} until the "

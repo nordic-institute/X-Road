@@ -40,7 +40,6 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
-import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.MemberIdAnchor;
 
 import java.util.List;
 
@@ -79,7 +78,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @BeforeEach
     void setUp() {
-        when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(MemberIdAnchor.CONFIRMED);
+        when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
     }
 
     @Test
@@ -179,7 +178,7 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true))
                 .thenReturn(List.of(HOST_CONTEXT, SYSTEM_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
-        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(MemberIdAnchor.UNCONFIRMED);
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(false);
 
         worker.provisionParticipant();
 
@@ -193,7 +192,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     void provisionParticipantIssuesCredentialForSystemContextOnceReanchorConfirmed() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(SYSTEM_CONTEXT));
-        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(MemberIdAnchor.CONFIRMED);
+        when(dataspaceProvisioningService.ensureParticipantContext(SYSTEM_CONTEXT)).thenReturn(true);
 
         worker.provisionParticipant();
 
