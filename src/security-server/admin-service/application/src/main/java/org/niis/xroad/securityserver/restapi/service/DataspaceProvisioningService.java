@@ -28,17 +28,18 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
@@ -56,7 +57,6 @@ import java.util.Set;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_SCHEME_VERSION_UNSUPPORTED;
-import static org.niis.xroad.common.core.exception.ErrorCode.MALFORMED_SERVERCONF;
 import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
@@ -155,7 +155,6 @@ public class DataspaceProvisioningService {
     }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
-    private static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
@@ -164,7 +163,7 @@ public class DataspaceProvisioningService {
     private final IdentityHubProvisioningClient identityHubClient;
     private final ControlPlaneProvisioningClient controlPlaneClient;
     private final ClientRepository clientRepository;
-    private final ServerConfRepository serverConfRepository;
+    private final OwnSecurityServerResolver ownSecurityServerResolver;
     private final DsParticipantRepository dsParticipantRepository;
     private final GlobalConfProvider globalConfProvider;
     private final DataspaceDidAuthority didAuthority;
@@ -200,7 +199,7 @@ public class DataspaceProvisioningService {
         return anchorConfirmed;
     }
 
-    private void requireNoHubDidDrift(String participantId, String intendedDid) {
+    private void requireNoHubDidDrift(String participantId, Did intendedDid) {
         identityHubClient.contextDid(participantId)
                 .filter(hubDid -> !hubDid.equals(intendedDid))
                 .ifPresent(hubDid -> {
@@ -370,14 +369,15 @@ public class DataspaceProvisioningService {
         var ds = adminServiceProperties.getDataspace();
         var hostParticipantId = ds.getParticipantId();
 
-        var ownerId = ownerId();
+        var ownerId = ownSecurityServerResolver.owner();
         var owner = ownerId.orElse(null);
 
         List<ParticipantContext> contexts = new ArrayList<>();
         contexts.add(new ParticipantContext(hostParticipantId, ParticipantKind.HOST, owner));
         contexts.add(new ParticipantContext(ParticipantIdentifierScheme.SYSTEM_SEGMENT, ParticipantKind.SYSTEM, owner));
         if (managementRegistered) {
-            contexts.add(new ParticipantContext(hostParticipantId + MANAGEMENT_CONTEXT_SUFFIX, ParticipantKind.MANAGEMENT, owner));
+            contexts.add(new ParticipantContext(hostParticipantId + DspConventions.MANAGEMENT_CONTEXT_SUFFIX,
+                    ParticipantKind.MANAGEMENT, owner));
         }
 
         if (ownerId.isEmpty()) {
@@ -391,18 +391,6 @@ public class DataspaceProvisioningService {
         return contexts;
     }
 
-    private Optional<ClientId> ownerId() {
-        try {
-            return Optional.ofNullable(serverConfRepository.getServerConf().getOwner())
-                    .map(owner -> (ClientId) owner.getIdentifier());
-        } catch (XrdRuntimeException e) {
-            if (MALFORMED_SERVERCONF.code().equals(e.getErrorCode())) {
-                return Optional.empty();
-            }
-            throw e;
-        }
-    }
-
     private Set<ClientId> hostedMembers() {
         Set<ClientId> members = new LinkedHashSet<>();
         for (var client : clientRepository.getAllLocalClients()) {
@@ -414,10 +402,9 @@ public class DataspaceProvisioningService {
     }
 
     /**
-     * Returns a read-only snapshot of one participant context's provisioning status. The gRPC reads
-     * hold no database connection; for a MEMBER context the identity-binding state is read afterwards
-     * in the repository's own short transaction. Does not trigger provisioning, poll, or sleep.
-     * Tolerates backend unavailability — errors are reported as {@code UNKNOWN} status rather than thrown.
+     * Returns a read-only snapshot of one participant context's provisioning status. Does not
+     * trigger provisioning, poll, or sleep. Tolerates dataspace-backend unavailability — those
+     * errors are reported as {@code UNKNOWN} status rather than thrown; database failures propagate.
      *
      * @param context the participant context to report on
      */
@@ -438,7 +425,7 @@ public class DataspaceProvisioningService {
     }
 
     @Nullable
-    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<String> hubDid) {
+    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<Did> hubDid) {
         if (assessment == null) {
             return null;
         }
@@ -455,7 +442,15 @@ public class DataspaceProvisioningService {
         return Optional.ofNullable(readCredentialStatus(context)).orElse(CredentialStatus.ABSENT);
     }
 
-    private String didFor(ParticipantKind kind, @Nullable ClientId memberId) {
+    /**
+     * Whether the DID authority the participant DIDs derive from ({@link DataspaceDidAuthority}) is
+     * resolvable yet.
+     */
+    public boolean registeredAddressKnown() {
+        return didAuthority.isKnown();
+    }
+
+    private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
             case HOST -> didAuthority.hostDid();
             case MANAGEMENT -> didAuthority.managementDid();
@@ -464,33 +459,34 @@ public class DataspaceProvisioningService {
         };
     }
 
-    private String boundOrDerivedMemberDid(ClientId member) {
+    private Did boundOrDerivedMemberDid(ClientId member) {
         var bound = dsParticipantRepository.findByMemberIdentifier(member);
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return bound.get().getDid();
+            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
         return didAuthority.memberDid(member);
     }
 
     /**
-     * Derive-then-bind for the per-server SYSTEM identifier, mirroring {@link #memberDid(ClientId, String)}.
+     * Derive-then-bind for the per-server SYSTEM identifier, mirroring {@link #boundOrDerivedMemberDid(ClientId)}.
      * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
      * though the context's credential is issued to the current owner.
      */
-    private String systemDid(String ssHost) {
+    private Did systemDid(String ssHost) {
         var bound = dsParticipantRepository.findSystemParticipant();
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), ssHost);
-            return bound.get().getDid();
+            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
         return ParticipantIdentifierScheme.systemDid(ssHost);
     }
 
     /**
      * Reports the identity-binding state of one member's participant context without provisioning
-     * anything. Tolerates backend unavailability — errors are reported as
-     * {@link IdentityStatus#UNKNOWN} rather than thrown.
+     * anything. Tolerates dataspace-backend unavailability and a not-yet-known registered address —
+     * those are reported as {@link IdentityStatus#UNKNOWN} rather than thrown; database failures
+     * propagate.
      *
      * @param memberId the member whose bound identity to check
      * @return {@code OK}, {@code MISMATCH}, {@code VERSION_UNSUPPORTED}, {@code UNBOUND} or {@code UNKNOWN}
@@ -504,17 +500,24 @@ public class DataspaceProvisioningService {
      * publish (the bound DID, or the fresh derivation when nothing is bound; {@code null} when the
      * bound row itself is in an error state and no intended DID can be stated).
      */
-    private record MemberIdentity(IdentityStatus status, @Nullable String intendedDid) {
+    private record MemberIdentity(IdentityStatus status, @Nullable Did intendedDid) {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
+        var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
+        if (!didAuthority.isKnown()) {
+            if (bound.isEmpty()) {
+                return new MemberIdentity(IdentityStatus.UNBOUND, null);
+            }
+            log.debug("Data space: registered address not in GlobalConf yet, cannot verify bound identity of {}", memberId);
+            return new MemberIdentity(IdentityStatus.UNKNOWN, null);
+        }
         try {
-            var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, didAuthority.memberDid(memberId));
             }
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return new MemberIdentity(IdentityStatus.OK, bound.get().getDid());
+            return new MemberIdentity(IdentityStatus.OK, ParticipantIdentifierScheme.parseDid(bound.get().getDid()));
         } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
                 return new MemberIdentity(IdentityStatus.MISMATCH, null);
@@ -524,13 +527,10 @@ public class DataspaceProvisioningService {
             }
             log.warn("Data space: could not read identity status for member {}", memberId, e);
             return new MemberIdentity(IdentityStatus.UNKNOWN, null);
-        } catch (Exception e) {
-            log.warn("Data space: could not read identity status for member {}", memberId, e);
-            return new MemberIdentity(IdentityStatus.UNKNOWN, null);
         }
     }
 
-    private boolean createIdentityHubContext(ParticipantContext context, String did, String identityHubHost) {
+    private boolean createIdentityHubContext(ParticipantContext context, Did did, String identityHubHost) {
         var participantId = context.participantId();
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),

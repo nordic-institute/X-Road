@@ -45,7 +45,7 @@ class ParticipantIdentifierSchemeTest {
 
         assertThat(ParticipantIdentifierScheme.memberCtxId(member)).isEqualTo("DEV:COM:222");
         assertThat(ParticipantIdentifierScheme.memberDid(member, SS_HOST))
-                .isEqualTo("did:web:ss0.example.org:v1:DEV:COM:222");
+                .hasToString("did:web:ss0.example.org:v1:DEV:COM:222");
     }
 
     @Test
@@ -148,7 +148,19 @@ class ParticipantIdentifierSchemeTest {
         var hostWithPort = "ss0.example.org:7183";
 
         var did = ParticipantIdentifierScheme.memberDid(member, hostWithPort);
-        assertThat(did).isEqualTo("did:web:ss0.example.org%3A7183:v1:DEV:COM:222");
+        assertThat(did).hasToString("did:web:ss0.example.org%3A7183:v1:DEV:COM:222");
+
+        var decoded = ParticipantIdentifierScheme.decodeDid(did);
+        assertThat(decoded.ssHost()).isEqualTo(hostWithPort);
+    }
+
+    @Test
+    void shouldRoundTripBracketedIpv6HostWithPort() {
+        var member = ClientId.Conf.create("DEV", "COM", "222");
+        var hostWithPort = "[2001:db8::8]:7183";
+
+        var did = ParticipantIdentifierScheme.memberDid(member, hostWithPort);
+        assertThat(did).hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:DEV:COM:222");
 
         var decoded = ParticipantIdentifierScheme.decodeDid(did);
         assertThat(decoded.ssHost()).isEqualTo(hostWithPort);
@@ -157,15 +169,18 @@ class ParticipantIdentifierSchemeTest {
     @Test
     void shouldDeriveSystemIdentifiers() {
         assertThat(ParticipantIdentifierScheme.SYSTEM_SEGMENT).isEqualTo("system");
-        assertThat(ParticipantIdentifierScheme.systemDid(SS_HOST)).isEqualTo("did:web:ss0.example.org:v1:system");
+        assertThat(ParticipantIdentifierScheme.systemDid(SS_HOST)).hasToString("did:web:ss0.example.org:v1:system");
     }
 
     @Test
     void shouldDeriveHostAndManagementDids() {
-        assertThat(ParticipantIdentifierScheme.hostDid(SS_HOST)).isEqualTo("did:web:ss0.example.org");
-        assertThat(ParticipantIdentifierScheme.hostDid("ss0.example.org:7183")).isEqualTo("did:web:ss0.example.org%3A7183");
+        assertThat(ParticipantIdentifierScheme.hostDid(SS_HOST)).hasToString("did:web:ss0.example.org");
+        assertThat(ParticipantIdentifierScheme.hostDid("ss0.example.org:7183")).hasToString("did:web:ss0.example.org%3A7183");
         assertThat(ParticipantIdentifierScheme.managementDid("ss0.example.org:7183"))
-                .isEqualTo("did:web:ss0.example.org%3A7183:mgmt");
+                .hasToString("did:web:ss0.example.org%3A7183:mgmt");
+        assertThat(ParticipantIdentifierScheme.hostDid("[2001:db8::8]:7183")).hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183");
+        assertThat(ParticipantIdentifierScheme.managementDid("[2001:db8::8]:7183"))
+                .hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:mgmt");
     }
 
     @Test
@@ -318,7 +333,7 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"   ", "ss0.example.org%3A7183", "ss0 example.org", "ss0.example.org/path", "[::1]:7183"})
+    @ValueSource(strings = {"   ", "ss0.example.org%3A7183", "ss0 example.org", "ss0.example.org/path"})
     void encodingShouldRejectInvalidHost(String invalidHost) {
         var member = ClientId.Conf.create("DEV", "COM", "222");
 

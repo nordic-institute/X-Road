@@ -83,6 +83,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @BeforeEach
     void setUp() {
+        when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
     }
 
@@ -146,6 +147,17 @@ class DataspaceParticipantProvisioningWorkerTest {
     @Test
     void provisionParticipantSkipsWhenOwnerNotYetKnown() {
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(PRE_OWNER_HOST_CONTEXT));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+    }
+
+    @Test
+    void provisionParticipantSkipsWhenRegisteredAddressNotYetKnown() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT));
+        when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(false);
 
         worker.provisionParticipant();
 

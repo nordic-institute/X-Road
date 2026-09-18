@@ -15,6 +15,7 @@ dependencies {
   implementation(libs.jakarta.annotationApi)
 
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":lib:edc-rpc"))
 

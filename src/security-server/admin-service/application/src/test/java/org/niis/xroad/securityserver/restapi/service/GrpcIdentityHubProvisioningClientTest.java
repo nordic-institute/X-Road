@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.when;
 class GrpcIdentityHubProvisioningClientTest {
 
     private static final String CTX_ID = "test-ctx";
-    private static final String DID = "did:web:example";
+    private static final Did DID = Did.parse("did:web:example");
     private static final String MEMBER_ID = "TEST/GOV/1234";
     private static final String CRED_SERVICE_URL = "https://cred.example/v1";
     private static final String KEY_ID = DID + "#key-1";
@@ -132,7 +133,7 @@ class GrpcIdentityHubProvisioningClientTest {
 
         var result = client.contextDid(CTX_ID);
 
-        assertThat(result).contains("did:web:example");
+        assertThat(result).contains(DID);
         verify(rpcClient).getParticipantContextDid(CTX_ID);
     }
 

@@ -65,6 +65,7 @@ public class SsStackSetup extends AbstractSsStack {
     public static final String DS_IDENTITY_HUB = "ds-identity-hub";
     /** Not a compose service of this stack: a service-key token for {@code E2eEnvironment}'s test CA env. */
     public static final String CA = "ca";
+    public static final String DS_GATEWAY = "ds-gateway";
 
     private static final String COMPOSE_SS_FILE = "compose.main.yaml";
     private static final String COMPOSE_SS_E2E_FILE = "compose.e2e.yaml";
@@ -98,6 +99,7 @@ public class SsStackSetup extends AbstractSsStack {
         var env = new ComposeContainer(composeProjectName(), files)
                 .withEnv("ENV_PREFIX", composeProjectName())
                 .withEnv("DSP_PARTICIPANT_ID", "xrd-" + name)
+                .withEnv("SS_ADDRESS", "xrd-" + name)
                 .withEnv("DSP_MGMT_CONTEXT", "true")
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
@@ -116,7 +118,8 @@ public class SsStackSetup extends AbstractSsStack {
                 .withLogConsumer(MESSAGE_LOG_CLI, createLogConsumer(name, MESSAGE_LOG_CLI))
                 .withLogConsumer(MONITOR, createLogConsumer(name, MONITOR))
                 .withLogConsumer(DS_IDENTITY_HUB, createLogConsumer(name, DS_IDENTITY_HUB))
-                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE));
+                .withLogConsumer(DS_CONTROL_PLANE, createLogConsumer(name, DS_CONTROL_PLANE))
+                .withLogConsumer(DS_GATEWAY, createLogConsumer(name, DS_GATEWAY));
 
         if (features.contains(Feature.SOFTTOKEN_SIGNER)) {
             env.withLogConsumer(SOFTTOKEN_SIGNER, createLogConsumer(name, SOFTTOKEN_SIGNER));
@@ -171,11 +174,10 @@ public class SsStackSetup extends AbstractSsStack {
                     .orElseThrow(() -> new IllegalStateException("Could not find external network '%s'".formatted(XROAD_NETWORK)))
                     .getId();
 
+            // The xrd-{name} registered-address alias lives on the ds-gateway service
+            // (compose.e2e.ds.yaml), which fans the address's ports out per backend.
             var aliases = new ArrayList<String>();
             aliases.add("%s-%s".formatted(name, serviceName));
-            if (PROXY.equals(serviceName)) {
-                aliases.add("xrd-" + name);
-            }
 
             dockerClient.connectToNetworkCmd()
                     .withContainerId(containerState.getContainerId())

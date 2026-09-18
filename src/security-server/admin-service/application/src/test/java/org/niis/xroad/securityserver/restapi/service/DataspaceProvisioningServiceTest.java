@@ -27,7 +27,9 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,7 +90,9 @@ class DataspaceProvisioningServiceTest {
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "ORG", "OWNER");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "ORG", "OTHER");
-    private static final String SS_HOST = "ih.example.test:7183";
+    private static final SecurityServerId.Conf SERVER_ID = SecurityServerId.Conf.create(OWNER, "SS0");
+    private static final String SS_ADDRESS = "ss.example.test";
+    private static final String SS_HOST = SS_ADDRESS + ":7183";
 
     private static final ParticipantContext HOST_CONTEXT =
             new ParticipantContext(PARTICIPANT_ID, ParticipantKind.HOST, OWNER);
@@ -131,12 +135,20 @@ class DataspaceProvisioningServiceTest {
         lenient().when(dataspace.getIdentityHubCredentialsPort()).thenReturn(7185);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
         lenient().when(identityHubClient.contextDid(anyString())).thenReturn(Optional.empty());
+        var ownerEntity = mock(ClientEntity.class);
+        lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
+        var serverConf = mock(ServerConfEntity.class);
+        lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
+        lenient().when(serverConf.getServerCode()).thenReturn(SERVER_ID.getServerCode());
+        lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+        lenient().when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(SS_ADDRESS);
         lenient().when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_IDENTIFIER);
         lenient().when(globalConfProvider.getIssuerDids(INSTANCE_IDENTIFIER))
                 .thenReturn(List.of("did:web:issuer.example.test%3A6183:issuer"));
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider,
-                new DataspaceDidAuthority(adminServiceProperties));
+                clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
     }
 
     // --- ensureMembershipCredential ---
@@ -497,7 +509,7 @@ class DataspaceProvisioningServiceTest {
 
         var request = capturedIhCreateRequest();
         assertThat(request.participantContextId()).isEqualTo(mgmtId);
-        assertThat(request.did()).endsWith(":mgmt");
+        assertThat(request.did().toString()).endsWith(":mgmt");
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
@@ -518,13 +530,12 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void ensureParticipantContextUsesConfiguredIdentityHubPorts() {
-        when(dataspace.getIdentityHubDidPort()).thenReturn(8183);
+    void ensureParticipantContextUsesConfiguredStsAndCredentialsPorts() {
         when(dataspace.getIdentityHubStsPort()).thenReturn(8184);
         when(dataspace.getIdentityHubCredentialsPort()).thenReturn(8185);
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
-        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, "ih.example.test:8183");
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
 
         service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER));
 
@@ -535,6 +546,45 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
         verify(controlPlaneClient).putParticipantContextConfig(eq(ctxId), eq(expectedDid),
                 eq("https://ih.example.test:8184/api/sts/token"));
+    }
+
+    @Test
+    void ensureParticipantContextMintsDidUnderConfiguredDidPort() {
+        when(dataspace.getIdentityHubDidPort()).thenReturn(8183);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_ADDRESS + ":8183");
+
+        service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER));
+
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(ctxId);
+        assertThat(request.did()).isEqualTo(expectedDid);
+    }
+
+    @Test
+    void ensureParticipantContextDerivesDidFromRegisteredAddressNotIdentityHubHost() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var ctxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+
+        service.ensureParticipantContext(new ParticipantContext(ctxId, ParticipantKind.MEMBER, MEMBER));
+
+        var request = capturedIhCreateRequest();
+        assertThat(request.participantContextId()).isEqualTo(ctxId);
+        assertThat(request.did()).isEqualTo(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST));
+        assertThat(request.credentialServiceUrl()).startsWith("https://ih.example.test:7185/api/credentials/");
+    }
+
+    @Test
+    void ensureParticipantContextRefusesToProvisionWithoutRegisteredAddress() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.ensureParticipantContext(MEMBER_CONTEXT))
+                .isInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> assertThat(((XrdRuntimeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.DSP_PROVISIONING_FAILED.code()));
+
+        verify(identityHubClient, never()).createParticipantContext(any());
     }
 
     @Test
@@ -572,7 +622,7 @@ class DataspaceProvisioningServiceTest {
         service.ensureParticipantContext(MEMBER_CONTEXT);
 
         var request = capturedIhCreateRequest();
-        assertThat(request.did()).isEqualTo(bound.getDid());
+        assertThat(request.did()).isEqualTo(Did.parse(bound.getDid()));
         assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
@@ -645,7 +695,7 @@ class DataspaceProvisioningServiceTest {
         service.ensureParticipantContext(SYSTEM_CONTEXT);
 
         var request = capturedIhCreateRequest();
-        assertThat(request.did()).isEqualTo(bound.getDid());
+        assertThat(request.did()).isEqualTo(Did.parse(bound.getDid()));
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
         assertThat(request.reanchorMemberIdOnConflict()).isTrue();
     }
@@ -859,11 +909,51 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void readIdentityStatusReportsUnknownWhenRepositoryFails() {
+    void readIdentityStatusPropagatesRepositoryFailures() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
                 .thenThrow(new DataAccessResourceFailureException("connection lost"));
 
+        assertThatThrownBy(() -> service.readIdentityStatus(MEMBER))
+                .isInstanceOf(DataAccessResourceFailureException.class);
+    }
+
+    @Test
+    void readIdentityStatusReportsUnboundWithoutRegisteredAddressWhenNoRowExists() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
+    @Test
+    void readIdentityStatusReportsUnknownWithoutRegisteredAddressWhenRowIsBound() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER))
+                .thenReturn(Optional.of(boundParticipant(MEMBER, SS_HOST)));
+
         assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNKNOWN);
+    }
+
+    // --- registeredAddressKnown ---
+
+    @Test
+    void registeredAddressKnownIsFalseWhileGlobalConfIsNotReadable() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID))
+                .thenThrow(XrdRuntimeException.systemInternalError("Shared params for instance identifier TEST not found"));
+
+        assertThat(service.registeredAddressKnown()).isFalse();
+    }
+
+    @Test
+    void registeredAddressKnownIsFalseWhileRegistrationIsNotInGlobalConf() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+
+        assertThat(service.registeredAddressKnown()).isFalse();
+    }
+
+    @Test
+    void registeredAddressKnownIsTrueForRegisteredServer() {
+        assertThat(service.registeredAddressKnown()).isTrue();
     }
 
     private void givenServerConfWithOwner(ClientId owner) {
@@ -889,7 +979,7 @@ class DataspaceProvisioningServiceTest {
         participant.setParticipantType(ParticipantType.MEMBER);
         participant.setMemberIdentifier(ClientIdEntityFactory.create(member));
         participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
-        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost));
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
@@ -899,7 +989,7 @@ class DataspaceProvisioningServiceTest {
         var participant = new DsParticipantEntity();
         participant.setParticipantType(ParticipantType.SYSTEM);
         participant.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost));
+        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
