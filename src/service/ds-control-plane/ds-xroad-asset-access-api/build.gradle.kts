@@ -35,6 +35,7 @@ dependencies {
   testImplementation(libs.edc.sql.transfer.process)
   testImplementation(libs.edc.core.controlplane.transfer)
   testImplementation(libs.edc.spi.transaction.datasource)
+  testImplementation(libs.edc.transaction.local)
   testImplementation(libs.edc.lib.sql)
   testImplementation(libs.edc.sql.lease)
   testImplementation(libs.edc.sql.lease.spi)

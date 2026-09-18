@@ -41,6 +41,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,8 +56,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +78,7 @@ import static org.mockito.Mockito.when;
 class AssetAccessCompletionPollerTest {
 
     private static final Duration LONG_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration ASYNC_AWAIT = Duration.ofSeconds(2);
     private static final String DEFAULT_TERMINATION_DETAIL = "provider terminated";
 
     @Mock
@@ -105,14 +112,14 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void awaitNegotiationCompletesWithAgreementWhenFinalized() {
+    void awaitNegotiationCompletesWithAgreementWhenFinalized() throws Exception {
         var agreement = buildAgreement();
         when(negotiationStore.findById("neg-1")).thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
 
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThat(future).isCompletedWithValue(agreement);
+        assertThat(future.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(agreement);
     }
 
     @Test
@@ -171,7 +178,7 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void awaitTransferCompletesWithDataAddressWhenStarted() {
+    void awaitTransferCompletesWithDataAddressWhenStarted() throws Exception {
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
         when(transferProcessStore.findById("tp-1"))
                 .thenReturn(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null));
@@ -179,7 +186,7 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
 
-        assertThat(future).isCompletedWithValue(dataAddress);
+        assertThat(future.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(dataAddress);
     }
 
     @Test
@@ -258,12 +265,14 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void stopFailsPendingWaitersWithAcquisitionFailure() {
+    void stopFailsPendingWaitersWithAcquisitionFailureBeforeReturning() {
         var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         var transferFuture = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
 
         poller.stop();
 
+        assertThat(negotiationFuture).isDone();
+        assertThat(transferFuture).isDone();
         assertThatThrownBy(negotiationFuture::join)
                 .hasCauseInstanceOf(XrdRuntimeException.class)
                 .satisfies(ex -> {
@@ -286,10 +295,8 @@ class AssetAccessCompletionPollerTest {
     }
 
     @Test
-    void pollPassExceptionDoesNotPreventLaterPassFromCompletingDifferentWaiter() {
-        when(negotiationStore.findById("neg-1"))
-                .thenThrow(new RuntimeException("store unavailable"))
-                .thenReturn(buildNegotiation(ContractNegotiationStates.REQUESTED, null, null));
+    void negotiationReadFailureDoesNotPreventTransferWaiterFromCompletingInSamePass() throws Exception {
+        when(negotiationStore.findById("neg-1")).thenThrow(new RuntimeException("store unavailable"));
 
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
         when(transferProcessStore.findById("tp-1"))
@@ -298,13 +305,95 @@ class AssetAccessCompletionPollerTest {
         var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         var transferFuture = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
 
-        assertThatThrownBy(poller::poll).isInstanceOf(RuntimeException.class);
-        assertThat(transferFuture).isNotDone();
-
         poller.poll();
 
-        assertThat(transferFuture).isCompletedWithValue(dataAddress);
+        assertThat(transferFuture.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(dataAddress);
         assertThat(negotiationFuture).isNotDone();
+    }
+
+    @Test
+    void completionRunsOffThePollThreadWithNoActiveTransaction() throws Exception {
+        var recordingContext = new RecordingTransactionContext();
+        var localPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
+                recordingContext, ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
+        try {
+            var agreement = buildAgreement();
+            when(negotiationStore.findById("neg-1"))
+                    .thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
+
+            var pollThread = Thread.currentThread();
+            var future = localPoller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+            var observedDepth = new CompletableFuture<Integer>();
+            var observedThread = new CompletableFuture<Thread>();
+            future.whenComplete((result, throwable) -> {
+                observedDepth.complete(recordingContext.currentDepth());
+                observedThread.complete(Thread.currentThread());
+            });
+
+            localPoller.poll();
+
+            assertThat(observedDepth.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isZero();
+            assertThat(observedThread.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isNotEqualTo(pollThread);
+            assertThat(recordingContext.outcomes()).containsExactly(RecordingTransactionContext.Outcome.COMMITTED);
+        } finally {
+            localPoller.stop();
+        }
+    }
+
+    @Test
+    void oneWaiterThrowingDuringReadDoesNotAbortPassOrMarkTransactionRollbackOnly() throws Exception {
+        var recordingContext = new RecordingTransactionContext();
+        var localPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
+                recordingContext, ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
+        try {
+            var agreement = buildAgreement();
+            when(negotiationStore.findById("neg-a"))
+                    .thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
+            when(negotiationStore.findById("neg-b")).thenThrow(new RuntimeException("connection reset"));
+
+            var futureA = localPoller.awaitNegotiation("neg-a", LONG_TIMEOUT);
+            var futureB = localPoller.awaitNegotiation("neg-b", LONG_TIMEOUT);
+
+            localPoller.poll();
+
+            assertThat(futureA.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(agreement);
+            assertThat(futureB).isNotDone();
+            assertThat(recordingContext.outcomes()).containsExactly(RecordingTransactionContext.Outcome.COMMITTED);
+        } finally {
+            localPoller.stop();
+        }
+    }
+
+    @Test
+    void resolveRunsOutsideTransactionAndThrowingResolveFailsWaiterWithExceptionMessage() throws Exception {
+        var recordingContext = new RecordingTransactionContext();
+        var localPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
+                recordingContext, ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
+        try {
+            var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
+            when(transferProcessStore.findById("tp-1"))
+                    .thenReturn(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null));
+            var resolveDepth = new CompletableFuture<Integer>();
+            when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
+                resolveDepth.complete(recordingContext.currentDepth());
+                throw new RuntimeException("vault unreachable");
+            });
+
+            var future = localPoller.awaitTransfer("tp-1", LONG_TIMEOUT);
+
+            localPoller.poll();
+
+            assertThat(resolveDepth.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isZero();
+            assertThatThrownBy(() -> future.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS))
+                    .hasCauseInstanceOf(XrdRuntimeException.class)
+                    .satisfies(ex -> {
+                        var cause = (XrdRuntimeException) ex.getCause();
+                        assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_transfer_failed");
+                        assertThat(cause.getDetails()).isEqualTo("vault unreachable");
+                    });
+        } finally {
+            localPoller.stop();
+        }
     }
 
     private ContractAgreement buildAgreement() {
@@ -365,6 +454,57 @@ class AssetAccessCompletionPollerTest {
         @Override
         public Instant instant() {
             return instant;
+        }
+    }
+
+    /**
+     * Models {@code LocalTransactionContext}'s per-thread join semantics: nested calls on the same thread share
+     * depth, and only the outermost call's commit/rollback outcome is recorded.
+     */
+    private static final class RecordingTransactionContext implements TransactionContext {
+
+        enum Outcome { COMMITTED, ROLLED_BACK }
+
+        private final ThreadLocal<Integer> depth = ThreadLocal.withInitial(() -> 0);
+        private final List<Outcome> outcomes = Collections.synchronizedList(new ArrayList<>());
+
+        @Override
+        public void execute(TransactionBlock block) {
+            execute((ResultTransactionBlock<Void>) () -> {
+                block.execute();
+                return null;
+            });
+        }
+
+        @Override
+        public <T> T execute(ResultTransactionBlock<T> block) {
+            var outer = depth.get() == 0;
+            depth.set(depth.get() + 1);
+            var rollbackOnly = false;
+            try {
+                return block.execute();
+            } catch (RuntimeException e) {
+                rollbackOnly = true;
+                throw e;
+            } finally {
+                depth.set(depth.get() - 1);
+                if (outer) {
+                    outcomes.add(rollbackOnly ? Outcome.ROLLED_BACK : Outcome.COMMITTED);
+                }
+            }
+        }
+
+        @Override
+        public void registerSynchronization(TransactionSynchronization sync) {
+            throw new UnsupportedOperationException();
+        }
+
+        int currentDepth() {
+            return depth.get();
+        }
+
+        List<Outcome> outcomes() {
+            return outcomes;
         }
     }
 }

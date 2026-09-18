@@ -89,6 +89,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -231,6 +232,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", agreement));
         completionPoller.poll();
+        verify(transferProcessService, timeout(5000)).initiateTransfer(any(), any());
 
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
                 .property("endpoint", "http://provider/data").build();
@@ -472,6 +474,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", agreement));
         completionPoller.poll();
+        verify(transferProcessService, timeout(5000)).initiateTransfer(any(), any());
 
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
                 .property("endpoint", "http://provider/data").build();
@@ -505,6 +508,7 @@ class AssetAccessOrchestratorTest {
         var agreement = buildAgreement("agreement-1");
         when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", agreement));
         completionPoller.poll();
+        verify(transferProcessService, timeout(5000)).initiateTransfer(any(), any());
 
         when(transferProcessStore.findById("tp-1")).thenReturn(terminatedTransfer("tp-1", null));
         completionPoller.poll();

@@ -45,14 +45,20 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
@@ -63,10 +69,17 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * transfer process stores for the terminal state of registered ids, in place of an in-process
  * listener. A terminal state is visible in the store before any listener anywhere would fire, so
  * the same mechanism serves a single instance and several instances sharing one database.
+ *
+ * <p>Each poll pass reads and classifies every registered waiter inside one transaction; the
+ * transaction covers reads only. Completion - removing the waiter and finishing its future, resolving
+ * a started transfer's data address - happens after the transaction has returned, on a dedicated
+ * completion executor. The poll thread never completes a future or runs a caller continuation
+ * directly, and never holds a transaction while resolving a data address.
  */
 public class AssetAccessCompletionPoller {
 
-    private static final String THREAD_NAME = "AssetAccessCompletionPoller";
+    private static final String POLL_THREAD_NAME = "AssetAccessCompletionPoller-poll";
+    private static final String COMPLETION_THREAD_NAME = "AssetAccessCompletionPoller-completion";
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5;
     private static final String DEFAULT_TERMINATION_DETAIL = "provider terminated";
 
@@ -78,6 +91,7 @@ public class AssetAccessCompletionPoller {
     private final Monitor monitor;
     private final Duration pollInterval;
     private final ScheduledExecutorService executor;
+    private final ExecutorService completionExecutor;
     private final AtomicBoolean active = new AtomicBoolean(true);
 
     private final Map<String, Waiter<ContractAgreement>> negotiationWaiters = new ConcurrentHashMap<>();
@@ -99,14 +113,19 @@ public class AssetAccessCompletionPoller {
         this.monitor = monitor;
         this.pollInterval = pollInterval;
         this.executor = executorInstrumentation.instrument(
-                Executors.newSingleThreadScheduledExecutor(AssetAccessCompletionPoller::newPollerThread), THREAD_NAME);
+                Executors.newSingleThreadScheduledExecutor(namedDaemonThreadFactory(POLL_THREAD_NAME)), POLL_THREAD_NAME);
+        this.completionExecutor = executorInstrumentation.instrument(
+                Executors.newCachedThreadPool(namedDaemonThreadFactory(COMPLETION_THREAD_NAME)), COMPLETION_THREAD_NAME);
     }
 
-    private static Thread newPollerThread(Runnable runnable) {
-        var thread = Executors.defaultThreadFactory().newThread(runnable);
-        thread.setName(THREAD_NAME);
-        thread.setDaemon(true);
-        return thread;
+    private static ThreadFactory namedDaemonThreadFactory(String name) {
+        var counter = new AtomicInteger();
+        return runnable -> {
+            var thread = Executors.defaultThreadFactory().newThread(runnable);
+            thread.setName(name + "-" + counter.incrementAndGet());
+            thread.setDaemon(true);
+            return thread;
+        };
     }
 
     /**
@@ -145,14 +164,18 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Stops the poll loop and fails every pending waiter with an acquisition failure.
+     * Stops the poll loop, fails every pending waiter through the completion executor and shuts both
+     * executors down, waiting (bounded) for the completion executor so that no completion runs after
+     * this method returns.
      */
     public void stop() {
         active.set(false);
         executor.shutdown();
+        awaitTermination(executor);
         failAllPending(negotiationWaiters);
         failAllPending(transferWaiters);
-        awaitExecutorTermination();
+        completionExecutor.shutdown();
+        awaitTermination(completionExecutor);
     }
 
     private void runTick() {
@@ -172,110 +195,136 @@ public class AssetAccessCompletionPoller {
     }
 
     /**
-     * Runs one poll pass over every registered waiter. Called internally by the scheduled loop
-     * between {@link #start()} and {@link #stop()}; also usable directly to drive a deterministic
-     * pass in a test.
+     * Runs one poll pass. The transaction covers reads and classification only; every completion -
+     * removing the waiter and finishing its future - runs afterwards on the completion executor.
+     * Called internally by the scheduled loop between {@link #start()} and {@link #stop()}; also
+     * usable directly to drive a deterministic pass in a test.
      */
     public void poll() {
         if (!active.get()) {
             return;
         }
+        List<Runnable> completions = new ArrayList<>();
         transactionContext.execute(() -> {
-            pollNegotiations();
-            pollTransfers();
+            negotiationWaiters.forEach((id, waiter) -> pollNegotiation(completions, id, waiter));
+            transferWaiters.forEach((id, waiter) -> pollTransfer(completions, id, waiter));
         });
+        completions.forEach(Runnable::run);
     }
 
-    private void pollNegotiations() {
-        negotiationWaiters.forEach((id, waiter) -> {
-            var negotiation = negotiationStore.findById(id);
-            if (negotiation == null || !handleNegotiation(id, waiter, negotiation)) {
-                expireIfPastDeadline(negotiationWaiters, id, waiter);
+    private void pollNegotiation(List<Runnable> completions, String id, Waiter<ContractAgreement> waiter) {
+        ContractNegotiation negotiation;
+        try {
+            negotiation = negotiationStore.findById(id);
+        } catch (Exception e) {
+            monitor.warning("Reading negotiation %s failed, leaving it pending".formatted(id), e);
+            return;
+        }
+        if (negotiation != null) {
+            var state = ContractNegotiationStates.from(negotiation.getState());
+            if (state == ContractNegotiationStates.FINALIZED) {
+                monitor.debug("Negotiation %s reached FINALIZED".formatted(id));
+                var agreement = negotiation.getContractAgreement();
+                completions.add(() -> completeWaiter(negotiationWaiters, id, waiter, agreement));
+                return;
+            }
+            if (state == ContractNegotiationStates.TERMINATED) {
+                monitor.debug("Negotiation %s reached TERMINATED".formatted(id));
+                var failure = negotiationFailure(id, errorDetailOrDefault(negotiation.getErrorDetail()));
+                completions.add(() -> failWaiter(negotiationWaiters, id, waiter, failure));
+                return;
+            }
+        }
+        if (!clock.instant().isBefore(waiter.deadline())) {
+            completions.add(() -> failWaiter(negotiationWaiters, id, waiter, new TimeoutException()));
+        }
+    }
+
+    private void pollTransfer(List<Runnable> completions, String id, Waiter<DataAddress> waiter) {
+        TransferProcess transferProcess;
+        try {
+            transferProcess = transferProcessStore.findById(id);
+        } catch (Exception e) {
+            monitor.warning("Reading transfer process %s failed, leaving it pending".formatted(id), e);
+            return;
+        }
+        if (transferProcess != null) {
+            var state = TransferProcessStates.from(transferProcess.getState());
+            if (state == TransferProcessStates.STARTED) {
+                monitor.debug("Transfer process %s reached STARTED".formatted(id));
+                completions.add(() -> resolveAndCompleteTransfer(id, waiter, transferProcess));
+                return;
+            }
+            if (state == TransferProcessStates.TERMINATED) {
+                monitor.debug("Transfer process %s reached TERMINATED".formatted(id));
+                var failure = transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail()));
+                completions.add(() -> failWaiter(transferWaiters, id, waiter, failure));
+                return;
+            }
+        }
+        if (!clock.instant().isBefore(waiter.deadline())) {
+            completions.add(() -> failWaiter(transferWaiters, id, waiter, new TimeoutException()));
+        }
+    }
+
+    private void resolveAndCompleteTransfer(String id, Waiter<DataAddress> waiter, TransferProcess transferProcess) {
+        if (!transferWaiters.remove(id, waiter)) {
+            return;
+        }
+        dispatch(() -> {
+            try {
+                var resolved = dataAddressStore.resolve(transferProcess);
+                if (resolved.succeeded()) {
+                    waiter.future().complete(resolved.getContent());
+                } else {
+                    waiter.future().completeExceptionally(transferFailure(id, resolved.getFailureDetail()));
+                }
+            } catch (Exception e) {
+                waiter.future().completeExceptionally(transferFailure(id, e.getMessage()));
             }
         });
-    }
-
-    private boolean handleNegotiation(String id, Waiter<ContractAgreement> waiter, ContractNegotiation negotiation) {
-        var state = ContractNegotiationStates.from(negotiation.getState());
-        if (state == ContractNegotiationStates.FINALIZED) {
-            monitor.debug("Negotiation %s reached FINALIZED".formatted(id));
-            complete(negotiationWaiters, id, waiter, negotiation.getContractAgreement());
-            return true;
-        }
-        if (state == ContractNegotiationStates.TERMINATED) {
-            monitor.debug("Negotiation %s reached TERMINATED".formatted(id));
-            fail(negotiationWaiters, id, waiter, negotiationFailure(id, errorDetailOrDefault(negotiation.getErrorDetail())));
-            return true;
-        }
-        return false;
-    }
-
-    private void pollTransfers() {
-        transferWaiters.forEach((id, waiter) -> {
-            var transferProcess = transferProcessStore.findById(id);
-            if (transferProcess == null || !handleTransfer(id, waiter, transferProcess)) {
-                expireIfPastDeadline(transferWaiters, id, waiter);
-            }
-        });
-    }
-
-    private boolean handleTransfer(String id, Waiter<DataAddress> waiter, TransferProcess transferProcess) {
-        var state = TransferProcessStates.from(transferProcess.getState());
-        if (state == TransferProcessStates.STARTED) {
-            monitor.debug("Transfer process %s reached STARTED".formatted(id));
-            completeFromResolvedAddress(id, waiter, transferProcess);
-            return true;
-        }
-        if (state == TransferProcessStates.TERMINATED) {
-            monitor.debug("Transfer process %s reached TERMINATED".formatted(id));
-            fail(transferWaiters, id, waiter, transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail())));
-            return true;
-        }
-        return false;
-    }
-
-    private void completeFromResolvedAddress(String id, Waiter<DataAddress> waiter, TransferProcess transferProcess) {
-        var resolved = dataAddressStore.resolve(transferProcess);
-        if (resolved.succeeded()) {
-            complete(transferWaiters, id, waiter, resolved.getContent());
-        } else {
-            fail(transferWaiters, id, waiter, transferFailure(id, resolved.getFailureDetail()));
-        }
     }
 
     private static String errorDetailOrDefault(String errorDetail) {
         return errorDetail != null ? errorDetail : DEFAULT_TERMINATION_DETAIL;
     }
 
-    private <T> void expireIfPastDeadline(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter) {
-        if (!clock.instant().isBefore(waiter.deadline())) {
-            fail(waiters, id, waiter, new TimeoutException());
+    private <T> void completeWaiter(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, T value) {
+        if (waiters.remove(id, waiter)) {
+            dispatch(() -> waiter.future().complete(value));
         }
     }
 
-    private <T> void complete(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, T value) {
+    private <T> void failWaiter(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, Throwable throwable) {
         if (waiters.remove(id, waiter)) {
-            waiter.future().complete(value);
-        }
-    }
-
-    private <T> void fail(Map<String, Waiter<T>> waiters, String id, Waiter<T> waiter, Throwable throwable) {
-        if (waiters.remove(id, waiter)) {
-            waiter.future().completeExceptionally(throwable);
+            dispatch(() -> waiter.future().completeExceptionally(throwable));
         }
     }
 
     private <T> void failAllPending(Map<String, Waiter<T>> waiters) {
-        waiters.forEach((id, waiter) -> fail(waiters, id, waiter, acquisitionStoppedFailure(id)));
+        waiters.forEach((id, waiter) -> failWaiter(waiters, id, waiter, acquisitionStoppedFailure(id)));
     }
 
-    private void awaitExecutorTermination() {
+    /**
+     * Runs a completion on {@link #completionExecutor}. Falls back to running it on the calling thread if the
+     * executor has already been shut down, so that a repeated {@link #stop()} call - which fails any waiter
+     * registered after a previous {@link #stop()} already terminated the executor - never throws.
+     */
+    private void dispatch(Runnable completion) {
         try {
-            if (!executor.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
+            completionExecutor.execute(completion);
+        } catch (RejectedExecutionException e) {
+            completion.run();
+        }
+    }
+
+    private void awaitTermination(ExecutorService service) {
+        try {
+            if (!service.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                service.shutdownNow();
             }
         } catch (InterruptedException e) {
-            executor.shutdownNow();
+            service.shutdownNow();
             Thread.currentThread().interrupt();
         }
     }
