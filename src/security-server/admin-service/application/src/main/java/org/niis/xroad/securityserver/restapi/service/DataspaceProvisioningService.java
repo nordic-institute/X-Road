@@ -64,7 +64,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * and issues their X-Road membership credentials, over X-Road gRPC.
  *
  * <p>Exposes non-blocking, single-step primitives for use by
- * {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}:
+ * {@link org.niis.xroad.securityserver.restapi.scheduling.DefaultDataspaceParticipantProvisioningWorker}:
  * <ul>
  *   <li>{@link #participantContexts(boolean)} — enumerates the host, the per-server SYSTEM context,
  *       management (when registered) and per-member contexts to provision, member-level identity from
