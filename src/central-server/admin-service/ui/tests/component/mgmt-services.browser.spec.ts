@@ -105,7 +105,7 @@ describe('0970 — CS Mgmt Services — select-SS dialog updates security server
     await expect.element(page.getByTestId('dialog-save-button')).not.toBeDisabled();
     await page.getByTestId('dialog-save-button').click();
 
-    await expect.element(page.getByTestId('management-security-server-field')).toHaveTextContent(
+    await expect.element(page.getByTestId('management-security-server-field')).toMatchTextContent(
       'SERVER:CS:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS3',
     );
 
