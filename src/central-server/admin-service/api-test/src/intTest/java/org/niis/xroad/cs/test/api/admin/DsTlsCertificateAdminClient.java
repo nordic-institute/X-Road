@@ -72,6 +72,40 @@ public class DsTlsCertificateAdminClient {
     }
 
     /**
+     * Generates a certificate signing request for the stored DS TLS key, carrying the given DNS subject
+     * alternative name.
+     */
+    public ValidatableResponse generateCsr(String distinguishedName, String subjectAltName) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body("{\"name\":\"" + distinguishedName + "\",\"subject_alt_name\":\"" + subjectAltName + "\"}")
+                .post("/ds-tls-certificate/csr")
+                .then();
+    }
+
+    /**
+     * Orders the DS TLS certificate via ACME from a named, ACME-capable designated certification authority.
+     */
+    public ValidatableResponse orderCertificate(String caName, String distinguishedName, String subjectAltName) {
+        return session.given()
+                .contentType(ContentType.JSON)
+                .body("{\"ca_name\":\"" + caName + "\",\"distinguished_name\":\"" + distinguishedName
+                        + "\",\"subject_alt_name\":\"" + subjectAltName + "\"}")
+                .post("/ds-tls-certificate/acme-order")
+                .then();
+    }
+
+    /**
+     * Gets the current DS TLS certificate ACME enrollment status: enrollment method (NONE/MANUAL/ACME),
+     * ACME availability, next scheduled renewal time, and last enrollment/renewal error.
+     */
+    public ValidatableResponse getEnrollmentStatus() {
+        return session.given()
+                .get("/ds-tls-certificate/enrollment-status")
+                .then();
+    }
+
+    /**
      * Uploads a certificate chain (leaf first) obtained for the DS TLS key.
      */
     public ValidatableResponse uploadCertificate(byte[] certificateBytes) {

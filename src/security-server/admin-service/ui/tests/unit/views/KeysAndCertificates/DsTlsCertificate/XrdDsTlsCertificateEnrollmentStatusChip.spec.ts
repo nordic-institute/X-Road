@@ -37,9 +37,11 @@ const vuetify = createVuetify({
   directives,
 });
 
-function mountStatus(status: DsTlsCertificateEnrollmentStatus) {
+function mountStatus(
+  status: Omit<DsTlsCertificateEnrollmentStatus, 'acme_available'> & Partial<Pick<DsTlsCertificateEnrollmentStatus, 'acme_available'>>,
+) {
   const pinia = createTestingPinia();
-  const fetchStatus = vi.fn().mockResolvedValue(status);
+  const fetchStatus = vi.fn().mockResolvedValue({ acme_available: false, ...status });
 
   const wrapper = mount(XrdDsTlsCertificateEnrollmentStatusChip, {
     props: { fetchStatus },

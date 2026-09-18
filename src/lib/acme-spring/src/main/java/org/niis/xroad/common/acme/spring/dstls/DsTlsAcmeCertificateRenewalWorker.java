@@ -33,6 +33,7 @@ import org.niis.xroad.common.acme.spring.scheduling.AcmeRenewalWorker;
 import org.niis.xroad.common.acme.spring.scheduling.CertificateRenewalScheduler;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
+import org.niis.xroad.restapi.dstls.DsTlsCsrBuilder;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.springframework.stereotype.Component;
 
@@ -155,7 +156,7 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         }
 
         KeyPair keyPair = new RsaKeyManager(DS_TLS_KEY_LENGTH).generateKeyPair();
-        byte[] certRequest = DsTlsCsrBuilder.build(keyPair, hostname);
+        byte[] certRequest = DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), "CN=" + hostname, hostname);
 
         List<X509Certificate> chain = currentCertificate == null
                 ? dsTlsAcmeService.enroll(caInfo, hostname, certRequest)

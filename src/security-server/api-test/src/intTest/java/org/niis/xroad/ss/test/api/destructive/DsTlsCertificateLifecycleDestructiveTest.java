@@ -163,6 +163,30 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
     }
 
     @Test
+    @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
+    void orderStoresACertificateFromTheNamedAcmeCapableCa(SsApiTestContainerSetup stack) {
+        var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
+
+        given("a fresh DS TLS key is generated", () ->
+                client.generateKey().statusCode(201));
+
+        then("ordering from the designated test DS TLS CA with a multi-attribute DN and a SAN returns the "
+                + "issued certificate's subject", () ->
+                client.orderCertificate("Test DS TLS CA", multiAttributeDn, "ds-order.example.org")
+                        .statusCode(200)
+                        .body("subject_distinguished_name", equalTo(multiAttributeDn))
+                        .body("hash", notNullValue()));
+
+        and("the enrollment status reports ACME with a scheduled next renewal and no error", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("ACME"))
+                        .body("next_renewal_time", notNullValue())
+                        .body("last_error", nullValue()));
+    }
+
+    @Test
     @DisplayName("Uploading a certificate for a different key is rejected as a key/certificate mismatch")
     @SneakyThrows
     void uploadingCertificateForADifferentKeyIsRejected(SsApiTestContainerSetup stack) {

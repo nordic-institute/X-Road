@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.RsaKeyManager;
-import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -43,8 +42,13 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
+import org.niis.xroad.restapi.dstls.DsTlsAcmeOrderResult;
+import org.niis.xroad.restapi.dstls.DsTlsCertificateAcmeProvider;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateValidator;
+import org.niis.xroad.restapi.dstls.DsTlsCsrBuilder;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedOutputStream;
@@ -60,11 +64,17 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_ACME_ORDER_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CA_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_NOT_CONFIGURED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_INVALID_SUBJECT_ALT_NAME;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_NOT_GENERATED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
@@ -84,9 +94,12 @@ public class DsTlsCertificateService {
     private static final int RSA_KEY_LENGTH = 2048;
     private static final String CERT_PEM_FILENAME = "./ds-https.pem";
     private static final String CERT_CER_FILENAME = "./ds-https.cer";
+    private static final DsTlsAcmeAvailability ACME_NOT_AVAILABLE = new DsTlsAcmeAvailability(false, List.of(), null);
+    private static final Pattern WHITESPACE = Pattern.compile("\\s");
 
     private final VaultClient vaultClient;
     private final DsTlsCertificateValidator dsTlsCertificateValidator;
+    private final ObjectProvider<DsTlsCertificateAcmeProvider> dsTlsCertificateAcmeProvider;
 
     public DsTlsCertificateStatus getStatus() {
         return readCredentials()
@@ -105,16 +118,81 @@ public class DsTlsCertificateService {
         }
     }
 
-    public byte[] generateCsr(String distinguishedName) {
+    /**
+     * @param subjectAltName single DNS subject alternative name, or {@code null} for a distinguished-name-only CSR
+     */
+    public byte[] generateCsr(String distinguishedName, String subjectAltName) {
         InternalSSLKey credentials = readCredentials()
                 .orElseThrow(() -> new NotFoundException(DS_TLS_KEY_NOT_GENERATED.build()));
+        if (subjectAltName != null) {
+            validateSubjectAltName(subjectAltName);
+        }
         try {
-            return CertUtils.generateCertRequest(credentials.getKey(), publicKeyOf(credentials.getKey()), distinguishedName);
+            return DsTlsCsrBuilder.buildPem(credentials.getKey(), publicKeyOf(credentials.getKey()), distinguishedName, subjectAltName);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e, INVALID_DISTINGUISHED_NAME.build());
         } catch (Exception e) {
             throw new InternalServerErrorException(e, CSR_FAILED.build());
         }
+    }
+
+    /**
+     * @return whether ACME ordering is currently available, and if so, from which designated certification
+     *     authorities and under which public hostname
+     */
+    public DsTlsAcmeAvailability getAcmeAvailability() {
+        DsTlsCertificateAcmeProvider provider = dsTlsCertificateAcmeProvider.getIfAvailable();
+        return provider != null ? provider.getAvailability() : ACME_NOT_AVAILABLE;
+    }
+
+    /**
+     * Orders a DataSpace TLS certificate via ACME from {@code caName} for {@code distinguishedName} and
+     * {@code subjectAltName}, reusing the stored DS TLS key, and stores the issued chain through the existing
+     * ACME store path. Ordering while a certificate already exists is allowed and replaces it.
+     *
+     * @return the issued leaf certificate
+     */
+    public X509Certificate orderCertificate(String caName, String distinguishedName, String subjectAltName) {
+        InternalSSLKey credentials = readCredentials()
+                .orElseThrow(() -> new NotFoundException(DS_TLS_KEY_NOT_GENERATED.build()));
+        validateSubjectAltName(subjectAltName);
+
+        DsTlsCertificateAcmeProvider provider = dsTlsCertificateAcmeProvider.getIfAvailable();
+        if (provider == null) {
+            throw new BadRequestException(DS_TLS_CA_NOT_FOUND.build(caName));
+        }
+
+        PrivateKey privateKey = credentials.getKey();
+        PublicKey publicKey = publicKeyOf(privateKey);
+        X509Certificate currentCertificate = leafOrNull(credentials);
+
+        DsTlsAcmeOrderResult result;
+        try {
+            result = provider.order(caName, distinguishedName, subjectAltName, privateKey, publicKey, currentCertificate);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e, INVALID_DISTINGUISHED_NAME.build());
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            String error = describeError(e);
+            recordAcmeOutcome(error);
+            throw new InternalServerErrorException(e, DS_TLS_ACME_ORDER_FAILED.build(error));
+        }
+
+        X509Certificate[] chainArray = result.certificateChain().toArray(X509Certificate[]::new);
+        storeAcmeEnrolledCertificate(privateKey, chainArray, result.nextRenewalTime());
+        return chainArray[0];
+    }
+
+    private void validateSubjectAltName(String subjectAltName) {
+        if (isBlank(subjectAltName) || WHITESPACE.matcher(subjectAltName).find()) {
+            throw new BadRequestException(DS_TLS_INVALID_SUBJECT_ALT_NAME.build());
+        }
+    }
+
+    private static String describeError(Exception ex) {
+        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+        return cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
     }
 
     public X509Certificate uploadCertificate(byte[] certificateChainBytes) {

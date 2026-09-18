@@ -28,6 +28,11 @@ package org.niis.xroad.ss.test.api.keys;
 
 import lombok.SneakyThrows;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,6 +103,64 @@ class DsTlsCertificateTest extends SsApiTest {
     }
 
     @Test
+    @DisplayName("a CSR generated with a SAN carries it as its single dNSName")
+    @SneakyThrows
+    void csrWithSanCarriesExactlyOneDnsName(SsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        var csrBytes = given("a CSR is generated for CN=ds.example.org with a SAN", () ->
+                client.generateCsr("CN=ds.example.org", "ds.example.org"));
+
+        then("the CSR carries exactly one dNSName subject alternative name", () ->
+                assertCsrCarriesSingleDnsName(csrBytes, "ds.example.org"));
+    }
+
+    @SneakyThrows
+    private void assertCsrCarriesSingleDnsName(byte[] pemCsrBytes, String expectedDnsName) {
+        var csr = parsePkcs10(pemCsrBytes);
+        var attributes = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+        assertThat(attributes).hasSize(1);
+        var extensions = Extensions.getInstance(attributes[0].getAttrValues().toArray()[0]);
+        var sans = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+        assertThat(sans.getNames()).hasSize(1);
+        assertThat(sans.getNames()[0].getTagNo()).isEqualTo(GeneralName.dNSName);
+        assertThat(sans.getNames()[0].getName().toString()).isEqualTo(expectedDnsName);
+    }
+
+    @Test
+    @DisplayName("ordering from a CA that is not a designated, ACME-capable DS TLS CA is rejected")
+    void orderFailsWithAnUnknownCertificationAuthority(SsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        then("ordering with an unknown CA name returns 400 ds_tls_ca_not_found", () ->
+                client.orderCertificate("Unknown CA", "CN=ds.example.org", "ds.example.org")
+                        .statusCode(400)
+                        .body("error.code", equalTo("ds_tls_ca_not_found")));
+    }
+
+    @Test
+    @DisplayName("ordering with a blank subject alternative name is rejected")
+    void orderFailsWithABlankSubjectAltName(SsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        then("ordering with a blank subject alternative name returns 400 ds_tls_invalid_subject_alt_name", () ->
+                client.orderCertificate("Test DS TLS CA", "CN=ds.example.org", " ")
+                        .statusCode(400)
+                        .body("error.code", equalTo("ds_tls_invalid_subject_alt_name")));
+    }
+
+    @Test
+    @DisplayName("ordering with a malformed distinguished name is rejected")
+    void orderFailsWithAMalformedDistinguishedName(SsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        then("ordering with a malformed distinguished name returns 400 invalid_distinguished_name", () ->
+                client.orderCertificate("Test DS TLS CA", "not a distinguished name", "ds.example.org")
+                        .statusCode(400)
+                        .body("error.code", equalTo("invalid_distinguished_name")));
+    }
+
+    @Test
     @DisplayName("the seeded certificate downloads as a gzip archive containing a parseable X.509 entry")
     @SneakyThrows
     void certificateDownloadSucceedsForTheSeededCertificate(SsBaselineSeeder seeder) {
@@ -118,7 +181,7 @@ class DsTlsCertificateTest extends SsApiTest {
     }
 
     @SneakyThrows
-    private void parsePkcs10(byte[] pemCsrBytes) {
+    private PKCS10CertificationRequest parsePkcs10(byte[] pemCsrBytes) {
         var pem = new String(pemCsrBytes, StandardCharsets.US_ASCII).trim();
         var body = pem
                 .replace("-----BEGIN CERTIFICATE REQUEST-----", "")
@@ -127,6 +190,7 @@ class DsTlsCertificateTest extends SsApiTest {
         var der = Base64.getDecoder().decode(body);
         var csr = new PKCS10CertificationRequest(der);
         assertThat(csr.getSubject()).isNotNull();
+        return csr;
     }
 
     private static void parseX509Certificate(byte[] certBytes) {

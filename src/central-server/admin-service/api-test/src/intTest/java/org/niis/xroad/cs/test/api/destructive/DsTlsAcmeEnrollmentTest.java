@@ -25,20 +25,29 @@
  */
 package org.niis.xroad.cs.test.api.destructive;
 
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
+import org.niis.xroad.cs.test.api.admin.DsTlsCertificateAdminClient;
 import org.niis.xroad.cs.test.api.admin.DsTlsCertificationAuthoritiesAdminClient;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
+import java.io.StringWriter;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
@@ -127,6 +136,122 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
                                     .getExitCode() == 0));
         } finally {
             MOCKED_VAULT_PATHS.forEach(seeder::clearMockExpectations);
+        }
+    }
+
+    @Test
+    @Tag("destructive")
+    @ResourceLock("ds-tls-acme-capable-cas")
+    @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
+    void orderStoresACertificateFromTheNamedAcmeCapableCa(CsBaselineSeeder seeder) {
+        var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
+        var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
+        var keyPair = generateRsaKeyPair();
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
+
+        given("every DS TLS certification authority left over from other tests with an ACME server configured "
+                + "is removed, so no stale designation interferes with this order", () ->
+                removeAcmeCapableCertificationAuthorities(caClient));
+
+        given("exactly one ACME-capable DS TLS CA, pointed at the project's test ACME server, is designated",
+                () -> caClient.addDsTlsCertificationAuthority(
+                                seeder.generateCertForServer("dstlsacme02-ca"), CA_NAME, ACME_DIRECTORY_URL, DS_TLS_PROFILE_ID)
+                        .statusCode(201));
+
+        given("the DS TLS vault slot already holds a private key and every touched vault path accepts writes", () -> {
+            seeder.mockExpectation(vaultGetKeyOnlyMock(keyPair));
+            seeder.mockExpectation(postOkMock(VAULT_SECRET_PATH));
+            seeder.mockExpectation(notFoundMock(VAULT_ACCOUNT_KEY_PATH));
+            seeder.mockExpectation(postOkMock(VAULT_ACCOUNT_KEY_PATH));
+            seeder.mockExpectation(postOkMock(VAULT_ENROLLMENT_STATUS_PATH));
+        });
+
+        try {
+            then("ordering with a multi-attribute DN and a SAN returns the issued certificate's subject", () ->
+                    dsTlsClient.orderCertificate(CA_NAME, multiAttributeDn, "ds-order.example.org")
+                            .statusCode(200)
+                            .body("subject_distinguished_name", equalTo(multiAttributeDn))
+                            .body("hash", notNullValue()));
+
+            and("the enrollment status reports ACME with a scheduled next renewal", () ->
+                    dsTlsClient.getEnrollmentStatus()
+                            .statusCode(200)
+                            .body("enrollment_method", equalTo("ACME"))
+                            .body("next_renewal_time", notNullValue()));
+        } finally {
+            MOCKED_VAULT_PATHS.forEach(seeder::clearMockExpectations);
+        }
+    }
+
+    @Test
+    @Tag("destructive")
+    @ResourceLock("ds-tls-acme-capable-cas")
+    @DisplayName("Ordering with a malformed distinguished name returns 400 invalid_distinguished_name")
+    void orderFailsWithAMalformedDistinguishedName(CsBaselineSeeder seeder) {
+        var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
+        var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
+        var keyPair = generateRsaKeyPair();
+
+        given("every DS TLS certification authority left over from other tests with an ACME server configured "
+                + "is removed, so no stale designation interferes with this order", () ->
+                removeAcmeCapableCertificationAuthorities(caClient));
+
+        given("exactly one ACME-capable DS TLS CA, pointed at the project's test ACME server, is designated",
+                () -> caClient.addDsTlsCertificationAuthority(
+                                seeder.generateCertForServer("dstlsacme03-ca"), CA_NAME, ACME_DIRECTORY_URL, DS_TLS_PROFILE_ID)
+                        .statusCode(201));
+
+        given("the DS TLS vault slot already holds a private key", () ->
+                seeder.mockExpectation(vaultGetKeyOnlyMock(keyPair)));
+
+        try {
+            then("ordering with a malformed distinguished name returns 400 invalid_distinguished_name", () ->
+                    dsTlsClient.orderCertificate(CA_NAME, "not a distinguished name", "ds-order.example.org")
+                            .statusCode(400)
+                            .body("error.code", equalTo("invalid_distinguished_name")));
+        } finally {
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
+        }
+    }
+
+    private static KeyPair generateRsaKeyPair() {
+        try {
+            var generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            return generator.generateKeyPair();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to generate RSA key pair for DS TLS order test", e);
+        }
+    }
+
+    private static String vaultGetKeyOnlyMock(KeyPair keyPair) {
+        try {
+            var keyWriter = new StringWriter();
+            try (var pemWriter = new PemWriter(keyWriter)) {
+                pemWriter.writeObject(new PemObject("PRIVATE KEY", keyPair.getPrivate().getEncoded()));
+            }
+            return """
+                    {
+                      "httpRequest": {"method": "GET", "path": "%s"},
+                      "httpResponse": {
+                        "statusCode": 200,
+                        "headers": {"Content-Type": ["application/json"]},
+                        "body": {
+                          "type": "JSON",
+                          "json": {
+                            "renewable": false,
+                            "lease_duration": 0,
+                            "data": {
+                              "certificate": "",
+                              "privateKey": "%s"
+                            }
+                          }
+                        }
+                      }
+                    }
+                    """.formatted(VAULT_SECRET_PATH, keyWriter.toString().replace("\r\n", "\\n").replace("\n", "\\n"));
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to build vault GET mock for DS TLS order test", e);
         }
     }
 
