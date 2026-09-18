@@ -57,6 +57,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
@@ -166,24 +167,34 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
     @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
     void orderStoresACertificateFromTheNamedAcmeCapableCa(SsApiTestContainerSetup stack) {
         var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var caName = "Test DS TLS CA";
         var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
+        var subjectAltName = "ds-order.example.org";
 
         given("a fresh DS TLS key is generated", () ->
                 client.generateKey().statusCode(201));
 
         then("ordering from the designated test DS TLS CA with a multi-attribute DN and a SAN returns the "
                 + "issued certificate's subject", () ->
-                client.orderCertificate("Test DS TLS CA", multiAttributeDn, "ds-order.example.org")
+                client.orderCertificate(caName, multiAttributeDn, subjectAltName)
                         .statusCode(200)
                         .body("subject_distinguished_name", equalTo(multiAttributeDn))
                         .body("hash", notNullValue()));
 
-        and("the enrollment status reports ACME with a scheduled next renewal and no error", () ->
+        and("the DS TLS certificate status reports the stored certificate's SAN equal to the input", () ->
+                client.getStatus()
+                        .statusCode(200)
+                        .body("certificate.subject_alternative_names", equalTo("DNS:" + subjectAltName)));
+
+        and("the enrollment status reports ACME availability with the ordering CA listed, a scheduled next "
+                + "renewal and no error", () ->
                 client.getEnrollmentStatus()
                         .statusCode(200)
                         .body("enrollment_method", equalTo("ACME"))
                         .body("next_renewal_time", notNullValue())
-                        .body("last_error", nullValue()));
+                        .body("last_error", nullValue())
+                        .body("acme_available", equalTo(true))
+                        .body("acme_cas.name", hasItem(caName)));
     }
 
     @Test

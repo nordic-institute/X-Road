@@ -46,6 +46,7 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -148,6 +149,7 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
         var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
         var keyPair = generateRsaKeyPair();
         var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
+        var subjectAltName = "ds-order.example.org";
 
         given("every DS TLS certification authority left over from other tests with an ACME server configured "
                 + "is removed, so no stale designation interferes with this order", () ->
@@ -167,17 +169,26 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
         });
 
         try {
-            then("ordering with a multi-attribute DN and a SAN returns the issued certificate's subject", () ->
-                    dsTlsClient.orderCertificate(CA_NAME, multiAttributeDn, "ds-order.example.org")
+            // The OpenBao paths below are a stateless MockServer stand-in (see the class Javadoc): a GET always
+            // replays the fixed vaultGetKeyOnlyMock response regardless of what this order's POST just wrote, so
+            // the issued certificate's own subject and SAN are asserted directly against the order's synchronous
+            // response body - the same CertificateDetails the (unreadable-back-here) stored chain was built from -
+            // rather than by re-reading it through a subsequent status call.
+            then("ordering with a multi-attribute DN and a SAN returns the issued certificate's subject and SAN", () ->
+                    dsTlsClient.orderCertificate(CA_NAME, multiAttributeDn, subjectAltName)
                             .statusCode(200)
                             .body("subject_distinguished_name", equalTo(multiAttributeDn))
+                            .body("subject_alternative_names", equalTo("DNS:" + subjectAltName))
                             .body("hash", notNullValue()));
 
-            and("the enrollment status reports ACME with a scheduled next renewal", () ->
+            and("the enrollment status reports ACME availability with the ordering CA listed and a scheduled "
+                    + "next renewal", () ->
                     dsTlsClient.getEnrollmentStatus()
                             .statusCode(200)
                             .body("enrollment_method", equalTo("ACME"))
-                            .body("next_renewal_time", notNullValue()));
+                            .body("next_renewal_time", notNullValue())
+                            .body("acme_available", equalTo(true))
+                            .body("acme_cas.name", hasItem(CA_NAME)));
         } finally {
             MOCKED_VAULT_PATHS.forEach(seeder::clearMockExpectations);
         }
