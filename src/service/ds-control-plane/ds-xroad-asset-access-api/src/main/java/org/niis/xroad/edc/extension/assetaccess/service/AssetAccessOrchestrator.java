@@ -55,15 +55,13 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
-import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
-import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
-import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
+import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
@@ -74,22 +72,26 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PULL_DISTRIBUTI
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED;
 
 /**
- * Orchestrates the full asset access acquisition flow: catalog fetch, offer selection, contract negotiation,
- * transfer process initiation, and data address resolution — using event-driven callbacks instead of polling.
+ * Orchestrates the full asset access acquisition flow: agreement reuse lookup, catalog fetch, offer
+ * selection, contract negotiation, transfer process initiation, and data address resolution.
  *
- * <p>Uses singleton {@link NegotiationCompletionListener} and {@link TransferCompletionListener}
- * registered once at extension startup. O(1) event dispatch via ConcurrentHashMap; dead-letter
- * caches inside each listener close the race between {@code initiate*} returning and {@code register}.
+ * <p>Negotiation and transfer completion are awaited through the shared {@link AssetAccessCompletionPoller},
+ * which reads the outcome from the EDC stores rather than an in-process listener; this works identically
+ * whether the negotiation or transfer is driven to completion by this instance or another one sharing
+ * the same database.
+ *
+ * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store; a
+ * hit skips the catalog fetch and negotiation entirely and transfers with the existing agreement.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {
 
     private final AssetAccessStateStore stateStore;
+    private final ReusableAgreementLookup reusableAgreementLookup;
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;
     private final TransferProcessService transferProcessService;
-    private final NegotiationCompletionListener negotiationListener;
-    private final TransferCompletionListener transferListener;
+    private final AssetAccessCompletionPoller completionPoller;
     private final JsonLd jsonLd;
     private final TypeTransformerRegistry transformerRegistry;
     private final Monitor monitor;
@@ -109,14 +111,16 @@ public class AssetAccessOrchestrator {
 
     private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
             String key, ParticipantContext participantContext, AssetAccessRequest request) {
-        var existingAgreement = stateStore.getAgreement(key);
-        if (existingAgreement != null) {
-            monitor.info("%s cached-agreement fast path: agreementId=%s transferType=%s"
-                    .formatted(key, existingAgreement.agreement().getId(), existingAgreement.transferType()));
-            return transferAndAwaitDataAddress(key, participantContext, existingAgreement.agreement(),
-                    existingAgreement.transferType(), request.counterPartyAddress(), request.protocolOrDefault())
+        var reusableAgreement = reusableAgreementLookup.find(
+                participantContext.getParticipantContextId(), request.assetId(), request.counterPartyId());
+        if (reusableAgreement.isPresent()) {
+            var agreement = reusableAgreement.get();
+            monitor.info("%s reusing agreement: agreementId=%s".formatted(key, agreement.getId()));
+            return transferAndAwaitDataAddress(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
+                    request.counterPartyAddress(), request.protocolOrDefault())
                     .thenApply(ServiceResult::success);
         }
+        monitor.info("%s no reusable agreement found, negotiating".formatted(key));
         return executeAcquisition(participantContext, request, key);
     }
 
@@ -125,12 +129,8 @@ public class AssetAccessOrchestrator {
         return fetchCatalog(registryKey, participantContext, request)
                 .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId()))
                 .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
-                        .thenApply(agreement -> {
-                            stateStore.recordAgreement(registryKey, agreement, offer.transferType());
-                            return new AgreementContext(agreement, offer.transferType());
-                        }))
-                .thenCompose(ctx -> transferAndAwaitDataAddress(registryKey, participantContext, ctx.agreement(),
-                        ctx.transferType(), request.counterPartyAddress(), request.protocolOrDefault()))
+                        .thenCompose(agreement -> transferAndAwaitDataAddress(registryKey, participantContext, agreement,
+                                offer.transferType(), request.counterPartyAddress(), request.protocolOrDefault())))
                 .thenApply(ServiceResult::success);
     }
 
@@ -227,13 +227,9 @@ public class AssetAccessOrchestrator {
             var negotiationId = negotiationResult
                     .map(Entity::getId)
                     .orElseThrow(exceptionMapper(ContractNegotiation.class, null));
-            monitor.info("%s negotiation initiated: negotiationId=%s".formatted(key, negotiationId));
+            monitor.info("%s negotiation initiated, awaiting completion: negotiationId=%s".formatted(key, negotiationId));
 
-            var future = new CompletableFuture<ContractAgreement>();
-            negotiationListener.register(negotiationId, future);
-
-            return future
-                    .orTimeout(negotiationTimeout.toMillis(), TimeUnit.MILLISECONDS)
+            return completionPoller.awaitNegotiation(negotiationId, negotiationTimeout)
                     .whenComplete((result, throwable) -> onNegotiationComplete(key, negotiationId, result, throwable));
         } catch (Exception e) {
             monitor.warning("%s negotiation initiation failed".formatted(key), e);
@@ -258,7 +254,6 @@ public class AssetAccessOrchestrator {
     }
 
     private void onNegotiationComplete(String key, String negotiationId, ContractAgreement result, Throwable throwable) {
-        negotiationListener.deregister(negotiationId);
         if (throwable != null) {
             monitor.warning("%s negotiation failed: negotiationId=%s".formatted(key, negotiationId), throwable);
         } else if (result != null) {
@@ -299,17 +294,13 @@ public class AssetAccessOrchestrator {
         }
 
         var transferProcessId = result.getContent().getId();
-        monitor.info("%s transfer initiated: transferProcessId=%s".formatted(key, transferProcessId));
-        var future = new CompletableFuture<DataAddress>();
-        transferListener.register(transferProcessId, future);
+        monitor.info("%s transfer initiated, awaiting completion: transferProcessId=%s".formatted(key, transferProcessId));
 
-        return future
-                .orTimeout(transferTimeout.toMillis(), TimeUnit.MILLISECONDS)
+        return completionPoller.awaitTransfer(transferProcessId, transferTimeout)
                 .whenComplete((dataAddress, throwable) -> onTransferComplete(key, transferProcessId, dataAddress, throwable));
     }
 
     private void onTransferComplete(String key, String transferProcessId, DataAddress dataAddress, Throwable throwable) {
-        transferListener.deregister(transferProcessId);
         if (throwable != null) {
             monitor.warning("%s transfer failed: transferProcessId=%s".formatted(key, transferProcessId), throwable);
         } else if (dataAddress != null) {

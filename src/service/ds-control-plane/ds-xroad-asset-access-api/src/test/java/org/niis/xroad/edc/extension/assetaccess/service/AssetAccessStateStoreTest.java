@@ -27,13 +27,10 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -48,31 +45,6 @@ class AssetAccessStateStoreTest {
     @BeforeEach
     void setUp() {
         store = new AssetAccessStateStore();
-    }
-
-    @Test
-    void getAgreementReturnsNullWhenEmpty() {
-        assertThat(store.getAgreement("any-key")).isNull();
-    }
-
-    @Test
-    void recordAndRetrieveAgreement() {
-        var agreement = buildAgreement("agr-1");
-        store.recordAgreement("key-1", agreement, XRoadTransferType.PULL.wireValue());
-
-        var ctx = store.getAgreement("key-1");
-
-        assertThat(ctx).isNotNull();
-        assertThat(ctx.agreement()).isSameAs(agreement);
-        assertThat(ctx.transferType()).isEqualTo(XRoadTransferType.PULL.wireValue());
-    }
-
-    @Test
-    void recordAgreementDoesNotAffectOtherKeys() {
-        var agreement = buildAgreement("agr-1");
-        store.recordAgreement("key-1", agreement, XRoadTransferType.PULL.wireValue());
-
-        assertThat(store.getAgreement("key-2")).isNull();
     }
 
     @Test
@@ -169,16 +141,5 @@ class AssetAccessStateStoreTest {
         var future2 = store.loadOrStartInFlight("key-b", CompletableFuture::new);
 
         assertThat(future1).isNotSameAs(future2);
-    }
-
-    private ContractAgreement buildAgreement(String id) {
-        return ContractAgreement.Builder.newInstance()
-                .id(id)
-                .providerId("provider-1")
-                .consumerId("consumer-1")
-                .contractSigningDate(System.currentTimeMillis())
-                .assetId("asset-1")
-                .policy(Policy.Builder.newInstance().build())
-                .build();
     }
 }
