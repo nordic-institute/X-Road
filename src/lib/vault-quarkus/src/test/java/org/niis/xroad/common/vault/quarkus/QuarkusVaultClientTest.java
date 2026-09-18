@@ -72,11 +72,6 @@ class QuarkusVaultClientTest {
             String path = invocation.getArgument(0);
             return secretsByPath.get(path);
         });
-
-        lenient().doAnswer(invocation -> {
-            secretsByPath.remove(invocation.getArgument(0, String.class));
-            return null;
-        }).when(kvSecretEngine).deleteSecret(any());
     }
 
     @Test
@@ -158,12 +153,14 @@ class QuarkusVaultClientTest {
     }
 
     @Test
-    void shouldDeleteDsTlsEnrollmentStatus() {
-        vaultClient.createDsTlsEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), null));
+    void shouldStoreAndRetrieveADsTlsEnrollmentStatusWithNoMethodRecorded() {
+        var stored = new DsTlsEnrollmentStatus(null, null, null);
 
-        vaultClient.deleteDsTlsEnrollmentStatus();
+        vaultClient.createDsTlsEnrollmentStatus(stored);
+        var retrieved = vaultClient.getDsTlsEnrollmentStatus().orElseThrow();
 
-        assertThat(vaultClient.getDsTlsEnrollmentStatus()).isEmpty();
+        assertThat(retrieved).isEqualTo(stored);
+        assertThat(retrieved.method()).isNull();
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

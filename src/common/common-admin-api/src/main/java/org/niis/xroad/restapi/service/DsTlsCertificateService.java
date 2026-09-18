@@ -116,7 +116,7 @@ public class DsTlsCertificateService {
             log.error("Failed to store DataSpace TLS key", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
-        deleteEnrollmentStatus();
+        writeEnrollmentStatus(new DsTlsEnrollmentStatus(null, null, null));
     }
 
     /**
@@ -337,20 +337,6 @@ public class DsTlsCertificateService {
             vaultClient.createDsTlsEnrollmentStatus(status);
         } catch (Exception e) {
             log.error("Failed to store DataSpace TLS enrollment status in vault", e);
-            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
-        }
-    }
-
-    /**
-     * Deletes the recorded enrollment status outright rather than clearing its fields: {@link DsTlsEnrollmentStatus}
-     * has no way to express "no method", so a fresh key with no enrollment history yet can only be represented by
-     * the record being absent.
-     */
-    private void deleteEnrollmentStatus() {
-        try {
-            vaultClient.deleteDsTlsEnrollmentStatus();
-        } catch (Exception e) {
-            log.error("Failed to clear DataSpace TLS enrollment status in vault", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
     }

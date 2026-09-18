@@ -163,10 +163,14 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
-    void generateKeyShouldClearAnyRecordedEnrollmentStatus() throws Exception {
+    void generateKeyShouldClearAnyRecordedEnrollmentStatusByWritingAnEmptyRecord() throws Exception {
         service().generateKey();
 
-        verify(vaultClient).deleteDsTlsEnrollmentStatus();
+        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
+        assertThat(captor.getValue().method()).isNull();
+        assertThat(captor.getValue().nextRenewalTime()).isNull();
+        assertThat(captor.getValue().lastError()).isNull();
     }
 
     @Test
@@ -518,9 +522,37 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
+    void recordAcmeOutcomeShouldTagAcmeWhenTheRecordedMethodIsNull() {
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(null, null, null)));
+
+        boolean changed = service().recordAcmeOutcome("directory unreachable");
+
+        assertThat(changed).isTrue();
+        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
+        assertThat(captor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
+        assertThat(captor.getValue().nextRenewalTime()).isNull();
+        assertThat(captor.getValue().lastError()).isEqualTo("directory unreachable");
+    }
+
+    @Test
     void getEnrollmentStatusShouldReportNoneConfiguredWhenNothingIsStoredAtAll() throws Exception {
         when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
         when(vaultClient.getDsTlsEnrollmentStatus()).thenReturn(Optional.empty());
+
+        var status = service().getEnrollmentStatus();
+
+        assertThat(status.configured()).isFalse();
+        assertThat(status.method()).isNull();
+        assertThat(status.lastError()).isNull();
+    }
+
+    @Test
+    void getEnrollmentStatusShouldReportNoneConfiguredWhenTheRecordedMethodIsNull() throws Exception {
+        when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
+        when(vaultClient.getDsTlsEnrollmentStatus())
+                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(null, null, null)));
 
         var status = service().getEnrollmentStatus();
 

@@ -124,12 +124,6 @@ public interface VaultClient {
      */
     void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status);
 
-    /**
-     * Deletes the DS TLS certificate's enrollment bookkeeping record outright, so that a subsequent read reports
-     * no enrollment history at all rather than a cleared-but-present record. A no-op when nothing is recorded.
-     */
-    void deleteDsTlsEnrollmentStatus();
-
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
     Optional<String> getMLogArchivalSigningSecretKey();
@@ -275,10 +269,12 @@ public interface VaultClient {
     /**
      * Parses a raw Vault secret map into a {@link DsTlsEnrollmentStatus}. Shared by every {@link VaultClient}
      * implementation regardless of whether its underlying client returns {@code Map<String, Object>} or
-     * {@code Map<String, String>} values.
+     * {@code Map<String, String>} values. A missing method key means "no method recorded" — the OpenBao policy
+     * this record lives under grants no delete, so a cleared record is a write with the field omitted, not an
+     * absent record.
      */
     default DsTlsEnrollmentStatus toDsTlsEnrollmentStatus(Map<String, ?> secret) {
-        var method = DsTlsEnrollmentMethod.valueOf(secret.get(METHOD_KEY).toString());
+        var method = secret.containsKey(METHOD_KEY) ? DsTlsEnrollmentMethod.valueOf(secret.get(METHOD_KEY).toString()) : null;
         var nextRenewalTime = secret.containsKey(NEXT_RENEWAL_TIME_KEY)
                 ? Instant.parse(secret.get(NEXT_RENEWAL_TIME_KEY).toString()) : null;
         var lastError = secret.containsKey(LAST_ERROR_KEY) ? secret.get(LAST_ERROR_KEY).toString() : null;
@@ -287,11 +283,14 @@ public interface VaultClient {
 
     /**
      * Builds the raw Vault secret map for a {@link DsTlsEnrollmentStatus}, the inverse of
-     * {@link #toDsTlsEnrollmentStatus(Map)}.
+     * {@link #toDsTlsEnrollmentStatus(Map)}. A {@code null} method is omitted rather than written as a literal,
+     * so that clearing the record is an ordinary write (the OpenBao policy for this path grants no delete).
      */
     default Map<String, String> toDsTlsEnrollmentStatusSecret(DsTlsEnrollmentStatus status) {
         var secret = new HashMap<String, String>();
-        secret.put(METHOD_KEY, status.method().name());
+        if (status.method() != null) {
+            secret.put(METHOD_KEY, status.method().name());
+        }
         if (status.nextRenewalTime() != null) {
             secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime().toString());
         }

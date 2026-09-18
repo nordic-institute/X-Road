@@ -135,11 +135,6 @@ public class QuarkusVaultClient implements VaultClient {
     }
 
     @Override
-    public void deleteDsTlsEnrollmentStatus() {
-        kvSecretEngine.deleteSecret(DS_HTTPS_ENROLLMENT_STATUS_PATH);
-    }
-
-    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 
