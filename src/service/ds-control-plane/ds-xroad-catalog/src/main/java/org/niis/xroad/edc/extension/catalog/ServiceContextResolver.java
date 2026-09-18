@@ -107,6 +107,33 @@ class ServiceContextResolver {
     }
 
     /**
+     * The full publication decision for a service: the contexts it is published under, and whether
+     * a transfer for it may resolve a data address. Disabled and enabled services publish
+     * identically — a service's enabled state never varies {@code contexts}, and
+     * {@code transferEligible} is currently always {@code true} — so a disabled service stays
+     * discoverable and reachable exactly like an enabled one; only the provider's per-message
+     * refusal, downstream of this decision, differs.
+     *
+     * @param serviceId the service to resolve a publication decision for
+     * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
+     */
+    Publication publicationDecision(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
+        return new Publication(resolveEnabled(serviceId, provisionedMemberContextIds), true);
+    }
+
+    /**
+     * Same contract as {@link #publicationDecision(ServiceId, Set)}, for the by-id cache-miss path.
+     *
+     * @param serviceId the service to resolve a publication decision for
+     */
+    Publication publicationDecisionById(ServiceId serviceId) {
+        return new Publication(resolveEnabledById(serviceId), true);
+    }
+
+    /** The contexts a service is published under, and whether a transfer for it may resolve a data address. */
+    record Publication(List<String> contexts, boolean transferEligible) { }
+
+    /**
      * Picks the record matching the request's addressed context, if it is one of
      * {@code resolvedContexts}; otherwise falls back to the legacy host context, which by
      * {@link #resolveEnabled(ServiceId, Set)}'s contract is always the first entry.
