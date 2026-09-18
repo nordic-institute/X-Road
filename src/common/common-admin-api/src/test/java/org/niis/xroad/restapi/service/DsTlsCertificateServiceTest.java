@@ -163,6 +163,13 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
+    void generateKeyShouldClearAnyRecordedEnrollmentStatus() throws Exception {
+        service().generateKey();
+
+        verify(vaultClient).deleteDsTlsEnrollmentStatus();
+    }
+
+    @Test
     void generateCsrShouldFailWhenNoKeyGenerated() throws Exception {
         when(vaultClient.getDsHttpsTlsCredentials()).thenThrow(missingSecretException());
 
@@ -420,6 +427,21 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
+    void uploadCertificateShouldRecordManualEnrollmentAndClearNextRenewalTimeAndLastError() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[0]));
+        X509Certificate cert = selfSignedCertificate(keyPair);
+
+        service().uploadCertificate(toPem(cert));
+
+        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
+        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
+        assertThat(captor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.MANUAL);
+        assertThat(captor.getValue().nextRenewalTime()).isNull();
+        assertThat(captor.getValue().lastError()).isNull();
+    }
+
+    @Test
     void storeAcmeEnrolledCertificateShouldStoreCredentialsAndTagAcmeStatus() throws Exception {
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate cert = selfSignedCertificate(keyPair);
@@ -548,42 +570,6 @@ class DsTlsCertificateServiceTest {
         assertThat(status.method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
         assertThat(status.nextRenewalTime()).isEqualTo(nextRenewalTime);
         assertThat(status.lastError()).isEqualTo("transient error");
-    }
-
-    @Test
-    void suspendAcmeSchedulingShouldClearNextRenewalTimeAndLastErrorWhilePreservingMethod() {
-        when(vaultClient.getDsTlsEnrollmentStatus())
-                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), "some error")));
-
-        boolean changed = service().suspendAcmeScheduling();
-
-        assertThat(changed).isTrue();
-        ArgumentCaptor<DsTlsEnrollmentStatus> captor = ArgumentCaptor.forClass(DsTlsEnrollmentStatus.class);
-        verify(vaultClient).createDsTlsEnrollmentStatus(captor.capture());
-        assertThat(captor.getValue().method()).isEqualTo(DsTlsEnrollmentMethod.ACME);
-        assertThat(captor.getValue().nextRenewalTime()).isNull();
-        assertThat(captor.getValue().lastError()).isNull();
-    }
-
-    @Test
-    void suspendAcmeSchedulingShouldBeANoOpWhenNoStatusHasEverBeenRecorded() {
-        when(vaultClient.getDsTlsEnrollmentStatus()).thenReturn(Optional.empty());
-
-        boolean changed = service().suspendAcmeScheduling();
-
-        assertThat(changed).isFalse();
-        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
-    }
-
-    @Test
-    void suspendAcmeSchedulingShouldBeANoOpWhenAlreadyClear() {
-        when(vaultClient.getDsTlsEnrollmentStatus())
-                .thenReturn(Optional.of(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, null, null)));
-
-        boolean changed = service().suspendAcmeScheduling();
-
-        assertThat(changed).isFalse();
-        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
     }
 
     @Test

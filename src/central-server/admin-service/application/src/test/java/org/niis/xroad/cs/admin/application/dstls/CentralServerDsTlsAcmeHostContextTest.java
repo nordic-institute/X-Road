@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.application.dstls;
 
+import ee.ria.xroad.common.TestCertUtil;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +37,7 @@ import org.niis.xroad.cs.admin.api.service.DsTlsCertificationAuthoritiesService;
 import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,9 +85,12 @@ class CentralServerDsTlsAcmeHostContextTest {
     }
 
     @Test
-    void getDsTlsCertificationAuthoritiesShouldReadFromTheCsOwnServiceNotGlobalconf() {
+    void getDsTlsCertificationAuthoritiesShouldReadFromTheCsOwnServiceNotGlobalconf() throws Exception {
+        X509Certificate caCertificate = TestCertUtil.getCa().certChain[0];
         DsTlsCertificationAuthority ca = new DsTlsCertificationAuthority()
                 .setName("Test DS TLS CA")
+                .setCertificate(caCertificate.getEncoded())
+                .setIntermediateCas(List.of())
                 .setAcmeServerDirectoryUrl("http://testca:8887")
                 .setDsTlsCertificateProfileId("ds-tls-profile");
         when(dsTlsCertificationAuthoritiesService.findAll()).thenReturn(List.of(ca));
@@ -94,6 +100,8 @@ class CentralServerDsTlsAcmeHostContextTest {
         assertThat(result).hasSize(1);
         ApprovedDsTlsCaInfo caInfo = result.getFirst();
         assertThat(caInfo.getName()).isEqualTo("Test DS TLS CA");
+        assertThat(caInfo.getTopCaCert()).isEqualTo(caCertificate);
+        assertThat(caInfo.getIntermediateCaCerts()).isEmpty();
         assertThat(caInfo.getAcmeServerDirectoryUrl()).isEqualTo("http://testca:8887");
         assertThat(caInfo.getDsTlsCertificateProfileId()).isEqualTo("ds-tls-profile");
     }

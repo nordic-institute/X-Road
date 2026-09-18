@@ -80,6 +80,11 @@ class SpringVaultClientTest {
             response.setData(data);
             return response;
         });
+
+        lenient().doAnswer(invocation -> {
+            secretsByPath.remove(invocation.getArgument(0, String.class));
+            return null;
+        }).when(vaultKeyValueOperations).delete(any());
     }
 
     @Test
@@ -158,6 +163,15 @@ class SpringVaultClientTest {
         var retrieved = vaultClient.getDsTlsEnrollmentStatus();
 
         assertThat(retrieved).isEmpty();
+    }
+
+    @Test
+    void shouldDeleteDsTlsEnrollmentStatus() {
+        vaultClient.createDsTlsEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, Instant.now(), null));
+
+        vaultClient.deleteDsTlsEnrollmentStatus();
+
+        assertThat(vaultClient.getDsTlsEnrollmentStatus()).isEmpty();
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

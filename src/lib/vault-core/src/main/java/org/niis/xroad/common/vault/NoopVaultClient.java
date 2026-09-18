@@ -104,6 +104,11 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
+    public void deleteDsTlsEnrollmentStatus() {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         throw new UnsupportedOperationException("Not supported");
     }

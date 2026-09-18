@@ -116,6 +116,7 @@ public class DsTlsCertificateService {
             log.error("Failed to store DataSpace TLS key", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
+        deleteEnrollmentStatus();
     }
 
     /**
@@ -202,11 +203,12 @@ public class DsTlsCertificateService {
         X509Certificate[] chain = dsTlsCertificateValidator.validate(publicKeyOf(credentials.getKey()), certificateChainBytes);
         try {
             vaultClient.createDsHttpsTlsCredentials(new InternalSSLKey(credentials.getKey(), chain));
-            log.info("Successfully stored DataSpace TLS certificate");
         } catch (Exception e) {
             log.error("Failed to store DataSpace TLS certificate", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
+        writeEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.MANUAL, null, null));
+        log.info("Successfully stored DataSpace TLS certificate");
         return chain[0];
     }
 
@@ -279,28 +281,6 @@ public class DsTlsCertificateService {
         return new DsTlsEnrollmentStatus(method, nextRenewalTime, lastError);
     }
 
-    /**
-     * Suspends ACME scheduling bookkeeping: clears the recorded next-renewal-time and last error while preserving
-     * the recorded method, for use when the feature this belongs to gets disabled after a certificate was already
-     * ACME-enrolled. Deliberately leaves the credential itself untouched. A no-op when already clear.
-     *
-     * @return {@code true} if anything was cleared, {@code false} if it was already clear
-     */
-    public boolean suspendAcmeScheduling() {
-        Optional<DsTlsEnrollmentStatus> existing = readEnrollmentStatus();
-        if (existing.isEmpty()) {
-            return false;
-        }
-
-        DsTlsEnrollmentStatus current = existing.get();
-        if (current.nextRenewalTime() == null && current.lastError() == null) {
-            return false;
-        }
-
-        writeEnrollmentStatus(new DsTlsEnrollmentStatus(current.method(), null, null));
-        return true;
-    }
-
     public byte[] downloadCertificateTar() {
         X509Certificate certificate = readCredentials()
                 .flatMap(this::leafOptional)
@@ -357,6 +337,20 @@ public class DsTlsCertificateService {
             vaultClient.createDsTlsEnrollmentStatus(status);
         } catch (Exception e) {
             log.error("Failed to store DataSpace TLS enrollment status in vault", e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+    }
+
+    /**
+     * Deletes the recorded enrollment status outright rather than clearing its fields: {@link DsTlsEnrollmentStatus}
+     * has no way to express "no method", so a fresh key with no enrollment history yet can only be represented by
+     * the record being absent.
+     */
+    private void deleteEnrollmentStatus() {
+        try {
+            vaultClient.deleteDsTlsEnrollmentStatus();
+        } catch (Exception e) {
+            log.error("Failed to clear DataSpace TLS enrollment status in vault", e);
             throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
         }
     }

@@ -124,6 +124,12 @@ public interface VaultClient {
      */
     void createDsTlsEnrollmentStatus(DsTlsEnrollmentStatus status);
 
+    /**
+     * Deletes the DS TLS certificate's enrollment bookkeeping record outright, so that a subsequent read reports
+     * no enrollment history at all rather than a cleared-but-present record. A no-op when nothing is recorded.
+     */
+    void deleteDsTlsEnrollmentStatus();
+
     void setMLogArchivalSigningSecretKey(String armoredPrivateKey);
 
     Optional<String> getMLogArchivalSigningSecretKey();

@@ -198,6 +198,54 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
     }
 
     @Test
+    @DisplayName("Manual upload records enrollment method MANUAL and clears the renewal schedule; regenerating "
+            + "the key then clears the recorded status entirely")
+    @SneakyThrows
+    void manualUploadRecordsManualAndKeyRegenerationClearsTheRecordedStatus(SsApiTestContainerSetup stack) {
+        var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var testCaMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, Port.TEST_CA);
+        var testCaBaseUrl = "http://%s:%d/testca".formatted(testCaMapping.host(), testCaMapping.port());
+
+        given("a fresh DS TLS key is generated and ordered via ACME, so the recorded method starts as ACME", () -> {
+            client.generateKey().statusCode(201);
+            client.orderCertificate("Test DS TLS CA", "CN=ds-bookkeeping.example.org", "ds-bookkeeping.example.org")
+                    .statusCode(200);
+        });
+
+        and("the enrollment status confirms ACME with a scheduled next renewal", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("ACME"))
+                        .body("next_renewal_time", notNullValue()));
+
+        var csrBytes = given("a CSR is generated for the same key", () ->
+                client.generateCsr("CN=ds-bookkeeping.example.org"));
+
+        var signedCert = given("the CSR is signed out of band by the test CA", () ->
+                signCsrAtTestCa(testCaBaseUrl, csrBytes));
+
+        when("the manually signed certificate is uploaded over the existing ACME-enrolled one", () ->
+                client.uploadCertificate(signedCert).statusCode(200));
+
+        then("the enrollment status now reports MANUAL with no next renewal time and no error", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("MANUAL"))
+                        .body("next_renewal_time", nullValue())
+                        .body("last_error", nullValue()));
+
+        when("the key is re-created", () ->
+                client.generateKey().statusCode(201));
+
+        then("the enrollment status reports no method configured and no renewal schedule", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("NONE"))
+                        .body("next_renewal_time", nullValue())
+                        .body("last_error", nullValue()));
+    }
+
+    @Test
     @DisplayName("Uploading a certificate for a different key is rejected as a key/certificate mismatch")
     @SneakyThrows
     void uploadingCertificateForADifferentKeyIsRejected(SsApiTestContainerSetup stack) {

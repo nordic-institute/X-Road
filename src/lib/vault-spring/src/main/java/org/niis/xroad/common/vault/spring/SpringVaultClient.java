@@ -130,6 +130,11 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
+    public void deleteDsTlsEnrollmentStatus() {
+        vaultClient.delete(DS_HTTPS_ENROLLMENT_STATUS_PATH);
+    }
+
+    @Override
     public void setMLogArchivalSigningSecretKey(String armoredPrivateKey) {
         var secret = new HashMap<String, String>();
 
