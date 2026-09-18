@@ -83,13 +83,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -231,13 +231,15 @@ class AssetAccessOrchestratorTest {
 
         var agreement = buildAgreement("agreement-1");
         when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", agreement));
-        completionPoller.poll();
-        verify(transferProcessService, timeout(5000)).initiateTransfer(any(), any());
 
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
                 .property("endpoint", "http://provider/data").build();
         when(transferProcessStore.findById("tp-1")).thenReturn(startedTransfer("tp-1", dataAddress));
-        completionPoller.poll();
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            completionPoller.poll();
+            assertThat(future).isDone();
+        });
 
         var result = future.get(5, TimeUnit.SECONDS);
         assertThat(result.succeeded()).isTrue();
@@ -473,13 +475,15 @@ class AssetAccessOrchestratorTest {
 
         var agreement = buildAgreement("agreement-1");
         when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", agreement));
-        completionPoller.poll();
-        verify(transferProcessService, timeout(5000)).initiateTransfer(any(), any());
 
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData")
                 .property("endpoint", "http://provider/data").build();
         when(transferProcessStore.findById("tp-1")).thenReturn(startedTransfer("tp-1", dataAddress));
-        completionPoller.poll();
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            completionPoller.poll();
+            assertThat(future1).isDone();
+        });
 
         future1.get(5, TimeUnit.SECONDS);
     }
@@ -507,11 +511,12 @@ class AssetAccessOrchestratorTest {
 
         var agreement = buildAgreement("agreement-1");
         when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", agreement));
-        completionPoller.poll();
-        verify(transferProcessService, timeout(5000)).initiateTransfer(any(), any());
-
         when(transferProcessStore.findById("tp-1")).thenReturn(terminatedTransfer("tp-1", null));
-        completionPoller.poll();
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            completionPoller.poll();
+            assertThat(future).isDone();
+        });
 
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)

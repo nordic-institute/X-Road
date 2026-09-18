@@ -62,8 +62,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -71,7 +73,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -291,7 +296,29 @@ class AssetAccessCompletionPollerTest {
         poller.poll();
 
         verify(negotiationStore, never()).findById(anyString());
-        assertThat(future).isNotDone();
+        assertThat(future).isDone();
+        assertThatThrownBy(future::join).hasCauseInstanceOf(XrdRuntimeException.class);
+    }
+
+    @Test
+    void registrationAfterStopReturnsAlreadyFailedFutureWithAcquisitionStoppedFailure() {
+        poller.stop();
+
+        var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        var transferFuture = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+
+        assertThat(negotiationFuture).isDone();
+        assertThat(transferFuture).isDone();
+        assertThatThrownBy(negotiationFuture::join)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> {
+                    var cause = (XrdRuntimeException) ex.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_acquisition_failed");
+                    assertThat(cause.getOrigin()).isEqualTo(ErrorOrigin.DATASPACE);
+                });
+        assertThatThrownBy(transferFuture::join).hasCauseInstanceOf(XrdRuntimeException.class);
+
+        verifyNoInteractions(negotiationStore, transferProcessStore);
     }
 
     @Test
@@ -394,6 +421,86 @@ class AssetAccessCompletionPollerTest {
         } finally {
             localPoller.stop();
         }
+    }
+
+    @Test
+    void bothStoresThrowingOnEveryReadStillFailWaitersAtDeadlineAndStopReadingAfterward() throws Exception {
+        when(negotiationStore.findById("neg-1")).thenThrow(new RuntimeException("store unavailable"));
+        when(transferProcessStore.findById("tp-1")).thenThrow(new RuntimeException("store unavailable"));
+
+        var negotiationFuture = poller.awaitNegotiation("neg-1", Duration.ofMillis(10));
+        var transferFuture = poller.awaitTransfer("tp-1", Duration.ofMillis(10));
+
+        poller.poll();
+        poller.poll();
+        assertThat(negotiationFuture).isNotDone();
+        assertThat(transferFuture).isNotDone();
+
+        clock.advanceTo(clock.instant().plusMillis(20));
+        poller.poll();
+
+        assertThatThrownBy(negotiationFuture::join).hasCauseInstanceOf(TimeoutException.class);
+        assertThatThrownBy(transferFuture::join).hasCauseInstanceOf(TimeoutException.class);
+        verify(negotiationStore, times(3)).findById("neg-1");
+        verify(transferProcessStore, times(3)).findById("tp-1");
+
+        poller.poll();
+        verifyNoMoreInteractions(negotiationStore, transferProcessStore);
+    }
+
+    @Test
+    void executeThrowingStillFailsWaitersPastDeadlineAndLeavesOthersPendingWithoutTouchingStores() {
+        var localPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
+                new ThrowingTransactionContext(), ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
+        try {
+            var expiredFuture = localPoller.awaitNegotiation("neg-expired", Duration.ofMillis(10));
+            var pendingFuture = localPoller.awaitTransfer("tp-pending", LONG_TIMEOUT);
+
+            clock.advanceTo(clock.instant().plusMillis(20));
+            localPoller.poll();
+
+            assertThatThrownBy(expiredFuture::join).hasCauseInstanceOf(TimeoutException.class);
+            assertThat(pendingFuture).isNotDone();
+            verifyNoInteractions(negotiationStore, transferProcessStore);
+        } finally {
+            localPoller.stop();
+        }
+    }
+
+    @Test
+    void completionRegisteringTransferWaiterDuringStopDrainIsFailedByTheTimeStopReturns() throws Exception {
+        var agreement = buildAgreement();
+        when(negotiationStore.findById("neg-1")).thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
+
+        var registrationAttempted = new CountDownLatch(1);
+        var releaseRegistration = new CountDownLatch(1);
+        var transferFutureRef = new AtomicReference<CompletableFuture<DataAddress>>();
+
+        var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        negotiationFuture.whenComplete((result, throwable) -> {
+            registrationAttempted.countDown();
+            try {
+                releaseRegistration.await(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            transferFutureRef.set(poller.awaitTransfer("tp-1", LONG_TIMEOUT));
+        });
+
+        poller.poll();
+        assertThat(registrationAttempted.await(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isTrue();
+
+        var stopThread = new Thread(poller::stop, "stop-under-test");
+        stopThread.start();
+        releaseRegistration.countDown();
+        stopThread.join(TimeUnit.SECONDS.toMillis(10));
+
+        assertThat(stopThread.isAlive()).isFalse();
+        assertThat(transferFutureRef.get()).isDone();
+        assertThatThrownBy(() -> transferFutureRef.get().join())
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(ex -> assertThat(((XrdRuntimeException) ex.getCause()).getErrorCode())
+                        .isEqualTo("dataspace.dsp_acquisition_failed"));
     }
 
     private ContractAgreement buildAgreement() {
@@ -505,6 +612,28 @@ class AssetAccessCompletionPollerTest {
 
         List<Outcome> outcomes() {
             return outcomes;
+        }
+    }
+
+    /**
+     * Simulates a transaction manager that fails to even open a transaction, e.g. a lost database
+     * connection.
+     */
+    private static final class ThrowingTransactionContext implements TransactionContext {
+
+        @Override
+        public void execute(TransactionBlock block) {
+            throw new RuntimeException("transaction unavailable");
+        }
+
+        @Override
+        public <T> T execute(ResultTransactionBlock<T> block) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void registerSynchronization(TransactionSynchronization sync) {
+            throw new UnsupportedOperationException();
         }
     }
 }

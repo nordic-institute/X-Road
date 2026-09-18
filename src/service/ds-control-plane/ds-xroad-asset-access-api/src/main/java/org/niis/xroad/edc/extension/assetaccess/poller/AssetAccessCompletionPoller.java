@@ -75,6 +75,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * a started transfer's data address - happens after the transaction has returned, on a dedicated
  * completion executor. The poll thread never completes a future or runs a caller continuation
  * directly, and never holds a transaction while resolving a data address.
+ *
+ * <p>A waiter's deadline is enforced independently of the database: a read that throws for one
+ * waiter is logged and treated the same as a read that returns nothing, falling through to the
+ * deadline check; if the pass's transaction itself fails, a deadline-only sweep over both waiter
+ * maps still runs, since comparing the clock against a deadline needs no store access.
  */
 public class AssetAccessCompletionPoller {
 
@@ -150,6 +155,9 @@ public class AssetAccessCompletionPoller {
     }
 
     private <T> CompletableFuture<T> register(Map<String, Waiter<T>> waiters, String id, Duration timeout) {
+        if (!active.get()) {
+            return CompletableFuture.failedFuture(acquisitionStoppedFailure(id));
+        }
         var future = new CompletableFuture<T>();
         waiters.put(id, new Waiter<>(future, clock.instant().plus(timeout)));
         return future;
@@ -166,7 +174,9 @@ public class AssetAccessCompletionPoller {
     /**
      * Stops the poll loop, fails every pending waiter through the completion executor and shuts both
      * executors down, waiting (bounded) for the completion executor so that no completion runs after
-     * this method returns.
+     * this method returns. A final fail-all sweep runs once the completion executor has terminated,
+     * so a waiter registered by a completion continuation that was still running during the drain is
+     * also failed before this method returns.
      */
     public void stop() {
         active.set(false);
@@ -176,6 +186,8 @@ public class AssetAccessCompletionPoller {
         failAllPending(transferWaiters);
         completionExecutor.shutdown();
         awaitTermination(completionExecutor);
+        failAllPending(negotiationWaiters);
+        failAllPending(transferWaiters);
     }
 
     private void runTick() {
@@ -205,20 +217,26 @@ public class AssetAccessCompletionPoller {
             return;
         }
         List<Runnable> completions = new ArrayList<>();
-        transactionContext.execute(() -> {
-            negotiationWaiters.forEach((id, waiter) -> pollNegotiation(completions, id, waiter));
-            transferWaiters.forEach((id, waiter) -> pollTransfer(completions, id, waiter));
-        });
+        try {
+            transactionContext.execute(() -> {
+                negotiationWaiters.forEach((id, waiter) -> pollNegotiation(completions, id, waiter));
+                transferWaiters.forEach((id, waiter) -> pollTransfer(completions, id, waiter));
+            });
+        } catch (Exception e) {
+            monitor.severe("Asset access completion poll transaction failed, sweeping deadlines only", e);
+            completions.clear();
+            sweepExpiredDeadlines(negotiationWaiters, completions);
+            sweepExpiredDeadlines(transferWaiters, completions);
+        }
         completions.forEach(Runnable::run);
     }
 
     private void pollNegotiation(List<Runnable> completions, String id, Waiter<ContractAgreement> waiter) {
-        ContractNegotiation negotiation;
+        ContractNegotiation negotiation = null;
         try {
             negotiation = negotiationStore.findById(id);
         } catch (Exception e) {
             monitor.warning("Reading negotiation %s failed, leaving it pending".formatted(id), e);
-            return;
         }
         if (negotiation != null) {
             var state = ContractNegotiationStates.from(negotiation.getState());
@@ -235,36 +253,47 @@ public class AssetAccessCompletionPoller {
                 return;
             }
         }
-        if (!clock.instant().isBefore(waiter.deadline())) {
-            completions.add(() -> failWaiter(negotiationWaiters, id, waiter, new TimeoutException()));
-        }
+        checkDeadline(negotiationWaiters, completions, id, waiter);
     }
 
     private void pollTransfer(List<Runnable> completions, String id, Waiter<DataAddress> waiter) {
-        TransferProcess transferProcess;
+        TransferProcess transferProcess = null;
         try {
             transferProcess = transferProcessStore.findById(id);
         } catch (Exception e) {
             monitor.warning("Reading transfer process %s failed, leaving it pending".formatted(id), e);
-            return;
         }
         if (transferProcess != null) {
-            var state = TransferProcessStates.from(transferProcess.getState());
+            var resolvedTransferProcess = transferProcess;
+            var state = TransferProcessStates.from(resolvedTransferProcess.getState());
             if (state == TransferProcessStates.STARTED) {
                 monitor.debug("Transfer process %s reached STARTED".formatted(id));
-                completions.add(() -> resolveAndCompleteTransfer(id, waiter, transferProcess));
+                completions.add(() -> resolveAndCompleteTransfer(id, waiter, resolvedTransferProcess));
                 return;
             }
             if (state == TransferProcessStates.TERMINATED) {
                 monitor.debug("Transfer process %s reached TERMINATED".formatted(id));
-                var failure = transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail()));
+                var failure = transferFailure(id, errorDetailOrDefault(resolvedTransferProcess.getErrorDetail()));
                 completions.add(() -> failWaiter(transferWaiters, id, waiter, failure));
                 return;
             }
         }
+        checkDeadline(transferWaiters, completions, id, waiter);
+    }
+
+    /**
+     * Adds a completion that fails {@code waiter} with a timeout if its deadline has passed. Used both
+     * as the fallback for a waiter whose read came back non-terminal (or failed) and, when the whole
+     * pass's transaction fails, as a store-free sweep over every registered waiter.
+     */
+    private <T> void checkDeadline(Map<String, Waiter<T>> waiters, List<Runnable> completions, String id, Waiter<T> waiter) {
         if (!clock.instant().isBefore(waiter.deadline())) {
-            completions.add(() -> failWaiter(transferWaiters, id, waiter, new TimeoutException()));
+            completions.add(() -> failWaiter(waiters, id, waiter, new TimeoutException()));
         }
+    }
+
+    private <T> void sweepExpiredDeadlines(Map<String, Waiter<T>> waiters, List<Runnable> completions) {
+        waiters.forEach((id, waiter) -> checkDeadline(waiters, completions, id, waiter));
     }
 
     private void resolveAndCompleteTransfer(String id, Waiter<DataAddress> waiter, TransferProcess transferProcess) {
