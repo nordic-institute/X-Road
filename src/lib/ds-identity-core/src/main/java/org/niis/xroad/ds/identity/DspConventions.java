@@ -61,17 +61,10 @@ public class DspConventions {
 
     /**
      * Suffix appended to the host participant context id for the legacy management companion
-     * context. Applies to context ids only; the DID form uses {@link #MANAGEMENT_DID_SUFFIX}.
+     * context. Applies to context ids only; the DID form is {@link ParticipantIdentifierScheme#managementDid}.
      * Interim: dies with the SYSTEM-context migration.
      */
     public static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
-
-    /**
-     * {@code did:web} path segment appended to the host DID for the legacy management companion
-     * context. Applies to DIDs only; the context id form uses {@link #MANAGEMENT_CONTEXT_SUFFIX}.
-     * Interim: dies with the SYSTEM-context migration.
-     */
-    public static final String MANAGEMENT_DID_SUFFIX = ":mgmt";
 
     /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
@@ -97,28 +90,6 @@ public class DspConventions {
      */
     public static String didAuthority(String ssAddress, int didPort) {
         return uriHost(ssAddress) + ":" + didPort;
-    }
-
-    /**
-     * The interim MVP DID of a Security Server's HOST participant context: the bare authority as a
-     * {@code did:web}, no scheme version. Interim: dies with the SYSTEM-context migration.
-     *
-     * @param didAuthority the server's DID authority, see {@link #didAuthority(String)}
-     * @return the host context DID, e.g. {@code did:web:ss0.example.org%3A7183}
-     */
-    public static Did hostDid(String didAuthority) {
-        return Did.of(ParticipantIdentifierScheme.DID_METHOD, ParticipantIdentifierScheme.didWebHost(didAuthority));
-    }
-
-    /**
-     * The interim MVP DID of a Security Server's management companion context: the host DID plus the
-     * {@code :mgmt} path segment. Interim: dies with the SYSTEM-context migration.
-     *
-     * @param didAuthority the server's DID authority, see {@link #didAuthority(String)}
-     * @return the management context DID, e.g. {@code did:web:ss0.example.org%3A7183:mgmt}
-     */
-    public static Did managementDid(String didAuthority) {
-        return Did.of(ParticipantIdentifierScheme.DID_METHOD, hostDid(didAuthority).methodSpecificId() + MANAGEMENT_DID_SUFFIX);
     }
 
     /**

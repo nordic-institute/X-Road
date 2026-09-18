@@ -173,6 +173,17 @@ class ParticipantIdentifierSchemeTest {
     }
 
     @Test
+    void shouldDeriveHostAndManagementDids() {
+        assertThat(ParticipantIdentifierScheme.hostDid(SS_HOST)).hasToString("did:web:ss0.example.org");
+        assertThat(ParticipantIdentifierScheme.hostDid("ss0.example.org:7183")).hasToString("did:web:ss0.example.org%3A7183");
+        assertThat(ParticipantIdentifierScheme.managementDid("ss0.example.org:7183"))
+                .hasToString("did:web:ss0.example.org%3A7183:mgmt");
+        assertThat(ParticipantIdentifierScheme.hostDid("[2001:db8::8]:7183")).hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183");
+        assertThat(ParticipantIdentifierScheme.managementDid("[2001:db8::8]:7183"))
+                .hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:mgmt");
+    }
+
+    @Test
     void shouldRoundTripSystemDid() {
         var did = ParticipantIdentifierScheme.systemDid(SS_HOST);
 
@@ -329,6 +340,10 @@ class ParticipantIdentifierSchemeTest {
         assertThatThrownBy(() -> ParticipantIdentifierScheme.memberDid(member, invalidHost))
                 .isInstanceOf(XrdRuntimeException.class);
         assertThatThrownBy(() -> ParticipantIdentifierScheme.systemDid(invalidHost))
+                .isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.hostDid(invalidHost))
+                .isInstanceOf(XrdRuntimeException.class);
+        assertThatThrownBy(() -> ParticipantIdentifierScheme.managementDid(invalidHost))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 }

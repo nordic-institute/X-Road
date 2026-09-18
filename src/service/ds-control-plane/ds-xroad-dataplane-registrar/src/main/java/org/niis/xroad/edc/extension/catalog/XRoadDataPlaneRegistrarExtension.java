@@ -34,6 +34,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -97,6 +98,7 @@ public class XRoadDataPlaneRegistrarExtension implements ServiceExtension {
         var participantContextId = context.getSetting(SETTING_PARTICIPANT_CONTEXT_ID, defaultContextId);
         var managementParticipantContextId = context.getSetting(
                 SETTING_MANAGEMENT_PARTICIPANT_CONTEXT_ID, participantContextId + MANAGEMENT_CONTEXT_SUFFIX);
-        return Stream.of(participantContextId, managementParticipantContextId).distinct().toList();
+        return Stream.of(participantContextId, managementParticipantContextId, ParticipantIdentifierScheme.SYSTEM_SEGMENT)
+                .distinct().toList();
     }
 }

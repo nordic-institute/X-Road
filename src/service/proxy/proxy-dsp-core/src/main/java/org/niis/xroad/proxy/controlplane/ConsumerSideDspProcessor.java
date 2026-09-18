@@ -34,6 +34,7 @@ import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
@@ -48,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
@@ -85,15 +85,6 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 @RequiredArgsConstructor
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
-    private static final Set<String> BUILTIN_SERVICE_CODES = Set.of(
-            "getSecurityServerMetrics",
-            "getSecurityServerOperationalData",
-            "getSecurityServerHealthData",
-            "listMethods",
-            "allowedMethods",
-            "getWsdl",
-            "getOpenAPI");
-
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
     private final AssetAccessClientProperties clientProperties;
@@ -115,6 +106,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
+        // TODO with the -mgmt cutover, route builtin requests via the provider's SYSTEM context instead
         var requestForcesMgmtCtx = request.managementSubsystem() || isBuiltinService(serviceId);
 
         var candidates = new ArrayList<>(
@@ -180,7 +172,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     private static boolean isBuiltinService(ServiceId serviceId) {
         return serviceId != null
                 && serviceId.getSubsystemCode() == null
-                && BUILTIN_SERVICE_CODES.contains(serviceId.getServiceCode());
+                && BuiltinServiceCodes.ALL.contains(serviceId.getServiceCode());
     }
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
