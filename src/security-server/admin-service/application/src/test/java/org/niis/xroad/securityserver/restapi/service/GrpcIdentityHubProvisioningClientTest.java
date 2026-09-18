@@ -32,6 +32,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 
 import java.util.Optional;
 import java.util.Set;
@@ -63,9 +64,36 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var request = createRequest(false);
+        when(rpcClient.createIdentityHubParticipantContext(request)).thenReturn(true);
 
-        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var result = client.createParticipantContext(request);
+
+        assertThat(result).isTrue();
+        verify(rpcClient).createIdentityHubParticipantContext(request);
+    }
+
+    @Test
+    void createParticipantContextForwardsReanchorFlagAndReturnedAnchor() {
+        var request = createRequest(true);
+        when(rpcClient.createIdentityHubParticipantContext(request)).thenReturn(false);
+
+        var result = client.createParticipantContext(request);
+
+        assertThat(result).isFalse();
+        verify(rpcClient).createIdentityHubParticipantContext(request);
+    }
+
+    private static CreateParticipantContextRequest createRequest(boolean reanchorMemberIdOnConflict) {
+        return CreateParticipantContextRequest.builder()
+                .participantContextId(CTX_ID)
+                .did(DID)
+                .memberId(MEMBER_ID)
+                .credentialServiceUrl(CRED_SERVICE_URL)
+                .keyId(KEY_ID)
+                .privateKeyAlias(KEY_ALIAS)
+                .reanchorMemberIdOnConflict(reanchorMemberIdOnConflict)
+                .build();
     }
 
     @Test

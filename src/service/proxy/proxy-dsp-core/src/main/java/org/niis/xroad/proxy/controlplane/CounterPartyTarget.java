@@ -27,6 +27,7 @@
 package org.niis.xroad.proxy.controlplane;
 
 import org.niis.xroad.ds.identity.DspConventions;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 
 import java.util.Map;
 
@@ -66,6 +67,7 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
      *
      * @return immutable map keyed by host-address, targeting the mgmt participant context
      */
+    // TODO transitional; remove with the -mgmt participant-context cutover
     public static Map<String, CounterPartyTarget> managementMap() {
         return Map.ofEntries(
                 //For E2E
@@ -91,6 +93,7 @@ public record CounterPartyTarget(String counterPartyId, String counterPartyAddre
     private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress, String hostParticipantId) {
         var url = "https://%s:%d/api/dsp/%s%s/%s".formatted(hostAddress, DspConventions.DSP_PORT,
                 hostParticipantId, DspConventions.MANAGEMENT_CONTEXT_SUFFIX, DspConventions.DSP_PROFILE_ID);
-        return Map.entry(hostAddress, new CounterPartyTarget(DspConventions.managementDid(DspConventions.didAuthority(hostAddress)), url));
+        var did = ParticipantIdentifierScheme.managementDid(DspConventions.didAuthority(hostAddress));
+        return Map.entry(hostAddress, new CounterPartyTarget(did, url));
     }
 }

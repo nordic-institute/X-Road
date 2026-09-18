@@ -79,7 +79,7 @@ final class DefaultDataPlaneContextRegistrar implements DataPlaneContextRegistra
                     "Failed to register data plane '%s' (config node '%s') for participant context '%s': %s",
                     instance.getId(), node, participantContextId, result.getFailureDetail());
         }
-        log.info("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
+        log.debug("Registered data plane '{}' for participant context '{}' from config (node '{}', url='{}')",
                 instance.getId(), participantContextId, node, instance.getUrl());
     }
 
