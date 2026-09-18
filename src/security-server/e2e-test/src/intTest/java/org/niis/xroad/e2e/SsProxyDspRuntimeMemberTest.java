@@ -26,7 +26,6 @@
 package org.niis.xroad.e2e;
 
 import io.restassured.response.ValidatableResponse;
-import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -34,6 +33,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -44,6 +44,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
+import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -121,8 +124,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final String CS_ENV = "aux";
     private static final String CA_ENV = "ca";
 
-    private static final String ADMIN_USERNAME = "xrd";
-    private static final String ADMIN_PASSWORD = "secret123!";
 
     private static final String X_ROAD_INSTANCE = "DEV";
     private static final String NEW_MEMBER_CLASS = "COM";
@@ -190,9 +191,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
     private static final Duration CATALOG_VISIBILITY_TIMEOUT = Duration.ofSeconds(150);
     private static final Duration CATALOG_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(10);
-
-    private record AdminSession(Map<String, String> cookies, String xsrfToken) {
-    }
 
     private record GeneratedCsr(String keyId, String csrId) {
     }
@@ -278,11 +276,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 dspAssertions.awaitTransferSucceeded(wireAgreementId));
     }
 
-    private String adminBaseUrl(E2eEnvironment env, String envName) {
-        var mapping = env.getContainerMapping(envName, SsStackSetup.UI, SsStackSetup.Port.UI);
-        return "https://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
     /**
      * The test CA's cert-issuance endpoint is plain HTTP, unlike the admin APIs above, mirroring
      * {@code setup.hurl}'s own {@code http://{{ca_host}}:8888/testca/sign} calls.
@@ -290,21 +283,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private String caBaseUrl(E2eEnvironment env) {
         var mapping = env.getContainerMapping(CA_ENV, SsStackSetup.CA, SsStackSetup.Port.CA_API);
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
-    private AdminSession login(String baseUrl) {
-        var response = RestAssuredFactory.given()
-                .formParam("username", ADMIN_USERNAME)
-                .formParam("password", ADMIN_PASSWORD)
-                .post(baseUrl + "/login");
-        assertThat(response.getStatusCode()).as("login to %s", baseUrl).isEqualTo(200);
-        return new AdminSession(response.getCookies(), response.getCookie("XSRF-TOKEN"));
-    }
-
-    private RequestSpecification authed(AdminSession session) {
-        return RestAssuredFactory.given()
-                .cookies(session.cookies())
-                .header("X-XSRF-TOKEN", session.xsrfToken());
     }
 
     /**

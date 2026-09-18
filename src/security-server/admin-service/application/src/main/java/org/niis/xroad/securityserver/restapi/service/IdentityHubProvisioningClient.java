@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import jakarta.annotation.Nullable;
+import lombok.Builder;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -37,10 +38,27 @@ import java.util.Optional;
 public interface IdentityHubProvisioningClient {
 
     /**
-     * Creates (idempotently) the IdentityHub participant context for the given participant.
+     * Everything the hub needs to create a participant context. {@code reanchorMemberIdOnConflict}
+     * says what to do when the context already exists: re-point its stored member id at this call's
+     * {@code memberId}, or ({@code false}) leave it untouched.
      */
-    void createParticipantContext(String participantContextId, String did, String memberId,
-                                  String credentialServiceUrl, String keyId, String privateKeyAlias);
+    @Builder
+    record CreateParticipantContextRequest(String participantContextId, String did, @Nullable String memberId,
+                                           String credentialServiceUrl, String keyId, String privateKeyAlias,
+                                           boolean reanchorMemberIdOnConflict) {
+    }
+
+    /**
+     * Creates (idempotently) the IdentityHub participant context for the given participant.
+     *
+     * @return whether the stored member id is known to match the requested member id. Without
+     *         {@code reanchorMemberIdOnConflict} that is always the case — nothing was asked of the
+     *         hub, so nothing can be left unconfirmed, and the caller must not defer on this result.
+     *         With it, {@code true} once the re-anchor is applied or the stored value is found already
+     *         matching; {@code false} when it could not be confirmed (older hub, or the re-anchor
+     *         read/update failed).
+     */
+    boolean createParticipantContext(CreateParticipantContextRequest request);
 
     /**
      * Submits a membership credential request for the given participant and holder request id, targeting

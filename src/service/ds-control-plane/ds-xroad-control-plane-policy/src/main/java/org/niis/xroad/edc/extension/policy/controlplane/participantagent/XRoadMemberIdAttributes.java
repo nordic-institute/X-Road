@@ -34,9 +34,12 @@ import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_INSTANCE_ATTRIBUTE;
 import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.XRD_MEMBER_CLASS_ATTRIBUTE;
@@ -55,6 +58,18 @@ import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContex
  *
  * <p>If no {@code XRoadMembershipCredential} is present, or any of the three claims is absent/blank, an
  * empty map is returned — no exception is thrown.
+ *
+ * <p>A participant context can present more than one active {@code XRoadMembershipCredential} at once —
+ * notably the per-Security-Server SYSTEM context, whose credential is additively re-anchored to a new
+ * owner on ownership change while the stale one is left to expire rather than revoked. Candidates are
+ * matched by participant context and credential type, and the most recently issued one wins —
+ * issuance date is a mandatory credential property, so every candidate carries one. Because
+ * re-anchoring always issues a strictly newer
+ * credential than the one it supersedes, the previous owner's attributes keep being presented for the
+ * whole overlap window between re-anchor and expiry of the stale credential — a deliberate fail-open
+ * choice that favors continuity over an access denial while the replacement is still pending. The
+ * {@link ClaimToken} carries no reference to the participant context itself, which is why this
+ * selection is entirely self-contained within the presented credential set.
  */
 @Slf4j
 class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
@@ -90,13 +105,21 @@ class XRoadMemberIdAttributes implements ParticipantAgentServiceExtension {
                 .peek(vc -> log.debug("extractMemberAttributes: candidate vc types={} subjects={}",
                         vc.getType(), vc.getCredentialSubject().size()))
                 .filter(this::isXRoadMembershipCredential)
-                .flatMap(credential -> credential.getCredentialSubject().stream())
+                .flatMap(this::candidatesOf)
+                .max(Comparator.comparing(Candidate::issuanceDate))
+                .map(Candidate::attributes)
+                .orElse(Map.of());
+    }
+
+    private Stream<Candidate> candidatesOf(VerifiableCredential credential) {
+        return credential.getCredentialSubject().stream()
                 .peek(subject -> log.debug("extractMemberAttributes: subject claims={}", subject.getClaims().keySet()))
                 .map(this::toMemberAttributes)
                 .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(Map.of());
+                .map(attributes -> new Candidate(credential.getIssuanceDate(), attributes));
     }
+
+    private record Candidate(Instant issuanceDate, Map<String, String> attributes) { }
 
     private Map<String, String> toMemberAttributes(CredentialSubject subject) {
         var xroadInstance = stringClaim(subject, XROAD_INSTANCE_CLAIM);

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,23 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.util;
+package org.niis.xroad.common.core;
 
-import org.niis.xroad.common.core.BuiltinServiceCodes;
+import lombok.experimental.UtilityClass;
+
+import java.util.Set;
 
 /**
- * Contains String constants for metadata request names.
+ * Service codes of the built-in services every Security Server answers itself rather than routing
+ * to a provider: proxy monitoring, operational monitoring and the metaservices. The single
+ * definition for the whole codebase — the SOAP and REST metaservice handlers, the operational
+ * monitoring handlers, and the data space catalog and consumer-side detector all read these, so the
+ * lists cannot drift apart.
  */
-public final class MetadataRequests {
+@UtilityClass
+public class BuiltinServiceCodes {
 
-    private MetadataRequests() {
-    }
+    public static final String GET_SECURITY_SERVER_METRICS = "getSecurityServerMetrics";
+    public static final String GET_SECURITY_SERVER_OPERATIONAL_DATA = "getSecurityServerOperationalData";
+    public static final String GET_SECURITY_SERVER_HEALTH_DATA = "getSecurityServerHealthData";
+    public static final String LIST_METHODS = "listMethods";
+    public static final String ALLOWED_METHODS = "allowedMethods";
+    public static final String GET_WSDL = "getWsdl";
+    public static final String GET_OPENAPI = "getOpenAPI";
 
-    public static final String LIST_CLIENTS = "/listClients";
-    public static final String LIST_METHODS = BuiltinServiceCodes.LIST_METHODS;
-    public static final String ALLOWED_METHODS = BuiltinServiceCodes.ALLOWED_METHODS;
-    public static final String GET_OPENAPI = BuiltinServiceCodes.GET_OPENAPI;
-    public static final String GET_WSDL = BuiltinServiceCodes.GET_WSDL;
-    public static final String ASIC = "/asic";
-    public static final String VERIFICATIONCONF = "/verificationconf";
+    /** All seven built-in service codes. */
+    public static final Set<String> ALL = Set.of(
+            GET_SECURITY_SERVER_METRICS,
+            GET_SECURITY_SERVER_OPERATIONAL_DATA,
+            GET_SECURITY_SERVER_HEALTH_DATA,
+            LIST_METHODS,
+            ALLOWED_METHODS,
+            GET_WSDL,
+            GET_OPENAPI);
 }

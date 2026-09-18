@@ -26,10 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -52,6 +56,7 @@ public class DataspaceParticipantProvisioningWorker {
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
+    private final DataspaceParticipantBindingService participantBindingService;
 
     /**
      * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
@@ -87,8 +92,14 @@ public class DataspaceParticipantProvisioningWorker {
 
     /**
      * Executes one idempotent provisioning step. A failure in one participant context is logged and
-     * does not block the remaining contexts; a context whose creation failed is skipped in the
-     * credential pass of the same tick.
+     * does not block the remaining contexts; a context whose creation failed, or whose SYSTEM member-id
+     * re-anchor the identity hub has not confirmed, is skipped in the credential pass of the same tick
+     * — see {@link #ensureContexts}.
+     *
+     * <p>Members are bound only after their participant context has been ensured, so the DID written
+     * to {@code ds_participant} is one the identity hub has just confirmed or been created with. A
+     * member whose context is in DID drift is left unbound and stays recoverable by correcting the
+     * configuration the DID is derived from.
      */
     public void provisionParticipant() {
         var contexts = dataspaceProvisioningService.participantContexts(true);
@@ -102,6 +113,8 @@ public class DataspaceParticipantProvisioningWorker {
 
         var ensuredContexts = ensureContexts(contexts);
 
+        participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
+
         if (!authCertRegistered) {
             log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");
             return;
@@ -110,17 +123,34 @@ public class DataspaceParticipantProvisioningWorker {
         ensureCredentials(ensuredContexts);
     }
 
+    private static List<ClientId> memberIdsOf(List<ParticipantContext> contexts) {
+        return contexts.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .map(ParticipantContext::memberId)
+                .toList();
+    }
+
     private static boolean ownerUnknown(List<ParticipantContext> contexts) {
         return contexts.stream().anyMatch(context -> context.memberId() == null);
     }
 
+    /**
+     * Ensures every context, then returns only those eligible for the credential pass in this tick:
+     * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
+     * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
+     * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
+     * still created/updated as usual, only its credential request is deferred to a later tick.
+     */
     private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureParticipantContext(context.participantId(), context.kind(),
-                        context.memberId());
-                ensured.add(context);
+                if (dataspaceProvisioningService.ensureParticipantContext(context)) {
+                    ensured.add(context);
+                } else {
+                    log.debug("Data space provisioning: deferring credential issuance for participant {} until the "
+                            + "SYSTEM member-id re-anchor is confirmed", context.participantId());
+                }
             } catch (Exception e) {
                 log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
                         context.participantId(), e);
@@ -132,7 +162,7 @@ public class DataspaceParticipantProvisioningWorker {
     private void ensureCredentials(List<ParticipantContext> contexts) {
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureMembershipCredential(context.participantId());
+                dataspaceProvisioningService.ensureMembershipCredential(context);
             } catch (Exception e) {
                 log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);

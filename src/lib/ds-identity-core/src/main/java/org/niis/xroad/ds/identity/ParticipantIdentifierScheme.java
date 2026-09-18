@@ -71,6 +71,9 @@ public class ParticipantIdentifierScheme {
     private static final String DID_PREFIX_METHOD = "web";
     private static final String SEGMENT_SEPARATOR = ":";
 
+    /** The DID segment distinguishing the management context's DID from the host's. */
+    private static final String MANAGEMENT_SEGMENT = "mgmt";
+
     /** did:web's fixed escape for the authority's port separator. */
     private static final String HOST_PORT_ESCAPE = "3A";
 
@@ -122,6 +125,28 @@ public class ParticipantIdentifierScheme {
      */
     public static String systemDid(String ssHost) {
         return didPrefix(ssHost) + SEGMENT_SEPARATOR + SYSTEM_SEGMENT;
+    }
+
+    /**
+     * Derives the HOST participant context's DID: {@code did:web:{ss-host}}. Unversioned — it names
+     * the serving address itself, so it is not decodable with {@link #decodeDid(String)}.
+     *
+     * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
+     * @return the host context's DID
+     */
+    public static String hostDid(String ssHost) {
+        return DID_PREFIX_SCHEME + SEGMENT_SEPARATOR + DID_PREFIX_METHOD + SEGMENT_SEPARATOR + encodeHost(ssHost);
+    }
+
+    /**
+     * Derives the MANAGEMENT participant context's DID: {@code did:web:{ss-host}:mgmt}. Unversioned,
+     * like {@link #hostDid(String)}.
+     *
+     * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
+     * @return the management context's DID
+     */
+    public static String managementDid(String ssHost) {
+        return hostDid(ssHost) + SEGMENT_SEPARATOR + MANAGEMENT_SEGMENT;
     }
 
     /**
@@ -181,8 +206,7 @@ public class ParticipantIdentifierScheme {
     }
 
     private static String didPrefix(String ssHost) {
-        return DID_PREFIX_SCHEME + SEGMENT_SEPARATOR + DID_PREFIX_METHOD
-                + SEGMENT_SEPARATOR + encodeHost(ssHost) + SEGMENT_SEPARATOR + SCHEME_VERSION;
+        return hostDid(ssHost) + SEGMENT_SEPARATOR + SCHEME_VERSION;
     }
 
     private static ClientId toClientId(String[] segments, int offset) {

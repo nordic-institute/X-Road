@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.annotation.Nullable;
@@ -39,7 +38,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -57,9 +55,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
-    private final String participantContextId;
-    private final String managementParticipantContextId;
+    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
     private final ServiceContextResolver serviceContextResolver;
@@ -93,7 +89,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+                assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
                 if (serverConfProvider.getDisabledNotice(serviceId) == null) {
                     for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds)) {
                         assets.add(AssetMapper.toAsset(serviceId, ctxId));
@@ -102,10 +98,15 @@ class AssetIndexServerConfStore implements AssetIndex {
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
+            assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
+            assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
         }
-        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
-                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId)));
+        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
+        syntheticServices.managementEntries()
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.management())));
+        syntheticServices.systemEntries()
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.system())));
         return assets;
     }
 
@@ -122,7 +123,11 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
-            return AssetMapper.toAsset(builtinServiceId, managementParticipantContextId);
+            return AssetMapper.toAsset(builtinServiceId, serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+        }
+        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+            var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
+            return systemServiceId == null ? null : AssetMapper.toAsset(systemServiceId, contextIds.system());
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
@@ -133,15 +138,15 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
-            if (isLocallyRegisteredSubsystem(serviceId.getClientId())) {
+            if (serviceContextResolver.isLocallyRegisteredSubsystem(serviceId.getClientId())) {
                 log.trace("findById assetId={} synthesizing owner-only asset for locally registered subsystem", assetId);
-                return AssetMapper.toAsset(serviceId, managementParticipantContextId);
+                return AssetMapper.toAsset(serviceId, contextIds.management());
             }
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
         var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
-                ? managementParticipantContextId
+                ? contextIds.management()
                 : selectContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
     }
@@ -154,24 +159,11 @@ class AssetIndexServerConfStore implements AssetIndex {
      */
     private String selectContextId(ServiceId serviceId) {
         var requested = requestedParticipantContext.get();
-        if (managementParticipantContextId.equals(requested)) {
-            return managementParticipantContextId;
+        if (contextIds.management().equals(requested)) {
+            return contextIds.management();
         }
         var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
         return ServiceContextResolver.select(resolvedContexts, requested);
-    }
-
-    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
-        }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (Exception e) {
-            log.warn("Failed to read global-conf for synthetic asset check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
     }
 
     @Override
