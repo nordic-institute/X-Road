@@ -51,6 +51,7 @@ import org.niis.xroad.serverconf.model.LocalGroup;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
 import java.security.cert.CertificateException;
@@ -81,6 +82,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.CLIENT_ID_SS1;
@@ -127,6 +129,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Autowired
     JdbcTemplate jdbcTemplate;
+
+    @MockitoBean
+    CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     private byte[] pemBytes;
     private byte[] derBytes;
@@ -363,6 +368,42 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 () -> clientService.deleteLocalClient(getClientId("FI:GOV:NON-EXISTENT:SUBSYSTEM")));
     }
 
+
+    @Test
+    public void deleteLocalClientKeepsBoundDataspaceIdentity() throws Exception {
+        ClientId memberId = getClientId("FI:GOV:M3");
+        clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(), null, IsAuthentication.SSLAUTH, false);
+        persistenceUtils.flush();
+
+        Long identifierId = jdbcTemplate.queryForObject(
+                "SELECT id FROM identifier WHERE member_code = 'M3' AND subsystem_code IS NULL", Long.class);
+        jdbcTemplate.update("INSERT INTO ds_participant"
+                + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state, created_at, updated_at)"
+                + " VALUES (9001, 'MEMBER', ?, 'ctx', 'did:web:bound', 'v1', 'ACTIVE',"
+                + " CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", identifierId);
+
+        clientService.deleteLocalClient(memberId);
+        persistenceUtils.flush();
+
+        assertNull(clientService.getLocalClient(memberId));
+        assertEquals(Integer.valueOf(1), jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM identifier WHERE id = ?", Integer.class, identifierId));
+        assertEquals(Integer.valueOf(1), jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM ds_participant WHERE member_identifier = ?", Integer.class, identifierId));
+    }
+
+    @Test
+    public void deleteLocalClientNotifiesCatalogInvalidation() throws Exception {
+        ClientId memberId = getClientId("FI:GOV:M3");
+        clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(), null, IsAuthentication.SSLAUTH, false);
+        reset(catalogInvalidationNotifier);
+
+        clientService.deleteLocalClient(memberId);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
 
     /**
      * When client is deleted from local database
@@ -649,6 +690,15 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertThrows(ClientService.AdditionalMemberAlreadyExistsException.class,
                 () -> clientService.addLocalClient(id2.getMemberClass(), id2.getMemberCode(), id2.getSubsystemCode(), null,
                         IsAuthentication.SSLAUTH, false));
+    }
+
+    @Test
+    public void addLocalClientNotifiesCatalogInvalidation() throws Exception {
+        ClientId id = getClientId("FI:GOV:M2");
+        clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
+                IsAuthentication.SSLAUTH, false);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
     }
 
     @Test

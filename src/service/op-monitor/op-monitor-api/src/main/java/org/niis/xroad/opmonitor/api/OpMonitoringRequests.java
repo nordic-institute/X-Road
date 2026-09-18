@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.opmonitor.api;
 
+import org.niis.xroad.common.core.BuiltinServiceCodes;
+
 /**
  * Contains String constants for operational monitoring request names.
  */
@@ -34,8 +36,8 @@ public final class OpMonitoringRequests {
     }
 
     public static final String GET_SECURITY_SERVER_OPERATIONAL_DATA =
-            "getSecurityServerOperationalData";
+            BuiltinServiceCodes.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 
     public static final String GET_SECURITY_SERVER_HEALTH_DATA =
-            "getSecurityServerHealthData";
+            BuiltinServiceCodes.GET_SECURITY_SERVER_HEALTH_DATA;
 }

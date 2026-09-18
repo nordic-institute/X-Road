@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.edc.extension.catalog;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.annotation.Nullable;
@@ -39,7 +38,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -57,20 +55,12 @@ class AssetIndexServerConfStore implements AssetIndex {
     private static final String READ_ONLY_MESSAGE = "Read-only: managed by ServerConf";
 
     private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
-    private final String participantContextId;
-    private final String managementParticipantContextId;
+    private final CatalogContextIds contextIds;
     private final BuiltinServiceCatalog builtinServiceCatalog;
     private final StoreEnumerationCache<Asset> cache;
+    private final ServiceContextResolver serviceContextResolver;
+    private final RequestedParticipantContext requestedParticipantContext;
     private final QueryEvaluator<Asset> queryEvaluator = new QueryEvaluator<>(Asset::getId, Asset::getParticipantContextId);
-
-    /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
-    private String resolveContextId(ServiceId serviceId) {
-        var mgmtService = globalConfProvider.getManagementRequestService();
-        return (mgmtService != null && mgmtService.equals(serviceId.getClientId()))
-                ? managementParticipantContextId
-                : participantContextId;
-    }
 
     private boolean isOwnerOnly(ServiceId serviceId) {
         try {
@@ -96,26 +86,35 @@ class AssetIndexServerConfStore implements AssetIndex {
 
     private List<Asset> buildAssetList() {
         var assets = new ArrayList<Asset>();
+        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+                assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
                 if (serverConfProvider.getDisabledNotice(serviceId) == null) {
-                    assets.add(AssetMapper.toAsset(serviceId, resolveContextId(serviceId)));
+                    for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds)) {
+                        assets.add(AssetMapper.toAsset(serviceId, ctxId));
+                    }
                 }
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
-            assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId));
+            // TODO drop the management-context copy with the -mgmt cutover; the SYSTEM copy replaces it
+            assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
+            assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
         }
-        ManagementServiceCatalog.resolveSyntheticServices(globalConfProvider, serverConfProvider)
-                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, managementParticipantContextId)));
+        var syntheticServices = serviceContextResolver.resolveSyntheticServices();
+        syntheticServices.managementEntries()
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.management())));
+        syntheticServices.systemEntries()
+                .forEach(serviceId -> assets.add(AssetMapper.toAsset(serviceId, contextIds.system())));
         return assets;
     }
 
     @Override
     @Nullable
     public Asset findById(String assetId) {
-        return cache.findById(assetId, () -> findByIdInternal(assetId));
+        var cacheKeyContext = serviceContextResolver.normalizeRequestedContext(requestedParticipantContext.get());
+        return cache.findById(assetId, cacheKeyContext, () -> findByIdInternal(assetId));
     }
 
     @Nullable
@@ -124,7 +123,11 @@ class AssetIndexServerConfStore implements AssetIndex {
         var builtinServiceId = builtinServiceCatalog.findServiceId(assetId);
         if (builtinServiceId != null) {
             log.trace("findById assetId={} matched builtin", assetId);
-            return AssetMapper.toAsset(builtinServiceId, managementParticipantContextId);
+            return AssetMapper.toAsset(builtinServiceId, serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
+        }
+        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+            var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
+            return systemServiceId == null ? null : AssetMapper.toAsset(systemServiceId, contextIds.system());
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
@@ -135,30 +138,32 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById decoded serviceId={}", serviceId.asEncodedId());
         }
         if (!serverConfProvider.serviceExists(serviceId)) {
-            if (isLocallyRegisteredSubsystem(serviceId.getClientId())) {
+            if (serviceContextResolver.isLocallyRegisteredSubsystem(serviceId.getClientId())) {
                 log.trace("findById assetId={} synthesizing owner-only asset for locally registered subsystem", assetId);
-                return AssetMapper.toAsset(serviceId, managementParticipantContextId);
+                return AssetMapper.toAsset(serviceId, contextIds.management());
             }
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
         var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
-                ? managementParticipantContextId
-                : resolveContextId(serviceId);
+                ? contextIds.management()
+                : selectContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 
-    private boolean isLocallyRegisteredSubsystem(ClientId clientId) {
-        if (clientId == null || clientId.getSubsystemCode() == null) {
-            return false;
+    /**
+     * Every enabled service also carries an owner-only copy under the management context (added
+     * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
+     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveEnabled}
+     * resolves for the service itself.
+     */
+    private String selectContextId(ServiceId serviceId) {
+        var requested = requestedParticipantContext.get();
+        if (contextIds.management().equals(requested)) {
+            return contextIds.management();
         }
-        try {
-            var thisServer = serverConfProvider.getIdentifier();
-            return thisServer != null && globalConfProvider.isSecurityServerClient(clientId, thisServer);
-        } catch (Exception e) {
-            log.warn("Failed to read global-conf for synthetic asset check '{}': {}", clientId, e.getMessage());
-            return false;
-        }
+        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        return ServiceContextResolver.select(resolvedContexts, requested);
     }
 
     @Override

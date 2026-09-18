@@ -243,6 +243,25 @@
     "true": "True",
     "yes": "Yes"
   },
+  "configurableProperties": {
+    "title": "Configurable System Properties",
+    "search": "Search configurable properties",
+    "restartWarning": "The following services need to be restarted for the changes to take effect: {scopes}.",
+    "propertyRestartWarning": "Restart required for changes to take effect.",
+    "collapseAll": "Collapse All",
+    "updateSuccess": "Property updated successfully",
+    "editDialog": {
+      "title": "Edit Property Value"
+    },
+    "table": {
+      "header": {
+        "propertyName": "Property Name",
+        "currentValue": "Current Value",
+        "defaultValue": "Default Value",
+        "description": "Description"
+      }
+    }
+  },
   "dataTables": {
     "paginator": {
       "allPerPage": "All",
@@ -345,6 +364,7 @@
     "noBackups": "No backups yet",
     "noCertificate": "No certificate",
     "noCertificates": "No certificates",
+    "noConfigurableProperties": "No configurable properties",
     "noData": "No data",
     "noMatches": "No items matching criteria",
     "noServices": "No services",

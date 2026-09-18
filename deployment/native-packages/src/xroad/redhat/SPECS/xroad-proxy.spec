@@ -127,13 +127,15 @@ fi
 
 %define execute_init_or_update_resources()                                            \
     echo "Update resources: DB";                                                      \
-    /usr/share/xroad/scripts/setup_serverconf_db.sh;                                  \
-    /usr/share/xroad/scripts/setup_messagelog_db.sh;                                  \
+    rc=0;                                                                             \
+    for db_script in setup_serverconf_db.sh setup_messagelog_db.sh; do                \
+        "/usr/share/xroad/scripts/$db_script" || rc=$?;                               \
+    done;                                                                             \
                                                                                       \
-    if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then                              \
-        `# initial installation`;                                                     \
+    if [ -x %{_bindir}/systemctl ]; then                                              \
         %{_bindir}/systemctl try-restart rsyslog.service                              \
-    fi
+    fi;                                                                               \
+    exit $rc
 
 %post -p /bin/bash
 %systemd_post xroad-proxy.service

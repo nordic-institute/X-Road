@@ -97,7 +97,6 @@ RUN { nginx -s stop ||:; } \
   && cp -a /etc/xroad /root/etc/ \
   && rm -f /root/etc/xroad/services/local.properties \
      /root/etc/xroad/conf.d/local.ini \
-     /root/etc/xroad/devices.ini \
      /root/etc/xroad/db.properties \
   && dpkg-query --showformat='${Version}' --show xroad-center >/root/VERSION \
   && cp /root/VERSION /etc/xroad/VERSION \

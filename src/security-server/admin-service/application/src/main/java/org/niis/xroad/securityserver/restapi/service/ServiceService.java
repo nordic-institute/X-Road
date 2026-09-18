@@ -76,6 +76,7 @@ public class ServiceService {
     private final AuditDataHelper auditDataHelper;
     private final InternalServerTestService internalServerTestService;
     private final ReservedServiceCodesProvider reservedServiceCodesProvider;
+    private final CatalogInvalidationNotifier catalogInvalidationNotifier;
 
     /**
      * get Service by ClientId and service code that includes service version
@@ -190,6 +191,7 @@ public class ServiceService {
                     serviceEntity, service)
         );
 
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return ServiceMapper.get().toTarget(serviceEntity);
     }
 
@@ -274,6 +276,7 @@ public class ServiceService {
         }
         clientEntity.getEndpoints().add(endpointEntity);
         clientRepository.merge(clientEntity, false);
+        catalogInvalidationNotifier.invalidateCatalogCaches();
         return EndpointMapper.get().toTarget(endpointEntity);
     }
 }

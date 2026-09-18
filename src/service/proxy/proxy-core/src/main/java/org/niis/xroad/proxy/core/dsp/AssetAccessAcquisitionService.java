@@ -37,10 +37,12 @@ public interface AssetAccessAcquisitionService {
     /**
      * Acquires an asset access response from the control plane for the given asset and provider.
      *
-     * @param assetId             the asset identifier for the data transfer
-     * @param counterPartyId      the provider participant identifier
-     * @param counterPartyAddress the provider's DSP protocol address
+     * @param participantContextId the consumer participant context to negotiate as
+     * @param assetId              the asset identifier for the data transfer
+     * @param counterPartyId       the provider participant identifier
+     * @param counterPartyAddress  the provider's DSP protocol address
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
-    AssetAccessResponse acquireAssetAccess(String assetId, String counterPartyId, String counterPartyAddress);
+    AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
+                                           String counterPartyAddress);
 }

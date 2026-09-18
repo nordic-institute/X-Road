@@ -266,8 +266,13 @@ HTTP 200
 
 # Initialize management Security Server
 
-# Check that the Security Server UI is up and running
+# Check that the Security Server UI is up and running. The ss0 stack is
+# created by the test harness after this script is already running, so retry
+# through the window where the host does not yet resolve.
 GET https://{{ss0_host}}:4000
+[Options]
+retry: 90
+retry-interval: 10000
 HTTP 200
 
 # Bootstrap the initial admin user (no-op once one exists)
@@ -693,8 +698,13 @@ HTTP 201
 
 # Initialize Security Server 1 (SS1)
 
-# Check that the Security Server UI is up and running
+# Check that the Security Server UI is up and running. The ss1 stack is
+# created by the test harness only after ss0 is fully up, so retry through
+# the window where the host does not yet resolve.
 GET https://{{ss1_host}}:4000
+[Options]
+retry: 90
+retry-interval: 10000
 HTTP 200
 
 # Bootstrap the initial admin user (no-op once one exists)
@@ -1488,13 +1498,18 @@ X-XSRF-TOKEN: {{ss1_xsrf_token}}
 HTTP 201
 
 # =============================================================================
-# DSP readiness gates (LAST): block until each SS's HOST participant context
-# membership credential reaches ISSUED. Placed at the end so all core X-Road
-# setup (both SSes, certs, clients, services) completes first — proxy readiness
-# does not depend on DSP convergence. The credential converges asynchronously
-# (auth cert REGISTERED via GlobalConfChecker -> reconciler submits -> issuer
-# issues); both SSes' auth certs are already registered by now, so they converge
-# in parallel across these two polls.
+# DSP readiness gates (LAST): block until each SS's HOST and MEMBER participant
+# context membership credentials reach ISSUED. Placed at the end so all core
+# X-Road setup (both SSes, certs, clients, services) completes first — proxy
+# readiness does not depend on DSP convergence. The credentials converge
+# asynchronously (auth cert REGISTERED via GlobalConfChecker -> reconciler
+# submits -> issuer issues); both SSes' auth certs are already registered by
+# now, so they converge in parallel across these two polls. Member contexts are
+# gated because outgoing DSP requests negotiate as the sender member's derived
+# context (ctx-id "instance:class:code"): SS0 hosts clients of member 1234 only;
+# SS1 hosts clients of members 4321 (owner, TestClient) and 1234 (test-consumer).
+# The provisioning worker batches all pending contexts per tick, so each SS's
+# asserts converge together; retry is a cap, not a wait.
 # =============================================================================
 GET https://{{ss0_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
@@ -1505,6 +1520,7 @@ retry-interval: 5000
 HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"
 
 GET https://{{ss1_host}}:4000/api/v1/dataspace/provisioning-status
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -1515,3 +1531,5 @@ retry-interval: 5000
 HTTP 200
 [Asserts]
 jsonpath "$.participant_contexts[?(@.kind == 'HOST')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:4321')].credential_status" == "ISSUED"
+jsonpath "$.participant_contexts[?(@.participant_id == 'DEV:COM:1234')].credential_status" == "ISSUED"

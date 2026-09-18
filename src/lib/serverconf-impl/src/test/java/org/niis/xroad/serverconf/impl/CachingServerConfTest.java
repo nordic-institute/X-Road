@@ -362,4 +362,33 @@ public class CachingServerConfTest {
     private static List<ServiceId.Conf> getServices(ClientId serviceProviderId) {
         return new ServiceDAOImpl().getServices(DATABASE_CTX.getSession(), serviceProviderId);
     }
+
+    /**
+     * A cached read must keep serving the old value after the underlying row changes, and clearCache()
+     * must discard it so the next read sees the change.
+     */
+    @Test
+    public void clearCacheDiscardsCachedServiceData() {
+        ServiceId.Conf service = ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS,
+                client(1), null, service(1, 1), SERVICE_VERSION);
+        String originalUrl = serverConfProvider.getServiceAddress(service);
+        assertEquals(SERVICE_URL + 1, originalUrl);
+
+        var entity = new ServiceDAOImpl().getService(DATABASE_CTX.getSession(), service);
+        entity.setUrl(originalUrl + "-changed");
+        DATABASE_CTX.commitTransaction();
+        DATABASE_CTX.beginTransaction();
+
+        assertEquals(originalUrl, serverConfProvider.getServiceAddress(service));
+
+        serverConfProvider.clearCache();
+
+        assertEquals(originalUrl + "-changed", serverConfProvider.getServiceAddress(service));
+
+        entity = new ServiceDAOImpl().getService(DATABASE_CTX.getSession(), service);
+        entity.setUrl(originalUrl);
+        DATABASE_CTX.commitTransaction();
+        DATABASE_CTX.beginTransaction();
+        serverConfProvider.clearCache();
+    }
 }

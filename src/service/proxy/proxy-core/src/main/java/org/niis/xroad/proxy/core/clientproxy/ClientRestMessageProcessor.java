@@ -273,7 +273,7 @@ public class ClientRestMessageProcessor {
 
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         if (proxyProperties.dspEnabled()) {
-            consumerSideDspProcessor.execute(new DspRequest(requestServiceId,
+            consumerSideDspProcessor.execute(new DspRequest(requestServiceId, restRequest.getClientId(),
                     restRequest.getTargetSecurityServer(), isManagementRequest(requestServiceId)));
         }
         final URI[] addresses = clientRequestPreparationService.prepareRequest(

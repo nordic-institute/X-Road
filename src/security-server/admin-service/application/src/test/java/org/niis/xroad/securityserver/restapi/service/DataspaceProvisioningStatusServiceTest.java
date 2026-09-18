@@ -37,6 +37,7 @@ import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.identifiers.jpa.ClientIdEntityFactory;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties.Dataspace;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -49,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningStatus
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
@@ -67,6 +69,7 @@ class DataspaceProvisioningStatusServiceTest {
 
     private static final String PARTICIPANT_ID = "test-participant";
     private static final String MGMT_PARTICIPANT_ID = PARTICIPANT_ID + "-mgmt";
+    private static final String SYSTEM_PARTICIPANT_ID = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
     private static final String HOLDER_PID_SLOT0 = PARTICIPANT_ID + "-xroad-membership-credential-request";
     private static final String MGMT_HOLDER_PID_SLOT0 = MGMT_PARTICIPANT_ID + "-xroad-membership-credential-request";
 
@@ -89,6 +92,8 @@ class DataspaceProvisioningStatusServiceTest {
     private ServerConfRepository serverConfRepository;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
 
     private DataspaceProvisioningService provisioningService;
     private DataspaceProvisioningStatusService statusService;
@@ -97,7 +102,6 @@ class DataspaceProvisioningStatusServiceTest {
     void setUp() {
         lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
-        lenient().when(dataspace.getIssuerDid()).thenReturn("did:web:issuer.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
         lenient().when(dataspace.getMaxHolderPidSlots()).thenReturn(20);
         lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
@@ -107,14 +111,16 @@ class DataspaceProvisioningStatusServiceTest {
 
         var ownerEntity = mock(ClientEntity.class);
         lenient().when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(OWNER));
+        lenient().when(ownerEntity.getClientStatus()).thenReturn(Client.STATUS_REGISTERED);
         var serverConf = mock(ServerConfEntity.class);
         lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
         lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
-        lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of());
+        lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerEntity));
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository);
+                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider,
+                new DataspaceDidAuthority(adminServiceProperties));
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);
@@ -132,19 +138,22 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.enabled()).isTrue();
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         var host = status.participantContexts().get(0);
-        var mgmt = status.participantContexts().get(1);
+        var system = status.participantContexts().get(1);
+        var mgmt = status.participantContexts().get(2);
         assertThat(host.participantId()).isEqualTo(PARTICIPANT_ID);
         assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(host.contextCreated()).isTrue();
         assertThat(host.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
+        assertThat(system.participantId()).isEqualTo(SYSTEM_PARTICIPANT_ID);
+        assertThat(system.kind()).isEqualTo(ParticipantKind.SYSTEM);
         assertThat(mgmt.participantId()).isEqualTo(MGMT_PARTICIPANT_ID);
         assertThat(mgmt.kind()).isEqualTo(ParticipantKind.MANAGEMENT);
         assertThat(mgmt.contextCreated()).isTrue();
         assertThat(mgmt.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
-        assertThat(status.participantContexts().get(2).kind()).isEqualTo(ParticipantKind.MEMBER);
-        assertThat(status.participantContexts().get(2).participantId()).isEqualTo(OWNER_CTX_ID);
+        assertThat(status.participantContexts().get(3).kind()).isEqualTo(ParticipantKind.MEMBER);
+        assertThat(status.participantContexts().get(3).participantId()).isEqualTo(OWNER_CTX_ID);
     }
 
     @Test
@@ -157,9 +166,9 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         var host = status.participantContexts().get(0);
-        var mgmt = status.participantContexts().get(1);
+        var mgmt = status.participantContexts().get(2);
         assertThat(host.kind()).isEqualTo(ParticipantKind.HOST);
         assertThat(host.contextCreated()).isTrue();
         assertThat(host.credentialStatus()).isEqualTo(CredentialStatus.ISSUED);
@@ -177,7 +186,7 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         assertThat(status.enabled()).isTrue();
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
@@ -194,9 +203,9 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(2);
+        assertThat(status.participantContexts()).hasSize(3);
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
@@ -211,9 +220,9 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(3);
+        assertThat(status.participantContexts()).hasSize(4);
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT, ParticipantKind.MEMBER);
         assertThat(status.participantContexts())
                 .allSatisfy(ctx -> {
                     assertThat(ctx.contextCreated()).isFalse();
@@ -229,9 +238,11 @@ class DataspaceProvisioningStatusServiceTest {
         DataspaceStatus status = statusService.readStatus();
 
         var host = status.participantContexts().get(0);
-        var mgmt = status.participantContexts().get(1);
-        var member = status.participantContexts().get(2);
+        var system = status.participantContexts().get(1);
+        var mgmt = status.participantContexts().get(2);
+        var member = status.participantContexts().get(3);
         assertThat(host.identityStatus()).isNull();
+        assertThat(system.identityStatus()).isNull();
         assertThat(mgmt.identityStatus()).isNull();
         assertThat(member.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
     }
@@ -251,7 +262,7 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts().get(2).identityStatus())
+        assertThat(status.participantContexts().get(3).identityStatus())
                 .isEqualTo(IdentityStatus.MISMATCH);
     }
 
@@ -264,7 +275,7 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts().get(2).identityStatus())
+        assertThat(status.participantContexts().get(3).identityStatus())
                 .isEqualTo(IdentityStatus.DRIFTED);
     }
 
@@ -278,8 +289,8 @@ class DataspaceProvisioningStatusServiceTest {
 
         DataspaceStatus status = statusService.readStatus();
 
-        assertThat(status.participantContexts()).hasSize(2);
+        assertThat(status.participantContexts()).hasSize(3);
         assertThat(status.participantContexts()).extracting(DataspaceProvisioningService.ParticipantContextStatus::kind)
-                .containsExactly(ParticipantKind.HOST, ParticipantKind.MANAGEMENT);
+                .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MANAGEMENT);
     }
 }

@@ -111,35 +111,6 @@ EOF
   chmod 644 "$local_conf"
 }
 
-# xroad-ds-control-plane's packaged application.yaml declares
-# edc.iam.trusted-issuer.issuer.id: ${xroad.edc.iam.trusted-issuer.issuer.id}
-# with no fallback (EdcConfigKeys.TRUSTED_ISSUER_ID is deliberately
-# without a default, so an unset value fails startup rather than silently
-# registering an empty trusted issuer). Every other deployment mode supplies
-# this as a plain environment variable pointing at a real issuer service
-# (the k8s chart's XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID); the sidecar has
-# no issuer service at all (out of scope, a Central Server component), so
-# this seeds a placeholder DID of the same shape purely so the service
-# starts - functional credential issuance needs a real issuer, configured by
-# the operator overriding the same environment variable.
-configure_ds_control_plane_trusted_issuer_default() {
-  local local_conf=/etc/xroad/services/local.conf
-  local marker="# xroad-sidecar: default xroad.edc.iam.trusted-issuer.issuer.id for xroad-ds-control-plane"
-  if [ -f "$local_conf" ] && grep -qF "$marker" "$local_conf"; then
-    return 0
-  fi
-  log "Seeding a default DS trusted-issuer DID for xroad-ds-control-plane"
-  cat >>"$local_conf" <<EOF
-$marker
-if [ "\$1" = "XROAD_DS_CONTROL_PLANE_PARAMS" ]; then
-  : "\${XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID:=did:web:\${HOSTNAME:-localhost}%3A10100:issuer}"
-  export XROAD_EDC_IAM_TRUSTED_ISSUER_ISSUER_ID
-fi
-EOF
-  chown root:root "$local_conf"
-  chmod 644 "$local_conf"
-}
-
 # xroad-opmonitor's packaged JVM flags fix -XX:MaxMetaspaceSize at 120m, sized
 # for a dedicated container with the daemon's own uncontended memory
 # allocation - every other deployment mode. In this image, op-monitor-daemon
@@ -227,16 +198,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
-RECONFIG=(xroad-signer xroad-proxy xroad-proxy-ui-api xroad-confclient)
-if dpkg -s xroad-opmonitor &>/dev/null; then
-  RECONFIG+=(xroad-opmonitor)
-fi
-if dpkg -s xroad-ds-control-plane &>/dev/null; then
-  RECONFIG+=(xroad-ds-control-plane)
-fi
-if dpkg -s xroad-ds-identity-hub &>/dev/null; then
-  RECONFIG+=(xroad-ds-identity-hub)
-fi
+RECONFIG=(xroad-signer xroad-proxy xroad-proxy-ui-api xroad-confclient xroad-opmonitor xroad-ds-control-plane xroad-ds-identity-hub)
 
 LOCAL_DB=
 RECONFIGURED=false
@@ -246,7 +208,6 @@ if [ -f /.xroad-reconfigured ]; then
   RECONFIG_REQUIRED=${RECONFIG_REQUIRED:-false}
 else
   # new container, run reconfigure by default
-  # makes it possible to "upgrade" from "slim" to "full" container
   # (Disabling reconfigure by setting RECONFIG_REQUIRED to false
   # when it is known to be unnecessary saves some container startup time)
   RECONFIG_REQUIRED=${RECONFIG_REQUIRED:-true}
@@ -285,8 +246,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
     cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
     # copy if not exists
-    cp -a -n "$PACKAGED_CONFIG"/backup/devices.ini /etc/xroad/
-    cp -a -n "$PACKAGED_CONFIG"/backup/local.ini /etc/xroad/conf.d/
     cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
     # packages need to be reconfigured (runs possible db and config migrations)
     RECONFIG_REQUIRED=true
@@ -305,9 +264,7 @@ if [ ! -f ${DB_PROPERTIES} ]; then
     LOCAL_DB=false
     log "Using remote database $XROAD_DB_HOST:$XROAD_DB_PORT"
     messagelog=true
-    if dpkg -s xroad-opmonitor &>/dev/null; then
-      opmonitor=true
-    fi
+    opmonitor=true
     echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
     if [ -n "${XROAD_DATABASE_NAME}" ]; then
       touch /etc/xroad/db.properties
@@ -315,8 +272,8 @@ if [ ! -f ${DB_PROPERTIES} ]; then
       chmod 640 /etc/xroad/db.properties
       set_db_props() {
         crudini --set --inplace "$ROOT_PROPERTIES" "" "$1.database.admin_user" "${XROAD_DATABASE_NAME}_$1_admin"
-        echo "$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
-        echo "$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+        echo "xroad.db.$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+        echo "xroad.db.$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
       }
       set_db_props serverconf
       if [ -n "$opmonitor" ]; then
@@ -343,7 +300,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   db_host="${XROAD_DB_HOST:-127.0.0.1}:${XROAD_DB_PORT:-5432}"
   if [ -z "$LOCAL_DB" ]; then
     # exising config, determine database location from db.properties
-    db_url=$(crudini --get '/etc/xroad/db.properties' "" 'serverconf.hibernate.connection.url' 2>/dev/null)
+    db_url=$(crudini --get '/etc/xroad/db.properties' "" 'xroad.db.serverconf.hibernate.connection.url' 2>/dev/null)
     pat='^jdbc:postgresql://([^/]*).*'
     if [[ "$db_url" =~ $pat ]]; then
       db_host="${BASH_REMATCH[1]:-$db_host}"
@@ -397,12 +354,7 @@ if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
 fi
 
 configure_proxy_health_check_listener
-if dpkg -s xroad-ds-control-plane &>/dev/null; then
-  configure_ds_control_plane_trusted_issuer_default
-fi
-if dpkg -s xroad-opmonitor &>/dev/null; then
-  configure_opmonitor_metaspace
-fi
+configure_opmonitor_metaspace
 configure_secret_store
 configure_secret_store_trust_env
 create_backup_dir_if_not_exists

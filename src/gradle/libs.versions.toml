@@ -9,20 +9,21 @@ metrics = "4.2.39"
 jersey = "4.0.2"
 jetty = "12.1.10"
 jaxb = "4.0.9"
-hibernate = "7.3.4.Final"
+hibernate = "7.4.7.Final"
+bytebuddy = "1.18.8"
 mapstruct = "1.6.3"
 jackson = "3.2.0"
 jacksonAnnotations = "2.22"
 mockito = "5.23.0"
-springBoot = "4.0.6"
-springFramework = "7.0.8"
+springBoot = "4.1.1"
+springFramework = "7.0.9"
 junitJupiter = "6.1.0"
 junitPlatform = "6.1.0"
 xmlUnit = "2.12.0"
 bouncyCastle = "1.84"
 slf4j = "2.0.18"
-protoc = "4.35.1"
-grpc = "1.83.1"
+protoc = "4.36.1"
+grpc = "1.84.0"
 swaggerParser = "2.1.45"
 logback = "1.5.37"
 logbackAccess = "2.0.12"
@@ -32,8 +33,8 @@ protobufPlugin = "0.9.6"
 checkstyle = "11.0.1"
 jacoco = "0.8.14"
 resilience4j = "2.4.0"
-quarkus = "3.33.1.1"
-quarkus-vault = "4.7.0"
+quarkus = "3.39.3"
+quarkus-vault = "4.9.0"
 smallryeConfig = "3.17.2"
 microprofile = "3.1.1"
 feign = "13.13"
@@ -43,7 +44,7 @@ shadowPlugin = "9.4.3"
 owaspDependencyCheck = "12.2.2"
 edc = "0.18.0"
 nimbus = "10.9.1"
-opentelemetry-javaagent = "2.30.0"
+opentelemetry-javaagent = "2.31.1"
 opentelemetry-sdk-testing = "1.63.0"
 
 [libraries]
@@ -87,7 +88,8 @@ springFramework-web = { module = "org.springframework:spring-web", version.ref =
 springFramework-test = { module = "org.springframework:spring-test", version.ref = "springFramework" }
 springFramework-jdbc = { module = "org.springframework:spring-jdbc", version.ref = "springFramework" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.1.1" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2025.1.3" }
+springCloud-contractWiremock = { module = "org.springframework.cloud:spring-cloud-contract-wiremock", version = "5.0.3" }
 
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
@@ -170,9 +172,10 @@ jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", 
 mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 
-hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
+hibernate-hikaricp = { module = "org.hibernate.orm:hibernate-hikaricp", version.ref = "hibernate" }
 hibernate-jpamodelgen = { module = "org.hibernate.orm:hibernate-processor", version.ref = "hibernate" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
+bytebuddy = { module = "net.bytebuddy:byte-buddy", version.ref = "bytebuddy" }
 
 jackson-bom = { module = "tools.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotations" }
@@ -233,7 +236,7 @@ wsdl4j = { module = "io.github.librewsdl4j:libre-wsdl4j", version = "1.12.0" }
 
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-hikariCP = { module = "com.zaxxer:HikariCP", version = "7.0.2" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "7.1.0" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.6" }
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }

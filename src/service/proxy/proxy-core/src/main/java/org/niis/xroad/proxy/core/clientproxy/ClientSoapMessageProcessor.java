@@ -236,7 +236,8 @@ public class ClientSoapMessageProcessor {
         // MANAGEMENT requests target the mgmt participant context; all others use the host context.
         if (proxyProperties.dspEnabled()) {
             consumerSideDspProcessor.execute(new DspRequest(
-                    decoder.getServiceId(), decoder.getRequestSoap().getSecurityServer(),
+                    decoder.getServiceId(), decoder.getRequestSoap().getClient(),
+                    decoder.getRequestSoap().getSecurityServer(),
                     isManagementRequest(decoder.getServiceId())));
         }
         ProxyMessage response;

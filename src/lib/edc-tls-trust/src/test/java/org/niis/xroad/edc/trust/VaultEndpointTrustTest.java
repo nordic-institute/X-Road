@@ -35,9 +35,15 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
 import java.io.FileWriter;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -58,8 +64,8 @@ class VaultEndpointTrustTest {
     }
 
     @Test
-    void isAbsentWhenCaCertPathIsBlank() {
-        assertThat(VaultEndpointTrust.from("https://vault:8200", " ", monitor)).isEmpty();
+    void isAbsentWhenVaultUrlIsBlankEvenIfCaCertPathIsAlsoBlank() {
+        assertThat(VaultEndpointTrust.from(" ", " ", monitor)).isEmpty();
     }
 
     @Test
@@ -174,6 +180,71 @@ class VaultEndpointTrustTest {
 
         assertThatThrownBy(() -> vaultTrust.checkServerTrusted(otherLeaf.chain(), "RSA"))
                 .isInstanceOf(CertificateException.class);
+    }
+
+    @Test
+    void fallsBackToTheDefaultTrustSourceWhenCaCertPathIsBlank() throws Exception {
+        var systemCa = TestCa.selfSigned("System-trusted CA");
+        var leaf = systemCa.issueLeaf("vault");
+
+        var vaultTrust = VaultEndpointTrust.from("https://vault:8200", null, monitor, trusting(systemCa)).orElseThrow();
+
+        assertThat(vaultTrust.matchesVaultEndpoint("vault", 8200)).isTrue();
+        assertThat(vaultTrust.matchesVaultEndpoint("other-host", 8200)).isFalse();
+        assertThatCode(() -> vaultTrust.checkServerTrusted(leaf.chain(), "RSA")).doesNotThrowAnyException();
+    }
+
+    @Test
+    void fallbackRejectsAChainFromACaTheDefaultTrustSourceDoesNotTrust() throws Exception {
+        var systemCa = TestCa.selfSigned("System-trusted CA");
+        var unknownCa = TestCa.selfSigned("Unknown CA");
+        var leaf = unknownCa.issueLeaf("vault");
+
+        var vaultTrust = VaultEndpointTrust.from("https://vault:8200", null, monitor, trusting(systemCa)).orElseThrow();
+
+        assertThatThrownBy(() -> vaultTrust.checkServerTrusted(leaf.chain(), "RSA"))
+                .isInstanceOf(CertificateException.class);
+    }
+
+    @Test
+    void explicitCaWinsOverTheDefaultTrustSourceWhenBothArePossible() throws Exception {
+        var explicitCa = TestCa.selfSigned("Explicit Vault CA");
+        var systemOnlyCa = TestCa.selfSigned("System-only CA");
+        var caCertPath = writeCaCert(explicitCa);
+        var explicitLeaf = explicitCa.issueLeaf("vault");
+        var systemOnlyLeaf = systemOnlyCa.issueLeaf("vault");
+
+        var vaultTrust = VaultEndpointTrust.from("https://vault:8200", caCertPath, monitor, trusting(systemOnlyCa)).orElseThrow();
+
+        assertThatCode(() -> vaultTrust.checkServerTrusted(explicitLeaf.chain(), "RSA")).doesNotThrowAnyException();
+        assertThatThrownBy(() -> vaultTrust.checkServerTrusted(systemOnlyLeaf.chain(), "RSA"))
+                .isInstanceOf(CertificateException.class);
+    }
+
+    @Test
+    void isAbsentWhenTheDefaultTrustSourceFails() {
+        VaultEndpointTrust.DefaultTrustManagerSource failingSource = () -> {
+            throw new GeneralSecurityException("no system trust store available");
+        };
+
+        assertThat(VaultEndpointTrust.from("https://vault:8200", null, monitor, failingSource)).isEmpty();
+    }
+
+    private static VaultEndpointTrust.DefaultTrustManagerSource trusting(TestCa... cas) throws Exception {
+        var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, null);
+        var index = 0;
+        for (var ca : cas) {
+            keyStore.setCertificateEntry("ca-" + index++, ca.certificate());
+        }
+        var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+        var trustManager = Arrays.stream(trustManagerFactory.getTrustManagers())
+                .filter(X509TrustManager.class::isInstance)
+                .map(X509TrustManager.class::cast)
+                .findFirst()
+                .orElseThrow();
+        return () -> trustManager;
     }
 
     private String writeCaCert(TestCa ca) throws Exception {

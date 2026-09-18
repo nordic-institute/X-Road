@@ -48,6 +48,7 @@ import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
@@ -69,6 +70,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -140,6 +143,9 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     @Autowired
     AccessRightService accessRightService;
 
+    @MockitoBean
+    CatalogInvalidationNotifier catalogInvalidationNotifier;
+
     private long countIdentifiers() {
         return persistenceTestUtil.countRows(XRoadIdEntity.class);
     }
@@ -189,6 +195,16 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         List<ServiceClient> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
+    }
+
+    @Test
+    public void deleteServiceClientAccessRightsNotifiesCatalogInvalidation() throws Exception {
+        ClientId.Conf serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(List.of("serviceWithObsoleteScs"));
+
+        accessRightService.deleteServiceClientAccessRights(serviceOwner, serviceCodes, TestUtils.OBSOLETE_SUBSYSTEM_ID);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
     }
 
     @Test
@@ -446,6 +462,30 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
         assertThrows(ServiceNotFoundException.class, () ->
                 accessRightService.deleteServiceClientAccessRights(ss1Id, getRandomCode, subsystemId));
+    }
+
+    @Test
+    public void addServiceClientAccessRightsNotifiesCatalogInvalidation() throws Exception {
+        ClientId.Conf serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList("calculatePrime"));
+        ClientId.Conf subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
+
+        accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes, subsystemId);
+
+        verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    @Test
+    public void addServiceClientAccessRightsForObsoleteFailsDoesNotNotifyCatalogInvalidation() throws Exception {
+        ClientId.Conf serviceOwner = TestUtils.getM1Ss1ClientId();
+        Set<String> serviceCodes = new HashSet<>(Arrays.asList(
+                "calculatePrime", "openapi-servicecode", "rest-servicecode"));
+
+        assertThrows(ServiceClientNotFoundException.class, () ->
+                accessRightService.addServiceClientAccessRights(serviceOwner, serviceCodes,
+                        TestUtils.OBSOLETE_SUBSYSTEM_ID));
+
+        verify(catalogInvalidationNotifier, never()).invalidateCatalogCaches();
     }
 
     @Test

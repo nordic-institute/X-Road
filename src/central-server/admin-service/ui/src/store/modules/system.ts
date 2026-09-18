@@ -28,9 +28,16 @@
 import axios from 'axios';
 
 import * as api from '@/util/api';
-import { CentralServerAddress, InitializationStatus, InitialServerConf, SystemStatus, TokenInitStatus, Version } from '@/openapi-types';
+import {
+  CentralServerAddress,
+  InitializationStatus,
+  InitialServerConf,
+  SystemStatus,
+  TokenInitStatus,
+  Version,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { useNotifications } from '@niis/shared-ui';
+import { ConfigurablePropertyDto, ConfigurablePropertyUpdateDto, useNotifications } from '@niis/shared-ui';
 import { KEY_CONTINUE_INIT } from '@/global';
 
 export const useSystem = defineStore('system', {
@@ -82,6 +89,12 @@ export const useSystem = defineStore('system', {
     },
     async updateCentralServerAddress(newAddress: CentralServerAddress) {
       return api.put<SystemStatus>('/system/server-address', newAddress).then((resp) => (this.systemStatus = resp.data));
+    },
+    async fetchConfigurableProperties() {
+      return api.get<ConfigurablePropertyDto[]>('/system/property').then((resp) => resp.data);
+    },
+    async updateConfigurableProperty(update: ConfigurablePropertyUpdateDto) {
+      return api.patch('/system/property', update);
     },
 
     async initializationRequest(formData: InitialServerConf) {

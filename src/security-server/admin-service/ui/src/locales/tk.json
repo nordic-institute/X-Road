@@ -699,8 +699,7 @@
     "noClientData": "Müşderiniň maglumatlary ýok",
     "noLocalGroups": "ýerli toparlar ýok",
     "noServiceClients": "Müşderileriň gullugy ýok",
-    "noTimestampingServices": "Wagt belleme boýunça hyzmat ýok",
-    "noConfigurableProperties": "Sazlanylýan häsiýetler ýok"
+    "noTimestampingServices": "Wagt belleme boýunça hyzmat ýok"
   },
   "serviceClientType": {
     "globalGroup": "GLOBALTOPAR",
@@ -902,23 +901,6 @@
     },
     "title": "Ulgam parametrleri",
     "configurableProperties": {
-      "title": "Sazlanylýan ulgam häsiýetleri",
-      "search": "Häsiýetleri gözle...",
-      "restartWarning": "Üýtgetmeleriň güýje girmegi üçin şu hyzmatlar täzeden başladylmaly: {scopes}.",
-      "propertyRestartWarning": "Üýtgetmeleriň güýje girmegi üçin täzeden başlatmak talap edilýär.",
-      "collapseAll": "Hemmesini ýyg",
-      "updateSuccess": "Häsiýet üstünlikli täzelendi",
-      "editDialog": {
-        "title": "Häsiýetiň bahasyny redaktirle"
-      },
-      "table": {
-        "header": {
-          "propertyName": "Häsiýetiň ady",
-          "currentValue": "Häzirki baha",
-          "defaultValue": "Deslapky baha",
-          "description": "Düşündiriş"
-        }
-      },
       "descriptions": {
         "xroad": {
           "proxy-ui-api": {

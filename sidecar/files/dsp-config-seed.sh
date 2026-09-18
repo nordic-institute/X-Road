@@ -40,9 +40,6 @@
 #         XROAD_DATASPACE_PARTICIPANT_ID (optional, defaults to hostname)
 #         XROAD_DATASPACE_MANAGEMENT_CONTEXT_ENABLED (optional, defaults to
 #           true)
-#         XROAD_DATASPACE_ISSUER_DID (optional; the row is only seeded when
-#           this is set - there is no meaningful standalone default for the
-#           credential issuer's DID)
 #         /etc/xroad/db.properties (serverconf connection info, written by
 #         xroad-proxy's setup_serverconf_db.sh before this script runs)
 #   out - the rows above in serverconf's configuration_properties table, each
@@ -116,10 +113,6 @@ seed_property_if_absent "xroad.proxy-ui-api.dataspace.participant-id" \
 
 seed_property_if_absent "xroad.proxy-ui-api.dataspace.management-context-enabled" \
   "${XROAD_DATASPACE_MANAGEMENT_CONTEXT_ENABLED:-true}"
-
-if [[ -n "${XROAD_DATASPACE_ISSUER_DID:-}" ]]; then
-  seed_property_if_absent "xroad.proxy-ui-api.dataspace.issuer-did" "$XROAD_DATASPACE_ISSUER_DID"
-fi
 
 seed_property_if_absent "xroad.dataspace.control-plane-provisioning.rpc.host" "127.0.0.1"
 

@@ -699,8 +699,7 @@
     "noClientData": "Нет данных клиента",
     "noLocalGroups": "Нет локальных групп",
     "noServiceClients": "Нет клиентов служб",
-    "noTimestampingServices": "Нет служб временных меток",
-    "noConfigurableProperties": "Нет настраиваемых свойств"
+    "noTimestampingServices": "Нет служб временных меток"
   },
   "serviceClientType": {
     "globalGroup": "ГЛОБАЛЬНАЯГРУППА",
@@ -902,23 +901,6 @@
     },
     "title": "Системные параметры",
     "configurableProperties": {
-      "title": "Настраиваемые системные свойства",
-      "search": "Поиск свойств...",
-      "restartWarning": "Для вступления изменений в силу необходимо перезапустить следующие службы: {scopes}.",
-      "propertyRestartWarning": "Для вступления изменений в силу требуется перезапуск.",
-      "collapseAll": "Свернуть все",
-      "updateSuccess": "Свойство успешно обновлено",
-      "editDialog": {
-        "title": "Редактировать значение свойства"
-      },
-      "table": {
-        "header": {
-          "propertyName": "Название свойства",
-          "currentValue": "Текущее значение",
-          "defaultValue": "Значение по умолчанию",
-          "description": "Описание"
-        }
-      },
       "descriptions": {
         "xroad": {
           "proxy-ui-api": {

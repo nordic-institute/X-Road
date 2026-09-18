@@ -33,8 +33,10 @@ import jakarta.annotation.Nonnull;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.BuiltinServiceCodes;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.proxy.core.dsp.AssetAccessAcquisitionService;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
@@ -45,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
@@ -68,6 +69,9 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *       host-address in {@link CounterPartyTarget#defaultMap()} for normal requests or
  *       {@link CounterPartyTarget#managementMap()} for MANAGEMENT requests. Lookup miss is a hard
  *       error (fail fast; no silent fallback).</li>
+ *   <li>{@code participantContextId} — management and builtin-service requests use the configured
+ *       legacy context, everything else negotiates as the sender member's derived context
+ *       ({@link ParticipantIdentifierScheme#memberCtxId}).</li>
  * </ul>
  *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
@@ -78,17 +82,9 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
 @RequiredArgsConstructor
 public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
-    private static final Set<String> BUILTIN_SERVICE_CODES = Set.of(
-            "getSecurityServerMetrics",
-            "getSecurityServerOperationalData",
-            "getSecurityServerHealthData",
-            "listMethods",
-            "allowedMethods",
-            "getWsdl",
-            "getOpenAPI");
-
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
+    private final AssetAccessClientProperties clientProperties;
 
     @SuppressWarnings("deprecation")
     private final Map<String, CounterPartyTarget> counterPartyTargets = CounterPartyTarget.defaultMap();
@@ -109,6 +105,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
+        // TODO with the -mgmt cutover, route builtin requests via the provider's SYSTEM context instead
         var requestForcesMgmtCtx = request.managementSubsystem() || isBuiltinService(serviceId);
 
         var candidates = new ArrayList<>(
@@ -124,10 +121,14 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .build();
         }
 
+        var participantContextId = requestForcesMgmtCtx
+                ? clientProperties.participantContextId()
+                : ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
+        var targets = requestForcesMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
+
         var remoteFailures = new ArrayList<RuntimeException>();
         var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
-            var targets = requestForcesMgmtCtx ? mgmtCounterPartyTargets : counterPartyTargets;
             var target = targets.get(candidate.hostAddress());
             if (target == null) {
                 var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
@@ -142,7 +143,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
             }
             try {
                 return assetAccessAcquisitionService.acquireAssetAccess(
-                        assetId, target.counterPartyId(), target.counterPartyAddress());
+                        participantContextId, assetId, target.counterPartyId(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
@@ -155,7 +156,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     private static boolean isBuiltinService(ServiceId serviceId) {
         return serviceId != null
                 && serviceId.getSubsystemCode() == null
-                && BUILTIN_SERVICE_CODES.contains(serviceId.getServiceCode());
+                && BuiltinServiceCodes.ALL.contains(serviceId.getServiceCode());
     }
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,

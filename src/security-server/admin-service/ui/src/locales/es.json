@@ -721,8 +721,7 @@
     "noClientData": "Sin datos del cliente",
     "noLocalGroups": "No hay grupos locales",
     "noServiceClients": "No hay clientes de servicio",
-    "noTimestampingServices": "Sin servicios de marca de tiempo",
-    "noConfigurableProperties": "No hay propiedades configurables"
+    "noTimestampingServices": "Sin servicios de marca de tiempo"
   },
   "serviceClientType": {
     "globalGroup": "Grupo global",
@@ -924,23 +923,6 @@
     },
     "title": "Parámetros del sistema",
     "configurableProperties": {
-      "title": "Propiedades del sistema configurables",
-      "search": "Buscar propiedades...",
-      "restartWarning": "Es necesario reiniciar los siguientes servicios para que los cambios surtan efecto: {scopes}.",
-      "propertyRestartWarning": "Se requiere reinicio para que los cambios surtan efecto.",
-      "collapseAll": "Contraer todo",
-      "updateSuccess": "Propiedad actualizada correctamente",
-      "editDialog": {
-        "title": "Editar valor de propiedad"
-      },
-      "table": {
-        "header": {
-          "propertyName": "Nombre de propiedad",
-          "currentValue": "Valor actual",
-          "defaultValue": "Valor predeterminado",
-          "description": "Descripción"
-        }
-      },
       "descriptions": {
         "xroad": {
           "proxy-ui-api": {

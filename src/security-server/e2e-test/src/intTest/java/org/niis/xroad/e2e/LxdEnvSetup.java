@@ -358,6 +358,7 @@ public class LxdEnvSetup extends BaseComposeSetup
             case "ss0" -> lxdProperties.ss0Host();
             case "ss1" -> lxdProperties.ss1Host();
             case "aux" -> lxdProperties.csHost();
+            case "ca" -> lxdProperties.caHost();
             default -> throw new IllegalArgumentException("Unknown LXD environment: " + env);
         };
     }

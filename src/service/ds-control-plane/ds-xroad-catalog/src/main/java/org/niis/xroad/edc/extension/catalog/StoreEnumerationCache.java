@@ -47,7 +47,7 @@ class StoreEnumerationCache<T> {
     @Nullable
     private final Cache<Boolean, List<T>> enumerationCache;
     @Nullable
-    private final Cache<String, T> findByIdCache;
+    private final Cache<FindByIdKey, T> findByIdCache;
     @Nullable
     private final Cache<String, DataAddress> dataAddressCache;
     private final String storeName;
@@ -102,12 +102,12 @@ class StoreEnumerationCache<T> {
     }
 
     @Nullable
-    T findById(String id, Supplier<T> loader) {
-        return getOrLoad(findByIdCache, id, loader);
+    T findById(String id, @Nullable String requestedParticipantContextId, Supplier<T> loader) {
+        return getOrLoad(findByIdCache, new FindByIdKey(id, requestedParticipantContextId), loader);
     }
 
     @Nullable
-    private static <V> V getOrLoad(@Nullable Cache<String, V> cache, String key, Supplier<V> loader) {
+    private static <K, V> V getOrLoad(@Nullable Cache<K, V> cache, K key, Supplier<V> loader) {
         if (cache == null) {
             return loader.get();
         }
@@ -161,5 +161,12 @@ class StoreEnumerationCache<T> {
         if (dataAddressCache != null) {
             dataAddressCache.invalidateAll();
         }
+    }
+
+    /**
+     * Folds the requested participant context into the by-id cache key, so a lookup addressed at
+     * one context never serves another's cached record.
+     */
+    private record FindByIdKey(String id, @Nullable String requestedParticipantContextId) {
     }
 }

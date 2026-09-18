@@ -85,8 +85,6 @@ signer_hsm_image: ss-signer-with-hsm
 # co-located in `signer` — mirroring compose's E2eEnvSetup ss0=softtoken-signer / ss1=HSM split.
 softtoken_signer_enabled: false
 
-trusted_issuer_host: xrd-cs
-
 # Per-release DSP participant-context-id override (chart's dsp.participantContextId — see
 # security-server chart values.yaml). Empty by default: the chart's own hardcoded
 # "security-server" env entries render unchanged. Set per Security Server release (e.g. one

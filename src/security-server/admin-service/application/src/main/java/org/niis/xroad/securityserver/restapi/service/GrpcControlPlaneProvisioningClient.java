@@ -48,4 +48,9 @@ public class GrpcControlPlaneProvisioningClient implements ControlPlaneProvision
     public void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl) {
         rpcClient.putParticipantContextConfig(participantContextId, did, stsTokenUrl);
     }
+
+    @Override
+    public void invalidateCatalogCaches() {
+        rpcClient.invalidateCatalogCaches();
+    }
 }

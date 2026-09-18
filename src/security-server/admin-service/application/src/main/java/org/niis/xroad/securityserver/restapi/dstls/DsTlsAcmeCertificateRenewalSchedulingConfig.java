@@ -41,7 +41,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.scheduling.TaskScheduler;
 
 /**
  * Wires the DS TLS certificate's own {@link CertificateRenewalScheduler} instance, entirely separate from the
@@ -71,8 +70,9 @@ public class DsTlsAcmeCertificateRenewalSchedulingConfig {
     @Order(Ordered.LOWEST_PRECEDENCE - 98)
     @Conditional(IsDsTlsAcmeSchedulingActive.class)
     CertificateRenewalScheduler dsTlsAcmeCertificateRenewalScheduler(DsTlsAcmeCertificateRenewalWorker dsTlsAcmeCertificateRenewalWorker,
-                                                                     TaskScheduler taskScheduler, AcmeSchedulingProperties acmeConfig) {
-        var scheduler = new CertificateRenewalScheduler(dsTlsAcmeCertificateRenewalWorker, acmeConfig, taskScheduler);
+                                                                     AcmeSchedulingProperties acmeConfig) {
+        var scheduler = CertificateRenewalScheduler.withDedicatedScheduler(dsTlsAcmeCertificateRenewalWorker, acmeConfig,
+                "acme-renewal-ds-tls-");
         scheduler.init();
         return scheduler;
     }

@@ -322,6 +322,12 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public void clearCache() {
         log.info("Clearing configuration cache");
         internalKeyCache.invalidateAll();
+        tspCache.invalidateAll();
+        serviceCache.invalidateAll();
+        aclCache.invalidateAll();
+        serviceEndpointsCache.invalidateAll();
+        serviceAccessRightsCache.invalidateAll();
+        clientCache.invalidateAll();
     }
 
     private record AclCacheKey(ClientId clientId, ServiceId serviceId) {

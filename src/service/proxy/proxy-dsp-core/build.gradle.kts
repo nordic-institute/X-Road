@@ -10,6 +10,7 @@ dependencies {
   implementation(platform(libs.quarkus.bom))
   implementation(libs.quarkus.arc)
   implementation(libs.jetty.server)
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:rpc-core"))
