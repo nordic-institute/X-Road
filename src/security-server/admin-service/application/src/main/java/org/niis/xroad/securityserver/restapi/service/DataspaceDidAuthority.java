@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
@@ -85,14 +86,14 @@ public class DataspaceDidAuthority {
     /**
      * @return the HOST participant context's DID for the current authority
      */
-    public String hostDid() {
+    public Did hostDid() {
         return ParticipantIdentifierScheme.hostDid(current());
     }
 
     /**
      * @return the MANAGEMENT participant context's DID for the current authority
      */
-    public String managementDid() {
+    public Did managementDid() {
         return ParticipantIdentifierScheme.managementDid(current());
     }
 
@@ -101,7 +102,7 @@ public class DataspaceDidAuthority {
      * @return the member's freshly derived DID for the current authority
      * @throws XrdRuntimeException with {@code VALIDATION_ERROR} if the member identifier cannot be encoded
      */
-    public String memberDid(ClientId member) {
+    public Did memberDid(ClientId member) {
         return ParticipantIdentifierScheme.memberDid(member, current());
     }
 

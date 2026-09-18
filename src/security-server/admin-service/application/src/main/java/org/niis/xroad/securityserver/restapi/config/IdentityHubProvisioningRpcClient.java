@@ -99,7 +99,7 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
     public boolean createIdentityHubParticipantContext(CreateParticipantContextRequest request) {
         var response = exec(() -> stub.createParticipantContext(CreateParticipantContextReq.newBuilder()
                 .setParticipantContextId(request.participantContextId())
-                .setDid(request.did())
+                .setDid(request.did().toString())
                 .setMemberId(request.memberId() == null ? "" : request.memberId())
                 .setCredentialServiceUrl(request.credentialServiceUrl())
                 .setKeyId(request.keyId())

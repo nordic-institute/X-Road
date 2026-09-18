@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -198,7 +199,7 @@ public class DataspaceProvisioningService {
         return anchorConfirmed;
     }
 
-    private void requireNoHubDidDrift(String participantId, String intendedDid) {
+    private void requireNoHubDidDrift(String participantId, Did intendedDid) {
         identityHubClient.contextDid(participantId)
                 .filter(hubDid -> !hubDid.equals(intendedDid))
                 .ifPresent(hubDid -> {
@@ -424,7 +425,7 @@ public class DataspaceProvisioningService {
     }
 
     @Nullable
-    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<String> hubDid) {
+    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<Did> hubDid) {
         if (assessment == null) {
             return null;
         }
@@ -449,7 +450,7 @@ public class DataspaceProvisioningService {
         return didAuthority.isKnown();
     }
 
-    private String didFor(ParticipantKind kind, @Nullable ClientId memberId) {
+    private Did didFor(ParticipantKind kind, @Nullable ClientId memberId) {
         return switch (kind) {
             case HOST -> didAuthority.hostDid();
             case MANAGEMENT -> didAuthority.managementDid();
@@ -458,11 +459,11 @@ public class DataspaceProvisioningService {
         };
     }
 
-    private String boundOrDerivedMemberDid(ClientId member) {
+    private Did boundOrDerivedMemberDid(ClientId member) {
         var bound = dsParticipantRepository.findByMemberIdentifier(member);
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return bound.get().getDid();
+            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
         return didAuthority.memberDid(member);
     }
@@ -472,11 +473,11 @@ public class DataspaceProvisioningService {
      * The bound row, when present, carries no member reference — the SYSTEM identifier is owner-free even
      * though the context's credential is issued to the current owner.
      */
-    private String systemDid(String ssHost) {
+    private Did systemDid(String ssHost) {
         var bound = dsParticipantRepository.findSystemParticipant();
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), ssHost);
-            return bound.get().getDid();
+            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
         return ParticipantIdentifierScheme.systemDid(ssHost);
     }
@@ -499,7 +500,7 @@ public class DataspaceProvisioningService {
      * publish (the bound DID, or the fresh derivation when nothing is bound; {@code null} when the
      * bound row itself is in an error state and no intended DID can be stated).
      */
-    private record MemberIdentity(IdentityStatus status, @Nullable String intendedDid) {
+    private record MemberIdentity(IdentityStatus status, @Nullable Did intendedDid) {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
@@ -516,7 +517,7 @@ public class DataspaceProvisioningService {
                 return new MemberIdentity(IdentityStatus.UNBOUND, didAuthority.memberDid(memberId));
             }
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
-            return new MemberIdentity(IdentityStatus.OK, bound.get().getDid());
+            return new MemberIdentity(IdentityStatus.OK, ParticipantIdentifierScheme.parseDid(bound.get().getDid()));
         } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
                 return new MemberIdentity(IdentityStatus.MISMATCH, null);
@@ -529,7 +530,7 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private boolean createIdentityHubContext(ParticipantContext context, String did, String identityHubHost) {
+    private boolean createIdentityHubContext(ParticipantContext context, Did did, String identityHubHost) {
         var participantId = context.participantId();
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),

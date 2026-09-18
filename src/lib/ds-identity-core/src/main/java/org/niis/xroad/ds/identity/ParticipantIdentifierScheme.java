@@ -27,6 +27,7 @@ package org.niis.xroad.ds.identity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
@@ -52,6 +53,10 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  * recovers the original member identifier. Decoding accepts only the canonical form — uppercase hex
  * escapes, and escapes only for characters that require encoding — so no two accepted encoded forms
  * decode to the same participant.
+ *
+ * <p>DIDs are handed out and taken in as {@link Did} values: the type guarantees DID syntax
+ * (method name, {@code idchar} set, well-formed percent-escapes); this class adds the
+ * {@code did:web} host escaping and the v1 segment layout on top.
  */
 @UtilityClass
 public class ParticipantIdentifierScheme {
@@ -68,8 +73,9 @@ public class ParticipantIdentifierScheme {
      */
     public static final String SYSTEM_SEGMENT = "system";
 
-    private static final String DID_PREFIX_SCHEME = "did";
-    private static final String DID_PREFIX_METHOD = "web";
+    /** The DID method every participant DID uses. */
+    public static final String DID_METHOD = "web";
+
     private static final String SEGMENT_SEPARATOR = ":";
 
     /** The DID segment distinguishing the management context's DID from the host's. */
@@ -83,10 +89,10 @@ public class ParticipantIdentifierScheme {
     /** Number of segments in a member ctx-id, and in a member DID's payload after {@link #SCHEME_VERSION}. */
     private static final int MEMBER_SEGMENT_COUNT = 3;
 
-    // DID layout: did : web : {host} : v1 : {payload...}
-    private static final int DID_HOST_INDEX = 2;
-    private static final int DID_VERSION_INDEX = 3;
-    private static final int DID_PAYLOAD_START_INDEX = 4;
+    // method-specific-id layout: {host} : v1 : {payload...}
+    private static final int DID_HOST_INDEX = 0;
+    private static final int DID_VERSION_INDEX = 1;
+    private static final int DID_PAYLOAD_START_INDEX = 2;
     private static final int MIN_DID_SEGMENT_COUNT = DID_PAYLOAD_START_INDEX + 1;
 
     private static final int PERCENT_ESCAPE_HEX_LENGTH = 2;
@@ -114,10 +120,10 @@ public class ParticipantIdentifierScheme {
      * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
      * @return the member's per-server DID
      */
-    public static String memberDid(ClientId member, String ssHost) {
+    public static Did memberDid(ClientId member, String ssHost) {
         requireMemberIdentifier(member);
 
-        return didPrefix(ssHost) + SEGMENT_SEPARATOR + memberCtxId(member);
+        return didOf(ssHost, memberCtxId(member));
     }
 
     /**
@@ -126,8 +132,8 @@ public class ParticipantIdentifierScheme {
      * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
      * @return the server's SYSTEM DID
      */
-    public static String systemDid(String ssHost) {
-        return didPrefix(ssHost) + SEGMENT_SEPARATOR + SYSTEM_SEGMENT;
+    public static Did systemDid(String ssHost) {
+        return didOf(ssHost, SYSTEM_SEGMENT);
     }
 
     /**
@@ -137,8 +143,8 @@ public class ParticipantIdentifierScheme {
      * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
      * @return the host context's DID
      */
-    public static String hostDid(String ssHost) {
-        return DID_PREFIX_SCHEME + SEGMENT_SEPARATOR + DID_PREFIX_METHOD + SEGMENT_SEPARATOR + didWebHost(ssHost);
+    public static Did hostDid(String ssHost) {
+        return Did.of(DID_METHOD, didWebHost(ssHost));
     }
 
     /**
@@ -148,8 +154,8 @@ public class ParticipantIdentifierScheme {
      * @param ssHost the Security Server's public address, as {@code host} or {@code host:port}
      * @return the management context's DID
      */
-    public static String managementDid(String ssHost) {
-        return hostDid(ssHost) + SEGMENT_SEPARATOR + MANAGEMENT_SEGMENT;
+    public static Did managementDid(String ssHost) {
+        return Did.of(DID_METHOD, hostDid(ssHost).methodSpecificId() + SEGMENT_SEPARATOR + MANAGEMENT_SEGMENT);
     }
 
     /**
@@ -172,6 +178,33 @@ public class ParticipantIdentifierScheme {
     }
 
     /**
+     * Parses a DID string into a {@link Did}, rejecting anything that is not syntactically a DID.
+     *
+     * @param did the DID in wire form
+     * @return the parsed DID
+     * @throws XrdRuntimeException if the string is blank or not a valid DID
+     */
+    public static Did parseDid(String did) {
+        requireNonBlank(did, "DID");
+        try {
+            return Did.parse(did);
+        } catch (IllegalArgumentException e) {
+            throw malformed("'%s' is not a valid DID: %s", did, e.getMessage());
+        }
+    }
+
+    /**
+     * {@link #decodeDid(Did)} for a DID still in wire form.
+     *
+     * @param did a DID string previously derived with {@link #memberDid(ClientId, String)} or {@link #systemDid(String)}
+     * @return the decoded participant
+     * @throws XrdRuntimeException if the string is not a DID or the DID is malformed
+     */
+    public static DecodedParticipant decodeDid(String did) {
+        return decodeDid(parseDid(did));
+    }
+
+    /**
      * Parses a DID back into either a member identifier or the SYSTEM marker, plus the hosting server's
      * address.
      *
@@ -179,16 +212,15 @@ public class ParticipantIdentifierScheme {
      * @return the decoded participant
      * @throws XrdRuntimeException if the DID is malformed
      */
-    public static DecodedParticipant decodeDid(String did) {
-        requireNonBlank(did, "DID");
-
-        String[] segments = did.split(SEGMENT_SEPARATOR, -1);
-        if (segments.length < MIN_DID_SEGMENT_COUNT) {
-            throw malformed("DID '%s' must have at least %d colon-separated segments, got %d",
-                    did, MIN_DID_SEGMENT_COUNT, segments.length);
+    public static DecodedParticipant decodeDid(Did did) {
+        if (!DID_METHOD.equals(did.method())) {
+            throw malformed("DID '%s' must use the '%s' method, got '%s'", did, DID_METHOD, did.method());
         }
-        if (!DID_PREFIX_SCHEME.equals(segments[0]) || !DID_PREFIX_METHOD.equals(segments[1])) {
-            throw malformed("DID '%s' must start with '%s:%s:'", did, DID_PREFIX_SCHEME, DID_PREFIX_METHOD);
+
+        String[] segments = did.methodSpecificId().split(SEGMENT_SEPARATOR, -1);
+        if (segments.length < MIN_DID_SEGMENT_COUNT) {
+            throw malformed("DID '%s' must have at least %d colon-separated segments after the method, got %d",
+                    did, MIN_DID_SEGMENT_COUNT, segments.length);
         }
         if (!SCHEME_VERSION.equals(segments[DID_VERSION_INDEX])) {
             throw malformed("DID '%s' has unsupported scheme version '%s', expected '%s'",
@@ -208,8 +240,9 @@ public class ParticipantIdentifierScheme {
                 did, SCHEME_VERSION, MEMBER_SEGMENT_COUNT, payload.length);
     }
 
-    private static String didPrefix(String ssHost) {
-        return hostDid(ssHost) + SEGMENT_SEPARATOR + SCHEME_VERSION;
+    private static Did didOf(String ssHost, String payload) {
+        return Did.of(DID_METHOD,
+                hostDid(ssHost).methodSpecificId() + SEGMENT_SEPARATOR + SCHEME_VERSION + SEGMENT_SEPARATOR + payload);
     }
 
     private static ClientId toClientId(String[] segments, int offset) {

@@ -90,10 +90,10 @@ class DataspaceParticipantBindingServiceTest {
 
         verify(dsParticipantRepository).bindMemberParticipant(MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(MEMBER),
-                ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST));
+                ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST).toString());
         verify(dsParticipantRepository).bindMemberParticipant(OTHER_MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER),
-                ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, SS_HOST));
+                ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, SS_HOST).toString());
     }
 
     @Test

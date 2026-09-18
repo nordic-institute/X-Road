@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -508,7 +509,7 @@ class DataspaceProvisioningServiceTest {
 
         var request = capturedIhCreateRequest();
         assertThat(request.participantContextId()).isEqualTo(mgmtId);
-        assertThat(request.did()).endsWith(":mgmt");
+        assertThat(request.did().toString()).endsWith(":mgmt");
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
@@ -621,7 +622,7 @@ class DataspaceProvisioningServiceTest {
         service.ensureParticipantContext(MEMBER_CONTEXT);
 
         var request = capturedIhCreateRequest();
-        assertThat(request.did()).isEqualTo(bound.getDid());
+        assertThat(request.did()).isEqualTo(Did.parse(bound.getDid()));
         assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
     }
@@ -694,7 +695,7 @@ class DataspaceProvisioningServiceTest {
         service.ensureParticipantContext(SYSTEM_CONTEXT);
 
         var request = capturedIhCreateRequest();
-        assertThat(request.did()).isEqualTo(bound.getDid());
+        assertThat(request.did()).isEqualTo(Did.parse(bound.getDid()));
         assertThat(request.memberId()).isEqualTo(slashForm(OWNER));
         assertThat(request.reanchorMemberIdOnConflict()).isTrue();
     }
@@ -978,7 +979,7 @@ class DataspaceProvisioningServiceTest {
         participant.setParticipantType(ParticipantType.MEMBER);
         participant.setMemberIdentifier(ClientIdEntityFactory.create(member));
         participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
-        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost));
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
@@ -988,7 +989,7 @@ class DataspaceProvisioningServiceTest {
         var participant = new DsParticipantEntity();
         participant.setParticipantType(ParticipantType.SYSTEM);
         participant.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost));
+        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;

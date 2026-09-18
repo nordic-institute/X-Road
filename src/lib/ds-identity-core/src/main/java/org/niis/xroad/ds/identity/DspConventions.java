@@ -27,6 +27,7 @@ package org.niis.xroad.ds.identity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -99,7 +100,7 @@ public class DspConventions {
      * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
      * @return the member's per-server DID, e.g. {@code did:web:ss0.example.org%3A7183:v1:DEV:COM:222}
      */
-    public static String memberCounterPartyId(ClientId member, String ssAddress) {
+    public static Did memberCounterPartyId(ClientId member, String ssAddress) {
         return ParticipantIdentifierScheme.memberDid(member, didAuthority(ssAddress));
     }
 

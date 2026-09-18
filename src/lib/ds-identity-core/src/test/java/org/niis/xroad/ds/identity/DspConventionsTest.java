@@ -56,7 +56,7 @@ class DspConventionsTest {
     @Test
     void shouldDeriveMemberCounterPartyId() {
         assertThat(DspConventions.memberCounterPartyId(MEMBER, "ss0.example.org"))
-                .isEqualTo("did:web:ss0.example.org%3A7183:v1:DEV:COM:222");
+                .hasToString("did:web:ss0.example.org%3A7183:v1:DEV:COM:222");
     }
 
     @Test
@@ -73,7 +73,7 @@ class DspConventionsTest {
             "proxy.ss0,   did:web:proxy.ss0%3A7183:v1:DEV:COM:222,   https://proxy.ss0:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1"
     })
     void shouldDeriveCoordinatesForEachDevSubstrateAddress(String ssAddress, String expectedDid, String expectedAddress) {
-        assertThat(DspConventions.memberCounterPartyId(MEMBER, ssAddress)).isEqualTo(expectedDid);
+        assertThat(DspConventions.memberCounterPartyId(MEMBER, ssAddress)).hasToString(expectedDid);
         assertThat(DspConventions.memberCounterPartyAddress(MEMBER, ssAddress)).isEqualTo(expectedAddress);
     }
 
@@ -81,7 +81,7 @@ class DspConventionsTest {
     void shouldBracketIpv6RegisteredAddress() {
         assertThat(DspConventions.didAuthority("2001:db8::8")).isEqualTo("[2001:db8::8]:7183");
         assertThat(DspConventions.memberCounterPartyId(MEMBER, "2001:db8::8"))
-                .isEqualTo("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:DEV:COM:222");
+                .hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:DEV:COM:222");
         assertThat(DspConventions.memberCounterPartyAddress(MEMBER, "2001:db8::8"))
                 .isEqualTo("https://[2001:db8::8]:8183/api/dsp/DEV:COM:222/http-dsp-profile-2025-1");
     }
@@ -98,7 +98,7 @@ class DspConventionsTest {
         var member = ClientId.Conf.create("DEV", "COM", "A+B");
 
         assertThat(DspConventions.memberCounterPartyId(member, "ss0.example.org"))
-                .isEqualTo("did:web:ss0.example.org%3A7183:v1:DEV:COM:A%2BB");
+                .hasToString("did:web:ss0.example.org%3A7183:v1:DEV:COM:A%2BB");
         assertThat(DspConventions.memberCounterPartyAddress(member, "ss0.example.org"))
                 .isEqualTo("https://ss0.example.org:8183/api/dsp/DEV:COM:A%252BB/http-dsp-profile-2025-1");
     }
