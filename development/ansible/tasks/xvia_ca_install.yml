@@ -1,0 +1,405 @@
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# X-VIA: Instalação do CA Server (Test CA, TSA, OCSP)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# O CA Server fornece serviços de certificação para o ambiente X-Road:
+#   - CA (Certificate Authority)
+#   - OCSP (Online Certificate Status Protocol)
+#   - TSA (Time Stamping Authority)
+#
+# Variáveis:
+#   xvia_ca_organization: Nome da organização no certificado
+#   xvia_ca_cn: Common Name do CA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+- name: "CA — Install required packages"
+  apt:
+    name:
+      - python3
+      - acl
+      - nginx-core
+      - openssl
+      - python3-pip
+      - uwsgi
+      - uwsgi-plugin-python3
+    state: present
+    update_cache: yes
+
+- name: "CA — Create ca group"
+  group:
+    name: ca
+    system: yes
+
+- name: "CA — Create ca user"
+  user:
+    name: ca
+    group: ca
+    comment: "CA user"
+    createhome: yes
+    system: yes
+
+- name: "CA — Ensure nginx access to ca home"
+  file:
+    mode: "0755"
+    path: /home/ca
+
+- name: "CA — Create ocsp user"
+  user:
+    name: ocsp
+    group: ca
+    comment: "OCSP user"
+    createhome: yes
+    system: yes
+
+- name: "CA — Create CA directory structure"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: ca
+    group: ca
+    mode: '0755'
+  loop:
+    - /home/ca/CA
+    - /home/ca/CA/newcerts
+    - /home/ca/CA/certs
+    - /home/ca/TSA
+
+- name: "CA — Create CA init script"
+  copy:
+    content: |
+      #!/bin/bash
+      set -e
+      cd /home/ca/CA
+
+      # Configuração
+      export CA_O="{{ xvia_ca_organization | default('X-VIA CA') }}"
+      export CA_CN="{{ xvia_ca_cn | default('X-VIA Test CA') }}"
+      export OCSP_O="{{ xvia_ca_ocsp_organization | default(xvia_ca_organization | default('X-VIA CA')) }}"
+      export OCSP_CN="{{ xvia_ca_ocsp_cn | default('X-VIA Test OCSP') }}"
+      export TSA_O="{{ xvia_ca_tsa_organization | default(xvia_ca_organization | default('X-VIA CA')) }}"
+      export TSA_CN="{{ xvia_ca_tsa_cn | default('X-VIA Test TSA') }}"
+
+      if [ -f .init ]; then
+        echo "CA already initialized"
+        exit 0
+      fi
+
+      # Gerar CA root key e certificado
+      openssl genrsa -out ca.key 4096
+      openssl req -new -x509 -key ca.key -out ca.pem -days 7300 \
+        -subj "/O=$CA_O/CN=$CA_CN"
+
+      # Criar index e serial
+      touch index.txt
+      echo 01 > serial
+      echo 01 > crlnumber
+
+      # OpenSSL CA config
+      cat > ca.cnf << 'CACNF'
+      [ca]
+      default_ca = CA_default
+
+      [CA_default]
+      dir = /home/ca/CA
+      certs = $dir/certs
+      new_certs_dir = $dir/newcerts
+      database = $dir/index.txt
+      serial = $dir/serial
+      certificate = $dir/ca.pem
+      private_key = $dir/ca.key
+      default_days = 3650
+      default_md = sha256
+      policy = policy_anything
+      copy_extensions = copy
+
+      [policy_anything]
+      countryName = optional
+      stateOrProvinceName = optional
+      localityName = optional
+      organizationName = optional
+      organizationalUnitName = optional
+      commonName = supplied
+      emailAddress = optional
+      CACNF
+
+      # Gerar OCSP key e certificado
+      openssl genrsa -out ocsp.key 2048
+      openssl req -new -key ocsp.key -out ocsp.csr \
+        -subj "/O=$OCSP_O/CN=$OCSP_CN"
+      openssl ca -config ca.cnf -in ocsp.csr -out ocsp.pem -days 3650 -batch \
+        -extensions ocsp_ext -extfile <(echo -e "[ocsp_ext]\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature\nextendedKeyUsage=OCSPSigning")
+
+      # Gerar TSA key e certificado
+      openssl genrsa -out tsa.key 2048
+      openssl req -new -key tsa.key -out tsa.csr \
+        -subj "/O=$TSA_O/CN=$TSA_CN"
+      openssl ca -config ca.cnf -in tsa.csr -out tsa.pem -days 3650 -batch \
+        -extensions tsa_ext -extfile <(echo -e "[tsa_ext]\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature\nextendedKeyUsage=timeStamping")
+
+      # Gerar CRL inicial
+      openssl ca -config ca.cnf -gencrl -out crl.pem
+
+      touch .init
+      echo "CA initialized successfully"
+    dest: /home/ca/CA/init.sh
+    owner: ca
+    group: ca
+    mode: '0700'
+
+- name: "CA — Create OCSP responder script"
+  copy:
+    content: |
+      #!/usr/bin/env python3
+      """Simple OCSP responder using openssl ocsp"""
+      import subprocess, sys, os
+      from http.server import HTTPServer, BaseHTTPRequestHandler
+
+      CA_DIR = "/home/ca/CA"
+      PORT = int(os.environ.get("OCSP_PORT", "8888"))
+
+      class OCSPHandler(BaseHTTPRequestHandler):
+          def do_POST(self):
+              content_length = int(self.headers['Content-Length'])
+              request_data = self.rfile.read(content_length)
+              try:
+                  result = subprocess.run(
+                      ["openssl", "ocsp", "-index", f"{CA_DIR}/index.txt",
+                       "-CA", f"{CA_DIR}/ca.pem",
+                       "-rsigner", f"{CA_DIR}/ocsp.pem",
+                       "-rkey", f"{CA_DIR}/ocsp.key",
+                       "-reqin", "/dev/stdin", "-respout", "/dev/stdout"],
+                      input=request_data, capture_output=True)
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/ocsp-response")
+                  self.end_headers()
+                  self.wfile.write(result.stdout)
+              except Exception as e:
+                  self.send_response(500)
+                  self.end_headers()
+          def log_message(self, format, *args):
+              pass
+
+      if __name__ == "__main__":
+          server = HTTPServer(("0.0.0.0", PORT), OCSPHandler)
+          print(f"OCSP responder on port {PORT}")
+          server.serve_forever()
+    dest: /home/ca/CA/ocsp.py
+    owner: ca
+    group: ca
+    mode: '0755'
+
+- name: "CA — Create TSA server script"
+  copy:
+    content: |
+      #!/usr/bin/env python3
+      """Simple TSA responder"""
+      import subprocess, tempfile, os
+      from http.server import HTTPServer, BaseHTTPRequestHandler
+
+      CA_DIR = "/home/ca/CA"
+      TSA_DIR = "/home/ca/TSA"
+      PORT = int(os.environ.get("TSA_PORT", "8899"))
+
+      class TSAHandler(BaseHTTPRequestHandler):
+          def do_POST(self):
+              content_length = int(self.headers['Content-Length'])
+              request_data = self.rfile.read(content_length)
+              with tempfile.NamedTemporaryFile(suffix='.tsq') as req_file:
+                  req_file.write(request_data)
+                  req_file.flush()
+                  with tempfile.NamedTemporaryFile(suffix='.tsr') as resp_file:
+                      subprocess.run(
+                          ["openssl", "ts", "-reply",
+                           "-config", f"{TSA_DIR}/TSA.cnf",
+                           "-queryfile", req_file.name,
+                           "-out", resp_file.name,
+                           "-inkey", f"{CA_DIR}/tsa.key",
+                           "-signer", f"{CA_DIR}/tsa.pem",
+                           "-chain", f"{CA_DIR}/ca.pem"],
+                          capture_output=True)
+                      resp_file.seek(0)
+                      response = resp_file.read()
+              self.send_response(200)
+              self.send_header("Content-Type", "application/timestamp-reply")
+              self.end_headers()
+              self.wfile.write(response)
+          def log_message(self, format, *args):
+              pass
+
+      if __name__ == "__main__":
+          server = HTTPServer(("0.0.0.0", PORT), TSAHandler)
+          print(f"TSA server on port {PORT}")
+          server.serve_forever()
+    dest: /home/ca/TSA/tsa_server.py
+    owner: ca
+    group: ca
+    mode: '0755'
+
+- name: "CA — Create TSA config"
+  copy:
+    content: |
+      [tsa]
+      default_tsa = tsa_config1
+
+      [tsa_config1]
+      dir = /home/ca/TSA
+      serial = $dir/serial
+      signer_cert = /home/ca/CA/tsa.pem
+      certs = /home/ca/CA/ca.pem
+      signer_key = /home/ca/CA/tsa.key
+      default_policy = 1.2.3.4.1
+      digests = sha256,sha384,sha512
+      accuracy = secs:1, millisecs:500, microsecs:100
+      ordering = yes
+      tsa_name = yes
+      ess_cert_id_chain = no
+    dest: /home/ca/TSA/TSA.cnf
+    owner: ca
+    group: ca
+    mode: '0664'
+
+- name: "CA — Create TSA serial"
+  copy:
+    content: "01"
+    dest: /home/ca/TSA/serial
+    owner: ca
+    group: ca
+    mode: '0644'
+    force: no
+
+- name: "CA — Check if CA initialized"
+  stat:
+    path: /home/ca/CA/.init
+  register: _ca_init_marker
+
+- name: "CA — Run CA init"
+  shell: ./init.sh
+  args:
+    chdir: /home/ca/CA
+  become: true
+  become_user: ca
+  when: not _ca_init_marker.stat.exists
+
+- name: "CA — Create sign script"
+  copy:
+    content: |
+      #!/bin/bash
+      # Sign a CSR with the test CA
+      openssl ca -config /home/ca/CA/ca.cnf -in "$1" -out "$2" -days 3650 -batch
+    dest: /usr/local/bin/sign
+    mode: '0755'
+
+- name: "CA — Create OCSP systemd unit"
+  copy:
+    content: |
+      [Unit]
+      Description=X-VIA OCSP Responder
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=ca
+      Group=ca
+      ExecStart=/usr/bin/python3 /home/ca/CA/ocsp.py
+      Environment=OCSP_PORT=8888
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/ocsp.service
+    mode: '0644'
+
+- name: "CA — Create TSA systemd unit"
+  copy:
+    content: |
+      [Unit]
+      Description=X-VIA TSA Server
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=ca
+      Group=ca
+      ExecStart=/usr/bin/python3 /home/ca/TSA/tsa_server.py
+      Environment=TSA_PORT=8899
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/tsa.service
+    mode: '0644'
+
+- name: "CA — Reload systemd"
+  systemd:
+    daemon_reload: true
+
+- name: "CA — Start and enable services"
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - ocsp
+    - tsa
+    - nginx
+
+- name: "CA — Create nginx config for OCSP/CRL"
+  copy:
+    content: |
+      server {
+          listen 8080 default_server;
+
+          location /crl {
+              alias /home/ca/CA/crl.pem;
+              default_type application/pkix-crl;
+          }
+
+          location /ca.pem {
+              alias /home/ca/CA/ca.pem;
+              default_type application/x-pem-file;
+          }
+
+          location /ocsp {
+              proxy_pass http://127.0.0.1:8888;
+              proxy_set_header Host $host;
+          }
+
+          location /tsa {
+              proxy_pass http://127.0.0.1:8899;
+              proxy_set_header Host $host;
+          }
+      }
+    dest: /etc/nginx/sites-available/xvia-ca
+    mode: '0644'
+
+- name: "CA — Enable nginx site"
+  file:
+    src: /etc/nginx/sites-available/xvia-ca
+    dest: /etc/nginx/sites-enabled/xvia-ca
+    state: link
+
+- name: "CA — Remove default nginx site"
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: "CA — Restart nginx"
+  service:
+    name: nginx
+    state: restarted
+
+- name: "✅ CA Server instalado!"
+  debug:
+    msg: |
+      ══════════════════════════════════════════════════════════════
+       X-VIA CA Server instalado com sucesso!
+      ══════════════════════════════════════════════════════════════
+       CA cert:  http://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:8080/ca.pem
+       CRL:      http://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:8080/crl
+       OCSP:     http://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:8080/ocsp
+       TSA:      http://{{ ansible_default_ipv4.address | default(inventory_hostname) }}:8080/tsa
+       Org:      {{ xvia_ca_organization | default('X-VIA CA') }}
+      ══════════════════════════════════════════════════════════════
