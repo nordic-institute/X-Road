@@ -208,8 +208,6 @@ class PolicyDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MEMBER_2));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getAllServices(MEMBER_2)).thenReturn(List.of(SERVICE_2));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
-        when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar1Svc1, ar2Svc1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_2)).thenReturn(List.of(ar1Svc2));
 
@@ -237,7 +235,6 @@ class PolicyDefinitionServerConfStoreTest {
 
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
 
         // Matching participantContextId
@@ -256,30 +253,23 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
-    void findAllSkipsDisabledServices() {
+    void findAllEmitsPerSubjectPoliciesForDisabledServiceJustLikeEnabled() {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         var ar = createAccessRight(SUBJECT_CLIENT, ep);
 
-        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MEMBER_2));
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getAllServices(MEMBER_2)).thenReturn(List.of(SERVICE_2));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
-        when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn(null);
-        when(serverConfProvider.getServiceAccessRights(SERVICE_2)).thenReturn(List.of(ar));
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
 
         var result = store.findAll(QuerySpec.none()).toList();
 
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(2);
         var perSubject = result.stream()
                 .filter(p -> !p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
                 .toList();
         assertThat(perSubject).hasSize(1);
-        var ownerOnly = result.stream()
-                .filter(p -> p.getId().endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX))
-                .toList();
-        assertThat(ownerOnly).hasSize(2);
-        assertThat(ownerOnly).extracting(PolicyDefinition::getParticipantContextId)
-                .containsOnly(MGMT_PARTICIPANT_CTX);
+        assertThat(perSubject.getFirst().getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
     }
 
     @Test
@@ -326,8 +316,6 @@ class PolicyDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
-        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(arSvc1));
         when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
@@ -380,8 +368,6 @@ class PolicyDefinitionServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
-        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(arSvc1));
         when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
@@ -472,7 +458,6 @@ class PolicyDefinitionServerConfStoreTest {
     void findAllEmptyAclEmitsOwnerOnlyPolicyDefinition() {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of());
 
         var result = store.findAll(QuerySpec.none()).toList();
@@ -533,7 +518,6 @@ class PolicyDefinitionServerConfStoreTest {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
 
         cachedStore.findAll(QuerySpec.none()).count();
@@ -551,7 +535,6 @@ class PolicyDefinitionServerConfStoreTest {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(createAccessRight(SUBJECT_CLIENT, ep)));
 
         cachedStore.findAll(QuerySpec.none()).count();
