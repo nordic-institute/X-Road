@@ -135,7 +135,7 @@ configSeed:
     - key: xroad.proxy-ui-api.dataspace.enabled
       value: "true"
     - key: xroad.proxy-ui-api.dataspace.identity-hub-url
-      value: "https://{{ ds_ih_host }}:7182"
+      value: "https://{{ ds_ih_host }}"
     # Seconds (prod default 60); short so a fixture-written dataset is visible to the
     # suite's first DSP catalog fetch well inside the fixture-to-suite gap.
     - key: xroad.dsp.catalog.cache.ttl-seconds
@@ -169,15 +169,19 @@ services:
       port: 4099
       scheme: "HTTP"
 {% endif %}
-{% if ds_tls and svc != 'ds-issuer-service' %}
+{# Only these two need service-specific env entries here (trusted-issuer id / callback
+   address for ds-control-plane, public DID hostname for ds-identity-hub). ds-issuer-service
+   has none — it is not "excluded"; EDC_IAM_DID_WEB_USE_HTTPS is not set anywhere (neither
+   here nor in the security-server chart) because upstream EDC's own default is already
+   "true" (decompile-verified: identity-did-web's WebDidExtension,
+   getSetting("edc.iam.did.web.use.https", true)) and nothing in the stack overrides it. #}
+{% if ds_tls and svc in ['ds-control-plane', 'ds-identity-hub'] %}
     env:
 {% if svc == 'ds-control-plane' %}
       EDC_DSP_CALLBACK_ADDRESS: "https://{{ ds_cp_host }}:8183/api/dsp/%s"
-      EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
 {% if svc == 'ds-identity-hub' %}
       EDC_IH_DID_PUBLIC_HOSTNAME: "{{ ds_ih_host }}"
-      EDC_IAM_DID_WEB_USE_HTTPS: "true"
 {% endif %}
 {% endif %}
 {% endfor %}
