@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,7 +81,9 @@ import static org.mockito.Mockito.when;
 class DataspaceParticipantLifecycleConvergenceTest {
 
     private static final String HOST_ID = "xrd-ss0";
-    private static final String IDENTITY_HUB_HOST = "ih.example.test:7183";
+    private static final String SS_ADDRESS = "ih.example.test";
+    private static final String SERVER_CODE = "SS0";
+    private static final String IDENTITY_HUB_HOST = SS_ADDRESS + ":7183";
     private static final String INSTANCE_IDENTIFIER = "TEST";
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "owner");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "member");
@@ -124,9 +128,12 @@ class DataspaceParticipantLifecycleConvergenceTest {
         bindingTable.wireOnto(dsParticipantRepository);
         givenServerOwnedBy(OWNER);
 
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
+        var didAuthority = new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties);
         var service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider);
-        worker = new DataspaceParticipantProvisioningWorker(service, readinessPredicates);
+                clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider, didAuthority);
+        worker = new DataspaceParticipantProvisioningWorker(service, readinessPredicates,
+                new DataspaceParticipantBindingService(dsParticipantRepository, didAuthority));
     }
 
     @Test
@@ -221,7 +228,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
 
         worker.provisionParticipant();
 
-        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+        assertThat(bindingTable.stateOf(MEMBER)).isEqualTo(ParticipantState.ACTIVE);
         var secondGeneration = identityHubClient.contextGeneration(MEMBER_CTX_ID).orElseThrow();
         assertThat(secondGeneration).isGreaterThan(firstGeneration);
     }
@@ -233,7 +240,7 @@ class DataspaceParticipantLifecycleConvergenceTest {
         assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
 
         assertThat(identityHubClient.hasContext(MEMBER_CTX_ID)).isTrue();
-        assertThat(bindingTable.hasRow(MEMBER)).isFalse();
+        assertThat(bindingTable.stateOf(MEMBER)).isEqualTo(ParticipantState.ACTIVE);
     }
 
     @Test
@@ -286,7 +293,10 @@ class DataspaceParticipantLifecycleConvergenceTest {
         when(ownerEntity.getIdentifier()).thenReturn(ClientIdEntityFactory.create(owner));
         var serverConf = mock(ServerConfEntity.class);
         when(serverConf.getOwner()).thenReturn(ownerEntity);
+        when(serverConf.getServerCode()).thenReturn(SERVER_CODE);
         when(serverConfRepository.getServerConf()).thenReturn(serverConf);
+        when(globalConfProvider.getSecurityServerAddress(SecurityServerId.Conf.create(owner, SERVER_CODE)))
+                .thenReturn(SS_ADDRESS);
     }
 
     private void givenMemberHasRegisteredClient(ClientId member) {
@@ -364,24 +374,32 @@ class DataspaceParticipantLifecycleConvergenceTest {
 
         void wireOnto(DsParticipantRepository repository) {
             when(repository.findByMemberIdentifier(any())).thenAnswer(invocation -> findByMember(invocation.getArgument(0)));
+            when(repository.bindMemberParticipant(any(), anyString(), anyString())).thenAnswer(invocation ->
+                    bind(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
             when(repository.decommissionMember(any())).thenAnswer(invocation -> decommission(invocation.getArgument(0)));
             when(repository.findDecommissioned()).thenAnswer(invocation -> findDecommissioned());
             when(repository.delete(anyLong())).thenAnswer(invocation -> delete(invocation.getArgument(0)));
         }
 
-        private void seed(ClientId member, ParticipantState state) {
+        DsParticipantEntity bind(ClientId member, String ctxId, String did) {
             var entity = new DsParticipantEntity();
             var id = idSeq.incrementAndGet();
             entity.setId(id);
             entity.setParticipantType(ParticipantType.MEMBER);
             entity.setMemberIdentifier(ClientIdEntityFactory.create(member));
-            entity.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
-            entity.setDid(ParticipantIdentifierScheme.memberDid(member, IDENTITY_HUB_HOST));
+            entity.setCtxId(ctxId);
+            entity.setDid(did);
             entity.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
-            entity.setState(state);
+            entity.setState(ParticipantState.ACTIVE);
             rowsById.put(id, entity);
             memberById.put(id, member);
             idByMember.put(member, id);
+            return entity;
+        }
+
+        private void seed(ClientId member, ParticipantState state) {
+            bind(member, ParticipantIdentifierScheme.memberCtxId(member),
+                    ParticipantIdentifierScheme.memberDid(member, IDENTITY_HUB_HOST).toString()).setState(state);
         }
     }
 }

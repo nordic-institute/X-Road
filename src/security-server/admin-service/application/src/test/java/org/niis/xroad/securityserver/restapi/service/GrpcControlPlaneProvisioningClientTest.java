@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.verify;
 class GrpcControlPlaneProvisioningClientTest {
 
     private static final String CTX_ID = "test-ctx";
-    private static final String DID = "did:web:example";
+    private static final Did DID = Did.parse("did:web:example");
     private static final String STS_TOKEN_URL = "https://sts.example/token";
 
     @Mock
@@ -52,14 +53,14 @@ class GrpcControlPlaneProvisioningClientTest {
     void createParticipantContextDelegatesToRpcClient() {
         client.createParticipantContext(CTX_ID, DID);
 
-        verify(rpcClient).createParticipantContext(CTX_ID, DID);
+        verify(rpcClient).createParticipantContext(CTX_ID, DID.toString());
     }
 
     @Test
     void putParticipantContextConfigDelegatesToRpcClient() {
         client.putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
 
-        verify(rpcClient).putParticipantContextConfig(CTX_ID, DID, STS_TOKEN_URL);
+        verify(rpcClient).putParticipantContextConfig(CTX_ID, DID.toString(), STS_TOKEN_URL);
     }
 
     @Test

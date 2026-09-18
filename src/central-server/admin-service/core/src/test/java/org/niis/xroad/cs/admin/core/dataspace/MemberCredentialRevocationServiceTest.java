@@ -141,7 +141,7 @@ class MemberCredentialRevocationServiceTest {
 
         ArgumentCaptor<String> didCaptor = ArgumentCaptor.forClass(String.class);
         verify(rpcClient).revokeCredential(eq(ISSUER_PARTICIPANT_ID), didCaptor.capture(), eq(CUTOFF));
-        assertThat(didCaptor.getValue()).isEqualTo(ParticipantIdentifierScheme.memberDid(memberId, SS_DID_AUTHORITY));
+        assertThat(didCaptor.getValue()).isEqualTo(ParticipantIdentifierScheme.memberDid(memberId, SS_DID_AUTHORITY).toString());
     }
 
     @Test

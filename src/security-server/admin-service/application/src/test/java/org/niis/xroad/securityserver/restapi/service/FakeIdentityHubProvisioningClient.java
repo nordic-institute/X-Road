@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 
 import java.util.Collection;
@@ -45,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 final class FakeIdentityHubProvisioningClient implements IdentityHubProvisioningClient {
 
-    private record Context(String did, String privateKeyAlias, int generation) {
+    private record Context(Did did, String privateKeyAlias, int generation) {
     }
 
     private final Map<String, Context> contexts = new HashMap<>();
@@ -57,12 +58,14 @@ final class FakeIdentityHubProvisioningClient implements IdentityHubProvisioning
     private final Set<String> failRequestCredentialFor = new HashSet<>();
 
     @Override
-    public void createParticipantContext(String participantContextId, String did, String memberId,
-                                         String credentialServiceUrl, String keyId, String privateKeyAlias) {
+    public boolean createParticipantContext(CreateParticipantContextRequest request) {
+        var participantContextId = request.participantContextId();
         if (failCreateContextFor.remove(participantContextId)) {
             throw new FakeProvisioningException("identity hub: createParticipantContext " + participantContextId);
         }
-        contexts.put(participantContextId, new Context(did, privateKeyAlias, generationSeq.incrementAndGet()));
+        contexts.put(participantContextId,
+                new Context(request.did(), request.privateKeyAlias(), generationSeq.incrementAndGet()));
+        return true;
     }
 
     @Override
@@ -92,7 +95,7 @@ final class FakeIdentityHubProvisioningClient implements IdentityHubProvisioning
     }
 
     @Override
-    public Optional<String> contextDid(String participantContextId) {
+    public Optional<Did> contextDid(String participantContextId) {
         return Optional.ofNullable(contexts.get(participantContextId)).map(Context::did);
     }
 

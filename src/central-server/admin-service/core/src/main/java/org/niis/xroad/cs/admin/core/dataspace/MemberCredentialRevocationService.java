@@ -107,7 +107,7 @@ public class MemberCredentialRevocationService {
         }
 
         String holderDid = ParticipantIdentifierScheme.memberDid(
-                event.memberId(), server.getAddress() + ":" + INTERIM_IDENTITY_HUB_DID_PORT);
+                event.memberId(), server.getAddress() + ":" + INTERIM_IDENTITY_HUB_DID_PORT).toString();
         log.info("Dataspace credential revocation: revoking credentials for holder {} issued before {}",
                 holderDid, event.removedAt());
         int revokedCount = rpcClient.revokeCredential(ISSUER_PARTICIPANT_ID, holderDid, event.removedAt());

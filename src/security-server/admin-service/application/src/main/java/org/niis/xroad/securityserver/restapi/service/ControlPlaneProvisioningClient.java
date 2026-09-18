@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
+
 /**
  * Transport-agnostic client for Control Plane provisioning operations.
  */
@@ -34,12 +36,12 @@ public interface ControlPlaneProvisioningClient {
     /**
      * Creates (idempotently) the Control Plane participant context for the given participant.
      */
-    void createParticipantContext(String participantContextId, String did);
+    void createParticipantContext(String participantContextId, Did did);
 
     /**
      * Saves the STS-bound config for the Control Plane participant context.
      */
-    void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl);
+    void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl);
 
     /**
      * Deletes (idempotently) the Control Plane participant context and its configuration for the given participant.

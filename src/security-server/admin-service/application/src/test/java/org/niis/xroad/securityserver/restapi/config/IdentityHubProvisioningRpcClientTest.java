@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import com.apicatalog.did.Did;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
@@ -49,6 +50,7 @@ import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDi
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.RequestCredentialResp;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -70,6 +72,8 @@ class IdentityHubProvisioningRpcClientTest {
 
     private GetCredentialRequestStateResp configuredStateResp;
     private GetParticipantContextDidResp configuredDidResp;
+    private CreateParticipantContextResp configuredCreateResp =
+            CreateParticipantContextResp.newBuilder().setMemberIdReanchored(true).build();
     private final AtomicReference<CreateParticipantContextReq> capturedCreateReq = new AtomicReference<>();
     private final AtomicReference<DeleteParticipantContextReq> capturedDeleteReq = new AtomicReference<>();
     private final AtomicReference<RequestCredentialReq> capturedRequestCredReq = new AtomicReference<>();
@@ -81,7 +85,7 @@ class IdentityHubProvisioningRpcClientTest {
             public void createParticipantContext(CreateParticipantContextReq request,
                                                  StreamObserver<CreateParticipantContextResp> responseObserver) {
                 capturedCreateReq.set(request);
-                responseObserver.onNext(CreateParticipantContextResp.newBuilder().build());
+                responseObserver.onNext(configuredCreateResp);
                 responseObserver.onCompleted();
             }
 
@@ -176,8 +180,7 @@ class IdentityHubProvisioningRpcClientTest {
 
     @Test
     void createIdentityHubParticipantContextForwardsAllFields() {
-        client.createIdentityHubParticipantContext("ctx-id", "did:web:example", "member-id",
-                "https://cred.example/v1", "did:web:example#key-1", "ctx-id-key");
+        var anchor = client.createIdentityHubParticipantContext(createRequest("member-id", true));
 
         var req = capturedCreateReq.get();
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
@@ -186,6 +189,47 @@ class IdentityHubProvisioningRpcClientTest {
         assertThat(req.getCredentialServiceUrl()).isEqualTo("https://cred.example/v1");
         assertThat(req.getKeyId()).isEqualTo("did:web:example#key-1");
         assertThat(req.getPrivateKeyAlias()).isEqualTo("ctx-id-key");
+        assertThat(req.getReanchorMemberIdOnConflict()).isTrue();
+        assertThat(anchor).isTrue();
+    }
+
+    @Test
+    void createIdentityHubParticipantContextReportsConfirmedUnderKeepEvenWhenHubSendsNoAck() {
+        configuredCreateResp = CreateParticipantContextResp.getDefaultInstance();
+
+        var anchor = client.createIdentityHubParticipantContext(createRequest("member-id", false));
+
+        assertThat(anchor).isTrue();
+    }
+
+    @Test
+    void createIdentityHubParticipantContextSendsEmptyMemberIdWhenOwnerUnknown() {
+        client.createIdentityHubParticipantContext(createRequest(null, false));
+
+        var req = capturedCreateReq.get();
+        assertThat(req.getMemberId()).isEmpty();
+        assertThat(req.getReanchorMemberIdOnConflict()).isFalse();
+    }
+
+    @Test
+    void createIdentityHubParticipantContextReportsUnconfirmedWhenHubDoesNotConfirmReanchor() {
+        configuredCreateResp = CreateParticipantContextResp.getDefaultInstance();
+
+        var anchor = client.createIdentityHubParticipantContext(createRequest("member-id", true));
+
+        assertThat(anchor).isFalse();
+    }
+
+    private static CreateParticipantContextRequest createRequest(String memberId, boolean reanchorMemberIdOnConflict) {
+        return CreateParticipantContextRequest.builder()
+                .participantContextId("ctx-id")
+                .did(Did.parse("did:web:example"))
+                .memberId(memberId)
+                .credentialServiceUrl("https://cred.example/v1")
+                .keyId("did:web:example#key-1")
+                .privateKeyAlias("ctx-id-key")
+                .reanchorMemberIdOnConflict(reanchorMemberIdOnConflict)
+                .build();
     }
 
     @Test

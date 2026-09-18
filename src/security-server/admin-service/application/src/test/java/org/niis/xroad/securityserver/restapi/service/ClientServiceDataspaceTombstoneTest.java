@@ -100,9 +100,9 @@ class ClientServiceDataspaceTombstoneTest {
     @BeforeEach
     void setUp() {
         clientService = new ClientService(clientRepository, null, globalConfProvider, serverConfService, null,
-                identifierRepository, localGroupRepository, accessRightRepository, null,
+                identifierRepository, dsParticipantRepository, localGroupRepository, accessRightRepository, null,
                 new CurrentSecurityServerId(SecurityServerId.Conf.create(OWNER, "SS1")), subsystemNameStatus,
-                auditDataHelper, catalogInvalidationNotifier, dsParticipantRepository,
+                auditDataHelper, catalogInvalidationNotifier,
                 mock(CurrentSecurityServerSignCertificates.class));
 
         clients = new HashSet<>();

@@ -26,12 +26,14 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
+import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
 
 import java.util.Optional;
 import java.util.Set;
@@ -44,7 +46,7 @@ import static org.mockito.Mockito.when;
 class GrpcIdentityHubProvisioningClientTest {
 
     private static final String CTX_ID = "test-ctx";
-    private static final String DID = "did:web:example";
+    private static final Did DID = Did.parse("did:web:example");
     private static final String MEMBER_ID = "TEST/GOV/1234";
     private static final String CRED_SERVICE_URL = "https://cred.example/v1";
     private static final String KEY_ID = DID + "#key-1";
@@ -63,9 +65,36 @@ class GrpcIdentityHubProvisioningClientTest {
 
     @Test
     void createParticipantContextDelegatesToRpcClient() {
-        client.createParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var request = createRequest(false);
+        when(rpcClient.createIdentityHubParticipantContext(request)).thenReturn(true);
 
-        verify(rpcClient).createIdentityHubParticipantContext(CTX_ID, DID, MEMBER_ID, CRED_SERVICE_URL, KEY_ID, KEY_ALIAS);
+        var result = client.createParticipantContext(request);
+
+        assertThat(result).isTrue();
+        verify(rpcClient).createIdentityHubParticipantContext(request);
+    }
+
+    @Test
+    void createParticipantContextForwardsReanchorFlagAndReturnedAnchor() {
+        var request = createRequest(true);
+        when(rpcClient.createIdentityHubParticipantContext(request)).thenReturn(false);
+
+        var result = client.createParticipantContext(request);
+
+        assertThat(result).isFalse();
+        verify(rpcClient).createIdentityHubParticipantContext(request);
+    }
+
+    private static CreateParticipantContextRequest createRequest(boolean reanchorMemberIdOnConflict) {
+        return CreateParticipantContextRequest.builder()
+                .participantContextId(CTX_ID)
+                .did(DID)
+                .memberId(MEMBER_ID)
+                .credentialServiceUrl(CRED_SERVICE_URL)
+                .keyId(KEY_ID)
+                .privateKeyAlias(KEY_ALIAS)
+                .reanchorMemberIdOnConflict(reanchorMemberIdOnConflict)
+                .build();
     }
 
     @Test
@@ -111,7 +140,7 @@ class GrpcIdentityHubProvisioningClientTest {
 
         var result = client.contextDid(CTX_ID);
 
-        assertThat(result).contains("did:web:example");
+        assertThat(result).contains(DID);
         verify(rpcClient).getParticipantContextDid(CTX_ID);
     }
 

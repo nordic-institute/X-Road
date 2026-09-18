@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -40,7 +42,7 @@ import java.util.Set;
  */
 final class FakeControlPlaneProvisioningClient implements ControlPlaneProvisioningClient {
 
-    private record Context(String did, boolean configured) {
+    private record Context(Did did, boolean configured) {
     }
 
     private final Map<String, Context> contexts = new HashMap<>();
@@ -50,7 +52,7 @@ final class FakeControlPlaneProvisioningClient implements ControlPlaneProvisioni
     private final Set<String> failDeleteContextFor = new HashSet<>();
 
     @Override
-    public void createParticipantContext(String participantContextId, String did) {
+    public void createParticipantContext(String participantContextId, Did did) {
         if (failCreateContextFor.remove(participantContextId)) {
             throw new FakeProvisioningException("control plane: createParticipantContext " + participantContextId);
         }
@@ -58,7 +60,7 @@ final class FakeControlPlaneProvisioningClient implements ControlPlaneProvisioni
     }
 
     @Override
-    public void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl) {
+    public void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl) {
         if (failPutConfigFor.remove(participantContextId)) {
             throw new FakeProvisioningException("control plane: putParticipantContextConfig " + participantContextId);
         }

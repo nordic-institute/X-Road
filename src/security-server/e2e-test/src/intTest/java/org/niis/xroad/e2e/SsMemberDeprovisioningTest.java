@@ -627,7 +627,7 @@ class SsMemberDeprovisioningTest extends E2eTest {
     private String expectedHolderDid(E2eEnvironment env, String memberClass, String memberCode) {
         var member = ClientId.Conf.create(X_ROAD_INSTANCE, memberClass, memberCode);
         var ssHost = env.securityServerAddress(SS0_ENV) + ":" + IDENTITY_HUB_DID_PORT;
-        return ParticipantIdentifierScheme.memberDid(member, ssHost);
+        return ParticipantIdentifierScheme.memberDid(member, ssHost).toString();
     }
 
     /**

@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   api(project(":common:common-domain"))
+  api(libs.carbon.did)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)

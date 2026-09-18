@@ -379,6 +379,30 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
 
     @Test
+    public void deleteLocalClientKeepsBoundDataspaceIdentity() throws Exception {
+        ClientId memberId = getClientId("FI:GOV:M3");
+        clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(), null, IsAuthentication.SSLAUTH, false);
+        persistenceUtils.flush();
+
+        Long identifierId = jdbcTemplate.queryForObject(
+                "SELECT id FROM identifier WHERE member_code = 'M3' AND subsystem_code IS NULL", Long.class);
+        jdbcTemplate.update("INSERT INTO ds_participant"
+                + " (id, participant_type, member_identifier, ctx_id, did, scheme_version, state, created_at, updated_at)"
+                + " VALUES (9001, 'MEMBER', ?, 'ctx', 'did:web:bound', 'v1', 'ACTIVE',"
+                + " CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", identifierId);
+
+        clientService.deleteLocalClient(memberId);
+        persistenceUtils.flush();
+
+        assertNull(clientService.getLocalClient(memberId));
+        assertEquals(Integer.valueOf(1), jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM identifier WHERE id = ?", Integer.class, identifierId));
+        assertEquals(Integer.valueOf(1), jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM ds_participant WHERE member_identifier = ?", Integer.class, identifierId));
+    }
+
+    @Test
     public void deleteLocalClientNotifiesCatalogInvalidation() throws Exception {
         ClientId memberId = getClientId("FI:GOV:M3");
         clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),

@@ -39,7 +39,8 @@ intTestComposeEnv {
     "MESSAGE_LOG_ARCHIVER_IMG" to "ss-message-log-archiver",
     "DS_CONTROL_PLANE_IMG" to "ds-control-plane",
     "DS_IDENTITY_HUB_IMG" to "ds-identity-hub",
-    "SIDECAR_IMG" to "xroad-security-server-sidecar"
+    "SIDECAR_IMG" to "xroad-security-server-sidecar",
+    "DS_GATEWAY_IMG" to "ds-gateway-dev"
   )
 }
 

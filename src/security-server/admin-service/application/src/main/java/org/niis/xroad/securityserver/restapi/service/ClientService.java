@@ -129,6 +129,7 @@ public class ClientService {
     private final ServerConfService serverConfService;
     private final IdentifierService identifierService;
     private final IdentifierRepository identifierRepository;
+    private final DsParticipantRepository dsParticipantRepository;
     private final LocalGroupRepository localGroupRepository;
     private final AccessRightRepository accessRightRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
@@ -136,7 +137,6 @@ public class ClientService {
     private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
     private final CatalogInvalidationNotifier catalogInvalidationNotifier;
-    private final DsParticipantRepository dsParticipantRepository;
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
