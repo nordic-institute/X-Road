@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
+import com.apicatalog.did.Did;
 import org.niis.xroad.ds.identity.DspConventions;
 
 import java.util.Map;
@@ -49,7 +50,7 @@ import java.util.Map;
  * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183:mgmt})
  * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/…})
  */
-public record CounterPartyTarget(String counterPartyId, String counterPartyAddress) {
+public record CounterPartyTarget(Did counterPartyId, String counterPartyAddress) {
 
     /**
      * Targets of the legacy {@code -mgmt} participant contexts, keyed by GlobalConf-registered

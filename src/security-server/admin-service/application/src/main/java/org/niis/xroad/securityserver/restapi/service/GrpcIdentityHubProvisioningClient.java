@@ -26,8 +26,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.securityserver.restapi.config.IdentityHubProvisioningRpcClient;
 import org.springframework.stereotype.Component;
 
@@ -44,9 +46,9 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     private final IdentityHubProvisioningRpcClient rpcClient;
 
     @Override
-    public void createParticipantContext(String participantContextId, String did, String memberId,
+    public void createParticipantContext(String participantContextId, Did did, String memberId,
                                          String credentialServiceUrl, String keyId, String privateKeyAlias) {
-        rpcClient.createIdentityHubParticipantContext(participantContextId, did, memberId, credentialServiceUrl,
+        rpcClient.createIdentityHubParticipantContext(participantContextId, did.toString(), memberId, credentialServiceUrl,
                 keyId, privateKeyAlias);
     }
 
@@ -64,7 +66,7 @@ public class GrpcIdentityHubProvisioningClient implements IdentityHubProvisionin
     }
 
     @Override
-    public Optional<String> contextDid(String participantContextId) {
-        return rpcClient.getParticipantContextDid(participantContextId);
+    public Optional<Did> contextDid(String participantContextId) {
+        return rpcClient.getParticipantContextDid(participantContextId).map(ParticipantIdentifierScheme::parseDid);
     }
 }

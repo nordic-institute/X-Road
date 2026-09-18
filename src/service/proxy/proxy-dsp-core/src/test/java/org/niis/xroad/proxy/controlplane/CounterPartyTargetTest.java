@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,16 +38,16 @@ class CounterPartyTargetTest {
         var map = CounterPartyTarget.managementMap();
 
         assertThat(map.get("xrd-ss0")).isEqualTo(new CounterPartyTarget(
-                "did:web:xrd-ss0%3A7183:mgmt",
+                Did.parse("did:web:xrd-ss0%3A7183:mgmt"),
                 "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
         assertThat(map.get("xrd-ss0.lxd")).isEqualTo(new CounterPartyTarget(
-                "did:web:xrd-ss0.lxd%3A7183:mgmt",
+                Did.parse("did:web:xrd-ss0.lxd%3A7183:mgmt"),
                 "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/http-dsp-profile-2025-1"));
         assertThat(map.get("ss0")).isEqualTo(new CounterPartyTarget(
-                "did:web:ss0%3A7183:mgmt",
+                Did.parse("did:web:ss0%3A7183:mgmt"),
                 "https://ss0:8183/api/dsp/ss0-mgmt/http-dsp-profile-2025-1"));
         assertThat(map.get("proxy.ss0")).isEqualTo(new CounterPartyTarget(
-                "did:web:proxy.ss0%3A7183:mgmt",
+                Did.parse("did:web:proxy.ss0%3A7183:mgmt"),
                 "https://proxy.ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
     }
 }

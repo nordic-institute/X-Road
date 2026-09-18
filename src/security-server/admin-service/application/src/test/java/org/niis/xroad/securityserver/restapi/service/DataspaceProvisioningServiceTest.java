@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -555,7 +556,8 @@ class DataspaceProvisioningServiceTest {
 
         service.ensureParticipantContext(ParticipantIdentifierScheme.memberCtxId(MEMBER), ParticipantKind.MEMBER, MEMBER);
 
-        verify(identityHubClient).createParticipantContext(any(), eq(bound.getDid()), eq(slashForm(MEMBER)), any(), any(), any());
+        verify(identityHubClient).createParticipantContext(any(), eq(Did.parse(bound.getDid())), eq(slashForm(MEMBER)),
+                any(), any(), any());
     }
 
     @Test
@@ -704,7 +706,7 @@ class DataspaceProvisioningServiceTest {
         participant.setParticipantType(ParticipantType.MEMBER);
         participant.setMemberIdentifier(ClientIdEntityFactory.create(member));
         participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
-        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost));
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
@@ -714,7 +716,7 @@ class DataspaceProvisioningServiceTest {
         return "%s/%s/%s".formatted(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode());
     }
 
-    private static String argThatEndsWith(String suffix) {
-        return argThat(value -> value != null && value.endsWith(suffix));
+    private static Did argThatEndsWith(String suffix) {
+        return argThat(value -> value != null && value.toString().endsWith(suffix));
     }
 }

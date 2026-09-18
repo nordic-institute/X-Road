@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 
 import java.util.Collection;
@@ -39,7 +40,7 @@ public interface IdentityHubProvisioningClient {
     /**
      * Creates (idempotently) the IdentityHub participant context for the given participant.
      */
-    void createParticipantContext(String participantContextId, String did, String memberId,
+    void createParticipantContext(String participantContextId, Did did, String memberId,
                                   String credentialServiceUrl, String keyId, String privateKeyAlias);
 
     /**
@@ -63,5 +64,5 @@ public interface IdentityHubProvisioningClient {
      * Returns the DID of the participant context with the given id, or empty if no such context
      * exists in IdentityHub.
      */
-    Optional<String> contextDid(String participantContextId);
+    Optional<Did> contextDid(String participantContextId);
 }

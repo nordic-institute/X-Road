@@ -28,6 +28,7 @@ package org.niis.xroad.serverconf.impl.participant;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
@@ -69,9 +70,9 @@ public class ParticipantBindingCheck {
 
         Derived derived = derive(bound, ssHost);
 
-        if (!bound.getCtxId().equals(derived.ctxId()) || !bound.getDid().equals(derived.did())) {
+        if (!bound.getCtxId().equals(derived.ctxId()) || !bound.getDid().equals(derived.did().toString())) {
             throw XrdRuntimeException.systemException(DSP_PARTICIPANT_IDENTIFIER_MISMATCH)
-                    .metadataItems(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did())
+                    .metadataItems(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did().toString())
                     .details(("bound participant identifier no longer matches derivation: "
                             + "bound ctx-id='%s' did='%s', derived ctx-id='%s' did='%s'")
                             .formatted(bound.getCtxId(), bound.getDid(), derived.ctxId(), derived.did()))
@@ -93,7 +94,7 @@ public class ParticipantBindingCheck {
         };
     }
 
-    private record Derived(String ctxId, String did) {
+    private record Derived(String ctxId, Did did) {
     }
 
 }

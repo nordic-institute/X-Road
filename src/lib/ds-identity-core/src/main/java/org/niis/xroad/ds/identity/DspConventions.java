@@ -27,6 +27,7 @@ package org.niis.xroad.ds.identity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -105,8 +106,8 @@ public class DspConventions {
      * @param didAuthority the server's DID authority, see {@link #didAuthority(String)}
      * @return the host context DID, e.g. {@code did:web:ss0.example.org%3A7183}
      */
-    public static String hostDid(String didAuthority) {
-        return "did:web:" + ParticipantIdentifierScheme.didWebHost(didAuthority);
+    public static Did hostDid(String didAuthority) {
+        return Did.of(ParticipantIdentifierScheme.DID_METHOD, ParticipantIdentifierScheme.didWebHost(didAuthority));
     }
 
     /**
@@ -116,8 +117,8 @@ public class DspConventions {
      * @param didAuthority the server's DID authority, see {@link #didAuthority(String)}
      * @return the management context DID, e.g. {@code did:web:ss0.example.org%3A7183:mgmt}
      */
-    public static String managementDid(String didAuthority) {
-        return hostDid(didAuthority) + MANAGEMENT_DID_SUFFIX;
+    public static Did managementDid(String didAuthority) {
+        return Did.of(ParticipantIdentifierScheme.DID_METHOD, hostDid(didAuthority).methodSpecificId() + MANAGEMENT_DID_SUFFIX);
     }
 
     /**
@@ -128,7 +129,7 @@ public class DspConventions {
      * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
      * @return the member's per-server DID, e.g. {@code did:web:ss0.example.org%3A7183:v1:DEV:COM:222}
      */
-    public static String memberCounterPartyId(ClientId member, String ssAddress) {
+    public static Did memberCounterPartyId(ClientId member, String ssAddress) {
         return ParticipantIdentifierScheme.memberDid(member, didAuthority(ssAddress));
     }
 

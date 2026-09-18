@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -182,7 +183,7 @@ public class DataspaceProvisioningService {
         controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
 
-    private void requireNoHubDidDrift(String participantId, String intendedDid) {
+    private void requireNoHubDidDrift(String participantId, Did intendedDid) {
         identityHubClient.contextDid(participantId)
                 .filter(hubDid -> !hubDid.equals(intendedDid))
                 .ifPresent(hubDid -> {
@@ -351,7 +352,7 @@ public class DataspaceProvisioningService {
     }
 
     @Nullable
-    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<String> hubDid) {
+    private static IdentityStatus identityStatusOf(@Nullable MemberIdentity assessment, Optional<Did> hubDid) {
         if (assessment == null) {
             return null;
         }
@@ -375,7 +376,7 @@ public class DataspaceProvisioningService {
      * bound in {@code ds_participant}, so changing the registered address after a member's identity
      * has been bound makes that row fail verification.
      */
-    private String didFor(ParticipantKind kind, ClientId memberId) {
+    private Did didFor(ParticipantKind kind, ClientId memberId) {
         var didAuthority = ownDidAuthority()
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
                         "this security server's owner or GlobalConf-registered address is not available yet; "
@@ -405,11 +406,11 @@ public class DataspaceProvisioningService {
         return ownSecurityServerResolver.registeredAddress().isPresent();
     }
 
-    private String memberDid(ClientId member, String ssHost) {
+    private Did memberDid(ClientId member, String ssHost) {
         var bound = dsParticipantRepository.findByMemberIdentifier(member);
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), ssHost);
-            return bound.get().getDid();
+            return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
         return ParticipantIdentifierScheme.memberDid(member, ssHost);
     }
@@ -432,7 +433,7 @@ public class DataspaceProvisioningService {
      * publish (the bound DID, or the fresh derivation when nothing is bound; {@code null} when the
      * bound row itself is in an error state and no intended DID can be stated).
      */
-    private record MemberIdentity(IdentityStatus status, @Nullable String intendedDid) {
+    private record MemberIdentity(IdentityStatus status, @Nullable Did intendedDid) {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
@@ -451,7 +452,7 @@ public class DataspaceProvisioningService {
         }
         try {
             ParticipantBindingCheck.verify(bound.get(), ssHost);
-            return new MemberIdentity(IdentityStatus.OK, bound.get().getDid());
+            return new MemberIdentity(IdentityStatus.OK, ParticipantIdentifierScheme.parseDid(bound.get().getDid()));
         } catch (XrdRuntimeException e) {
             if (DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code().equals(e.getErrorCode())) {
                 return new MemberIdentity(IdentityStatus.MISMATCH, null);
@@ -464,7 +465,7 @@ public class DataspaceProvisioningService {
         }
     }
 
-    private void createIdentityHubContext(String participantId, String did, String identityHubHost, ClientId memberId) {
+    private void createIdentityHubContext(String participantId, Did did, String identityHubHost, ClientId memberId) {
         var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
                 adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
                 UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));

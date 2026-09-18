@@ -106,7 +106,7 @@ public class DsParticipantDAOImplTest {
         assertEquals(ParticipantType.MEMBER, loaded.get().getParticipantType());
         assertEquals(member, loaded.get().getMemberIdentifier());
         assertEquals(ParticipantIdentifierScheme.memberCtxId(member), loaded.get().getCtxId());
-        assertEquals(ParticipantIdentifierScheme.memberDid(member, SS_HOST), loaded.get().getDid());
+        assertEquals(ParticipantIdentifierScheme.memberDid(member, SS_HOST).toString(), loaded.get().getDid());
         assertEquals(ParticipantIdentifierScheme.SCHEME_VERSION, loaded.get().getSchemeVersion());
         assertEquals(ParticipantState.ACTIVE, loaded.get().getState());
     }
@@ -121,7 +121,7 @@ public class DsParticipantDAOImplTest {
         assertEquals(ParticipantType.SYSTEM, loaded.get().getParticipantType());
         assertNull(loaded.get().getMemberIdentifier());
         assertEquals(ParticipantIdentifierScheme.SYSTEM_SEGMENT, loaded.get().getCtxId());
-        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST), loaded.get().getDid());
+        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST).toString(), loaded.get().getDid());
     }
 
     @Test
@@ -218,7 +218,7 @@ public class DsParticipantDAOImplTest {
         participant.setParticipantType(ParticipantType.MEMBER);
         participant.setMemberIdentifier(identifier);
         participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
-        participant.setDid(ParticipantIdentifierScheme.memberDid(member, SS_HOST));
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, SS_HOST).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
@@ -237,7 +237,7 @@ public class DsParticipantDAOImplTest {
         DsParticipantEntity participant = new DsParticipantEntity();
         participant.setParticipantType(ParticipantType.SYSTEM);
         participant.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        participant.setDid(ParticipantIdentifierScheme.systemDid(SS_HOST));
+        participant.setDid(ParticipantIdentifierScheme.systemDid(SS_HOST).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
