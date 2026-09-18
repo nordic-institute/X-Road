@@ -121,14 +121,24 @@
                 </XrdStatusChip>
               </td>
               <td>
-                <span v-if="renewalState.kind === 'error'" data-test="ds-tls-renewal-error" class="body-small text-error">
-                  {{ $t(`${translationsPrefix}.renewalStatus.error`) }}&nbsp;{{ renewalState.text }}
-                  <v-tooltip activator="parent" location="top">{{ renewalState.text }}</v-tooltip>
-                </span>
-                <span v-else-if="renewalState.kind === 'next'" data-test="ds-tls-renewal-next" class="body-small">
-                  {{ $t(`${translationsPrefix}.renewalStatus.nextRenewal`) }}&nbsp;{{ formatDate(renewalState.date) }}
-                  <v-tooltip activator="parent" location="top">{{ formatDateTime(renewalState.date) }}</v-tooltip>
-                </span>
+                <XrdStatusChip v-if="renewalState.kind === 'error'" type="error" data-test="ds-tls-renewal-error">
+                  <template #text>
+                    <span class="body-small">
+                      <span class="font-weight-medium">{{ $t(`${translationsPrefix}.renewalStatus.error`) }}</span>
+                      &nbsp;{{ renewalState.text }}
+                      <v-tooltip activator="parent" location="top">{{ renewalState.text }}</v-tooltip>
+                    </span>
+                  </template>
+                </XrdStatusChip>
+                <XrdStatusChip v-else-if="renewalState.kind === 'next'" type="success" data-test="ds-tls-renewal-next">
+                  <template #text>
+                    <span class="body-small">
+                      <span class="font-weight-medium">{{ $t(`${translationsPrefix}.renewalStatus.nextRenewal`) }}</span>
+                      &nbsp;{{ formatDate(renewalState.date) }}
+                      <v-tooltip activator="parent" location="top">{{ formatDateTime(renewalState.date) }}</v-tooltip>
+                    </span>
+                  </template>
+                </XrdStatusChip>
                 <span v-else data-test="ds-tls-renewal-na" class="body-small on-surface opacity-60">
                   {{ $t(`${translationsPrefix}.renewalStatus.na`) }}
                 </span>
