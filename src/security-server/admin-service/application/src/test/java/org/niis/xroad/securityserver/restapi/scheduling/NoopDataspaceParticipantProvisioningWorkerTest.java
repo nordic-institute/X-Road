@@ -26,18 +26,16 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-/**
- * Triggers dataspace participant provisioning for this security server instance.
- *
- * <p>Exactly one implementation is active per cluster node, decided once at startup:
- * {@link DefaultDataspaceParticipantProvisioningWorker} on primary node
- * {@link NoopDataspaceParticipantProvisioningWorker} on secondary nodes.
- */
-public interface DataspaceParticipantProvisioningWorker {
+import org.junit.jupiter.api.Test;
 
-    /**
-     * Runs one best-effort provisioning step on a background thread, without blocking the caller.
-     */
-    void provisionParticipantAsync();
+import static org.assertj.core.api.Assertions.assertThatCode;
 
+class NoopDataspaceParticipantProvisioningWorkerTest {
+
+    private final NoopDataspaceParticipantProvisioningWorker worker = new NoopDataspaceParticipantProvisioningWorker();
+
+    @Test
+    void provisionParticipantAsyncReturnsWithoutThrowing() {
+        assertThatCode(worker::provisionParticipantAsync).doesNotThrowAnyException();
+    }
 }

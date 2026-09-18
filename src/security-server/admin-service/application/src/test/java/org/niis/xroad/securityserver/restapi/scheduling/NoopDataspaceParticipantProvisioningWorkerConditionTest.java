@@ -26,18 +26,41 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-/**
- * Triggers dataspace participant provisioning for this security server instance.
- *
- * <p>Exactly one implementation is active per cluster node, decided once at startup:
- * {@link DefaultDataspaceParticipantProvisioningWorker} on primary node
- * {@link NoopDataspaceParticipantProvisioningWorker} on secondary nodes.
- */
-public interface DataspaceParticipantProvisioningWorker {
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.common.properties.NodeProperties;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-    /**
-     * Runs one best-effort provisioning step on a background thread, without blocking the caller.
-     */
-    void provisionParticipantAsync();
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
 
+@ExtendWith(SystemStubsExtension.class)
+class NoopDataspaceParticipantProvisioningWorkerConditionTest {
+
+    @SystemStub
+    private final EnvironmentVariables variables = new EnvironmentVariables();
+
+    @Test
+    void matchOnSecondaryNode() {
+        assertTrue(isActive(NodeProperties.NodeType.SECONDARY));
+    }
+
+    @Test
+    void doesNotMatchOnStandaloneNode() {
+        assertFalse(isActive(NodeProperties.NodeType.STANDALONE));
+    }
+
+    @Test
+    void doesNotMatchOnPrimaryNode() {
+        assertFalse(isActive(NodeProperties.NodeType.PRIMARY));
+    }
+
+    private boolean isActive(NodeProperties.NodeType nodeType) {
+        variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
+
+        return NoopDataspaceParticipantProvisioningWorker.IsActive.isActive();
+    }
 }
