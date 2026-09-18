@@ -42,15 +42,6 @@
           @click="showGenerateKeyDialog = true"
         />
         <XrdBtn
-          v-if="canGenerateCsr"
-          data-test="ds-tls-generate-csr-button"
-          class="ml-4"
-          variant="outlined"
-          prepend-icon="request_page"
-          :text="`${translationsPrefix}.generateCsr.button`"
-          @click="showGenerateCsrDialog = true"
-        />
-        <XrdBtn
           v-if="canUpload"
           data-test="ds-tls-upload-certificate-button"
           class="ml-4"
@@ -69,65 +60,92 @@
           :loading="loadingDownload"
           @click="download"
         />
-        <XrdBtn
-          v-if="orderVisible"
-          data-test="ds-tls-order-certificate-button"
-          class="ml-4"
-          variant="outlined"
-          prepend-icon="verified"
-          :text="`${translationsPrefix}.orderCertificate.button`"
-          @click="showOrderDialog = true"
-        />
       </template>
 
       <XrdCard>
-        <div class="ds-tls-certificate-card pa-4">
-          <div class="d-flex align-center">
-            <v-icon icon="shield_lock" size="24" filled />
-            <span class="font-weight-medium ml-2">{{ $t(`${translationsPrefix}.keyText`) }}</span>
-          </div>
-
-          <div class="mt-2 ml-9">
-            <span v-if="!keyGenerated" data-test="ds-tls-key-not-generated" class="on-surface opacity-60">
-              {{ $t(`${translationsPrefix}.keyNotGenerated`) }}
-            </span>
-            <XrdLabelWithIcon
-              v-else-if="certificateHash"
-              data-test="ds-tls-certificate-hash"
-              icon="editor_choice"
-              :label="certificateHash"
-              :clickable="canViewCertificate"
-              @navigate="navigateToCertificateDetails"
-            >
-              <template #label>
-                <XrdHashValue :value="certificateHash" />
-              </template>
-            </XrdLabelWithIcon>
-            <span v-else data-test="ds-tls-certificate-pending" class="on-surface opacity-60">
-              {{ $t(`${translationsPrefix}.keyGeneratedPending`) }}
-            </span>
-          </div>
-
-          <div class="mt-4 ml-9 d-flex flex-wrap align-center ds-tls-status-row">
-            <XrdStatusChip :type="methodChip.type" data-test="ds-tls-enrollment-method">
-              <template #text>
-                <span class="font-weight-medium body-small">{{ $t(methodChip.textKey) }}</span>
-              </template>
-            </XrdStatusChip>
-
-            <span v-if="renewalState.kind === 'error'" data-test="ds-tls-renewal-error" class="body-small text-error">
-              {{ $t(`${translationsPrefix}.renewalStatus.error`) }}&nbsp;{{ renewalState.text }}
-              <v-tooltip activator="parent" location="top">{{ renewalState.text }}</v-tooltip>
-            </span>
-            <span v-else-if="renewalState.kind === 'next'" data-test="ds-tls-renewal-next" class="body-small">
-              {{ $t(`${translationsPrefix}.renewalStatus.nextRenewal`) }}&nbsp;{{ formatDate(renewalState.date) }}
-              <v-tooltip activator="parent" location="top">{{ formatDateTime(renewalState.date) }}</v-tooltip>
-            </span>
-            <span v-else data-test="ds-tls-renewal-na" class="body-small on-surface opacity-60">
-              {{ $t(`${translationsPrefix}.renewalStatus.na`) }}
-            </span>
-          </div>
-        </div>
+        <v-table class="xrd bg-surface-container">
+          <thead>
+            <tr>
+              <th>{{ $t(`${translationsPrefix}.key`) }}</th>
+              <th>{{ $t(`${translationsPrefix}.status`) }}</th>
+              <th>{{ $t(`${translationsPrefix}.automaticRenewal`) }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="on-surface font-weight-medium">
+                <v-icon icon="shield_lock" size="24" filled />
+                {{ $t(`${translationsPrefix}.keyText`) }}
+              </td>
+              <td></td>
+              <td></td>
+              <td class="text-end">
+                <XrdBtn
+                  v-if="canGenerateCsr"
+                  data-test="ds-tls-generate-csr-button"
+                  variant="text"
+                  color="tertiary"
+                  :text="`${translationsPrefix}.generateCsr.button`"
+                  @click="showGenerateCsrDialog = true"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span v-if="!keyGenerated" data-test="ds-tls-key-not-generated" class="on-surface opacity-60 ml-9">
+                  {{ $t(`${translationsPrefix}.keyNotGenerated`) }}
+                </span>
+                <XrdLabelWithIcon
+                  v-else-if="certificateHash"
+                  data-test="ds-tls-certificate-hash"
+                  class="ml-9"
+                  icon="editor_choice"
+                  :label="certificateHash"
+                  :clickable="canViewCertificate"
+                  @navigate="navigateToCertificateDetails"
+                >
+                  <template #label>
+                    <XrdHashValue :value="certificateHash" />
+                  </template>
+                </XrdLabelWithIcon>
+                <span v-else data-test="ds-tls-certificate-pending" class="on-surface opacity-60 ml-9">
+                  {{ $t(`${translationsPrefix}.keyGeneratedPending`) }}
+                </span>
+              </td>
+              <td>
+                <XrdStatusChip :type="methodChip.type" data-test="ds-tls-enrollment-method">
+                  <template #text>
+                    <span class="font-weight-medium body-small">{{ $t(methodChip.textKey) }}</span>
+                  </template>
+                </XrdStatusChip>
+              </td>
+              <td>
+                <span v-if="renewalState.kind === 'error'" data-test="ds-tls-renewal-error" class="body-small text-error">
+                  {{ $t(`${translationsPrefix}.renewalStatus.error`) }}&nbsp;{{ renewalState.text }}
+                  <v-tooltip activator="parent" location="top">{{ renewalState.text }}</v-tooltip>
+                </span>
+                <span v-else-if="renewalState.kind === 'next'" data-test="ds-tls-renewal-next" class="body-small">
+                  {{ $t(`${translationsPrefix}.renewalStatus.nextRenewal`) }}&nbsp;{{ formatDate(renewalState.date) }}
+                  <v-tooltip activator="parent" location="top">{{ formatDateTime(renewalState.date) }}</v-tooltip>
+                </span>
+                <span v-else data-test="ds-tls-renewal-na" class="body-small on-surface opacity-60">
+                  {{ $t(`${translationsPrefix}.renewalStatus.na`) }}
+                </span>
+              </td>
+              <td class="text-end">
+                <XrdBtn
+                  v-if="orderVisible"
+                  data-test="ds-tls-order-certificate-button"
+                  variant="text"
+                  color="tertiary"
+                  :text="`${translationsPrefix}.orderCertificate.button`"
+                  @click="showOrderDialog = true"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
       </XrdCard>
 
       <GenerateKeyDialog
@@ -312,9 +330,3 @@ function navigateToCertificateDetails() {
   router.push({ name: props.certDetailsViewName });
 }
 </script>
-
-<style lang="scss" scoped>
-.ds-tls-status-row {
-  gap: 8px;
-}
-</style>

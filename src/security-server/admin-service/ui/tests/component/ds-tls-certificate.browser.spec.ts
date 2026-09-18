@@ -191,6 +191,34 @@ describe('SS DS TLS Certificate card — ACME certificate with next renewal (Bro
   });
 });
 
+describe('SS DS TLS Certificate table — status and renewal columns (Browser Mode)', () => {
+  it('shows the Status and Automatic Renewal headers and places the chip and renewal state in the certificate row', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true, certificate: sampleCertificate }),
+        enrollmentStatusHandler({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-renewal-next')).toBeVisible();
+
+    const headerCells = Array.from(document.querySelectorAll('thead th')).map((th) => th.textContent?.trim());
+    expect(headerCells).toContain('Status');
+    expect(headerCells).toContain('Automatic Renewal');
+
+    const certificateRow = page.getByTestId('ds-tls-certificate-hash').query()?.closest('tr');
+    const methodCell = page.getByTestId('ds-tls-enrollment-method').query()?.closest('td') as HTMLTableCellElement | undefined;
+    const renewalCell = page.getByTestId('ds-tls-renewal-next').query()?.closest('td') as HTMLTableCellElement | undefined;
+
+    expect(certificateRow).not.toBeNull();
+    expect(methodCell?.closest('tr')).toBe(certificateRow);
+    expect(renewalCell?.closest('tr')).toBe(certificateRow);
+    expect(methodCell?.cellIndex).toBe(1);
+    expect(renewalCell?.cellIndex).toBe(2);
+  });
+});
+
 describe('SS DS TLS Certificate card — renewal error (Browser Mode)', () => {
   it('shows the renewal error text instead of the next renewal date', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {

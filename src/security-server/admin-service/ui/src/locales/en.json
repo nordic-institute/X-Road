@@ -194,7 +194,6 @@
       "success": "New Dataspace TLS key and certificate generated successfully",
       "title": "Dataspace TLS Key"
     },
-    "key": "Dataspace TLS Key and Certificate",
     "title": "Dataspace TLS Key",
     "uploadCertificate": {
       "success": "Dataspace TLS certificate imported",
