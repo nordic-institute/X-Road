@@ -94,11 +94,11 @@ describe('0460 — CS Mgmt Service Provider — initial config render (Browser M
     await expect.element(servicesAddressRow).toBeVisible();
     await expect.element(ownerGroupRow).toBeVisible();
 
-    await expect.element(wsdlRow).toHaveTextContent('http://valid-edited.example.org/managementservices.wsdl');
-    await expect.element(servicesAddressRow).toHaveTextContent(
+    await expect.element(wsdlRow).toMatchTextContent('http://valid-edited.example.org/managementservices.wsdl');
+    await expect.element(servicesAddressRow).toMatchTextContent(
       'https://valid-edited.example.org:4002/managementservice/manage/',
     );
-    await expect.element(ownerGroupRow).toHaveTextContent('security-server-owners');
+    await expect.element(ownerGroupRow).toMatchTextContent('security-server-owners');
   });
 });
 
@@ -136,9 +136,9 @@ describe('0460 — CS Mgmt Service Provider — select subsystem dialog populate
 
     await expect.element(
       page.getByTestId('management-service-provider-identifier-field'),
-    ).toHaveTextContent('CS:E2E-TC1:e2e-member-management:e2e-sub-management');
+    ).toMatchTextContent('CS:E2E-TC1:e2e-member-management:e2e-sub-management');
     await expect.element(
       page.getByTestId('management-service-provider-name-field'),
-    ).toHaveTextContent('E2E Management Member');
+    ).toMatchTextContent('E2E Management Member');
   });
 });

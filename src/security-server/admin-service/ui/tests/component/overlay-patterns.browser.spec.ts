@@ -138,7 +138,7 @@ describe('Overlay patterns — v-select / v-menu / dialog / snackbar (Browser Mo
 
     await page.getByRole('option', { name: 'Beta' }).click();
 
-    await expect.element(page.getByTestId('selected-value')).toHaveTextContent('Beta');
+    await expect.element(page.getByTestId('selected-value')).toMatchTextContent('Beta');
   });
 
   it('v-menu: opens overlay and clicking an item fires the handler', async () => {
@@ -149,7 +149,7 @@ describe('Overlay patterns — v-select / v-menu / dialog / snackbar (Browser Mo
     await expect.element(page.getByTestId('menu-item-option a')).toBeVisible();
     await page.getByTestId('menu-item-option a').click();
 
-    await expect.element(page.getByTestId('picked-value')).toHaveTextContent('Option A');
+    await expect.element(page.getByTestId('picked-value')).toMatchTextContent('Option A');
   });
 
   it('dialog: opens, confirm button is focusable, close hides dialog', async () => {

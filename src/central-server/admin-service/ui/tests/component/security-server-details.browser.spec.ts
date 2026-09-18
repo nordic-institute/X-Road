@@ -84,11 +84,11 @@ describe('1000 — CS Security Server Details — detail fields render (Browser 
     });
 
     await expect.element(page.getByTestId('security-server-details-view')).toBeVisible();
-    await expect.element(page.getByTestId('security-server-owner-name')).toHaveTextContent(OWNER_NAME);
-    await expect.element(page.getByTestId('security-server-owner-class')).toHaveTextContent(OWNER_CLASS);
-    await expect.element(page.getByTestId('security-server-owner-code')).toHaveTextContent(OWNER_CODE);
-    await expect.element(page.getByTestId('security-server-server-code')).toHaveTextContent(SERVER_CODE);
-    await expect.element(page.getByTestId('security-server-address')).toHaveTextContent(ADDRESS);
+    await expect.element(page.getByTestId('security-server-owner-name')).toMatchTextContent(OWNER_NAME);
+    await expect.element(page.getByTestId('security-server-owner-class')).toMatchTextContent(OWNER_CLASS);
+    await expect.element(page.getByTestId('security-server-owner-code')).toMatchTextContent(OWNER_CODE);
+    await expect.element(page.getByTestId('security-server-server-code')).toMatchTextContent(SERVER_CODE);
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(ADDRESS);
     await expect.element(page.getByTestId('security-server-registered')).toBeVisible();
   });
 });
@@ -113,7 +113,7 @@ describe('1000 — CS Security Server Details — edit address dialog cancel and
       ],
     });
 
-    await expect.element(page.getByTestId('security-server-address')).toHaveTextContent(ADDRESS);
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(ADDRESS);
 
     await page.getByTestId('security-server-address').getByRole('button').click();
 
@@ -126,7 +126,7 @@ describe('1000 — CS Security Server Details — edit address dialog cancel and
     await page.getByTestId('dialog-cancel-button').click();
 
     await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
-    await expect.element(page.getByTestId('security-server-address')).toHaveTextContent(ADDRESS);
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(ADDRESS);
 
     await page.getByTestId('security-server-address').getByRole('button').click();
 
@@ -140,7 +140,7 @@ describe('1000 — CS Security Server Details — edit address dialog cancel and
     submitDialogForm();
 
     await expect.element(page.getByTestId('security-server-address-edit-dialog')).not.toBeInTheDocument();
-    await expect.element(page.getByTestId('security-server-address')).toHaveTextContent(updatedAddress);
+    await expect.element(page.getByTestId('security-server-address')).toMatchTextContent(updatedAddress);
   });
 });
 
