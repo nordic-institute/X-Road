@@ -183,18 +183,6 @@
     "requiredIf": "The {fieldName} field is required",
     "description": "Use valid description characters only"
   },
-  "dsTlsCertificate": {
-    "keyGeneratedPending": "Dataspace TLS key generated - certificate signing pending",
-    "enrollmentStatus": {
-      "method": {
-        "none": "Not configured",
-        "manual": "Manual",
-        "acme": "ACME"
-      },
-      "nextRenewal": "Next renewal",
-      "wasDue": "Was due"
-    }
-  },
   "dsTlsCertificates": {
     "downloadSuccess": "Dataspace TLS certificate successfully downloaded",
     "generateCsr": {

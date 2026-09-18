@@ -3,6 +3,7 @@
     "addName": "Add subsystem name",
     "approve": "Approve",
     "decline": "Decline",
+    "order": "Order",
     "rename": "Rename",
     "select": "Select"
   },
@@ -15,18 +16,6 @@
     "invalidIpAddress": "Field must contain IP address or multiple addresses separated by comma",
     "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
     "description": "Use valid description characters only"
-  },
-  "dsTlsCertificate": {
-    "keyGeneratedPending": "Dataspace TLS key generated - certificate signing pending",
-    "enrollmentStatus": {
-      "method": {
-        "none": "Not configured",
-        "manual": "Manual",
-        "acme": "ACME"
-      },
-      "nextRenewal": "Next renewal",
-      "wasDue": "Was due"
-    }
   },
   "dsTlsCertificates": {
     "downloadSuccess": "Dataspace TLS certificate successfully downloaded",

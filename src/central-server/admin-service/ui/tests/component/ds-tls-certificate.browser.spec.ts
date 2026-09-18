@@ -41,16 +41,59 @@ const allPermissions = [
   Permissions.GENERATE_DS_TLS_KEY,
   Permissions.GENERATE_DS_TLS_CSR,
   Permissions.UPLOAD_DS_TLS_CERT,
+  Permissions.ORDER_DS_TLS_CERT,
 ];
 
-describe('CS DS TLS Certificate — no key generated yet (Browser Mode)', () => {
-  it('shows the generate key button', async () => {
+const permissionsWithoutOrder = [
+  Permissions.VIEW_DS_TLS_CERT,
+  Permissions.DOWNLOAD_DS_TLS_CERT,
+  Permissions.GENERATE_DS_TLS_KEY,
+  Permissions.GENERATE_DS_TLS_CSR,
+  Permissions.UPLOAD_DS_TLS_CERT,
+];
+
+const sampleCertificate = {
+  hash: 'AABB1122CCDD3344',
+  issuer_common_name: 'ds.example.org',
+  issuer_distinguished_name: 'CN=ds.example.org',
+  subject_common_name: 'ds.example.org',
+  subject_distinguished_name: 'CN=ds.example.org',
+  serial: '1',
+  version: 3,
+  signature: 'abc123',
+  signature_algorithm: 'SHA256withRSA',
+  public_key_algorithm: 'RSA',
+  rsa_public_key_exponent: 65537,
+  rsa_public_key_modulus: 'deadbeef',
+  not_before: '2024-01-01T00:00:00Z',
+  not_after: '2026-01-01T00:00:00Z',
+  key_usages: [],
+  subject_alternative_names: 'DNS:ds.example.org',
+};
+
+function statusHandler(body: object) {
+  return specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json(body));
+}
+
+function enrollmentStatusHandler(body: object) {
+  return specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+    HttpResponse.json({ enrollment_method: 'NONE', acme_available: false, ...body }),
+  );
+}
+
+describe('CS DS TLS Certificate card — no key generated (Browser Mode)', () => {
+  it('shows the key-not-generated text and the generate key button, no order button', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
-      msw: [specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false }))],
+      msw: [
+        statusHandler({ key_generated: false }),
+        enrollmentStatusHandler({ acme_available: true, acme_cas: [{ name: 'Test CA' }], public_hostname: 'ds.example.org' }),
+      ],
     });
 
-    await expect.element(page.getByTestId('management-service-certificate-generateKey')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-generate-key-button')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-key-not-generated')).toBeVisible();
+    await expect.poll(() => page.getByTestId('ds-tls-order-certificate-button').query()).toBeNull();
   });
 
   it('generates a key', async () => {
@@ -59,7 +102,8 @@ describe('CS DS TLS Certificate — no key generated yet (Browser Mode)', () => 
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: false })),
+        statusHandler({ key_generated: false }),
+        enrollmentStatusHandler({}),
         specHttp.untyped.post('/api/v1/ds-tls-certificate/key', () => {
           generateSpy();
           return new HttpResponse(null, { status: 201 });
@@ -67,21 +111,22 @@ describe('CS DS TLS Certificate — no key generated yet (Browser Mode)', () => 
       ],
     });
 
-    await page.getByTestId('management-service-certificate-generateKey').click();
+    await page.getByTestId('ds-tls-generate-key-button').click();
     await page.getByTestId('dialog-save-button').click();
 
     await expect.poll(() => generateSpy.mock.calls.length).toBeGreaterThan(0);
   });
 });
 
-describe('CS DS TLS Certificate — key generated, certificate pending (Browser Mode)', () => {
-  it('shows the pending badge and offers CSR generation', async () => {
+describe('CS DS TLS Certificate card — key generated, certificate pending (Browser Mode)', () => {
+  it('shows the pending text, offers CSR generation, order button hidden while ACME unavailable', async () => {
     const csrSpy = vi.fn();
 
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({ acme_available: false }),
         specHttp.untyped.post('/api/v1/ds-tls-certificate/csr', async ({ request }) => {
           csrSpy(await request.json());
           return HttpResponse.arrayBuffer(new ArrayBuffer(0), { status: 200 });
@@ -89,56 +134,103 @@ describe('CS DS TLS Certificate — key generated, certificate pending (Browser 
       ],
     });
 
-    await expect.element(page.getByText('Dataspace TLS key generated')).toBeVisible();
-    await expect.element(page.getByTestId('management-service-certificate-generateCsr')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-certificate-pending')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-generate-csr-button')).toBeVisible();
+    await expect.poll(() => page.getByTestId('ds-tls-order-certificate-button').query()).toBeNull();
 
-    await page.getByTestId('management-service-certificate-generateCsr').click();
-    await page.getByTestId('enter-distinguished-name').getByRole('textbox').fill('CN=ds.example.org');
+    await page.getByTestId('ds-tls-generate-csr-button').click();
+    await page.getByTestId('ds-tls-csr-distinguished-name').getByRole('textbox').fill('CN=ds.example.org');
+    await page.getByTestId('ds-tls-csr-subject-alt-name').getByRole('textbox').fill('ds.example.org');
     await page.getByTestId('dialog-save-button').click();
 
     await expect.poll(() => csrSpy.mock.calls.length).toBeGreaterThan(0);
-    expect(csrSpy).toHaveBeenCalledWith({ name: 'CN=ds.example.org' });
+    expect(csrSpy).toHaveBeenCalledWith({ name: 'CN=ds.example.org', subject_alt_name: 'ds.example.org' });
+  });
+
+  it('hides the order button when the key exists but the order authority is missing', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: permissionsWithoutOrder,
+      msw: [
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({ acme_available: true, acme_cas: [{ name: 'Test CA' }], public_hostname: 'ds.example.org' }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-certificate-pending')).toBeVisible();
+    await expect.poll(() => page.getByTestId('ds-tls-order-certificate-button').query()).toBeNull();
   });
 });
 
-describe('CS DS TLS Certificate — certificate-only upload (Browser Mode)', () => {
+describe('CS DS TLS Certificate card — manual certificate (Browser Mode)', () => {
+  it('shows the certificate hash, the Manual chip and N/A renewal state', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [statusHandler({ key_generated: true, certificate: sampleCertificate }), enrollmentStatusHandler({ enrollment_method: 'MANUAL' })],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-certificate-hash')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('Manual')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-renewal-na')).toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate card — ACME certificate with next renewal (Browser Mode)', () => {
+  it('shows the ACME chip and the next planned renewal date', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true, certificate: sampleCertificate }),
+        enrollmentStatusHandler({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-renewal-next')).toBeVisible();
+    await expect.element(page.getByText('Next planned renewal on', { exact: false })).toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate card — renewal error (Browser Mode)', () => {
+  it('shows the renewal error text instead of the next renewal date', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true, certificate: sampleCertificate }),
+        enrollmentStatusHandler({
+          enrollment_method: 'ACME',
+          next_renewal_time: FUTURE_RENEWAL_TIME,
+          last_error: 'ACME order failed: timeout',
+        }),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-renewal-error')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-renewal-error').getByText('ACME order failed: timeout', { exact: false })).toBeVisible();
+    await expect.poll(() => page.getByTestId('ds-tls-renewal-next').query()).toBeNull();
+  });
+});
+
+describe('CS DS TLS Certificate card — certificate-only upload (Browser Mode)', () => {
   it('uploads a certificate without ever collecting a private key', async () => {
     const uploadSpy = vi.fn();
 
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({}),
         specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', async ({ request }) => {
           const body = await request.formData();
           uploadSpy(Array.from(body.keys()).sort());
-          return HttpResponse.json(
-            {
-              hash: 'AABB1122CCDD3344',
-              issuer_common_name: 'ds.example.org',
-              issuer_distinguished_name: 'CN=ds.example.org',
-              subject_common_name: 'ds.example.org',
-              subject_distinguished_name: 'CN=ds.example.org',
-              serial: '1',
-              version: 3,
-              signature: 'abc123',
-              signature_algorithm: 'SHA256withRSA',
-              public_key_algorithm: 'RSA',
-              rsa_public_key_exponent: 65537,
-              rsa_public_key_modulus: 'deadbeef',
-              not_before: '2024-01-01T00:00:00Z',
-              not_after: '2026-01-01T00:00:00Z',
-              key_usages: [],
-              subject_alternative_names: '',
-            },
-            { status: 200 },
-          );
+          return HttpResponse.json(sampleCertificate, { status: 200 });
         }),
       ],
     });
 
-    await expect.element(page.getByTestId('upload-management-service-certificate')).toBeVisible();
-    await page.getByTestId('upload-management-service-certificate').click();
+    await expect.element(page.getByTestId('ds-tls-upload-certificate-button')).toBeVisible();
+    await page.getByTestId('ds-tls-upload-certificate-button').click();
 
     const fileInputs = document.querySelectorAll('input[type="file"]');
     expect(fileInputs.length).toBe(1);
@@ -154,22 +246,21 @@ describe('CS DS TLS Certificate — certificate-only upload (Browser Mode)', () 
     await expect.poll(() => uploadSpy.mock.calls.length).toBeGreaterThan(0);
     expect(uploadSpy).toHaveBeenCalledWith(['certificate']);
   });
-});
 
-describe('CS DS TLS Certificate — uploading mismatched cert shows error (Browser Mode)', () => {
   it('uploading a certificate that does not match the DS TLS key renders an error message', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({}),
         specHttp.untyped.post('/api/v1/ds-tls-certificate/certificate', () =>
           HttpResponse.json({ status: 400, error: { code: 'ds_tls_key_certificate_mismatch' } }, { status: 400 }),
         ),
       ],
     });
 
-    await expect.element(page.getByTestId('upload-management-service-certificate')).toBeVisible();
-    await page.getByTestId('upload-management-service-certificate').click();
+    await expect.element(page.getByTestId('ds-tls-upload-certificate-button')).toBeVisible();
+    await page.getByTestId('ds-tls-upload-certificate-button').click();
 
     const certFile = new File(['-----BEGIN CERTIFICATE-----\nbadcert\n-----END CERTIFICATE-----'], 'ds-https.crt', {
       type: 'application/x-pem-file',
@@ -184,42 +275,117 @@ describe('CS DS TLS Certificate — uploading mismatched cert shows error (Brows
   });
 });
 
-describe('CS DS TLS Certificate — enrollment status (Browser Mode)', () => {
-  it('shows the ACME method chip in the page header, with the next scheduled renewal time', async () => {
+describe('CS DS TLS Certificate card — order button visibility (Browser Mode)', () => {
+  it('shows the order button when ACME is available, a key exists and the authority is held', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
-        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
-          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME }),
-        ),
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({ acme_available: true, acme_cas: [{ name: 'Test CA' }], public_hostname: 'ds.example.org' }),
       ],
     });
 
-    await expect.element(page.getByTestId('ds-tls-enrollment-status')).toBeVisible();
-    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
-    await expect.element(page.getByText('ACME')).toBeVisible();
-    await expect.element(page.getByTestId('ds-tls-enrollment-next-renewal')).toBeVisible();
-    await expect.element(page.getByText('Next renewal', { exact: false })).toBeVisible();
-    expect(page.getByTestId('ds-tls-enrollment-status').elements()).toHaveLength(1);
+    await expect.element(page.getByTestId('ds-tls-order-certificate-button')).toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate card — order CA selection (Browser Mode)', () => {
+  it('preselects the only ACME-capable CA', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({ acme_available: true, acme_cas: [{ name: 'Test CA' }], public_hostname: 'ds.example.org' }),
+      ],
+    });
+
+    await page.getByTestId('ds-tls-order-certificate-button').click();
+    await expect.element(page.getByTestId('ds-tls-order-ca-select').getByText('Test CA')).toBeVisible();
   });
 
-  it('shows both the method chip and a separate error chip when the last enrollment attempt failed', async () => {
-    const longError =
-      'ACME order failed: the certificate authority rejected the request because the configured hostname could not be validated within the allotted time';
+  it('lets the administrator choose between two ACME-capable CAs', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({
+          acme_available: true,
+          acme_cas: [{ name: 'Test CA' }, { name: 'Other CA' }],
+          public_hostname: 'ds.example.org',
+        }),
+      ],
+    });
+
+    await page.getByTestId('ds-tls-order-certificate-button').click();
+    await page.getByTestId('ds-tls-order-ca-select').click();
+    await expect.element(page.getByRole('option', { name: 'Test CA' })).toBeVisible();
+    await expect.element(page.getByRole('option', { name: 'Other CA' })).toBeVisible();
+    await page.getByRole('option', { name: 'Other CA' }).click();
+    await expect.element(page.getByTestId('ds-tls-order-ca-select').getByText('Other CA')).toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate card — order happy path (Browser Mode)', () => {
+  it('orders a certificate and refreshes the card to show ACME with the next renewal', async () => {
+    const orderSpy = vi.fn();
+    let ordered = false;
 
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
       msw: [
-        specHttp.untyped.get('/api/v1/ds-tls-certificate', () => HttpResponse.json({ key_generated: true })),
+        statusHandler({ key_generated: true }),
         specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
-          HttpResponse.json({ enrollment_method: 'ACME', next_renewal_time: FUTURE_RENEWAL_TIME, last_error: longError }),
+          HttpResponse.json(
+            ordered
+              ? { enrollment_method: 'ACME', acme_available: true, acme_cas: [{ name: 'Test CA' }], next_renewal_time: FUTURE_RENEWAL_TIME }
+              : { enrollment_method: 'NONE', acme_available: true, acme_cas: [{ name: 'Test CA' }], public_hostname: 'ds.example.org' },
+          ),
+        ),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/acme-order', async ({ request }) => {
+          orderSpy(await request.json());
+          ordered = true;
+          return HttpResponse.json(sampleCertificate, { status: 200 });
+        }),
+      ],
+    });
+
+    await page.getByTestId('ds-tls-order-certificate-button').click();
+    await page.getByTestId('ds-tls-order-distinguished-name').getByRole('textbox').fill('CN=ds.example.org');
+    await page.getByTestId('ds-tls-order-subject-alt-name').getByRole('textbox').fill('ds.example.org');
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect.poll(() => orderSpy.mock.calls.length).toBeGreaterThan(0);
+    expect(orderSpy).toHaveBeenCalledWith({
+      ca_name: 'Test CA',
+      distinguished_name: 'CN=ds.example.org',
+      subject_alt_name: 'ds.example.org',
+    });
+
+    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('ACME')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-renewal-next')).toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate card — order error path (Browser Mode)', () => {
+  it('shows the actionable error inside the order dialog on failure', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true }),
+        enrollmentStatusHandler({ acme_available: true, acme_cas: [{ name: 'Test CA' }], public_hostname: 'ds.example.org' }),
+        specHttp.untyped.post('/api/v1/ds-tls-certificate/acme-order', () =>
+          HttpResponse.json({ status: 400, error: { code: 'ds_tls_ca_not_found' } }, { status: 400 }),
         ),
       ],
     });
 
-    await expect.element(page.getByTestId('ds-tls-enrollment-method')).toBeVisible();
-    await expect.element(page.getByTestId('ds-tls-enrollment-method').getByText('ACME')).toBeVisible();
-    await expect.element(page.getByTestId('ds-tls-enrollment-error')).toBeVisible();
+    await page.getByTestId('ds-tls-order-certificate-button').click();
+    await page.getByTestId('ds-tls-order-distinguished-name').getByRole('textbox').fill('CN=ds.example.org');
+    await page.getByTestId('ds-tls-order-subject-alt-name').getByRole('textbox').fill('ds.example.org');
+    await page.getByTestId('dialog-save-button').click();
+
+    await expect
+      .element(page.getByText('The named certification authority is not a designated, ACME-capable Dataspace TLS CA', { exact: false }))
+      .toBeVisible();
   });
 });
