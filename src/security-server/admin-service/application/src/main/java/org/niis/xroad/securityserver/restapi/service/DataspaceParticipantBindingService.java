@@ -91,7 +91,7 @@ public class DataspaceParticipantBindingService {
         var ctxId = ParticipantIdentifierScheme.memberCtxId(member);
         var did = didAuthority.memberDid(member);
         try {
-            dsParticipantRepository.bindMemberParticipant(member, ctxId, did);
+            dsParticipantRepository.bindMemberParticipant(member, ctxId, did.toString());
             log.info("Data space: bound participant identity for member {} (ctx-id '{}', DID '{}')", member, ctxId, did);
             return true;
         } catch (Exception e) {

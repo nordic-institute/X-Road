@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import com.apicatalog.did.Did;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
@@ -211,7 +212,7 @@ class IdentityHubProvisioningRpcClientTest {
     private static CreateParticipantContextRequest createRequest(String memberId, boolean reanchorMemberIdOnConflict) {
         return CreateParticipantContextRequest.builder()
                 .participantContextId("ctx-id")
-                .did("did:web:example")
+                .did(Did.parse("did:web:example"))
                 .memberId(memberId)
                 .credentialServiceUrl("https://cred.example/v1")
                 .keyId("did:web:example#key-1")

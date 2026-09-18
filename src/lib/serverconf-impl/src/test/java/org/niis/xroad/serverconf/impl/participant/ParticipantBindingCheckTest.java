@@ -76,11 +76,11 @@ class ParticipantBindingCheckTest {
                         bound.getCtxId(),
                         bound.getDid(),
                         ParticipantIdentifierScheme.memberCtxId(MEMBER),
-                        ParticipantIdentifierScheme.memberDid(MEMBER, newHost)),
+                        ParticipantIdentifierScheme.memberDid(MEMBER, newHost).toString()),
                 ex.getErrorCodeMetadata());
 
         // the bound row itself is never mutated by a failed check
-        assertEquals(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST), bound.getDid());
+        assertEquals(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST).toString(), bound.getDid());
         assertEquals(ParticipantIdentifierScheme.memberCtxId(MEMBER), bound.getCtxId());
     }
 
@@ -95,13 +95,13 @@ class ParticipantBindingCheckTest {
         assertEquals(DSP_PARTICIPANT_IDENTIFIER_MISMATCH.code(), ex.getCode());
         assertEquals(List.of(
                         ParticipantIdentifierScheme.SYSTEM_SEGMENT,
-                        ParticipantIdentifierScheme.systemDid(SS_HOST),
+                        ParticipantIdentifierScheme.systemDid(SS_HOST).toString(),
                         ParticipantIdentifierScheme.SYSTEM_SEGMENT,
-                        ParticipantIdentifierScheme.systemDid(newHost)),
+                        ParticipantIdentifierScheme.systemDid(newHost).toString()),
                 ex.getErrorCodeMetadata());
 
         // the bound row itself is never mutated by a failed check
-        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST), bound.getDid());
+        assertEquals(ParticipantIdentifierScheme.systemDid(SS_HOST).toString(), bound.getDid());
     }
 
     @Test
@@ -136,7 +136,7 @@ class ParticipantBindingCheckTest {
         participant.setParticipantType(ParticipantType.MEMBER);
         participant.setMemberIdentifier(ClientIdEntityFactory.create(member));
         participant.setCtxId(ParticipantIdentifierScheme.memberCtxId(member));
-        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost));
+        participant.setDid(ParticipantIdentifierScheme.memberDid(member, ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;
@@ -146,7 +146,7 @@ class ParticipantBindingCheckTest {
         DsParticipantEntity participant = new DsParticipantEntity();
         participant.setParticipantType(ParticipantType.SYSTEM);
         participant.setCtxId(ParticipantIdentifierScheme.SYSTEM_SEGMENT);
-        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost));
+        participant.setDid(ParticipantIdentifierScheme.systemDid(ssHost).toString());
         participant.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         participant.setState(ParticipantState.ACTIVE);
         return participant;

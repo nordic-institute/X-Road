@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,13 +115,17 @@ class DataspaceProvisioningStatusServiceTest {
         lenient().when(ownerEntity.getClientStatus()).thenReturn(Client.STATUS_REGISTERED);
         var serverConf = mock(ServerConfEntity.class);
         lenient().when(serverConf.getOwner()).thenReturn(ownerEntity);
+        lenient().when(serverConf.getServerCode()).thenReturn("SS0");
         lenient().when(serverConfRepository.getServerConf()).thenReturn(serverConf);
         lenient().when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerEntity));
         lenient().when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
 
+        lenient().when(globalConfProvider.getSecurityServerAddress(any())).thenReturn("ss.example.test");
+
+        var ownSecurityServerResolver = new OwnSecurityServerResolver(serverConfRepository, globalConfProvider);
         provisioningService = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
-                clientRepository, serverConfRepository, dsParticipantRepository, globalConfProvider,
-                new DataspaceDidAuthority(adminServiceProperties));
+                clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
 
         statusService = new DataspaceProvisioningStatusService(
                 provisioningService, readinessPredicates);
@@ -129,8 +134,8 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusAlwaysReportsHostAndManagementContextsBothIssued() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host"));
-        when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host:mgmt"));
+        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of(Did.parse("did:web:host")));
+        when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.of(Did.parse("did:web:host:mgmt")));
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ISSUED.name());
         when(identityHubClient.getCredentialRequestState(MGMT_PARTICIPANT_ID, MGMT_HOLDER_PID_SLOT0))
                 .thenReturn(CredentialStatus.ISSUED.name());
@@ -159,7 +164,7 @@ class DataspaceProvisioningStatusServiceTest {
     @Test
     void readStatusReportsManagementContextEvenWhenHostIssuedAndManagementAbsent() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(false);
-        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of("did:web:host"));
+        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of(Did.parse("did:web:host")));
         when(identityHubClient.contextDid(MGMT_PARTICIPANT_ID)).thenReturn(Optional.empty());
         when(identityHubClient.contextDid(OWNER_CTX_ID)).thenReturn(Optional.empty());
         when(identityHubClient.getCredentialRequestState(PARTICIPANT_ID, HOLDER_PID_SLOT0)).thenReturn(CredentialStatus.ISSUED.name());
@@ -255,7 +260,7 @@ class DataspaceProvisioningStatusServiceTest {
         bound.setParticipantType(ParticipantType.MEMBER);
         bound.setMemberIdentifier(ClientIdEntityFactory.create(OWNER));
         bound.setCtxId(OWNER_CTX_ID);
-        bound.setDid(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183"));
+        bound.setDid(ParticipantIdentifierScheme.memberDid(OWNER, "ih.other.test:7183").toString());
         bound.setSchemeVersion(ParticipantIdentifierScheme.SCHEME_VERSION);
         bound.setState(ParticipantState.ACTIVE);
         when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.of(bound));

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import jakarta.annotation.Nullable;
 import lombok.Builder;
 
@@ -43,7 +44,7 @@ public interface IdentityHubProvisioningClient {
      * {@code memberId}, or ({@code false}) leave it untouched.
      */
     @Builder
-    record CreateParticipantContextRequest(String participantContextId, String did, @Nullable String memberId,
+    record CreateParticipantContextRequest(String participantContextId, Did did, @Nullable String memberId,
                                            String credentialServiceUrl, String keyId, String privateKeyAlias,
                                            boolean reanchorMemberIdOnConflict) {
     }
@@ -81,5 +82,5 @@ public interface IdentityHubProvisioningClient {
      * Returns the DID of the participant context with the given id, or empty if no such context
      * exists in IdentityHub.
      */
-    Optional<String> contextDid(String participantContextId);
+    Optional<Did> contextDid(String participantContextId);
 }

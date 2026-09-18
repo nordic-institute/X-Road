@@ -63,6 +63,7 @@ jobs:
           - x-road/openbao-dev
           - x-road/testca-dev
           - x-road/postgres-dev
+          - x-road/ds-gateway-dev
           - x-road/central-server-dev
           # Package builder images
     # TODO: these require different behaviour as they're rarely updated.

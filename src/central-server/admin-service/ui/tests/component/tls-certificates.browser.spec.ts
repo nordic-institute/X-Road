@@ -81,7 +81,7 @@ describe('0860 — CS TLS Certificates — key hash visible and all action butto
 
     await expect.element(page.getByTestId('view-management-service-certificate')).toBeVisible();
     // XrdHashValue formats the hash with colons; XrdLabelWithIcon prepends the icon name in DOM text
-    await expect.element(page.getByTestId('view-management-service-certificate')).toHaveTextContent(
+    await expect.element(page.getByTestId('view-management-service-certificate')).toMatchTextContent(
       'AA:BB:11:22:CC:DD:33:44',
     );
 
@@ -166,7 +166,7 @@ describe('0860 — CS TLS Certificates — regenerate key shows confirm dialog; 
     ).toBeVisible();
     await page.getByTestId('dialog-save-button').click();
 
-    await expect.element(page.getByTestId('view-management-service-certificate')).toHaveTextContent(
+    await expect.element(page.getByTestId('view-management-service-certificate')).toMatchTextContent(
       'FF:EE:99:88:DD:CC:77:66',
     );
   });

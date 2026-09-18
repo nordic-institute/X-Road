@@ -71,9 +71,9 @@ describe('0400 — CS Members — member detail info is correctly shown (Browser
     });
 
     await expect.element(page.getByTestId('member-details')).toBeVisible();
-    await expect.element(page.getByTestId('member-name')).toHaveTextContent(MEMBER_NAME);
-    await expect.element(page.getByTestId('member-class')).toHaveTextContent(MEMBER_CLASS);
-    await expect.element(page.getByTestId('member-code')).toHaveTextContent(MEMBER_CODE);
+    await expect.element(page.getByTestId('member-name')).toMatchTextContent(MEMBER_NAME);
+    await expect.element(page.getByTestId('member-class')).toMatchTextContent(MEMBER_CLASS);
+    await expect.element(page.getByTestId('member-code')).toMatchTextContent(MEMBER_CODE);
   });
 });
 

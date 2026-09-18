@@ -41,19 +41,16 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
  * Same-SS dataspace-protocol self-call: ss0 reaches its own {@code TestService} through its own proxy, so ss0
- * plays both the consumer and the provider role for one exchange. The consumer side negotiates as the sender
- * member's derived participant context ({@code DEV:COM:1234}), the provider side serves the offer under the
- * environment's host context, and each side persists its own per-context copy of the one wire agreement.
- * Proves that split and the contract-negotiation store work together on a live stack, not just at the
- * unit/store level, by asserting the resulting negotiation and agreement rows directly in the
- * ds-control-plane database — the one scenario in this suite that reaches into DSP record-level state beyond
- * {@link SsProxyMessageFlowTest}'s counterparty-identity check.
- *
- * <p>The store's same-context converge path (both sides of a self-negotiation upserting one shared agreement
- * row) is no longer what this scenario exercises: with per-sender consumer contexts the two sides always
- * differ, and stay different until the cutover story serves provider offers under member contexts. That path
- * is still hit at runtime by management-context self-negotiations, but its only assertions in the interim are
- * the store's own converge and canary tests.
+ * plays both the consumer and the provider role for one exchange. The consumer negotiates as the sender
+ * member's derived participant context and dials the provider member's derived context (XRDADR-41 derivation)
+ * — and this is a same-member call, so both sides ride one context ({@code DEV:COM:1234}) and the store's
+ * composite-key upsert converges their agreement copies into one shared row. Proves that derivation and the
+ * contract-negotiation store's converge path work together on a live stack, not just at the unit/store level,
+ * by asserting the resulting negotiation and agreement rows directly in the ds-control-plane database — the
+ * one scenario in this suite that reaches into DSP record-level state beyond
+ * {@link SsProxyMessageFlowTest}'s counterparty-identity check, and the only live assertion of the converge
+ * path now that distinct-member exchanges keep per-context copies
+ * ({@link SsProxyDspRuntimeMemberTest} asserts that variant).
  *
  * <p>Only k8s and LXD run the dataspace protocol stack; the Compose facade does not implement
  * {@link DsControlPlaneDbOps}, so this scenario self-skips there via {@link Assumptions}.
@@ -102,7 +99,7 @@ class SsProxyDspSelfCallTest extends E2eTest {
                 () -> "%s does not run the dataspace protocol stack; same-SS self-call is only wired for k8s and LXD"
                         .formatted(env.getClass().getSimpleName()));
         var dspAssertions = new DspNegotiationDbAssertions((DsControlPlaneDbOps) env,
-                SELF_CALL_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID);
+                SELF_CALL_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID, CONSUMER_MEMBER_CTX_ID);
 
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
@@ -112,11 +109,11 @@ class SsProxyDspSelfCallTest extends E2eTest {
         then("the response is 200 with the expected POST service message", () ->
                 response.statusCode(200).body("message", equalTo("Hello, world from POST service!")));
 
-        var wireAgreementId = then("the self-negotiation completes: a CONSUMER row on the sender member's context and "
-                + "a PROVIDER row on the host context share one wire agreement", () ->
+        var wireAgreementId = then("the self-negotiation completes: a CONSUMER and a PROVIDER row, both on the "
+                + "member's own context, share one wire agreement", () ->
                 dspAssertions.awaitNegotiationPair());
 
-        and("exactly one per-context edc_contract_agreement copy exists for each side of that wire agreement", () ->
+        and("the two sides' agreement copies converge onto one edc_contract_agreement row on that context", () ->
                 dspAssertions.assertPerContextAgreementCopies(wireAgreementId));
 
         and("the transfer over that agreement succeeds", () ->

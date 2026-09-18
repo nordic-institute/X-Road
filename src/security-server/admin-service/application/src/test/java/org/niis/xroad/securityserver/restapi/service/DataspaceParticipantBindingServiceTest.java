@@ -59,7 +59,7 @@ class DataspaceParticipantBindingServiceTest {
 
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "ORG", "MEMBER");
     private static final ClientId OTHER_MEMBER = ClientId.Conf.create("TEST", "ORG", "OTHER");
-    private static final String SS_HOST = "ih.example.test:7183";
+    private static final String SS_HOST = "ss.example.test:7183";
 
     @Mock
     private AdminServiceProperties adminServiceProperties;
@@ -67,17 +67,19 @@ class DataspaceParticipantBindingServiceTest {
     private Dataspace dataspace;
     @Mock
     private DsParticipantRepository dsParticipantRepository;
+    @Mock
+    private OwnSecurityServerResolver ownSecurityServerResolver;
 
     private DataspaceParticipantBindingService service;
 
     @BeforeEach
     void setUp() {
-        lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getIdentityHubDidPort()).thenReturn(7183);
         lenient().when(adminServiceProperties.getDataspace()).thenReturn(dataspace);
+        lenient().when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.of("ss.example.test"));
 
         service = new DataspaceParticipantBindingService(dsParticipantRepository,
-                new DataspaceDidAuthority(adminServiceProperties));
+                new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
     }
 
     @Test
@@ -88,10 +90,10 @@ class DataspaceParticipantBindingServiceTest {
 
         verify(dsParticipantRepository).bindMemberParticipant(MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(MEMBER),
-                ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST));
+                ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST).toString());
         verify(dsParticipantRepository).bindMemberParticipant(OTHER_MEMBER,
                 ParticipantIdentifierScheme.memberCtxId(OTHER_MEMBER),
-                ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, SS_HOST));
+                ParticipantIdentifierScheme.memberDid(OTHER_MEMBER, SS_HOST).toString());
     }
 
     @Test
@@ -135,9 +137,9 @@ class DataspaceParticipantBindingServiceTest {
     }
 
     @Test
-    void reportsAMisconfiguredIdentityHubUrlInsteadOfPropagating() {
+    void reportsAnUnknownRegisteredAddressInsteadOfPropagating() {
         when(dsParticipantRepository.findByMemberIdentifier(any())).thenReturn(Optional.empty());
-        when(dataspace.getIdentityHubUrl()).thenReturn("not-a-url");
+        when(ownSecurityServerResolver.registeredAddress()).thenReturn(Optional.empty());
 
         assertThat(service.bindMembersIfAbsent(List.of(MEMBER), true)).isZero();
 
