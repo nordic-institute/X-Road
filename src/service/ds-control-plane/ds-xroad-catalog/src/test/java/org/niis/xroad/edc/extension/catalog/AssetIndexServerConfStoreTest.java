@@ -128,26 +128,24 @@ class AssetIndexServerConfStoreTest {
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
 
-        assertThat(result).hasSize(5);
+        assertThat(result).hasSize(6);
         assertThat(result).extracting(Asset::getId)
                 .contains(SERVICE_1.asEncodedId(), SERVICE_2.asEncodedId(), SERVICE_3.asEncodedId());
     }
 
     @Test
-    void queryAssetsExcludesDisabledService() {
+    void queryAssetsPublishesDisabledServiceUnderSameContextsAsEnabled() {
         setupMembersAndServices();
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn("Maintenance");
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
 
         var disabledAssets = result.stream()
                 .filter(a -> a.getId().equals(SERVICE_2.asEncodedId()))
                 .toList();
-        assertThat(disabledAssets).hasSize(1);
-        assertThat(disabledAssets.getFirst().getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
-        assertThat(result).noneSatisfy(asset -> {
-            assertThat(asset.getId()).isEqualTo(SERVICE_2.asEncodedId());
-            assertThat(asset.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
-        });
+        assertThat(disabledAssets).hasSize(2);
+        assertThat(disabledAssets).extracting(Asset::getParticipantContextId)
+                .containsExactlyInAnyOrder(PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID);
     }
 
     @Test
@@ -186,7 +184,6 @@ class AssetIndexServerConfStoreTest {
     @Test
     void findByIdRoundtripsKnownServiceId() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
 
         var result = assetIndex.findById(SERVICE_1.asEncodedId());
 
@@ -269,7 +266,6 @@ class AssetIndexServerConfStoreTest {
     @Test
     @SuppressWarnings("deprecation")
     void resolveForAssetReturnsHttpDataAddress() {
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
 
         var result = assetIndex.resolveForAsset(SERVICE_1.asEncodedId());
@@ -284,12 +280,15 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
-    void resolveForAssetReturnsNullForDisabledService() {
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
+    @SuppressWarnings("deprecation")
+    void resolveForAssetResolvesAddressForDisabledService() {
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
 
         var result = assetIndex.resolveForAsset(SERVICE_1.asEncodedId());
 
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getStringProperty("baseUrl")).isEqualTo(SERVICE_1_ADDRESS);
     }
 
     @Test
@@ -324,9 +323,6 @@ class AssetIndexServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MEMBER_2));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1, SERVICE_2));
         when(serverConfProvider.getAllServices(MEMBER_2)).thenReturn(List.of(SERVICE_3));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
-        when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn("Maintenance");
-        when(serverConfProvider.getDisabledNotice(SERVICE_3)).thenReturn(null);
         lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(nonEmptyAcl());
         lenient().when(serverConfProvider.getServiceAccessRights(SERVICE_3)).thenReturn(nonEmptyAcl());
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
@@ -345,8 +341,6 @@ class AssetIndexServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
-        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
@@ -367,8 +361,6 @@ class AssetIndexServerConfStoreTest {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1, MGMT_CLIENT));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
-        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var mgmtSpec = QuerySpec.Builder.newInstance()
@@ -389,7 +381,6 @@ class AssetIndexServerConfStoreTest {
     @Test
     void findByIdMgmtServiceTaggedWithMgmtCtx() {
         when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
-        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
@@ -517,7 +508,6 @@ class AssetIndexServerConfStoreTest {
     void queryAssetsOwnerOnlyServiceEmittedUnderBothHostAndMgmtCtx() {
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn(null);
         when(globalConfProvider.getManagementRequestService()).thenReturn(null);
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
@@ -530,14 +520,14 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
-    void findByIdOwnerOnlyAssetReturnedUnderMgmtCtx() {
+    void findByIdResolvesRegularContextForDisabledService() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
 
         var result = assetIndex.findById(SERVICE_1.asEncodedId());
 
         assertThat(result).isNotNull();
-        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
+        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
     }
 
     @Test
