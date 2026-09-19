@@ -195,9 +195,6 @@ resolutions:
     - message: "proprietary-free license LicenseRef-scancode-efsl-2.0 in Maven:jakarta.resource:jakarta.resource-api:.*"
       reason: "NOT_MODIFIED_EXCEPTION"
       comment: "The LicenseRef-scancode-efsl-2.0 license allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
-    #- message: "The declared license 'The BSD License' could not be mapped to a valid license or parsed as an SPDX expression. The license was found in package Maven:org.jline:jansi:.*"
-    #  reason: "LICENSE_ACQUIRED_EXCEPTION"
-    #  comment: "The declared license is not conflicting, and the actual license has been checked from the package."
   issues:
     - message: "ERROR: Timeout after 1200 seconds while scanning file 'package/dist/echarts.esm.mjs.map'."
       reason: "SCANNER_ISSUE"
