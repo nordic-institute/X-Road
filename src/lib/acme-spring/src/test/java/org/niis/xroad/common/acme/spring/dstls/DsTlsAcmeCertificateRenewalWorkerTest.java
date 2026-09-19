@@ -96,6 +96,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         lenient().when(globalConfProvider.isValid()).thenReturn(true);
         lenient().when(hostContext.requiresValidGlobalConf()).thenReturn(true);
         lenient().when(dsTlsCertificateService.recordAcmeOutcome(any())).thenReturn(true);
+        lenient().when(dsTlsCertificateService.storeRenewedCertificate(any(), any(), any(), any())).thenReturn(true);
         worker = new DsTlsAcmeCertificateRenewalWorker(globalConfProvider, dsTlsCertificateService, dsTlsAcmeService, hostContext);
     }
 
@@ -135,7 +136,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         worker.execute(scheduler);
 
         verify(dsTlsCertificateService, never()).recordAcmeOutcome(any());
-        verify(dsTlsCertificateService, never()).storeAcmeEnrolledCertificate(any(), any(), any());
+        verify(dsTlsCertificateService, never()).storeRenewedCertificate(any(), any(), any(), any());
         verify(hostContext, never()).getDsTlsCertificationAuthorities();
         verify(hostContext, never()).notifyEnrollmentSuccess(any(), anyBoolean());
         verify(hostContext, never()).notifyEnrollmentFailure(any(), any());
@@ -195,7 +196,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         worker.execute(scheduler);
 
         verify(dsTlsAcmeService, never()).renew(any(), any(), any(), any());
-        verify(dsTlsCertificateService, never()).storeAcmeEnrolledCertificate(any(), any(), any());
+        verify(dsTlsCertificateService, never()).storeRenewedCertificate(any(), any(), any(), any());
         verify(dsTlsCertificateService, never()).recordAcmeOutcome(any());
         verify(hostContext, never()).notifyEnrollmentSuccess(any(), anyBoolean());
         verify(hostContext, never()).notifyEnrollmentFailure(any(), any());
@@ -230,7 +231,8 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         X500Principal csrSubject = new X500Principal(csr.getSubject().getEncoded());
         assertThat(csrSubject.getName()).isEqualTo(currentCertificate.getSubjectX500Principal().getName());
 
-        verify(dsTlsCertificateService).storeAcmeEnrolledCertificate(any(), eq(new X509Certificate[]{newCert}), eq(nextRenewal));
+        verify(dsTlsCertificateService).storeRenewedCertificate(eq(currentCertificate), any(), eq(new X509Certificate[]{newCert}),
+                eq(nextRenewal));
         verify(hostContext).notifyEnrollmentSuccess(HOSTNAME, true);
         verify(scheduler).success();
         verify(scheduler, never()).failure();
@@ -308,7 +310,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
         worker.execute(scheduler);
 
         ArgumentCaptor<PrivateKey> keyCaptor = ArgumentCaptor.forClass(PrivateKey.class);
-        verify(dsTlsCertificateService, times(2)).storeAcmeEnrolledCertificate(keyCaptor.capture(), any(), any());
+        verify(dsTlsCertificateService, times(2)).storeRenewedCertificate(any(), keyCaptor.capture(), any(), any());
         assertThat(keyCaptor.getAllValues()).hasSize(2);
         assertThat(keyCaptor.getAllValues().get(0)).isNotEqualTo(keyCaptor.getAllValues().get(1));
     }
@@ -329,7 +331,7 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
         worker.execute(scheduler);
 
-        verify(dsTlsCertificateService, never()).storeAcmeEnrolledCertificate(any(), any(), any());
+        verify(dsTlsCertificateService, never()).storeRenewedCertificate(any(), any(), any(), any());
         verify(dsTlsCertificateService).recordAcmeOutcome("CA unreachable");
         verify(hostContext).notifyEnrollmentFailure(HOSTNAME, "CA unreachable");
         verify(scheduler).failure();
@@ -374,10 +376,86 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
         worker.execute(scheduler);
 
-        verify(dsTlsCertificateService, never()).storeAcmeEnrolledCertificate(any(), any(), any());
+        verify(dsTlsCertificateService, never()).storeRenewedCertificate(any(), any(), any(), any());
         verify(dsTlsCertificateService).recordAcmeOutcome(anyString());
         verify(hostContext).notifyEnrollmentFailure(eq("https://"), anyString());
         verify(scheduler).failure();
+    }
+
+    @Test
+    void executeShouldRenewUsingTheFirstDnsSanWhenOtherSanTypesPrecedeIt() throws Exception {
+        KeyPair caKeyPair = generateRsaKeyPair();
+        X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        X509Certificate currentCertificate = certificateWithSans(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
+                generateRsaKeyPair(), new GeneralName[]{
+                        new GeneralName(GeneralName.rfc822Name, "admin@example.org"),
+                        new GeneralName(GeneralName.iPAddress, "192.0.2.10"),
+                        new GeneralName(GeneralName.dNSName, HOSTNAME)});
+
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, currentCertificate));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        when(dsTlsAcmeService.getNextRenewalTime(eq(caInfo), eq(currentCertificate))).thenReturn(Instant.now().minusSeconds(1));
+
+        X509Certificate newCert = selfSignedCertificate(generateRsaKeyPair(), "CN=" + HOSTNAME);
+        when(dsTlsAcmeService.renew(eq(caInfo), eq(HOSTNAME), eq(currentCertificate), any())).thenReturn(List.of(newCert));
+        when(dsTlsAcmeService.getNextRenewalTime(eq(caInfo), eq(newCert))).thenReturn(Instant.now().plus(60, ChronoUnit.DAYS));
+
+        worker.execute(scheduler);
+
+        verify(dsTlsAcmeService).renew(eq(caInfo), eq(HOSTNAME), eq(currentCertificate), any());
+        verify(hostContext, never()).getPublicHostname();
+        verify(hostContext).notifyEnrollmentSuccess(HOSTNAME, true);
+        verify(scheduler).success();
+    }
+
+    @Test
+    void executeShouldFallBackToThePublicHostnameWhenTheCertificateHasOnlyNonDnsSans() throws Exception {
+        KeyPair caKeyPair = generateRsaKeyPair();
+        X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        X509Certificate currentCertificate = certificateWithSans(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
+                generateRsaKeyPair(), new GeneralName[]{new GeneralName(GeneralName.iPAddress, "192.0.2.10")});
+
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, currentCertificate));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        when(dsTlsAcmeService.getNextRenewalTime(eq(caInfo), eq(currentCertificate))).thenReturn(Instant.now().minusSeconds(1));
+        when(hostContext.getPublicHostname()).thenReturn(HOSTNAME);
+
+        X509Certificate newCert = selfSignedCertificate(generateRsaKeyPair(), "CN=" + HOSTNAME);
+        when(dsTlsAcmeService.renew(eq(caInfo), eq(HOSTNAME), eq(currentCertificate), any())).thenReturn(List.of(newCert));
+        when(dsTlsAcmeService.getNextRenewalTime(eq(caInfo), eq(newCert))).thenReturn(Instant.now().plus(60, ChronoUnit.DAYS));
+
+        worker.execute(scheduler);
+
+        verify(dsTlsAcmeService).renew(eq(caInfo), eq(HOSTNAME), eq(currentCertificate), any());
+        verify(hostContext).notifyEnrollmentSuccess(HOSTNAME, true);
+        verify(scheduler).success();
+    }
+
+    @Test
+    void executeShouldSkipTheSuccessNotificationWhenTheSlotChangedDuringRenewal() throws Exception {
+        KeyPair caKeyPair = generateRsaKeyPair();
+        X509Certificate caCert = selfSignedCertificate(caKeyPair, "CN=" + CA_NAME);
+        ApprovedDsTlsCaInfo caInfo = dsTlsCaInfo(caCert, CA_NAME, CA_URL);
+        X509Certificate currentCertificate = certificateSignedBy(caKeyPair, "CN=" + CA_NAME, "CN=" + HOSTNAME,
+                generateRsaKeyPair(), HOSTNAME);
+
+        when(dsTlsCertificateService.getStatus()).thenReturn(new DsTlsCertificateStatus(true, currentCertificate));
+        when(hostContext.getDsTlsCertificationAuthorities()).thenReturn(List.of(caInfo));
+        when(dsTlsAcmeService.getNextRenewalTime(eq(caInfo), eq(currentCertificate))).thenReturn(Instant.now().minusSeconds(1));
+
+        X509Certificate newCert = selfSignedCertificate(generateRsaKeyPair(), "CN=" + HOSTNAME);
+        when(dsTlsAcmeService.renew(eq(caInfo), eq(HOSTNAME), eq(currentCertificate), any())).thenReturn(List.of(newCert));
+        when(dsTlsAcmeService.getNextRenewalTime(eq(caInfo), eq(newCert))).thenReturn(Instant.now().plus(60, ChronoUnit.DAYS));
+        when(dsTlsCertificateService.storeRenewedCertificate(eq(currentCertificate), any(), any(), any())).thenReturn(false);
+
+        worker.execute(scheduler);
+
+        verify(hostContext, never()).notifyEnrollmentSuccess(any(), anyBoolean());
+        verify(dsTlsCertificateService, never()).recordAcmeOutcome(any());
+        verify(scheduler).success();
+        verify(scheduler, never()).failure();
     }
 
     private static ApprovedDsTlsCaInfo dsTlsCaInfo(X509Certificate caCert, String name, String acmeServerDirectoryUrl) {
@@ -396,6 +474,15 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
 
     private static X509Certificate certificateSignedBy(KeyPair issuerKeyPair, String issuerDn, String subjectDn,
                                                         KeyPair subjectKeyPair, String... dnsSans) throws Exception {
+        GeneralName[] names = new GeneralName[dnsSans.length];
+        for (int i = 0; i < dnsSans.length; i++) {
+            names[i] = new GeneralName(GeneralName.dNSName, dnsSans[i]);
+        }
+        return certificateWithSans(issuerKeyPair, issuerDn, subjectDn, subjectKeyPair, names);
+    }
+
+    private static X509Certificate certificateWithSans(KeyPair issuerKeyPair, String issuerDn, String subjectDn,
+                                                        KeyPair subjectKeyPair, GeneralName[] sans) throws Exception {
         X500Name issuer = new X500Name(issuerDn);
         X500Name subject = new X500Name(subjectDn);
         var certBuilder = new JcaX509v3CertificateBuilder(
@@ -405,12 +492,8 @@ class DsTlsAcmeCertificateRenewalWorkerTest {
                 Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
                 subject,
                 subjectKeyPair.getPublic());
-        if (dnsSans.length > 0) {
-            GeneralName[] names = new GeneralName[dnsSans.length];
-            for (int i = 0; i < dnsSans.length; i++) {
-                names[i] = new GeneralName(GeneralName.dNSName, dnsSans[i]);
-            }
-            certBuilder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(names));
+        if (sans.length > 0) {
+            certBuilder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(sans));
         }
         ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(issuerKeyPair.getPrivate());
         return new JcaX509CertificateConverter().getCertificate(certBuilder.build(signer));

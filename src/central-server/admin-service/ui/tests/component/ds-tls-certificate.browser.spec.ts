@@ -165,7 +165,10 @@ describe('CS DS TLS Certificate card — manual certificate (Browser Mode)', () 
   it('shows the certificate hash, the Manual chip and N/A renewal state', async () => {
     await renderRoute(DS_TLS_CERTIFICATE_PATH, {
       permissions: allPermissions,
-      msw: [statusHandler({ key_generated: true, certificate: sampleCertificate }), enrollmentStatusHandler({ enrollment_method: 'MANUAL' })],
+      msw: [
+        statusHandler({ key_generated: true, certificate: sampleCertificate }),
+        enrollmentStatusHandler({ enrollment_method: 'MANUAL' }),
+      ],
     });
 
     await expect.element(page.getByTestId('ds-tls-certificate-hash')).toBeVisible();
@@ -415,5 +418,25 @@ describe('CS DS TLS Certificate card — order error path (Browser Mode)', () =>
     await expect
       .element(page.getByText('The named certification authority is not a designated, ACME-capable Dataspace TLS CA', { exact: false }))
       .toBeVisible();
+  });
+});
+
+describe('CS DS TLS Certificate card — enrollment status unavailable (Browser Mode)', () => {
+  it('keeps showing the certificate when only the enrollment status request fails', async () => {
+    await renderRoute(DS_TLS_CERTIFICATE_PATH, {
+      permissions: allPermissions,
+      msw: [
+        statusHandler({ key_generated: true, certificate: sampleCertificate }),
+        specHttp.untyped.get('/api/v1/ds-tls-certificate/enrollment-status', () =>
+          HttpResponse.json({ status: 500, error: { code: 'internal_error' } }, { status: 500 }),
+        ),
+      ],
+    });
+
+    await expect.element(page.getByTestId('ds-tls-certificate-hash')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-enrollment-status-unavailable')).toBeVisible();
+    await expect.element(page.getByTestId('ds-tls-renewal-na')).toBeVisible();
+    await expect.poll(() => page.getByTestId('ds-tls-enrollment-method').query()).toBeNull();
+    await expect.poll(() => page.getByTestId('ds-tls-order-certificate-button').query()).toBeNull();
   });
 });

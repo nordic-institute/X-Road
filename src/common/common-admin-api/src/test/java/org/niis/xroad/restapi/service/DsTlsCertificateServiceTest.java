@@ -46,6 +46,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
@@ -76,6 +77,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -446,12 +448,18 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
-    void storeAcmeEnrolledCertificateShouldStoreCredentialsAndTagAcmeStatus() throws Exception {
+    void storeRenewedCertificateShouldStoreCredentialsAndTagAcmeStatusWhenTheSlotStillHoldsTheReplacedCertificate()
+            throws Exception {
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate cert = selfSignedCertificate(keyPair);
         Instant nextRenewalTime = Instant.now().plus(60, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
 
-        service().storeAcmeEnrolledCertificate(keyPair.getPrivate(), new X509Certificate[]{cert}, nextRenewalTime);
+        X509Certificate replaced = selfSignedCertificate(keyPair);
+        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[]{replaced}));
+
+        boolean stored = service().storeRenewedCertificate(replaced, keyPair.getPrivate(), new X509Certificate[]{cert}, nextRenewalTime);
+
+        assertThat(stored).isTrue();
 
         ArgumentCaptor<InternalSSLKey> credentialsCaptor = ArgumentCaptor.forClass(InternalSSLKey.class);
         verify(vaultClient).createDsHttpsTlsCredentials(credentialsCaptor.capture());
@@ -466,18 +474,95 @@ class DsTlsCertificateServiceTest {
     }
 
     @Test
-    void storeAcmeEnrolledCertificateShouldRejectAMismatchedChainWithoutWritingAnything() throws Exception {
+    void storeRenewedCertificateShouldRejectAMismatchedChainWithoutWritingAnything() throws Exception {
         KeyPair keyPair = generateRsaKeyPair();
         X509Certificate certForOtherKey = selfSignedCertificate(generateRsaKeyPair());
 
-        assertThatThrownBy(() -> service().storeAcmeEnrolledCertificate(
-                keyPair.getPrivate(), new X509Certificate[]{certForOtherKey}, Instant.now()))
+        X509Certificate replaced = selfSignedCertificate(keyPair);
+        assertThatThrownBy(() -> service().storeRenewedCertificate(
+                replaced, keyPair.getPrivate(), new X509Certificate[]{certForOtherKey}, Instant.now()))
                 .isInstanceOf(BadRequestException.class)
                 .satisfies(e -> assertThat(((BadRequestException) e).getErrorDeviation().code())
                         .isEqualTo(DS_TLS_KEY_CERTIFICATE_MISMATCH.code()));
 
         verify(vaultClient, never()).createDsHttpsTlsCredentials(any());
         verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
+    }
+
+    @Test
+    void storeRenewedCertificateShouldDiscardTheRenewalWhenTheSlotNoLongerHoldsTheReplacedCertificate() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate replaced = selfSignedCertificate(keyPair);
+        X509Certificate storedMeanwhile = selfSignedCertificate(keyPair);
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenReturn(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[]{storedMeanwhile}));
+        KeyPair renewedKeyPair = generateRsaKeyPair();
+        X509Certificate renewed = selfSignedCertificate(renewedKeyPair);
+
+        boolean stored = service().storeRenewedCertificate(
+                replaced, renewedKeyPair.getPrivate(), new X509Certificate[]{renewed}, Instant.now());
+
+        assertThat(stored).isFalse();
+        verify(vaultClient, never()).createDsHttpsTlsCredentials(any());
+        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
+    }
+
+    @Test
+    void storeRenewedCertificateShouldDiscardTheRenewalWhenTheSlotHoldsAKeyOnly() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        X509Certificate replaced = selfSignedCertificate(keyPair);
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenReturn(new InternalSSLKey(generateRsaKeyPair().getPrivate(), new X509Certificate[0]));
+        KeyPair renewedKeyPair = generateRsaKeyPair();
+        X509Certificate renewed = selfSignedCertificate(renewedKeyPair);
+
+        boolean stored = service().storeRenewedCertificate(
+                replaced, renewedKeyPair.getPrivate(), new X509Certificate[]{renewed}, Instant.now());
+
+        assertThat(stored).isFalse();
+        verify(vaultClient, never()).createDsHttpsTlsCredentials(any());
+    }
+
+    @Test
+    void orderCertificateShouldDiscardTheIssuedChainWhenTheKeyWasReplacedDuringTheOrder() throws Exception {
+        KeyPair orderedKeyPair = generateRsaKeyPair();
+        KeyPair regeneratedKeyPair = generateRsaKeyPair();
+        when(vaultClient.getDsHttpsTlsCredentials())
+                .thenReturn(new InternalSSLKey(orderedKeyPair.getPrivate(), new X509Certificate[0]))
+                .thenReturn(new InternalSSLKey(regeneratedKeyPair.getPrivate(), new X509Certificate[0]));
+        X509Certificate issued = selfSignedCertificate(orderedKeyPair);
+        when(acmeProvider.getIfAvailable()).thenReturn(dsTlsCertificateAcmeProvider);
+        when(dsTlsCertificateAcmeProvider.order(any(), any(), any(), eq(orderedKeyPair.getPrivate()), any(), isNull()))
+                .thenReturn(new DsTlsAcmeOrderResult(List.of(issued), Instant.now()));
+
+        assertThatThrownBy(() -> service().orderCertificate("Test CA", "CN=ds.example.org", "ds.example.org"))
+                .isInstanceOf(ConflictException.class)
+                .satisfies(e -> assertThat(((ConflictException) e).getErrorDeviation().code())
+                        .isEqualTo(DS_TLS_ACME_ORDER_FAILED.code()));
+        verify(vaultClient, never()).createDsHttpsTlsCredentials(any());
+        verify(vaultClient, never()).createDsTlsEnrollmentStatus(any());
+    }
+
+    @Test
+    void generateKeyShouldSucceedWhenRecordingTheEnrollmentStatusFails() throws Exception {
+        doThrow(new IllegalStateException("vault down")).when(vaultClient).createDsTlsEnrollmentStatus(any());
+
+        service().generateKey();
+
+        verify(vaultClient).createDsHttpsTlsCredentials(any());
+    }
+
+    @Test
+    void uploadCertificateShouldSucceedWhenRecordingTheEnrollmentStatusFails() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+        when(vaultClient.getDsHttpsTlsCredentials()).thenReturn(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[0]));
+        X509Certificate cert = selfSignedCertificate(keyPair);
+        doThrow(new IllegalStateException("vault down")).when(vaultClient).createDsTlsEnrollmentStatus(any());
+
+        X509Certificate stored = service().uploadCertificate(toPem(cert));
+
+        assertThat(stored).isEqualTo(cert);
+        verify(vaultClient).createDsHttpsTlsCredentials(any());
     }
 
     @Test

@@ -74,6 +74,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
     private static final int DS_TLS_KEY_LENGTH = 2048;
+    private static final int GENERAL_NAME_DNS = 2;
 
     private final GlobalConfProvider globalConfProvider;
     private final DsTlsCertificateService dsTlsCertificateService;
@@ -148,7 +149,13 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
 
         X509Certificate[] chainArray = chain.toArray(X509Certificate[]::new);
         Instant nextRenewalTime = dsTlsAcmeService.getNextRenewalTime(caInfo, chainArray[0]);
-        dsTlsCertificateService.storeAcmeEnrolledCertificate(keyPair.getPrivate(), chainArray, nextRenewalTime);
+        boolean stored = dsTlsCertificateService.storeRenewedCertificate(currentCertificate, keyPair.getPrivate(), chainArray,
+                nextRenewalTime);
+        if (!stored) {
+            log.info("The DS TLS certificate was replaced while renewing it via ACME from '{}', the renewed certificate is discarded",
+                    caInfo.getName());
+            return;
+        }
 
         hostContext.notifyEnrollmentSuccess(subjectAltName, true);
         log.info("DS TLS certificate successfully renewed via ACME from '{}'", caInfo.getName());
@@ -189,10 +196,16 @@ public class DsTlsAcmeCertificateRenewalWorker implements AcmeRenewalWorker {
         } catch (CertificateParsingException e) {
             throw XrdRuntimeException.systemException(e);
         }
-        if (sans == null || sans.isEmpty()) {
+        if (sans == null) {
             return null;
         }
-        return (String) sans.iterator().next().get(1);
+        return sans.stream()
+                .filter(san -> san.size() > 1 && Integer.valueOf(GENERAL_NAME_DNS).equals(san.get(0)))
+                .map(san -> san.get(1))
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .findFirst()
+                .orElse(null);
     }
 
     /**

@@ -278,7 +278,8 @@
         "none": "Not configured",
         "manual": "Manual",
         "acme": "ACME"
-      }
+      },
+      "unavailable": "Unavailable"
     },
     "generateCsr": {
       "button": "Generate CSR",

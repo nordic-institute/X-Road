@@ -114,7 +114,14 @@
                 </span>
               </td>
               <td>
-                <XrdStatusChip :type="methodChip.type" data-test="ds-tls-enrollment-method">
+                <span
+                  v-if="enrollmentStatusUnavailable"
+                  data-test="ds-tls-enrollment-status-unavailable"
+                  class="body-small on-surface opacity-60"
+                >
+                  {{ $t(`${translationsPrefix}.enrollmentStatus.unavailable`) }}
+                </span>
+                <XrdStatusChip v-else :type="methodChip.type" data-test="ds-tls-enrollment-method">
                   <template #text>
                     <span class="font-weight-medium body-small">{{ $t(methodChip.textKey) }}</span>
                   </template>
@@ -260,6 +267,7 @@ const { addError } = useNotifications();
 const loading = ref(false);
 const loadingDownload = ref(false);
 const status = ref<DsTlsCertificateStatus | undefined>(undefined);
+const enrollmentStatusUnavailable = ref(false);
 const enrollmentStatus = ref<DsTlsCertificateEnrollmentStatus | undefined>(undefined);
 
 const showGenerateKeyDialog = ref(false);
@@ -302,12 +310,22 @@ const renewalState = computed<RenewalState>(() => {
 
 function fetchData(): void {
   loading.value = true;
-  Promise.all([props.handler.fetchStatus(), props.handler.fetchEnrollmentStatus()])
-    .then(([currentStatus, currentEnrollmentStatus]) => {
-      status.value = currentStatus;
-      enrollmentStatus.value = currentEnrollmentStatus;
+  Promise.allSettled([props.handler.fetchStatus(), props.handler.fetchEnrollmentStatus()])
+    .then(([statusResult, enrollmentStatusResult]) => {
+      if (statusResult.status === 'fulfilled') {
+        status.value = statusResult.value;
+      } else {
+        addError(statusResult.reason);
+      }
+      if (enrollmentStatusResult.status === 'fulfilled') {
+        enrollmentStatus.value = enrollmentStatusResult.value;
+        enrollmentStatusUnavailable.value = false;
+      } else {
+        enrollmentStatus.value = undefined;
+        enrollmentStatusUnavailable.value = true;
+        addError(enrollmentStatusResult.reason);
+      }
     })
-    .catch((error) => addError(error))
     .finally(() => (loading.value = false));
 }
 
