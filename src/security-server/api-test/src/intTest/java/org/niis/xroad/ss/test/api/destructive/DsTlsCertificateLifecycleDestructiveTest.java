@@ -57,6 +57,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
@@ -160,6 +161,88 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
             assertThat(entries).isNotEmpty();
             entries.values().forEach(DsTlsCertificateLifecycleDestructiveTest::parseX509Certificate);
         });
+    }
+
+    @Test
+    @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
+    void orderStoresACertificateFromTheNamedAcmeCapableCa(SsApiTestContainerSetup stack) {
+        var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var caName = "Test DS TLS CA";
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
+        var subjectAltName = "ds-order.example.org";
+
+        given("a fresh DS TLS key is generated", () ->
+                client.generateKey().statusCode(201));
+
+        then("ordering from the designated test DS TLS CA with a multi-attribute DN and a SAN returns the "
+                + "issued certificate's subject", () ->
+                client.orderCertificate(caName, multiAttributeDn, subjectAltName)
+                        .statusCode(200)
+                        .body("subject_distinguished_name", equalTo(multiAttributeDn))
+                        .body("hash", notNullValue()));
+
+        and("the DS TLS certificate status reports the stored certificate's SAN equal to the input", () ->
+                client.getStatus()
+                        .statusCode(200)
+                        .body("certificate.subject_alternative_names", equalTo("DNS:" + subjectAltName)));
+
+        and("the enrollment status reports ACME availability with the ordering CA listed, a scheduled next "
+                + "renewal and no error", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("ACME"))
+                        .body("next_renewal_time", notNullValue())
+                        .body("last_error", nullValue())
+                        .body("acme_available", equalTo(true))
+                        .body("acme_cas.name", hasItem(caName)));
+    }
+
+    @Test
+    @DisplayName("Manual upload records enrollment method MANUAL and clears the renewal schedule; regenerating "
+            + "the key then clears the recorded status entirely")
+    @SneakyThrows
+    void manualUploadRecordsManualAndKeyRegenerationClearsTheRecordedStatus(SsApiTestContainerSetup stack) {
+        var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var testCaMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, Port.TEST_CA);
+        var testCaBaseUrl = "http://%s:%d/testca".formatted(testCaMapping.host(), testCaMapping.port());
+
+        given("a fresh DS TLS key is generated and ordered via ACME, so the recorded method starts as ACME", () -> {
+            client.generateKey().statusCode(201);
+            client.orderCertificate("Test DS TLS CA", "CN=ds-bookkeeping.example.org", "ds-bookkeeping.example.org")
+                    .statusCode(200);
+        });
+
+        and("the enrollment status confirms ACME with a scheduled next renewal", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("ACME"))
+                        .body("next_renewal_time", notNullValue()));
+
+        var csrBytes = given("a CSR is generated for the same key", () ->
+                client.generateCsr("CN=ds-bookkeeping.example.org"));
+
+        var signedCert = given("the CSR is signed out of band by the test CA", () ->
+                signCsrAtTestCa(testCaBaseUrl, csrBytes));
+
+        when("the manually signed certificate is uploaded over the existing ACME-enrolled one", () ->
+                client.uploadCertificate(signedCert).statusCode(200));
+
+        then("the enrollment status now reports MANUAL with no next renewal time and no error", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("MANUAL"))
+                        .body("next_renewal_time", nullValue())
+                        .body("last_error", nullValue()));
+
+        when("the key is re-created", () ->
+                client.generateKey().statusCode(201));
+
+        then("the enrollment status reports no method configured and no renewal schedule", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("NONE"))
+                        .body("next_renewal_time", nullValue())
+                        .body("last_error", nullValue()));
     }
 
     @Test

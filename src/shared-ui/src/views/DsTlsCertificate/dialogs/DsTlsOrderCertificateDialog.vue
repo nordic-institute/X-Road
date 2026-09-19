@@ -26,8 +26,8 @@
  -->
 <template>
   <XrdSimpleDialog
-    :title="`${translationsPrefix}.generateCsr.title`"
-    save-button-text="action.generateCsr"
+    :title="`${translationsPrefix}.orderCertificate.title`"
+    save-button-text="action.order"
     cancel-button-text="action.cancel"
     submittable
     :loading="loading"
@@ -35,24 +35,39 @@
     @cancel="emit('cancel')"
     @save="submit"
   >
-    <template #text>
-      {{ $t(`${translationsPrefix}.generateCsr.content`) }}
-    </template>
     <template #content>
       <XrdFormBlock>
+        <XrdFormBlockRow full-length>
+          <v-select
+            v-model="caName"
+            v-bind="caNameAttrs"
+            class="xrd"
+            data-test="ds-tls-order-ca-select"
+            :items="acmeCas"
+            item-title="name"
+            item-value="name"
+            :label="$t(`${translationsPrefix}.orderCertificate.certificationAuthority`)"
+          />
+        </XrdFormBlockRow>
         <XrdFormBlockRow full-length>
           <v-text-field
             v-model="distinguishedName"
             v-bind="distinguishedNameAttrs"
             class="xrd"
-            autofocus
-            data-test="enter-distinguished-name"
-            :placeholder="$t(`${translationsPrefix}.generateCsr.example`)"
-            :label="$t(`${translationsPrefix}.generateCsr.distinguishedName`)"
-            :hint="$t(`${translationsPrefix}.generateCsr.tooltip`)"
+            data-test="ds-tls-order-distinguished-name"
+            :label="$t(`${translationsPrefix}.orderCertificate.distinguishedName`)"
+          />
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="subjectAltName"
+            v-bind="subjectAltNameAttrs"
+            class="xrd"
+            data-test="ds-tls-order-subject-alt-name"
+            :label="$t(`${translationsPrefix}.orderCertificate.subjectAltName`)"
+            :hint="$t(`${translationsPrefix}.orderCertificate.hint`)"
             persistent-hint
-          >
-          </v-text-field>
+          />
         </XrdFormBlockRow>
       </XrdFormBlock>
     </template>
@@ -61,43 +76,71 @@
 
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
+import { PropType } from 'vue';
 
-import { TlsCertificatesHandler, DialogSaveHandler } from '../../../types';
+import { DsTlsAcmeCertificationAuthority } from '../../../openapi-types';
+import { DsTlsCertificateHandler, DialogSaveHandler } from '../../../types';
 
-import { useBasicForm } from '../../../composables';
+import { useBasicForm, useNotifications } from '../../../composables';
 
 import { XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '../../../components';
-import { PropType } from 'vue';
 
 const props = defineProps({
   handler: {
-    type: Object as PropType<TlsCertificatesHandler>,
+    type: Object as PropType<DsTlsCertificateHandler>,
     required: true,
+  },
+  acmeCas: {
+    type: Array as PropType<DsTlsAcmeCertificationAuthority[]>,
+    required: true,
+  },
+  defaultDistinguishedName: {
+    type: String,
+    default: '',
+  },
+  defaultSubjectAltName: {
+    type: String,
+    default: '',
   },
   translationsPrefix: {
     type: String,
-    default: 'tlsCertificates',
+    default: 'dsTlsCertificates',
   },
 });
 
-const emit = defineEmits(['cancel', 'generate']);
+const emit = defineEmits(['cancel', 'order']);
 
 const { handleSubmit, defineField, meta } = useForm({
-  validationSchema: { distinguishedName: 'required' },
+  validationSchema: { caName: 'required', distinguishedName: 'required', subjectAltName: 'required' },
+  initialValues: {
+    caName: props.acmeCas.length === 1 ? props.acmeCas[0].name : '',
+    distinguishedName: props.defaultDistinguishedName,
+    subjectAltName: props.defaultSubjectAltName,
+  },
 });
 
+const [caName, caNameAttrs] = defineField('caName', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 const [distinguishedName, distinguishedNameAttrs] = defineField('distinguishedName', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [subjectAltName, subjectAltNameAttrs] = defineField('subjectAltName', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
 const { loading } = useBasicForm();
+const { addSuccessMessage } = useNotifications();
 
 function submit(evt: Event, handler: DialogSaveHandler) {
   handleSubmit((values) => {
     loading.value = true;
     props.handler
-      .generateCsr(values.distinguishedName)
-      .then(() => emit('generate'))
+      .orderCertificate(values.caName, values.distinguishedName, values.subjectAltName)
+      .then(() => {
+        addSuccessMessage(`${props.translationsPrefix}.orderCertificate.success`);
+        emit('order');
+      })
       .catch((error) => {
         handler.addError(error);
       })

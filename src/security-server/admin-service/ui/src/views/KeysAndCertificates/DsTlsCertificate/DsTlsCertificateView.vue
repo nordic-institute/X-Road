@@ -25,38 +25,27 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTlsCertificateView
+  <XrdDsTlsCertificateView
     title="tab.keys.dsTlsCertificate"
     :can-view-certificate="true"
     :can-upload="uploadCertificateVisible"
     :can-generate-csr="generateCsrVisible"
     :can-download="downloadCertificateVisible"
     :can-generate-key="generateKeyVisible"
+    :can-order="orderCertificateVisible"
     :handler="handler"
     :cert-details-view-name="certDetailsView"
   >
-    <template #append-header>
-      <v-chip v-if="keyGeneratedPending" color="warning" variant="outlined" class="ml-2">
-        {{ $t('dsTlsCertificate.keyGeneratedPending') }}
-      </v-chip>
-      <XrdDsTlsCertificateEnrollmentStatusChip class="ml-2" :fetch-status="fetchDsTlsCertificateEnrollmentStatus" />
-    </template>
     <template #tabs>
       <KeysAndCertificatesTabs />
     </template>
-  </XrdTlsCertificateView>
+  </XrdDsTlsCertificateView>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import {
-  XrdTlsCertificateView,
-  TlsCertificatesHandler,
-  TlsCertificate,
-  DsTlsCertificateStatus,
-  XrdDsTlsCertificateEnrollmentStatusChip,
-} from '@niis/shared-ui';
+import { XrdDsTlsCertificateView, DsTlsCertificateHandler } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
@@ -69,6 +58,7 @@ const {
   uploadCertificate,
   generateCsr,
   generateKey,
+  orderCertificate,
 } = useDsTlsCertificate();
 
 const certDetailsView = RouteName.DsTlsCertificateDetails;
@@ -77,28 +67,32 @@ const uploadCertificateVisible = computed(() => hasPermission(Permissions.UPLOAD
 const downloadCertificateVisible = computed(() => hasPermission(Permissions.DOWNLOAD_DS_TLS_CERT));
 const generateKeyVisible = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_KEY));
 const generateCsrVisible = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_CSR));
+const orderCertificateVisible = computed(() => hasPermission(Permissions.ORDER_DS_TLS_CERT));
 
-const status = ref<DsTlsCertificateStatus | null>(null);
-const keyGeneratedPending = computed(() => status.value?.key_generated === true && !status.value?.certificate);
-
-const handler = computed<TlsCertificatesHandler>(() => ({
-  downloadCertificate(): Promise<unknown> {
+const handler = computed<DsTlsCertificateHandler>(() => ({
+  fetchStatus() {
+    return fetchDsTlsCertificateStatus();
+  },
+  fetchTlsCertificate() {
+    return fetchDsTlsCertificateStatus().then((current) => current.certificate ?? { hash: '' });
+  },
+  fetchEnrollmentStatus() {
+    return fetchDsTlsCertificateEnrollmentStatus();
+  },
+  downloadCertificate() {
     return downloadCertificate();
   },
-  fetchTlsCertificate(): Promise<TlsCertificate> {
-    return fetchDsTlsCertificateStatus().then((current) => {
-      status.value = current;
-      return current.certificate ?? { hash: '' };
-    });
-  },
-  generateKey(): Promise<unknown> {
+  generateKey() {
     return generateKey();
   },
-  generateCsr(distinguishedName: string): Promise<unknown> {
-    return generateCsr(distinguishedName);
+  generateCsr(distinguishedName: string, subjectAltName?: string) {
+    return generateCsr(distinguishedName, subjectAltName);
   },
-  uploadCertificate(file: File): Promise<unknown> {
+  uploadCertificate(file: File) {
     return uploadCertificate(file);
+  },
+  orderCertificate(caName: string, distinguishedName: string, subjectAltName: string) {
+    return orderCertificate(caName, distinguishedName, subjectAltName);
   },
 }));
 </script>

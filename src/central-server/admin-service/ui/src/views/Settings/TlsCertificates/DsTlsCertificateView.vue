@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTlsCertificateView
+  <XrdDsTlsCertificateView
     title="tab.settings.dsTlsCertificate"
     :cert-details-view-name="detailsViewName"
     :can-download="hasPermissionToDownloadCertificate"
@@ -33,36 +33,33 @@
     :can-generate-key="hasPermissionToGenerateKey"
     :can-upload="hasPermissionToUploadCertificate"
     :can-view-certificate="hasPermissionToViewCertificate"
+    :can-order="hasPermissionToOrderCertificate"
     :handler="handler"
   >
-    <template #append-header>
-      <v-chip v-if="keyGeneratedPending" color="warning" variant="outlined" class="ml-2">
-        {{ $t('dsTlsCertificate.keyGeneratedPending') }}
-      </v-chip>
-      <XrdDsTlsCertificateEnrollmentStatusChip class="ml-2" :fetch-status="fetchDsTlsCertificateEnrollmentStatus" />
-    </template>
     <template #tabs>
       <SettingsViewTabs />
     </template>
-  </XrdTlsCertificateView>
+  </XrdDsTlsCertificateView>
 </template>
 
 <script lang="ts" setup>
-import {
-  XrdTlsCertificateView,
-  TlsCertificatesHandler,
-  DsTlsCertificateStatus,
-  XrdDsTlsCertificateEnrollmentStatusChip,
-} from '@niis/shared-ui';
+import { XrdDsTlsCertificateView, DsTlsCertificateHandler } from '@niis/shared-ui';
 import SettingsViewTabs from '../SettingsViewTabs.vue';
 import { useUser } from '@/store/modules/user';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { useDsTlsCertificate } from '@/store/modules/ds-tls-certificate';
 
 const { hasPermission } = useUser();
-const { getStatus, uploadCertificate, generateCsr, generateKey, downloadCertificate, fetchDsTlsCertificateEnrollmentStatus } =
-  useDsTlsCertificate();
+const {
+  getStatus,
+  uploadCertificate,
+  generateCsr,
+  generateKey,
+  downloadCertificate,
+  fetchDsTlsCertificateEnrollmentStatus,
+  orderCertificate,
+} = useDsTlsCertificate();
 
 const detailsViewName = RouteName.DsTlsCertificateDetails;
 
@@ -71,31 +68,32 @@ const hasPermissionToViewCertificate = computed(() => hasPermission(Permissions.
 const hasPermissionToGenerateKey = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_KEY));
 const hasPermissionToGenerateCsr = computed(() => hasPermission(Permissions.GENERATE_DS_TLS_CSR));
 const hasPermissionToUploadCertificate = computed(() => hasPermission(Permissions.UPLOAD_DS_TLS_CERT));
+const hasPermissionToOrderCertificate = computed(() => hasPermission(Permissions.ORDER_DS_TLS_CERT));
 
-const status = ref<DsTlsCertificateStatus | null>(null);
-const keyGeneratedPending = computed(() => status.value?.key_generated === true && !status.value?.certificate);
-
-const handler = computed(
-  () =>
-    ({
-      async fetchTlsCertificate() {
-        return getStatus().then((current) => {
-          status.value = current;
-          return current.certificate ?? { hash: '' };
-        });
-      },
-      async generateKey() {
-        return generateKey();
-      },
-      async generateCsr(distinguishedName: string) {
-        return generateCsr(distinguishedName);
-      },
-      async uploadCertificate(file: File) {
-        return uploadCertificate(file);
-      },
-      async downloadCertificate() {
-        return downloadCertificate();
-      },
-    }) as TlsCertificatesHandler,
-);
+const handler = computed<DsTlsCertificateHandler>(() => ({
+  fetchStatus() {
+    return getStatus();
+  },
+  fetchTlsCertificate() {
+    return getStatus().then((current) => current.certificate ?? { hash: '' });
+  },
+  fetchEnrollmentStatus() {
+    return fetchDsTlsCertificateEnrollmentStatus();
+  },
+  generateKey() {
+    return generateKey();
+  },
+  generateCsr(distinguishedName: string, subjectAltName?: string) {
+    return generateCsr(distinguishedName, subjectAltName);
+  },
+  uploadCertificate(file: File) {
+    return uploadCertificate(file);
+  },
+  downloadCertificate() {
+    return downloadCertificate();
+  },
+  orderCertificate(caName: string, distinguishedName: string, subjectAltName: string) {
+    return orderCertificate(caName, distinguishedName, subjectAltName);
+  },
+}));
 </script>

@@ -25,24 +25,6 @@
  * THE SOFTWARE.
  */
 
-export * from './plugins/vuetify'; //Keep at the top
-export * from './plugins/pinia';
+import XrdDsTlsCertificateView from './XrdDsTlsCertificateView.vue';
 
-//resources&assets
-export * from './components';
-export * from './components/admin-users';
-export * from './components/wizard';
-export * from './layouts';
-export * from './views';
-export * from './views/BackupsAndRestore';
-export * from './views/ApiKeys';
-export * from './views/TlsCertificates';
-export * from './views/DsTlsCertificate';
-export * from './views/admin-users';
-
-export * from './openapi-types';
-export * from './plugins/i18n';
-export * from './utils';
-export * from './stores';
-export * from './composables';
-export * from './types';
+export { XrdDsTlsCertificateView };

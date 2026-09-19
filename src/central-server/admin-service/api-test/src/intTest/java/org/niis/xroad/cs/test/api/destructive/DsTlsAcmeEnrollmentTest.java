@@ -25,44 +25,70 @@
  */
 package org.niis.xroad.cs.test.api.destructive;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
+import org.niis.xroad.cs.test.api.admin.DsTlsCertificateAdminClient;
 import org.niis.xroad.cs.test.api.admin.DsTlsCertificationAuthoritiesAdminClient;
 import org.niis.xroad.test.apitest.core.container.BaseComposeSetup;
 
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
- * Verifies the Central Server DS TLS ACME enrollment worker end to end against the project's test ACME server
- * (acme2certifier), routed through the real public nginx config on {@code cs-admin-service}'s port 80 - not a
- * direct connection to the internal challenge listener. Central Server has no dedicated port-80 connector the
- * way Security Server does: nginx already binds that port for globalconf distribution, so proving the
- * enrollment path here also proves the nginx {@code /.well-known/acme-challenge/} proxy rule actually works.
+ * Verifies the Central Server DS TLS ACME renewal worker's auth/sign rule against the project's test ACME
+ * server (acme2certifier), routed through the real public nginx config on {@code cs-admin-service}'s port 80 -
+ * not a direct connection to the internal challenge listener. Central Server has no dedicated port-80 connector
+ * the way Security Server does: nginx already binds that port for globalconf distribution, so proving the
+ * renewal path here also proves the nginx {@code /.well-known/acme-challenge/} proxy rule actually works.
  * <p>
  * Every OpenBao path the flow touches (the certificate/key slot, the ACME account keypair, and the
  * enrollment-outcome bookkeeping) is stood in for by the stack's stateless MockServer instance, the same as
- * every other DS TLS test in this module (see {@code DsTlsCertificateApiTest}). A static HTTP mock cannot
- * echo back what the worker itself writes, so success is observed the same way an operator watching the logs
- * would: the worker's own outcome-hook log line, which carries the exact hostname the worker put in the
- * certificate's SAN
- * ({@link org.niis.xroad.cs.admin.application.dstls.CentralServerDsTlsAcmeHostContext#notifyEnrollmentSuccess}).
+ * every other DS TLS test in this module (see {@code DsTlsCertificateApiTest}). A static HTTP mock cannot echo
+ * back what a prior write put there: a GET always replays the same fixed response regardless of what any POST
+ * just sent. That is enough to prove the worker never enrolls a first certificate on its own (a GET that always
+ * reports "no certificate" makes that assertion trivially and permanently true) and it is enough to read the
+ * outcome of an administrator-triggered order directly off that call's own synchronous response body - but it
+ * is not enough to prove that a further worker cycle leaves an already-stored, not-due certificate's bookkeeping
+ * untouched, since no subsequent read can ever reflect what the worker (or the order before it) actually wrote.
+ * That last, genuinely stateful assertion is covered on the Security Server side instead, whose stack runs a
+ * real {@code openbao} container (see {@code DsTlsCertificateLifecycleDestructiveTest}).
  * <p>
  * Runs on the destructive lane, not the shared parallel stack: several Phase 1 tests
  * ({@code DsTlsCertificationAuthoritiesApiTest}) deliberately designate DS TLS CAs with an ACME server URL to
- * exercise the admin API's own field handling, and never clean them up - left in place, those would trip this
- * worker's own fail-closed-on-more-than-one-CA rule before this test's own CA is ever considered.
+ * exercise the admin API's own field handling, and never clean them up - left in place, those would interfere
+ * with these tests' own CA designation.
  */
-@DisplayName("DS TLS ACME certificate enrollment")
+@DisplayName("DS TLS ACME certificate renewal")
 @SuppressWarnings("checkstyle:magicnumber")
 class DsTlsAcmeEnrollmentTest extends CsApiTest {
 
@@ -93,14 +119,14 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
     @Test
     @Tag("destructive")
     @ResourceLock("ds-tls-acme-capable-cas")
-    @DisplayName("A DS TLS certificate is auto-enrolled via ACME, routed through the real public nginx, "
-            + "with SAN matching the configured issuer host")
-    void dsTlsCertificateIsAutoEnrolledViaAcme(CsBaselineSeeder seeder, BaseComposeSetup stack) throws Exception {
+    @DisplayName("With no stored certificate, the worker never enrolls one on its own even once an ACME-capable "
+            + "DS TLS CA is designated and its own schedule has elapsed")
+    void dsTlsCertificateIsNeverSilentlyEnrolled(CsBaselineSeeder seeder, BaseComposeSetup stack) throws Exception {
         var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
+        var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
 
         given("every DS TLS certification authority left over from other tests with an ACME server configured "
-                + "is removed, so the worker's fail-closed-on-more-than-one-CA rule only ever sees the single "
-                + "CA this test designates", () -> removeAcmeCapableCertificationAuthorities(caClient));
+                + "is removed", () -> removeAcmeCapableCertificationAuthorities(caClient));
 
         given("exactly one ACME-capable DS TLS CA, pointed at the project's test ACME server, is designated",
                 () -> caClient.addDsTlsCertificationAuthority(
@@ -115,18 +141,231 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
         });
 
         try {
-            then("the worker's own schedule enrolls a certificate with no synchronous trigger, the HTTP-01 "
-                    + "challenge reaching admin-service only via the real public nginx proxy, and the outcome "
-                    + "hook logs success with the SAN hostname it just used", () ->
-                    await()
-                            .pollInterval(POLL_INTERVAL)
-                            .atMost(POLL_TIMEOUT)
-                            .until(() -> stack.execInContainer(CS_SERVICE, "grep", "-q",
-                                            "DS TLS certificate successfully enrolled via ACME for " + PUBLIC_HOSTNAME,
-                                            ADMIN_SERVICE_LOG)
-                                    .getExitCode() == 0));
+            then("across a full worker cycle no certificate is ever silently enrolled", () -> {
+                await().pollDelay(POLL_TIMEOUT).atMost(POLL_TIMEOUT.plus(POLL_INTERVAL).plusSeconds(10))
+                        .until(() -> true);
+                int exitCode = stack.execInContainer(CS_SERVICE, "grep", "-Eq",
+                                "DS TLS certificate successfully (renewed|enrolled) via ACME for " + PUBLIC_HOSTNAME,
+                                ADMIN_SERVICE_LOG)
+                        .getExitCode();
+                assertThat(exitCode).isNotZero();
+            });
+
+            and("the enrollment status still reports no method configured and no error", () ->
+                    dsTlsClient.getEnrollmentStatus()
+                            .statusCode(200)
+                            .body("enrollment_method", equalTo("NONE"))
+                            .body("last_error", nullValue()));
         } finally {
             MOCKED_VAULT_PATHS.forEach(seeder::clearMockExpectations);
+        }
+    }
+
+    @Test
+    @Tag("destructive")
+    @ResourceLock("ds-tls-acme-capable-cas")
+    @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
+    void orderStoresACertificateFromTheNamedAcmeCapableCa(CsBaselineSeeder seeder) {
+        var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
+        var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
+        var keyPair = generateRsaKeyPair();
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
+        var subjectAltName = "ds-order.example.org";
+
+        given("every DS TLS certification authority left over from other tests with an ACME server configured "
+                + "is removed, so no stale designation interferes with this order", () ->
+                removeAcmeCapableCertificationAuthorities(caClient));
+
+        given("exactly one ACME-capable DS TLS CA, pointed at the project's test ACME server, is designated",
+                () -> caClient.addDsTlsCertificationAuthority(
+                                seeder.generateCertForServer("dstlsacme02-ca"), CA_NAME, ACME_DIRECTORY_URL, DS_TLS_PROFILE_ID)
+                        .statusCode(201));
+
+        given("the DS TLS vault slot already holds a private key and every touched vault path accepts writes", () -> {
+            seeder.mockExpectation(vaultGetKeyOnlyMock(keyPair));
+            seeder.mockExpectation(postOkMock(VAULT_SECRET_PATH));
+            seeder.mockExpectation(notFoundMock(VAULT_ACCOUNT_KEY_PATH));
+            seeder.mockExpectation(postOkMock(VAULT_ACCOUNT_KEY_PATH));
+            seeder.mockExpectation(postOkMock(VAULT_ENROLLMENT_STATUS_PATH));
+        });
+
+        try {
+            // The OpenBao paths below are a stateless MockServer stand-in (see the class Javadoc): a GET always
+            // replays the fixed vaultGetKeyOnlyMock response regardless of what this order's POST just wrote, so
+            // the issued certificate's own subject and SAN are asserted directly against the order's synchronous
+            // response body - the same CertificateDetails the (unreadable-back-here) stored chain was built from -
+            // rather than by re-reading it through a subsequent status call.
+            then("ordering with a multi-attribute DN and a SAN returns the issued certificate's subject and SAN", () ->
+                    dsTlsClient.orderCertificate(CA_NAME, multiAttributeDn, subjectAltName)
+                            .statusCode(200)
+                            .body("subject_distinguished_name", equalTo(multiAttributeDn))
+                            .body("subject_alternative_names", equalTo("DNS:" + subjectAltName))
+                            .body("hash", notNullValue()));
+
+            and("the enrollment status reports ACME availability with the ordering CA listed and a scheduled "
+                    + "next renewal", () ->
+                    dsTlsClient.getEnrollmentStatus()
+                            .statusCode(200)
+                            .body("enrollment_method", equalTo("ACME"))
+                            .body("next_renewal_time", notNullValue())
+                            .body("acme_available", equalTo(true))
+                            .body("acme_cas.name", hasItem(CA_NAME)));
+        } finally {
+            MOCKED_VAULT_PATHS.forEach(seeder::clearMockExpectations);
+        }
+    }
+
+    @Test
+    @Tag("destructive")
+    @ResourceLock("ds-tls-acme-capable-cas")
+    @DisplayName("Manual upload after an order is accepted for the same key, and a further worker cycle logs "
+            + "no renewal or enrollment for it")
+    void manualUploadAfterAnOrderIsAcceptedAndNeverRenewedOnAFurtherCycle(CsBaselineSeeder seeder, BaseComposeSetup stack)
+            throws Exception {
+        var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
+        var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
+        var keyPair = generateRsaKeyPair();
+        var manualSubjectDn = "CN=ds-manual-upload.example.org";
+
+        given("every DS TLS certification authority left over from other tests with an ACME server configured "
+                + "is removed", () -> removeAcmeCapableCertificationAuthorities(caClient));
+
+        given("exactly one ACME-capable DS TLS CA, pointed at the project's test ACME server, is designated",
+                () -> caClient.addDsTlsCertificationAuthority(
+                                seeder.generateCertForServer("dstlsacme04-ca"), CA_NAME, ACME_DIRECTORY_URL, DS_TLS_PROFILE_ID)
+                        .statusCode(201));
+
+        given("the DS TLS vault slot already holds a private key and every touched vault path accepts writes", () -> {
+            seeder.mockExpectation(vaultGetKeyOnlyMock(keyPair));
+            seeder.mockExpectation(postOkMock(VAULT_SECRET_PATH));
+            seeder.mockExpectation(notFoundMock(VAULT_ACCOUNT_KEY_PATH));
+            seeder.mockExpectation(postOkMock(VAULT_ACCOUNT_KEY_PATH));
+            seeder.mockExpectation(postOkMock(VAULT_ENROLLMENT_STATUS_PATH));
+        });
+
+        try {
+            given("an ACME order has already stored a certificate for this key", () ->
+                    dsTlsClient.orderCertificate(CA_NAME, "CN=ds-order2.example.org", "ds-order2.example.org")
+                            .statusCode(200));
+
+            // As documented on the class: the vault GET mock cannot reflect this write either, so "method
+            // MANUAL, no next renewal" is only observable through the upload's own synchronous response, and a
+            // further worker cycle can only show that no renewal is logged - not that a stored hash stayed
+            // byte-for-byte equal (that stronger, genuinely stateful check lives on the Security Server side).
+            then("a manual upload for the same key is accepted and its own response carries the uploaded "
+                    + "certificate's subject", () ->
+                    dsTlsClient.uploadCertificate(selfSignedCertificatePem(keyPair, manualSubjectDn))
+                            .statusCode(200)
+                            .body("subject_distinguished_name", equalTo(manualSubjectDn)));
+
+            and("across a further worker cycle, no renewal is ever logged for the manually uploaded certificate",
+                    () -> {
+                        await().pollDelay(POLL_TIMEOUT).atMost(POLL_TIMEOUT.plus(POLL_INTERVAL).plusSeconds(10))
+                                .until(() -> true);
+                        int exitCode = stack.execInContainer(CS_SERVICE, "grep", "-Eq",
+                                        "DS TLS certificate successfully (renewed|enrolled) via ACME for "
+                                                + "ds-manual-upload.example.org",
+                                        ADMIN_SERVICE_LOG)
+                                .getExitCode();
+                        assertThat(exitCode).isNotZero();
+                    });
+        } finally {
+            MOCKED_VAULT_PATHS.forEach(seeder::clearMockExpectations);
+        }
+    }
+
+    @Test
+    @Tag("destructive")
+    @ResourceLock("ds-tls-acme-capable-cas")
+    @DisplayName("Ordering with a malformed distinguished name returns 400 invalid_distinguished_name")
+    void orderFailsWithAMalformedDistinguishedName(CsBaselineSeeder seeder) {
+        var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
+        var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
+        var keyPair = generateRsaKeyPair();
+
+        given("every DS TLS certification authority left over from other tests with an ACME server configured "
+                + "is removed, so no stale designation interferes with this order", () ->
+                removeAcmeCapableCertificationAuthorities(caClient));
+
+        given("exactly one ACME-capable DS TLS CA, pointed at the project's test ACME server, is designated",
+                () -> caClient.addDsTlsCertificationAuthority(
+                                seeder.generateCertForServer("dstlsacme03-ca"), CA_NAME, ACME_DIRECTORY_URL, DS_TLS_PROFILE_ID)
+                        .statusCode(201));
+
+        given("the DS TLS vault slot already holds a private key", () ->
+                seeder.mockExpectation(vaultGetKeyOnlyMock(keyPair)));
+
+        try {
+            then("ordering with a malformed distinguished name returns 400 invalid_distinguished_name", () ->
+                    dsTlsClient.orderCertificate(CA_NAME, "not a distinguished name", "ds-order.example.org")
+                            .statusCode(400)
+                            .body("error.code", equalTo("invalid_distinguished_name")));
+        } finally {
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
+        }
+    }
+
+    private static KeyPair generateRsaKeyPair() {
+        try {
+            var generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            return generator.generateKeyPair();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to generate RSA key pair for DS TLS order test", e);
+        }
+    }
+
+    private static byte[] selfSignedCertificatePem(KeyPair keyPair, String subjectDn) {
+        try {
+            var subject = new X500Name(subjectDn);
+            var certBuilder = new JcaX509v3CertificateBuilder(
+                    subject,
+                    BigInteger.valueOf(System.nanoTime()),
+                    Date.from(Instant.now().minus(1, ChronoUnit.DAYS)),
+                    Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                    subject,
+                    keyPair.getPublic());
+            var signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+            X509Certificate cert = new JcaX509CertificateConverter().getCertificate(certBuilder.build(signer));
+
+            var certWriter = new StringWriter();
+            try (var pemWriter = new PemWriter(certWriter)) {
+                pemWriter.writeObject(new PemObject("CERTIFICATE", cert.getEncoded()));
+            }
+            return certWriter.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to build self-signed DS TLS certificate for manual upload test", e);
+        }
+    }
+
+    private static String vaultGetKeyOnlyMock(KeyPair keyPair) {
+        try {
+            var keyWriter = new StringWriter();
+            try (var pemWriter = new PemWriter(keyWriter)) {
+                pemWriter.writeObject(new PemObject("PRIVATE KEY", keyPair.getPrivate().getEncoded()));
+            }
+            return """
+                    {
+                      "httpRequest": {"method": "GET", "path": "%s"},
+                      "httpResponse": {
+                        "statusCode": 200,
+                        "headers": {"Content-Type": ["application/json"]},
+                        "body": {
+                          "type": "JSON",
+                          "json": {
+                            "renewable": false,
+                            "lease_duration": 0,
+                            "data": {
+                              "certificate": "",
+                              "privateKey": "%s"
+                            }
+                          }
+                        }
+                      }
+                    }
+                    """.formatted(VAULT_SECRET_PATH, keyWriter.toString().replace("\r\n", "\\n").replace("\n", "\\n"));
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to build vault GET mock for DS TLS order test", e);
         }
     }
 

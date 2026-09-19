@@ -31,10 +31,13 @@ import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.DsTlsCertificateDetailsConverter;
+import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.openapi.model.DistinguishedName;
+import org.niis.xroad.restapi.openapi.model.DsTlsAcmeCertificationAuthority;
 import org.niis.xroad.restapi.openapi.model.DsTlsCertificateEnrollmentStatus;
 import org.niis.xroad.restapi.openapi.model.DsTlsCertificateEnrollmentStatus.EnrollmentMethodEnum;
+import org.niis.xroad.restapi.openapi.model.DsTlsCertificateOrder;
+import org.niis.xroad.restapi.openapi.model.DsTlsCertificateSigningRequest;
 import org.niis.xroad.restapi.openapi.model.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.service.DsTlsCertificateService;
 import org.niis.xroad.restapi.util.MultipartFileUtils;
@@ -50,8 +53,11 @@ import java.time.ZoneOffset;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_DS_TLS_CSR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_DS_TLS_KEY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ORDER_DS_TLS_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_DS_TLS_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DS_TLS_CA_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_ALT_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -88,12 +94,16 @@ public class DsTlsCertificateController implements DsTlsCertificateApi {
     }
 
     private DsTlsCertificateEnrollmentStatus toDto(DsTlsEnrollmentStatus status) {
+        DsTlsAcmeAvailability availability = dsTlsCertificateService.getAcmeAvailability();
         var dto = new DsTlsCertificateEnrollmentStatus(
-                status.configured() ? EnrollmentMethodEnum.valueOf(status.method().name()) : EnrollmentMethodEnum.NONE);
+                status.configured() ? EnrollmentMethodEnum.valueOf(status.method().name()) : EnrollmentMethodEnum.NONE,
+                availability.available());
         if (status.nextRenewalTime() != null) {
             dto.setNextRenewalTime(status.nextRenewalTime().atOffset(ZoneOffset.UTC));
         }
         dto.setLastError(status.lastError());
+        dto.setAcmeCas(availability.caNames().stream().map(DsTlsAcmeCertificationAuthority::new).toList());
+        dto.setPublicHostname(availability.publicHostname());
         return dto;
     }
 
@@ -108,10 +118,23 @@ public class DsTlsCertificateController implements DsTlsCertificateApi {
     @Override
     @PreAuthorize("hasAuthority('GENERATE_DS_TLS_CSR')")
     @AuditEventMethod(event = GENERATE_DS_TLS_CSR)
-    public ResponseEntity<Resource> generateDsTlsCsr(DistinguishedName distinguishedName) {
-        auditDataHelper.put(SUBJECT_NAME, distinguishedName.getName());
-        byte[] csrBytes = dsTlsCertificateService.generateCsr(distinguishedName.getName());
+    public ResponseEntity<Resource> generateDsTlsCsr(DsTlsCertificateSigningRequest signingRequest) {
+        auditDataHelper.put(SUBJECT_NAME, signingRequest.getName());
+        auditDataHelper.put(SUBJECT_ALT_NAME, signingRequest.getSubjectAltName());
+        byte[] csrBytes = dsTlsCertificateService.generateCsr(signingRequest.getName(), signingRequest.getSubjectAltName());
         return ControllerUtil.createAttachmentResourceResponse(csrBytes, CSR_FILENAME);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ORDER_DS_TLS_CERT')")
+    @AuditEventMethod(event = ORDER_DS_TLS_CERT)
+    public ResponseEntity<CertificateDetails> orderDsTlsCertificate(DsTlsCertificateOrder order) {
+        auditDataHelper.put(DS_TLS_CA_NAME, order.getCaName());
+        auditDataHelper.put(SUBJECT_NAME, order.getDistinguishedName());
+        auditDataHelper.put(SUBJECT_ALT_NAME, order.getSubjectAltName());
+        X509Certificate stored = dsTlsCertificateService.orderCertificate(
+                order.getCaName(), order.getDistinguishedName(), order.getSubjectAltName());
+        return ok(certificateDetailsConverter.convert(stored));
     }
 
     @Override

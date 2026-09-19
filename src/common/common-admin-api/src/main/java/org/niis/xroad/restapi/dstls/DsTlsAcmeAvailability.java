@@ -24,25 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.dstls;
 
-export * from './plugins/vuetify'; //Keep at the top
-export * from './plugins/pinia';
+import java.util.List;
 
-//resources&assets
-export * from './components';
-export * from './components/admin-users';
-export * from './components/wizard';
-export * from './layouts';
-export * from './views';
-export * from './views/BackupsAndRestore';
-export * from './views/ApiKeys';
-export * from './views/TlsCertificates';
-export * from './views/DsTlsCertificate';
-export * from './views/admin-users';
-
-export * from './openapi-types';
-export * from './plugins/i18n';
-export * from './utils';
-export * from './stores';
-export * from './composables';
-export * from './types';
+/**
+ * Whether the DataSpace TLS certificate can currently be ordered via ACME, and if so, from which designated
+ * certification authorities and under which public hostname.
+ *
+ * @param available     whether at least one designated DS TLS certification authority carries an ACME server and
+ *                       the public DataSpace hostname resolves
+ * @param caNames       names of the ACME-capable designated DS TLS certification authorities an order may name
+ * @param publicHostname this server's public DataSpace-facing hostname, or {@code null} when it cannot be resolved
+ */
+public record DsTlsAcmeAvailability(boolean available, List<String> caNames, String publicHostname) {
+}
