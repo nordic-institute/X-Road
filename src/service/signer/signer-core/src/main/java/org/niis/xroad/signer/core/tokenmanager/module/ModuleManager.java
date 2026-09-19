@@ -144,12 +144,15 @@ public class ModuleManager implements TokenWorkerProvider {
     private void loadModules() {
         log.trace("loadModules()");
 
-        if (!moduleConf.hasChanged()) {
-            // do not reload, if conf has not changed
+        boolean confChanged = moduleConf.hasChanged();
+        if (!confChanged && !hasUninitializedModules()) {
+            // do not reload, if conf has not changed and all modules are initialized
             return;
         }
 
-        moduleConf.reload();
+        if (confChanged) {
+            moduleConf.reload();
+        }
 
         final Collection<ModuleType> modules = moduleConf.getModules();
         final Map<String, AbstractModuleWorker> refreshedWorkerModules = loadModules(modules);
@@ -158,6 +161,11 @@ public class ModuleManager implements TokenWorkerProvider {
         log.trace("Registered {} modules in {}", refreshedWorkerModules.size(), getClass().getSimpleName());
         moduleWorkers = Collections.unmodifiableMap(refreshedWorkerModules);
         stopLostModules(oldModuleWorkers, modules);
+    }
+
+    private boolean hasUninitializedModules() {
+        return moduleConf.getModules().stream()
+                .anyMatch(module -> !isModuleInitialized(module));
     }
 
     private void stopLostModules(Map<String, AbstractModuleWorker> oldModuleWorkers, Collection<ModuleType> modules) {
