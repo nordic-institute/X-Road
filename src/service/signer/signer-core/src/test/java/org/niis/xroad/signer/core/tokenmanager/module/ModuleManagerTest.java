@@ -163,6 +163,7 @@ class ModuleManagerTest {
         // Software module initialized, hardware module not registered
         assertTrue(moduleManager.isModuleInitialized(swModuleType));
         assertFalse(moduleManager.isModuleInitialized(hwModuleType));
+        verify(hwModuleWorker, times(1)).destroy();
 
         // Second refresh: configuration file did NOT change on disk, but uninitialized module exists
         when(moduleConf.hasChanged()).thenReturn(false);
@@ -182,6 +183,7 @@ class ModuleManagerTest {
         verify(softwareModuleWorkerFactory, times(1)).create(isA(SoftwareModuleType.class));
         verify(hardwareModuleWorkerFactory, times(2)).create(isA(HardwareModuleType.class));
         verify(hwModuleWorker, times(2)).start();
+        verify(hwModuleWorker, times(1)).destroy();
     }
 
 }

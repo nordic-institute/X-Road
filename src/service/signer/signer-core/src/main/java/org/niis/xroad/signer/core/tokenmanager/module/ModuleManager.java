@@ -190,9 +190,10 @@ public class ModuleManager implements TokenWorkerProvider {
         final Map<String, AbstractModuleWorker> newModules = new HashMap<>();
 
         modules.forEach(moduleType -> {
+            AbstractModuleWorker moduleWorker = moduleWorkers.get(moduleType.getType());
+            boolean isNewWorker = (moduleWorker == null);
             try {
-                AbstractModuleWorker moduleWorker = moduleWorkers.get(moduleType.getType());
-                if (moduleWorker == null) {
+                if (isNewWorker) {
                     moduleWorker = createModuleWorker(moduleType);
                     moduleWorker.start();
                 }
@@ -200,6 +201,14 @@ public class ModuleManager implements TokenWorkerProvider {
                 newModules.put(moduleWorker.getModuleType().getType(), moduleWorker);
             } catch (Exception e) {
                 log.error("Error loading module '{}'.", moduleType, e);
+                if (isNewWorker && moduleWorker != null) {
+                    try {
+                        log.trace("Destroying failed module worker for module '{}'", moduleType.getType());
+                        moduleWorker.destroy();
+                    } catch (Exception destroyEx) {
+                        log.error("Failed to stop failed module worker '{}'.", moduleType.getType(), destroyEx);
+                    }
+                }
             }
         });
         return newModules;
