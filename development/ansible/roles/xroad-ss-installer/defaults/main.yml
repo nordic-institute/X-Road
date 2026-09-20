@@ -33,7 +33,12 @@ xroad_admin_username: xrd
 xroad_admin_password: secret123!
 xroad_db_type: local
 xroad_secret_store_type: local
-xroad_ss_package: xroad-securityserver
+xroad_varpkg_vanilla: xroad-securityserver
+xroad_varpkg_ee: xroad-securityserver-ee
+xroad_varpkg_fi: xroad-securityserver-fi
+xroad_varpkg_is: xroad-securityserver-is
+
+xroad_ss_package: "{{ vars['xroad_varpkg_' + (variant | default('vanilla'))] | default('xroad-securityserver') }}"
 xroad_tls_hostname: "{{ inventory_hostname }}"
 xroad_tls_alt_names: "IP:127.0.0.1,DNS:localhost,DNS:{{ inventory_hostname }}"
 xroad_proxy_mem_setting: "d"
