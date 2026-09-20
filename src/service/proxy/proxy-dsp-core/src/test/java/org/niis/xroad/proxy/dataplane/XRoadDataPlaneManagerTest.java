@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -60,6 +63,7 @@ class XRoadDataPlaneManagerTest {
     @Mock
     private ProxyProperties proxyProperties;
 
+    private DataFlowStateStore flowStateStore;
     private XRoadDataPlaneManager manager;
 
     @BeforeEach
@@ -69,7 +73,8 @@ class XRoadDataPlaneManagerTest {
         lenient().when(globalConfProvider.getSecurityServerAddress(ownId)).thenReturn(OWN_ADDRESS);
         lenient().when(proxyProperties.sslEnabled()).thenReturn(true);
         lenient().when(proxyProperties.serverProxyPort()).thenReturn(5500);
-        manager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties);
+        flowStateStore = new InMemoryDataFlowStateStore();
+        manager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider, proxyProperties, flowStateStore);
     }
 
     @Test
@@ -174,6 +179,32 @@ class XRoadDataPlaneManagerTest {
         assertThat(manager.state("unknown")).isEqualTo(DataFlowStates.FAILED);
     }
 
+    @Test
+    void flowStartedOnOneNodeIsVisibleOnAnotherNodeSharingTheStore() {
+        var otherNodeManager = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
+                proxyProperties, flowStateStore);
+
+        manager.start(buildStartMessage("flow-shared"));
+
+        assertThat(otherNodeManager.state("flow-shared")).isEqualTo(DataFlowStates.STARTED);
+    }
+
+    @Test
+    void lifecycleTransitionOnOneNodeUpdatesTheSharedRecordSeenByAnother() {
+        var nodeA = manager;
+        var nodeB = new XRoadDataPlaneManager(properties, globalConfProvider, serverConfProvider,
+                proxyProperties, flowStateStore);
+
+        nodeA.start(buildStartMessage("flow-cluster"));
+        assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowStates.STARTED);
+
+        nodeB.suspend("flow-cluster", "maintenance");
+        assertThat(nodeA.state("flow-cluster")).isEqualTo(DataFlowStates.SUSPENDED);
+
+        nodeA.terminate("flow-cluster");
+        assertThat(nodeB.state("flow-cluster")).isEqualTo(DataFlowStates.TERMINATED);
+    }
+
     private DataFlowStartMessage buildStartMessage(String processId) {
         return DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)
@@ -181,5 +212,26 @@ class XRoadDataPlaneManagerTest {
                 .agreementId("agreement-1")
                 .datasetId("dataset-1")
                 .build();
+    }
+
+    /**
+     * A trivial shared-map fake standing in for {@link SharedDataFlowStateStore}: it is the same
+     * instance handed to every {@link XRoadDataPlaneManager} constructed in a test, so it models
+     * what the real database-backed store guarantees — one record visible to every node.
+     */
+    private static final class InMemoryDataFlowStateStore implements DataFlowStateStore {
+
+        private final ConcurrentHashMap<String, DataFlowStates> states = new ConcurrentHashMap<>();
+
+        @Override
+        public StoreResult<Void> save(String flowId, DataFlowStates state) {
+            states.put(flowId, state);
+            return StoreResult.success();
+        }
+
+        @Override
+        public DataFlowStates find(String flowId) {
+            return states.get(flowId);
+        }
     }
 }
