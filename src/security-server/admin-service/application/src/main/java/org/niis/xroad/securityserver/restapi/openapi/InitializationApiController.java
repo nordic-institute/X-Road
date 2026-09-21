@@ -39,7 +39,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialAdminUserStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
-import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningTrigger;
 import org.niis.xroad.securityserver.restapi.service.InitialAdminUserService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.springframework.http.HttpStatus;
@@ -61,7 +61,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_
 public class InitializationApiController implements InitializationApi {
     private final InitializationService initializationService;
     private final InitialAdminUserService initialAdminUserService;
-    private final DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
+    private final DataspaceParticipantProvisioningTrigger dataspaceParticipantProvisioningTrigger;
 
     @Override
     @PreAuthorize("permitAll")
@@ -114,7 +114,7 @@ public class InitializationApiController implements InitializationApi {
         } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
         }
-        dataspaceParticipantProvisioningWorker.provisionParticipantAsync();
+        dataspaceParticipantProvisioningTrigger.provisionParticipantAsync();
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
