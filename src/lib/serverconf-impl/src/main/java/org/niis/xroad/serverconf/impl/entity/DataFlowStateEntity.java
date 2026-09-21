@@ -40,19 +40,14 @@ import org.niis.xroad.common.jpa.entity.AuditableEntity;
 import static jakarta.persistence.AccessType.FIELD;
 
 /**
- * A proxy data-plane flow's current lifecycle state. {@code flowId} is the DSP process ID — the
- * transfer-process correlation identifier the control plane assigns and carries in every signaling
- * message ({@code processId} in the message body; the same value the DPS callback-URL convention
- * calls {@code transferId}), opaque and of no fixed format per the Dataplane Signaling spec. Shared
- * by every proxy node in a clustered Security Server, so a flow created or transitioned through one
- * node is immediately visible to the others.
+ * A proxy data-plane flow's current lifecycle state. {@code flowId} is the opaque DSP process ID
+ * (the transfer-process correlation id assigned by the control plane). Shared by every proxy node
+ * in a clustered Security Server, so a flow created or transitioned through one node is immediately
+ * visible to the others.
  *
  * <p>{@code state} is stored as the plain name of {@code org.eclipse.edc.connector.dataplane.spi.DataFlowStates}
- * — deliberately not a JPA {@code @Enumerated} mapping onto a locally-declared mirror enum: this module
- * (serverconf-impl) has no compile-time dependency on the EDC jar, and duplicating that vendor enum's
- * constant names here would need to be kept in hand-sync with every future EDC upgrade or become a second,
- * silently-drifting source of truth. The one, single conversion point is {@code SharedDataFlowStateStore},
- * in the module that already depends on EDC's SPI.
+ * rather than a JPA {@code @Enumerated} mirror enum, because this module has no compile-time dependency on
+ * the EDC jar. {@code SharedDataFlowStateStore}, which does depend on EDC's SPI, is the one conversion point.
  */
 @Getter
 @Setter

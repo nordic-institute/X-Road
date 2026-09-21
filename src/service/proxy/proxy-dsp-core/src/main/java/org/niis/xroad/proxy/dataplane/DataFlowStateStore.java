@@ -34,11 +34,10 @@ import org.eclipse.edc.spi.result.StoreResult;
  * Stores the lifecycle state of proxy data-plane flows, shared by every proxy node of a
  * clustered Security Server.
  *
- * <p>Shaped after EDC's own store SPIs ({@code DataPlaneStore}, {@code AssetIndex}): a
- * {@link StoreResult} from the write, a direct nullable return from the read — not because this
- * store delegates to EDC's SQL implementation (it doesn't; it is backed by the project's own
- * serverconf/Hibernate infrastructure), but because that is the vocabulary every other EDC-facing
- * store in this codebase (e.g. {@code AssetIndexServerConfStore}) already speaks.
+ * <p>Follows the vocabulary of EDC's own store SPIs ({@code DataPlaneStore}, {@code AssetIndex}) —
+ * a {@link StoreResult} from the write, a direct nullable return from the read — for consistency
+ * with other EDC-facing stores in this codebase (e.g. {@code AssetIndexServerConfStore}), even
+ * though this store is backed by serverconf/Hibernate, not EDC's SQL implementation.
  */
 public interface DataFlowStateStore {
 

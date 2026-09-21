@@ -42,26 +42,28 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.DriverManager;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Runs the real {@code serverconf-changelog.xml} (the same changelog production deployments apply)
- * against a Postgres testcontainer, then drives two independent {@link SharedDataFlowStateStore}
- * instances — each with its own {@link ServerConfDatabaseCtx} and connection pool — against that one
- * database. Proves the cross-node visibility and single-row-per-flow guarantees against the actual
- * schema and store implementation, not a fake or an in-memory stand-in.
+ * Runs the real {@code serverconf-changelog.xml} against a Postgres testcontainer, then drives two
+ * independent {@link SharedDataFlowStateStore} instances — each with its own {@link ServerConfDatabaseCtx}
+ * and connection pool — against that one database, proving cross-node visibility against the actual
+ * schema and store implementation.
  *
- * <p>The container is started manually, gated behind {@link DockerClientFactory#isDockerAvailable()}
- * via {@link org.junit.jupiter.api.Assumptions}, rather than via the declarative {@code @Testcontainers}
- * / {@code @Container} extension: that extension starts the container in its own {@code beforeAll}
- * callback, which runs before any user {@code @BeforeAll} method gets a chance to check Docker
- * availability, so a Docker-less run would fail instead of skip. This way a developer machine without
- * Docker sees the class skipped (reported, not a build failure); a CI runner with Docker runs it as
- * an ordinary part of {@code ./gradlew test} — same command, no separate task or tag.
+ * <p>The container is started manually, gated behind {@link DockerClientFactory#isDockerAvailable()},
+ * rather than via the declarative {@code @Testcontainers}/{@code @Container} extension: that extension
+ * starts the container before any user {@code @BeforeAll} can check Docker availability, so a
+ * Docker-less run would fail instead of skip.
  */
 class SharedDataFlowStateStorePostgresTest {
 
@@ -154,6 +156,46 @@ class SharedDataFlowStateStorePostgresTest {
     }
 
     /**
+     * Two proxy nodes handling the first signal for the same new {@code flowId} can both see no
+     * existing row and both insert, racing on {@code uniq_dataflow_state_flow_id}. A {@link CyclicBarrier}
+     * lines up nodeA's and nodeB's {@link SharedDataFlowStateStore#save} calls so both reach the database
+     * at essentially the same instant; run across many distinct {@code flowId}s so at least some pairs
+     * genuinely race. The assertions hold regardless of which pairs actually raced.
+     */
+    @Test
+    void concurrentFirstWriteForTheSameNewFlowIdDoesNotFailEitherNode() throws Exception {
+        var racingPairs = 25;
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
+
+            for (var flowId : flowIds) {
+                var barrier = new CyclicBarrier(2);
+                List<Future<?>> results = List.of(
+                        executor.submit(() -> raceToSave(nodeA, flowId, barrier)),
+                        executor.submit(() -> raceToSave(nodeB, flowId, barrier)));
+
+                for (var result : results) {
+                    result.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            for (var flowId : flowIds) {
+                assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.STARTED);
+                assertThat(countRows(flowId)).isEqualTo(1);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private static Void raceToSave(SharedDataFlowStateStore node, String flowId, CyclicBarrier barrier) throws Exception {
+        barrier.await(5, TimeUnit.SECONDS);
+        node.save(flowId, DataFlowStates.STARTED);
+        return null;
+    }
+
+    /**
      * {@code created_at}/{@code updated_at} are set by the {@code set_timestamps} Postgres trigger
      * (see {@code 013-dataflow-state.xml}), never by the application — so this reads the raw columns
      * directly rather than through {@link SharedDataFlowStateStore}, which has no reason to expose them.
@@ -221,13 +263,10 @@ class SharedDataFlowStateStorePostgresTest {
     }
 
     /**
-     * Applies the same {@code serverconf-changelog.xml} production deployments run, excluding only
-     * the changelog's last changeset ({@code separate-admin-user}), which is scoped to the
-     * {@code admin} Liquibase context and does nothing but {@code GRANT}/{@code REVOKE} table
-     * permissions between two Postgres roles (schema owner vs. application user) — a role split
-     * this single-role testcontainer has no use for. Every changeset that actually creates schema,
-     * including {@code 013-dataflow-state.xml}, carries no context attribute, so Liquibase's context
-     * filter cannot exclude it: it always runs, regardless of the {@code !admin} filter below.
+     * Applies the same {@code serverconf-changelog.xml} production deployments run, excluding only the
+     * last changeset ({@code separate-admin-user}): it just {@code GRANT}/{@code REVOKE}s table
+     * permissions between two Postgres roles, a split this single-role testcontainer has no use for.
+     * Every schema-creating changeset, including {@code 013-dataflow-state.xml}, still runs.
      */
     private static void applyServerConfChangelog() throws Exception {
         Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {

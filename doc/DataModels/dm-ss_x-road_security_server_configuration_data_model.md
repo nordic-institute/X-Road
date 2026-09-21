@@ -123,6 +123,7 @@ This section describes a general mechanism for storing history of the database t
   * history
   * databasechangelog
   * databasechangeloglock
+  * dataflow_state — technical runtime state updated on every proxy data-plane lifecycle signal; see section 2.19
 
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.6.
 
@@ -502,6 +503,7 @@ Proxy data-plane flow lifecycle state, shared by every proxy node of a clustered
 On the first `prepare` or `start` signal, one row is created. The flow's process ID is stored in `flow_id`, and `state` is set to `PROVISIONED` for `prepare` or `STARTED` for `start`. Later lifecycle calls for the same flow update the same row: `started` sets the state to `STARTED`, `suspend` to `SUSPENDED`, `terminate` to `TERMINATED`, and `completed` to `COMPLETED`. A second row is never created for the same `flow_id`.
 
 **Retention.** `TERMINATED` and `COMPLETED` rows are retained, and the table currently has no automatic cleanup or expiration. The state of a completed flow is no longer needed for functional flow handling, but remains available for debugging through the flow-state endpoint.
+
 #### 2.19.1 Indexes
 
 | Name                                  | Columns |

@@ -104,11 +104,8 @@ public class DataFlowStateDAOImplTest {
     }
 
     /**
-     * {@code upsertState} never inserts a second row for a known {@code flow_id} (previous test), but this
-     * proves the backstop for the case that matters most for XRDDEV-3341's shared-store guarantee: two proxy
-     * nodes racing to persist the same brand-new flow. Both would find no existing row and both would insert;
-     * the {@code uniq_dataflow_state_flow_id} constraint from the changelog is what stops that race from ever
-     * leaving two rows for the same flow.
+     * Two proxy nodes racing to persist the same brand-new flow would both find no existing row and
+     * both insert; {@code uniq_dataflow_state_flow_id} is what stops that from leaving two rows.
      */
     @Test
     public void rejectsDuplicateFlowIdInsertedDirectly() {

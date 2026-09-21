@@ -9,12 +9,10 @@
 
     <!--
         Proxy data-plane flow state, keyed by the control plane's process ID (flow_id — the DSP
-        transfer-process correlation id; opaque, no fixed format per the Dataplane Signaling spec).
-        Replaces a JVM-local map so that every proxy node behind the load balancer reads and writes
-        the same record, regardless of which node a given signaling call lands on. Surrogate id
-        primary key + unique flow_id, matching this changelog's other tables (e.g. ds_participant,
-        012). No history trigger: flow state churns on every lifecycle call and carries no audit
-        value once superseded.
+        transfer-process correlation id). Shared across proxy nodes, replacing a JVM-local map.
+        Surrogate id primary key + unique flow_id, matching this changelog's other tables (e.g.
+        ds_participant, 012). No history trigger: state churns on every lifecycle call and carries
+        no audit value once superseded.
     -->
     <changeSet author="niis" id="013-dataflow-state">
         <createTable tableName="dataflow_state">

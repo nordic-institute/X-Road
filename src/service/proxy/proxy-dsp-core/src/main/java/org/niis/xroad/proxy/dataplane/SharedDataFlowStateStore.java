@@ -31,6 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 
@@ -47,11 +48,29 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
 
     @Override
     public StoreResult<Void> save(String flowId, DataFlowStates state) {
+        try {
+            upsert(flowId, state);
+        } catch (XrdRuntimeException e) {
+            // Two nodes can race to insert the first row for the same new flowId; the loser hits
+            // uniq_dataflow_state_flow_id. If the row exists now, that's what happened — retry lands
+            // on upsertState's update branch. Otherwise it's a real failure, not a race.
+            if (!rowExists(flowId)) {
+                throw e;
+            }
+            upsert(flowId, state);
+        }
+        return StoreResult.success();
+    }
+
+    private void upsert(String flowId, DataFlowStates state) {
         databaseCtx.doInTransaction(session -> {
             dao.upsertState(session, flowId, state.toString());
             return null;
         });
-        return StoreResult.success();
+    }
+
+    private boolean rowExists(String flowId) {
+        return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId)).isPresent();
     }
 
     @Override
