@@ -196,6 +196,79 @@ class SharedDataFlowStateStorePostgresTest {
     }
 
     /**
+     * Same race as {@link #concurrentFirstWriteForTheSameNewFlowIdDoesNotFailEitherNode}, but nodeA
+     * races with the more advanced {@code STARTED} and nodeB with {@code PROVISIONED}. The final state
+     * must be {@code STARTED} regardless of which node wins the insert.
+     */
+    @Test
+    void concurrentFirstWriteWithDifferentStatesNeverRegressesToTheOlderState() throws Exception {
+        var racingPairs = 25;
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
+
+            for (var flowId : flowIds) {
+                var barrier = new CyclicBarrier(2);
+                List<Future<?>> results = List.of(
+                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowStates.STARTED, barrier)),
+                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowStates.PROVISIONED, barrier)));
+
+                for (var result : results) {
+                    result.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            for (var flowId : flowIds) {
+                assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.STARTED);
+                assertThat(countRows(flowId)).isEqualTo(1);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void terminatedFlowIsNeverMovedBackToAnEarlierState() {
+        var flowId = uniqueFlowId();
+
+        nodeA.save(flowId, DataFlowStates.STARTED);
+        nodeA.save(flowId, DataFlowStates.TERMINATED);
+        nodeB.save(flowId, DataFlowStates.STARTED);
+
+        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.TERMINATED);
+    }
+
+    @Test
+    void completedFlowIsNeverMovedBackToAnEarlierState() {
+        var flowId = uniqueFlowId();
+
+        nodeA.save(flowId, DataFlowStates.STARTED);
+        nodeA.save(flowId, DataFlowStates.COMPLETED);
+        nodeB.save(flowId, DataFlowStates.SUSPENDED);
+
+        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.COMPLETED);
+    }
+
+    @Test
+    void repeatingTheSameTerminalStateIsANoOpNotARegression() throws Exception {
+        var flowId = uniqueFlowId();
+
+        nodeA.save(flowId, DataFlowStates.STARTED);
+        nodeA.save(flowId, DataFlowStates.TERMINATED);
+        nodeB.save(flowId, DataFlowStates.TERMINATED);
+
+        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(countRows(flowId)).isEqualTo(1);
+    }
+
+    private static Void raceToSaveState(SharedDataFlowStateStore node, String flowId, DataFlowStates state, CyclicBarrier barrier)
+            throws Exception {
+        barrier.await(5, TimeUnit.SECONDS);
+        node.save(flowId, state);
+        return null;
+    }
+
+    /**
      * {@code created_at}/{@code updated_at} are set by the {@code set_timestamps} Postgres trigger
      * (see {@code 013-dataflow-state.xml}), never by the application — so this reads the raw columns
      * directly rather than through {@link SharedDataFlowStateStore}, which has no reason to expose them.

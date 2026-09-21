@@ -35,6 +35,9 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 /**
  * {@link DataFlowStateStore} backed by the {@code dataflow_state} table in the serverconf
  * database, the database every proxy node of a clustered Security Server already shares.
@@ -42,6 +45,9 @@ import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class SharedDataFlowStateStore implements DataFlowStateStore {
+
+    /** States from which {@link DataFlowStates#code()} defines no legitimate further transition. */
+    private static final Set<DataFlowStates> TERMINAL_STATES = EnumSet.of(DataFlowStates.COMPLETED, DataFlowStates.TERMINATED);
 
     private final ServerConfDatabaseCtx databaseCtx;
     private final DataFlowStateDAOImpl dao = new DataFlowStateDAOImpl();
@@ -64,13 +70,29 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
 
     private void upsert(String flowId, DataFlowStates state) {
         databaseCtx.doInTransaction(session -> {
-            dao.upsertState(session, flowId, state.toString());
+            dao.upsertState(session, flowId, state.toString(), SharedDataFlowStateStore::isTransitionAllowed);
             return null;
         });
     }
 
     private boolean rowExists(String flowId) {
         return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId)).isPresent();
+    }
+
+    /**
+     * A terminal state never transitions again; otherwise a move is allowed only if it does not
+     * regress {@link DataFlowStates#code()} — so a write racing behind an already-applied, more
+     * advanced state is silently dropped rather than overwriting it.
+     */
+    private static boolean isTransitionAllowed(String currentStateName, String newStateName) {
+        if (currentStateName.equals(newStateName)) {
+            return true;
+        }
+        var current = DataFlowStates.valueOf(currentStateName);
+        if (TERMINAL_STATES.contains(current)) {
+            return false;
+        }
+        return DataFlowStates.valueOf(newStateName).code() > current.code();
     }
 
     @Override

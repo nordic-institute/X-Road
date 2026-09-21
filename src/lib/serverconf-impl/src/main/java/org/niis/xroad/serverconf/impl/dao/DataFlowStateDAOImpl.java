@@ -34,6 +34,7 @@ import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 /**
  * Data access object for shared proxy data-plane flow state.
@@ -58,22 +59,31 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
     }
 
     /**
-     * Creates or updates the state row for a flow.
+     * Creates the state row for a flow, or updates it via {@code transitionAllowed} if one exists.
+     * The DAO has no notion of what a "state" or a valid transition is — that judgment is the
+     * caller's, passed in as a predicate, so this module stays decoupled from any state-machine semantics.
      *
-     * @param session the Hibernate session
-     * @param flowId  the flow's process ID
-     * @param state   the new state
+     * @param session           the Hibernate session
+     * @param flowId            the flow's process ID
+     * @param state             the new state
+     * @param transitionAllowed tested against (current state, new state); ignored when creating a new row
+     * @return {@code true} if the row was created or updated, {@code false} if the transition was rejected
      */
-    public void upsertState(Session session, String flowId, String state) {
+    public boolean upsertState(Session session, String flowId, String state, BiPredicate<String, String> transitionAllowed) {
         var existing = findByFlowId(session, flowId);
         if (existing.isPresent()) {
-            existing.get().setState(state);
+            var entity = existing.get();
+            if (!transitionAllowed.test(entity.getState(), state)) {
+                return false;
+            }
+            entity.setState(state);
         } else {
             var entity = new DataFlowStateEntity();
             entity.setFlowId(flowId);
             entity.setState(state);
             session.persist(entity);
         }
+        return true;
     }
 
 }

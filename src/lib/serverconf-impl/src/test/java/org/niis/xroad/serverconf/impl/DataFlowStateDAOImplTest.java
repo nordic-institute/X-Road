@@ -36,6 +36,7 @@ import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
 
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -47,6 +48,8 @@ import static org.junit.Assert.assertTrue;
  * Security Server reads and writes.
  */
 public class DataFlowStateDAOImplTest {
+
+    private static final BiPredicate<String, String> ALWAYS_ALLOWED = (current, next) -> true;
 
     private static final DatabaseCtx DATABASE_CTX = new ServerConfDatabaseCtx(TestUtil.serverConfDbProperties);
 
@@ -67,7 +70,7 @@ public class DataFlowStateDAOImplTest {
     @Test
     public void upsertStateCreatesRowWhenAbsent() {
         DATABASE_CTX.doInTransaction(session -> {
-            dao.upsertState(session, "flow-created", "STARTED");
+            dao.upsertState(session, "flow-created", "STARTED", ALWAYS_ALLOWED);
             return null;
         });
 
@@ -79,15 +82,15 @@ public class DataFlowStateDAOImplTest {
     @Test
     public void upsertStateOverwritesExistingRowInsteadOfCreatingASecondOne() {
         DATABASE_CTX.doInTransaction(session -> {
-            dao.upsertState(session, "flow-lifecycle", "PROVISIONED");
+            dao.upsertState(session, "flow-lifecycle", "PROVISIONED", ALWAYS_ALLOWED);
             return null;
         });
         DATABASE_CTX.doInTransaction(session -> {
-            dao.upsertState(session, "flow-lifecycle", "STARTED");
+            dao.upsertState(session, "flow-lifecycle", "STARTED", ALWAYS_ALLOWED);
             return null;
         });
         DATABASE_CTX.doInTransaction(session -> {
-            dao.upsertState(session, "flow-lifecycle", "TERMINATED");
+            dao.upsertState(session, "flow-lifecycle", "TERMINATED", ALWAYS_ALLOWED);
             return null;
         });
 
@@ -101,6 +104,46 @@ public class DataFlowStateDAOImplTest {
                         .setParameter("flowId", "flow-lifecycle")
                         .getSingleResult());
         assertEquals(1L, rowCount);
+    }
+
+    @Test
+    public void upsertStateReturnsTrueWhenTransitionAllowedAndAppliesIt() {
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.upsertState(session, "flow-guard-allow", "PROVISIONED", ALWAYS_ALLOWED);
+            return null;
+        });
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.upsertState(session, "flow-guard-allow", "STARTED", ALWAYS_ALLOWED));
+
+        assertTrue(applied);
+        var found = DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-guard-allow"));
+        assertEquals("STARTED", found.get().getState());
+    }
+
+    @Test
+    public void upsertStateReturnsFalseAndLeavesRowUnchangedWhenTransitionRejected() {
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.upsertState(session, "flow-guard-reject", "STARTED", ALWAYS_ALLOWED);
+            return null;
+        });
+
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.upsertState(session, "flow-guard-reject", "PROVISIONED", (current, next) -> false));
+
+        assertFalse(applied);
+        var found = DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-guard-reject"));
+        assertEquals("STARTED", found.get().getState());
+    }
+
+    @Test
+    public void upsertStateAppliesEvenWhenGuardRejectsForANewRowSinceTheGuardOnlyAppliesToUpdates() {
+        boolean applied = DATABASE_CTX.doInTransaction(session ->
+                dao.upsertState(session, "flow-guard-new-row", "STARTED", (current, next) -> false));
+
+        assertTrue(applied);
+        var found = DATABASE_CTX.doInTransaction(session -> dao.findByFlowId(session, "flow-guard-new-row"));
+        assertEquals("STARTED", found.get().getState());
     }
 
     /**
