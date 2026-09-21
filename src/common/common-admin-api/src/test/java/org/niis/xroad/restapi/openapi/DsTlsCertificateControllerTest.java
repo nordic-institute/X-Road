@@ -224,12 +224,16 @@ class DsTlsCertificateControllerTest extends AbstractSpringMvcTest {
         when(dsTlsCertificateService.orderCertificate(any(), any(), any()))
                 .thenThrow(new BadRequestException(ErrorCode.DS_TLS_INVALID_SUBJECT_ALT_NAME.build()));
 
+        // subject_alt_name has no minLength (see common-openapi-definition.yaml): an empty string must clear
+        // bean validation and reach the mocked service call below, so the response carries the service's own
+        // specific error code rather than a generic bean-validation failure.
         mockMvc.perform(post(ACME_ORDER_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"ca_name":"Test CA","distinguished_name":"CN=ds.example.org","subject_alt_name":" "}
+                                {"ca_name":"Test CA","distinguished_name":"CN=ds.example.org","subject_alt_name":""}
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("ds_tls_invalid_subject_alt_name"));
     }
 
     @Test

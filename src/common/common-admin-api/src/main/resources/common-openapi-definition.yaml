@@ -529,9 +529,10 @@ components:
           type: string
           format: text
           description: single DNS subject alternative name; becomes both the ACME order's identifier and the
-            CSR's only dNSName
+            CSR's only dNSName. No minLength - blank/whitespace-only input must reach
+            DsTlsCertificateService.validateSubjectAltName() so its specific ds_tls_invalid_subject_alt_name
+            error wins over a generic bean-validation failure.
           example: ds.example.org
-          minLength: 1
           maxLength: 255
       required:
         - ca_name
