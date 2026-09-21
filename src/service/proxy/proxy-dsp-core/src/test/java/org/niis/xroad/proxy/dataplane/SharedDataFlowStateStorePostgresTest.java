@@ -269,6 +269,53 @@ class SharedDataFlowStateStorePostgresTest {
     }
 
     /**
+     * Both nodes read the same {@code STARTED} row before either commits, then race different states —
+     * nodeA the terminal {@code COMPLETED}, nodeB {@code SUSPENDED}. A non-atomic read-then-write could
+     * let the later commit silently overwrite the earlier one; the final state must be
+     * {@code COMPLETED} regardless of commit order.
+     */
+    @Test
+    void concurrentUpdateOfAnExistingFlowWithDifferentStatesNeverRegresses() throws Exception {
+        var racingPairs = 25;
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            var flowIds = IntStream.range(0, racingPairs).mapToObj(i -> uniqueFlowId()).toList();
+            for (var flowId : flowIds) {
+                nodeA.save(flowId, DataFlowStates.STARTED);
+            }
+
+            for (var flowId : flowIds) {
+                var barrier = new CyclicBarrier(2);
+                List<Future<?>> results = List.of(
+                        executor.submit(() -> raceToSaveState(nodeA, flowId, DataFlowStates.COMPLETED, barrier)),
+                        executor.submit(() -> raceToSaveState(nodeB, flowId, DataFlowStates.SUSPENDED, barrier)));
+
+                for (var result : results) {
+                    result.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            for (var flowId : flowIds) {
+                assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.COMPLETED);
+                assertThat(countRows(flowId)).isEqualTo(1);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void suspendedFlowCanStillTransitionToCompleted() {
+        var flowId = uniqueFlowId();
+
+        nodeA.save(flowId, DataFlowStates.STARTED);
+        nodeA.save(flowId, DataFlowStates.SUSPENDED);
+        nodeB.save(flowId, DataFlowStates.COMPLETED);
+
+        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.COMPLETED);
+    }
+
+    /**
      * {@code created_at}/{@code updated_at} are set by the {@code set_timestamps} Postgres trigger
      * (see {@code 013-dataflow-state.xml}), never by the application — so this reads the raw columns
      * directly rather than through {@link SharedDataFlowStateStore}, which has no reason to expose them.

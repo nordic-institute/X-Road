@@ -31,6 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
@@ -46,7 +47,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SharedDataFlowStateStore implements DataFlowStateStore {
 
-    /** States from which {@link DataFlowStates#code()} defines no legitimate further transition. */
+    /** States {@link XRoadDataPlaneManager} never transitions out of. */
     private static final Set<DataFlowStates> TERMINAL_STATES = EnumSet.of(DataFlowStates.COMPLETED, DataFlowStates.TERMINATED);
 
     private final ServerConfDatabaseCtx databaseCtx;
@@ -81,8 +82,8 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
 
     /**
      * A terminal state never transitions again; otherwise a move is allowed only if it does not
-     * regress {@link DataFlowStates#code()} — so a write racing behind an already-applied, more
-     * advanced state is silently dropped rather than overwriting it.
+     * regress {@link #lifecycleRank}, so a write racing behind an already-applied, more advanced
+     * state is silently dropped rather than overwriting it.
      */
     private static boolean isTransitionAllowed(String currentStateName, String newStateName) {
         if (currentStateName.equals(newStateName)) {
@@ -92,7 +93,24 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
         if (TERMINAL_STATES.contains(current)) {
             return false;
         }
-        return DataFlowStates.valueOf(newStateName).code() > current.code();
+        return lifecycleRank(DataFlowStates.valueOf(newStateName)) >= lifecycleRank(current);
+    }
+
+    /**
+     * Not {@link DataFlowStates#code()}: EDC's numbering puts {@code SUSPENDED} between
+     * {@code COMPLETED} and {@code TERMINATED}, so comparing it directly would block a legitimate
+     * completion arriving after a suspend. This rank reflects the transitions
+     * {@link XRoadDataPlaneManager} actually performs — {@code SUSPENDED} is a side branch of
+     * {@code STARTED}, not a step beyond it.
+     */
+    private static int lifecycleRank(DataFlowStates state) {
+        return switch (state) {
+            case PROVISIONED -> 0;
+            case STARTED, SUSPENDED -> 1;
+            case COMPLETED, TERMINATED -> 2;
+            default -> throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
+                    "Unexpected persisted dataflow state %s".formatted(state));
+        };
     }
 
     @Override

@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
@@ -59,9 +60,32 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
     }
 
     /**
+     * Locks a found row ({@code SELECT ... FOR UPDATE}) for the rest of the caller's transaction, so
+     * concurrent updates to the same {@code flow_id} serialize. A nonexistent row can't be locked;
+     * the first insert for a new {@code flow_id} is still guarded only by the unique constraint.
+     *
+     * @param session the Hibernate session
+     * @param flowId  the flow's process ID
+     * @return the current row, locked, if the flow is known
+     */
+    private Optional<DataFlowStateEntity> findByFlowIdForUpdate(Session session, String flowId) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DataFlowStateEntity> query = cb.createQuery(DataFlowStateEntity.class);
+        final Root<DataFlowStateEntity> root = query.from(DataFlowStateEntity.class);
+
+        query.select(root).where(cb.equal(root.get("flowId"), flowId));
+
+        return session.createQuery(query)
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .uniqueResultOptional();
+    }
+
+    /**
      * Creates the state row for a flow, or updates it via {@code transitionAllowed} if one exists.
      * The DAO has no notion of what a "state" or a valid transition is — that judgment is the
      * caller's, passed in as a predicate, so this module stays decoupled from any state-machine semantics.
+     * The existing-row read is locked (see {@link #findByFlowIdForUpdate}), making the guard check
+     * atomic with the write.
      *
      * @param session           the Hibernate session
      * @param flowId            the flow's process ID
@@ -70,7 +94,7 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
      * @return {@code true} if the row was created or updated, {@code false} if the transition was rejected
      */
     public boolean upsertState(Session session, String flowId, String state, BiPredicate<String, String> transitionAllowed) {
-        var existing = findByFlowId(session, flowId);
+        var existing = findByFlowIdForUpdate(session, flowId);
         if (existing.isPresent()) {
             var entity = existing.get();
             if (!transitionAllowed.test(entity.getState(), state)) {
