@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,15 +45,18 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,6 +97,13 @@ class DataspaceParticipantProvisioningWorkerTest {
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(NOT_CONVERGED);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
@@ -312,5 +323,39 @@ class DataspaceParticipantProvisioningWorkerTest {
 
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
         verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), true);
+    }
+
+    @Test
+    void provisionParticipantAsyncRunsImmediatelyWithoutActiveTransaction() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+
+        worker.provisionParticipantAsync();
+
+        verify(dataspaceProvisioningService, timeout(1000)).participantContexts(true);
+    }
+
+    @Test
+    void provisionParticipantAsyncSchedulesASingleRunPerTransaction() {
+        TransactionSynchronizationManager.initSynchronization();
+
+        worker.provisionParticipantAsync();
+        worker.provisionParticipantAsync();
+
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).hasSize(1);
+    }
+
+    @Test
+    void provisionParticipantAsyncDefersUntilTransactionCommitsWhenTransactionActive() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+        TransactionSynchronizationManager.initSynchronization();
+
+        worker.provisionParticipantAsync();
+
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).hasSize(1);
+        verify(dataspaceProvisioningService, never()).participantContexts(anyBoolean());
+
+        TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCommit());
+
+        verify(dataspaceProvisioningService, timeout(1000)).participantContexts(true);
     }
 }

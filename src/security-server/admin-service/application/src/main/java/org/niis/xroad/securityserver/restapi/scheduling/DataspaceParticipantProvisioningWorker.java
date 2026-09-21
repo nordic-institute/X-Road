@@ -38,6 +38,8 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -73,12 +75,35 @@ public class DataspaceParticipantProvisioningWorker {
     }
 
     /**
-     * Runs one best-effort provisioning step on a background thread. For callers on a request path:
-     * an unreachable ds-* dependency must not stall the request (each unreachable context costs a
-     * full gRPC deadline), and the scheduled tick remains the convergence guarantee.
+     * Schedules one best-effort provisioning step on a background thread. For callers on a request
+     * path: an unreachable ds-* dependency must not stall the request (each unreachable context costs
+     * a full gRPC deadline), and the scheduled tick remains the convergence guarantee.
+     *
+     * <p>When a transaction is active around the caller, the run is deferred until that transaction
+     * commits, so it never observes pre-commit state, and repeated calls within one transaction
+     * schedule a single run. Never throws: scheduling itself is best-effort, logged at WARN on
+     * failure, exactly like the step it schedules.</p>
      */
     public void provisionParticipantAsync() {
+        try {
+            if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+                dispatchAsync();
+            } else if (!afterCommitRunScheduled()) {
+                TransactionSynchronizationManager.registerSynchronization(new AfterCommitProvisioning());
+            }
+        } catch (Exception e) {
+            log.warn("Data space: failed to schedule participant provisioning; the scheduled worker will "
+                    + "converge on its next tick", e);
+        }
+    }
+
+    private void dispatchAsync() {
         CompletableFuture.runAsync(this::provisionParticipantBestEffort);
+    }
+
+    private static boolean afterCommitRunScheduled() {
+        return TransactionSynchronizationManager.getSynchronizations().stream()
+                .anyMatch(AfterCommitProvisioning.class::isInstance);
     }
 
     /**
@@ -224,6 +249,13 @@ public class DataspaceParticipantProvisioningWorker {
                 log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
             }
+        }
+    }
+
+    private final class AfterCommitProvisioning implements TransactionSynchronization {
+        @Override
+        public void afterCommit() {
+            dispatchAsync();
         }
     }
 }
