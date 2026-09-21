@@ -640,6 +640,17 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void readContextStatusReportsNotConvergedInsteadOfThrowingWhenTheIdentityAssessmentFails() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenThrow(new IllegalStateException("db down"));
+
+        var status = service.readContextStatus(MEMBER_CONTEXT);
+
+        assertThat(status.contextCreated()).isFalse();
+        assertThat(status.credentialStatus()).isEqualTo(CredentialStatus.UNKNOWN);
+        assertThat(status.identityStatus()).isNull();
+    }
+
+    @Test
     void ensureParticipantContextThrowsOnHubDidDrift() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);

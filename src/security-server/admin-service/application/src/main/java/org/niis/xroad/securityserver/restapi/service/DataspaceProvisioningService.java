@@ -403,15 +403,17 @@ public class DataspaceProvisioningService {
 
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
-     * trigger provisioning, poll, or sleep. Tolerates dataspace-backend unavailability — those
-     * errors are reported as {@code UNKNOWN} status rather than thrown; database failures propagate.
+     * trigger provisioning, poll, or sleep. Never throws: dataspace-backend unavailability is
+     * reported as {@code UNKNOWN} credential status, and a failed identity assessment leaves the
+     * identity status unset.
      *
      * @param context the participant context to report on
      */
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
-        var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
+        MemberIdentity assessment = null;
         try {
+            assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
             var hubDid = identityHubClient.contextDid(participantId);
             var contextCreated = hubDid.isPresent();
             var credentialStatus = resolveCredentialStatus(context, contextCreated);

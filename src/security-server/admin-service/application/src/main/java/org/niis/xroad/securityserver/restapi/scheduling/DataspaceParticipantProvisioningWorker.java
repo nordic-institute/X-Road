@@ -33,14 +33,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus.ISSUED;
+import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
 
 /**
  * Level-triggered provisioning worker that drives data space participant context provisioning
@@ -51,7 +57,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class DataspaceParticipantProvisioningWorker {
 
-    static final int JOB_REPEAT_INTERVAL_MS = 30000;
     static final int INITIAL_DELAY_MS = 30000;
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
@@ -62,7 +67,7 @@ public class DataspaceParticipantProvisioningWorker {
      * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
      * retried on the next tick.
      */
-    @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
+    @Scheduled(fixedRateString = "${xroad.proxy-ui-api.dataspace.provisioning-tick-ms}", initialDelay = INITIAL_DELAY_MS)
     public void scheduledProvision() {
         provisionParticipantBestEffort();
     }
@@ -91,18 +96,28 @@ public class DataspaceParticipantProvisioningWorker {
     }
 
     /**
-     * Executes one idempotent provisioning step. A failure in one participant context is logged and
-     * does not block the remaining contexts; a context whose creation failed, or whose SYSTEM member-id
-     * re-anchor the identity hub has not confirmed, is skipped in the credential pass of the same tick
-     * — see {@link #ensureContexts}.
+     * Executes one idempotent provisioning step: {@link #ensure()} followed by {@link #teardown()}.
+     */
+    public void provisionParticipant() {
+        ensure();
+        teardown();
+    }
+
+    /**
+     * Drives every participant context towards its converged state. A failure in one participant
+     * context is logged and does not block the remaining contexts; a context whose creation failed,
+     * or whose SYSTEM member-id re-anchor the identity hub has not confirmed, is skipped in the
+     * credential pass of the same tick — see {@link #ensureContexts}.
      *
-     * <p>Members are bound only after their participant context has been ensured, so the DID written
-     * to {@code ds_participant} is one the identity hub has just confirmed or been created with. A
+     * <p>A context already converged — created, membership credential ISSUED and, for a MEMBER, its
+     * identity OK — is left untouched: no context write, no bind, no credential request. Members are
+     * bound only after their participant context has been ensured, so the DID written to
+     * {@code ds_participant} is one the identity hub has just confirmed or been created with. A
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
      * configuration the DID is derived from.
      */
-    public void provisionParticipant() {
-        var contexts = dataspaceProvisioningService.participantContexts(true);
+    private void ensure() {
+        var contexts = dataspaceProvisioningService.participantContexts(readinessPredicates.isManagementSubsystemRegistered());
         if (ownerUnknown(contexts)) {
             log.debug("Data space provisioning: SS owner not yet known, skipping");
             return;
@@ -112,10 +127,17 @@ public class DataspaceParticipantProvisioningWorker {
             return;
         }
 
+        var statuses = statusesOf(contexts);
+        var nonConverged = contexts.stream().filter(context -> !converged(statuses.get(context))).toList();
+        if (nonConverged.isEmpty()) {
+            log.debug("Data space provisioning: tick changed nothing, {} participant context(s) converged", contexts.size());
+            return;
+        }
+
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        var ensuredContexts = ensureContexts(contexts);
+        var ensuredContexts = ensureContexts(nonConverged, statuses);
 
         participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
 
@@ -124,7 +146,28 @@ public class DataspaceParticipantProvisioningWorker {
             return;
         }
 
-        ensureCredentials(ensuredContexts);
+        ensureCredentials(ensuredContexts, statuses);
+    }
+
+    /**
+     * Deprovisioning slot for a client that is no longer registered on this security server.
+     * Intentionally empty — no deprovisioning logic exists yet.
+     */
+    private void teardown() {
+    }
+
+    private Map<ParticipantContext, ParticipantContextStatus> statusesOf(List<ParticipantContext> contexts) {
+        Map<ParticipantContext, ParticipantContextStatus> statuses = new LinkedHashMap<>();
+        for (var context : contexts) {
+            statuses.put(context, dataspaceProvisioningService.readContextStatus(context));
+        }
+        return statuses;
+    }
+
+    private static boolean converged(ParticipantContextStatus status) {
+        return status.contextCreated()
+                && status.credentialStatus() == ISSUED
+                && (status.identityStatus() == null || status.identityStatus() == OK);
     }
 
     private static List<ClientId> memberIdsOf(List<ParticipantContext> contexts) {
@@ -145,11 +188,16 @@ public class DataspaceParticipantProvisioningWorker {
      * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
      * still created/updated as usual, only its credential request is deferred to a later tick.
      */
-    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
+    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts,
+            Map<ParticipantContext, ParticipantContextStatus> statuses) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
-                if (dataspaceProvisioningService.ensureParticipantContext(context)) {
+                boolean anchorConfirmed = dataspaceProvisioningService.ensureParticipantContext(context);
+                if (!statuses.get(context).contextCreated()) {
+                    log.info("Data space provisioning: participant context {} created", context.participantId());
+                }
+                if (anchorConfirmed) {
                     ensured.add(context);
                 } else {
                     log.debug("Data space provisioning: deferring credential issuance for participant {} until the "
@@ -163,10 +211,15 @@ public class DataspaceParticipantProvisioningWorker {
         return ensured;
     }
 
-    private void ensureCredentials(List<ParticipantContext> contexts) {
+    private void ensureCredentials(List<ParticipantContext> contexts, Map<ParticipantContext, ParticipantContextStatus> statuses) {
         for (var context : contexts) {
             try {
-                dataspaceProvisioningService.ensureMembershipCredential(context);
+                var newStatus = dataspaceProvisioningService.ensureMembershipCredential(context);
+                var previousStatus = statuses.get(context).credentialStatus();
+                if (newStatus != previousStatus) {
+                    log.info("Data space provisioning: participant {} credential {} -> {}",
+                            context.participantId(), previousStatus, newStatus);
+                }
             } catch (Exception e) {
                 log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);

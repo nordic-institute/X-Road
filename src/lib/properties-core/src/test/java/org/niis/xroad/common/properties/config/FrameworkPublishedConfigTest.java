@@ -66,7 +66,8 @@ class FrameworkPublishedConfigTest {
             // Spring @Scheduled(fixedRateString) / Quarkus @Scheduled(every) — the scheduler resolves
             // these itself, so a stored override has to reach the framework config
             "xroad.admin-service.global-configuration-generation-rate-in-seconds",
-            "xroad.configuration-proxy.update-interval");
+            "xroad.configuration-proxy.update-interval",
+            "xroad.proxy-ui-api.dataspace.provisioning-tick-ms");
 
     @Test
     void onlyTheDeclaredFrameworkSettingsAreFlagged() {
