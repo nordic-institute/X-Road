@@ -168,8 +168,11 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
     void orderStoresACertificateFromTheNamedAcmeCapableCa(SsApiTestContainerSetup stack) {
         var client = new DsTlsCertificateAdminClient(adminSession(stack));
         var caName = "Test DS TLS CA";
-        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
-        var subjectAltName = "ds-order.example.org";
+        // The real test ACME server validates this over HTTP-01, so it must resolve on the compose network -
+        // "ui" (the admin-service container) is the only name it actually gives this stack, the same reasoning
+        // DsTlsAcmeEnrollmentTest's own ACME order already relies on.
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ui";
+        var subjectAltName = "ui";
 
         given("a fresh DS TLS key is generated", () ->
                 client.generateKey().statusCode(201));
@@ -206,9 +209,12 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
         var testCaMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, Port.TEST_CA);
         var testCaBaseUrl = "http://%s:%d/testca".formatted(testCaMapping.host(), testCaMapping.port());
 
+        // Real HTTP-01 validation against the test ACME server, so the SAN has to resolve on the compose network -
+        // "ui" is the only name it actually gives this stack. The CSR below is signed out of band by the test CA
+        // directly (not via ACME), so its own subject never needs to be resolvable.
         given("a fresh DS TLS key is generated and ordered via ACME, so the recorded method starts as ACME", () -> {
             client.generateKey().statusCode(201);
-            client.orderCertificate("Test DS TLS CA", "CN=ds-bookkeeping.example.org", "ds-bookkeeping.example.org")
+            client.orderCertificate("Test DS TLS CA", "CN=ui", "ui")
                     .statusCode(200);
         });
 

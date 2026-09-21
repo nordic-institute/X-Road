@@ -169,8 +169,10 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
         var caClient = new DsTlsCertificationAuthoritiesAdminClient(seeder.newSession());
         var dsTlsClient = new DsTlsCertificateAdminClient(seeder.newSession());
         var keyPair = generateRsaKeyPair();
-        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds-order.example.org";
-        var subjectAltName = "ds-order.example.org";
+        // The real test ACME server validates this over HTTP-01, so it must resolve on the compose network -
+        // cs-admin-service (this test class's own PUBLIC_HOSTNAME) is the only name the network actually gives it.
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=" + PUBLIC_HOSTNAME;
+        var subjectAltName = PUBLIC_HOSTNAME;
 
         given("every DS TLS certification authority left over from other tests with an ACME server configured "
                 + "is removed, so no stale designation interferes with this order", () ->
@@ -244,8 +246,12 @@ class DsTlsAcmeEnrollmentTest extends CsApiTest {
         });
 
         try {
+            // Real HTTP-01 validation against the test ACME server, so the SAN has to resolve on the compose
+            // network - cs-admin-service is the only name it actually gives this stack (see PUBLIC_HOSTNAME).
+            // Only this setup order goes through ACME; the manual upload below never touches the network, so
+            // its own subject can stay a fictional name.
             given("an ACME order has already stored a certificate for this key", () ->
-                    dsTlsClient.orderCertificate(CA_NAME, "CN=ds-order2.example.org", "ds-order2.example.org")
+                    dsTlsClient.orderCertificate(CA_NAME, "CN=" + PUBLIC_HOSTNAME, PUBLIC_HOSTNAME)
                             .statusCode(200));
 
             // As documented on the class: the vault GET mock cannot reflect this write either, so "method
