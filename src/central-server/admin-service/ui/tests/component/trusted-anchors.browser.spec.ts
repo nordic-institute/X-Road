@@ -82,7 +82,7 @@ describe('0850 — CS Trusted Anchors — upload anchor + confirm dialog -> appe
 
     // After upload the anchor CS2-E2E appears in the list
     await expect.element(page.getByTestId('anchor')).toBeVisible();
-    await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('aabbcc112233');
+    await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('aabbcc112233');
   });
 });
 
@@ -125,7 +125,7 @@ describe('0850 — CS Trusted Anchors — delete anchor + confirm dialog -> gone
     });
 
     await expect.element(page.getByTestId('anchor')).toBeVisible();
-    await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('aabbcc112233');
+    await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('aabbcc112233');
 
     await expect.element(page.getByTestId('delete-anchor-button')).toBeVisible();
     await page.getByTestId('delete-anchor-button').click();

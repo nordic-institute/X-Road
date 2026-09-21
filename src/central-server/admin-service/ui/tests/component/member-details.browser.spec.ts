@@ -105,14 +105,14 @@ describe('1040 — CS Member Details — cross-page navigation member details �
     await page.getByTestId(`server-${SERVER_CODE}`).click();
 
     await expect.element(page.getByTestId('security-server-details-view')).toBeVisible();
-    await expect.element(page.getByTestId('security-server-owner-name')).toHaveTextContent('E2E TC1 Member with Subsystems');
-    await expect.element(page.getByTestId('security-server-owner-class')).toHaveTextContent('E2E-TC1');
-    await expect.element(page.getByTestId('security-server-owner-code')).toHaveTextContent('e2e-tc1-member-subsystem');
+    await expect.element(page.getByTestId('security-server-owner-name')).toMatchTextContent('E2E TC1 Member with Subsystems');
+    await expect.element(page.getByTestId('security-server-owner-class')).toMatchTextContent('E2E-TC1');
+    await expect.element(page.getByTestId('security-server-owner-code')).toMatchTextContent('e2e-tc1-member-subsystem');
 
     router.back();
 
     await expect.element(page.getByTestId('member-details')).toBeVisible();
-    await expect.element(page.getByTestId('member-name')).toHaveTextContent('E2E TC1 Member with Subsystems');
+    await expect.element(page.getByTestId('member-name')).toMatchTextContent('E2E TC1 Member with Subsystems');
   });
 });
 

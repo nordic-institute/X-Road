@@ -2,6 +2,7 @@
 profile: production
 exclude_paths:
   - .state/
+  - .venv/
   - collections/
 skip_list:
   - role-name              # role names use snake_case, not strict-role-name regex

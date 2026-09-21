@@ -137,7 +137,7 @@ describe('0360 — CS API Keys — key roles are edited via edit dialog (Browser
 
     submitDialogForm();
 
-    await expect.element(page.getByTestId('api-key-row-1-roles')).toHaveTextContent('System Administrator');
+    await expect.element(page.getByTestId('api-key-row-1-roles')).toMatchTextContent('System Administrator');
   });
 });
 

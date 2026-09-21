@@ -120,12 +120,12 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
 
       // Initial anchor hash visible
       await expect.element(page.getByTestId('anchor-hash')).toBeVisible();
-      await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('aabbcc1111');
+      await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('aabbcc1111');
 
       await page.getByTestId('re-create-anchor-button').click();
 
       // Updated anchor hash shown after recreate
-      await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('ddeeff2222');
+      await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('ddeeff2222');
     });
   });
 
@@ -192,7 +192,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
 
       // One cert initially
       await expect.element(page.getByTestId('anchor-hash')).toBeVisible();
-      await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('aabbcc1111');
+      await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('aabbcc1111');
 
       // Expand token and add a key
       await expect.element(page.getByTestId('token-name')).toBeVisible();
@@ -207,7 +207,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await page.getByTestId('dialog-save-button').click();
 
       // Anchor hash updated after key add re-triggers anchor fetch
-      await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('ddeeff2222');
+      await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('ddeeff2222');
     });
   });
 
@@ -239,7 +239,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       });
 
       await expect.element(page.getByTestId('anchor-hash')).toBeVisible();
-      await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('ddeeff2222');
+      await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('ddeeff2222');
 
       // Expand token and delete key-2
       await expect.element(page.getByTestId('token-name')).toBeVisible();
@@ -251,7 +251,7 @@ CONFIG_ROUTES.forEach(({ label, path, sourceType }) => {
       await page.getByTestId('dialog-save-button').click();
 
       // Anchor hash updated after key delete re-triggers anchor fetch
-      await expect.element(page.getByTestId('anchor-hash')).toHaveTextContent('aabbcc1111');
+      await expect.element(page.getByTestId('anchor-hash')).toMatchTextContent('aabbcc1111');
     });
   });
 });
