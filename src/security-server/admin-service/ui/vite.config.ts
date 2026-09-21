@@ -27,10 +27,20 @@
 
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import vue from '@vitejs/plugin-vue';
+import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, Plugin } from 'vite';
 import vuetify from 'vite-plugin-vuetify';
 import { playwright } from '@vitest/browser-playwright';
+
+const mswServiceWorker: Plugin = {
+  name: 'msw-service-worker',
+  resolveId(id) {
+    if (id === '/mockServiceWorker.js') {
+      return createRequire(import.meta.url).resolve('msw/mockServiceWorker.js');
+    }
+  },
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -51,6 +61,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       basicSsl(),
+      mswServiceWorker,
     ],
     html: {
       cspNonce: '__CSP_NONCE__',
@@ -183,6 +194,7 @@ export default defineConfig(({ mode }) => {
               screenshotDirectory: 'tests/results/screenshots',
               locators: {
                 testIdAttribute: 'data-test',
+                exact: false,
               },
             },
             setupFiles: ['tests/setup/browser-setup.ts'],

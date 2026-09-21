@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import com.apicatalog.did.Did;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.config.ControlPlaneProvisioningRpcClient;
 import org.springframework.stereotype.Component;
@@ -40,13 +41,13 @@ public class GrpcControlPlaneProvisioningClient implements ControlPlaneProvision
     private final ControlPlaneProvisioningRpcClient rpcClient;
 
     @Override
-    public void createParticipantContext(String participantContextId, String did) {
-        rpcClient.createParticipantContext(participantContextId, did);
+    public void createParticipantContext(String participantContextId, Did did) {
+        rpcClient.createParticipantContext(participantContextId, did.toString());
     }
 
     @Override
-    public void putParticipantContextConfig(String participantContextId, String did, String stsTokenUrl) {
-        rpcClient.putParticipantContextConfig(participantContextId, did, stsTokenUrl);
+    public void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl) {
+        rpcClient.putParticipantContextConfig(participantContextId, did.toString(), stsTokenUrl);
     }
 
     @Override

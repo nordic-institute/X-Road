@@ -40,6 +40,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.lang.reflect.Field;
@@ -58,6 +59,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
     private static final String HOST_CONTEXT = "ss1";
     private static final String MGMT_CONTEXT = "ss1-mgmt";
+    private static final String SYSTEM_CONTEXT = ParticipantIdentifierScheme.SYSTEM_SEGMENT;
     private static final String MEMBER_CONTEXT = "ss1:CLASS:MEMBER";
 
     @Mock
@@ -88,13 +90,14 @@ class XRoadDataPlaneRegistrarExtensionTest {
         extension.initialize(context);
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(store, times(2)).save(captor.capture());
+        verify(store, times(3)).save(captor.capture());
         var saved = captor.getAllValues();
 
         assertThat(saved).extracting(DataPlaneInstance::getId)
-                .containsExactlyInAnyOrder("xroad-proxy::" + HOST_CONTEXT, "xroad-proxy::" + MGMT_CONTEXT);
+                .containsExactlyInAnyOrder(
+                        "xroad-proxy::" + HOST_CONTEXT, "xroad-proxy::" + MGMT_CONTEXT, "xroad-proxy::" + SYSTEM_CONTEXT);
         assertThat(saved).extracting(DataPlaneInstance::getParticipantContextId)
-                .containsExactlyInAnyOrder(HOST_CONTEXT, MGMT_CONTEXT);
+                .containsExactlyInAnyOrder(HOST_CONTEXT, MGMT_CONTEXT, SYSTEM_CONTEXT);
         assertThat(saved).allSatisfy(instance -> {
             assertThat(instance.getUrl()).hasToString("http://127.0.0.1:5590/full/api/v1/dataflows");
             assertThat(instance.getAllowedSourceTypes()).containsExactly("http");
@@ -132,7 +135,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
         extension.initialize(context);
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(store, times(2)).save(captor.capture());
+        verify(store, times(3)).save(captor.capture());
         assertThat(captor.getAllValues()).allSatisfy(instance -> {
             assertThat(instance.getAllowedSourceTypes()).containsExactlyInAnyOrder("http", "https");
             assertThat(instance.getAllowedTransferTypes())
@@ -155,7 +158,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
 
         extension.initialize(context);
 
-        verify(store, times(4)).save(any());
+        verify(store, times(6)).save(any());
     }
 
     @Test
@@ -181,7 +184,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
         registrar.registerParticipantContext(MEMBER_CONTEXT);
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(store, times(3)).save(captor.capture());
+        verify(store, times(4)).save(captor.capture());
         assertThat(captor.getAllValues()).extracting(DataPlaneInstance::getId)
                 .contains("xroad-proxy::" + MEMBER_CONTEXT);
     }
@@ -201,7 +204,7 @@ class XRoadDataPlaneRegistrarExtensionTest {
         registrar.registerParticipantContext(MEMBER_CONTEXT);
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(store, times(4)).save(captor.capture());
+        verify(store, times(5)).save(captor.capture());
         assertThat(captor.getAllValues())
                 .filteredOn(instance -> instance.getParticipantContextId().equals(MEMBER_CONTEXT))
                 .extracting(DataPlaneInstance::getId)

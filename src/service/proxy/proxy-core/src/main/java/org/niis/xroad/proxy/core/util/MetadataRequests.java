@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.proxy.core.util;
 
+import org.niis.xroad.common.core.BuiltinServiceCodes;
+
 /**
  * Contains String constants for metadata request names.
  */
@@ -34,10 +36,10 @@ public final class MetadataRequests {
     }
 
     public static final String LIST_CLIENTS = "/listClients";
-    public static final String LIST_METHODS = "listMethods";
-    public static final String ALLOWED_METHODS = "allowedMethods";
-    public static final String GET_OPENAPI = "getOpenAPI";
-    public static final String GET_WSDL = "getWsdl";
+    public static final String LIST_METHODS = BuiltinServiceCodes.LIST_METHODS;
+    public static final String ALLOWED_METHODS = BuiltinServiceCodes.ALLOWED_METHODS;
+    public static final String GET_OPENAPI = BuiltinServiceCodes.GET_OPENAPI;
+    public static final String GET_WSDL = BuiltinServiceCodes.GET_WSDL;
     public static final String ASIC = "/asic";
     public static final String VERIFICATIONCONF = "/verificationconf";
 }

@@ -27,15 +27,15 @@
 
 package org.niis.xroad.edc.extension.assetaccess;
 
+import org.niis.xroad.ds.identity.DspConventions;
+
 public record AssetAccessRequest(
         String assetId,
         String counterPartyId,
         String counterPartyAddress,
         String protocol
 ) {
-    private static final String DEFAULT_PROTOCOL = "http-dsp-profile-2025-1";
-
     public String protocolOrDefault() {
-        return protocol != null ? protocol : DEFAULT_PROTOCOL;
+        return protocol != null ? protocol : DspConventions.DSP_PROFILE_ID;
     }
 }

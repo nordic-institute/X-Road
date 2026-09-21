@@ -41,6 +41,8 @@ IMAGES BUILT:
     - openbao-dev:<tag>     OpenBao secret store for development
     - testca-dev:<tag>      Test CA with ACME/OCSP/TSA support
     - postgres-dev:<tag>    PostgreSQL 16 optimized for test workloads
+    - nginx-cp:<tag>        Nginx front for the configuration proxy
+    - ds-gateway-dev:<tag>  L4 front serving a Security Server's DSP ports on its registered address
 
 EXAMPLES:
     # Build for local development
@@ -368,6 +370,57 @@ else
 fi
 
 # =============================================================================
+# Build DS Gateway Development Image
+# =============================================================================
+echo
+echo "================================================================================"
+log_info ">>> STARTING BUILD: ds-gateway-dev"
+echo "================================================================================"
+build_start=$(date +%s)
+
+DS_GATEWAY_IMAGE="${REGISTRY}/ds-gateway-dev:${IMAGE_TAG}"
+DS_GATEWAY_DOCKERFILE="${DEV_DOCKER_DIR}/ds-gateway/Dockerfile"
+DS_GATEWAY_CONTEXT="${DEV_DOCKER_DIR}/ds-gateway"
+
+build_cmd=(
+  docker buildx build --progress=plain
+  "${CACHE_FLAG[@]}"
+  --file "$DS_GATEWAY_DOCKERFILE"
+  --tag "$DS_GATEWAY_IMAGE"
+  "${MIRROR_BUILD_ARGS[@]}"
+)
+
+# The floating latest tag is a local-dev convention (kind inventories default
+# to :latest). Never move it on a shared registry, where concurrent CI builds
+# from different branches would clobber each other's latest.
+if [[ "$REGISTRY" == "localhost:"* ]]; then
+  build_cmd+=(--tag "${DS_GATEWAY_IMAGE%:*}:latest")
+fi
+
+if [[ "$PUSH" == "true" ]]; then
+  build_cmd+=(--push)
+else
+  build_cmd+=(--load)
+fi
+
+build_cmd+=("$DS_GATEWAY_CONTEXT")
+
+log_info "Dockerfile: $DS_GATEWAY_DOCKERFILE"
+log_info "Context: $DS_GATEWAY_CONTEXT"
+log_info "Command: ${build_cmd[*]}"
+echo "--------------------------------------------------------------------------------"
+
+if "${build_cmd[@]}"; then
+  echo "--------------------------------------------------------------------------------"
+  build_end=$(date +%s)
+  build_duration=$((build_end - build_start))
+  log_success "<<< FINISHED BUILD: ds-gateway-dev in $(format_duration $build_duration)"
+else
+  log_error "<<< FAILED BUILD: ds-gateway-dev"
+  exit 1
+fi
+
+# =============================================================================
 # Summary
 # =============================================================================
 BUILD_END_TIME=$(date +%s)
@@ -381,4 +434,5 @@ echo "  - $OPENBAO_IMAGE"
 echo "  - $TESTCA_IMAGE"
 echo "  - $POSTGRES_DEV_IMAGE"
 echo "  - $NGINX_CP_IMAGE"
+echo "  - $DS_GATEWAY_IMAGE"
 echo

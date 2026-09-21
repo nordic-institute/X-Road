@@ -222,7 +222,7 @@ describe('Keys and Certificates — certificate format preselected (Browser Mode
     const formatSelect = page.getByTestId('csr-format-select');
     await expect.element(formatSelect).toBeVisible();
 
-    await expect.element(formatSelect).toHaveTextContent('PEM');
+    await expect.element(formatSelect).toMatchTextContent('PEM');
 
     await expect.element(page.getByRole('combobox', { name: 'CSR Format' })).toBeDisabled();
   });

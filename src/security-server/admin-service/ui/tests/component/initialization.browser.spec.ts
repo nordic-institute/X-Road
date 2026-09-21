@@ -197,7 +197,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
 
-    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+    await expect.element(page.getByTestId('member-class-input')).toMatchTextContent(currentServerFixture.member_class ?? '');
     await expect.element(page.getByTestId('member-class-input').getByRole('combobox').nth(1)).toBeDisabled();
 
     await expect
@@ -225,7 +225,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
     });
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
-    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+    await expect.element(page.getByTestId('member-class-input')).toMatchTextContent(currentServerFixture.member_class ?? '');
   });
 
   it('Owner-member fields stay prefilled and Continue stays enabled when the current instance has no member classes, on an already-initialized server', async () => {
@@ -240,7 +240,7 @@ describe('0100 — Security Server initialisation wizard (Browser Mode)', () => 
     });
 
     await expect.element(page.getByTestId('member-class-input')).toBeVisible();
-    await expect.element(page.getByTestId('member-class-input')).toHaveTextContent(currentServerFixture.member_class ?? '');
+    await expect.element(page.getByTestId('member-class-input')).toMatchTextContent(currentServerFixture.member_class ?? '');
 
     await expect
       .element(page.getByTestId('member-code-input').getByRole('textbox'))

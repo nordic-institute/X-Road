@@ -9,7 +9,7 @@ metrics = "4.2.39"
 jersey = "4.0.2"
 jetty = "12.1.10"
 jaxb = "4.0.9"
-hibernate = "7.4.7.Final"
+hibernate = "7.4.8.Final"
 bytebuddy = "1.18.8"
 mapstruct = "1.6.3"
 jackson = "3.2.0"
@@ -43,6 +43,7 @@ testAllure = "2.34.0"
 shadowPlugin = "9.4.3"
 owaspDependencyCheck = "12.2.2"
 edc = "0.18.0"
+carbon-did = "0.10.0"
 nimbus = "10.9.1"
 opentelemetry-javaagent = "2.31.1"
 opentelemetry-sdk-testing = "1.63.0"
@@ -200,6 +201,7 @@ apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient",
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.6.3" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
+carbon-did = { module = "com.apicatalog:carbon-did", version.ref = "carbon-did" }
 commons-cli = { module = "commons-cli:commons-cli", version = "1.11.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.22.0" }
 commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1" }

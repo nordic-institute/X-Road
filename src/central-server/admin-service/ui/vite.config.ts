@@ -25,13 +25,23 @@
  * THE SOFTWARE.
  */
 
+import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 
-import { defineConfig, loadEnv, ConfigEnv, UserConfig } from 'vite';
+import { defineConfig, loadEnv, ConfigEnv, Plugin, UserConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vuetify from 'vite-plugin-vuetify';
 import viteBasicSslPlugin from '@vitejs/plugin-basic-ssl';
 import { playwright } from '@vitest/browser-playwright';
+
+const mswServiceWorker: Plugin = {
+  name: 'msw-service-worker',
+  resolveId(id) {
+    if (id === '/mockServiceWorker.js') {
+      return createRequire(import.meta.url).resolve('msw/mockServiceWorker.js');
+    }
+  },
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
@@ -52,6 +62,7 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
         },
       }),
       viteBasicSslPlugin(),
+      mswServiceWorker,
     ],
     resolve: {
       alias: {
@@ -186,6 +197,7 @@ export default defineConfig(function ({ mode }: ConfigEnv): UserConfig {
               screenshotDirectory: 'tests/results/screenshots',
               locators: {
                 testIdAttribute: 'data-test',
+                exact: false,
               },
             },
             setupFiles: ['tests/setup/browser-setup.ts'],

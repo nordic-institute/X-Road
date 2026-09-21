@@ -26,7 +26,6 @@
 package org.niis.xroad.e2e;
 
 import io.restassured.response.ValidatableResponse;
-import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -34,6 +33,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.e2e.AdminApi.AdminSession;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -44,6 +44,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
+import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -72,27 +75,25 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * <p><b>Which participant contexts the exchange actually rides.</b> Publication is additive during this
  * epic (the legacy host-context publication is removed only by a later cutover story), so the new
  * client's service is published under the host context in addition to its own {@code DEV:COM:4321}
- * context, and the consumer proxy still addresses the provider's host-context DSP endpoint. The exchange
- * therefore splits: the consumer side negotiates on the sender member's context ({@code DEV:COM:1234}),
- * the provider side serves the offer on the host context — whose literal value differs per environment
- * ({@code xrd-ss0} on k8s, {@code xrd-ss0.lxd} on LXD), which is why the DB assertions never compare it
- * against a constant. Each side persists its own per-context copy of the one wire agreement. This
- * scenario does <b>not</b> exercise the new member's own participant context as the provider side's
- * context — {@link #awaitMemberContextIssued} still confirms that context and its membership credential
- * are independently provisioned, proving the runtime member is a genuine dataspace participant, just not
- * the one this particular offer happens to be served under.
+ * context — but the consumer proxy derives the counter-party coordinates from the provider member id
+ * (XRDADR-41), so it dials the {@code DEV:COM:4321} context directly. The exchange therefore rides two
+ * member contexts: the consumer side negotiates on the sender member's context ({@code DEV:COM:1234}),
+ * the provider side serves the offer on the new member's <b>own</b> context ({@code DEV:COM:4321}), and
+ * each side persists its own per-context copy of the one wire agreement. The runtime member's context is
+ * thus exercised end-to-end as the provider side's negotiation identity;
+ * {@link #awaitMemberContextIssued} additionally confirms the context and its membership credential are
+ * provisioned before any traffic flows.
  *
- * <p><b>Per-member data-plane registration is exercised for the consumer's member, not the new one.</b>
- * The consumer side's transfer runs under {@code DEV:COM:1234}, so data-plane selection resolves the
- * member-context instance the registrar created for that context — a transfer under a member context with
- * no registered instance terminates with "No dataplane found". A runtime-registered instance scoped to
- * {@code DEV:COM:4321} is <i>not</i> what this transfer uses. The EDC data-plane instance store is
- * in-memory in the control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d}
- * on the live database lists no data-plane-instance table) and no externally reachable listing endpoint
- * the control port exposes (that port carries data-plane signaling callbacks, not a selector query API) —
- * so the new member's own record is not directly observable from an end-to-end test; its registration
- * path is proven by {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests
- * instead.
+ * <p><b>Per-member data-plane registration is exercised for both members' contexts.</b> The provider
+ * side's transfer runs under {@code DEV:COM:4321}, so data-plane selection resolves the member-context
+ * instance the registrar created for that context at runtime — a transfer under a member context with no
+ * registered instance terminates with "No dataplane found", so the transfer succeeding is itself the
+ * end-to-end proof of the runtime registration. The EDC data-plane instance store is in-memory in the
+ * control plane, backed by no table in {@code ds-control-plane} (confirmed: {@code \d} on the live
+ * database lists no data-plane-instance table) and no externally reachable listing endpoint the control
+ * port exposes (that port carries data-plane signaling callbacks, not a selector query API) — so the
+ * record itself is not directly observable; the registration mechanics are covered by
+ * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests.
  *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
@@ -121,8 +122,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final String CS_ENV = "aux";
     private static final String CA_ENV = "ca";
 
-    private static final String ADMIN_USERNAME = "xrd";
-    private static final String ADMIN_PASSWORD = "secret123!";
 
     private static final String X_ROAD_INSTANCE = "DEV";
     private static final String NEW_MEMBER_CLASS = "COM";
@@ -160,10 +159,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     /**
      * The DSP asset id for the new client's service — its full client id and the REST service code,
      * colon-joined, confirmed live against {@code edc_contract_agreement.asset_id}. Unique to this
-     * scenario, so full-string equality on it alone identifies this negotiation. The provider side's
-     * context is the environment's host context — {@code xrd-ss0} on k8s but {@code xrd-ss0.lxd} on
-     * LXD — so it is read from the matched rows and asserted for consistency, never against a literal;
-     * the only literal exclusion is the {@code -mgmt} companion context.
+     * scenario, so full-string equality on it alone identifies this negotiation.
      */
     private static final String ASSET_ID = NEW_CLIENT_ID + ":" + REST_SERVICE_CODE;
 
@@ -191,9 +187,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final Duration CATALOG_VISIBILITY_TIMEOUT = Duration.ofSeconds(150);
     private static final Duration CATALOG_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(10);
 
-    private record AdminSession(Map<String, String> cookies, String xsrfToken) {
-    }
-
     private record GeneratedCsr(String keyId, String csrId) {
     }
 
@@ -218,7 +211,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 () -> "%s does not run the dataspace protocol stack; runtime member provisioning is only wired for k8s and LXD"
                         .formatted(env.getClass().getSimpleName()));
         var dspAssertions = new DspNegotiationDbAssertions((DsControlPlaneDbOps) env,
-                SS0_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID);
+                SS0_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID, NEW_MEMBER_CTX_ID);
 
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
@@ -268,7 +261,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
         var wireAgreementId = then(
                 "the negotiation completes: a CONSUMER row on the sender member's context and a PROVIDER row on the "
-                        + "host context share one wire agreement",
+                        + "new member's own context share one wire agreement",
                 () -> dspAssertions.awaitNegotiationPair());
 
         and("exactly one per-context edc_contract_agreement copy exists for each side of that wire agreement", () ->
@@ -278,11 +271,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 dspAssertions.awaitTransferSucceeded(wireAgreementId));
     }
 
-    private String adminBaseUrl(E2eEnvironment env, String envName) {
-        var mapping = env.getContainerMapping(envName, SsStackSetup.UI, SsStackSetup.Port.UI);
-        return "https://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
     /**
      * The test CA's cert-issuance endpoint is plain HTTP, unlike the admin APIs above, mirroring
      * {@code setup.hurl}'s own {@code http://{{ca_host}}:8888/testca/sign} calls.
@@ -290,21 +278,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private String caBaseUrl(E2eEnvironment env) {
         var mapping = env.getContainerMapping(CA_ENV, SsStackSetup.CA, SsStackSetup.Port.CA_API);
         return "http://%s:%s".formatted(mapping.host(), mapping.port());
-    }
-
-    private AdminSession login(String baseUrl) {
-        var response = RestAssuredFactory.given()
-                .formParam("username", ADMIN_USERNAME)
-                .formParam("password", ADMIN_PASSWORD)
-                .post(baseUrl + "/login");
-        assertThat(response.getStatusCode()).as("login to %s", baseUrl).isEqualTo(200);
-        return new AdminSession(response.getCookies(), response.getCookie("XSRF-TOKEN"));
-    }
-
-    private RequestSpecification authed(AdminSession session) {
-        return RestAssuredFactory.given()
-                .cookies(session.cookies())
-                .header("X-XSRF-TOKEN", session.xsrfToken());
     }
 
     /**

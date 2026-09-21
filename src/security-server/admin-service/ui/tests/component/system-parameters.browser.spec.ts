@@ -216,7 +216,7 @@ describe('System Parameters — edit dialog cancelled (Browser Mode)', () => {
 
     expect(page.getByTestId('configurable-property-value-field').query()).toBeNull();
 
-    await expect.element(targetRow).toHaveTextContent(/20/);
+    await expect.element(targetRow).toMatchTextContent(/20/);
   });
 });
 
