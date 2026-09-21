@@ -279,7 +279,7 @@ class TwoInstanceCompletionPostgresTest {
         assertThat(b.negotiationStore().save(negotiation(negotiationId, participantContextId,
                 ContractNegotiationStates.FINALIZED, agreement, null)).succeeded()).isTrue();
 
-        var found = a.lookup().find(participantContextId, "asset-1", "provider-1");
+        var found = a.lookup().find(participantContextId, "consumer", "asset-1", "provider-1");
 
         assertThat(found).isPresent();
         assertThat(found.get().getAgreementId()).isEqualTo(agreement.getAgreementId());

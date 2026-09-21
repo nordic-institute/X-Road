@@ -127,7 +127,7 @@ class AssetAccessOrchestratorTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(reusableAgreementLookup.find(any(), any(), any())).thenReturn(Optional.empty());
+        lenient().when(reusableAgreementLookup.find(any(), any(), any(), any())).thenReturn(Optional.empty());
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
             TransferProcess transferProcess = invocation.getArgument(0);
             var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
@@ -152,7 +152,7 @@ class AssetAccessOrchestratorTest {
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
         var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
 
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
@@ -183,7 +183,7 @@ class AssetAccessOrchestratorTest {
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
 
         var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
 
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));

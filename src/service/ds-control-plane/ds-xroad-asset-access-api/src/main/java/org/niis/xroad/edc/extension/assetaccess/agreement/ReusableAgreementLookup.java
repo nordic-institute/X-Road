@@ -42,8 +42,8 @@ import java.util.Optional;
  * negotiated through any ds-control-plane instance is reused by every instance sharing the same
  * database, in place of a per-instance agreement registry.
  *
- * <p>Two or more instances may each miss this lookup for the same participant context, asset and
- * provider at the same moment and negotiate independently; every resulting agreement lands in the
+ * <p>Two or more instances may each miss this lookup for the same participant context, consumer, asset
+ * and provider at the same moment and negotiate independently; every resulting agreement lands in the
  * shared store, none of them collide, and none are cleaned up here. The next lookup for that key sees
  * all of them and returns the one with the newest contract signing date, so concurrent duplicates are
  * harmless and self-resolving rather than prevented.
@@ -59,13 +59,20 @@ public class ReusableAgreementLookup {
     }
 
     /**
-     * Returns the newest contract agreement negotiated for the given participant context, asset and
-     * provider, or empty if none has been negotiated yet.
+     * Returns the newest contract agreement the given participant context negotiated as consumer for the
+     * given asset and provider, or empty if none has been negotiated yet.
+     *
+     * <p>{@code consumerId} is the participant context's own identity. The shared store also holds the
+     * agreements this context granted as provider to other consumers of the same asset, and on a self-call
+     * those rows carry the same participant context, asset and provider id, because the provider is the
+     * context itself. Only an agreement whose consumer is this context can back a transfer it initiates.
      */
-    public Optional<ContractAgreement> find(String participantContextId, String assetId, String providerId) {
+    public Optional<ContractAgreement> find(String participantContextId, String consumerId, String assetId,
+                                            String providerId) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(
                         Criterion.criterion("participantContextId", "=", participantContextId),
+                        Criterion.criterion("consumerId", "=", consumerId),
                         Criterion.criterion("assetId", "=", assetId),
                         Criterion.criterion("providerId", "=", providerId)))
                 .sortField("contractSigningDate")

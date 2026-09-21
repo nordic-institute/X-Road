@@ -94,7 +94,7 @@ class ReusableAgreementLookupPostgresTest {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-1");
@@ -109,7 +109,7 @@ class ReusableAgreementLookupPostgresTest {
         saveAgreement(store, "neg-old", participantContextId, "asset-1", "provider-1", older);
         saveAgreement(store, "neg-new", participantContextId, "asset-1", "provider-1", newer);
 
-        var result = lookup.find(participantContextId, "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-new");
@@ -117,7 +117,7 @@ class ReusableAgreementLookupPostgresTest {
 
     @Test
     void returnsEmptyWhenNoAgreementExists() {
-        var result = lookup.find("participant-" + UUID.randomUUID(), "asset-1", "provider-1");
+        var result = lookup.find("participant-" + UUID.randomUUID(), "consumer", "asset-1", "provider-1");
 
         assertThat(result).isEmpty();
     }
@@ -127,7 +127,7 @@ class ReusableAgreementLookupPostgresTest {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "other-asset", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "other-asset", "provider-1");
 
         assertThat(result).isEmpty();
     }
@@ -137,9 +137,34 @@ class ReusableAgreementLookupPostgresTest {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "asset-1", "other-provider");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "other-provider");
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void returnsEmptyForAgreementHeldAsProviderForAnotherConsumer() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-provider-role", participantContextId, "other-consumer", "asset-1", "provider-1",
+                ContractNegotiation.Type.PROVIDER, Instant.now());
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void ignoresNewerAgreementOfAnotherConsumerOnTheSameKey() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-own", participantContextId, "consumer", "asset-1", "provider-1",
+                ContractNegotiation.Type.CONSUMER, Instant.now().minusSeconds(120));
+        saveAgreement(store, "neg-other", participantContextId, "other-consumer", "asset-1", "provider-1",
+                ContractNegotiation.Type.PROVIDER, Instant.now());
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-own");
     }
 
     @Test
@@ -149,7 +174,7 @@ class ReusableAgreementLookupPostgresTest {
 
         saveAgreement(secondStore, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-1");
@@ -168,11 +193,18 @@ class ReusableAgreementLookupPostgresTest {
 
     private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
                                 String assetId, String providerId, Instant signingDate) {
+        saveAgreement(targetStore, negotiationId, participantContextId, "consumer", assetId, providerId,
+                ContractNegotiation.Type.CONSUMER, signingDate);
+    }
+
+    private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
+                                String consumerId, String assetId, String providerId, ContractNegotiation.Type type,
+                                Instant signingDate) {
         var agreement = ContractAgreement.Builder.newInstance()
                 .id("agreement-" + negotiationId)
                 .agreementId("wire-" + negotiationId)
                 .providerId(providerId)
-                .consumerId("consumer")
+                .consumerId(consumerId)
                 .assetId(assetId)
                 .contractSigningDate(signingDate.getEpochSecond())
                 .participantContextId(participantContextId)
@@ -181,7 +213,7 @@ class ReusableAgreementLookupPostgresTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
-                .type(ContractNegotiation.Type.CONSUMER)
+                .type(type)
                 .state(ContractNegotiationStates.FINALIZED.code())
                 .correlationId("corr-" + negotiationId)
                 .counterPartyAddress("http://provider/dsp")

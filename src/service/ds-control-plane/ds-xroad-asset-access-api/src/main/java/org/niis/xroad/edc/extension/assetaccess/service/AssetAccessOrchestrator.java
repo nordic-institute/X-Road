@@ -80,8 +80,9 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * whether the negotiation or transfer is driven to completion by this instance or another one sharing
  * the same database.
  *
- * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store; a
- * hit skips the catalog fetch and negotiation entirely and transfers with the existing agreement.
+ * <p>Every acquisition starts with a {@link ReusableAgreementLookup} against the shared agreement store, scoped
+ * to agreements this participant context negotiated as consumer; a hit skips the catalog fetch and negotiation
+ * entirely and transfers with the existing agreement.
  */
 @RequiredArgsConstructor
 public class AssetAccessOrchestrator {
@@ -112,7 +113,8 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
             String key, ParticipantContext participantContext, AssetAccessRequest request) {
         var reusableAgreement = reusableAgreementLookup.find(
-                participantContext.getParticipantContextId(), request.assetId(), request.counterPartyId());
+                participantContext.getParticipantContextId(), participantContext.getIdentity(),
+                request.assetId(), request.counterPartyId());
         if (reusableAgreement.isPresent()) {
             var agreement = reusableAgreement.get();
             monitor.info("%s reusing agreement: agreementId=%s".formatted(key, agreement.getId()));
