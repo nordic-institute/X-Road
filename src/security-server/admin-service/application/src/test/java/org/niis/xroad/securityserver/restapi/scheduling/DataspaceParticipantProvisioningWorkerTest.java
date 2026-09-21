@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class DefaultDataspaceParticipantProvisioningWorkerTest {
+class DataspaceParticipantProvisioningWorkerTest {
 
     private static final ClientId OWNER = ClientId.Conf.create("TEST", "GOV", "1234");
     private static final ClientId MEMBER = ClientId.Conf.create("TEST", "COM", "5678");
@@ -79,7 +79,7 @@ class DefaultDataspaceParticipantProvisioningWorkerTest {
     private DataspaceParticipantBindingService participantBindingService;
 
     @InjectMocks
-    private DefaultDataspaceParticipantProvisioningWorker worker;
+    private DataspaceParticipantProvisioningWorker worker;
 
     @BeforeEach
     void setUp() {

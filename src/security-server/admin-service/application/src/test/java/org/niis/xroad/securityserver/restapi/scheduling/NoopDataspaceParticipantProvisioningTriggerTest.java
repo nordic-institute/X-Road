@@ -27,40 +27,15 @@
 package org.niis.xroad.securityserver.restapi.scheduling;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.niis.xroad.common.properties.NodeProperties;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.common.properties.NodeProperties.NODE_TYPE_ENV_VARIABLE;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
-@ExtendWith(SystemStubsExtension.class)
-class DefaultDataspaceParticipantProvisioningWorkerConditionTest {
+class NoopDataspaceParticipantProvisioningTriggerTest {
 
-    @SystemStub
-    private final EnvironmentVariables variables = new EnvironmentVariables();
+    private final NoopDataspaceParticipantProvisioningTrigger worker = new NoopDataspaceParticipantProvisioningTrigger();
 
     @Test
-    void matchesOnStandaloneNode() {
-        assertTrue(isActive(NodeProperties.NodeType.STANDALONE));
-    }
-
-    @Test
-    void matchesOnPrimaryNode() {
-        assertTrue(isActive(NodeProperties.NodeType.PRIMARY));
-    }
-
-    @Test
-    void doesNotMatchOnSecondaryNode() {
-        assertFalse(isActive(NodeProperties.NodeType.SECONDARY));
-    }
-
-    private boolean isActive(NodeProperties.NodeType nodeType) {
-        variables.set(NODE_TYPE_ENV_VARIABLE, nodeType.name().toLowerCase());
-
-        return DefaultDataspaceParticipantProvisioningWorker.IsActive.isActive();
+    void provisionParticipantAsyncReturnsWithoutThrowing() {
+        assertThatCode(worker::provisionParticipantAsync).doesNotThrowAnyException();
     }
 }

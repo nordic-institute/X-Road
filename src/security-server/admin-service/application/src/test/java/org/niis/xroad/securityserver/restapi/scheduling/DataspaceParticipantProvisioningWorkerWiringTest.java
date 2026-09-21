@@ -48,8 +48,8 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
     private final EnvironmentVariables variables = new EnvironmentVariables();
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(DefaultDataspaceParticipantProvisioningWorker.class,
-                    NoopDataspaceParticipantProvisioningWorker.class)
+            .withUserConfiguration(DataspaceParticipantProvisioningWorker.class,
+                    NoopDataspaceParticipantProvisioningTrigger.class)
             .withBean(DataspaceProvisioningService.class, () -> mock(DataspaceProvisioningService.class))
             .withBean(DataspaceReadinessPredicates.class, () -> mock(DataspaceReadinessPredicates.class))
             .withBean(DataspaceParticipantBindingService.class, () -> mock(DataspaceParticipantBindingService.class));
@@ -59,31 +59,31 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
         variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.SECONDARY.name().toLowerCase());
 
         contextRunner.run(context -> {
-            assertThat(context).hasSingleBean(DataspaceParticipantProvisioningWorker.class);
-            assertThat(context.getBean(DataspaceParticipantProvisioningWorker.class))
-                    .isInstanceOf(NoopDataspaceParticipantProvisioningWorker.class);
+            assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
+            assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
+                    .isInstanceOf(NoopDataspaceParticipantProvisioningTrigger.class);
         });
     }
 
     @Test
-    void onlyTheDefaultWorkerIsActiveOnAStandaloneNode() {
+    void onlyTheWorkerIsActiveOnAStandaloneNode() {
         variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.STANDALONE.name().toLowerCase());
 
         contextRunner.run(context -> {
-            assertThat(context).hasSingleBean(DataspaceParticipantProvisioningWorker.class);
-            assertThat(context.getBean(DataspaceParticipantProvisioningWorker.class))
-                    .isInstanceOf(DefaultDataspaceParticipantProvisioningWorker.class);
+            assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
+            assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
+                    .isInstanceOf(DataspaceParticipantProvisioningWorker.class);
         });
     }
 
     @Test
-    void onlyTheDefaultWorkerIsActiveOnAPrimaryNode() {
+    void onlyTheWorkerIsActiveOnAPrimaryNode() {
         variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.PRIMARY.name().toLowerCase());
 
         contextRunner.run(context -> {
-            assertThat(context).hasSingleBean(DataspaceParticipantProvisioningWorker.class);
-            assertThat(context.getBean(DataspaceParticipantProvisioningWorker.class))
-                    .isInstanceOf(DefaultDataspaceParticipantProvisioningWorker.class);
+            assertThat(context).hasSingleBean(DataspaceParticipantProvisioningTrigger.class);
+            assertThat(context.getBean(DataspaceParticipantProvisioningTrigger.class))
+                    .isInstanceOf(DataspaceParticipantProvisioningWorker.class);
         });
     }
 }

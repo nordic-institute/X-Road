@@ -26,16 +26,40 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import org.junit.jupiter.api.Test;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.stereotype.Component;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+/**
+ * No-op counterpart to {@link DataspaceParticipantProvisioningWorker}, active on a secondary nodes.
+ */
+@Slf4j
+@Component
+@Conditional(NoopDataspaceParticipantProvisioningTrigger.IsActive.class)
+public final class NoopDataspaceParticipantProvisioningTrigger implements DataspaceParticipantProvisioningTrigger {
 
-class NoopDataspaceParticipantProvisioningWorkerTest {
+    @Override
+    public void provisionParticipantAsync() {
+        log.warn("Dataspace participant provisioning requested on a secondary node, ignoring");
+    }
 
-    private final NoopDataspaceParticipantProvisioningWorker worker = new NoopDataspaceParticipantProvisioningWorker();
+    @Slf4j
+    static class IsActive implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return isActive();
+        }
 
-    @Test
-    void provisionParticipantAsyncReturnsWithoutThrowing() {
-        assertThatCode(worker::provisionParticipantAsync).doesNotThrowAnyException();
+        static boolean isActive() {
+            boolean secondary = NodeProperties.isSecondaryNode();
+            if (secondary) {
+                log.info("This is a secondary cluster node, dataspace participant provisioning is disabled");
+            }
+            return secondary;
+        }
     }
 }

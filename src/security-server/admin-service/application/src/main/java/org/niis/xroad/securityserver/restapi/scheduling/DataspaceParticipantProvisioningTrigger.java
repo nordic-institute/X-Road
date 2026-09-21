@@ -26,36 +26,19 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.NodeProperties;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.stereotype.Component;
-
 /**
- * No-op counterpart to {@link DefaultDataspaceParticipantProvisioningWorker}, active on a designated
- * secondary nodes so that only one instance in the cluster ever provisions dataspace participants.
+ * Triggers dataspace participant provisioning for this security server instance.
+ *
+ * <p>Exactly one implementation is active per cluster node, decided once at startup:
+ * {@link DataspaceParticipantProvisioningWorker} on a primary or standalone node
+ * {@link NoopDataspaceParticipantProvisioningTrigger} on a secondary node.
  */
-@Slf4j
-@Component
-@Conditional(NoopDataspaceParticipantProvisioningWorker.IsActive.class)
-public class NoopDataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningWorker {
+public sealed interface DataspaceParticipantProvisioningTrigger
+        permits DataspaceParticipantProvisioningWorker, NoopDataspaceParticipantProvisioningTrigger {
 
-    @Override
-    public void provisionParticipantAsync() {
-        log.warn("Dataspace participant provisioning requested on a secondary node, ignoring");
-    }
+    /**
+     * Runs one best-effort provisioning step on a background thread, without blocking the caller.
+     */
+    void provisionParticipantAsync();
 
-    static class IsActive implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return isActive();
-        }
-
-        static boolean isActive() {
-            return NodeProperties.isSecondaryNode();
-        }
-    }
 }

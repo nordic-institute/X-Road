@@ -26,18 +26,169 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 /**
- * Triggers dataspace participant provisioning for this security server instance.
- *
- * <p>Exactly one implementation is active per cluster node, decided once at startup:
- * {@link DefaultDataspaceParticipantProvisioningWorker} on primary node
- * {@link NoopDataspaceParticipantProvisioningWorker} on secondary nodes.
+ * Level-triggered provisioning worker that drives dataspace participant context provisioning
+ * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
  */
-public interface DataspaceParticipantProvisioningWorker {
+@Slf4j
+@Component
+@RequiredArgsConstructor
+@Conditional(DataspaceParticipantProvisioningWorker.IsActive.class)
+public final class DataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningTrigger {
+
+    static final int JOB_REPEAT_INTERVAL_MS = 30000;
+    static final int INITIAL_DELAY_MS = 30000;
+
+    private final DataspaceProvisioningService dataspaceProvisioningService;
+    private final DataspaceReadinessPredicates readinessPredicates;
+    private final DataspaceParticipantBindingService participantBindingService;
 
     /**
-     * Runs one best-effort provisioning step on a background thread, without blocking the caller.
+     * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
+     * retried on the next tick.
      */
-    void provisionParticipantAsync();
+    @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
+    public void scheduledProvision() {
+        provisionParticipantBestEffort();
+    }
 
+    /**
+     * Runs one best-effort provisioning step on a background thread. For callers on a request path:
+     * an unreachable ds-* dependency must not stall the request (each unreachable context costs a
+     * full gRPC deadline), and the scheduled tick remains the convergence guarantee.
+     */
+    @Override
+    public void provisionParticipantAsync() {
+        CompletableFuture.runAsync(this::provisionParticipantBestEffort);
+    }
+
+    /**
+     * Executes one provisioning step, logging and swallowing any failure. Used by callers that must
+     * not fail on a provisioning problem: the scheduled tick and the eager run right after security
+     * server initialization.
+     */
+    public synchronized void provisionParticipantBestEffort() {
+        try {
+            provisionParticipant();
+        } catch (Exception e) {
+            log.error("Dataspace participant provisioning failed; the scheduled worker will converge "
+                    + "once the dependency recovers", e);
+        }
+    }
+
+    /**
+     * Executes one idempotent provisioning step. A failure in one participant context is logged and
+     * does not block the remaining contexts; a context whose creation failed, or whose SYSTEM member-id
+     * re-anchor the identity hub has not confirmed, is skipped in the credential pass of the same tick
+     * — see {@link #ensureContexts}.
+     *
+     * <p>Members are bound only after their participant context has been ensured, so the DID written
+     * to {@code ds_participant} is one the identity hub has just confirmed or been created with. A
+     * member whose context is in DID drift is left unbound and stays recoverable by correcting the
+     * configuration the DID is derived from.
+     */
+    public void provisionParticipant() {
+        var contexts = dataspaceProvisioningService.participantContexts(true);
+        if (ownerUnknown(contexts)) {
+            log.debug("Dataspace provisioning: SS owner not yet known, skipping");
+            return;
+        }
+        if (!dataspaceProvisioningService.registeredAddressKnown()) {
+            log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
+            return;
+        }
+
+        boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
+        log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
+
+        var ensuredContexts = ensureContexts(contexts);
+
+        participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
+
+        if (!authCertRegistered) {
+            log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
+            return;
+        }
+
+        ensureCredentials(ensuredContexts);
+    }
+
+    private static List<ClientId> memberIdsOf(List<ParticipantContext> contexts) {
+        return contexts.stream()
+                .filter(context -> context.kind() == ParticipantKind.MEMBER)
+                .map(ParticipantContext::memberId)
+                .toList();
+    }
+
+    private static boolean ownerUnknown(List<ParticipantContext> contexts) {
+        return contexts.stream().anyMatch(context -> context.memberId() == null);
+    }
+
+    /**
+     * Ensures every context, then returns only those eligible for the credential pass in this tick:
+     * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
+     * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
+     * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
+     * still created/updated as usual, only its credential request is deferred to a later tick.
+     */
+    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
+        List<ParticipantContext> ensured = new ArrayList<>();
+        for (var context : contexts) {
+            try {
+                if (dataspaceProvisioningService.ensureParticipantContext(context)) {
+                    ensured.add(context);
+                } else {
+                    log.debug("Dataspace provisioning: deferring credential issuance for participant {} until the "
+                            + "SYSTEM member-id re-anchor is confirmed", context.participantId());
+                }
+            } catch (Exception e) {
+                log.error("Dataspace provisioning: failed to ensure participant context {}, continuing with the rest",
+                        context.participantId(), e);
+            }
+        }
+        return ensured;
+    }
+
+    private void ensureCredentials(List<ParticipantContext> contexts) {
+        for (var context : contexts) {
+            try {
+                dataspaceProvisioningService.ensureMembershipCredential(context);
+            } catch (Exception e) {
+                log.error("Dataspace provisioning: credential step failed for participant {}, continuing with the rest",
+                        context.participantId(), e);
+            }
+        }
+    }
+
+    static class IsActive implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return isActive();
+        }
+
+        static boolean isActive() {
+            return !NodeProperties.isSecondaryNode();
+        }
+    }
 }
