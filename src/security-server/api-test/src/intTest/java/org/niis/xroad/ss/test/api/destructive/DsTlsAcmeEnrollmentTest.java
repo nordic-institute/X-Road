@@ -87,12 +87,16 @@ class DsTlsAcmeEnrollmentTest extends SsSharedStackDestructiveTest {
             await().pollDelay(POLL_TIMEOUT).atMost(POLL_TIMEOUT.plus(POLL_INTERVAL).plusSeconds(10))
                     .until(() -> true);
 
-            dsTlsCertificate.getStatus()
+            // The admin session's servlet timeout (1m, compose.api.yaml) is shorter than POLL_TIMEOUT (100s):
+            // re-authenticate before this post-wait read rather than reusing the now-expired session.
+            var dsTlsCertificateAfterWait = new DsTlsCertificateAdminClient(adminSession(stack));
+
+            dsTlsCertificateAfterWait.getStatus()
                     .statusCode(200)
                     .body("key_generated", equalTo(true))
                     .body("certificate", nullValue());
 
-            dsTlsCertificate.getEnrollmentStatus()
+            dsTlsCertificateAfterWait.getEnrollmentStatus()
                     .statusCode(200)
                     .body("enrollment_method", equalTo("NONE"))
                     .body("last_error", nullValue());
@@ -136,7 +140,10 @@ class DsTlsAcmeEnrollmentTest extends SsSharedStackDestructiveTest {
             await().pollDelay(POLL_TIMEOUT).atMost(POLL_TIMEOUT.plus(POLL_INTERVAL).plusSeconds(10))
                     .until(() -> true);
 
-            JsonPath statusAfterCycle = dsTlsCertificate.getStatus().statusCode(200).extract().jsonPath();
+            // The admin session's servlet timeout (1m, compose.api.yaml) is shorter than POLL_TIMEOUT (100s):
+            // re-authenticate before this post-wait read rather than reusing the now-expired session.
+            var dsTlsCertificateAfterWait = new DsTlsCertificateAdminClient(adminSession(stack));
+            JsonPath statusAfterCycle = dsTlsCertificateAfterWait.getStatus().statusCode(200).extract().jsonPath();
             assertThat(statusAfterCycle.getString("certificate.hash")).isEqualTo(hashAfterUpload);
         });
     }
