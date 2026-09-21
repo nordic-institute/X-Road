@@ -36,6 +36,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
@@ -165,6 +167,8 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
 
     @Test
     @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
+    // See ServiceRestartSmokeTest for why this ACME order against testca holds a READ lock on "testca-acme-server".
+    @ResourceLock(value = "testca-acme-server", mode = ResourceAccessMode.READ)
     void orderStoresACertificateFromTheNamedAcmeCapableCa(SsApiTestContainerSetup stack) {
         var client = new DsTlsCertificateAdminClient(adminSession(stack));
         var caName = "Test DS TLS CA";
@@ -203,6 +207,8 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
     @Test
     @DisplayName("Manual upload records enrollment method MANUAL and clears the renewal schedule; regenerating "
             + "the key then clears the recorded status entirely")
+    // See ServiceRestartSmokeTest for why this ACME order against testca holds a READ lock on "testca-acme-server".
+    @ResourceLock(value = "testca-acme-server", mode = ResourceAccessMode.READ)
     @SneakyThrows
     void manualUploadRecordsManualAndKeyRegenerationClearsTheRecordedStatus(SsApiTestContainerSetup stack) {
         var client = new DsTlsCertificateAdminClient(adminSession(stack));

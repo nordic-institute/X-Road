@@ -29,6 +29,8 @@ import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
@@ -75,6 +77,8 @@ class DsTlsAcmeEnrollmentTest extends SsSharedStackDestructiveTest {
     @Test
     @DisplayName("With no stored certificate, the worker never enrolls one on its own even once an ACME-capable "
             + "DS TLS CA is designated and its own schedule has elapsed")
+    // See ServiceRestartSmokeTest for why a worker cycle against testca holds a READ lock on "testca-acme-server".
+    @ResourceLock(value = "testca-acme-server", mode = ResourceAccessMode.READ)
     void dsTlsCertificateIsNeverSilentlyEnrolled(SsApiTestContainerSetup stack) {
         var session = adminSession(stack);
         var dsTlsCertificate = new DsTlsCertificateAdminClient(session);
@@ -106,6 +110,8 @@ class DsTlsAcmeEnrollmentTest extends SsSharedStackDestructiveTest {
     @Test
     @DisplayName("A certificate manually re-signed by the same designated CA after an ACME order is not yet due "
             + "and is left untouched across a further worker cycle")
+    // See ServiceRestartSmokeTest for why this ACME order against testca holds a READ lock on "testca-acme-server".
+    @ResourceLock(value = "testca-acme-server", mode = ResourceAccessMode.READ)
     void manualUploadAfterAnAcmeOrderIsLeftUntouchedByAFurtherCycle(SsApiTestContainerSetup stack) throws Exception {
         var session = adminSession(stack);
         var dsTlsCertificate = new DsTlsCertificateAdminClient(session);
