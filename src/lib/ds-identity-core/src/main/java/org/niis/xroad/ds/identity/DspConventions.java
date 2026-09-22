@@ -126,6 +126,34 @@ public class DspConventions {
     }
 
     /**
+     * The counter-party id (URL-encoded {@code did:web} DID) of the SYSTEM participant served at the
+     * given Security Server address.
+     *
+     * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
+     * @return the server's SYSTEM DID, e.g. {@code did:web:ss0.example.org%3A7183:v1:system}
+     */
+    public static Did systemCounterPartyId(String ssAddress) {
+        return ParticipantIdentifierScheme.systemDid(didAuthority(ssAddress));
+    }
+
+    /**
+     * The counter-party address (DSP base URL of the serving control plane, scoped to the SYSTEM
+     * participant context and the DSP profile) of the SYSTEM participant served at the given
+     * Security Server address.
+     *
+     * <p>The context segment is the fixed literal {@link ParticipantIdentifierScheme#SYSTEM_SEGMENT},
+     * so unlike {@link #memberCounterPartyAddress}, no percent-encoding is involved.
+     *
+     * @param ssAddress the serving Security Server's GlobalConf-registered address, without a port
+     * @return the full DSP base URL, e.g. {@code https://ss0.example.org:8183/api/dsp/system/http-dsp-profile-2025-1};
+     *         an IPv6 literal address is bracketed
+     */
+    public static String systemCounterPartyAddress(String ssAddress) {
+        return "https://%s:%d/api/dsp/%s/%s"
+                .formatted(uriHost(ssAddress), DSP_PORT, ParticipantIdentifierScheme.SYSTEM_SEGMENT, DSP_PROFILE_ID);
+    }
+
+    /**
      * A registered address is a hostname, an IPv4 literal, or a bare IPv6 literal — never
      * {@code host:port} — so a colon can only mean IPv6, which URL authorities require bracketed.
      */
