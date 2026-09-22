@@ -32,16 +32,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.Client;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,9 +52,10 @@ import java.util.stream.Collectors;
  * ServerConf-backed catalog stores.
  *
  * <p>A subsystem-scoped service collapses to its owning member before member-context resolution,
- * since subsystems never hold participant identity (XRDADR-41). Provisioned member contexts are
- * read from EDC's {@link ParticipantContextService} and recognised by their three-segment ctx-id
- * shape, which separates them from the host and management ctx-ids held in the same store.
+ * since subsystems never hold participant identity (XRDADR-41). Member contexts are derived from
+ * the {@code REGISTERED} clients of this security server in serverconf, collapsed to member ids,
+ * so a registered member's entries are published whether or not its participant context has been
+ * provisioned yet (XRDADR-43).
  *
  * <p>Also owns the SYSTEM-context routing decisions shared by the three ServerConf-backed catalog
  * stores: which built-in/synthetic context a SYSTEM-addressed request resolves to, and which
@@ -73,37 +69,31 @@ class ServiceContextResolver {
     private final CatalogContextIds contextIds;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
-    private final ParticipantContextService participantContextService;
 
     /**
      * The contexts an enabled service is published under, besides its always-present
      * management-context copy: the legacy host context first — or the management context, for the
-     * MANAGEMENT subsystem's own service — followed by the owning member's context if one is
-     * provisioned. The first entry is always the legacy publication context.
+     * MANAGEMENT subsystem's own service — followed by the owning member's context if that member
+     * is hosted here. The first entry is always the legacy publication context.
      *
      * @param serviceId the service to resolve contexts for
-     * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
+     * @param hostedMemberContextIds the hosted members' contexts, from {@link #hostedMemberContextIds(Collection)}
      */
-    List<String> resolveEnabled(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
+    List<String> resolveEnabled(ServiceId serviceId, Set<String> hostedMemberContextIds) {
         var contexts = new ArrayList<String>(2);
         contexts.add(legacyPublicationContextId(serviceId));
-        memberContextId(serviceId.getClientId(), provisionedMemberContextIds).ifPresent(contexts::add);
+        memberContextId(serviceId.getClientId(), hostedMemberContextIds).ifPresent(contexts::add);
         return List.copyOf(contexts);
     }
 
     /**
-     * Same contract as {@link #resolveEnabled(ServiceId, Set)}, for the by-id cache-miss path: tests
-     * the owning member's ctx-id with a single direct {@link ParticipantContextService#getParticipantContext}
-     * lookup instead of requiring the full {@link #provisionedMemberContextIds()} enumeration — a
-     * by-id lookup only ever needs to know about the one ctx-id it can derive from the service.
+     * Same contract as {@link #resolveEnabled(ServiceId, Set)}, for the by-id cache-miss path,
+     * reading the local clients itself.
      *
      * @param serviceId the service to resolve contexts for
      */
     List<String> resolveEnabledById(ServiceId serviceId) {
-        var contexts = new ArrayList<String>(2);
-        contexts.add(legacyPublicationContextId(serviceId));
-        memberContextIdById(serviceId.getClientId()).ifPresent(contexts::add);
-        return List.copyOf(contexts);
+        return resolveEnabled(serviceId, hostedMemberContextIds(serverConfProvider.getMembers()));
     }
 
     /**
@@ -286,33 +276,18 @@ class ServiceContextResolver {
     }
 
     /**
-     * The currently provisioned member participant contexts, recognised by their three-segment
-     * ctx-id shape.
+     * The participant contexts of the members hosted on this security server: every
+     * {@code REGISTERED} client among {@code localClients} collapsed to its member, mapped through
+     * the identifier scheme. A serverconf failure propagates, so a caller enumerating the catalog
+     * fails rather than caching an incomplete view of hosted members for the full cache TTL.
      *
-     * @throws XrdRuntimeException if the participant-context service cannot be reached — a caller
-     *     enumerating the catalog must fail rather than cache an incomplete view of provisioned
-     *     members for the full cache TTL
+     * @param localClients the local clients of this security server, as read by the caller
      */
-    Set<String> provisionedMemberContextIds() {
-        var result = search();
-        if (result == null || result.failed()) {
-            throw XrdRuntimeException.systemException(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED,
-                    "Failed to list provisioned participant contexts: %s",
-                    result == null ? "no result" : result.getFailureDetail());
-        }
-        return result.getContent().stream()
-                .map(ParticipantContext::getParticipantContextId)
-                .filter(ServiceContextResolver::isMemberContextShape)
+    Set<String> hostedMemberContextIds(Collection<? extends ClientId> localClients) {
+        return localClients.stream()
+                .filter(client -> Client.STATUS_REGISTERED.equals(serverConfProvider.getMemberStatus(client)))
+                .map(client -> ParticipantIdentifierScheme.memberCtxId(toMemberId(client)))
                 .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private ServiceResult<Collection<ParticipantContext>> search() {
-        try {
-            return participantContextService.search(QuerySpec.max());
-        } catch (RuntimeException e) {
-            throw XrdRuntimeException.systemException(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED, e,
-                    "Failed to list provisioned participant contexts: %s", e.getMessage());
-        }
     }
 
     /** MANAGEMENT subsystem uses a distinct DSP identity to avoid self-negotiation constraint violations. */
@@ -323,33 +298,9 @@ class ServiceContextResolver {
                 : contextIds.host();
     }
 
-    private Optional<String> memberContextId(ClientId owner, Set<String> provisionedMemberContextIds) {
+    private static Optional<String> memberContextId(ClientId owner, Set<String> hostedMemberContextIds) {
         var ctxId = ParticipantIdentifierScheme.memberCtxId(toMemberId(owner));
-        return provisionedMemberContextIds.contains(ctxId) ? Optional.of(ctxId) : Optional.empty();
-    }
-
-    /**
-     * Tests provisioning of the owner's derived ctx-id with one {@link ParticipantContextService#getParticipantContext}
-     * call. {@link ServiceFailure.Reason#NOT_FOUND} means the context is not provisioned; any other
-     * failure reason propagates, matching {@link #provisionedMemberContextIds()}'s fail-loud contract.
-     */
-    private Optional<String> memberContextIdById(ClientId owner) {
-        var ctxId = ParticipantIdentifierScheme.memberCtxId(toMemberId(owner));
-        ServiceResult<ParticipantContext> result;
-        try {
-            result = participantContextService.getParticipantContext(ctxId);
-        } catch (RuntimeException e) {
-            throw XrdRuntimeException.systemException(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED, e,
-                    "Failed to look up participant context '%s': %s", ctxId, e.getMessage());
-        }
-        if (result.succeeded()) {
-            return Optional.of(ctxId);
-        }
-        if (result.reason() == ServiceFailure.Reason.NOT_FOUND) {
-            return Optional.empty();
-        }
-        throw XrdRuntimeException.systemException(ErrorCode.DSP_PARTICIPANT_CONTEXT_FAILED,
-                "Failed to look up participant context '%s': %s", ctxId, result.getFailureDetail());
+        return hostedMemberContextIds.contains(ctxId) ? Optional.of(ctxId) : Optional.empty();
     }
 
     /** Collapses a subsystem-scoped owner to its owning member; a subsystem never holds participant identity. */

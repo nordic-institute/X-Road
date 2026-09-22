@@ -45,9 +45,7 @@ import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -534,9 +532,8 @@ public class DataspaceProvisioningService {
 
     private boolean createIdentityHubContext(ParticipantContext context, Did did, String identityHubHost) {
         var participantId = context.participantId();
-        var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
-                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
-                UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
+        var credentialServiceUrl = DspConventions.credentialServiceUrl(identityHubHost,
+                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(), participantId);
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         var reanchor = context.kind() == ParticipantKind.SYSTEM;
