@@ -30,12 +30,17 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +49,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Level-triggered provisioning worker that drives data space participant context provisioning and
+ * Level-triggered provisioning worker that drives dataspace participant context provisioning and
  * teardown from real lifecycle state. One idempotent, non-blocking step is performed per tick; no
  * success is cached, so convergence is re-derived every tick from serverconf and the binding table.
  * Every tick — whether from {@link #scheduledProvision()} or {@link #provisionParticipantAsync()} —
@@ -54,7 +59,8 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataspaceParticipantProvisioningWorker {
+@Conditional(DataspaceParticipantProvisioningWorker.IsActive.class)
+public final class DataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningTrigger {
 
     static final int JOB_REPEAT_INTERVAL_MS = 30000;
     static final int INITIAL_DELAY_MS = 30000;
@@ -77,6 +83,7 @@ public class DataspaceParticipantProvisioningWorker {
      * an unreachable ds-* dependency must not stall the request (each unreachable context costs a
      * full gRPC deadline), and the scheduled tick remains the convergence guarantee.
      */
+    @Override
     public void provisionParticipantAsync() {
         CompletableFuture.runAsync(this::provisionParticipantBestEffort);
     }
@@ -90,7 +97,7 @@ public class DataspaceParticipantProvisioningWorker {
         try {
             provisionParticipant();
         } catch (Exception e) {
-            log.error("Data space participant provisioning failed; the scheduled worker will converge "
+            log.error("Dataspace participant provisioning failed; the scheduled worker will converge "
                     + "once the dependency recovers", e);
         }
     }
@@ -114,23 +121,23 @@ public class DataspaceParticipantProvisioningWorker {
 
         var contexts = dataspaceProvisioningService.participantContexts(true);
         if (ownerUnknown(contexts)) {
-            log.debug("Data space provisioning: SS owner not yet known, skipping");
+            log.debug("Dataspace provisioning: SS owner not yet known, skipping");
             return;
         }
         if (!dataspaceProvisioningService.registeredAddressKnown()) {
-            log.debug("Data space provisioning: registered address not in GlobalConf yet, skipping");
+            log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
             return;
         }
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
+        log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
 
         var ensuredContexts = ensureContexts(contexts);
 
         participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
 
         if (!authCertRegistered) {
-            log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");
+            log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
             return;
         }
 
@@ -149,13 +156,6 @@ public class DataspaceParticipantProvisioningWorker {
     }
 
     /**
-     * Ensures every context, then returns only those eligible for the credential pass in this tick:
-     * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
-     * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
-     * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
-     * still created/updated as usual, only its credential request is deferred to a later tick.
-     */
-    /**
      * Converges every decommissioned binding one step closer to absence. A failure tearing down one
      * tombstone is logged and does not block the rest; the row (and whichever steps did not complete)
      * is left for the next tick.
@@ -163,17 +163,24 @@ public class DataspaceParticipantProvisioningWorker {
     private void teardownDecommissioned() {
         List<TombstonedParticipant> tombstones = dataspaceProvisioningService.decommissionedParticipants();
         for (var tombstone : tombstones) {
-            log.debug("Data space provisioning: tearing down tombstoned participant {} (row id {})",
+            log.debug("Dataspace provisioning: tearing down tombstoned participant {} (row id {})",
                     tombstone.participantContextId(), tombstone.id());
             try {
                 dataspaceProvisioningService.teardownParticipant(tombstone);
             } catch (Exception e) {
-                log.error("Data space provisioning: failed to tear down participant {}, continuing with the rest",
+                log.error("Dataspace provisioning: failed to tear down participant {}, continuing with the rest",
                         tombstone.participantContextId(), e);
             }
         }
     }
 
+    /**
+     * Ensures every context, then returns only those eligible for the credential pass in this tick:
+     * the ensure call must not have thrown, and {@link DataspaceProvisioningService#ensureParticipantContext}
+     * must report it safe to issue a credential. For a SYSTEM context that means the identity hub has
+     * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
+     * still created/updated as usual, only its credential request is deferred to a later tick.
+     */
     private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
@@ -181,11 +188,11 @@ public class DataspaceParticipantProvisioningWorker {
                 if (dataspaceProvisioningService.ensureParticipantContext(context)) {
                     ensured.add(context);
                 } else {
-                    log.debug("Data space provisioning: deferring credential issuance for participant {} until the "
+                    log.debug("Dataspace provisioning: deferring credential issuance for participant {} until the "
                             + "SYSTEM member-id re-anchor is confirmed", context.participantId());
                 }
             } catch (Exception e) {
-                log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
+                log.error("Dataspace provisioning: failed to ensure participant context {}, continuing with the rest",
                         context.participantId(), e);
             }
         }
@@ -197,9 +204,20 @@ public class DataspaceParticipantProvisioningWorker {
             try {
                 dataspaceProvisioningService.ensureMembershipCredential(context);
             } catch (Exception e) {
-                log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
+                log.error("Dataspace provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
             }
+        }
+    }
+
+    static class IsActive implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return isActive();
+        }
+
+        static boolean isActive() {
+            return !NodeProperties.isSecondaryNode();
         }
     }
 }

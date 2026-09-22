@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ import java.util.List;
 
 /**
  * Read-only aggregator for data space provisioning status, consumed by the status REST endpoint.
- * Mirrors the precondition observations of {@link org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker}
+ * Mirrors the precondition observations of {@link DataspaceParticipantProvisioningWorker}
  * without triggering any provisioning action.
  */
 @Slf4j
