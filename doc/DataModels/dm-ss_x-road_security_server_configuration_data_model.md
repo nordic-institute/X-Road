@@ -26,7 +26,7 @@ Doc. ID: DM-SS
 | 07.04.2025 | 1.13    | Table "configuration_client" added, "service_securitycategories" removed from diagram                          | Justas Samuolis                 |
 | 30.03.2026 | 1.14    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets                   |
 | 01.04.2026 | 1.15    | Update minimum PostgreSQL version to 15                                                                        | Egidijus M                      |
-| 21.09.2026 | 1.16    | Table "dataflow_state" added                                                                                   | Eneli Reimets                   |
+| 22.09.2026 | 1.16    | Table "dataflow_state" added                                                                                   | Eneli Reimets                   |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
