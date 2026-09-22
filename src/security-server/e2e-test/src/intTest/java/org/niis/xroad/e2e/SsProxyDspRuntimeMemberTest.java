@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
+import org.niis.xroad.e2e.DidResolutionOps.DidDocumentResponse;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -41,6 +43,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -95,6 +98,16 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * record itself is not directly observable; the registration mechanics are covered by
  * {@code XRoadDataPlaneRegistrarExtensionTest} and the provisioning-service unit tests.
  *
+ * <p><b>Discoverable from the moment of registration.</b> The new member's DID is resolved as soon as ss0
+ * reports its client REGISTERED, before provisioning is awaited. A registered member always resolves to a
+ * document naming it: the synthesised keyless one or, once the REGISTERED nudge has provisioned the
+ * context, the keyed one. Which of the two is observed is a race the nudge usually wins within seconds,
+ * so the keyless shape and its {@code Cache-Control: no-store} are pinned by the identity hub's
+ * {@code RegisteredMemberDidDocumentFilterTest}, not here. After the membership credential is ISSUED the
+ * document is resolved again and must carry verification keys. Both resolutions go through
+ * {@link DidResolutionOps}, from inside the environment, because the hub serves a document only at the
+ * DID's registered authority.
+ *
  * <p>The scenario provisions its own sign material for the new member: after the local client add,
  * it generates a SIGNING CSR on ss0's token, has the environment's test CA sign it, and imports the
  * certificate back — the same key/cert bootstrap {@code setup.hurl} performs once for
@@ -104,9 +117,9 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * {@code "ca"} environment), the k8s/LXD analogue of the {@code "aux"} Central Server reachability this
  * class already relies on for registration approval.
  *
- * <p>Only k8s and LXD run the dataspace protocol stack; the Compose facade does not implement
- * {@link DsControlPlaneDbOps}, so this scenario self-skips there via {@link Assumptions}, exactly like
- * {@link SsProxyDspSelfCallTest}.
+ * <p>Only k8s and LXD run the dataspace protocol stack; the Compose facade implements neither
+ * {@link DsControlPlaneDbOps} nor {@link DidResolutionOps}, so this scenario self-skips there via
+ * {@link Assumptions}, exactly like {@link SsProxyDspSelfCallTest}.
  *
  * <p>Runs after {@link SsMessagelogArchiveTest} (its own traffic must not be counted by that class's
  * exact pre-archive messagelog assertions) and after {@link SsProxyDspSelfCallTest}, before
@@ -139,6 +152,15 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
 
     /** The ctx-id {@code ParticipantIdentifierScheme.memberCtxId} derives for {@code DEV:COM:4321}. */
     private static final String NEW_MEMBER_CTX_ID = "DEV:COM:4321";
+
+    /** The identity hub's DID resolution port, served at the Security Server's registered address. */
+    private static final int DID_PORT = 7183;
+
+    /**
+     * The path segments {@code ParticipantIdentifierScheme.memberDid} appends to the authority for
+     * {@link #NEW_MEMBER_CTX_ID}; {@code did:web} maps them onto the URL path of {@code did.json}.
+     */
+    private static final String NEW_MEMBER_DID_PATH = "v1:" + NEW_MEMBER_CTX_ID;
 
     /** The ctx-id the consumer side negotiates as: {@link #CONSUMER_CLIENT_ID}'s member, ss0's owner. */
     private static final String CONSUMER_MEMBER_CTX_ID = "DEV:COM:1234";
@@ -184,6 +206,8 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final Duration REGISTRATION_POLL_INTERVAL = Duration.ofSeconds(3);
     private static final Duration PROVISIONING_POLL_TIMEOUT = Duration.ofMinutes(5);
     private static final Duration PROVISIONING_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration DID_RESOLUTION_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration DID_RESOLUTION_POLL_INTERVAL = Duration.ofSeconds(3);
     private static final Duration CATALOG_VISIBILITY_TIMEOUT = Duration.ofSeconds(150);
     private static final Duration CATALOG_VISIBILITY_POLL_INTERVAL = Duration.ofSeconds(10);
 
@@ -207,9 +231,10 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     @Test
     @DisplayName("A member onboarded to ss0 at runtime serves an established member-context consumer, no restart")
     void memberOnboardedAtRuntimeServesAMemberContextConsumer(E2eEnvironment env) {
-        Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps,
+        Assumptions.assumeTrue(env instanceof DsControlPlaneDbOps && env instanceof DidResolutionOps,
                 () -> "%s does not run the dataspace protocol stack; runtime member provisioning is only wired for k8s and LXD"
                         .formatted(env.getClass().getSimpleName()));
+        var didResolution = (DidResolutionOps) env;
         var dspAssertions = new DspNegotiationDbAssertions((DsControlPlaneDbOps) env,
                 SS0_ENV, ASSET_ID, CONSUMER_MEMBER_CTX_ID, NEW_MEMBER_CTX_ID);
 
@@ -235,6 +260,9 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         then("the Central Server approves the pending request and ss0 reports the new client as REGISTERED", () ->
                 awaitClientRegistered(ss0BaseUrl, ss0Session, csBaseUrl, csSession, clientId));
 
+        and("the new member's DID resolves the moment it is REGISTERED, before provisioning is awaited", () ->
+                awaitDidDocument(env, didResolution, document -> true));
+
         var backendUrl = and("the backend URL of ss0's existing TestService mock1 service is discovered", () ->
                 discoverExistingBackendUrl(ss0BaseUrl, ss0Session));
 
@@ -250,6 +278,9 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         then("the new member's own participant context and membership credential are provisioned, independent of "
                 + "which context the transfer below ends up riding, with no restart", () ->
                 awaitMemberContextIssued(ss0BaseUrl, ss0Session));
+
+        and("the new member's DID now resolves with verification keys", () ->
+                awaitDidDocument(env, didResolution, SsProxyDspRuntimeMemberTest::hasVerificationKeys));
 
         var response = when(
                 "a REST request from the established consumer to the new client's service succeeds via the ss0 proxy, "
@@ -656,6 +687,41 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                             + "negotiation attempt fails at offer selection, before negotiation begins")
                             .formatted(NEW_MEMBER_CTX_ID), e);
         }
+    }
+
+    private String newMemberDid(E2eEnvironment env) {
+        return "did:web:%s%%3A%d:%s".formatted(env.securityServerAddress(SS0_ENV), DID_PORT, NEW_MEMBER_DID_PATH);
+    }
+
+    private String newMemberDidUrl(E2eEnvironment env) {
+        return "https://%s:%d/%s/did.json".formatted(
+                env.securityServerAddress(SS0_ENV), DID_PORT, NEW_MEMBER_DID_PATH.replace(':', '/'));
+    }
+
+    /**
+     * Polls until the new member's DID resolves (never the empty 204 an unknown DID gets) to a document
+     * satisfying {@code ready}, then checks it names the member. Polled because the hub reads the same
+     * GlobalConf the status flip came from but reloads it on its own cycle, and publishes the keyed
+     * document on its own schedule once the participant context exists.
+     */
+    private void awaitDidDocument(E2eEnvironment env, DidResolutionOps didResolution, Predicate<DidDocumentResponse> ready) {
+        var did = newMemberDid(env);
+        var last = new AtomicReference<DidDocumentResponse>();
+        Awaitility.await()
+                .pollInterval(DID_RESOLUTION_POLL_INTERVAL)
+                .timeout(DID_RESOLUTION_TIMEOUT)
+                .ignoreExceptions()
+                .until(() -> {
+                    var response = didResolution.resolveDidDocument(SS0_ENV, newMemberDidUrl(env));
+                    last.set(response);
+                    return response.status() == 200 && ready.test(response);
+                });
+        assertThat(JsonPath.from(last.get().body()).getString("id")).as("id of the resolved document").isEqualTo(did);
+    }
+
+    private static boolean hasVerificationKeys(DidDocumentResponse response) {
+        List<Object> verificationMethods = JsonPath.from(response.body()).getList("verificationMethod");
+        return verificationMethods != null && !verificationMethods.isEmpty();
     }
 
     /**
