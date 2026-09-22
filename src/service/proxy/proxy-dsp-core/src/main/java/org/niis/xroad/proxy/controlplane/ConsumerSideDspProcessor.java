@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,11 +47,9 @@ import org.niis.xroad.proxy.core.service.ProviderSecurityServerResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
-import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_DATASET_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_OFFERS_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
@@ -66,15 +63,15 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  * <ul>
  *   <li>{@code assetId = serviceId.asEncodedId()} — symmetric with provider
  *       {@code AssetMapper.encodeAssetId}.</li>
- *   <li>{@code counterPartyId} + {@code counterPartyAddress} — for member targets, derived per
- *       candidate from the provider member id and the candidate's GlobalConf host-address
- *       ({@link DspConventions}); each {@code member@SS} is a distinct participant (XRDADR-41), so
- *       shuffle plus per-candidate failover is the multi-SS selection. MANAGEMENT and
- *       builtin-service requests keep the legacy map lookup
- *       ({@link CounterPartyTarget#managementMap()}); there a lookup miss skips the candidate.</li>
- *   <li>{@code participantContextId} — management and builtin-service requests use the configured
- *       legacy context, everything else negotiates as the sender member's derived context
- *       ({@link ParticipantIdentifierScheme#memberCtxId}).</li>
+ *   <li>{@code counterPartyId} + {@code counterPartyAddress} — derived per candidate from the
+ *       candidate's GlobalConf host-address ({@link DspConventions}). Ordinary requests derive the
+ *       provider member's target; each {@code member@SS} is a distinct participant (XRDADR-41), so
+ *       shuffle plus per-candidate failover is the multi-SS selection. Management and
+ *       builtin-service requests derive the provider's SYSTEM-context target instead — SYSTEM is a
+ *       provider-side anchor, one per Security Server regardless of which members it serves.</li>
+ *   <li>{@code participantContextId} — always the sender member's derived context
+ *       ({@link ParticipantIdentifierScheme#memberCtxId}); SYSTEM is a provider-side anchor only and
+ *       is never the consumer's own negotiation identity.</li>
  * </ul>
  *
  * <p>Exhaustion of all candidates is sanitized for the consumer at the execute boundary via
@@ -87,9 +84,6 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private final AssetAccessAcquisitionService assetAccessAcquisitionService;
     private final ProviderSecurityServerResolver providerSecurityServerResolver;
-    private final AssetAccessClientProperties clientProperties;
-
-    private final Map<String, CounterPartyTarget> mgmtCounterPartyTargets = CounterPartyTarget.managementMap();
 
     @Override
     @WithSpan("dsp-execute")
@@ -106,8 +100,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
-        // TODO with the -mgmt cutover, route builtin requests via the provider's SYSTEM context instead
-        var requestForcesMgmtCtx = request.managementSubsystem() || isBuiltinService(serviceId);
+        var requestTargetsSystemCtx = request.managementSubsystem() || isBuiltinService(serviceId);
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
@@ -122,26 +115,12 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     .build();
         }
 
-        var participantContextId = requestForcesMgmtCtx
-                ? clientProperties.participantContextId()
-                : ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
+        var participantContextId = ParticipantIdentifierScheme.memberCtxId(request.sender().getMemberId());
 
         var remoteFailures = new ArrayList<RuntimeException>();
-        var localFailures = new ArrayList<RuntimeException>();
         for (var candidate : candidates) {
             try {
-                var target = targetFor(requestForcesMgmtCtx, serviceId, candidate.hostAddress());
-                if (target == null) {
-                    var ex = XrdRuntimeException.systemException(DSP_CATALOG_FETCH_FAILED)
-                            .origin(DATASPACE)
-                            .details("No DSP counter-party target configured for provider host-address \"%s\""
-                                    .formatted(candidate.hostAddress()))
-                            .build();
-                    log.warn("No counter-party target for SS {} (address {}), trying next",
-                            candidate.serverId(), candidate.hostAddress(), ex);
-                    localFailures.add(ex);
-                    continue;
-                }
+                var target = targetFor(requestTargetsSystemCtx, serviceId, candidate.hostAddress());
                 return assetAccessAcquisitionService.acquireAssetAccess(
                         participantContextId, assetId, target.counterPartyId().toString(), target.counterPartyAddress());
             } catch (RuntimeException ex) {
@@ -150,18 +129,21 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 remoteFailures.add(ex);
             }
         }
-        throw buildFinalException(remoteFailures, localFailures, serviceId, candidates.size());
+        throw buildFinalException(remoteFailures, serviceId, candidates.size());
     }
 
     /**
-     * The counter-party target of one candidate serving security server: derived for member
-     * targets (a derivation failure is caught by the candidate loop and rides the per-candidate
-     * failover), map-based for the legacy {@code -mgmt} targets ({@code null} on a lookup miss).
+     * The counter-party target of one candidate serving security server: the provider's SYSTEM-context
+     * target for management and builtin-service requests, the provider member's target otherwise. Both
+     * are derived, never looked up; a derivation failure is caught by the candidate loop and rides the
+     * per-candidate failover.
      */
-    @Nullable
-    private CounterPartyTarget targetFor(boolean requestForcesMgmtCtx, ServiceId serviceId, String hostAddress) {
-        if (requestForcesMgmtCtx) {
-            return mgmtCounterPartyTargets.get(hostAddress);
+    @Nonnull
+    private CounterPartyTarget targetFor(boolean requestTargetsSystemCtx, ServiceId serviceId, String hostAddress) {
+        if (requestTargetsSystemCtx) {
+            return new CounterPartyTarget(
+                    DspConventions.systemCounterPartyId(hostAddress),
+                    DspConventions.systemCounterPartyAddress(hostAddress));
         }
         var providerMember = serviceId.getClientId().getMemberId();
         return new CounterPartyTarget(
@@ -176,10 +158,8 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
     }
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
-                                                 List<RuntimeException> localFailures,
                                                  ServiceId serviceId, int candidateCount) {
-        if (localFailures.isEmpty() && !remoteFailures.isEmpty()
-                && remoteFailures.stream().allMatch(XrdRuntimeException.class::isInstance)) {
+        if (remoteFailures.stream().allMatch(XrdRuntimeException.class::isInstance)) {
             var xrdCodes = remoteFailures.stream()
                     .map(XrdRuntimeException.class::cast)
                     .map(XrdRuntimeException::getCode)
@@ -188,10 +168,9 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                 return remoteFailures.getFirst();
             }
         }
-        var last = !remoteFailures.isEmpty() ? remoteFailures.getLast() : localFailures.getLast();
         return XrdRuntimeException.systemException(DSP_ACQUISITION_FAILED)
                 .origin(DATASPACE)
-                .cause(last)
+                .cause(remoteFailures.getLast())
                 .details("All %d candidate security servers failed to acquire asset access for service %s"
                         .formatted(candidateCount, serviceId))
                 .build();

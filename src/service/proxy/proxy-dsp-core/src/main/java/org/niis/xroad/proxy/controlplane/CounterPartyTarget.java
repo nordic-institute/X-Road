@@ -27,10 +27,6 @@
 package org.niis.xroad.proxy.controlplane;
 
 import com.apicatalog.did.Did;
-import org.niis.xroad.ds.identity.DspConventions;
-import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
-
-import java.util.Map;
 
 /**
  * Provider DSP endpoint metadata used by the consumer-side asset-access flow.
@@ -44,57 +40,11 @@ import java.util.Map;
  * <p>{@code counterPartyAddress} is the whole DSP base URL of the provider's Control Plane.
  * EDC appends the protocol version path and per-message subpath at dispatch time.
  *
- * <p>Member targets are derived from GlobalConf data ({@link DspConventions}); only the legacy
- * {@code -mgmt} synthetic targets remain map-based ({@link #managementMap()}) until consumer
- * SYSTEM-context routing replaces them.
+ * <p>Both member and SYSTEM targets are derived from GlobalConf data and ecosystem-wide DSP
+ * conventions; no map lookup is involved.
  *
- * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183:mgmt})
- * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/…})
+ * @param counterPartyId      URL-encoded participant DID (e.g. {@code did:web:xrd-ss0%3A7183:v1:system})
+ * @param counterPartyAddress full DSP base URL (e.g. {@code https://xrd-ss0:8183/api/dsp/system/http-dsp-profile-2025-1})
  */
 public record CounterPartyTarget(Did counterPartyId, String counterPartyAddress) {
-
-    /**
-     * Targets of the legacy {@code -mgmt} participant contexts, keyed by GlobalConf-registered
-     * provider host-address, covering the known dev/test substrates: Docker compose E2E
-     * ({@code xrd-ss0/1/2}), LXD ({@code xrd-ss*.lxd}), Docker compose system-test ({@code ss0/1}),
-     * and k8s ({@code proxy.ss0/1} — the namespace-qualified proxy Service names each release
-     * registers in globalconf).
-     *
-     * <p>The DID follows the provider's provisioned management DID
-     * ({@code did:web:<registered-address>%3A7183:mgmt}). The URL's context segment is the
-     * provider's host participant context id plus {@code -mgmt} — provider-local configuration
-     * that is not in GlobalConf, which is why these targets stay a map: on k8s the registered
-     * address ({@code proxy.ssN}) and the host participant context id ({@code xrd-ssN}) differ.
-     *
-     * @return immutable map keyed by host-address, targeting the mgmt participant context
-     */
-    // TODO transitional; remove with the -mgmt participant-context cutover
-    public static Map<String, CounterPartyTarget> managementMap() {
-        return Map.ofEntries(
-                //For E2E
-                mgmtEntry("xrd-ss0"),
-                mgmtEntry("xrd-ss1"),
-                mgmtEntry("xrd-ss2"),
-                //For LXD
-                mgmtEntry("xrd-ss0.lxd"),
-                mgmtEntry("xrd-ss1.lxd"),
-                mgmtEntry("xrd-ss2.lxd"),
-                //For docker compose system-test
-                mgmtEntry("ss0"),
-                mgmtEntry("ss1"),
-                //For k8s
-                mgmtEntry("proxy.ss0", "xrd-ss0"),
-                mgmtEntry("proxy.ss1", "xrd-ss1"));
-    }
-
-    private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress) {
-        return mgmtEntry(hostAddress, hostAddress);
-    }
-
-    private static Map.Entry<String, CounterPartyTarget> mgmtEntry(String hostAddress, String hostParticipantId) {
-        var url = "https://%s:%d/api/dsp/%s%s/%s".formatted(hostAddress, DspConventions.DSP_PORT,
-                hostParticipantId, DspConventions.MANAGEMENT_CONTEXT_SUFFIX, DspConventions.DSP_PROFILE_ID);
-        var did = ParticipantIdentifierScheme.managementDid(DspConventions.didAuthority(hostAddress));
-        return Map.entry(hostAddress, new CounterPartyTarget(did, url));
-    }
 }
