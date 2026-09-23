@@ -313,6 +313,18 @@ class DataspaceParticipantProvisioningWorkerTest {
     }
 
     @Test
+    void provisionParticipantKeepsRecheckingAMemberWhoseIdentityCouldNotBeRead() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.UNKNOWN));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+    }
+
+    @Test
     void provisionParticipantEnsuresAndBindsAMemberConvergedExceptForItsIdentity() {
         when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
         when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(MEMBER_CONTEXT));

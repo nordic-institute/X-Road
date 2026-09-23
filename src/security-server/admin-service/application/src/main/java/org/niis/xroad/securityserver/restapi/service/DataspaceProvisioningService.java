@@ -51,6 +51,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
@@ -156,6 +157,7 @@ public class DataspaceProvisioningService {
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
+    private static final MemberIdentity UNREADABLE_IDENTITY = new MemberIdentity(IdentityStatus.UNKNOWN, null);
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
@@ -187,25 +189,29 @@ public class DataspaceProvisioningService {
      */
     public boolean ensureParticipantContext(ParticipantContext context) {
         var identityHubHost = didAuthority.identityHubHost();
+        var participantId = context.participantId();
 
         var did = didFor(context.kind(), context.memberId());
-        requireNoHubDidDrift(context.participantId(), did);
+        var existingDid = identityHubClient.contextDid(participantId);
+        requireNoHubDidDrift(participantId, existingDid, did);
 
         var anchorConfirmed = createIdentityHubContext(context, did, identityHubHost);
-        controlPlaneClient.createParticipantContext(context.participantId(), did);
-        controlPlaneClient.putParticipantContextConfig(context.participantId(), did, stsTokenUrl(identityHubHost));
+        controlPlaneClient.createParticipantContext(participantId, did);
+        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+        if (existingDid.isEmpty()) {
+            log.info("Data space provisioning: participant context {} created", participantId);
+        }
         return anchorConfirmed;
     }
 
-    private void requireNoHubDidDrift(String participantId, Did intendedDid) {
-        identityHubClient.contextDid(participantId)
-                .filter(hubDid -> !hubDid.equals(intendedDid))
-                .ifPresent(hubDid -> {
+    private void requireNoHubDidDrift(String participantId, Optional<Did> hubDid, Did intendedDid) {
+        hubDid.filter(existing -> !existing.equals(intendedDid))
+                .ifPresent(drifted -> {
                     throw XrdRuntimeException.systemException(DSP_PARTICIPANT_DID_DRIFT)
-                            .metadataItems(hubDid, intendedDid)
+                            .metadataItems(drifted, intendedDid)
                             .details(("identity hub serves DID '%s' for participant context '%s', but the DID to "
                                     + "provision is '%s'; refusing to touch the context until the drift is resolved")
-                                    .formatted(hubDid, participantId, intendedDid))
+                                    .formatted(drifted, participantId, intendedDid))
                             .build();
                 });
     }
@@ -401,26 +407,43 @@ public class DataspaceProvisioningService {
 
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
-     * trigger provisioning, poll, or sleep. Never throws: dataspace-backend unavailability is
-     * reported as {@code UNKNOWN} credential status, and a failed identity assessment leaves the
-     * identity status unset.
+     * trigger provisioning, poll, or sleep. Never throws. The bound-identity assessment, the
+     * participant context DID and the credential status are read independently, so a failure in
+     * one is reported as {@code UNKNOWN} in its own field and leaves the others as observed. An
+     * unreadable context DID additionally leaves the credential status {@code UNKNOWN}: without a
+     * context there is nothing to resolve a credential against.
      *
      * @param context the participant context to report on
      */
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
-        MemberIdentity assessment = null;
+
+        var assessment = context.kind() == ParticipantKind.MEMBER
+                ? readOrFallback(participantId, "bound identity",
+                        () -> assessMemberIdentity(context.memberId()), UNREADABLE_IDENTITY)
+                : null;
+
+        Optional<Did> hubDid = Optional.empty();
+        var credentialStatus = CredentialStatus.UNKNOWN;
         try {
-            assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
-            var hubDid = identityHubClient.contextDid(participantId);
-            var contextCreated = hubDid.isPresent();
-            var credentialStatus = resolveCredentialStatus(context, contextCreated);
-            return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus,
-                    identityStatusOf(assessment, hubDid));
+            var did = identityHubClient.contextDid(participantId);
+            hubDid = did;
+            credentialStatus = readOrFallback(participantId, "credential status",
+                    () -> resolveCredentialStatus(context, did.isPresent()), CredentialStatus.UNKNOWN);
         } catch (Exception e) {
-            log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
-            return new ParticipantContextStatus(participantId, context.kind(), false, CredentialStatus.UNKNOWN,
-                    identityStatusOf(assessment, Optional.empty()));
+            log.warn("Data space: could not read the participant context DID of {}", participantId, e);
+        }
+
+        return new ParticipantContextStatus(participantId, context.kind(), hubDid.isPresent(), credentialStatus,
+                identityStatusOf(assessment, hubDid));
+    }
+
+    private <T> T readOrFallback(String participantId, String what, Supplier<T> read, T fallback) {
+        try {
+            return read.get();
+        } catch (Exception e) {
+            log.warn("Data space: could not read the {} of participant {}", what, participantId, e);
+            return fallback;
         }
     }
 

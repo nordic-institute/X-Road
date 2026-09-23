@@ -162,7 +162,7 @@ public class DataspaceParticipantProvisioningWorker {
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
         log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
 
-        var ensuredContexts = ensureContexts(nonConverged, statuses);
+        var ensuredContexts = ensureContexts(nonConverged);
 
         participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
 
@@ -213,15 +213,11 @@ public class DataspaceParticipantProvisioningWorker {
      * confirmed the member-id re-anchor to the current owner; while unconfirmed, the context itself is
      * still created/updated as usual, only its credential request is deferred to a later tick.
      */
-    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts,
-            Map<ParticipantContext, ParticipantContextStatus> statuses) {
+    private List<ParticipantContext> ensureContexts(List<ParticipantContext> contexts) {
         List<ParticipantContext> ensured = new ArrayList<>();
         for (var context : contexts) {
             try {
                 boolean anchorConfirmed = dataspaceProvisioningService.ensureParticipantContext(context);
-                if (!statuses.get(context).contextCreated()) {
-                    log.info("Data space provisioning: participant context {} created", context.participantId());
-                }
                 if (anchorConfirmed) {
                     ensured.add(context);
                 } else {

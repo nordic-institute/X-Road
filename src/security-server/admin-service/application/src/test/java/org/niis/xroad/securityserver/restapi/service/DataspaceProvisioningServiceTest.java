@@ -29,6 +29,10 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.apicatalog.did.Did;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +63,7 @@ import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
@@ -640,14 +645,40 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
-    void readContextStatusReportsNotConvergedInsteadOfThrowingWhenTheIdentityAssessmentFails() {
+    void readContextStatusKeepsTheContextAndCredentialReadsWhenTheIdentityAssessmentFails() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenThrow(new IllegalStateException("db down"));
 
         var status = service.readContextStatus(MEMBER_CONTEXT);
 
         assertThat(status.contextCreated()).isFalse();
+        assertThat(status.credentialStatus()).isEqualTo(CredentialStatus.ABSENT);
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.UNKNOWN);
+    }
+
+    @Test
+    void readContextStatusKeepsTheObservedContextWhenTheCredentialReadFails() {
+        when(identityHubClient.contextDid(MEMBER_CONTEXT.participantId()))
+                .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST)));
+        when(identityHubClient.getCredentialRequestState(eq(MEMBER_CONTEXT.participantId()), anyString()))
+                .thenThrow(new IllegalStateException("identity hub down"));
+
+        var status = service.readContextStatus(MEMBER_CONTEXT);
+
+        assertThat(status.contextCreated()).isTrue();
         assertThat(status.credentialStatus()).isEqualTo(CredentialStatus.UNKNOWN);
-        assertThat(status.identityStatus()).isNull();
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
+    @Test
+    void readContextStatusReportsUnknownCredentialStatusWhenTheContextDidIsUnreadable() {
+        when(identityHubClient.contextDid(MEMBER_CONTEXT.participantId()))
+                .thenThrow(new IllegalStateException("identity hub down"));
+
+        var status = service.readContextStatus(MEMBER_CONTEXT);
+
+        assertThat(status.contextCreated()).isFalse();
+        assertThat(status.credentialStatus()).isEqualTo(CredentialStatus.UNKNOWN);
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.UNBOUND);
     }
 
     @Test
@@ -680,6 +711,45 @@ class DataspaceProvisioningServiceTest {
         assertThat(request.did()).isEqualTo(expectedDid);
         assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
         assertThat(request.reanchorMemberIdOnConflict()).isFalse();
+    }
+
+    @Test
+    void ensureParticipantContextLogsCreationWhenHubHadNoContext() {
+        var logs = capturedLogs(() -> service.ensureParticipantContext(HOST_CONTEXT));
+
+        assertThat(logs).anyMatch(line -> line.equals(
+                "Data space provisioning: participant context " + PARTICIPANT_ID + " created"));
+    }
+
+    @Test
+    void ensureParticipantContextDoesNotLogCreationWhenHubAlreadyServesTheContext() {
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
+        var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);
+        when(identityHubClient.contextDid(memberCtxId))
+                .thenReturn(Optional.of(ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST)));
+        var context = new ParticipantContext(memberCtxId, ParticipantKind.MEMBER, MEMBER);
+
+        var logs = capturedLogs(() -> service.ensureParticipantContext(context));
+
+        assertThat(logs).noneMatch(line -> line.contains("created"));
+        verify(identityHubClient).createParticipantContext(any());
+    }
+
+    private static List<String> capturedLogs(Runnable action) {
+        var logger = (Logger) LoggerFactory.getLogger(DataspaceProvisioningService.class);
+        var previousLevel = logger.getLevel();
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.setLevel(Level.INFO);
+        logger.addAppender(appender);
+        try {
+            action.run();
+        } finally {
+            logger.detachAppender(appender);
+            logger.setLevel(previousLevel);
+            appender.stop();
+        }
+        return appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
     }
 
     // --- ensureParticipantContext (SYSTEM) ---
