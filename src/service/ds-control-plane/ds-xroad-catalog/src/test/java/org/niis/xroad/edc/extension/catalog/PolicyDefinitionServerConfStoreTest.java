@@ -700,6 +700,20 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findByIdAuthorizedSubjectCompoundIdNotFoundUnderSystemWhenServiceDisabled() {
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn("Maintenance");
+        var sixPartAttempt = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg", "DEV");
+        when(serverConfProvider.serviceExists(sixPartAttempt)).thenReturn(false);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var policyId = MGMT_SERVICE.asEncodedId() + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+        var result = store.findById(policyId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void findByIdAuthCertRegNotFoundUnderSystemContext() {
         // authCertReg fails the cheap SYSTEM_SERVICE_CODES check before any globalconf/serverconf
         // lookup runs, so no management-subsystem resolution needs to be stubbed here.

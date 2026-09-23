@@ -239,6 +239,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (!serverConfProvider.serviceExists(serviceId)) {
             return null;
         }
+        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+            return null;
+        }
         var subjectIdStr = joinParts(parts, servicePartCount, parts.length);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         var grouped = accessRights.stream()
