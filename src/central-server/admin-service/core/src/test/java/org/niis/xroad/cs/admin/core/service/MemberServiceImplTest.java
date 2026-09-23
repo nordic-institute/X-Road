@@ -88,6 +88,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -220,6 +221,8 @@ class MemberServiceImplTest {
         @DisplayName("Should delete client from xRoadMemberRepository")
         void shouldDeleteClient() {
             doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Set.<ServerClientEntity>of()).when(xRoadMember).getServerClients();
+            doReturn(Set.<SubsystemEntity>of()).when(xRoadMember).getSubsystems();
 
             memberService.delete(clientId);
 
@@ -227,6 +230,51 @@ class MemberServiceImplTest {
             verify(xRoadMemberRepository).delete(xRoadMember);
             verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
             verify(auditData).put(MEMBER_CODE, "MEMBER");
+        }
+
+        @Test
+        @DisplayName("Should publish a server-client-removed event per security server the member or its subsystems"
+                + " were registered on")
+        void shouldPublishRemovalEventPerRegisteredServer() {
+            var ss1 = mock(SecurityServerEntity.class);
+            var ss2 = mock(SecurityServerEntity.class);
+            var ss1Id = SecurityServerIdEntity.create("TEST", MEMBER_CLASS, "SS-OWNER", "SS1");
+            var ss2Id = SecurityServerIdEntity.create("TEST", MEMBER_CLASS, "SS-OWNER", "SS2");
+            doReturn(ss1Id).when(ss1).getServerId();
+            doReturn(ss2Id).when(ss2).getServerId();
+
+            var subsystemOnSs1 = mock(SubsystemEntity.class);
+            var subsystemOnSs2 = mock(SubsystemEntity.class);
+            doReturn(Set.of(new ServerClientEntity(ss1, subsystemOnSs1))).when(subsystemOnSs1).getServerClients();
+            doReturn(Set.of(new ServerClientEntity(ss2, subsystemOnSs2))).when(subsystemOnSs2).getServerClients();
+
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Set.of(new ServerClientEntity(ss1, xRoadMember))).when(xRoadMember).getServerClients();
+            doReturn(Set.of(subsystemOnSs1, subsystemOnSs2)).when(xRoadMember).getSubsystems();
+
+            memberService.delete(clientId);
+
+            ArgumentCaptor<ServerClientRemovedEvent> captor = ArgumentCaptor.forClass(ServerClientRemovedEvent.class);
+            verify(eventPublisher, times(2)).publishEvent(captor.capture());
+
+            List<ServerClientRemovedEvent> events = captor.getAllValues();
+            assertThat(events).extracting(ServerClientRemovedEvent::securityServerId)
+                    .containsExactlyInAnyOrder(ss1Id, ss2Id);
+            assertThat(events).extracting(ServerClientRemovedEvent::memberId)
+                    .containsOnly(clientId.getMemberId());
+            assertThat(events.get(0).removedAt()).isEqualTo(events.get(1).removedAt());
+        }
+
+        @Test
+        @DisplayName("Should publish nothing when the member has no registrations")
+        void shouldPublishNothingWhenNotRegistered() {
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Set.<ServerClientEntity>of()).when(xRoadMember).getServerClients();
+            doReturn(Set.<SubsystemEntity>of()).when(xRoadMember).getSubsystems();
+
+            memberService.delete(clientId);
+
+            verifyNoInteractions(eventPublisher);
         }
 
         @Test

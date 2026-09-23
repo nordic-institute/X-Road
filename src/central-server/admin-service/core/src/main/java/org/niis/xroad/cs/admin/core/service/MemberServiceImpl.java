@@ -59,10 +59,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
@@ -134,9 +137,30 @@ public class MemberServiceImpl implements MemberService {
 
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
+        var registeredOn = securityServersHosting(member);
+
         globalGroupMemberService.removeClientFromGlobalGroups(clientId);
         // other dependant entities are removed by cascading database constraints
         xRoadMemberRepository.delete(member);
+
+        var removedAt = TimeUtils.getEpochMillisecond();
+        registeredOn.forEach(serverId -> {
+            var event = new ServerClientRemovedEvent(serverId, clientId.getMemberId(), removedAt);
+            log.debug("Publishing server-client-removed event for member {} on security server {}",
+                    event.memberId(), event.securityServerId());
+            eventPublisher.publishEvent(event);
+        });
+    }
+
+    /**
+     * Every Security Server the member is registered on, directly or through any of its subsystems.
+     * Collected before the delete cascades the registration rows away.
+     */
+    private static Set<SecurityServerId> securityServersHosting(XRoadMemberEntity member) {
+        return Stream.concat(Stream.of(member), member.getSubsystems().stream())
+                .flatMap(client -> client.getServerClients().stream())
+                .map(serverClient -> serverClient.getSecurityServer().getServerId())
+                .collect(toCollection(LinkedHashSet::new));
     }
 
     @Override
