@@ -30,12 +30,17 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -51,13 +56,14 @@ import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisionin
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
 
 /**
- * Level-triggered provisioning worker that drives data space participant context provisioning
+ * Level-triggered provisioning worker that drives dataspace participant context provisioning
  * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataspaceParticipantProvisioningWorker {
+@Conditional(DataspaceParticipantProvisioningWorker.IsActive.class)
+public final class DataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningTrigger {
 
     static final int INITIAL_DELAY_MS = 30000;
 
@@ -84,6 +90,7 @@ public class DataspaceParticipantProvisioningWorker {
      * schedule a single run. Never throws: scheduling itself is best-effort, logged at WARN on
      * failure, exactly like the step it schedules.</p>
      */
+    @Override
     public void provisionParticipantAsync() {
         try {
             if (!TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -92,7 +99,7 @@ public class DataspaceParticipantProvisioningWorker {
                 TransactionSynchronizationManager.registerSynchronization(new AfterCommitProvisioning());
             }
         } catch (Exception e) {
-            log.warn("Data space: failed to schedule participant provisioning; the scheduled worker will "
+            log.warn("Dataspace: failed to schedule participant provisioning; the scheduled worker will "
                     + "converge on its next tick", e);
         }
     }
@@ -115,7 +122,7 @@ public class DataspaceParticipantProvisioningWorker {
         try {
             provisionParticipant();
         } catch (Exception e) {
-            log.error("Data space participant provisioning failed; the scheduled worker will converge "
+            log.error("Dataspace participant provisioning failed; the scheduled worker will converge "
                     + "once the dependency recovers", e);
         }
     }
@@ -144,30 +151,30 @@ public class DataspaceParticipantProvisioningWorker {
     private void ensure() {
         var contexts = dataspaceProvisioningService.participantContexts(readinessPredicates.isManagementSubsystemRegistered());
         if (ownerUnknown(contexts)) {
-            log.debug("Data space provisioning: SS owner not yet known, skipping");
+            log.debug("Dataspace provisioning: SS owner not yet known, skipping");
             return;
         }
         if (!dataspaceProvisioningService.registeredAddressKnown()) {
-            log.debug("Data space provisioning: registered address not in GlobalConf yet, skipping");
+            log.debug("Dataspace provisioning: registered address not in GlobalConf yet, skipping");
             return;
         }
 
         var statuses = statusesOf(contexts);
         var nonConverged = contexts.stream().filter(context -> !converged(statuses.get(context))).toList();
         if (nonConverged.isEmpty()) {
-            log.debug("Data space provisioning: tick changed nothing, {} participant context(s) converged", contexts.size());
+            log.debug("Dataspace provisioning: tick changed nothing, {} participant context(s) converged", contexts.size());
             return;
         }
 
         boolean authCertRegistered = readinessPredicates.hasRegisteredAuthCert();
-        log.debug("Data space provisioning: authCertRegistered={}", authCertRegistered);
+        log.debug("Dataspace provisioning: authCertRegistered={}", authCertRegistered);
 
         var ensuredContexts = ensureContexts(nonConverged);
 
         participantBindingService.bindMembersIfAbsent(memberIdsOf(ensuredContexts), authCertRegistered);
 
         if (!authCertRegistered) {
-            log.debug("Data space provisioning: auth cert not yet REGISTERED, deferring credential request");
+            log.debug("Dataspace provisioning: auth cert not yet REGISTERED, deferring credential request");
             return;
         }
 
@@ -221,11 +228,11 @@ public class DataspaceParticipantProvisioningWorker {
                 if (anchorConfirmed) {
                     ensured.add(context);
                 } else {
-                    log.debug("Data space provisioning: deferring credential issuance for participant {} until the "
+                    log.debug("Dataspace provisioning: deferring credential issuance for participant {} until the "
                             + "SYSTEM member-id re-anchor is confirmed", context.participantId());
                 }
             } catch (Exception e) {
-                log.error("Data space provisioning: failed to ensure participant context {}, continuing with the rest",
+                log.error("Dataspace provisioning: failed to ensure participant context {}, continuing with the rest",
                         context.participantId(), e);
             }
         }
@@ -238,11 +245,11 @@ public class DataspaceParticipantProvisioningWorker {
                 var newStatus = dataspaceProvisioningService.ensureMembershipCredential(context);
                 var previousStatus = statuses.get(context).credentialStatus();
                 if (newStatus != previousStatus) {
-                    log.info("Data space provisioning: participant {} credential {} -> {}",
+                    log.info("Dataspace provisioning: participant {} credential {} -> {}",
                             context.participantId(), previousStatus, newStatus);
                 }
             } catch (Exception e) {
-                log.error("Data space provisioning: credential step failed for participant {}, continuing with the rest",
+                log.error("Dataspace provisioning: credential step failed for participant {}, continuing with the rest",
                         context.participantId(), e);
             }
         }
@@ -252,6 +259,17 @@ public class DataspaceParticipantProvisioningWorker {
         @Override
         public void afterCommit() {
             dispatchAsync();
+        }
+    }
+
+    static class IsActive implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return isActive();
+        }
+
+        static boolean isActive() {
+            return !NodeProperties.isSecondaryNode();
         }
     }
 }

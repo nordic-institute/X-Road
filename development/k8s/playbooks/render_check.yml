@@ -1,0 +1,64 @@
+---
+# Cluster-free Helm values render check.
+#
+# Exercises the same role/inventory variable precedence as site.yml's chart-install
+# tasks (role defaults, inventory group_vars, per-Security-Server-instance overrides)
+# without needing a live Kubernetes API — each role's own render_values.yml task
+# renders its Helm values template to a local file via `include_role`, instead of
+# calling `kubernetes.core.helm`. Used by scripts/env-k8s/lint.sh (see
+# .github/workflows/_test-charts.yml) to statically validate all four inventories.
+#
+# Deliberately does NOT reuse site.yml's "Deploy Security Server" / "Deploy OpenBao"
+# loop construct. That construct's `loop:` falls back to
+# `security_server_instances | default([{'namespace': security_server_namespace}])`
+# on a task whose own `vars:` shadows `security_server_namespace` with
+# `{{ ss_instance.namespace }}` — evaluating that fallback default therefore needs
+# `ss_instance`, which the loop has not bound yet while it is still computing what to
+# loop over. Reproduced directly: `ansible-playbook` against inventory/test and
+# inventory/eks (neither sets `security_server_instances`) fails with
+# `'ss_instance' is undefined` before touching any chart; inventory/dev and
+# inventory/e2e (which do set it) are unaffected. This is a genuine pre-existing bug
+# in playbooks/site.yml, reported in the k8s-ds-surface-r3 dispatch's agent comment —
+# not fixed here (out of scope; site.yml itself is untouched). This playbook works
+# around it by precomputing the instance list in its own fact (render_ss_instances,
+# below), one task before the loop that consumes it, so the fallback default never
+# needs the loop variable to already exist.
+- name: Render k8s Helm values (no cluster)
+  hosts: k8s_control
+  gather_facts: false
+  vars:
+    render_output_dir: "{{ playbook_dir }}/../.state/render-check"
+  tasks:
+    - name: Ensure render output directory exists
+      ansible.builtin.file:
+        path: "{{ render_output_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Render Central Server values (when enabled)
+      ansible.builtin.include_role:
+        name: central_server
+        tasks_from: render_values.yml
+      vars:
+        render_values_dest: "{{ render_output_dir }}/central-server-values.yaml"
+      when: central_server_enabled | default(false) | bool
+
+    - name: Determine Security Server instances to render
+      ansible.builtin.set_fact:
+        render_ss_instances: "{{ security_server_instances | default([{'namespace': security_server_namespace}]) }}"
+
+    - name: Render Security Server values per instance
+      ansible.builtin.include_role:
+        name: security_server
+        tasks_from: render_values.yml
+      vars:
+        security_server_namespace: "{{ render_ss_item.namespace }}"
+        dsp_participant_context_id: "{{ render_ss_item.dsp_participant_context_id | default('') }}"
+        signer_hsm_enabled: "{{ render_ss_item.signer_hsm_enabled | default(false) }}"
+        softtoken_signer_enabled: "{{ render_ss_item.softtoken_signer_enabled | default(false) }}"
+        messagelog_encryption_config: "{{ render_ss_item.messagelog_encryption_config | default('') }}"
+        render_values_dest: "{{ render_output_dir }}/security-server-values-{{ render_ss_item.namespace }}.yaml"
+      loop: "{{ render_ss_instances }}"
+      loop_control:
+        loop_var: render_ss_item
+        label: "{{ render_ss_item.namespace }}"

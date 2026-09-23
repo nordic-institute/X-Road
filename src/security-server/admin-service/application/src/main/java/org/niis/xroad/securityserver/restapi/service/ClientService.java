@@ -53,7 +53,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
-import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningWorker;
+import org.niis.xroad.securityserver.restapi.scheduling.DataspaceParticipantProvisioningTrigger;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
@@ -138,7 +138,7 @@ public class ClientService {
     private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
     private final CatalogInvalidationNotifier catalogInvalidationNotifier;
-    private final DataspaceParticipantProvisioningWorker dataspaceParticipantProvisioningWorker;
+    private final DataspaceParticipantProvisioningTrigger dataspaceParticipantProvisioningTrigger;
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -553,7 +553,7 @@ public class ClientService {
         putClientStatusToAudit(client);
         auditDataHelper.putManagementRequestId(requestId);
         client.setClientStatus(STATUS_DELINPROG);
-        dataspaceParticipantProvisioningWorker.provisionParticipantAsync();
+        dataspaceParticipantProvisioningTrigger.provisionParticipantAsync();
     }
 
     /**
