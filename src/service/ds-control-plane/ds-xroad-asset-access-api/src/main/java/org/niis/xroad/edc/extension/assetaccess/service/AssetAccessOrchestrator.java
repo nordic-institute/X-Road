@@ -65,13 +65,16 @@ import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionLi
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
+import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
@@ -217,7 +220,7 @@ public class AssetAccessOrchestrator {
                     .build();
         }
 
-        var offer = selectOffer(dataset.getOffers(), clientId);
+        var offer = selectOffer(dataset.getOffers(), clientId, assetId);
 
         var transferType = dataset.getDistributions().stream()
                 .map(Distribution::getFormat)
@@ -230,39 +233,56 @@ public class AssetAccessOrchestrator {
 
         monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s namesClient=%s"
                 .formatted(key, assetId, offer.getKey(), transferType,
-                        clientId != null && grantsClient(offer.getValue(), clientId)));
+                        clientId != null && namesClient(offer.getValue(), clientId)));
         return new OfferContext(offer.getKey(), offer.getValue(), dataset, transferType);
     }
 
     /**
-     * Prefers the offer whose client constraint names the calling client; the provider publishes one
-     * offer per ACL subject, so a subsystem with its own entry has its own offer. Falls back to the
-     * first offer when the client is unknown or has no offer of its own.
+     * The provider publishes one offer per ACL subject. A known caller takes the offer written for its
+     * subsystem, else one that applies to its member as a whole (member-level or group subject); an offer
+     * written for another subsystem is never negotiated on its behalf. An unknown caller takes the first offer.
      */
-    private static Map.Entry<String, Policy> selectOffer(Map<String, Policy> offers, @Nullable String clientId) {
-        var first = offers.entrySet().iterator().next();
+    private static Map.Entry<String, Policy> selectOffer(Map<String, Policy> offers, @Nullable String clientId,
+                                                         String assetId) {
         if (clientId == null) {
-            return first;
+            return offers.entrySet().iterator().next();
         }
-        return offers.entrySet().stream()
-                .filter(entry -> grantsClient(entry.getValue(), clientId))
-                .findFirst()
-                .orElse(first);
+        var memberId = PolicyContextHelper.parseClientId(clientId).getMemberId().asEncodedId();
+        return firstOffer(offers, policy -> namesClient(policy, clientId))
+                .or(() -> firstOffer(offers, policy -> appliesToMember(policy, memberId)))
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
+                        .origin(ErrorOrigin.DATASPACE)
+                        .metadataItems(assetId, clientId)
+                        .build());
     }
 
-    private static boolean grantsClient(Policy policy, String clientId) {
+    private static Optional<Map.Entry<String, Policy>> firstOffer(Map<String, Policy> offers, Predicate<Policy> matches) {
+        return offers.entrySet().stream().filter(entry -> matches.test(entry.getValue())).findFirst();
+    }
+
+    private static boolean namesClient(Policy policy, String encodedClientId) {
+        return anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
+                && isLiteral(atomic.getRightExpression(), encodedClientId));
+    }
+
+    private static boolean appliesToMember(Policy policy, String encodedMemberId) {
+        return namesClient(policy, encodedMemberId)
+                || anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
+                        || isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
+    }
+
+    private static boolean anyConstraint(Policy policy, Predicate<AtomicConstraint> matches) {
         return policy.getPermissions().stream()
                 .flatMap(permission -> permission.getConstraints().stream())
-                .anyMatch(constraint -> namesClient(constraint, clientId));
+                .anyMatch(constraint -> anyConstraint(constraint, matches));
     }
 
-    private static boolean namesClient(Constraint constraint, String clientId) {
+    private static boolean anyConstraint(Constraint constraint, Predicate<AtomicConstraint> matches) {
         if (constraint instanceof AtomicConstraint atomic) {
-            return isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
-                    && isLiteral(atomic.getRightExpression(), clientId);
+            return matches.test(atomic);
         }
         if (constraint instanceof MultiplicityConstraint multiplicity) {
-            return multiplicity.getConstraints().stream().anyMatch(child -> namesClient(child, clientId));
+            return multiplicity.getConstraints().stream().anyMatch(child -> anyConstraint(child, matches));
         }
         return false;
     }

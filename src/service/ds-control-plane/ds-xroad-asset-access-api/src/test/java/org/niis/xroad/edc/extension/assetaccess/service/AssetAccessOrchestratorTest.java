@@ -669,14 +669,46 @@ class AssetAccessOrchestratorTest {
     }
 
     @Test
-    void withoutAnOfferForTheCallingSubsystemSomeOfferIsStillNegotiated() {
+    void memberLevelOfferIsTakenWhenNoOfferNamesTheCallingSubsystem() {
+        var offers = Map.of(
+                "offer-other", clientPolicy("DEV:COM:222:OTHER"),
+                "offer-member", clientPolicy("DEV:COM:222"));
+
+        var chosen = acquireAndCaptureOfferId(offers, "DEV:COM:222:TESTCLIENT");
+
+        assertThat(chosen).isEqualTo("offer-member");
+    }
+
+    @Test
+    void groupOfferIsTakenWhenNoOfferNamesTheCallingSubsystem() {
+        var offers = Map.of(
+                "offer-other", clientPolicy("DEV:COM:222:OTHER"),
+                "offer-group", groupPolicy("DEV:security-server-owners"));
+
+        var chosen = acquireAndCaptureOfferId(offers, "DEV:COM:222:TESTCLIENT");
+
+        assertThat(chosen).isEqualTo("offer-group");
+    }
+
+    @Test
+    void offersWrittenForOtherSubsystemsOnlyAreNotNegotiated() {
         var offers = Map.of(
                 "offer-a", clientPolicy("DEV:COM:222:A"),
                 "offer-b", clientPolicy("DEV:COM:222:B"));
+        stubCatalog(buildCatalogWithOffers("asset-1", offers));
 
-        var chosen = acquireAndCaptureOfferId(offers, "DEV:COM:222:C");
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, "DEV:COM:222:C"));
 
-        assertThat(chosen).isIn("offer-a", "offer-b");
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> {
+                    var cause = (XrdRuntimeException) e.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_offers_not_found");
+                    assertThat(cause.getErrorCodeMetadata()).contains("asset-1", "DEV:COM:222:C");
+                });
+        verifyNoInteractions(contractNegotiationService);
     }
 
     @Test
@@ -755,6 +787,17 @@ class AssetAccessOrchestratorTest {
                                 .constraints(List.of(clientConstraint, pathConstraint))
                                 .build())
                         .build())
+                .build();
+    }
+
+    private static Policy groupPolicy(String encodedGroupId) {
+        var groupConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(encodedGroupId))
+                .build();
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance().constraint(groupConstraint).build())
                 .build();
     }
 
