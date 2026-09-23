@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.15
+Version: 1.16
 Doc. ID: DM-SS
 
 ## Version history
@@ -26,6 +26,7 @@ Doc. ID: DM-SS
 | 07.04.2025 | 1.13    | Table "configuration_client" added, "service_securitycategories" removed from diagram                          | Justas Samuolis                 |
 | 30.03.2026 | 1.14    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets                   |
 | 01.04.2026 | 1.15    | Update minimum PostgreSQL version to 15                                                                        | Egidijus M                      |
+| 23.09.2026 | 1.16    | Table "dataflow_state" added                                                                                   | Eneli Reimets                   |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -88,6 +89,9 @@ Doc. ID: DM-SS
   * [2.18 CONFIGURATION_CLIENT](#218-configuration_client)
     * [2.18.1 Indexes](#2181-indexes) 
     * [2.18.2 Attributes](#2182-attributes)  
+  * [2.19 DATAFLOW_STATE](#219-dataflow_state)
+    * [2.19.1 Indexes](#2191-indexes)
+    * [2.19.2 Attributes](#2192-attributes)
 
 <!-- vim-markdown-toc -->
 
@@ -119,6 +123,7 @@ This section describes a general mechanism for storing history of the database t
   * history
   * databasechangelog
   * databasechangeloglock
+  * dataflow_state — technical runtime state, not audited; see section 2.19
 
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.6.
 
@@ -490,3 +495,28 @@ Table to store configuration client data.
 | id [PK]   |         serial         | NOT NULL  | Primary key.      |
 | name      | character varying(255) | NOT NULL  | Property name.    |
 | content   |          text          | NOT NULL  | Property content. |
+
+### 2.19 DATAFLOW_STATE
+
+Proxy data-plane flow lifecycle state, shared by every proxy node of a clustered Security Server: a flow created or transitioned through one node is immediately visible to the others.
+
+On the first `prepare` or `start` signal, one row is created. The flow's process ID is stored in `flow_id`, and `state` is set to `PROVISIONED` for `prepare` or `STARTED` for `start`. Later lifecycle calls for the same flow update the same row: `started` sets the state to `STARTED`, `suspend` to `SUSPENDED`, `terminate` to `TERMINATED`, and `completed` to `COMPLETED`. A second row is never created for the same `flow_id`.
+
+**Retention.** `TERMINATED` and `COMPLETED` rows are retained, and the table currently has no automatic cleanup or expiration. The state of a completed flow is no longer needed for functional flow handling, but remains available for debugging through the flow-state endpoint.
+
+#### 2.19.1 Indexes
+
+| Name                                  | Columns |
+|:---------------------------------------|:-------:|
+| dataflow_state_pkey                    |   id    |
+| uniq_dataflow_state_flow_id (unique)   | flow_id |
+
+#### 2.19.2 Attributes
+
+| Name         |          Type           | Modifiers | Description                                                                                                        |
+|:-------------|:-----------------------:|:----------|:---------------------------------------------------------------------------------------------------------------------|
+| id [PK]      |          serial         | NOT NULL  | Primary key.                                                                                                        |
+| flow_id      | character varying(255)  | NOT NULL  | The Dataspace Protocol process ID (the transfer-process correlation identifier the control plane assigns).        |
+| state        | character varying(32)   | NOT NULL  | The flow's current lifecycle state: one of `PROVISIONED`, `STARTED`, `SUSPENDED`, `COMPLETED`, `TERMINATED`. |
+| created_at   | timestamp(6)            | NOT NULL  | Row creation time. Set automatically by the `set_timestamps` trigger, not by the application.                     |
+| updated_at   | timestamp(6)            | NOT NULL  | Time of the row's last lifecycle update. Set automatically by the `set_timestamps` trigger on every insert/update. |
