@@ -171,6 +171,7 @@ class ContractDefinitionServerConfStoreTest {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         var ar = createAccessRight(SUBJECT_CLIENT, ep);
 
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER_1));
         when(serverConfProvider.getAllServices(MEMBER_1)).thenReturn(List.of(SERVICE_1));
         when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));

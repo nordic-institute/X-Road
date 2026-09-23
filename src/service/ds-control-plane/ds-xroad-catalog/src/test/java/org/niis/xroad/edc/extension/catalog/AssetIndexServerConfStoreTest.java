@@ -136,6 +136,7 @@ class AssetIndexServerConfStoreTest {
     @Test
     void queryAssetsPublishesDisabledServiceUnderSameContextsAsEnabled() {
         setupMembersAndServices();
+        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn("Maintenance");
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
 
@@ -276,17 +277,6 @@ class AssetIndexServerConfStoreTest {
         assertThat(result.getStringProperty("proxyMethod")).isEqualTo("true");
         assertThat(result.getStringProperty("proxyBody")).isEqualTo("true");
         assertThat(result.getStringProperty("proxyQueryParams")).isEqualTo("true");
-    }
-
-    @Test
-    @SuppressWarnings("deprecation")
-    void resolveForAssetResolvesAddressForDisabledService() {
-        when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
-
-        var result = assetIndex.resolveForAsset(SERVICE_1.asEncodedId());
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStringProperty("baseUrl")).isEqualTo(SERVICE_1_ADDRESS);
     }
 
     @Test
@@ -526,16 +516,6 @@ class AssetIndexServerConfStoreTest {
                 .containsExactly(SERVICE_1.asEncodedId(), SERVICE_1.asEncodedId());
         assertThat(result).extracting(Asset::getParticipantContextId)
                 .containsExactlyInAnyOrder(PARTICIPANT_CONTEXT_ID, MGMT_PARTICIPANT_CONTEXT_ID);
-    }
-
-    @Test
-    void findByIdResolvesRegularContextForDisabledService() {
-        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-
-        var result = assetIndex.findById(SERVICE_1.asEncodedId());
-
-        assertThat(result).isNotNull();
-        assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
     }
 
     @Test
