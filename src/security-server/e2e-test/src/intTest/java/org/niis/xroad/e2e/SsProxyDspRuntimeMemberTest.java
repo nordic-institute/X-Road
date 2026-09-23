@@ -158,7 +158,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final String CONSUMER_X_ROAD_ID = "DEV/COM/1234/TestService";
 
     /** ss0's pre-existing TestService/mock1 REST service, whose backend URL is reused for the new client. */
-    private static final String EXISTING_SERVICE_ID = "DEV:COM:1234:TestService:mock1";
+    private static final String EXISTING_SERVICE_ID = AdminApi.MOCK1_SERVICE_ID;
 
     /**
      * The DSP asset id for the new client's service — its full client id and the REST service code,

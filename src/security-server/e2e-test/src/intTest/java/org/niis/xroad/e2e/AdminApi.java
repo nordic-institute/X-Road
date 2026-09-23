@@ -33,6 +33,7 @@ import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -179,14 +180,21 @@ class AdminApi {
      * backend URL the caller always uses for that service code.
      */
     static String findExistingServiceDescriptionId(String ss0BaseUrl, AdminSession ss0, String clientId, String backendUrl) {
+        var id = findServiceDescriptionIdByUrl(ss0BaseUrl, ss0, clientId, backendUrl);
+        assertThat(id)
+                .as("an existing service description for %s with backend url %s", clientId, backendUrl)
+                .isPresent();
+        return id.orElseThrow();
+    }
+
+    /** Looks up the id of the client's service description with the given backend URL, if there is one. */
+    static Optional<String> findServiceDescriptionIdByUrl(String ss0BaseUrl, AdminSession ss0, String clientId,
+                                                         String backendUrl) {
         var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
         assertThat(response.getStatusCode()).as("list service descriptions for %s", clientId).isEqualTo(HTTP_OK);
 
-        var id = response.jsonPath().getString("find { it.url == '" + backendUrl + "' }.id");
-        assertThat(id)
-                .as("an existing service description for %s with backend url %s", clientId, backendUrl)
-                .isNotBlank();
-        return id;
+        return Optional.ofNullable(response.jsonPath().getString("find { it.url == '" + backendUrl + "' }.id"))
+                .filter(id -> !id.isBlank());
     }
 
     /**

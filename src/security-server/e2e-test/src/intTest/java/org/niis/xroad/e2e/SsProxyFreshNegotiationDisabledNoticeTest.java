@@ -49,6 +49,7 @@ import static org.niis.xroad.e2e.AdminApi.deleteServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.disableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
+import static org.niis.xroad.e2e.AdminApi.findServiceDescriptionIdByUrl;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
@@ -56,38 +57,38 @@ import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
 
 /**
- * Proves the path issue 03's round trip cannot: a consumer who has never held an agreement for the
- * asset negotiates fresh — catalog fetch, offer, agreement, transfer — against a service that is
- * disabled before its first ever call, and still receives the operator's notice.
+ * Proves the path {@link SsProxyServiceDisableRoundTripTest} cannot: a consumer who has never held an
+ * agreement for the asset negotiates fresh — catalog fetch, offer, agreement, transfer — against a service
+ * that is disabled before its first ever call, and still receives the operator's notice.
  *
- * <p>Freshness is guaranteed by construction rather than asserted: the service code added here did
- * not exist before this test ran, so no consumer anywhere can hold a prior agreement for it, and the
- * service is disabled before any call is ever made against it. This is deliberately not the same
- * service {@link SsProxyServiceDisableRoundTripTest} disables — that scenario's consumer already
+ * <p>Freshness is guaranteed by construction rather than asserted: the service code added here is unique to
+ * this run, so no consumer can hold a prior agreement for it, and the service is disabled before any call
+ * is ever made against it. A leftover service description from an interrupted earlier run is removed first,
+ * because its backend URL would otherwise collide with the new one; its agreement stays cached on the
+ * consumer, but under the old service code, so it cannot serve this run's calls. This is deliberately not
+ * the same service {@link SsProxyServiceDisableRoundTripTest} disables — that scenario's consumer already
  * holds an agreement from the suite's baseline traffic, so its disabled call rides the cached-agreement
  * path instead.
  *
- * <p><b>Provider and backend.</b> The new service is added to ss0's own {@code TestService}
- * subsystem — the same client {@code mock1} belongs to — addressing {@code mock1}'s backend one path
- * segment up from its own service description's URL. A REST service description's URL must be unique
- * within its client ({@code ServiceDescriptionService.checkDuplicateUrl}), so this scenario cannot reuse
- * {@code mock1}'s exact URL without colliding with {@code mock1}'s own, already-enabled description; the
- * one path segment stripped off the base is instead supplied as the consumer's own trailing REST path,
- * which the provider proxy appends back onto the backend address
- * ({@code DefaultRestServiceHandlerImpl.concatPath}), landing on the exact same, real WireMock stub
- * {@code mock1} itself calls — so the re-enabled call has a genuine 200 to assert on, not a stubbed-out
- * shortcut.
+ * <p><b>Provider and backend.</b> The new service is added to ss0's own {@code TestService} subsystem — the
+ * same client {@code mock1} belongs to — addressing {@code mock1}'s backend one path segment up from its
+ * own service description's URL. A REST service description's URL must be unique within its client
+ * ({@code ServiceDescriptionService.checkDuplicateUrl}), so this scenario cannot reuse {@code mock1}'s
+ * exact URL without colliding with {@code mock1}'s own, already-enabled description; the one path segment
+ * stripped off the base is instead supplied as the consumer's own trailing REST path, which the provider
+ * proxy appends back onto the backend address ({@code DefaultRestServiceHandlerImpl.concatPath}), landing
+ * on the exact same, real WireMock stub {@code mock1} itself calls — so the re-enabled call has a genuine
+ * 200 to assert on, not a stubbed-out shortcut.
  *
- * <p><b>Consumer.</b> {@code DEV:COM:4321:TestClient} on ss1 — cross-server, mirroring the manual proof
- * (issue 03 comments, "correction" entry) — rather than ss0's own {@code TestService}: {@code TestService}
- * already negotiated with itself and with {@code mock1} elsewhere in this suite, so a self-call would not
- * demonstrate a consumer new to this asset the way a distinct member does. Confirmed to ride the
- * dataspace protocol connector like every other REST/SOAP exchange in this suite, on all four CI variants,
- * per XRDADR-40 Option A (the data plane is the permanent baseline, not a per-environment opt-in) and
- * {@link DsControlPlaneDbOps}'s own class doc ("the Compose facade runs the full dataspace protocol stack
- * too, but does not wire up this database-ops glue") — the DB-assertion gate other DSP scenarios apply is
- * about database introspection capability, not about which environments route traffic through the
- * connector, so this scenario runs unconditionally rather than self-skipping.
+ * <p><b>Consumer.</b> {@code DEV:COM:4321:TestClient} on ss1 — cross-server — rather than ss0's own
+ * {@code TestService}: {@code TestService} already negotiated with itself and with {@code mock1} elsewhere
+ * in this suite, so a self-call would not demonstrate a consumer new to this asset the way a distinct
+ * member does. Confirmed to ride the dataspace protocol connector like every other REST/SOAP exchange in
+ * this suite, on all four CI variants, per XRDADR-40 Option A (the data plane is the permanent baseline,
+ * not a per-environment opt-in) and {@link DsControlPlaneDbOps}'s own class doc ("the Compose facade runs
+ * the full dataspace protocol stack too, but does not wire up this database-ops glue") — the DB-assertion
+ * gate other DSP scenarios apply is about database introspection capability, not about which environments
+ * route traffic through the connector, so this scenario runs unconditionally rather than self-skipping.
  *
  * <p><b>Ordering.</b> Runs after {@link SsProxyServiceDisableRoundTripTest} (@Order 375), before
  * {@link SsMonitoringTest} (@Order 400), whose {@code mock1} and {@code restapi} calls need those service
@@ -95,8 +96,8 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
  * {@code finally}, so it leaves nothing behind for {@link SsMonitoringTest} to trip over.
  *
  * <p><b>Fault shape.</b> Same as {@link SsProxyServiceDisableRoundTripTest}: the provider's
- * {@code ServerRestMessageProcessor} raises {@code SERVICE_DISABLED} after the access-rights check,
- * which crosses the wire as a SOAP fault and surfaces to the REST caller as an HTTP 500 with an
+ * {@code ServerRestMessageProcessor} raises {@code SERVICE_DISABLED} after the access-rights check, which
+ * crosses the wire as a SOAP fault and surfaces to the REST caller as an HTTP 500 with an
  * {@code X-Road-Error} header and a JSON body carrying the prefixed code and the exact notice text.
  */
 @DisplayName("SS proxy - a fresh negotiation for a disabled service delivers the operator's notice")
@@ -110,8 +111,7 @@ class SsProxyFreshNegotiationDisabledNoticeTest extends E2eTest {
     private static final String CONSUMER_CLIENT_ID = "DEV:COM:4321:TestClient";
     private static final String CONSUMER_X_ROAD_CLIENT = "DEV/COM/4321/TestClient";
 
-    /** A service code no consumer could ever hold a prior agreement for: it does not exist before this test adds it. */
-    private static final String NEW_SERVICE_CODE = "freshMock1";
+    private static final String NEW_SERVICE_CODE_PREFIX = "freshMock1";
 
     private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
     private static final String DISABLED_NOTICE = "Scheduled maintenance window, please retry once it closes";
@@ -145,19 +145,24 @@ class SsProxyFreshNegotiationDisabledNoticeTest extends E2eTest {
                 discoverBackendUrl(ss0BaseUrl, ss0Session, MOCK1_SERVICE_ID));
         var lastSegment = backendUrl.lastIndexOf('/');
         var backendBaseUrl = backendUrl.substring(0, lastSegment);
-        var servicePath = "/r1/DEV/COM/1234/TestService/" + NEW_SERVICE_CODE + backendUrl.substring(lastSegment);
+        var serviceCode = NEW_SERVICE_CODE_PREFIX + System.currentTimeMillis();
+        var servicePath = "/r1/DEV/COM/1234/TestService/" + serviceCode + backendUrl.substring(lastSegment);
+
+        and("any service description an interrupted earlier run left at the same backend URL is removed", () ->
+                findServiceDescriptionIdByUrl(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, backendBaseUrl)
+                        .ifPresent(leftoverId -> deleteServiceDescription(ss0BaseUrl, ss0Session, leftoverId)));
 
         var serviceDescriptionId = and(
-                "a new REST service description, under a service code that never existed before this test, is "
+                "a new REST service description, under a service code unique to this run, is "
                         + "added to TestService, addressing mock1's backend one path segment up", () ->
-                        addRestServiceDescription(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, backendBaseUrl, NEW_SERVICE_CODE));
+                        addRestServiceDescription(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, backendBaseUrl, serviceCode));
 
         try {
             and("the new service description is enabled", () ->
                     enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
 
             and("the cross-server consumer is granted access to the new service", () ->
-                    grantConsumerAccessRights(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, CONSUMER_CLIENT_ID, NEW_SERVICE_CODE));
+                    grantConsumerAccessRights(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, CONSUMER_CLIENT_ID, serviceCode));
 
             and("the operator disables the new service description with a notice, before any call has ever reached it", () ->
                     disableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId, DISABLED_NOTICE));
