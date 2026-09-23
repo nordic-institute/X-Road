@@ -97,9 +97,17 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                     serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
-            return findSystemContractDefinition(policyId);
-        }
-        if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+            var systemResult = findSystemContractDefinition(policyId);
+            if (systemResult != null) {
+                return systemResult;
+            }
+            if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+                log.trace("findById definitionId={} SYSTEM owner-only candidate did not resolve", definitionId);
+                return null;
+            }
+            // Fall through: a SYSTEM-eligible real service with configured access rights
+            // publishes its per-subject compound id there instead of the plain/owner-only forms.
+        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
             return findOwnerOnlyContractDefinition(policyId);
         }
         var parts = policyId.split(String.valueOf(XRoadId.ENCODED_ID_SEPARATOR));
@@ -239,7 +247,10 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveEnabledById(serviceId));
+        if (serviceContextResolver.isSystemEligible(serviceId)) {
+            resolvedContexts.add(contextIds.system());
+        }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return ContractDefinitionMapper.toContractDefinition(serviceId, matchedEntries.getFirst().getSubjectId(), ctxId);
     }

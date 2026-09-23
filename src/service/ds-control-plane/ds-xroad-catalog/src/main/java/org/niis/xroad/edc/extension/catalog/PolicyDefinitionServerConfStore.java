@@ -93,10 +93,17 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
 
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
-            return findSystemPolicyDefinition(policyId);
-        }
-
-        if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+            var systemResult = findSystemPolicyDefinition(policyId);
+            if (systemResult != null) {
+                return systemResult;
+            }
+            if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+                log.trace("findById policyId={} SYSTEM owner-only candidate did not resolve", policyId);
+                return null;
+            }
+            // Fall through: a SYSTEM-eligible real service with configured access rights
+            // publishes its per-subject compound id there instead of the plain/owner-only forms.
+        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
             return findOwnerOnlyPolicyDefinition(policyId);
         }
 
@@ -250,7 +257,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveEnabledById(serviceId));
+        if (serviceContextResolver.isSystemEligible(serviceId)) {
+            resolvedContexts.add(contextIds.system());
+        }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }

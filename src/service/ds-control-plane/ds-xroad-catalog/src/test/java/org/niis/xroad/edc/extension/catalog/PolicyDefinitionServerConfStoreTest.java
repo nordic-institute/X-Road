@@ -678,6 +678,28 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findByIdAuthorizedSubjectCompoundIdResolvesUnderSystemWhenAccessRightsConfigured() {
+        var ep = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, ep);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
+        // The 6-part (WITH_VERSION) decode attempt runs first and "succeeds" by misreading the
+        // subject's leading segment as a version; force it to fall through to the 5-part attempt.
+        var sixPartAttempt = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "clientReg", "DEV");
+        when(serverConfProvider.serviceExists(sixPartAttempt)).thenReturn(false);
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var policyId = MGMT_SERVICE.asEncodedId() + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+        var result = store.findById(policyId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX);
+    }
+
+    @Test
     void findByIdAuthCertRegNotFoundUnderSystemContext() {
         // authCertReg fails the cheap SYSTEM_SERVICE_CODES check before any globalconf/serverconf
         // lookup runs, so no management-subsystem resolution needs to be stubbed here.
