@@ -409,6 +409,33 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findAllRealManagementServiceUnderSystemRespectsConfiguredAccessRightsInsteadOfUnrestrictedGrant() {
+        var ep = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, ep);
+
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT));
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var result = store.findAll(QuerySpec.max()).toList();
+
+        var systemDefinitions = result.stream()
+                .filter(d -> SYSTEM_PARTICIPANT_CTX.equals(d.getParticipantContextId()))
+                .toList();
+        // No unrestricted (plain assetId) grant once access rights are configured.
+        assertThat(systemDefinitions).noneSatisfy(d ->
+                assertThat(d.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId()));
+        // The authorized subject still gets a SYSTEM-scoped, ACL-matching entry.
+        assertThat(systemDefinitions).anySatisfy(d ->
+                assertThat(d.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId()
+                        + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()));
+    }
+
+    @Test
     void findAllEmitsSyntheticManagementCatalogUnderMgmtAndSystemExcludingAuthCertRegFromSystem() {
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -707,6 +734,22 @@ class ContractDefinitionServerConfStoreTest {
         assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX);
         assertThat(result.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId());
         assertThat(result.getAccessPolicyId()).doesNotEndWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
+    }
+
+    @Test
+    void findByIdMgmtServicePlainIdNotGrantedUnderSystemWhenAccessRightsConfigured() {
+        var ep = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, ep);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var contractId = MGMT_SERVICE.asEncodedId() + ContractDefinitionMapper.getContractDefinitionSuffix();
+        var result = store.findById(contractId);
+
+        assertThat(result).isNull();
     }
 
     @Test

@@ -663,6 +663,21 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findByIdMgmtServicePlainIdNotGrantedUnderSystemWhenAccessRightsConfigured() {
+        var ep = new Endpoint("clientReg", "*", "**", true);
+        var arMgmt = createAccessRight(SUBJECT_CLIENT, ep);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var result = store.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void findByIdAuthCertRegNotFoundUnderSystemContext() {
         // authCertReg fails the cheap SYSTEM_SERVICE_CODES check before any globalconf/serverconf
         // lookup runs, so no management-subsystem resolution needs to be stubbed here.

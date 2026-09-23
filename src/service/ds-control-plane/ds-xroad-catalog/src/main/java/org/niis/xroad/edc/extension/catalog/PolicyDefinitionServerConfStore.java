@@ -141,6 +141,13 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
             return null;
         }
+        if (!serverConfProvider.getServiceAccessRights(systemServiceId).isEmpty()) {
+            // Access rights are configured: this plain, unrestricted id must not resolve — the
+            // per-subject compound id (collectPoliciesForService's system-scoped entry) is the
+            // one that carries the actual grant.
+            log.trace("findById policyId={} has configured access rights, plain SYSTEM id not granted", policyId);
+            return null;
+        }
         return toBuiltinPolicyDefinition(policyId, contextIds.system());
     }
 
@@ -262,10 +269,15 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
         }
-        if (serviceContextResolver.isSystemEligible(serviceId)) {
+        var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
+        var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
+        if (systemEligible && accessRights.isEmpty()) {
+            // No admin-configured access rights: keep the service usable federation-wide under
+            // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
+            // rights ARE configured, they must gate SYSTEM the same as every other context —
+            // handled below via the per-subject loop, not here.
             policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), contextIds.system()));
         }
-        var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
             return;
         }
@@ -274,7 +286,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds));
+        if (systemEligible) {
+            resolvedContexts.add(contextIds.system());
+        }
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();
