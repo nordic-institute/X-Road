@@ -49,6 +49,7 @@ REDHAT_BUILD="build/xroad/redhat-el${RHEL_VER}"
 
 mkdir -p build/xroad
 rm -rf "$REDHAT_BUILD"
+rm -f "build/rhel/${RHEL_VER}"/*/*.rpm
 cp -a src/xroad/redhat "$REDHAT_BUILD"
 
 if [[ -z "$SNAPSHOT" ]]; then
