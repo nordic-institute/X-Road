@@ -682,6 +682,56 @@ class DataspaceProvisioningServiceTest {
     }
 
     @Test
+    void readContextStatusReportsTheDidDerivedForAHostContext() {
+        var hostDid = ParticipantIdentifierScheme.hostDid(SS_HOST);
+        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of(hostDid));
+
+        var status = service.readContextStatus(HOST_CONTEXT);
+
+        assertThat(status.intendedDid()).isEqualTo(hostDid);
+        assertThat(status.contextDidMatchesIntended()).isTrue();
+        assertThat(status.identityStatus()).isNull();
+    }
+
+    @Test
+    void readContextStatusFlagsAHostContextWhoseHubDidDrifted() {
+        when(identityHubClient.contextDid(PARTICIPANT_ID))
+                .thenReturn(Optional.of(ParticipantIdentifierScheme.hostDid("ih.other.test:7183")));
+
+        var status = service.readContextStatus(HOST_CONTEXT);
+
+        assertThat(status.contextCreated()).isTrue();
+        assertThat(status.intendedDid()).isEqualTo(ParticipantIdentifierScheme.hostDid(SS_HOST));
+        assertThat(status.contextDidMatchesIntended()).isFalse();
+        assertThat(status.identityStatus()).isNull();
+    }
+
+    @Test
+    void readContextStatusReportsTheBoundDidAsIntendedForAMember() {
+        var bound = boundParticipant(MEMBER, SS_HOST);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(bound));
+        when(identityHubClient.contextDid(MEMBER_CONTEXT.participantId())).thenReturn(Optional.of(Did.parse(bound.getDid())));
+
+        var status = service.readContextStatus(MEMBER_CONTEXT);
+
+        assertThat(status.intendedDid()).isEqualTo(Did.parse(bound.getDid()));
+        assertThat(status.contextDidMatchesIntended()).isTrue();
+        assertThat(status.identityStatus()).isEqualTo(IdentityStatus.OK);
+    }
+
+    @Test
+    void readContextStatusLeavesTheIntendedDidUnknownWhileTheRegisteredAddressIsUnknown() {
+        when(globalConfProvider.getSecurityServerAddress(SERVER_ID)).thenReturn(null);
+        when(identityHubClient.contextDid(PARTICIPANT_ID)).thenReturn(Optional.of(ParticipantIdentifierScheme.hostDid(SS_HOST)));
+
+        var status = service.readContextStatus(HOST_CONTEXT);
+
+        assertThat(status.contextCreated()).isTrue();
+        assertThat(status.intendedDid()).isNull();
+        assertThat(status.contextDidMatchesIntended()).isFalse();
+    }
+
+    @Test
     void ensureParticipantContextThrowsOnHubDidDrift() {
         when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.empty());
         var memberCtxId = ParticipantIdentifierScheme.memberCtxId(MEMBER);

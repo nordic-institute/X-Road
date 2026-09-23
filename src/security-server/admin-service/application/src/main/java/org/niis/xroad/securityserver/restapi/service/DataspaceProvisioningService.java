@@ -141,6 +141,9 @@ public class DataspaceProvisioningService {
      * @param kind             HOST, MANAGEMENT, SYSTEM or MEMBER
      * @param contextDid       the DID the identity hub serves for the participant context;
      *                         {@code null} when the context does not exist there or could not be read
+     * @param intendedDid      the DID this server derives for the participant context today;
+     *                         {@code null} when it cannot be derived (DID authority unknown, unreadable
+     *                         or broken member binding)
      * @param credentialStatus the membership credential state
      * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for HOST
      *                         and MANAGEMENT
@@ -149,11 +152,20 @@ public class DataspaceProvisioningService {
             String participantId,
             ParticipantKind kind,
             @Nullable Did contextDid,
+            @Nullable Did intendedDid,
             CredentialStatus credentialStatus,
             @Nullable IdentityStatus identityStatus
     ) {
         public boolean contextCreated() {
             return contextDid != null;
+        }
+
+        /**
+         * Whether the identity hub serves exactly the DID this server would provision today. False
+         * when the context is missing, when the DID could not be derived, and on DID drift.
+         */
+        public boolean contextDidMatchesIntended() {
+            return contextDid != null && contextDid.equals(intendedDid);
         }
     }
 
@@ -444,6 +456,7 @@ public class DataspaceProvisioningService {
                 ? readOrFallback(participantId, "bound identity",
                         () -> assessMemberIdentity(context.memberId()), UNREADABLE_IDENTITY)
                 : null;
+        var intendedDid = assessment != null ? assessment.intendedDid() : derivedDidOrNull(context);
 
         Optional<Did> hubDid = Optional.empty();
         var credentialStatus = CredentialStatus.UNKNOWN;
@@ -456,8 +469,17 @@ public class DataspaceProvisioningService {
             log.warn("Data space: could not read the participant context DID of {}", participantId, e);
         }
 
-        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), credentialStatus,
-                identityStatusOf(assessment, hubDid));
+        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), intendedDid,
+                credentialStatus, identityStatusOf(assessment, hubDid));
+    }
+
+    @Nullable
+    private Did derivedDidOrNull(ParticipantContext context) {
+        if (!didAuthority.isKnown()) {
+            return null;
+        }
+        return readOrFallback(context.participantId(), "derived DID",
+                () -> didFor(context.kind(), context.memberId()), (Did) null);
     }
 
     private <T> T readOrFallback(String participantId, String what, Supplier<T> read, T fallback) {

@@ -175,9 +175,12 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * or whose SYSTEM member-id re-anchor the identity hub has not confirmed, is skipped in the
      * credential pass of the same tick — see {@link #ensureContexts}.
      *
-     * <p>A context already converged — created, membership credential ISSUED and, for a MEMBER, its
-     * identity OK — gets no identity hub write, no bind and no credential request; only its Control
-     * Plane records are re-applied, because the Control Plane has no status to read. Members are
+     * <p>A context already converged — served by the identity hub under the DID this server derives
+     * today, membership credential ISSUED and, for a MEMBER, its identity OK — gets no identity hub
+     * write, no bind and no credential request; only its Control Plane records are re-applied, because
+     * the Control Plane has no status to read. A context of any kind whose hub DID differs from the
+     * derived one is never converged: it takes the ensure pass, which refuses to touch it and reports
+     * the drift instead of re-applying the stale DID. Members are
      * bound only after their participant context has been ensured, so the DID written to
      * {@code ds_participant} is one the identity hub has just confirmed or been created with. A
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
@@ -250,7 +253,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     }
 
     private static boolean converged(ParticipantContextStatus status) {
-        return status.contextCreated()
+        return status.contextDidMatchesIntended()
                 && status.credentialStatus() == ISSUED
                 && (status.identityStatus() == null || status.identityStatus() == OK);
     }

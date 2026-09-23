@@ -92,6 +92,7 @@ class DataspaceParticipantProvisioningWorkerTest {
     private DataspaceParticipantBindingService participantBindingService;
 
     private static final Did HUB_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
+    private static final Did DRIFTED_INTENDED_DID = Did.parse("did:web:ss.moved.test%3A7183:xrd-ss0");
 
     private static final ParticipantContextStatus NOT_CONVERGED =
             statusOf(false, CredentialStatus.ABSENT, null);
@@ -115,7 +116,7 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
             IdentityStatus identityStatus) {
-        return new ParticipantContextStatus("irrelevant", ParticipantKind.HOST, contextCreated ? HUB_DID : null,
+        return new ParticipantContextStatus("irrelevant", ParticipantKind.HOST, contextCreated ? HUB_DID : null, HUB_DID,
                 credentialStatus, identityStatus);
     }
 
@@ -327,6 +328,19 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(eq(MEMBER_CONTEXT), any());
         verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
         verify(dataspaceProvisioningService, never()).ensureParticipantContext(HOST_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantEnsuresAHostContextWhoseHubDidDriftedInsteadOfReapplyingIt() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT)).thenReturn(new ParticipantContextStatus(
+                HOST_ID, ParticipantKind.HOST, HUB_DID, DRIFTED_INTENDED_DID, CredentialStatus.ISSUED, null));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(any(), any());
     }
 
     @Test
