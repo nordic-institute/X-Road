@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.e2e;
 
+import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.e2e.container.SsStackSetup;
@@ -47,6 +48,16 @@ class AdminApi {
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
     private static final int HTTP_OK = 200;
+    private static final int HTTP_LAST_SUCCESS = 299;
+
+    /** ss0's own {@code TestService} subsystem and its self-accessible {@code mock1} REST service. */
+    static final String MOCK1_CLIENT_ID = "DEV:COM:1234:TestService";
+    static final String MOCK1_SERVICE_CODE = "mock1";
+    static final String MOCK1_X_ROAD_CLIENT = "DEV/COM/1234/TestService";
+    static final String MOCK1_SERVICE_PATH = "/r1/DEV/COM/1234/TestService/mock1";
+    static final String MOCK1_REQUEST_BODY = """
+            {"data": 1.0, "service": "random"}
+            """;
 
     /** The mapped {@code https://host:port} of one environment's admin UI container. */
     static String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -69,6 +80,42 @@ class AdminApi {
         return RestAssuredFactory.given()
                 .cookies(session.cookies())
                 .header("X-XSRF-TOKEN", session.xsrfToken());
+    }
+
+    /** Finds the id of the service description backing {@code clientId}'s {@code serviceCode} service. */
+    static String findServiceDescriptionId(String ss0BaseUrl, AdminSession ss0, String clientId, String serviceCode) {
+        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
+        assertThat(response.getStatusCode()).as("list service descriptions for %s", clientId).isEqualTo(HTTP_OK);
+
+        var id = response.jsonPath().getString(
+                "find { it.services.find { s -> s.service_code == '" + serviceCode + "' } != null }.id");
+        assertThat(id)
+                .as("a service description for %s exposing service code %s", clientId, serviceCode)
+                .isNotBlank();
+        return id;
+    }
+
+    /**
+     * Enables the service description. {@code ServiceDescriptionService.toggleServices} has no
+     * already-enabled check and unconditionally flips the disabled flag, so calling it again on an
+     * already-enabled description is a plain, idempotent 200.
+     */
+    static void enableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
+        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/enable");
+        assertThat(response.getStatusCode())
+                .as("enable service description %s", serviceDescriptionId)
+                .isBetween(HTTP_OK, HTTP_LAST_SUCCESS);
+    }
+
+    /** Sends the {@code mock1} REST POST as {@link #MOCK1_X_ROAD_CLIENT} to {@code envName}'s mapped proxy. */
+    static ValidatableResponse callMock1(E2eEnvironment env, String envName) {
+        var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
+        return RestAssuredFactory.given()
+                .body(MOCK1_REQUEST_BODY)
+                .header("Content-Type", "application/json")
+                .header("x-road-client", MOCK1_X_ROAD_CLIENT)
+                .post("http://%s:%s%s".formatted(mapping.host(), mapping.port(), MOCK1_SERVICE_PATH))
+                .then();
     }
 
     /** One logged-in admin session: the cookies to replay and the XSRF token to echo back. */

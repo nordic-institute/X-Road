@@ -76,15 +76,17 @@ class ServiceContextResolver {
     private final ParticipantContextService participantContextService;
 
     /**
-     * The contexts an enabled service is published under, besides its always-present
-     * management-context copy: the legacy host context first — or the management context, for the
-     * MANAGEMENT subsystem's own service — followed by the owning member's context if one is
-     * provisioned. The first entry is always the legacy publication context.
+     * The contexts a service is published under, besides its always-present management-context
+     * copy: the legacy host context first — or the management context, for the MANAGEMENT
+     * subsystem's own service — followed by the owning member's context if one is provisioned.
+     * The first entry is always the legacy publication context. Disabled and enabled services
+     * resolve identically; a service's enabled state is never consulted here — only the
+     * provider's per-message refusal, downstream of this resolution, differs.
      *
      * @param serviceId the service to resolve contexts for
      * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
      */
-    List<String> resolveEnabled(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
+    List<String> resolveContexts(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
         var contexts = new ArrayList<String>(2);
         contexts.add(legacyPublicationContextId(serviceId));
         memberContextId(serviceId.getClientId(), provisionedMemberContextIds).ifPresent(contexts::add);
@@ -92,14 +94,14 @@ class ServiceContextResolver {
     }
 
     /**
-     * Same contract as {@link #resolveEnabled(ServiceId, Set)}, for the by-id cache-miss path: tests
+     * Same contract as {@link #resolveContexts(ServiceId, Set)}, for the by-id cache-miss path: tests
      * the owning member's ctx-id with a single direct {@link ParticipantContextService#getParticipantContext}
      * lookup instead of requiring the full {@link #provisionedMemberContextIds()} enumeration — a
      * by-id lookup only ever needs to know about the one ctx-id it can derive from the service.
      *
      * @param serviceId the service to resolve contexts for
      */
-    List<String> resolveEnabledById(ServiceId serviceId) {
+    List<String> resolveContextsById(ServiceId serviceId) {
         var contexts = new ArrayList<String>(2);
         contexts.add(legacyPublicationContextId(serviceId));
         memberContextIdById(serviceId.getClientId()).ifPresent(contexts::add);
@@ -107,36 +109,9 @@ class ServiceContextResolver {
     }
 
     /**
-     * The full publication decision for a service: the contexts it is published under, and whether
-     * a transfer for it may resolve a data address. Disabled and enabled services publish
-     * identically — a service's enabled state never varies {@code contexts}, and
-     * {@code transferEligible} is currently always {@code true} — so a disabled service stays
-     * discoverable and reachable exactly like an enabled one; only the provider's per-message
-     * refusal, downstream of this decision, differs.
-     *
-     * @param serviceId the service to resolve a publication decision for
-     * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}
-     */
-    Publication publicationDecision(ServiceId serviceId, Set<String> provisionedMemberContextIds) {
-        return new Publication(resolveEnabled(serviceId, provisionedMemberContextIds), true);
-    }
-
-    /**
-     * Same contract as {@link #publicationDecision(ServiceId, Set)}, for the by-id cache-miss path.
-     *
-     * @param serviceId the service to resolve a publication decision for
-     */
-    Publication publicationDecisionById(ServiceId serviceId) {
-        return new Publication(resolveEnabledById(serviceId), true);
-    }
-
-    /** The contexts a service is published under, and whether a transfer for it may resolve a data address. */
-    record Publication(List<String> contexts, boolean transferEligible) { }
-
-    /**
      * Picks the record matching the request's addressed context, if it is one of
      * {@code resolvedContexts}; otherwise falls back to the legacy host context, which by
-     * {@link #resolveEnabled(ServiceId, Set)}'s contract is always the first entry.
+     * {@link #resolveContexts(ServiceId, Set)}'s contract is always the first entry.
      */
     static String select(List<String> resolvedContexts, @Nullable String requestedParticipantContextId) {
         if (requestedParticipantContextId != null && resolvedContexts.contains(requestedParticipantContextId)) {

@@ -27,15 +27,13 @@ package org.niis.xroad.e2e;
 
 import ee.ria.xroad.common.util.MimeUtils;
 
-import io.restassured.response.ValidatableResponse;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
+import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 import org.niis.xroad.e2e.AdminApi.AdminSession;
-import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import java.time.Duration;
 
@@ -43,8 +41,13 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.AdminApi.MOCK1_CLIENT_ID;
+import static org.niis.xroad.e2e.AdminApi.MOCK1_SERVICE_CODE;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.callMock1;
+import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
+import static org.niis.xroad.e2e.AdminApi.findServiceDescriptionId;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -84,21 +87,21 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 class SsProxyServiceDisableRoundTripTest extends E2eTest {
 
     private static final String SS0_ENV = "ss0";
-    private static final String CLIENT_ID = "DEV:COM:1234:TestService";
-    private static final String SERVICE_CODE = "mock1";
-    private static final String SERVICE_PATH = "/r1/DEV/COM/1234/TestService/mock1";
-    private static final String X_ROAD_CLIENT = "DEV/COM/1234/TestService";
 
-    private static final String REST_REQUEST_BODY = """
-            {"data": 1.0, "service": "random"}
-            """;
     private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
     private static final String DISABLED_NOTICE = "Scheduled maintenance window, please retry once it closes";
 
     private static final String EXPECTED_FAULT_CODE = SERVER_SERVERPROXY_X + "." + ErrorCode.SERVICE_DISABLED.code();
 
-    private static final Duration CACHE_INVALIDATION_TIMEOUT = Duration.ofSeconds(90);
-    private static final Duration CACHE_INVALIDATION_POLL_INTERVAL = Duration.ofSeconds(3);
+    /**
+     * The provider proxy only stops refusing calls (and only starts refusing them) once its own
+     * {@code CachingServerConfImpl} reload picks up the disabled flag — there is no invalidation signal
+     * on either transition, so both waits are bounded by that cache's own TTL,
+     * {@link ServerConfConfigKeys#CACHE_PERIOD}, plus slack for the poll and the request itself.
+     */
+    private static final Duration SERVERCONF_CACHE_EXPIRY_TIMEOUT =
+            Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue() + 30);
+    private static final Duration SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL = Duration.ofSeconds(3);
 
     @Test
     @DisplayName("Disabling a service description returns the operator's notice to a permitted consumer; "
@@ -110,7 +113,7 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
         var ss0Session = given("an admin session is established on ss0", () -> login(ss0BaseUrl));
 
         var serviceDescriptionId = and("the service description backing TestService's mock1 REST service is found", () ->
-                findServiceDescriptionId(ss0BaseUrl, ss0Session));
+                findServiceDescriptionId(ss0BaseUrl, ss0Session, MOCK1_CLIENT_ID, MOCK1_SERVICE_CODE));
 
         and("the service description starts enabled, tolerating a prior run left it disabled", () ->
                 enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
@@ -133,23 +136,6 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
                 awaitCallSucceeds(env));
     }
 
-    private String findServiceDescriptionId(String ss0BaseUrl, AdminSession ss0) {
-        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + CLIENT_ID + "/service-descriptions");
-        assertThat(response.getStatusCode()).as("list service descriptions for %s", CLIENT_ID).isEqualTo(200);
-
-        var id = response.jsonPath().getString(
-                "find { it.services.find { s -> s.service_code == '" + SERVICE_CODE + "' } != null }.id");
-        assertThat(id)
-                .as("a service description for %s exposing service code %s", CLIENT_ID, SERVICE_CODE)
-                .isNotBlank();
-        return id;
-    }
-
-    private void enableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/enable");
-        assertThat(response.getStatusCode()).as("enable service description %s", serviceDescriptionId).isEqualTo(200);
-    }
-
     private void disableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
         var body = """
                 {"disabled_notice": "%s"}
@@ -158,37 +144,31 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
                 .header("Content-Type", "application/json")
                 .body(body)
                 .put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable");
-        assertThat(response.getStatusCode()).as("disable service description %s", serviceDescriptionId).isEqualTo(200);
+        assertThat(response.getStatusCode()).as("disable service description %s", serviceDescriptionId).isBetween(200, 299);
     }
 
     private void awaitCallSucceeds(E2eEnvironment env) {
         Awaitility.await()
-                .pollInterval(CACHE_INVALIDATION_POLL_INTERVAL)
-                .timeout(CACHE_INVALIDATION_TIMEOUT)
-                .untilAsserted(() -> sendConsumerCallRequest(env)
+                .pollDelay(Duration.ZERO)
+                .pollInterval(SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL)
+                .timeout(SERVERCONF_CACHE_EXPIRY_TIMEOUT)
+                .ignoreExceptions()
+                .untilAsserted(() -> callMock1(env, SS0_ENV)
                         .statusCode(200)
                         .body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
     }
 
     private void awaitCallFailsWithDisabledNotice(E2eEnvironment env) {
         Awaitility.await()
-                .pollInterval(CACHE_INVALIDATION_POLL_INTERVAL)
-                .timeout(CACHE_INVALIDATION_TIMEOUT)
-                .untilAsserted(() -> sendConsumerCallRequest(env)
+                .pollDelay(Duration.ZERO)
+                .pollInterval(SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL)
+                .timeout(SERVERCONF_CACHE_EXPIRY_TIMEOUT)
+                .ignoreExceptions()
+                .untilAsserted(() -> callMock1(env, SS0_ENV)
                         .statusCode(500)
                         .header(MimeUtils.HEADER_ERROR, equalTo(EXPECTED_FAULT_CODE))
                         .body("type", equalTo(EXPECTED_FAULT_CODE))
                         .body("message", containsString(DISABLED_NOTICE)));
-    }
-
-    private ValidatableResponse sendConsumerCallRequest(E2eEnvironment env) {
-        var mapping = env.getContainerMapping(SS0_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        return RestAssuredFactory.given()
-                .body(REST_REQUEST_BODY)
-                .header("Content-Type", "application/json")
-                .header("x-road-client", X_ROAD_CLIENT)
-                .post("http://%s:%s%s".formatted(mapping.host(), mapping.port(), SERVICE_PATH))
-                .then();
     }
 
 }

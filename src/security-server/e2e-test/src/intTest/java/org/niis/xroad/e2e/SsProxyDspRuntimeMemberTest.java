@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -588,17 +589,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 .as("an existing service description for %s with backend url %s", clientId, backendUrl)
                 .isNotBlank();
         return id;
-    }
-
-    /**
-     * Enables the service description. Unlike the earlier steps, this one needs no rerun tolerance:
-     * {@code ServiceDescriptionService.toggleServices} has no already-enabled check and unconditionally
-     * flips the disabled flag, so calling it again on an already-enabled description is a plain,
-     * idempotent 200.
-     */
-    private void enableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/enable");
-        assertThat(response.getStatusCode()).as("enable service description %s", serviceDescriptionId).isEqualTo(200);
     }
 
     /**

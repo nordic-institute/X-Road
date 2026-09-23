@@ -133,7 +133,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     @Test
     void contractNegotiationRefusedForUnauthorizedConsumerIndistinguishablyFromEnabledService() {
-        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.serviceExists(ENABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
@@ -152,7 +151,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     @Test
     void policyNegotiationRefusedForUnauthorizedConsumerIndistinguishablyFromEnabledService() {
-        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.serviceExists(ENABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
@@ -171,7 +169,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     @Test
     void authorizedConsumerStillNegotiatesContractDefinitionForDisabledService() {
-        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
                 createAccessRight(AUTHORIZED_SUBJECT, new Endpoint("svcDisabled", "GET", "/api/data", false))));
@@ -184,7 +181,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     @Test
     void authorizedConsumerStillNegotiatesPolicyForDisabledService() {
-        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(
                 createAccessRight(AUTHORIZED_SUBJECT, new Endpoint("svcDisabled", "GET", "/api/data", false))));
@@ -197,7 +193,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     @Test
     void findAllProducesIdenticalEmptyPerSubjectSetForDisabledAndEnabledServiceWithNoAccessRights() {
-        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER));
         when(serverConfProvider.getAllServices(MEMBER)).thenReturn(List.of(DISABLED_SERVICE, ENABLED_SERVICE));
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of());
@@ -214,7 +209,6 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
     @Test
     void noPublishedArtifactForDisabledServiceCarriesTheDisabledNoticeText() {
-        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         when(serverConfProvider.getMembers()).thenReturn(List.of(MEMBER));
         when(serverConfProvider.getAllServices(MEMBER)).thenReturn(List.of(DISABLED_SERVICE));
         when(serverConfProvider.getServiceAccessRights(DISABLED_SERVICE)).thenReturn(List.of(

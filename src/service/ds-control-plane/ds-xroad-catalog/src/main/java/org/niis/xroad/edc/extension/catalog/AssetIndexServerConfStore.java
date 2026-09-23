@@ -90,8 +90,8 @@ class AssetIndexServerConfStore implements AssetIndex {
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
-                var publication = serviceContextResolver.publicationDecision(serviceId, provisionedMemberContextIds);
-                for (var ctxId : publication.contexts()) {
+                var contexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
+                for (var ctxId : contexts) {
                     assets.add(AssetMapper.toAsset(serviceId, ctxId));
                 }
             }
@@ -151,7 +151,7 @@ class AssetIndexServerConfStore implements AssetIndex {
     /**
      * Every service also carries an owner-only copy under the management context (added
      * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
-     * selection target here, in addition to whatever {@link ServiceContextResolver#publicationDecision}
+     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveContextsById}
      * resolves for the service itself.
      */
     private String selectContextId(ServiceId serviceId) {
@@ -159,7 +159,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         if (contextIds.management().equals(requested)) {
             return contextIds.management();
         }
-        var resolvedContexts = serviceContextResolver.publicationDecisionById(serviceId).contexts();
+        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
         return ServiceContextResolver.select(resolvedContexts, requested);
     }
 
@@ -186,10 +186,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
             log.trace("resolveForAsset assetId={} decode failed, returning null", assetId);
-            return null;
-        }
-        if (!serviceContextResolver.publicationDecisionById(serviceId).transferEligible()) {
-            log.trace("resolveForAsset assetId={} not transfer-eligible, returning null", assetId);
             return null;
         }
         String serviceAddress;

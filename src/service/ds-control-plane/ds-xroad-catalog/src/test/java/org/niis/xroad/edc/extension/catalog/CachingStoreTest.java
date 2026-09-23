@@ -307,6 +307,7 @@ class CachingStoreTest {
 
     @Test
     void resolveForAssetNullNotCached() {
+        when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(null);
         var store = buildStore(withCache);
 
         var r1 = store.resolveForAsset(SERVICE_1.asEncodedId());

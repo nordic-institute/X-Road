@@ -81,7 +81,7 @@ class AssetIndexServerConfStoreTest {
 
     private AssetIndexServerConfStore assetIndex;
 
-    // Test data: 2 members, member1 has 2 services (1 disabled), member2 has 1 service
+    // Test data: 2 members, member1 has 2 services, member2 has 1 service
     private static final ClientId.Conf MEMBER_1 = ClientId.Conf.create("DEV", "GOV", "1111", "SubsystemA");
     private static final ClientId.Conf MEMBER_2 = ClientId.Conf.create("DEV", "COM", "2222", "SubsystemB");
     // MANAGEMENT subsystem client — matches globalConfProvider.getManagementRequestService()
@@ -123,7 +123,7 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
-    void queryAssetsReturnsEnabledServicesAcrossMultipleMembers() {
+    void queryAssetsReturnsServicesAcrossMultipleMembers() {
         setupMembersAndServices();
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
@@ -136,7 +136,6 @@ class AssetIndexServerConfStoreTest {
     @Test
     void queryAssetsPublishesDisabledServiceUnderSameContextsAsEnabled() {
         setupMembersAndServices();
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_2)).thenReturn("Maintenance");
 
         var result = assetIndex.queryAssets(QuerySpec.max()).toList();
 
@@ -282,7 +281,6 @@ class AssetIndexServerConfStoreTest {
     @Test
     @SuppressWarnings("deprecation")
     void resolveForAssetResolvesAddressForDisabledService() {
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
         when(serverConfProvider.getServiceAddress(SERVICE_1)).thenReturn(SERVICE_1_ADDRESS);
 
         var result = assetIndex.resolveForAsset(SERVICE_1.asEncodedId());
@@ -384,6 +382,17 @@ class AssetIndexServerConfStoreTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
+    }
+
+    @Test
+    void findByIdReturnsManagementContextForRegularServiceWhenManagementContextRequested() {
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        requestedParticipantContext.set(MGMT_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(SERVICE_1.asEncodedId());
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(MGMT_PARTICIPANT_CONTEXT_ID);
@@ -522,7 +531,6 @@ class AssetIndexServerConfStoreTest {
     @Test
     void findByIdResolvesRegularContextForDisabledService() {
         when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
-        lenient().when(serverConfProvider.getDisabledNotice(SERVICE_1)).thenReturn("Maintenance");
 
         var result = assetIndex.findById(SERVICE_1.asEncodedId());
 

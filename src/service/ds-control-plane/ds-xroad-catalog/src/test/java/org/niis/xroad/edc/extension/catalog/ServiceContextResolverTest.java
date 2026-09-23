@@ -41,10 +41,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.AccessRight;
-import org.niis.xroad.serverconf.model.Endpoint;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -52,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,15 +89,15 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveEnabledReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of());
+    void resolveContextsReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of());
 
         assertThat(result).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveEnabledIncludesOwningMemberContextWhenProvisioned() {
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
+    void resolveContextsIncludesOwningMemberContextWhenProvisioned() {
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
@@ -110,7 +106,7 @@ class ServiceContextResolverTest {
     void subsystemScopedServiceCollapsesToOwningMemberContextNeverASubsystemDerivedOne() {
         var subsystemDerivedCtx = MEMBER_CTX + ":not-a-real-member-ctx";
 
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
@@ -119,7 +115,7 @@ class ServiceContextResolverTest {
     void managementRequestServiceLegacyPublicationContextIsManagementNotHost() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
-        var result = resolver().resolveEnabled(MGMT_SERVICE, Set.of());
+        var result = resolver().resolveContexts(MGMT_SERVICE, Set.of());
 
         assertThat(result).containsExactly(MGMT_CTX);
     }
@@ -172,162 +168,51 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveEnabledByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.notFound("no such context"));
 
-        var result = resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+        var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
         assertThat(result).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveEnabledByIdIncludesOwningMemberContextWhenProvisioned() {
+    void resolveContextsByIdIncludesOwningMemberContextWhenProvisioned() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
-        var result = resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+        var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
 
     @Test
-    void resolveEnabledByIdDoesNotPerformFullEnumeration() {
+    void resolveContextsByIdDoesNotPerformFullEnumeration() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.notFound("no such context"));
 
-        resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+        resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
         verify(participantContextService, never()).search(any());
     }
 
     @Test
-    void resolveEnabledByIdPropagatesOnUnexpectedFailure() {
+    void resolveContextsByIdPropagatesOnUnexpectedFailure() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.unexpected("boom"));
 
-        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+        assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
-    void resolveEnabledByIdPropagatesWhenServiceThrows() {
+    void resolveContextsByIdPropagatesWhenServiceThrows() {
         when(participantContextService.getParticipantContext(eq(MEMBER_CTX)))
                 .thenThrow(new IllegalStateException("boom"));
 
-        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+        assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
                 .isInstanceOf(XrdRuntimeException.class);
-    }
-
-    // --- publicationDecision / publicationDecisionById ---
-
-    @Test
-    void publicationDecisionContextsMatchResolveEnabledWhenMemberContextNotProvisioned() {
-        var result = resolver().publicationDecision(SUBSYSTEM_SERVICE, Set.of());
-
-        assertThat(result.contexts()).containsExactly(HOST_CTX);
-        assertThat(result.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionContextsMatchResolveEnabledWhenMemberContextProvisioned() {
-        var result = resolver().publicationDecision(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
-
-        assertThat(result.contexts()).containsExactly(HOST_CTX, MEMBER_CTX);
-        assertThat(result.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionIsIdenticalForEnabledServiceRegardlessOfAccessRights() {
-        lenient().when(serverConfProvider.getDisabledNotice(SUBSYSTEM_SERVICE)).thenReturn(null);
-        var resolver = resolver();
-
-        lenient().when(serverConfProvider.getServiceAccessRights(SUBSYSTEM_SERVICE)).thenReturn(List.of());
-        var noAccessRights = resolver.publicationDecision(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
-
-        lenient().when(serverConfProvider.getServiceAccessRights(SUBSYSTEM_SERVICE)).thenReturn(nonEmptyAcl());
-        var withAccessRights = resolver.publicationDecision(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
-
-        assertThat(noAccessRights).isEqualTo(withAccessRights);
-        assertThat(noAccessRights.contexts()).containsExactly(HOST_CTX, MEMBER_CTX);
-        assertThat(noAccessRights.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionIsIdenticalForDisabledServiceRegardlessOfAccessRights() {
-        lenient().when(serverConfProvider.getDisabledNotice(SUBSYSTEM_SERVICE)).thenReturn("Maintenance");
-        var resolver = resolver();
-
-        lenient().when(serverConfProvider.getServiceAccessRights(SUBSYSTEM_SERVICE)).thenReturn(List.of());
-        var noAccessRights = resolver.publicationDecision(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
-
-        lenient().when(serverConfProvider.getServiceAccessRights(SUBSYSTEM_SERVICE)).thenReturn(nonEmptyAcl());
-        var withAccessRights = resolver.publicationDecision(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
-
-        assertThat(noAccessRights).isEqualTo(withAccessRights);
-        assertThat(noAccessRights.contexts()).containsExactly(HOST_CTX, MEMBER_CTX);
-        assertThat(noAccessRights.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionIsIdenticalForDisabledAndEnabledServiceWhenMemberContextNotProvisioned() {
-        lenient().when(serverConfProvider.getServiceAccessRights(SUBSYSTEM_SERVICE)).thenReturn(nonEmptyAcl());
-        var resolver = resolver();
-
-        lenient().when(serverConfProvider.getDisabledNotice(SUBSYSTEM_SERVICE)).thenReturn(null);
-        var enabled = resolver.publicationDecision(SUBSYSTEM_SERVICE, Set.of());
-
-        lenient().when(serverConfProvider.getDisabledNotice(SUBSYSTEM_SERVICE)).thenReturn("Maintenance");
-        var disabled = resolver.publicationDecision(SUBSYSTEM_SERVICE, Set.of());
-
-        assertThat(disabled).isEqualTo(enabled);
-        assertThat(disabled.contexts()).containsExactly(HOST_CTX);
-        assertThat(disabled.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionByIdContextsMatchResolveEnabledByIdWhenMemberContextNotProvisioned() {
-        when(participantContextService.getParticipantContext(MEMBER_CTX))
-                .thenReturn(ServiceResult.notFound("no such context"));
-
-        var result = resolver().publicationDecisionById(SUBSYSTEM_SERVICE);
-
-        assertThat(result.contexts()).containsExactly(HOST_CTX);
-        assertThat(result.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionByIdContextsMatchResolveEnabledByIdWhenMemberContextProvisioned() {
-        when(participantContextService.getParticipantContext(MEMBER_CTX))
-                .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
-
-        var result = resolver().publicationDecisionById(SUBSYSTEM_SERVICE);
-
-        assertThat(result.contexts()).containsExactly(HOST_CTX, MEMBER_CTX);
-        assertThat(result.transferEligible()).isTrue();
-    }
-
-    @Test
-    void publicationDecisionByIdIsIdenticalForDisabledAndEnabledService() {
-        when(participantContextService.getParticipantContext(MEMBER_CTX))
-                .thenReturn(ServiceResult.notFound("no such context"));
-        var resolver = resolver();
-
-        lenient().when(serverConfProvider.getDisabledNotice(SUBSYSTEM_SERVICE)).thenReturn(null);
-        var enabled = resolver.publicationDecisionById(SUBSYSTEM_SERVICE);
-
-        lenient().when(serverConfProvider.getDisabledNotice(SUBSYSTEM_SERVICE)).thenReturn("Maintenance");
-        var disabled = resolver.publicationDecisionById(SUBSYSTEM_SERVICE);
-
-        assertThat(disabled).isEqualTo(enabled);
-    }
-
-    private static List<AccessRight> nonEmptyAcl() {
-        var ar = new AccessRight();
-        ar.setSubjectId(ClientId.Conf.create("DEV", "GOV", "9999", "Consumer"));
-        ar.setEndpoint(new Endpoint("svc", "GET", "/", false));
-        ar.setRightsGiven(new Date());
-        return List.of(ar);
     }
 
     @Test

@@ -215,7 +215,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         if (matchedEntries == null || matchedEntries.isEmpty()) {
             return null;
         }
-        var resolvedContexts = serviceContextResolver.publicationDecisionById(serviceId).contexts();
+        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return ContractDefinitionMapper.toContractDefinition(serviceId, matchedEntries.getFirst().getSubjectId(), ctxId);
     }
@@ -235,7 +235,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = serviceContextResolver.publicationDecision(serviceId, provisionedMemberContextIds).contexts();
+        var resolvedContexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();
