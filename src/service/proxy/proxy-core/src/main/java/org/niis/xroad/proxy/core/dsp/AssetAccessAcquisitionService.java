@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.proxy.core.dsp;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
+import jakarta.annotation.Nullable;
 /**
  * Acquires asset access responses from the DSP control plane.
  * <p>
@@ -41,8 +44,9 @@ public interface AssetAccessAcquisitionService {
      * @param assetId              the asset identifier for the data transfer
      * @param counterPartyId       the provider participant identifier
      * @param counterPartyAddress  the provider's DSP protocol address
+     * @param consumerClientId     the calling client, subsystem included; {@code null} when the request states none
      * @return the parsed asset access response containing the dataplane endpoint URL
      */
     AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                           String counterPartyAddress);
+                                           String counterPartyAddress, @Nullable ClientId consumerClientId);
 }

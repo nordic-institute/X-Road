@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
+import jakarta.annotation.Nullable;
 import jakarta.json.Json;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
@@ -43,6 +44,11 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.Constraint;
+import org.eclipse.edc.policy.model.Expression;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
@@ -58,10 +64,12 @@ import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
+import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -97,14 +105,20 @@ public class AssetAccessOrchestrator {
     private final Duration transferTimeout;
 
     /**
-     * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+counterparty key.
+     * Acquires access to an asset, de-duplicating concurrent requests for the same
+     * participant+asset+counterparty(+client) key.
      */
     public CompletableFuture<ServiceResult<DataAddress>> acquireAssetAccess(ParticipantContext participantContext,
                                                                             AssetAccessRequest request) {
-        var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
+        var key = registryKey(participantContext, request);
         monitor.info("%s acquireAssetAccess entered: counterPartyAddress=%s protocol=%s"
                 .formatted(key, request.counterPartyAddress(), request.protocolOrDefault()));
         return stateStore.loadOrStartInFlight(key, () -> buildAcquisitionFuture(key, participantContext, request));
+    }
+
+    private static String registryKey(ParticipantContext participantContext, AssetAccessRequest request) {
+        var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
+        return request.clientId() == null ? key : key + "::" + request.clientId();
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
@@ -123,7 +137,7 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(
             ParticipantContext participantContext, AssetAccessRequest request, String registryKey) {
         return fetchCatalog(registryKey, participantContext, request)
-                .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId()))
+                .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId(), request.clientId()))
                 .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
                         .thenApply(agreement -> {
                             stateStore.recordAgreement(registryKey, agreement, offer.transferType());
@@ -187,7 +201,7 @@ public class AssetAccessOrchestrator {
         }
     }
 
-    private OfferContext findOffer(String key, Catalog catalog, String assetId) {
+    private OfferContext findOffer(String key, Catalog catalog, String assetId, @Nullable String clientId) {
         var dataset = catalog.getDatasets().stream()
                 .filter(ds -> assetId.equals(ds.getId()))
                 .findFirst()
@@ -203,7 +217,7 @@ public class AssetAccessOrchestrator {
                     .build();
         }
 
-        var firstOffer = dataset.getOffers().entrySet().iterator().next();
+        var offer = selectOffer(dataset.getOffers(), clientId);
 
         var transferType = dataset.getDistributions().stream()
                 .map(Distribution::getFormat)
@@ -214,9 +228,47 @@ public class AssetAccessOrchestrator {
                         .metadataItems(assetId)
                         .build());
 
-        monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s"
-                .formatted(key, assetId, firstOffer.getKey(), transferType));
-        return new OfferContext(firstOffer.getKey(), firstOffer.getValue(), dataset, transferType);
+        monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s namesClient=%s"
+                .formatted(key, assetId, offer.getKey(), transferType,
+                        clientId != null && grantsClient(offer.getValue(), clientId)));
+        return new OfferContext(offer.getKey(), offer.getValue(), dataset, transferType);
+    }
+
+    /**
+     * Prefers the offer whose client constraint names the calling client; the provider publishes one
+     * offer per ACL subject, so a subsystem with its own entry has its own offer. Falls back to the
+     * first offer when the client is unknown or has no offer of its own.
+     */
+    private static Map.Entry<String, Policy> selectOffer(Map<String, Policy> offers, @Nullable String clientId) {
+        var first = offers.entrySet().iterator().next();
+        if (clientId == null) {
+            return first;
+        }
+        return offers.entrySet().stream()
+                .filter(entry -> grantsClient(entry.getValue(), clientId))
+                .findFirst()
+                .orElse(first);
+    }
+
+    private static boolean grantsClient(Policy policy, String clientId) {
+        return policy.getPermissions().stream()
+                .flatMap(permission -> permission.getConstraints().stream())
+                .anyMatch(constraint -> namesClient(constraint, clientId));
+    }
+
+    private static boolean namesClient(Constraint constraint, String clientId) {
+        if (constraint instanceof AtomicConstraint atomic) {
+            return isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
+                    && isLiteral(atomic.getRightExpression(), clientId);
+        }
+        if (constraint instanceof MultiplicityConstraint multiplicity) {
+            return multiplicity.getConstraints().stream().anyMatch(child -> namesClient(child, clientId));
+        }
+        return false;
+    }
+
+    private static boolean isLiteral(Expression expression, String value) {
+        return expression instanceof LiteralExpression literal && value.equals(literal.getValue());
     }
 
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,

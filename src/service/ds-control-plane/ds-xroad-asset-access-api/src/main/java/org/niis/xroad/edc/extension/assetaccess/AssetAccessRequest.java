@@ -27,13 +27,19 @@
 
 package org.niis.xroad.edc.extension.assetaccess;
 
+import jakarta.annotation.Nullable;
 import org.niis.xroad.ds.identity.DspConventions;
 
+/**
+ * @param clientId encoded id of the consumer client (subsystem) the access is acquired for;
+ *                 {@code null} when the caller states none
+ */
 public record AssetAccessRequest(
         String assetId,
         String counterPartyId,
         String counterPartyAddress,
-        String protocol
+        String protocol,
+        @Nullable String clientId
 ) {
     public String protocolOrDefault() {
         return protocol != null ? protocol : DspConventions.DSP_PROFILE_ID;

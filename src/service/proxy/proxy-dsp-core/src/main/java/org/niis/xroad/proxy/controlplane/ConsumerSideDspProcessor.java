@@ -143,7 +143,8 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
                     continue;
                 }
                 return assetAccessAcquisitionService.acquireAssetAccess(
-                        participantContextId, assetId, target.counterPartyId().toString(), target.counterPartyAddress());
+                        participantContextId, assetId, target.counterPartyId().toString(), target.counterPartyAddress(),
+                        requestForcesMgmtCtx ? null : request.sender());
             } catch (RuntimeException ex) {
                 log.warn("Acquire failed for SS {} (address {}), trying next",
                         candidate.serverId(), candidate.hostAddress(), ex);
