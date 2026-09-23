@@ -29,7 +29,6 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.apicatalog.did.Did;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
@@ -39,6 +38,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningServic
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -69,7 +69,7 @@ import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisionin
 @Component
 @RequiredArgsConstructor
 @Conditional(DataspaceParticipantProvisioningWorker.IsActive.class)
-public final class DataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningTrigger {
+public final class DataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningTrigger, DisposableBean {
 
     static final int INITIAL_DELAY_MS = 30000;
     private static final long SHUTDOWN_GRACE_SECONDS = 10;
@@ -134,8 +134,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         }
     }
 
-    @PreDestroy
-    void shutdown() throws InterruptedException {
+    @Override
+    public void destroy() throws InterruptedException {
         dispatcher.shutdown();
         if (!dispatcher.awaitTermination(SHUTDOWN_GRACE_SECONDS, TimeUnit.SECONDS)) {
             dispatcher.shutdownNow();
