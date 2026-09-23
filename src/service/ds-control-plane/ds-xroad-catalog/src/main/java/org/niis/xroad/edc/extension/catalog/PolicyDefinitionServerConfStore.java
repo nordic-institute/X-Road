@@ -116,15 +116,32 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         return result;
     }
 
-    /** The SYSTEM-context owner-only policy {@code policyId} names, if one is published there. */
+    /**
+     * The SYSTEM-context policy {@code policyId} names, if one is published there — either the
+     * owner-only synthetic form, or the unrestricted form for a real, SYSTEM-eligible management
+     * service (accessible to any federation member, not just the owner).
+     */
     @Nullable
     private PolicyDefinition findSystemPolicyDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
-        if (serviceId == null) {
+        var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+        if (ownerOnlyServiceId != null) {
+            if (serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    && serverConfProvider.getDisabledNotice(ownerOnlyServiceId) != null) {
+                log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
+                return null;
+            }
+            return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(), contextIds.system());
+        }
+        var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
+        if (systemServiceId == null) {
             log.trace("findById policyId={} not published under SYSTEM", policyId);
             return null;
         }
-        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), contextIds.system());
+        if (serverConfProvider.serviceExists(systemServiceId) && serverConfProvider.getDisabledNotice(systemServiceId) != null) {
+            log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
+            return null;
+        }
+        return toBuiltinPolicyDefinition(policyId, contextIds.system());
     }
 
     /** The management-context owner-only policy {@code policyId} names, if this server serves it. */
@@ -244,6 +261,9 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
+        }
+        if (serviceContextResolver.isSystemEligible(serviceId)) {
+            policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), contextIds.system()));
         }
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {

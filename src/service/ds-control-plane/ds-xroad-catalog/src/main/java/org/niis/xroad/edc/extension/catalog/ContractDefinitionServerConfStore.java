@@ -117,15 +117,32 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         return result;
     }
 
-    /** The SYSTEM-context owner-only definition {@code policyId} names, if one is published there. */
+    /**
+     * The SYSTEM-context definition {@code policyId} names, if one is published there — either the
+     * owner-only synthetic form, or the unrestricted form for a real, SYSTEM-eligible management
+     * service (accessible to any federation member, not just the owner).
+     */
     @Nullable
     private ContractDefinition findSystemContractDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
-        if (serviceId == null) {
+        var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+        if (ownerOnlyServiceId != null) {
+            if (serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    && serverConfProvider.getDisabledNotice(ownerOnlyServiceId) != null) {
+                log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
+                return null;
+            }
+            return ContractDefinitionMapper.toOwnerOnlyContractDefinition(ownerOnlyServiceId, contextIds.system());
+        }
+        var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
+        if (systemServiceId == null) {
             log.trace("findById policyId={} not published under SYSTEM", policyId);
             return null;
         }
-        return ContractDefinitionMapper.toOwnerOnlyContractDefinition(serviceId, contextIds.system());
+        if (serverConfProvider.serviceExists(systemServiceId) && serverConfProvider.getDisabledNotice(systemServiceId) != null) {
+            log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
+            return null;
+        }
+        return toBuiltinContractDefinition(systemServiceId, contextIds.system());
     }
 
     /** The management-context owner-only definition {@code policyId} names, if this server serves it. */
@@ -231,6 +248,9 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                 serviceId, contextIds.management()));
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
+        }
+        if (serviceContextResolver.isSystemEligible(serviceId)) {
+            definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {

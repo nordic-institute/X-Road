@@ -354,6 +354,26 @@ class PolicyDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findAllRealManagementServiceUnderSystemUsesUnrestrictedNotOwnerOnlyPolicy() {
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT));
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of());
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var result = store.findAll(QuerySpec.none()).toList();
+
+        var systemPolicy = result.stream()
+                .filter(p -> SYSTEM_PARTICIPANT_CTX.equals(p.getParticipantContextId()))
+                .findFirst().orElseThrow();
+        assertThat(systemPolicy.getId()).isEqualTo(MGMT_SERVICE.asEncodedId());
+        assertThat(systemPolicy.getId()).doesNotEndWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
+        assertThat(systemPolicy.getPolicy().getPermissions()).isEmpty();
+    }
+
+    @Test
     void findAllEmitsSyntheticManagementCatalogUnderMgmtAndSystemExcludingAuthCertRegFromSystem() {
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -615,7 +635,6 @@ class PolicyDefinitionServerConfStoreTest {
     @Test
     void findByIdMgmtServiceResolvesSystemContextWhenSystemRequestedAndEligible() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
-        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
@@ -625,6 +644,22 @@ class PolicyDefinitionServerConfStoreTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX);
+    }
+
+    @Test
+    void findByIdMgmtServicePlainIdUnderSystemUsesUnrestrictedNotOwnerOnlyPolicy() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var policyId = MGMT_SERVICE.asEncodedId();
+        var result = store.findById(policyId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CTX);
+        assertThat(result.getId()).doesNotEndWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX);
+        assertThat(result.getPolicy().getPermissions()).isEmpty();
     }
 
     @Test
