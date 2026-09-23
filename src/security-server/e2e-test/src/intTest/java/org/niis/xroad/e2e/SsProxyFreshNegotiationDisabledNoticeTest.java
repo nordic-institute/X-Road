@@ -25,26 +25,15 @@
  */
 package org.niis.xroad.e2e;
 
-import ee.ria.xroad.common.util.MimeUtils;
-
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 
 import java.time.Duration;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.niis.xroad.e2e.AdminApi.MOCK1_CLIENT_ID;
-import static org.niis.xroad.e2e.AdminApi.MOCK1_SERVICE_ID;
 import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.callService;
 import static org.niis.xroad.e2e.AdminApi.deleteServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.disableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
@@ -52,6 +41,13 @@ import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.findServiceDescriptionIdByUrl;
 import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
+import static org.niis.xroad.e2e.DisabledServiceFault.DISABLED_NOTICE;
+import static org.niis.xroad.e2e.DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL;
+import static org.niis.xroad.e2e.DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT;
+import static org.niis.xroad.e2e.DisabledServiceFault.SS0_ENV;
+import static org.niis.xroad.e2e.Mock1Fixture.MOCK1_CLIENT_ID;
+import static org.niis.xroad.e2e.Mock1Fixture.MOCK1_SERVICE_ID;
+import static org.niis.xroad.e2e.Mock1Fixture.callService;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -105,23 +101,12 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 @SuppressWarnings("checkstyle:magicnumber")
 class SsProxyFreshNegotiationDisabledNoticeTest extends E2eTest {
 
-    private static final String SS0_ENV = "ss0";
     private static final String SS1_ENV = "ss1";
 
     private static final String CONSUMER_CLIENT_ID = "DEV:COM:4321:TestClient";
     private static final String CONSUMER_X_ROAD_CLIENT = "DEV/COM/4321/TestClient";
 
     private static final String NEW_SERVICE_CODE_PREFIX = "freshMock1";
-
-    private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
-    private static final String DISABLED_NOTICE = "Scheduled maintenance window, please retry once it closes";
-
-    private static final String EXPECTED_FAULT_CODE = SERVER_SERVERPROXY_X + "." + ErrorCode.SERVICE_DISABLED.code();
-
-    /** Same cache-period-bounded wait {@link SsProxyServiceDisableRoundTripTest} uses for the re-enable/success step. */
-    private static final Duration SERVERCONF_CACHE_EXPIRY_TIMEOUT =
-            Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue() + 30);
-    private static final Duration SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL = Duration.ofSeconds(3);
 
     /**
      * The first call against the freshly added service also needs the provider's catalog enumeration
@@ -183,27 +168,13 @@ class SsProxyFreshNegotiationDisabledNoticeTest extends E2eTest {
     }
 
     private void awaitFreshCallFailsWithDisabledNotice(E2eEnvironment env, String servicePath) {
-        Awaitility.await()
-                .pollDelay(Duration.ZERO)
-                .pollInterval(CATALOG_VISIBILITY_POLL_INTERVAL)
-                .timeout(CATALOG_VISIBILITY_TIMEOUT)
-                .ignoreExceptions()
-                .untilAsserted(() -> callService(env, SS1_ENV, CONSUMER_X_ROAD_CLIENT, servicePath)
-                        .statusCode(500)
-                        .header(MimeUtils.HEADER_ERROR, equalTo(EXPECTED_FAULT_CODE))
-                        .body("type", equalTo(EXPECTED_FAULT_CODE))
-                        .body("message", containsString(DISABLED_NOTICE)));
+        DisabledServiceFault.awaitCallFailsWithDisabledNotice(() -> callService(env, SS1_ENV, CONSUMER_X_ROAD_CLIENT, servicePath),
+                CATALOG_VISIBILITY_TIMEOUT, CATALOG_VISIBILITY_POLL_INTERVAL);
     }
 
     private void awaitCallSucceeds(E2eEnvironment env, String servicePath) {
-        Awaitility.await()
-                .pollDelay(Duration.ZERO)
-                .pollInterval(SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL)
-                .timeout(SERVERCONF_CACHE_EXPIRY_TIMEOUT)
-                .ignoreExceptions()
-                .untilAsserted(() -> callService(env, SS1_ENV, CONSUMER_X_ROAD_CLIENT, servicePath)
-                        .statusCode(200)
-                        .body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
+        DisabledServiceFault.awaitCallSucceeds(() -> callService(env, SS1_ENV, CONSUMER_X_ROAD_CLIENT, servicePath),
+                SERVERCONF_CACHE_EXPIRY_TIMEOUT, SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
     }
 
 }

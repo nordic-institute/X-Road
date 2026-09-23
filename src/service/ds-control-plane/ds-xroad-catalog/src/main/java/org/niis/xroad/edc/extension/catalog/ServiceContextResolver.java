@@ -79,9 +79,7 @@ class ServiceContextResolver {
      * The contexts a service is published under, besides its always-present management-context
      * copy: the legacy host context first — or the management context, for the MANAGEMENT
      * subsystem's own service — followed by the owning member's context if one is provisioned.
-     * The first entry is always the legacy publication context. Disabled and enabled services
-     * resolve identically; a service's enabled state is never consulted here — only the
-     * provider's per-message refusal, downstream of this resolution, differs.
+     * The first entry is always the legacy publication context.
      *
      * @param serviceId the service to resolve contexts for
      * @param provisionedMemberContextIds the currently provisioned member contexts, from {@link #provisionedMemberContextIds()}

@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.e2e;
 
-import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.container.SsStackSetup;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
@@ -38,11 +38,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Form login against a security server's admin API, and the session it hands back. Every admin-API
- * scenario needs the same three steps — resolve the UI container's mapped address, POST the login
- * form, then replay the session cookies plus the XSRF header on each request — so they live here
- * rather than once per test class.
+ * Security Server admin REST API access: session login, service-description CRUD, access rights, and
+ * service lookup.
  */
+@Slf4j
 @UtilityClass
 class AdminApi {
 
@@ -54,16 +53,6 @@ class AdminApi {
     private static final int HTTP_NOT_FOUND = 404;
     private static final int HTTP_CONFLICT = 409;
     private static final int HTTP_LAST_SUCCESS = 299;
-
-    /** ss0's own {@code TestService} subsystem and its self-accessible {@code mock1} REST service. */
-    static final String MOCK1_CLIENT_ID = "DEV:COM:1234:TestService";
-    static final String MOCK1_SERVICE_CODE = "mock1";
-    static final String MOCK1_SERVICE_ID = MOCK1_CLIENT_ID + ":" + MOCK1_SERVICE_CODE;
-    static final String MOCK1_X_ROAD_CLIENT = "DEV/COM/1234/TestService";
-    static final String MOCK1_SERVICE_PATH = "/r1/DEV/COM/1234/TestService/mock1";
-    static final String MOCK1_REQUEST_BODY = """
-            {"data": 1.0, "service": "random"}
-            """;
 
     /** The mapped {@code https://host:port} of one environment's admin UI container. */
     static String adminBaseUrl(E2eEnvironment env, String envName) {
@@ -110,7 +99,7 @@ class AdminApi {
         var response = authed(ss0).put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/enable");
         assertThat(response.getStatusCode())
                 .as("enable service description %s", serviceDescriptionId)
-                .isBetween(HTTP_OK, HTTP_LAST_SUCCESS);
+                .isEqualTo(HTTP_OK);
     }
 
     /** Disables the service description, attaching the operator's notice. */
@@ -168,6 +157,8 @@ class AdminApi {
                 .body(body)
                 .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
         if (response.getStatusCode() == HTTP_CONFLICT) {
+            log.info("REST service description '{}' already exists for {}; looking up its id instead of adding it again",
+                    restServiceCode, clientId);
             return findExistingServiceDescriptionId(ss0BaseUrl, ss0, clientId, backendUrl);
         }
         assertThat(response.getStatusCode()).as("add REST service description for %s", clientId).isEqualTo(HTTP_CREATED);
@@ -217,22 +208,6 @@ class AdminApi {
         assertThat(response.getStatusCode())
                 .as("grant %s access to %s's %s service", consumerClientId, providerClientId, serviceCode)
                 .isIn(HTTP_CREATED, HTTP_CONFLICT);
-    }
-
-    /** Sends a REST POST as {@code xRoadClient} to {@code servicePath} on {@code envName}'s mapped proxy. */
-    static ValidatableResponse callService(E2eEnvironment env, String envName, String xRoadClient, String servicePath) {
-        var mapping = env.getContainerMapping(envName, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        return RestAssuredFactory.given()
-                .body(MOCK1_REQUEST_BODY)
-                .header("Content-Type", "application/json")
-                .header("x-road-client", xRoadClient)
-                .post("http://%s:%s%s".formatted(mapping.host(), mapping.port(), servicePath))
-                .then();
-    }
-
-    /** Sends the {@code mock1} REST POST as {@link #MOCK1_X_ROAD_CLIENT} to {@code envName}'s mapped proxy. */
-    static ValidatableResponse callMock1(E2eEnvironment env, String envName) {
-        return callService(env, envName, MOCK1_X_ROAD_CLIENT, MOCK1_SERVICE_PATH);
     }
 
     /** One logged-in admin session: the cookies to replay and the XSRF token to echo back. */

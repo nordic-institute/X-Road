@@ -114,6 +114,7 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
     void setUp() {
         lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
         lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
+        lenient().when(serverConfProvider.getDisabledNotice(DISABLED_SERVICE)).thenReturn(DISABLED_NOTICE);
         serviceContextResolver = new ServiceContextResolver(
                 CONTEXT_IDS, globalConfProvider, serverConfProvider, participantContextService);
         requestedParticipantContext.clear();
@@ -189,6 +190,27 @@ class UnauthorizedConsumerCannotObserveDisabledServiceStateTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(PARTICIPANT_CTX);
+    }
+
+    @Test
+    void authorizedConsumerStillResolvesAssetForDisabledService() {
+        when(serverConfProvider.serviceExists(DISABLED_SERVICE)).thenReturn(true);
+        when(serverConfProvider.serviceExists(ENABLED_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getServiceAddress(DISABLED_SERVICE)).thenReturn("https://provider.example/svcDisabled");
+        when(serverConfProvider.getServiceAddress(ENABLED_SERVICE)).thenReturn("https://provider.example/svcEnabled");
+
+        var disabledAssetId = AssetMapper.encodeAssetId(DISABLED_SERVICE);
+        var enabledAssetId = AssetMapper.encodeAssetId(ENABLED_SERVICE);
+
+        var disabledAsset = assetIndex.findById(disabledAssetId);
+        var enabledAsset = assetIndex.findById(enabledAssetId);
+        var disabledDataAddress = assetIndex.resolveForAsset(disabledAssetId);
+        var enabledDataAddress = assetIndex.resolveForAsset(enabledAssetId);
+
+        assertThat(disabledAsset).isNotNull();
+        assertThat(disabledAsset.getParticipantContextId()).isEqualTo(enabledAsset.getParticipantContextId());
+        assertThat(disabledDataAddress).isNotNull();
+        assertThat(disabledDataAddress.getType()).isEqualTo(enabledDataAddress.getType());
     }
 
     @Test

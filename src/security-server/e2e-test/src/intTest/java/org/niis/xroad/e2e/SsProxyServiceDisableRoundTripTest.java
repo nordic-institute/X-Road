@@ -25,29 +25,21 @@
  */
 package org.niis.xroad.e2e;
 
-import ee.ria.xroad.common.util.MimeUtils;
-
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.core.exception.ErrorCode;
-import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
 
-import java.time.Duration;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.niis.xroad.e2e.AdminApi.MOCK1_CLIENT_ID;
-import static org.niis.xroad.e2e.AdminApi.MOCK1_SERVICE_CODE;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.callMock1;
 import static org.niis.xroad.e2e.AdminApi.disableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.findServiceDescriptionId;
 import static org.niis.xroad.e2e.AdminApi.login;
+import static org.niis.xroad.e2e.DisabledServiceFault.DISABLED_NOTICE;
+import static org.niis.xroad.e2e.DisabledServiceFault.SS0_ENV;
+import static org.niis.xroad.e2e.Mock1Fixture.MOCK1_CLIENT_ID;
+import static org.niis.xroad.e2e.Mock1Fixture.MOCK1_SERVICE_CODE;
+import static org.niis.xroad.e2e.Mock1Fixture.callMock1;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -85,23 +77,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 @SuppressWarnings("checkstyle:magicnumber")
 class SsProxyServiceDisableRoundTripTest extends E2eTest {
 
-    private static final String SS0_ENV = "ss0";
-
-    private static final String EXPECTED_RESPONSE_MESSAGE = "Hello, world from POST service!";
-    private static final String DISABLED_NOTICE = "Scheduled maintenance window, please retry once it closes";
-
-    private static final String EXPECTED_FAULT_CODE = SERVER_SERVERPROXY_X + "." + ErrorCode.SERVICE_DISABLED.code();
-
-    /**
-     * The provider proxy only stops refusing calls (and only starts refusing them) once its own
-     * {@code CachingServerConfImpl} reload picks up the disabled flag — there is no invalidation signal
-     * on either transition, so both waits are bounded by that cache's own TTL,
-     * {@link ServerConfConfigKeys#CACHE_PERIOD}, plus slack for the poll and the request itself.
-     */
-    private static final Duration SERVERCONF_CACHE_EXPIRY_TIMEOUT =
-            Duration.ofSeconds(ServerConfConfigKeys.CACHE_PERIOD.convertedDefaultValue() + 30);
-    private static final Duration SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL = Duration.ofSeconds(3);
-
     @Test
     @DisplayName("Disabling a service description returns the operator's notice to a permitted consumer; "
             + "re-enabling it restores calls, with no restart")
@@ -120,10 +95,10 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
         then("a permitted consumer calls the service and succeeds, establishing the baseline", () ->
                 awaitCallSucceeds(env));
 
-        and("the operator disables the service description, supplying a notice", () ->
-                disableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId, DISABLED_NOTICE));
-
         try {
+            and("the operator disables the service description, supplying a notice", () ->
+                    disableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId, DISABLED_NOTICE));
+
             then("the same consumer's next call is refused with a SERVICE_DISABLED fault carrying the notice", () ->
                     awaitCallFailsWithDisabledNotice(env));
         } finally {
@@ -136,27 +111,13 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
     }
 
     private void awaitCallSucceeds(E2eEnvironment env) {
-        Awaitility.await()
-                .pollDelay(Duration.ZERO)
-                .pollInterval(SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL)
-                .timeout(SERVERCONF_CACHE_EXPIRY_TIMEOUT)
-                .ignoreExceptions()
-                .untilAsserted(() -> callMock1(env, SS0_ENV)
-                        .statusCode(200)
-                        .body("message", equalTo(EXPECTED_RESPONSE_MESSAGE)));
+        DisabledServiceFault.awaitCallSucceeds(() -> callMock1(env, SS0_ENV),
+                DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT, DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
     }
 
     private void awaitCallFailsWithDisabledNotice(E2eEnvironment env) {
-        Awaitility.await()
-                .pollDelay(Duration.ZERO)
-                .pollInterval(SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL)
-                .timeout(SERVERCONF_CACHE_EXPIRY_TIMEOUT)
-                .ignoreExceptions()
-                .untilAsserted(() -> callMock1(env, SS0_ENV)
-                        .statusCode(500)
-                        .header(MimeUtils.HEADER_ERROR, equalTo(EXPECTED_FAULT_CODE))
-                        .body("type", equalTo(EXPECTED_FAULT_CODE))
-                        .body("message", containsString(DISABLED_NOTICE)));
+        DisabledServiceFault.awaitCallFailsWithDisabledNotice(() -> callMock1(env, SS0_ENV),
+                DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_TIMEOUT, DisabledServiceFault.SERVERCONF_CACHE_EXPIRY_POLL_INTERVAL);
     }
 
 }

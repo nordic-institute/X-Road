@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.niis.xroad.e2e.AdminApi.callMock1;
+import static org.niis.xroad.e2e.Mock1Fixture.callMock1;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -75,8 +75,8 @@ class SsProxyDspSelfCallTest extends E2eTest {
     private static final String SELF_CALL_ENV = "ss0";
 
     /**
-     * The DSP asset id for this scenario's call: {@link AdminApi#MOCK1_X_ROAD_CLIENT}'s service identifier
-     * plus {@link AdminApi#MOCK1_SERVICE_PATH}'s endpoint, colon-joined — the full deterministic form confirmed live
+     * The DSP asset id for this scenario's call: {@link Mock1Fixture#MOCK1_X_ROAD_CLIENT}'s service identifier
+     * plus {@link Mock1Fixture#MOCK1_SERVICE_PATH}'s endpoint, colon-joined — the full deterministic form confirmed live
      * against {@code edc_contract_agreement.asset_id}. Matched with full-string equality so the same service
      * name under another member or instance can never satisfy the group query.
      */
