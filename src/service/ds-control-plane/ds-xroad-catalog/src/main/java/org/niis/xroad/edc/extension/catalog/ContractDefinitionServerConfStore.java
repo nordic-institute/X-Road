@@ -142,6 +142,13 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
             log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
             return null;
         }
+        if (!serverConfProvider.getServiceAccessRights(systemServiceId).isEmpty()) {
+            // Access rights are configured: this plain, unrestricted id must not resolve — the
+            // per-subject compound id (collectContractDefinitionsForService's system-scoped entry)
+            // is the one that carries the actual grant.
+            log.trace("findById policyId={} has configured access rights, plain SYSTEM id not granted", policyId);
+            return null;
+        }
         return toBuiltinContractDefinition(systemServiceId, contextIds.system());
     }
 
@@ -246,16 +253,24 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                                                        Set<String> provisionedMemberContextIds) {
         definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                 serviceId, contextIds.management()));
-        if (serviceContextResolver.isSystemEligible(serviceId) && serverConfProvider.getDisabledNotice(serviceId) == null) {
+        var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
+        var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
+        if (systemEligible && accessRights.isEmpty() && serverConfProvider.getDisabledNotice(serviceId) == null) {
+            // No admin-configured access rights: keep the service usable federation-wide under
+            // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
+            // rights ARE configured, they must gate SYSTEM the same as every other context —
+            // handled below via the per-subject loop, not here.
             definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
-        var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
             return;
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds));
+        if (systemEligible) {
+            resolvedContexts.add(contextIds.system());
+        }
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();
