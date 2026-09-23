@@ -101,7 +101,6 @@ class DataspaceParticipantProvisioningWorkerTest {
 
     @BeforeEach
     void setUp() {
-        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(true);
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
         when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(NOT_CONVERGED);
@@ -292,15 +291,6 @@ class DataspaceParticipantProvisioningWorkerTest {
         verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
     }
 
-    @Test
-    void provisionParticipantQueriesContextsForTheCurrentManagementRegistrationState() {
-        when(readinessPredicates.isManagementSubsystemRegistered()).thenReturn(false);
-        when(dataspaceProvisioningService.participantContexts(false)).thenReturn(List.of(HOST_CONTEXT));
-
-        worker.provisionParticipant();
-
-        verify(dataspaceProvisioningService).participantContexts(false);
-    }
 
     @Test
     void provisionParticipantOnlyReappliesControlPlaneRecordsOnAFullyConvergedTick() {

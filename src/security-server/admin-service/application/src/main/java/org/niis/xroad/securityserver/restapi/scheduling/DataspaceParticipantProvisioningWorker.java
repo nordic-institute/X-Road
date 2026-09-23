@@ -184,7 +184,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * configuration the DID is derived from.
      */
     private void ensure() {
-        var contexts = dataspaceProvisioningService.participantContexts(readinessPredicates.isManagementSubsystemRegistered());
+        var contexts = dataspaceProvisioningService.participantContexts(true);
         if (ownerUnknown(contexts)) {
             log.debug("Dataspace provisioning: SS owner not yet known, skipping");
             return;
