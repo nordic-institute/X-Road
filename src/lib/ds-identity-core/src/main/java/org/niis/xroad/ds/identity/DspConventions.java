@@ -77,6 +77,7 @@ public class DspConventions {
     public static final String CREDENTIAL_SERVICE_TYPE = "CredentialService";
 
     private static final String CREDENTIAL_SERVICE_ID_SUFFIX = "-credential-service";
+    @SuppressWarnings("java:S1075")
     private static final String CREDENTIALS_API_PARTICIPANTS_PATH = "/api/credentials/v1/participants/";
 
     /**

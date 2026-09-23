@@ -40,12 +40,14 @@ import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.identityhub.spi.did.DidWebParser;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
 import org.niis.xroad.ds.identity.MemberParticipant;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.MemberInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -93,8 +95,8 @@ class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
                 responseContext.getHeaders().putSingle(HttpHeaders.CACHE_CONTROL, NO_STORE);
             });
         } catch (RuntimeException e) {
-            monitor.warning("Could not determine whether '%s' names a registered member of this server; "
-                    + "leaving the DID unresolved".formatted(requestUrl), e);
+            monitor.warning(("Could not determine whether '%s' names a registered member of this server; "
+                    + "leaving the DID unresolved").formatted(requestUrl), e);
         }
     }
 
@@ -134,7 +136,7 @@ class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
     private static MemberParticipant decodeMember(String did) {
         try {
             return ParticipantIdentifierScheme.decodeDid(did) instanceof MemberParticipant member ? member : null;
-        } catch (XrdRuntimeException e) {
+        } catch (XrdRuntimeException _) {
             return null;
         }
     }
@@ -158,7 +160,7 @@ class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
     /** Whether the member itself or any of its subsystems is a client of {@code server} in GlobalConf. */
     private boolean isRegisteredClient(ClientId member, SecurityServerId server) {
         return globalConfProvider.getMembers(member.getXRoadInstance()).stream()
-                .map(info -> info.id())
+                .map(MemberInfo::id)
                 .filter(client -> member.equals(client.getMemberId()))
                 .anyMatch(client -> globalConfProvider.isSecurityServerClient(client, server));
     }
@@ -166,7 +168,7 @@ class RegisteredMemberDidDocumentFilter implements ContainerResponseFilter {
     private OptionalInt port(String apiContext) {
         return portMappingRegistry.getAll().stream()
                 .filter(mapping -> apiContext.equals(mapping.name()))
-                .mapToInt(mapping -> mapping.port())
+                .mapToInt(PortMapping::port)
                 .findFirst();
     }
 

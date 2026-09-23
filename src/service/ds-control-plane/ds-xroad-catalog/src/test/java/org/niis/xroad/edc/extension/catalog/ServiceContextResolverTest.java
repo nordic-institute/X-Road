@@ -159,8 +159,10 @@ class ServiceContextResolverTest {
     @Test
     void hostedMemberContextIdsPropagatesWhenServerConfCannotBeRead() {
         when(serverConfProvider.getMemberStatus(MEMBER)).thenThrow(new IllegalStateException("boom"));
+        var resolver = resolver();
+        var members = List.of(MEMBER);
 
-        assertThatThrownBy(() -> resolver().hostedMemberContextIds(List.of(MEMBER)))
+        assertThatThrownBy(() -> resolver.hostedMemberContextIds(members))
                 .isInstanceOf(IllegalStateException.class);
     }
 

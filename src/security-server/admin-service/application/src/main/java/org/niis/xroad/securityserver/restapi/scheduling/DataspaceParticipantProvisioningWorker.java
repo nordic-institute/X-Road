@@ -128,7 +128,7 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
                 runQueued.set(false);
                 provisionParticipantBestEffort();
             });
-        } catch (RejectedExecutionException e) {
+        } catch (RejectedExecutionException _) {
             runQueued.set(false);
             log.debug("Dataspace: provisioning dispatcher is shut down, skipping the triggered run");
         }
@@ -228,11 +228,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         ensureCredentials(ensuredContexts, statuses);
     }
 
-    /**
-     * Deprovisioning slot for a client that is no longer registered on this security server.
-     * Intentionally empty — no deprovisioning logic exists yet.
-     */
     private void teardown() {
+        // Deprovisioning slot for a client no longer registered on this security server; no deprovisioning logic exists yet.
     }
 
     private Map<ParticipantContext, ParticipantContextStatus> statusesOf(List<ParticipantContext> contexts) {
