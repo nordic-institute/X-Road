@@ -202,7 +202,7 @@ class ServiceContextResolver {
      * subsystem resolution so a rebuild that needs both never resolves it twice.
      */
     SyntheticServices resolveSyntheticServices() {
-        var managementSubsystem = resolveManagementSubsystem();
+        var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
         if (managementSubsystem == null) {
             return new SyntheticServices(List.of(), List.of());
         }
@@ -227,8 +227,13 @@ class ServiceContextResolver {
      * resolve to it either.
      *
      * <p>Cheap checks (version, service code) run before the globalconf/serverconf resolution
-     * behind {@link #resolveManagementSubsystem()}, and a resolution failure degrades to
+     * behind {@link #resolveLiveManagementSubsystem()}, and a resolution failure degrades to
      * not-eligible rather than propagating — a by-id lookup must fail closed, not throw.
+     *
+     * <p>Eligibility does not depend on whether the management subsystem has real configured
+     * services: a normally-configured management service is just as SYSTEM-eligible as a
+     * synthetic one. Whether it is actually published under SYSTEM without also being disabled is
+     * the caller's responsibility.
      */
     boolean isSystemEligible(ServiceId serviceId) {
         if (serviceId.getServiceVersion() != null
@@ -236,7 +241,7 @@ class ServiceContextResolver {
             return false;
         }
         try {
-            var managementSubsystem = resolveManagementSubsystem();
+            var managementSubsystem = resolveLiveManagementSubsystem();
             return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
         } catch (RuntimeException e) {
             log.warn("Failed to resolve SYSTEM eligibility for service '{}': {}", serviceId, e.getMessage());
@@ -244,8 +249,14 @@ class ServiceContextResolver {
         }
     }
 
+    /**
+     * The live management-request-service subsystem hosted on this server, regardless of whether
+     * it has real configured services. The one place both {@link #isSystemEligible} and
+     * {@link #resolveManagementSubsystemWithoutRealServices()} resolve this from, so the
+     * globalconf/serverconf lookups are never duplicated.
+     */
     @Nullable
-    private ClientId resolveManagementSubsystem() {
+    private ClientId resolveLiveManagementSubsystem() {
         ClientId managementSubsystem = globalConfProvider.getManagementRequestService();
         if (managementSubsystem == null || managementSubsystem.getSubsystemCode() == null) {
             return null;
@@ -257,7 +268,19 @@ class ServiceContextResolver {
         if (!globalConfProvider.isSecurityServerClient(managementSubsystem, thisServer)) {
             return null;
         }
-        if (!serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
+        return managementSubsystem;
+    }
+
+    /**
+     * The live management subsystem, but only when it has no real configured services —
+     * the case the {@code -mgmt} synthetic entries exist to cover. A real per-member catalog
+     * entry already covers {@code -mgmt} publication once real services exist, so returning
+     * non-null here in that case would double-publish.
+     */
+    @Nullable
+    private ClientId resolveManagementSubsystemWithoutRealServices() {
+        var managementSubsystem = resolveLiveManagementSubsystem();
+        if (managementSubsystem == null || !serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
             return null;
         }
         return managementSubsystem;

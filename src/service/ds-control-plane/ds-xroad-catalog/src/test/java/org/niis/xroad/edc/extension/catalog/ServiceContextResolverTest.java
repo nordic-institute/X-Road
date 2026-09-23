@@ -241,9 +241,18 @@ class ServiceContextResolverTest {
 
     @Test
     void isSystemEligibleAcceptsVersionlessEligibleCode() {
-        stubEligibleManagementSubsystem();
+        stubLiveManagementSubsystem();
 
         assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemEligibleDoesNotConsultRealServiceConfiguration() {
+        stubLiveManagementSubsystem();
+
+        assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+
+        verify(serverConfProvider, never()).getAllServices(any());
     }
 
     @Test
@@ -301,6 +310,17 @@ class ServiceContextResolverTest {
     }
 
     @Test
+    void resolveSyntheticServicesReturnsEmptyListsWhenManagementSubsystemHasRealServices() {
+        stubLiveManagementSubsystem();
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
+
+        var result = resolver().resolveSyntheticServices();
+
+        assertThat(result.managementEntries()).isEmpty();
+        assertThat(result.systemEntries()).isEmpty();
+    }
+
+    @Test
     void selectBuiltinContextIdReturnsSystemWhenSystemRequested() {
         assertThat(resolver().selectBuiltinContextId(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);
     }
@@ -311,10 +331,14 @@ class ServiceContextResolverTest {
         assertThat(resolver().selectBuiltinContextId(null)).isEqualTo(MGMT_CTX);
     }
 
-    private void stubEligibleManagementSubsystem() {
+    private void stubLiveManagementSubsystem() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+    }
+
+    private void stubEligibleManagementSubsystem() {
+        stubLiveManagementSubsystem();
         when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
     }
 
