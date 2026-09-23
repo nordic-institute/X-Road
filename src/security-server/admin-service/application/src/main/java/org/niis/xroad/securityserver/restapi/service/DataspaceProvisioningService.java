@@ -139,7 +139,8 @@ public class DataspaceProvisioningService {
      *
      * @param participantId    the participant context id
      * @param kind             HOST, MANAGEMENT, SYSTEM or MEMBER
-     * @param contextCreated   whether the participant context exists in IdentityHub
+     * @param contextDid       the DID the identity hub serves for the participant context;
+     *                         {@code null} when the context does not exist there or could not be read
      * @param credentialStatus the membership credential state
      * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for HOST
      *                         and MANAGEMENT
@@ -147,10 +148,13 @@ public class DataspaceProvisioningService {
     public record ParticipantContextStatus(
             String participantId,
             ParticipantKind kind,
-            boolean contextCreated,
+            @Nullable Did contextDid,
             CredentialStatus credentialStatus,
             @Nullable IdentityStatus identityStatus
     ) {
+        public boolean contextCreated() {
+            return contextDid != null;
+        }
     }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
@@ -196,12 +200,30 @@ public class DataspaceProvisioningService {
         requireNoHubDidDrift(participantId, existingDid, did);
 
         var anchorConfirmed = createIdentityHubContext(context, did, identityHubHost);
-        controlPlaneClient.createParticipantContext(participantId, did);
-        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+        ensureControlPlaneContext(participantId, did, identityHubHost);
         if (existingDid.isEmpty()) {
             log.info("Data space provisioning: participant context {} created", participantId);
         }
         return anchorConfirmed;
+    }
+
+    /**
+     * Re-applies only the Control Plane half of {@link #ensureParticipantContext}: the participant
+     * context and its STS-bound config. The Control Plane exposes no status to read, so a context
+     * whose identity hub state has already converged still gets its Control Plane records re-put
+     * each tick; that is what heals a lost Control Plane database or a changed identity hub address.
+     * Writes only — no DID derivation, no binding check.
+     *
+     * @param context the participant context whose Control Plane records to re-apply
+     * @param did     the DID the identity hub serves for it, as read by {@link #readContextStatus}
+     */
+    public void ensureControlPlaneContext(ParticipantContext context, Did did) {
+        ensureControlPlaneContext(context.participantId(), did, didAuthority.identityHubHost());
+    }
+
+    private void ensureControlPlaneContext(String participantId, Did did, String identityHubHost) {
+        controlPlaneClient.createParticipantContext(participantId, did);
+        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
     }
 
     private void requireNoHubDidDrift(String participantId, Optional<Did> hubDid, Did intendedDid) {
@@ -434,7 +456,7 @@ public class DataspaceProvisioningService {
             log.warn("Data space: could not read the participant context DID of {}", participantId, e);
         }
 
-        return new ParticipantContextStatus(participantId, context.kind(), hubDid.isPresent(), credentialStatus,
+        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), credentialStatus,
                 identityStatusOf(assessment, hubDid));
     }
 

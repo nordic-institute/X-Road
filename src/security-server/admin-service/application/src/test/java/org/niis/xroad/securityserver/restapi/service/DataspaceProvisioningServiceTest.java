@@ -752,6 +752,19 @@ class DataspaceProvisioningServiceTest {
         return appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
     }
 
+    @Test
+    void ensureControlPlaneContextReappliesContextAndStsConfigWithTheGivenDidOnly() {
+        var hubDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
+
+        service.ensureControlPlaneContext(MEMBER_CONTEXT, hubDid);
+
+        verify(controlPlaneClient).createParticipantContext(MEMBER_CONTEXT.participantId(), hubDid);
+        verify(controlPlaneClient).putParticipantContextConfig(eq(MEMBER_CONTEXT.participantId()), eq(hubDid), any());
+        verify(identityHubClient, never()).contextDid(any());
+        verify(identityHubClient, never()).createParticipantContext(any());
+        verify(dsParticipantRepository, never()).findByMemberIdentifier(any());
+    }
+
     // --- ensureParticipantContext (SYSTEM) ---
 
     @Test

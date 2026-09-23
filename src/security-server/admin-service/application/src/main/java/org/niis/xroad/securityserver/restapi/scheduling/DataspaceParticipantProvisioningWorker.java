@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
@@ -50,7 +52,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus.ISSUED;
 import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus.OK;
@@ -66,10 +72,18 @@ import static org.niis.xroad.securityserver.restapi.service.DataspaceProvisionin
 public final class DataspaceParticipantProvisioningWorker implements DataspaceParticipantProvisioningTrigger {
 
     static final int INITIAL_DELAY_MS = 30000;
+    private static final long SHUTDOWN_GRACE_SECONDS = 10;
 
     private final DataspaceProvisioningService dataspaceProvisioningService;
     private final DataspaceReadinessPredicates readinessPredicates;
     private final DataspaceParticipantBindingService participantBindingService;
+
+    private final ExecutorService dispatcher = Executors.newSingleThreadExecutor(runnable -> {
+        var thread = new Thread(runnable, "dataspace-provisioning");
+        thread.setDaemon(true);
+        return thread;
+    });
+    private final AtomicBoolean runQueued = new AtomicBoolean();
 
     /**
      * Scheduled provisioning tick. Runs at a fixed rate; failures are non-fatal and
@@ -87,8 +101,9 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      *
      * <p>When a transaction is active around the caller, the run is deferred until that transaction
      * commits, so it never observes pre-commit state, and repeated calls within one transaction
-     * schedule a single run. Never throws: scheduling itself is best-effort, logged at WARN on
-     * failure, exactly like the step it schedules.</p>
+     * schedule a single run. Runs execute one at a time on a dedicated thread; a trigger arriving
+     * while a run is already queued is dropped, since that run will observe its state. Never throws:
+     * scheduling itself is best-effort, logged at WARN on failure, exactly like the step it schedules.</p>
      */
     @Override
     public void provisionParticipantAsync() {
@@ -105,7 +120,26 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     }
 
     private void dispatchAsync() {
-        CompletableFuture.runAsync(this::provisionParticipantBestEffort);
+        if (!runQueued.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            dispatcher.execute(() -> {
+                runQueued.set(false);
+                provisionParticipantBestEffort();
+            });
+        } catch (RejectedExecutionException e) {
+            runQueued.set(false);
+            log.debug("Dataspace: provisioning dispatcher is shut down, skipping the triggered run");
+        }
+    }
+
+    @PreDestroy
+    void shutdown() throws InterruptedException {
+        dispatcher.shutdown();
+        if (!dispatcher.awaitTermination(SHUTDOWN_GRACE_SECONDS, TimeUnit.SECONDS)) {
+            dispatcher.shutdownNow();
+        }
     }
 
     private static boolean afterCommitRunScheduled() {
@@ -142,7 +176,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * credential pass of the same tick — see {@link #ensureContexts}.
      *
      * <p>A context already converged — created, membership credential ISSUED and, for a MEMBER, its
-     * identity OK — is left untouched: no context write, no bind, no credential request. Members are
+     * identity OK — gets no identity hub write, no bind and no credential request; only its Control
+     * Plane records are re-applied, because the Control Plane has no status to read. Members are
      * bound only after their participant context has been ensured, so the DID written to
      * {@code ds_participant} is one the identity hub has just confirmed or been created with. A
      * member whose context is in DID drift is left unbound and stays recoverable by correcting the
@@ -160,9 +195,18 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
         }
 
         var statuses = statusesOf(contexts);
-        var nonConverged = contexts.stream().filter(context -> !converged(statuses.get(context))).toList();
+        List<ParticipantContext> nonConverged = new ArrayList<>();
+        for (var context : contexts) {
+            var status = statuses.get(context);
+            if (converged(status)) {
+                refreshControlPlane(context, status.contextDid());
+            } else {
+                nonConverged.add(context);
+            }
+        }
         if (nonConverged.isEmpty()) {
-            log.debug("Dataspace provisioning: tick changed nothing, {} participant context(s) converged", contexts.size());
+            log.debug("Dataspace provisioning: all {} participant context(s) converged, only Control Plane records re-applied",
+                    contexts.size());
             return;
         }
 
@@ -194,6 +238,15 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
             statuses.put(context, dataspaceProvisioningService.readContextStatus(context));
         }
         return statuses;
+    }
+
+    private void refreshControlPlane(ParticipantContext context, Did did) {
+        try {
+            dataspaceProvisioningService.ensureControlPlaneContext(context, did);
+        } catch (Exception e) {
+            log.error("Dataspace provisioning: failed to re-apply Control Plane records of participant context {}, "
+                    + "continuing with the rest", context.participantId(), e);
+        }
     }
 
     private static boolean converged(ParticipantContextStatus status) {
