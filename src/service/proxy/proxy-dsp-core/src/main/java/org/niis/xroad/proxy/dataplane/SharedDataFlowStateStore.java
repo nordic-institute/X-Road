@@ -26,17 +26,17 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.DataFlowStateDAOImpl;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -48,7 +48,8 @@ import java.util.Set;
 public class SharedDataFlowStateStore implements DataFlowStateStore {
 
     /** States {@link XRoadDataPlaneManager} never transitions out of. */
-    private static final Set<DataFlowStates> TERMINAL_STATES = EnumSet.of(DataFlowStates.COMPLETED, DataFlowStates.TERMINATED);
+    private static final Set<DataFlowLifecycleState> TERMINAL_STATES =
+            EnumSet.of(DataFlowLifecycleState.COMPLETED, DataFlowLifecycleState.TERMINATED);
 
     private final ServerConfDatabaseCtx databaseCtx;
     private final DataFlowStateDAOImpl dao = new DataFlowStateDAOImpl();
@@ -58,9 +59,9 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
         try {
             upsert(flowId, state);
         } catch (XrdRuntimeException e) {
-            // Two nodes can race to insert the first row for the same new flowId; the loser hits
-            // uniq_dataflow_state_flow_id. If the row exists now, that's what happened — retry lands
-            // on upsertState's update branch. Otherwise it's a real failure, not a race.
+            // Two nodes can race on the first insert for a new flowId; the loser hits
+            // uniq_dataflow_state_flow_id. If the row exists now, retry via the update branch;
+            // otherwise this is a genuine failure.
             if (!rowExists(flowId)) {
                 throw e;
             }
@@ -70,8 +71,9 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
     }
 
     private void upsert(String flowId, DataFlowStates state) {
+        var lifecycleState = DataFlowLifecycleState.valueOf(state.name());
         databaseCtx.doInTransaction(session -> {
-            dao.upsertState(session, flowId, state.toString(), SharedDataFlowStateStore::isTransitionAllowed);
+            dao.upsertState(session, flowId, lifecycleState, SharedDataFlowStateStore::isTransitionAllowed);
             return null;
         });
     }
@@ -82,43 +84,36 @@ public class SharedDataFlowStateStore implements DataFlowStateStore {
 
     /**
      * A terminal state never transitions again; otherwise a move is allowed only if it does not
-     * regress {@link #lifecycleRank}, so a write racing behind an already-applied, more advanced
-     * state is silently dropped rather than overwriting it.
+     * regress {@link #lifecycleRank}, dropping a write that lost the race to a more advanced state.
      */
-    private static boolean isTransitionAllowed(String currentStateName, String newStateName) {
-        if (currentStateName.equals(newStateName)) {
+    private static boolean isTransitionAllowed(DataFlowLifecycleState current, DataFlowLifecycleState next) {
+        if (current == next) {
             return true;
         }
-        var current = DataFlowStates.valueOf(currentStateName);
         if (TERMINAL_STATES.contains(current)) {
             return false;
         }
-        return lifecycleRank(DataFlowStates.valueOf(newStateName)) >= lifecycleRank(current);
+        return lifecycleRank(next) >= lifecycleRank(current);
     }
 
     /**
      * Not {@link DataFlowStates#code()}: EDC's numbering puts {@code SUSPENDED} between
-     * {@code COMPLETED} and {@code TERMINATED}, so comparing it directly would block a legitimate
-     * completion arriving after a suspend. This rank reflects the transitions
-     * {@link XRoadDataPlaneManager} actually performs — {@code SUSPENDED} is a side branch of
-     * {@code STARTED}, not a step beyond it.
+     * {@code COMPLETED} and {@code TERMINATED}, which would block a legitimate completion arriving
+     * after a suspend. Here {@code SUSPENDED} ranks as a side branch of {@code STARTED}, not a step
+     * beyond it.
      */
-    private static int lifecycleRank(DataFlowStates state) {
+    private static int lifecycleRank(DataFlowLifecycleState state) {
         return switch (state) {
             case PROVISIONED -> 0;
             case STARTED, SUSPENDED -> 1;
             case COMPLETED, TERMINATED -> 2;
-            default -> throw XrdRuntimeException.systemException(ErrorCode.INTERNAL_ERROR,
-                    "Unexpected persisted dataflow state %s".formatted(state));
         };
     }
 
     @Override
-    @Nullable
-    public DataFlowStates find(String flowId) {
+    public Optional<DataFlowStates> find(String flowId) {
         return databaseCtx.doInTransaction(session -> dao.findByFlowId(session, flowId))
-                .map(entity -> DataFlowStates.valueOf(entity.getState()))
-                .orElse(null);
+                .map(entity -> DataFlowStates.valueOf(entity.getState().name()));
     }
 
 }

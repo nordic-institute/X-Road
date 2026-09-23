@@ -40,8 +40,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.util.Objects;
-
 /**
  * Manager for active data flows in the X-Road proxy data plane.
  * <p>
@@ -151,7 +149,7 @@ public class XRoadDataPlaneManager {
      * @return current {@link DataFlowStates}; {@link DataFlowStates#FAILED} if not found
      */
     public DataFlowStates state(String flowId) {
-        return Objects.requireNonNullElse(flowStateStore.find(flowId), DataFlowStates.FAILED);
+        return flowStateStore.find(flowId).orElse(DataFlowStates.FAILED);
     }
 
     private void validateXrdPull(DataFlowStartMessage message) {

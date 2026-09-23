@@ -37,10 +37,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Consumer data pulls are authorized solely by the existing PKI/access-rights pipeline
- * ({@link ServerRestMessageProcessor}, {@link ServerSoapMessageProcessor}) and must never gain a
- * dependency on the shared flow-state store: neither class, nor the {@link ServerProxyHandler}
- * that dispatches to them, declares a field of a data-plane flow-state type.
+ * Consumer data pulls are authorized solely by the existing PKI/access-rights pipeline and must
+ * never gain a dependency on the shared flow-state store.
  */
 class DataPullIndependenceTest {
 

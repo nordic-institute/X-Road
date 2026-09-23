@@ -42,6 +42,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -215,9 +216,8 @@ class XRoadDataPlaneManagerTest {
     }
 
     /**
-     * A trivial shared-map fake standing in for {@link SharedDataFlowStateStore}: it is the same
-     * instance handed to every {@link XRoadDataPlaneManager} constructed in a test, so it models
-     * what the real database-backed store guarantees — one record visible to every node.
+     * A shared-map fake for {@link SharedDataFlowStateStore}, handed to every manager in a test so
+     * it models one record visible to every node.
      */
     private static final class InMemoryDataFlowStateStore implements DataFlowStateStore {
 
@@ -230,8 +230,8 @@ class XRoadDataPlaneManagerTest {
         }
 
         @Override
-        public DataFlowStates find(String flowId) {
-            return states.get(flowId);
+        public Optional<DataFlowStates> find(String flowId) {
+            return Optional.ofNullable(states.get(flowId));
         }
     }
 }

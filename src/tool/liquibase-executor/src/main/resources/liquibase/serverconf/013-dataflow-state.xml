@@ -7,11 +7,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd"
     logicalFilePath="serverconf/013-dataflow-state.xml">
 
-    <!--
-        Proxy data-plane flow state, keyed by the control plane's process ID (flow_id — the DSP
-        transfer-process correlation id). Shared across proxy nodes, replacing a JVM-local map.
-        Surrogate id primary key + unique flow_id.
-    -->
     <changeSet author="niis" id="013-dataflow-state">
         <createTable tableName="dataflow_state">
             <column name="id" autoIncrement="true" type="SERIAL">

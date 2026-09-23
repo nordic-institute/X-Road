@@ -26,7 +26,7 @@ Doc. ID: DM-SS
 | 07.04.2025 | 1.13    | Table "configuration_client" added, "service_securitycategories" removed from diagram                          | Justas Samuolis                 |
 | 30.03.2026 | 1.14    | Added unique constraints to identifier tables and removed unnnecessary columns (service_code, service_version) | Eneli Reimets                   |
 | 01.04.2026 | 1.15    | Update minimum PostgreSQL version to 15                                                                        | Egidijus M                      |
-| 22.09.2026 | 1.16    | Table "dataflow_state" added                                                                                   | Eneli Reimets                   |
+| 23.09.2026 | 1.16    | Table "dataflow_state" added                                                                                   | Eneli Reimets                   |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -123,7 +123,7 @@ This section describes a general mechanism for storing history of the database t
   * history
   * databasechangelog
   * databasechangeloglock
-  * dataflow_state — technical runtime state updated on every proxy data-plane lifecycle signal; see section 2.19
+  * dataflow_state — technical runtime state, not audited; see section 2.19
 
 When a row is created, updated or deleted in one of the history-aware tables, the trigger update_history is activated and invokes the stored procedure add_history_rows. For each changed column, add_history_rows inserts a row into the history table. The details of the stored procedures are described in section 1.6.
 
@@ -517,6 +517,6 @@ On the first `prepare` or `start` signal, one row is created. The flow's process
 |:-------------|:-----------------------:|:----------|:---------------------------------------------------------------------------------------------------------------------|
 | id [PK]      |          serial         | NOT NULL  | Primary key.                                                                                                        |
 | flow_id      | character varying(255)  | NOT NULL  | The Dataspace Protocol process ID (the transfer-process correlation identifier the control plane assigns).        |
-| state        | character varying(32)   | NOT NULL  | The flow's current lifecycle state, one of the names of EDC's `DataFlowStates` enum (e.g. `STARTED`, `COMPLETED`). |
+| state        | character varying(32)   | NOT NULL  | The flow's current lifecycle state: one of `PROVISIONED`, `STARTED`, `SUSPENDED`, `COMPLETED`, `TERMINATED`. |
 | created_at   | timestamp(6)            | NOT NULL  | Row creation time. Set automatically by the `set_timestamps` trigger, not by the application.                     |
 | updated_at   | timestamp(6)            | NOT NULL  | Time of the row's last lifecycle update. Set automatically by the `set_timestamps` trigger on every insert/update. |

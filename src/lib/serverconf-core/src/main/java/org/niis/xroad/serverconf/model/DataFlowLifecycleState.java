@@ -24,46 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.entity;
-
-import jakarta.persistence.Access;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-import org.niis.xroad.common.jpa.entity.AuditableEntity;
-import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
-
-import static jakarta.persistence.AccessType.FIELD;
+package org.niis.xroad.serverconf.model;
 
 /**
- * A proxy data-plane flow's current lifecycle state, keyed by its DSP process ID ({@code flowId}).
+ * Persisted lifecycle state of a proxy data-plane flow. Mirrors, by name, the subset of
+ * {@code org.eclipse.edc.connector.dataplane.spi.DataFlowStates} the proxy persists — kept
+ * separate so this module has no compile-time dependency on EDC's SPI jar.
+ * {@code SharedDataFlowStateStore} converts between the two by name.
  */
-@Getter
-@Setter
-@Entity
-@Table(name = DataFlowStateEntity.TABLE_NAME)
-@Access(FIELD)
-public class DataFlowStateEntity extends AuditableEntity {
-
-    public static final String TABLE_NAME = "dataflow_state";
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    private Long id;
-
-    @Column(name = "flow_id", unique = true, nullable = false, length = 255)
-    private String flowId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state", nullable = false, length = 32)
-    private DataFlowLifecycleState state;
-
+public enum DataFlowLifecycleState {
+    PROVISIONED,
+    STARTED,
+    SUSPENDED,
+    COMPLETED,
+    TERMINATED
 }

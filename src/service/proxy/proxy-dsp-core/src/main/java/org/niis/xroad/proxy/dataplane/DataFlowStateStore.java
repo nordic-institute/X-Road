@@ -26,18 +26,18 @@
  */
 package org.niis.xroad.proxy.dataplane;
 
-import jakarta.annotation.Nullable;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.spi.result.StoreResult;
+
+import java.util.Optional;
 
 /**
  * Stores the lifecycle state of proxy data-plane flows, shared by every proxy node of a
  * clustered Security Server.
  *
- * <p>Follows the vocabulary of EDC's own store SPIs ({@code DataPlaneStore}, {@code AssetIndex}) —
- * a {@link StoreResult} from the write, a direct nullable return from the read — for consistency
- * with other EDC-facing stores in this codebase (e.g. {@code AssetIndexServerConfStore}), even
- * though this store is backed by serverconf/Hibernate, not EDC's SQL implementation.
+ * <p>Returns {@link StoreResult}, matching EDC's own store SPIs, for consistency with other
+ * EDC-facing stores here (e.g. {@code AssetIndexServerConfStore}) despite being backed by
+ * serverconf/Hibernate rather than EDC's SQL store.
  */
 public interface DataFlowStateStore {
 
@@ -54,9 +54,8 @@ public interface DataFlowStateStore {
      * Finds the current state of a flow.
      *
      * @param flowId the flow's process ID
-     * @return the current state, or {@code null} if the flow is not known
+     * @return the current state, or empty if the flow is not known
      */
-    @Nullable
-    DataFlowStates find(String flowId);
+    Optional<DataFlowStates> find(String flowId);
 
 }

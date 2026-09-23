@@ -33,6 +33,7 @@ import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DataFlowStateEntity;
+import org.niis.xroad.serverconf.model.DataFlowLifecycleState;
 
 import java.util.Optional;
 import java.util.function.BiPredicate;
@@ -82,8 +83,7 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
 
     /**
      * Creates the state row for a flow, or updates it via {@code transitionAllowed} if one exists.
-     * The DAO has no notion of what a "state" or a valid transition is — that judgment is the
-     * caller's, passed in as a predicate, so this module stays decoupled from any state-machine semantics.
+     * The DAO defines no lifecycle transition semantics; the caller supplies the predicate.
      * The existing-row read is locked (see {@link #findByFlowIdForUpdate}), making the guard check
      * atomic with the write.
      *
@@ -93,7 +93,8 @@ public class DataFlowStateDAOImpl extends AbstractDAOImpl<DataFlowStateEntity> {
      * @param transitionAllowed tested against (current state, new state); ignored when creating a new row
      * @return {@code true} if the row was created or updated, {@code false} if the transition was rejected
      */
-    public boolean upsertState(Session session, String flowId, String state, BiPredicate<String, String> transitionAllowed) {
+    public boolean upsertState(Session session, String flowId, DataFlowLifecycleState state,
+            BiPredicate<DataFlowLifecycleState, DataFlowLifecycleState> transitionAllowed) {
         var existing = findByFlowIdForUpdate(session, flowId);
         if (existing.isPresent()) {
             var entity = existing.get();

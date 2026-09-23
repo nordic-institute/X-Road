@@ -56,14 +56,13 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Runs the real {@code serverconf-changelog.xml} against a Postgres testcontainer, then drives two
- * independent {@link SharedDataFlowStateStore} instances — each with its own {@link ServerConfDatabaseCtx}
- * and connection pool — against that one database, proving cross-node visibility against the actual
- * schema and store implementation.
+ * independent {@link SharedDataFlowStateStore} instances against that one database to prove
+ * cross-node visibility against the actual schema and store implementation.
  *
  * <p>The container is started manually, gated behind {@link DockerClientFactory#isDockerAvailable()},
- * rather than via the declarative {@code @Testcontainers}/{@code @Container} extension: that extension
- * starts the container before any user {@code @BeforeAll} can check Docker availability, so a
- * Docker-less run would fail instead of skip.
+ * instead of via {@code @Testcontainers}/{@code @Container}: that extension starts the container
+ * before a {@code @BeforeAll} can check Docker availability, so a Docker-less run would fail
+ * instead of skip.
  */
 class SharedDataFlowStateStorePostgresTest {
 
@@ -107,7 +106,7 @@ class SharedDataFlowStateStorePostgresTest {
 
         nodeA.save(flowId, DataFlowStates.STARTED);
 
-        assertThat(nodeB.find(flowId)).isEqualTo(DataFlowStates.STARTED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowStates.STARTED);
     }
 
     @Test
@@ -115,13 +114,13 @@ class SharedDataFlowStateStorePostgresTest {
         var flowId = uniqueFlowId();
 
         nodeA.save(flowId, DataFlowStates.PROVISIONED);
-        assertThat(nodeB.find(flowId)).isEqualTo(DataFlowStates.PROVISIONED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowStates.PROVISIONED);
 
         nodeB.save(flowId, DataFlowStates.STARTED);
-        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.STARTED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
 
         nodeA.save(flowId, DataFlowStates.SUSPENDED);
-        assertThat(nodeB.find(flowId)).isEqualTo(DataFlowStates.SUSPENDED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowStates.SUSPENDED);
     }
 
     @Test
@@ -134,7 +133,7 @@ class SharedDataFlowStateStorePostgresTest {
         nodeB.save(flowId, DataFlowStates.STARTED);
         nodeA.save(flowId, DataFlowStates.TERMINATED);
 
-        assertThat(nodeB.find(flowId)).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(nodeB.find(flowId)).contains(DataFlowStates.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
@@ -149,18 +148,17 @@ class SharedDataFlowStateStorePostgresTest {
         nodeB.save(completedFlowId, DataFlowStates.STARTED);
         nodeA.save(completedFlowId, DataFlowStates.COMPLETED);
 
-        assertThat(nodeA.find(terminatedFlowId)).isEqualTo(DataFlowStates.TERMINATED);
-        assertThat(nodeB.find(completedFlowId)).isEqualTo(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(terminatedFlowId)).contains(DataFlowStates.TERMINATED);
+        assertThat(nodeB.find(completedFlowId)).contains(DataFlowStates.COMPLETED);
         assertThat(countRows(terminatedFlowId)).isEqualTo(1);
         assertThat(countRows(completedFlowId)).isEqualTo(1);
     }
 
     /**
-     * Two proxy nodes handling the first signal for the same new {@code flowId} can both see no
-     * existing row and both insert, racing on {@code uniq_dataflow_state_flow_id}. A {@link CyclicBarrier}
-     * lines up nodeA's and nodeB's {@link SharedDataFlowStateStore#save} calls so both reach the database
-     * at essentially the same instant; run across many distinct {@code flowId}s so at least some pairs
-     * genuinely race. The assertions hold regardless of which pairs actually raced.
+     * Two nodes handling the first signal for the same new {@code flowId} can both see no existing
+     * row and both insert, racing on {@code uniq_dataflow_state_flow_id}. A {@link CyclicBarrier}
+     * lines up both {@link SharedDataFlowStateStore#save} calls across many distinct {@code flowId}s
+     * so at least some pairs genuinely race.
      */
     @Test
     void concurrentFirstWriteForTheSameNewFlowIdDoesNotFailEitherNode() throws Exception {
@@ -181,7 +179,7 @@ class SharedDataFlowStateStorePostgresTest {
             }
 
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.STARTED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -197,8 +195,7 @@ class SharedDataFlowStateStorePostgresTest {
 
     /**
      * Same race as {@link #concurrentFirstWriteForTheSameNewFlowIdDoesNotFailEitherNode}, but nodeA
-     * races with the more advanced {@code STARTED} and nodeB with {@code PROVISIONED}. The final state
-     * must be {@code STARTED} regardless of which node wins the insert.
+     * races with the more advanced {@code STARTED} and nodeB with {@code PROVISIONED}.
      */
     @Test
     void concurrentFirstWriteWithDifferentStatesNeverRegressesToTheOlderState() throws Exception {
@@ -219,7 +216,7 @@ class SharedDataFlowStateStorePostgresTest {
             }
 
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.STARTED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowStates.STARTED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -235,7 +232,7 @@ class SharedDataFlowStateStorePostgresTest {
         nodeA.save(flowId, DataFlowStates.TERMINATED);
         nodeB.save(flowId, DataFlowStates.STARTED);
 
-        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
     }
 
     @Test
@@ -246,7 +243,7 @@ class SharedDataFlowStateStorePostgresTest {
         nodeA.save(flowId, DataFlowStates.COMPLETED);
         nodeB.save(flowId, DataFlowStates.SUSPENDED);
 
-        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
     }
 
     @Test
@@ -257,7 +254,7 @@ class SharedDataFlowStateStorePostgresTest {
         nodeA.save(flowId, DataFlowStates.TERMINATED);
         nodeB.save(flowId, DataFlowStates.TERMINATED);
 
-        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.TERMINATED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.TERMINATED);
         assertThat(countRows(flowId)).isEqualTo(1);
     }
 
@@ -271,8 +268,7 @@ class SharedDataFlowStateStorePostgresTest {
     /**
      * Both nodes read the same {@code STARTED} row before either commits, then race different states —
      * nodeA the terminal {@code COMPLETED}, nodeB {@code SUSPENDED}. A non-atomic read-then-write could
-     * let the later commit silently overwrite the earlier one; the final state must be
-     * {@code COMPLETED} regardless of commit order.
+     * let the later commit silently overwrite the earlier one.
      */
     @Test
     void concurrentUpdateOfAnExistingFlowWithDifferentStatesNeverRegresses() throws Exception {
@@ -296,7 +292,7 @@ class SharedDataFlowStateStorePostgresTest {
             }
 
             for (var flowId : flowIds) {
-                assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.COMPLETED);
+                assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
                 assertThat(countRows(flowId)).isEqualTo(1);
             }
         } finally {
@@ -312,7 +308,7 @@ class SharedDataFlowStateStorePostgresTest {
         nodeA.save(flowId, DataFlowStates.SUSPENDED);
         nodeB.save(flowId, DataFlowStates.COMPLETED);
 
-        assertThat(nodeA.find(flowId)).isEqualTo(DataFlowStates.COMPLETED);
+        assertThat(nodeA.find(flowId)).contains(DataFlowStates.COMPLETED);
     }
 
     /**
@@ -330,8 +326,7 @@ class SharedDataFlowStateStorePostgresTest {
         assertThat(afterInsert.createdAt()).isNotNull();
         assertThat(afterInsert.updatedAt()).isNotNull();
 
-        // Postgres TIMESTAMP(6) resolves to microseconds; this margin makes the "later" assertion below
-        // reliable regardless of how fast the two transactions actually run back to back.
+        // Ensures the "later" assertion below holds regardless of how fast the two transactions run.
         Thread.sleep(50);
 
         nodeB.save(flowId, DataFlowStates.STARTED);
@@ -384,9 +379,8 @@ class SharedDataFlowStateStorePostgresTest {
 
     /**
      * Applies the same {@code serverconf-changelog.xml} production deployments run, excluding only the
-     * last changeset ({@code separate-admin-user}): it just {@code GRANT}/{@code REVOKE}s table
-     * permissions between two Postgres roles, a split this single-role testcontainer has no use for.
-     * Every schema-creating changeset, including {@code 013-dataflow-state.xml}, still runs.
+     * last changeset ({@code separate-admin-user}): it {@code GRANT}/{@code REVOKE}s permissions
+     * between two Postgres roles, a split this single-role testcontainer has no use for.
      */
     private static void applyServerConfChangelog() throws Exception {
         Scope.child(Scope.Attr.resourceAccessor, new ClassLoaderResourceAccessor(), () -> {
