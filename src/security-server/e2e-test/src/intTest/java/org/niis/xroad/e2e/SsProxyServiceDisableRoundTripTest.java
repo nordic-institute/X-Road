@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.properties.config.keys.ServerConfConfigKeys;
-import org.niis.xroad.e2e.AdminApi.AdminSession;
 
 import java.time.Duration;
 
@@ -44,8 +43,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.niis.xroad.e2e.AdminApi.MOCK1_CLIENT_ID;
 import static org.niis.xroad.e2e.AdminApi.MOCK1_SERVICE_CODE;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
-import static org.niis.xroad.e2e.AdminApi.authed;
 import static org.niis.xroad.e2e.AdminApi.callMock1;
+import static org.niis.xroad.e2e.AdminApi.disableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.findServiceDescriptionId;
 import static org.niis.xroad.e2e.AdminApi.login;
@@ -122,7 +121,7 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
                 awaitCallSucceeds(env));
 
         and("the operator disables the service description, supplying a notice", () ->
-                disableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
+                disableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId, DISABLED_NOTICE));
 
         try {
             then("the same consumer's next call is refused with a SERVICE_DISABLED fault carrying the notice", () ->
@@ -134,17 +133,6 @@ class SsProxyServiceDisableRoundTripTest extends E2eTest {
 
         then("the same consumer calls again and succeeds, closing the maintenance window", () ->
                 awaitCallSucceeds(env));
-    }
-
-    private void disableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        var body = """
-                {"disabled_notice": "%s"}
-                """.formatted(DISABLED_NOTICE);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/disable");
-        assertThat(response.getStatusCode()).as("disable service description %s", serviceDescriptionId).isBetween(200, 299);
     }
 
     private void awaitCallSucceeds(E2eEnvironment env) {
