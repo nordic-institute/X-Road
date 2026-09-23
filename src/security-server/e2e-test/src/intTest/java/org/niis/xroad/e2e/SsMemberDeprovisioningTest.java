@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -72,11 +71,7 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  * only reports live contexts and simply drops a member once teardown converges, so it cannot distinguish
  * "torn down" from "never provisioned".
  *
- * <p><b>Ships disabled.</b> Nothing writes an {@code ACTIVE} participant-binding row at provisioning
- * time yet — that lands in a later story. Without a bound row, deleting the member's last client has no
- * binding to flip, so teardown never starts and the polls below can never converge against a real stack.
- * Removing the {@link Disabled} annotation is that story's job, not this one's. The credential-revocation
- * assertions added alongside the teardown ones need no additional precondition of their own — the
+ * <p>The credential-revocation assertions added alongside the teardown ones need no additional precondition of their own — the
  * Central Server's revocation trigger fires off its own registration-removal event, independent of the
  * dataspace binding row — but they need {@link CsIssuerDbOps} to reach the issuer's credential store,
  * which today only the LXD adapter implements; on any other environment this scenario runs the teardown
@@ -92,10 +87,6 @@ import static org.niis.xroad.test.apitest.core.junit.Step.when;
  */
 @DisplayName("SS dataspace - deleting a member's last client tears down its dataspace presence")
 @Order(375)
-@Disabled("participant binding rows are not written at provisioning time yet, so deleting a member's last "
-        + "client never flips a binding row to decommissioned and teardown never starts against a real "
-        + "stack; enable once provisioning writes ACTIVE binding rows. The credential-revocation "
-        + "assertions here additionally run only where the environment implements CsIssuerDbOps (LXD today)")
 @Slf4j
 @SuppressWarnings({"checkstyle:magicnumber", "unchecked"})
 class SsMemberDeprovisioningTest extends E2eTest {

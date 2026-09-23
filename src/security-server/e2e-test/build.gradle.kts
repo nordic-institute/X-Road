@@ -119,6 +119,12 @@ tasks.register<Test>("e2eTest") {
 
   jvmArgs("-XX:MaxMetaspaceSize=200m")
 
+  // The JDK's own InetAddress resolver ignores platform-specific DNS configuration (e.g. macOS
+  // /etc/resolver), so *.lxd names are otherwise unresolvable from a locally run test JVM.
+  providers.gradleProperty("e2e.lxd-hosts-file").orNull?.let {
+    jvmArgs("-Djdk.net.hosts.file=$it")
+  }
+
   maxHeapSize = "256m"
 
   testLogging {
