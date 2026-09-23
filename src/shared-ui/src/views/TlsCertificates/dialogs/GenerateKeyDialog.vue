@@ -26,7 +26,7 @@
  -->
 <template>
   <XrdConfirmDialog
-    title="tlsCertificates.generateKey.title"
+    :title="`${translationsPrefix}.generateKey.title`"
     save-button-text="action.confirm"
     :loading="loading"
     focus-on-accept
@@ -35,10 +35,10 @@
   >
     <template #text>
       <p data-test="generate-tls-and-certificate-dialog-explanation-text">
-        {{ $t('tlsCertificates.generateKey.explanation') }}
+        {{ $t(`${translationsPrefix}.generateKey.explanation`) }}
       </p>
       <p data-test="generate-tls-and-certificate-dialog-confirmation-text">
-        {{ $t('tlsCertificates.generateKey.confirmation') }}
+        {{ $t(`${translationsPrefix}.generateKey.confirmation`) }}
       </p>
     </template>
   </XrdConfirmDialog>
@@ -59,6 +59,10 @@ export default defineComponent({
       type: Object as PropType<TlsCertificatesHandler>,
       required: true,
     },
+    translationsPrefix: {
+      type: String,
+      default: 'tlsCertificates',
+    },
   },
   emits: ['cancel', 'accept'],
   setup() {
@@ -75,7 +79,7 @@ export default defineComponent({
       this.handler
         .generateKey()
         .then(() => {
-          this.addSuccessMessage('tlsCertificates.generateKey.success');
+          this.addSuccessMessage(`${this.translationsPrefix}.generateKey.success`);
           this.$emit('accept');
         })
         .catch((error) => {

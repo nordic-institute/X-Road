@@ -43,7 +43,7 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
     });
 
     await expect
-      .element(page.getByText('DS TLS certificate ACME enrollment failing: CA unreachable'))
+      .element(page.getByText('Dataspace TLS certificate ACME enrollment failing: CA unreachable'))
       .toBeVisible();
 
     // The raw i18n key must never be what actually renders on screen.
@@ -59,7 +59,7 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
       ],
     });
 
-    await expect.element(page.getByText('DS TLS certificate ACME renewal failing: CA unreachable')).toBeVisible();
+    await expect.element(page.getByText('Dataspace TLS certificate ACME renewal failing: CA unreachable')).toBeVisible();
 
     // The raw i18n key must never be what actually renders on screen.
     await expect.element(page.getByText('status.dataspace_tls_acme.renewal_failing')).not.toBeInTheDocument();
@@ -70,7 +70,7 @@ describe('CS Global Alerts — DS TLS ACME failure (Browser Mode)', () => {
       msw: [specHttp.untyped.get('/api/v1/notifications/alerts', () => HttpResponse.json([]))],
     });
 
-    await expect.element(page.getByText('DS TLS certificate ACME enrollment failing', { exact: false })).not.toBeInTheDocument();
-    await expect.element(page.getByText('DS TLS certificate ACME renewal failing', { exact: false })).not.toBeInTheDocument();
+    await expect.element(page.getByText('Dataspace TLS certificate ACME enrollment failing', { exact: false })).not.toBeInTheDocument();
+    await expect.element(page.getByText('Dataspace TLS certificate ACME renewal failing', { exact: false })).not.toBeInTheDocument();
   });
 });

@@ -123,7 +123,7 @@
     "authenticationCertificateProfileId": "ID профиля сертификата аутентификации",
     "certFile": "Файл сертификата",
     "certProfile": "Информация о профиле сертификата",
-    "dsTlsCertificateProfileId": "Идентификатор профиля сертификата DS TLS",
+    "dsTlsCertificateProfileId": "Идентификатор профиля сертификата Dataspace TLS",
     "distinguishedName": "Отличительное имя",
     "init": {
       "address": "Адрес центрального сервера",
@@ -484,9 +484,9 @@
   },
   "status": {
     "dataspace_tls_acme": {
-      "enrollment_failing": "Регистрация сертификата DS TLS через ACME не удалась: {0}",
-      "renewal_failing": "Продление сертификата DS TLS через ACME не удалось: {0}",
-      "status_check_failed": "Не удалось проверить статус ACME сертификата DS TLS"
+      "enrollment_failing": "Регистрация сертификата Dataspace TLS через ACME не удалась: {0}",
+      "renewal_failing": "Продление сертификата Dataspace TLS через ACME не удалось: {0}",
+      "status_check_failed": "Не удалось проверить статус ACME сертификата Dataspace TLS"
     },
     "global_conf_generation": {
       "failing": "Создание глобальной конфигурации не удалось с {0}",
@@ -779,20 +779,20 @@
     "certificationServices": "Сервисы сертификации",
     "defaultCsrFormat": "Формат CSR по умолчанию",
     "dsTls": {
-      "addDsTlsCertificationAuthority": "Добавить удостоверяющий центр DS TLS",
+      "addDsTlsCertificationAuthority": "Добавить удостоверяющий центр Dataspace TLS",
       "delete": {
         "confirmationDialog": {
-          "message": "Вы уверены, что хотите удалить удостоверяющий центр DS TLS \"{name}\"?",
+          "message": "Вы уверены, что хотите удалить удостоверяющий центр Dataspace TLS \"{name}\"?",
           "title": "Вы уверены?"
         },
-        "success": "Удостоверяющий центр DS TLS успешно удален"
+        "success": "Удостоверяющий центр Dataspace TLS успешно удален"
       },
-      "dsTlsCertificateProfileIdExplanation": "Идентификатор профиля, используемый некоторыми серверами ACME, чтобы узнать тип использования сертификата при заказе сертификата DS TLS.",
-      "dsTlsCertificationAuthorities": "Удостоверяющие центры DS TLS",
-      "dsTlsCertificationAuthority": "Удостоверяющий центр DS TLS",
+      "dsTlsCertificateProfileIdExplanation": "Идентификатор профиля, используемый некоторыми серверами ACME, чтобы узнать тип использования сертификата при заказе сертификата Dataspace TLS.",
+      "dsTlsCertificationAuthorities": "Удостоверяющие центры Dataspace TLS",
+      "dsTlsCertificationAuthority": "Удостоверяющий центр Dataspace TLS",
       "nameExplanation": "Произвольное имя, идентифицирующее этот удостоверяющий центр, например \"Let's Encrypt\".",
       "settings": {
-        "title": "Настройки УЦ DS TLS"
+        "title": "Настройки УЦ Dataspace TLS"
       }
     },
     "timestampingService": {

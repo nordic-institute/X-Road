@@ -269,29 +269,39 @@ public interface VaultClient {
     /**
      * Parses a raw Vault secret map into a {@link DsTlsEnrollmentStatus}. Shared by every {@link VaultClient}
      * implementation regardless of whether its underlying client returns {@code Map<String, Object>} or
-     * {@code Map<String, String>} values.
+     * {@code Map<String, String>} values. A missing or blank value means the field is absent, so records written
+     * by {@link #toDsTlsEnrollmentStatusSecret(DsTlsEnrollmentStatus)} and older records that omitted optional
+     * keys both parse.
      */
     default DsTlsEnrollmentStatus toDsTlsEnrollmentStatus(Map<String, ?> secret) {
-        var method = DsTlsEnrollmentMethod.valueOf(secret.get(METHOD_KEY).toString());
-        var nextRenewalTime = secret.containsKey(NEXT_RENEWAL_TIME_KEY)
-                ? Instant.parse(secret.get(NEXT_RENEWAL_TIME_KEY).toString()) : null;
-        var lastError = secret.containsKey(LAST_ERROR_KEY) ? secret.get(LAST_ERROR_KEY).toString() : null;
-        return new DsTlsEnrollmentStatus(method, nextRenewalTime, lastError);
+        var method = presentValue(secret, METHOD_KEY);
+        var nextRenewalTime = presentValue(secret, NEXT_RENEWAL_TIME_KEY);
+        return new DsTlsEnrollmentStatus(
+                method == null ? null : DsTlsEnrollmentMethod.valueOf(method),
+                nextRenewalTime == null ? null : Instant.parse(nextRenewalTime),
+                presentValue(secret, LAST_ERROR_KEY));
     }
 
     /**
      * Builds the raw Vault secret map for a {@link DsTlsEnrollmentStatus}, the inverse of
-     * {@link #toDsTlsEnrollmentStatus(Map)}.
+     * {@link #toDsTlsEnrollmentStatus(Map)}. Every key is always written, blank when the field is absent: the
+     * OpenBao policy for this path grants no delete, so clearing the record is an ordinary write, and a KV v1 mount
+     * rejects a secret without data fields.
      */
     default Map<String, String> toDsTlsEnrollmentStatusSecret(DsTlsEnrollmentStatus status) {
         var secret = new HashMap<String, String>();
-        secret.put(METHOD_KEY, status.method().name());
-        if (status.nextRenewalTime() != null) {
-            secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime().toString());
-        }
-        if (status.lastError() != null) {
-            secret.put(LAST_ERROR_KEY, status.lastError());
-        }
+        secret.put(METHOD_KEY, status.method() == null ? "" : status.method().name());
+        secret.put(NEXT_RENEWAL_TIME_KEY, status.nextRenewalTime() == null ? "" : status.nextRenewalTime().toString());
+        secret.put(LAST_ERROR_KEY, status.lastError() == null ? "" : status.lastError());
         return secret;
+    }
+
+    private static String presentValue(Map<String, ?> secret, String key) {
+        var value = secret.get(key);
+        if (value == null) {
+            return null;
+        }
+        var text = value.toString();
+        return text.isBlank() ? null : text;
     }
 }

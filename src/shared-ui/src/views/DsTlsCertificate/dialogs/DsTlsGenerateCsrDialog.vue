@@ -46,11 +46,21 @@
             v-bind="distinguishedNameAttrs"
             class="xrd"
             autofocus
-            data-test="enter-distinguished-name"
+            data-test="ds-tls-csr-distinguished-name"
             :placeholder="$t(`${translationsPrefix}.generateCsr.example`)"
             :label="$t(`${translationsPrefix}.generateCsr.distinguishedName`)"
             :hint="$t(`${translationsPrefix}.generateCsr.tooltip`)"
             persistent-hint
+          >
+          </v-text-field>
+        </XrdFormBlockRow>
+        <XrdFormBlockRow full-length>
+          <v-text-field
+            v-model="subjectAltName"
+            v-bind="subjectAltNameAttrs"
+            class="xrd"
+            data-test="ds-tls-csr-subject-alt-name"
+            :label="$t(`${translationsPrefix}.generateCsr.subjectAltName`)"
           >
           </v-text-field>
         </XrdFormBlockRow>
@@ -61,32 +71,47 @@
 
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
+import { PropType } from 'vue';
 
-import { TlsCertificatesHandler, DialogSaveHandler } from '../../../types';
+import { DsTlsCertificateHandler, DialogSaveHandler } from '../../../types';
 
 import { useBasicForm } from '../../../composables';
 
 import { XrdFormBlock, XrdFormBlockRow, XrdSimpleDialog } from '../../../components';
-import { PropType } from 'vue';
 
 const props = defineProps({
   handler: {
-    type: Object as PropType<TlsCertificatesHandler>,
+    type: Object as PropType<DsTlsCertificateHandler>,
     required: true,
+  },
+  defaultDistinguishedName: {
+    type: String,
+    default: '',
+  },
+  defaultSubjectAltName: {
+    type: String,
+    default: '',
   },
   translationsPrefix: {
     type: String,
-    default: 'tlsCertificates',
+    default: 'dsTlsCertificates',
   },
 });
 
 const emit = defineEmits(['cancel', 'generate']);
 
 const { handleSubmit, defineField, meta } = useForm({
-  validationSchema: { distinguishedName: 'required' },
+  validationSchema: { distinguishedName: 'required', subjectAltName: 'required' },
+  initialValues: {
+    distinguishedName: props.defaultDistinguishedName,
+    subjectAltName: props.defaultSubjectAltName,
+  },
 });
 
 const [distinguishedName, distinguishedNameAttrs] = defineField('distinguishedName', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [subjectAltName, subjectAltNameAttrs] = defineField('subjectAltName', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
@@ -96,7 +121,7 @@ function submit(evt: Event, handler: DialogSaveHandler) {
   handleSubmit((values) => {
     loading.value = true;
     props.handler
-      .generateCsr(values.distinguishedName)
+      .generateCsr(values.distinguishedName, values.subjectAltName)
       .then(() => emit('generate'))
       .catch((error) => {
         handler.addError(error);

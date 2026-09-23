@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.RsaKeyManager;
-import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -38,13 +37,19 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.VaultClient;
+import org.niis.xroad.restapi.dstls.DsTlsAcmeAvailability;
+import org.niis.xroad.restapi.dstls.DsTlsAcmeOrderResult;
+import org.niis.xroad.restapi.dstls.DsTlsCertificateAcmeProvider;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateStatus;
 import org.niis.xroad.restapi.dstls.DsTlsCertificateValidator;
+import org.niis.xroad.restapi.dstls.DsTlsCsrBuilder;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedOutputStream;
@@ -57,14 +62,23 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.niis.xroad.common.core.exception.ErrorCode.CSR_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_ACME_ORDER_FAILED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CA_NOT_FOUND;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_CERTIFICATE_NOT_CONFIGURED;
+import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_INVALID_SUBJECT_ALT_NAME;
 import static org.niis.xroad.common.core.exception.ErrorCode.DS_TLS_KEY_NOT_GENERATED;
 import static org.niis.xroad.common.core.exception.ErrorCode.INTERNAL_ERROR;
 import static org.niis.xroad.common.core.exception.ErrorCode.INVALID_DISTINGUISHED_NAME;
@@ -84,9 +98,14 @@ public class DsTlsCertificateService {
     private static final int RSA_KEY_LENGTH = 2048;
     private static final String CERT_PEM_FILENAME = "./ds-https.pem";
     private static final String CERT_CER_FILENAME = "./ds-https.cer";
+    private static final DsTlsAcmeAvailability ACME_NOT_AVAILABLE = new DsTlsAcmeAvailability(false, List.of(), null);
+    private static final Pattern WHITESPACE = Pattern.compile("\\s");
 
     private final VaultClient vaultClient;
     private final DsTlsCertificateValidator dsTlsCertificateValidator;
+    private final ObjectProvider<DsTlsCertificateAcmeProvider> dsTlsCertificateAcmeProvider;
+
+    private final ReentrantLock slotLock = new ReentrantLock();
 
     public DsTlsCertificateStatus getStatus() {
         return readCredentials()
@@ -96,20 +115,27 @@ public class DsTlsCertificateService {
 
     public void generateKey() {
         KeyPair keyPair = new RsaKeyManager(RSA_KEY_LENGTH).generateKeyPair();
+        slotLock.lock();
         try {
-            vaultClient.createDsHttpsTlsCredentials(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[0]));
+            writeCredentials(new InternalSSLKey(keyPair.getPrivate(), new X509Certificate[0]), "Failed to store DataSpace TLS key");
             log.info("Successfully generated DataSpace TLS key");
-        } catch (Exception e) {
-            log.error("Failed to store DataSpace TLS key", e);
-            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+            writeEnrollmentStatus(new DsTlsEnrollmentStatus(null, null, null));
+        } finally {
+            slotLock.unlock();
         }
     }
 
-    public byte[] generateCsr(String distinguishedName) {
+    /**
+     * @param subjectAltName single DNS subject alternative name, or {@code null} for a distinguished-name-only CSR
+     */
+    public byte[] generateCsr(String distinguishedName, String subjectAltName) {
         InternalSSLKey credentials = readCredentials()
                 .orElseThrow(() -> new NotFoundException(DS_TLS_KEY_NOT_GENERATED.build()));
+        if (subjectAltName != null) {
+            validateSubjectAltName(subjectAltName);
+        }
         try {
-            return CertUtils.generateCertRequest(credentials.getKey(), publicKeyOf(credentials.getKey()), distinguishedName);
+            return DsTlsCsrBuilder.buildPem(credentials.getKey(), publicKeyOf(credentials.getKey()), distinguishedName, subjectAltName);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e, INVALID_DISTINGUISHED_NAME.build());
         } catch (Exception e) {
@@ -117,42 +143,145 @@ public class DsTlsCertificateService {
         }
     }
 
-    public X509Certificate uploadCertificate(byte[] certificateChainBytes) {
-        InternalSSLKey credentials = readCredentials()
-                .orElseThrow(() -> new NotFoundException(DS_TLS_KEY_NOT_GENERATED.build()));
-
-        X509Certificate[] chain = dsTlsCertificateValidator.validate(publicKeyOf(credentials.getKey()), certificateChainBytes);
-        try {
-            vaultClient.createDsHttpsTlsCredentials(new InternalSSLKey(credentials.getKey(), chain));
-            log.info("Successfully stored DataSpace TLS certificate");
-        } catch (Exception e) {
-            log.error("Failed to store DataSpace TLS certificate", e);
-            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
-        }
-        return chain[0];
+    /**
+     * @return whether ACME ordering is currently available, and if so, from which designated certification
+     *     authorities and under which public hostname
+     */
+    public DsTlsAcmeAvailability getAcmeAvailability() {
+        DsTlsCertificateAcmeProvider provider = dsTlsCertificateAcmeProvider.getIfAvailable();
+        return provider != null ? provider.getAvailability() : ACME_NOT_AVAILABLE;
     }
 
     /**
-     * Atomically stores a newly ACME-issued key and certificate chain, tagging the enrollment method
-     * {@link DsTlsEnrollmentMethod#ACME}, recording the next renewal time and clearing any prior error. Before
-     * writing, validates the chain's public key against {@code privateKey} as a self-check against a bug in the
-     * enrollment pipeline, not a trust check on the issuing CA — nothing is written if that check fails.
+     * Orders a DataSpace TLS certificate via ACME from {@code caName} for {@code distinguishedName} and
+     * {@code subjectAltName}, reusing the stored DS TLS key, and stores the issued chain through the existing
+     * ACME store path. Ordering while a certificate already exists is allowed and replaces it. The issued chain is
+     * discarded if the key was replaced while the order was in progress.
      *
-     * @param privateKey        the newly generated DS TLS private key
-     * @param certificateChain  the certificate chain the ACME order returned, leaf certificate first
-     * @param nextRenewalTime   when this credential is next due for ACME renewal
+     * @return the issued leaf certificate
      */
-    public void storeAcmeEnrolledCertificate(PrivateKey privateKey, X509Certificate[] certificateChain, Instant nextRenewalTime) {
-        dsTlsCertificateValidator.validate(publicKeyOf(privateKey), certificateChain);
+    public X509Certificate orderCertificate(String caName, String distinguishedName, String subjectAltName) {
+        InternalSSLKey credentials = readCredentials()
+                .orElseThrow(() -> new NotFoundException(DS_TLS_KEY_NOT_GENERATED.build()));
+        validateSubjectAltName(subjectAltName);
 
-        try {
-            vaultClient.createDsHttpsTlsCredentials(new InternalSSLKey(privateKey, certificateChain));
-        } catch (Exception e) {
-            log.error("Failed to store ACME-enrolled DataSpace TLS certificate", e);
-            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        DsTlsCertificateAcmeProvider provider = dsTlsCertificateAcmeProvider.getIfAvailable();
+        if (provider == null) {
+            throw new BadRequestException(DS_TLS_CA_NOT_FOUND.build(caName));
         }
+
+        PrivateKey privateKey = credentials.getKey();
+        PublicKey publicKey = publicKeyOf(privateKey);
+        X509Certificate currentCertificate = leafOrNull(credentials);
+
+        DsTlsAcmeOrderResult result;
+        try {
+            result = provider.order(caName, distinguishedName, subjectAltName, privateKey, publicKey, currentCertificate);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e, INVALID_DISTINGUISHED_NAME.build());
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            String error = describeError(e);
+            recordAcmeOutcome(error);
+            throw new InternalServerErrorException(e, DS_TLS_ACME_ORDER_FAILED.build(error));
+        }
+
+        X509Certificate[] chainArray = result.certificateChain().toArray(X509Certificate[]::new);
+        storeOrderedCertificate(privateKey, chainArray, result.nextRenewalTime());
+        return chainArray[0];
+    }
+
+    private void validateSubjectAltName(String subjectAltName) {
+        if (isBlank(subjectAltName) || WHITESPACE.matcher(subjectAltName).find()) {
+            throw new BadRequestException(DS_TLS_INVALID_SUBJECT_ALT_NAME.build());
+        }
+    }
+
+    private static String describeError(Exception ex) {
+        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+        return cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+    }
+
+    public X509Certificate uploadCertificate(byte[] certificateChainBytes) {
+        slotLock.lock();
+        try {
+            InternalSSLKey credentials = readCredentials()
+                    .orElseThrow(() -> new NotFoundException(DS_TLS_KEY_NOT_GENERATED.build()));
+
+            X509Certificate[] chain = dsTlsCertificateValidator.validate(publicKeyOf(credentials.getKey()), certificateChainBytes);
+            writeCredentials(new InternalSSLKey(credentials.getKey(), chain), "Failed to store DataSpace TLS certificate");
+            writeEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.MANUAL, null, null));
+            log.info("Successfully stored DataSpace TLS certificate");
+            return chain[0];
+        } finally {
+            slotLock.unlock();
+        }
+    }
+
+    /**
+     * Stores a renewed DS TLS key and certificate chain in place of {@code replacedCertificate}, tagging the
+     * enrollment method {@link DsTlsEnrollmentMethod#ACME}, recording the next renewal time and clearing any prior
+     * error. Nothing is written when the slot no longer holds {@code replacedCertificate}: an administrator has
+     * regenerated the key or stored another certificate since the renewal started, and that newer state wins over
+     * the renewal result. The chain's public key is validated against {@code privateKey} first as a self-check on
+     * the enrollment pipeline, not as a trust check on the issuing CA.
+     *
+     * @param replacedCertificate the certificate the renewal started from
+     * @param privateKey          the newly generated DS TLS private key
+     * @param certificateChain    the certificate chain the ACME order returned, leaf certificate first
+     * @param nextRenewalTime     when this credential is next due for ACME renewal
+     * @return {@code true} if the renewed credential was stored, {@code false} if the slot had changed and the
+     *     renewal result was discarded
+     */
+    public boolean storeRenewedCertificate(X509Certificate replacedCertificate, PrivateKey privateKey,
+                                           X509Certificate[] certificateChain, Instant nextRenewalTime) {
+        dsTlsCertificateValidator.validate(publicKeyOf(privateKey), certificateChain);
+        slotLock.lock();
+        try {
+            boolean unchanged = readCredentials().flatMap(this::leafOptional)
+                    .map(replacedCertificate::equals)
+                    .orElse(false);
+            if (!unchanged) {
+                log.warn("The DataSpace TLS certificate changed while it was being renewed, discarding the renewed certificate");
+                return false;
+            }
+            writeAcmeCredentials(privateKey, certificateChain, nextRenewalTime);
+            return true;
+        } finally {
+            slotLock.unlock();
+        }
+    }
+
+    private void storeOrderedCertificate(PrivateKey orderedKey, X509Certificate[] certificateChain, Instant nextRenewalTime) {
+        dsTlsCertificateValidator.validate(publicKeyOf(orderedKey), certificateChain);
+        slotLock.lock();
+        try {
+            boolean unchanged = readCredentials()
+                    .map(credentials -> sameKey(credentials.getKey(), orderedKey))
+                    .orElse(false);
+            if (!unchanged) {
+                throw new ConflictException(DS_TLS_ACME_ORDER_FAILED.build(
+                        "the DataSpace TLS key was replaced while the order was in progress"));
+            }
+            writeAcmeCredentials(orderedKey, certificateChain, nextRenewalTime);
+        } finally {
+            slotLock.unlock();
+        }
+    }
+
+    private void writeAcmeCredentials(PrivateKey privateKey, X509Certificate[] certificateChain, Instant nextRenewalTime) {
+        writeCredentials(new InternalSSLKey(privateKey, certificateChain), "Failed to store ACME-enrolled DataSpace TLS certificate");
         writeEnrollmentStatus(new DsTlsEnrollmentStatus(DsTlsEnrollmentMethod.ACME, nextRenewalTime, null));
         log.info("Successfully stored ACME-enrolled DataSpace TLS certificate");
+    }
+
+    private static boolean sameKey(PrivateKey stored, PrivateKey expected) {
+        if (stored instanceof RSAPrivateKey storedRsa && expected instanceof RSAPrivateKey expectedRsa) {
+            return storedRsa.getModulus().equals(expectedRsa.getModulus())
+                    && storedRsa.getPrivateExponent().equals(expectedRsa.getPrivateExponent());
+        }
+        return Arrays.equals(stored.getEncoded(), expected.getEncoded());
     }
 
     /**
@@ -164,16 +293,21 @@ public class DsTlsCertificateService {
      * @return {@code true} if the recorded error changed, {@code false} if it was already exactly this value
      */
     public boolean recordAcmeOutcome(String errorDescription) {
-        Optional<DsTlsEnrollmentStatus> existing = readEnrollmentStatus();
-        String currentError = existing.map(DsTlsEnrollmentStatus::lastError).orElse(null);
-        if (Objects.equals(currentError, errorDescription)) {
-            return false;
-        }
+        slotLock.lock();
+        try {
+            Optional<DsTlsEnrollmentStatus> existing = readEnrollmentStatus();
+            String currentError = existing.map(DsTlsEnrollmentStatus::lastError).orElse(null);
+            if (Objects.equals(currentError, errorDescription)) {
+                return false;
+            }
 
-        DsTlsEnrollmentMethod method = existing.map(DsTlsEnrollmentStatus::method).orElse(DsTlsEnrollmentMethod.ACME);
-        Instant nextRenewalTime = existing.map(DsTlsEnrollmentStatus::nextRenewalTime).orElse(null);
-        writeEnrollmentStatus(new DsTlsEnrollmentStatus(method, nextRenewalTime, errorDescription));
-        return true;
+            DsTlsEnrollmentMethod method = existing.map(DsTlsEnrollmentStatus::method).orElse(DsTlsEnrollmentMethod.ACME);
+            Instant nextRenewalTime = existing.map(DsTlsEnrollmentStatus::nextRenewalTime).orElse(null);
+            writeEnrollmentStatus(new DsTlsEnrollmentStatus(method, nextRenewalTime, errorDescription));
+            return true;
+        } finally {
+            slotLock.unlock();
+        }
     }
 
     /**
@@ -199,28 +333,6 @@ public class DsTlsCertificateService {
         DsTlsEnrollmentMethod method = stored.map(DsTlsEnrollmentStatus::method).orElse(DsTlsEnrollmentMethod.MANUAL);
         Instant nextRenewalTime = stored.map(DsTlsEnrollmentStatus::nextRenewalTime).orElse(null);
         return new DsTlsEnrollmentStatus(method, nextRenewalTime, lastError);
-    }
-
-    /**
-     * Suspends ACME scheduling bookkeeping: clears the recorded next-renewal-time and last error while preserving
-     * the recorded method, for use when the feature this belongs to gets disabled after a certificate was already
-     * ACME-enrolled. Deliberately leaves the credential itself untouched. A no-op when already clear.
-     *
-     * @return {@code true} if anything was cleared, {@code false} if it was already clear
-     */
-    public boolean suspendAcmeScheduling() {
-        Optional<DsTlsEnrollmentStatus> existing = readEnrollmentStatus();
-        if (existing.isEmpty()) {
-            return false;
-        }
-
-        DsTlsEnrollmentStatus current = existing.get();
-        if (current.nextRenewalTime() == null && current.lastError() == null) {
-            return false;
-        }
-
-        writeEnrollmentStatus(new DsTlsEnrollmentStatus(current.method(), null, null));
-        return true;
     }
 
     public byte[] downloadCertificateTar() {
@@ -274,12 +386,26 @@ public class DsTlsCertificateService {
         }
     }
 
+    private void writeCredentials(InternalSSLKey credentials, String failureDescription) {
+        try {
+            vaultClient.createDsHttpsTlsCredentials(credentials);
+        } catch (Exception e) {
+            log.error(failureDescription, e);
+            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+        }
+    }
+
+    /**
+     * Best-effort write of the enrollment bookkeeping record. The credential slot is the source of truth and has
+     * already been written when this runs, so a failure here is logged but never fails the operation: the served
+     * credential is intact, the recorded method or error may lag behind until the next successful write, and the
+     * renewal worker resolves the issuing CA from the certificate itself rather than from this record.
+     */
     private void writeEnrollmentStatus(DsTlsEnrollmentStatus status) {
         try {
             vaultClient.createDsTlsEnrollmentStatus(status);
         } catch (Exception e) {
-            log.error("Failed to store DataSpace TLS enrollment status in vault", e);
-            throw new InternalServerErrorException(e, INTERNAL_ERROR.build());
+            log.warn("Failed to store DataSpace TLS enrollment status in vault, the stored credential is unaffected", e);
         }
     }
 

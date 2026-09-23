@@ -62,14 +62,13 @@ export function createXrdRouter(config: Config): Router {
   router.beforeEach(async (to: XrdLocation, from: RouteLocationNormalized) => {
     // Going to login
     if (to.name === config.loginRouteName) {
-
       if (config.initAdminRouteName && config.isAdminUserCreationRequired) {
         const creationRequired = await config.isAdminUserCreationRequired();
 
         if (creationRequired) {
           return {
             name: config.initAdminRouteName,
-          }
+          };
         }
       }
       return;
@@ -106,7 +105,11 @@ export function createXrdRouter(config: Config): Router {
           };
         }
       }
-    } else if (to.name === config.initAdminRouteName && config.isAdminUserCreationRequired && (await config.isAdminUserCreationRequired())) {
+    } else if (
+      to.name === config.initAdminRouteName &&
+      config.isAdminUserCreationRequired &&
+      (await config.isAdminUserCreationRequired())
+    ) {
       return;
     } else {
       return {

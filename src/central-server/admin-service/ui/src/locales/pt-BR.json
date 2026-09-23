@@ -126,7 +126,7 @@
     "certFile": "Arquivo do certificado",
     "certProfile": "Informações do perfil de certificado",
     "distinguishedName": "Nome distinto (DN)",
-    "dsTlsCertificateProfileId": "Id. de perfil de certificado DS TLS",
+    "dsTlsCertificateProfileId": "Id. de perfil de certificado Dataspace TLS",
     "init": {
       "address": "Endereço do Servidor Central",
       "confirmPin": "Confirmar PIN",
@@ -500,9 +500,9 @@
   },
   "status": {
     "dataspace_tls_acme": {
-      "enrollment_failing": "Inscrição ACME do certificado DS TLS falhando: {0}",
-      "renewal_failing": "Renovação ACME do certificado DS TLS falhando: {0}",
-      "status_check_failed": "Falha ao verificar o status ACME do certificado DS TLS"
+      "enrollment_failing": "Inscrição ACME do certificado Dataspace TLS falhando: {0}",
+      "renewal_failing": "Renovação ACME do certificado Dataspace TLS falhando: {0}",
+      "status_check_failed": "Falha ao verificar o status ACME do certificado Dataspace TLS"
     },
     "global_conf_generation": {
       "failing": "Geração da configuração global falhando desde {0}",
@@ -795,20 +795,20 @@
      "certificationServices":"Serviços de Certificação",
     "defaultCsrFormat": "Formato CSR padrão",
     "dsTls": {
-      "addDsTlsCertificationAuthority": "Adicionar autoridade de certificação DS TLS",
+      "addDsTlsCertificationAuthority": "Adicionar autoridade de certificação Dataspace TLS",
       "delete": {
         "confirmationDialog": {
-          "message": "Tem certeza de que deseja excluir a autoridade de certificação DS TLS \"{name}\"?",
+          "message": "Tem certeza de que deseja excluir a autoridade de certificação Dataspace TLS \"{name}\"?",
           "title": "Tem certeza?"
         },
-        "success": "Autoridade de certificação DS TLS excluída com sucesso"
+        "success": "Autoridade de certificação Dataspace TLS excluída com sucesso"
       },
-      "dsTlsCertificateProfileIdExplanation": "Id. de perfil usado por alguns servidores ACME para saber o tipo de uso do certificado ao solicitar um certificado DS TLS.",
-      "dsTlsCertificationAuthorities": "Autoridades de Certificação DS TLS",
-      "dsTlsCertificationAuthority": "Autoridade de Certificação DS TLS",
+      "dsTlsCertificateProfileIdExplanation": "Id. de perfil usado por alguns servidores ACME para saber o tipo de uso do certificado ao solicitar um certificado Dataspace TLS.",
+      "dsTlsCertificationAuthorities": "Autoridades de Certificação Dataspace TLS",
+      "dsTlsCertificationAuthority": "Autoridade de Certificação Dataspace TLS",
       "nameExplanation": "Um nome livre que identifica esta autoridade de certificação, por exemplo \"Let's Encrypt\".",
       "settings": {
-        "title": "Configurações da AC DS TLS"
+        "title": "Configurações da AC Dataspace TLS"
       }
     },
     "timestampingService":{

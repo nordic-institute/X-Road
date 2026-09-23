@@ -42,7 +42,7 @@
           data-test="management-service-certificate-generateKey"
           variant="outlined"
           prepend-icon="autorenew"
-          text="tlsCertificates.generateKey.button"
+          :text="`${translationsPrefix}.generateKey.button`"
           @click="generateKey"
         />
         <XrdBtn
@@ -51,7 +51,7 @@
           class="ml-4"
           variant="outlined"
           prepend-icon="upload"
-          text="tlsCertificates.uploadCertificate.button"
+          :text="`${translationsPrefix}.uploadCertificate.button`"
           @click="uploadCertificate"
         />
         <XrdBtn
@@ -60,7 +60,7 @@
           class="ml-4"
           variant="outlined"
           prepend-icon="download"
-          text="tlsCertificates.downloadCertificate"
+          :text="`${translationsPrefix}.downloadCertificate`"
           :loading="loadingDownload"
           @click="download"
         />
@@ -69,7 +69,7 @@
         <v-table class="xrd bg-surface-container">
           <thead>
             <tr>
-              <th>{{ $t('tlsCertificates.key') }}</th>
+              <th>{{ $t(`${translationsPrefix}.key`) }}</th>
               <th></th>
             </tr>
           </thead>
@@ -77,7 +77,7 @@
             <tr>
               <td class="on-surface font-weight-medium">
                 <v-icon icon="shield_lock" size="24" filled />
-                {{ $t('tlsCertificates.keyText') }}
+                {{ $t(`${translationsPrefix}.keyText`) }}
               </td>
               <td>
                 <XrdBtn
@@ -86,7 +86,7 @@
                   class="float-right"
                   variant="text"
                   color="tertiary"
-                  text="tlsCertificates.generateCsr.button"
+                  :text="`${translationsPrefix}.generateCsr.button`"
                   @click="generateCsr"
                 />
               </td>
@@ -114,18 +114,21 @@
       <GenerateKeyDialog
         v-if="showGenerateKeyDialog"
         :handler="handler"
+        :translations-prefix="translationsPrefix"
         @accept="closeGenerateKeyDialog"
         @cancel="showGenerateKeyDialog = false"
       />
       <GenerateCsrDialog
         v-if="showGenerateCsrDialog"
         :handler="handler"
+        :translations-prefix="translationsPrefix"
         @generate="showGenerateCsrDialog = false"
         @cancel="showGenerateCsrDialog = false"
       />
       <UploadCertificateDialog
         v-if="showUploadCertificateDialog"
         :handler="handler"
+        :translations-prefix="translationsPrefix"
         @upload="closeUploadCertificateDialog"
         @cancel="showUploadCertificateDialog = false"
       />
@@ -189,6 +192,10 @@ export default defineComponent({
     certDetailsViewName: {
       type: String,
       required: true,
+    },
+    translationsPrefix: {
+      type: String,
+      default: 'tlsCertificates',
     },
   },
   setup() {
