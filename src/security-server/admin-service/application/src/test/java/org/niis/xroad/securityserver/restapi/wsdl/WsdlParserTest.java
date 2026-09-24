@@ -50,8 +50,6 @@ public class WsdlParserTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        // restrict access to external entities
-        System.setProperty(ACCESS_EXTERNAL_DTD, "");
         wsdlParser = new WsdlParser(mock(ServerConfProvider.class));
     }
 
@@ -122,7 +120,9 @@ public class WsdlParserTest {
             assertEquals(1, si.size());
             assertThat(si.iterator().next().title).isNull();
         } finally {
-            System.setProperty(ACCESS_EXTERNAL_DTD, accessExternalDtd);
+            if (accessExternalDtd != null) {
+                System.setProperty(ACCESS_EXTERNAL_DTD, accessExternalDtd);
+            }
         }
     }
 
