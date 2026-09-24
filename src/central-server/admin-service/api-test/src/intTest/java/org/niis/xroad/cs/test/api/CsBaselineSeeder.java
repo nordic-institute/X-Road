@@ -37,6 +37,7 @@ import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
@@ -48,6 +49,7 @@ import org.niis.xroad.cs.openapi.model.TokenInitStatusDto;
 import org.niis.xroad.cs.test.api.admin.AdminApiSession;
 import org.niis.xroad.cs.test.api.admin.MemberClassesAdminClient;
 import org.niis.xroad.cs.test.api.admin.MembersAdminClient;
+import org.niis.xroad.cs.test.api.admin.SecurityServersAdminClient;
 import org.niis.xroad.cs.test.api.admin.SubsystemsAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
 import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
@@ -392,6 +394,48 @@ public class CsBaselineSeeder {
 
             log.debug("Registered and approved security server {}", serverId);
             return serverId;
+        });
+    }
+
+    /**
+     * Registers the given client (a member or one of its subsystems) as a client of the given security
+     * server through a client registration management request, approved immediately. Idempotent: if the
+     * client is already registered on the server, no request is made.
+     *
+     * @param session   authenticated admin session to use
+     * @param namespace per-test identifier used only to label the Allure step
+     * @param serverId  security server identifier (CS:class:code:serverCode) the client registers on
+     * @param clientId  X-Road client identifier (CS:class:code or CS:class:code:subsystemCode) to register
+     */
+    public synchronized void seedClientRegistration(AdminApiSession session, String namespace, String serverId, String clientId) {
+        Step.given("test environment seeded: client registration ns='%s' client='%s'".formatted(namespace, clientId), () -> {
+            var servers = new SecurityServersAdminClient(session);
+            var registered = servers.getClients(serverId).extract().jsonPath().getList("client_id.encoded_id", String.class);
+            if (registered.contains(clientId)) {
+                return;
+            }
+
+            var registrationRequest = new ClientRegistrationRequestDto().clientId(clientId);
+            registrationRequest.setType(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
+            registrationRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
+            registrationRequest.setSecurityServerId(serverId);
+
+            var requestId = session.givenSilent()
+                    .contentType(ContentType.JSON)
+                    .body(registrationRequest)
+                    .post("/management-requests")
+                    .then()
+                    .statusCode(202)
+                    .extract()
+                    .jsonPath()
+                    .getInt("id");
+
+            session.givenSilent()
+                    .post("/management-requests/{id}/approval", requestId)
+                    .then()
+                    .statusCode(200);
+
+            log.debug("Registered and approved client {} on server {}", clientId, serverId);
         });
     }
 

@@ -42,6 +42,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import static jakarta.persistence.FetchType.LAZY;
 
@@ -64,6 +66,7 @@ public class AuthCertEntity extends AuditableEntity {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "security_server_id", updatable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Access(AccessType.FIELD)
     @NotNull
     @Getter
