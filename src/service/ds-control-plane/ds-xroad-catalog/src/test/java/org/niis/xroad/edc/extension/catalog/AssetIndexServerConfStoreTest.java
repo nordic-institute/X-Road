@@ -54,6 +54,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -320,7 +322,6 @@ class AssetIndexServerConfStoreTest {
 
     @Test
     void findByIdRealManagementServiceResolvesSystemContextWhenSystemRequested() {
-        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -335,7 +336,6 @@ class AssetIndexServerConfStoreTest {
 
     @Test
     void findByIdDisabledRealManagementServiceNotFoundUnderSystemContext() {
-        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn("Maintenance");
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -652,7 +652,6 @@ class AssetIndexServerConfStoreTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
-        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
 
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
@@ -662,16 +661,17 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
-    void findByIdMgmtServiceNotFoundUnderSystemWhenNoRealServiceConfigured() {
+    void findByIdMgmtServiceResolvesSystemContextWhenNoRealServiceConfigured() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
-        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(false);
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
 
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
 
-        assertThat(result).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CONTEXT_ID);
+        verify(serverConfProvider, never()).serviceExists(any());
     }
 
     @Test
