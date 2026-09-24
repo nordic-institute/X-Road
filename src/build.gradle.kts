@@ -51,12 +51,13 @@ allprojects {
           because("newer version will fail decoding base64 strings with white space. https://github.com/jakartaee/jaxb-api/issues/325")
         }
         if (requested.group == "org.eclipse.jetty.ee10" && requested.name == "jetty-ee10-servlet") {
-          useVersion("12.1.9")
-          because("XRDDEV-3176: EDC ds-* modules pull jetty-ee10-servlet 12.1.6 via transitive (CVE-2026-2332, CVE-2026-5795); align with rest of Jetty pinned at 12.1.9.")
+          useVersion(libs.jetty.ee10.servlet.get().version!!)
+          because("EDC ds-* modules pull an older jetty-ee10-servlet transitively (CVE-2026-2332, CVE-2026-5795); " +
+            "align it with the catalog Jetty version.")
         }
         if (requested.group == "org.apache.httpcomponents.client5" && requested.name == "httpclient5") {
-          useVersion("5.6.1")
-          because("XRDDEV-3176: transitive 5.6 vulnerable to CVE-2026-40542; align with libs.versions.toml apache-httpclient5 = 5.6.1.")
+          useVersion(libs.apache.httpclient5.get().version!!)
+          because("Transitive httpclient5 5.6 is vulnerable to CVE-2026-40542; align it with the catalog version.")
         }
         if (requested.group == "org.bouncycastle" && requested.name.endsWith("-jdk18on")) {
           useVersion(libs.versions.bouncyCastle.get())
