@@ -41,6 +41,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 
 import java.util.List;
 import java.util.Set;
@@ -286,6 +287,39 @@ class ServiceContextResolverTest {
         when(serverConfProvider.getIdentifier()).thenThrow(new IllegalStateException("boom"));
 
         assertThat(resolver().isSystemEligible(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdTrueForExistingEnabledServiceWithNoAccessRights() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of());
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdFalseWhenServiceDoesNotExist() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(false);
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdFalseWhenServiceDisabled() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemUnrestrictedByIdFalseWhenAccessRightsConfigured() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn(null);
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of(new AccessRight()));
+
+        assertThat(resolver().isSystemUnrestrictedById(MGMT_ELIGIBLE_SERVICE)).isFalse();
     }
 
     @Test
