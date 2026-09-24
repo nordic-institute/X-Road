@@ -29,6 +29,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import java.io.File;
 import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +43,8 @@ import static org.mockito.Mockito.mock;
  */
 public class WsdlParserTest {
     private static final String ACCESS_EXTERNAL_DTD = "javax.xml.accessExternalDTD";
+    private static final String XXE_WSDL = "src/test/resources/wsdl/xxe.wsdl";
+    private static final String XXE_MARKER = "XXE_ENTITY_WAS_RESOLVED";
 
     private static WsdlParser wsdlParser;
 
@@ -111,11 +116,20 @@ public class WsdlParserTest {
     public void readValidWsdlWithExternalEntity() throws Exception {
         String accessExternalDtd = System.clearProperty(ACCESS_EXTERNAL_DTD);
         try {
-            Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
+            assertThat(parseTitleWithDefaultParser(XXE_WSDL)).isEqualTo(XXE_MARKER);
+
+            Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:" + XXE_WSDL);
             assertEquals(1, si.size());
             assertThat(si.iterator().next().title).isNull();
         } finally {
             System.setProperty(ACCESS_EXTERNAL_DTD, accessExternalDtd);
         }
+    }
+
+    private static String parseTitleWithDefaultParser(String path) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        return factory.newDocumentBuilder().parse(new File(path))
+                .getElementsByTagNameNS("http://x-road.eu/xsd/x-road.xsd", "title").item(0).getTextContent();
     }
 }
