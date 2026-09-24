@@ -297,6 +297,7 @@ class SsMonitoringTest extends E2eTest {
 
         var currentResponse = RestAssuredFactory.given()
                 .cookies(sessionCookies)
+                .header("X-XSRF-TOKEN", xsrfToken)
                 .get(clientUrl);
         assertThat(currentResponse.getStatusCode()).isEqualTo(200);
         if (connectionType.equals(currentResponse.jsonPath().getString("connection_type"))) {
