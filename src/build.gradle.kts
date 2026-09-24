@@ -145,6 +145,14 @@ tasks.named("sonar") {
   onlyIf { System.getenv("SONAR_TOKEN") != null }
 }
 
+subprojects {
+  pluginManager.withPlugin("org.kordamp.gradle.jandex") {
+    tasks.matching { it.name == "sonarResolver" }.configureEach {
+      dependsOn("jandex")
+    }
+  }
+}
+
 dependencyCheck {
   formats = listOf("HTML", "JSON")
   failBuildOnCVSS = 11f // Never fail the build (max CVSS is 10.0) — report only
