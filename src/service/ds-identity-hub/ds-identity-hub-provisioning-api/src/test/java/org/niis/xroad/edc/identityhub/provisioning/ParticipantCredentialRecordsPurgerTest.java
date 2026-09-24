@@ -52,7 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -96,7 +95,7 @@ class ParticipantCredentialRecordsPurgerTest {
         when(vc2.getId()).thenReturn("vc-2");
         when(credentialStore.query(any())).thenReturn(StoreResult.success(List.of(vc1, vc2)));
         when(credentialStore.deleteById(anyString())).thenReturn(StoreResult.success());
-        when(queryExecutor.execute(eq(connection), eq(DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL), eq(PARTICIPANT_CONTEXT_ID))).thenReturn(3);
+        when(queryExecutor.execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, PARTICIPANT_CONTEXT_ID)).thenReturn(3);
         stubJdbcConnection();
 
         var counts = purger.purge(PARTICIPANT_CONTEXT_ID);
@@ -115,7 +114,7 @@ class ParticipantCredentialRecordsPurgerTest {
         verify(credentialStore).deleteById("vc-1");
         verify(credentialStore).deleteById("vc-2");
 
-        verify(queryExecutor).execute(eq(connection), eq(DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL), eq(PARTICIPANT_CONTEXT_ID));
+        verify(queryExecutor).execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, PARTICIPANT_CONTEXT_ID);
     }
 
     @Test
@@ -128,7 +127,7 @@ class ParticipantCredentialRecordsPurgerTest {
         assertThat(counts.credentialCount()).isZero();
         assertThat(counts.holderRequestCount()).isZero();
         verify(credentialStore, never()).deleteById(anyString());
-        verify(queryExecutor).execute(eq(connection), eq(DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL), eq(PARTICIPANT_CONTEXT_ID));
+        verify(queryExecutor).execute(connection, DELETE_HOLDER_CREDENTIAL_REQUESTS_SQL, PARTICIPANT_CONTEXT_ID);
     }
 
     @Test

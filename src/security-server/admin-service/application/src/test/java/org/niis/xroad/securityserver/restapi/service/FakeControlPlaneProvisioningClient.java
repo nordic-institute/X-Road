@@ -51,6 +51,8 @@ final class FakeControlPlaneProvisioningClient implements ControlPlaneProvisioni
     private final Set<String> failPutConfigFor = new HashSet<>();
     private final Set<String> failDeleteContextFor = new HashSet<>();
 
+    private int catalogInvalidations;
+
     @Override
     public void createParticipantContext(String participantContextId, Did did) {
         if (failCreateContextFor.remove(participantContextId)) {
@@ -77,6 +79,7 @@ final class FakeControlPlaneProvisioningClient implements ControlPlaneProvisioni
 
     @Override
     public void invalidateCatalogCaches() {
+        catalogInvalidations++;
     }
 
     boolean hasContext(String participantContextId) {
@@ -86,6 +89,10 @@ final class FakeControlPlaneProvisioningClient implements ControlPlaneProvisioni
     boolean hasConfig(String participantContextId) {
         var context = contexts.get(participantContextId);
         return context != null && context.configured();
+    }
+
+    int catalogInvalidations() {
+        return catalogInvalidations;
     }
 
     void failNextCreateContext(String participantContextId) {

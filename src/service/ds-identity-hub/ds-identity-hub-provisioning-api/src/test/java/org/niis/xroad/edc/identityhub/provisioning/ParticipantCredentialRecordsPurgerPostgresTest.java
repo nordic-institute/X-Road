@@ -37,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -61,7 +60,7 @@ class ParticipantCredentialRecordsPurgerPostgresTest {
     private ParticipantCredentialRecordsPurger purger;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var credentialStore = mock(CredentialStore.class);
         when(credentialStore.query(any())).thenReturn(StoreResult.success(List.of()));
 

@@ -52,6 +52,7 @@ import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -121,7 +122,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         clients.findOneBy(clientId)
                 .ifPresentOrElse(client -> {
                             securityServer.getServerClients().stream()
-                                    .filter(serverClient -> client.getId() == serverClient.getSecurityServerClient().getId())
+                                    .filter(serverClient -> Objects.equals(client.getId(), serverClient.getSecurityServerClient().getId()))
                                     .forEach(serverClientRepository::delete);
                             var event = new ServerClientRemovedEvent(
                                     securityServer.getServerId(), clientId.getMemberId(), TimeUtils.getEpochMillisecond());

@@ -38,7 +38,7 @@ import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -56,7 +56,7 @@ import static org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProvisioning
  * swallowed, leaving the credential's natural expiry as the backstop.
  */
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
 public class MemberCredentialRevocationService {
 

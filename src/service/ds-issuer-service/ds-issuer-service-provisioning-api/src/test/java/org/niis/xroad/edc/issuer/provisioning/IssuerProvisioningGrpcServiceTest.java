@@ -166,8 +166,8 @@ class IssuerProvisioningGrpcServiceTest {
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential(eq("cred-id-1"));
-        verify(credentialStatusService).revokeCredential(eq("cred-id-2"));
+        verify(credentialStatusService).revokeCredential("cred-id-1");
+        verify(credentialStatusService).revokeCredential("cred-id-2");
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(2).build());
     }
 
@@ -180,8 +180,8 @@ class IssuerProvisioningGrpcServiceTest {
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential(eq("cred-ss1"));
-        verify(credentialStatusService, never()).revokeCredential(eq("cred-ss2"));
+        verify(credentialStatusService).revokeCredential("cred-ss1");
+        verify(credentialStatusService, never()).revokeCredential("cred-ss2");
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
     }
 
@@ -194,8 +194,8 @@ class IssuerProvisioningGrpcServiceTest {
 
         service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(credentialStatusService).revokeCredential(eq("cred-old"));
-        verify(credentialStatusService, never()).revokeCredential(eq("cred-new"));
+        verify(credentialStatusService).revokeCredential("cred-old");
+        verify(credentialStatusService, never()).revokeCredential("cred-new");
         verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
     }
 
