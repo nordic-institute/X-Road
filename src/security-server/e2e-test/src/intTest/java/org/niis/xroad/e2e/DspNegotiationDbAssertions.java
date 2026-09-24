@@ -51,13 +51,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>The pair is identified by shape rather than by recency of creation, so a warm-cache rerun that reuses
  * an existing agreement is detected exactly as reliably as a freshly negotiated one. {@code HAVING COUNT(*) = 2}
- * matters as much as the non-mgmt and asset-id filters: a cross-SS call to the same asset leaves a single
- * provider-side row on this control plane (its consumer row lives on the calling SS), which can outrank the
- * scenario's own pair by recency and starve the poll on an unrelated 1-row group. The scenario-unique asset-id
- * join rules out any other asset's own negotiation pair (e.g. {@link SsMonitoringTest}'s getSecurityServer*
- * self-calls, which match the non-mgmt shape too); management negotiations ride a {@code -mgmt}-suffixed
- * participant context and a {@code :mgmt}-suffixed counterparty DID, so excluding those needs no
- * substrate-specific participant context string.
+ * matters as much as the ordinary-negotiation and asset-id filters: a cross-SS call to the same asset leaves a
+ * single provider-side row on this control plane (its consumer row lives on the calling SS), which can outrank
+ * the scenario's own pair by recency and starve the poll on an unrelated 1-row group. The scenario-unique
+ * asset-id join rules out any other asset's own negotiation pair, including one that the ordinary-negotiation
+ * filter would not catch on its own — e.g. {@link SsMonitoringTest}'s getSecurityServer* calls are builtin-service
+ * requests, so under the current SYSTEM-context routing their consumer row's counterparty is already excluded by
+ * that filter, but a future call shape that again slips past it would still be caught here. A management or
+ * builtin-service request's consumer side always negotiates on the sender's own plain member context — identical
+ * in shape to an ordinary request's — so only its counterparty is distinguishable there: the provider's per-server
+ * SYSTEM DID, {@code did:web:{ss-host}:v1:system} ({@link org.niis.xroad.ds.identity.ParticipantIdentifierScheme#systemDid}).
+ * The provider side of the same negotiation is the mirror image: this Security Server negotiates it on its own
+ * {@code system} context ({@link org.niis.xroad.ds.identity.ParticipantIdentifierScheme#SYSTEM_SEGMENT}) rather than
+ * a member context, while its counterparty is the consumer's ordinary member DID — indistinguishable from a real
+ * negotiation by counterparty alone, so this side is excluded by its own participant context instead.
  */
 final class DspNegotiationDbAssertions {
 
@@ -70,8 +77,15 @@ final class DspNegotiationDbAssertions {
     /** Column index of {@code agr_agreement_id} in the pair query's (state, type, context, wire-id) rows. */
     private static final int WIRE_AGREEMENT_ID_COLUMN = 3;
 
-    private static final String NON_MGMT_FILTER =
-            "n.participant_context_id NOT LIKE '%-mgmt' AND n.counterparty_id NOT LIKE '%:mgmt'";
+    /**
+     * Excludes management and builtin-service negotiations: the consumer side by its counterparty's SYSTEM-DID
+     * suffix, the provider side by its own {@code system} participant context. The {@code -mgmt}/{@code :mgmt}
+     * clauses predate the SYSTEM-context retarget and should no longer match anything this Security Server
+     * itself negotiates; they stay as a harmless check against a federation peer still running pre-retarget code.
+     */
+    private static final String ORDINARY_NEGOTIATION_FILTER =
+            "n.participant_context_id NOT LIKE '%-mgmt' AND n.counterparty_id NOT LIKE '%:mgmt' "
+                    + "AND n.counterparty_id NOT LIKE '%:v1:system' AND n.participant_context_id != 'system'";
 
     /**
      * X-Road repurposes the EDC data plane as a standing message-exchange channel rather than a one-shot
@@ -106,7 +120,7 @@ final class DspNegotiationDbAssertions {
     String awaitNegotiationPair() {
         var candidateSql = "SELECT a.agr_agreement_id FROM edc_contract_negotiation n "
                 + "JOIN edc_contract_agreement a ON a.agr_id = n.agreement_id "
-                + "WHERE n.agreement_id IS NOT NULL AND " + NON_MGMT_FILTER
+                + "WHERE n.agreement_id IS NOT NULL AND " + ORDINARY_NEGOTIATION_FILTER
                 + " AND a.asset_id = '" + assetId + "'"
                 + " GROUP BY a.agr_agreement_id HAVING COUNT(*) = " + EXPECTED_NEGOTIATION_COUNT
                 + " ORDER BY MAX(n.created_at) DESC LIMIT 1";
