@@ -103,15 +103,30 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void managementRequestTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
+        var managementServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg");
+        when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
-        processor.execute(new DspRequest(serviceId, SENDER, null, true));
+        processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A));
+    }
+
+    @Test
+    void nonWhitelistedServiceUnderManagementSubsystemUsesMemberTargetNotSystem() {
+        var nonWhitelistedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "listMethods");
+        when(providerSecurityServerResolver.resolve(nonWhitelistedService, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(nonWhitelistedService, SENDER, null, true));
+
+        verify(assetAccessAcquisitionService)
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A));
     }
 
     @Test
@@ -130,12 +145,13 @@ class ConsumerSideDspProcessorTest {
 
     @Test
     void managementRequestTargetsDerivedSystemDidAndUrlForCrossServerCandidate() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
+        var managementServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg");
+        when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
-        processor.execute(new DspRequest(serviceId, SENDER, null, true));
+        processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
                 .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_B), eq(SYSTEM_URL_B));

@@ -34,6 +34,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.BuiltinServiceCodes;
+import org.niis.xroad.common.core.ManagementServiceCodes;
 import org.niis.xroad.common.core.exception.ClientFacingErrorPolicy;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.DspConventions;
@@ -66,9 +67,11 @@ import static org.niis.xroad.common.core.exception.ErrorOrigin.DATASPACE;
  *   <li>{@code counterPartyId} + {@code counterPartyAddress} — derived per candidate from the
  *       candidate's GlobalConf host-address ({@link DspConventions}). Ordinary requests derive the
  *       provider member's target; each {@code member@SS} is a distinct participant (XRDADR-41), so
- *       shuffle plus per-candidate failover is the multi-SS selection. Management and
- *       builtin-service requests derive the provider's SYSTEM-context target instead — SYSTEM is a
- *       provider-side anchor, one per Security Server regardless of which members it serves.</li>
+ *       shuffle plus per-candidate failover is the multi-SS selection. A request for a service code
+ *       SYSTEM actually publishes ({@link ManagementServiceCodes#DSP_NEGOTIATED}) addressed to the
+ *       management subsystem, or a builtin-service request, derives the provider's SYSTEM-context
+ *       target instead — SYSTEM is a provider-side anchor, one per Security Server regardless of
+ *       which members it serves.</li>
  *   <li>{@code participantContextId} — always the sender member's derived context
  *       ({@link ParticipantIdentifierScheme#memberCtxId}); SYSTEM is a provider-side anchor only and
  *       is never the consumer's own negotiation identity.</li>
@@ -100,7 +103,7 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
 
     private AssetAccessResponse acquireAssetAccessForService(DspRequest request, ServiceId serviceId) {
         var assetId = serviceId.asEncodedId();
-        var requestTargetsSystemCtx = request.managementSubsystem() || isBuiltinService(serviceId);
+        var requestTargetsSystemCtx = isSystemEligibleManagementService(request, serviceId) || isBuiltinService(serviceId);
 
         var candidates = new ArrayList<>(
                 providerSecurityServerResolver.resolve(serviceId, request.targetSecurityServer()));
@@ -155,6 +158,16 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
         return serviceId != null
                 && serviceId.getSubsystemCode() == null
                 && BuiltinServiceCodes.ALL.contains(serviceId.getServiceCode());
+    }
+
+    /**
+     * True for a request addressed to the management subsystem's client id whose service code is
+     * one the provider's SYSTEM catalog actually publishes; a request merely hosted under that
+     * client id (e.g. {@code listMethods} addressed to it) is not management-eligible and resolves
+     * to the ordinary member target instead.
+     */
+    private static boolean isSystemEligibleManagementService(DspRequest request, ServiceId serviceId) {
+        return request.managementSubsystem() && ManagementServiceCodes.DSP_NEGOTIATED.contains(serviceId.getServiceCode());
     }
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
