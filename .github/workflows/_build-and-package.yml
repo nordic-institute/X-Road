@@ -33,12 +33,11 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: start-measurement
-          label: 'Build, unit tests and packaging'
+          label: 'Build and packaging'
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref }}
-          fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Setup build environment
         uses: ./.github/actions/setup-build-env
@@ -47,13 +46,6 @@ jobs:
           setup-docker-buildx: true
           setup-packaging-tools: false
           free-disk-space: false
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
 
       - name: Build, test and package code setup measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
@@ -137,7 +129,7 @@ jobs:
           echo "  Build Number: ${BUILD_NUMBER}"
           echo "  Commit SHA: ${{ inputs.sha }}"
 
-      # Test execution is deferred to the job end (see "Run tests")
+      # Tests run separately in the build-test job (build.yaml).
       - name: Build source
         working-directory: ./src
         run: |
@@ -283,7 +275,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@782dd4a31bc426a6ae26a7b08d89af454b10ffc0 # v5.3.0
         with:
           task: get-measurement
-          label: 'Build, unit tests and packaging'
+          label: 'Build and packaging'
 
       - name: Build RHEL10 packages
         working-directory: ./scripts
@@ -329,35 +321,6 @@ jobs:
           name: images-ready
           path: ci-markers/images-ready.env
           compression-level: '0'
-
-      # `build`, not bare `test` as it triggers all the relevant tasks and previous build (w/o tests) is still cached.
-      - name: Run tests
-        working-directory: ./src
-        run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g build --parallel -Dorg.gradle.workers.max=6 \
-          -PxroadImageRegistry=${{ env.IMAGE_REGISTRY }} \
-          -PxroadImageTag=${{ env.SERVICE_IMAGE_TAG }}
-
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
-        if: success() || failure()
-        with:
-          name: Unit and integration tests
-          path: src/**/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-          list-suites: 'failed'
-          list-tests: 'failed'
-
-      # Runs at the end, in parallel to e2e jobs.
-      - name: Sonar analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        working-directory: ./src
-        run: |
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road \
-          -PsonarqubeOrganization=nordic-institute jacocoAggregatedReport sonar
 
       - name: Log storage after all packaging
         if: always()
