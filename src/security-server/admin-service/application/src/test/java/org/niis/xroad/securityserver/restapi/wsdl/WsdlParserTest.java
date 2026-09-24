@@ -25,16 +25,26 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -42,15 +52,33 @@ import static org.mockito.Mockito.mock;
  * Tests correctness of the WSDL parser.
  */
 public class WsdlParserTest {
-    private static final String ACCESS_EXTERNAL_DTD = "javax.xml.accessExternalDTD";
-    private static final String XXE_WSDL = "src/test/resources/wsdl/xxe.wsdl";
-    private static final String XXE_MARKER = "XXE_ENTITY_WAS_RESOLVED";
+    private static final String XXE_FIXTURE_DIR = "/wsdl/";
+    private static final String BASE_URL_PLACEHOLDER = "BASE_URL";
+
+    private static final List<String> REQUESTED_PATHS = new CopyOnWriteArrayList<>();
 
     private static WsdlParser wsdlParser;
+    private static HttpServer wsdlServer;
+    private static String wsdlServerUrl;
 
     @BeforeClass
     public static void setup() throws Exception {
         wsdlParser = new WsdlParser(mock(ServerConfProvider.class));
+
+        wsdlServer = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+        wsdlServer.createContext("/", WsdlParserTest::serve);
+        wsdlServer.start();
+        wsdlServerUrl = "http://" + wsdlServer.getAddress().getHostString() + ":" + wsdlServer.getAddress().getPort();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        wsdlServer.stop(0);
+    }
+
+    @Before
+    public void resetRequestedPaths() {
+        REQUESTED_PATHS.clear();
     }
 
     /**
@@ -104,32 +132,48 @@ public class WsdlParserTest {
         wsdlParser.parseWSDL("file:src/test/resources/wsdl/notfound.wsdl");
     }
 
-    /**
-     * Test that the parser does not resolve an external entity on its own, without the JVM-wide
-     * {@code javax.xml.accessExternalDTD} restriction.
-     *
-     * @throws Exception in case of any errors
-     */
     @Test
-    public void readValidWsdlWithExternalEntity() throws Exception {
-        String accessExternalDtd = System.clearProperty(ACCESS_EXTERNAL_DTD);
-        try {
-            assertThat(parseTitleWithDefaultParser(XXE_WSDL)).isEqualTo(XXE_MARKER);
-
-            Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:" + XXE_WSDL);
-            assertEquals(1, si.size());
-            assertThat(si.iterator().next().title).isNull();
-        } finally {
-            if (accessExternalDtd != null) {
-                System.setProperty(ACCESS_EXTERNAL_DTD, accessExternalDtd);
-            }
-        }
+    public void rejectWsdlWithExternalGeneralEntity() {
+        assertRejectedWithoutFurtherRequests("xxe-external-entity.wsdl");
     }
 
-    private static String parseTitleWithDefaultParser(String path) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        return factory.newDocumentBuilder().parse(new File(path))
-                .getElementsByTagNameNS("http://x-road.eu/xsd/x-road.xsd", "title").item(0).getTextContent();
+    @Test
+    public void rejectWsdlWithExternalDtd() {
+        assertRejectedWithoutFurtherRequests("xxe-external-dtd.wsdl");
+    }
+
+    @Test
+    public void rejectWsdlWithExternalParameterEntity() {
+        assertRejectedWithoutFurtherRequests("xxe-parameter-entity.wsdl");
+    }
+
+    private static void assertRejectedWithoutFurtherRequests(String fixture) {
+        String wsdlPath = XXE_FIXTURE_DIR + fixture;
+
+        Throwable thrown = catchThrowable(() -> wsdlParser.parseWSDL(wsdlServerUrl + wsdlPath));
+
+        assertThat(REQUESTED_PATHS).containsExactly(wsdlPath);
+        assertThat(thrown)
+                .isInstanceOf(WsdlParser.WsdlParseException.class)
+                .hasStackTraceContaining("disallow-doctype-decl");
+    }
+
+    private static void serve(HttpExchange exchange) throws IOException {
+        String path = exchange.getRequestURI().getPath();
+        REQUESTED_PATHS.add(path);
+
+        byte[] body = new byte[0];
+        try (InputStream fixture = WsdlParserTest.class.getResourceAsStream(path)) {
+            if (fixture != null) {
+                body = new String(fixture.readAllBytes(), StandardCharsets.UTF_8)
+                        .replace(BASE_URL_PLACEHOLDER, wsdlServerUrl)
+                        .getBytes(StandardCharsets.UTF_8);
+            }
+        }
+
+        exchange.sendResponseHeaders(200, body.length == 0 ? -1 : body.length);
+        try (OutputStream out = exchange.getResponseBody()) {
+            out.write(body);
+        }
     }
 }

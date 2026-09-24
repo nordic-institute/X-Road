@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE wsdl:definitions [<!ENTITY data SYSTEM "file:src/test/resources/wsdl/xxe-entity-target.txt">]>
+<!DOCTYPE wsdl:definitions [<!ENTITY % remote SYSTEM "BASE_URL/parameter-entity"> %remote;]>
 <wsdl:definitions
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:xrd="http://x-road.eu/xsd/x-road.xsd"
@@ -12,7 +12,7 @@
   <wsdl:portType name="xxePortType">
     <wsdl:operation name="xxeOperation">
       <wsdl:documentation>
-        <xrd:title>&data;</xrd:title>
+        <xrd:title>Parameter entity</xrd:title>
       </wsdl:documentation>
       <wsdl:input message="tns:request"/>
       <wsdl:output message="tns:response"/>

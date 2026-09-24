@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.wsdl;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,10 +35,12 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.wsdl.BindingOperation;
@@ -55,6 +58,7 @@ import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLLocator;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -179,11 +183,12 @@ public final class WsdlParser {
             wsdlReader.setFeature("javax.wsdl.importDocuments", false);
             wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
 
-            Definition definition =
-                    wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
+            InputSource wsdlSource = new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl).getBaseInputSource();
+            Document wsdlDocument = XmlUtils.newDocumentBuilder(true).parse(wsdlSource);
+            Definition definition = wsdlReader.readWSDL(wsdlUrl, wsdlDocument);
 
             return definition.getServices().values();
-        } catch (WSDLException e) {
+        } catch (WSDLException | ParserConfigurationException | SAXException | IOException e) {
             throw XrdRuntimeException.systemException(e);
         }
     }
