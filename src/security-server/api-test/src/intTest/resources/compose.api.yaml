@@ -94,7 +94,7 @@ services:
         -- challenge is served from admin-service's own challenge port, which acme2certifier (testca) can only
         -- reach at a hostname resolvable to that container, matching the same reasoning AcmeOrderTest's CSRs
         -- already rely on ("O=ui-test", SAN=ui). No DataSpace-stack container is required for this.
-        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://ui:7182', now(), now()),
+        ('xroad.proxy-ui-api.dataspace.identity-hub-url', 'https://ui', now(), now()),
         ('xroad.proxy-ui-api.dataspace.control-plane-url', 'https://ds-control-plane:8182', now(), now()),
         ('xroad.proxy-ui-api.dataspace.participant-id', 'ss0', now(), now()),
         ('xroad.proxy-ui-api.dataspace.management-context-enabled', 'true', now(), now()),

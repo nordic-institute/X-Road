@@ -40,10 +40,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
- * In-memory manager for active data flows in the X-Road proxy data plane.
+ * Manager for active data flows in the X-Road proxy data plane.
  * <p>
  * Encapsulates the {@code Xrd-PULL} semantics: when a {@link DataFlowStartMessage} or
  * {@link DataFlowPrepareMessage} arrives, the proxy fabricates a {@link DspDataAddress}
@@ -51,8 +49,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link DataFlowStatusMessage}. The serverproxy endpoint (mTLS) is the dataplane —
  * consumers send signed X-Road requests directly to it via the existing PKI pipeline.
  * <p>
- * Flow state is tracked in-memory via a {@link ConcurrentHashMap}. The CP terminates flows
- * on completion, keeping the map bounded.
+ * Flow state is tracked in the {@link DataFlowStateStore}, shared by every proxy node of a
+ * clustered Security Server: a signaling call handled by any node reads and updates the same
+ * record, so a flow's state is never node-local.
  */
 @Slf4j
 @ApplicationScoped
@@ -66,7 +65,7 @@ public class XRoadDataPlaneManager {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties proxyProperties;
-    private final ConcurrentHashMap<String, DataFlowStates> activeFlows = new ConcurrentHashMap<>();
+    private final DataFlowStateStore flowStateStore;
 
     /**
      * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
@@ -150,7 +149,7 @@ public class XRoadDataPlaneManager {
      * @return current {@link DataFlowStates}; {@link DataFlowStates#FAILED} if not found
      */
     public DataFlowStates state(String flowId) {
-        return activeFlows.getOrDefault(flowId, DataFlowStates.FAILED);
+        return flowStateStore.find(flowId).orElse(DataFlowStates.FAILED);
     }
 
     private void validateXrdPull(DataFlowStartMessage message) {
@@ -190,6 +189,6 @@ public class XRoadDataPlaneManager {
     }
 
     private void storeState(String processId, DataFlowStates state) {
-        activeFlows.put(processId, state);
+        flowStateStore.save(processId, state);
     }
 }

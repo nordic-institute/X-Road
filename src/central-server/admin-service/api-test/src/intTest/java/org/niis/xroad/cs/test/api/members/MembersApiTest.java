@@ -32,8 +32,12 @@ import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.NewMemberIdDto;
 import org.niis.xroad.cs.test.api.CsApiTest;
 import org.niis.xroad.cs.test.api.CsBaselineSeeder;
+import org.niis.xroad.cs.test.api.admin.ClientsAdminClient;
 import org.niis.xroad.cs.test.api.admin.MembersAdminClient;
+import org.niis.xroad.cs.test.api.admin.SecurityServersAdminClient;
 import org.niis.xroad.test.apitest.core.junit.Step;
+
+import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -105,6 +109,37 @@ class MembersApiTest extends CsApiTest {
                 client.getMember(memberId)
                         .statusCode(404)
                         .body("error.code", equalTo("member_not_found")));
+    }
+
+    @Test
+    void deleteMemberWithOwnedSecurityServer(CsBaselineSeeder seeder) {
+        var session = Step.given("admin session opened", seeder::newSession);
+        var memberId = Step.given("member seeded", () -> seeder.seedMember(session, "m05", BASELINE_MEMBER_CLASS));
+        var serverId = Step.and("security server seeded", () -> seeder.seedSecurityServer(session, "m05", memberId));
+        var subsystemId = Step.and("subsystem of the owner seeded", () -> seeder.seedSubsystem(session, "m05", memberId));
+        var subsystemCode = subsystemId.split(":")[3];
+        Step.and("owner's subsystem registered as a client of the owned server and approved", () ->
+                seeder.seedClientRegistration(session, "m05", serverId, subsystemId));
+        var membersClient = new MembersAdminClient(session);
+        var securityServersClient = new SecurityServersAdminClient(session);
+        var clientsClient = new ClientsAdminClient(session);
+
+        Step.when("member owning a registered security server is deleted", () ->
+                membersClient.deleteMember(memberId).statusCode(204));
+
+        Step.then("GET member returns 404", () ->
+                membersClient.getMember(memberId)
+                        .statusCode(404)
+                        .body("error.code", equalTo("member_not_found")));
+
+        Step.and("GET owned security server returns 404", () ->
+                securityServersClient.getSecurityServer(serverId)
+                        .statusCode(404));
+
+        Step.and("client search no longer finds the subsystem", () ->
+                clientsClient.findClients(Map.of("q", subsystemCode, "limit", 25, "offset", 0))
+                        .statusCode(200)
+                        .body("paging_metadata.total_items", equalTo(0)));
     }
 
     @Test

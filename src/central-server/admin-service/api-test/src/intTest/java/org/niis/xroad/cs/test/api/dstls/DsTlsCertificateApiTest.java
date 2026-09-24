@@ -26,7 +26,12 @@
  */
 package org.niis.xroad.cs.test.api.dstls;
 
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.openssl.PEMParser;
@@ -188,6 +193,95 @@ class DsTlsCertificateApiTest extends CsApiTest {
         } finally {
             seeder.clearMockExpectations(VAULT_SECRET_PATH);
         }
+    }
+
+    @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ)
+    void csrCarriesTheGivenSubjectAlternativeNameWhenProvided(CsBaselineSeeder seeder) throws Exception {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        given("vault GET mock registered with the stored key", () ->
+                seeder.mockExpectation(VAULT_SECRET_KEY_ONLY_MOCK));
+        try {
+            var csrBytes = then("generating a CSR with a SAN returns 200 with a PKCS#10 body", () ->
+                    client.generateCsr("CN=ds.example.org", "ds.example.org")
+                            .statusCode(200)
+                            .extract().asByteArray());
+
+            and("the CSR carries exactly one dNSName subject alternative name", () -> {
+                var csr = parseCsr(csrBytes);
+                var attributes = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+                assertEquals(1, attributes.length);
+                var extensions = Extensions.getInstance(attributes[0].getAttrValues().toArray()[0]);
+                var sans = GeneralNames.fromExtensions(extensions, Extension.subjectAlternativeName);
+                assertEquals(1, sans.getNames().length);
+                assertEquals(GeneralName.dNSName, sans.getNames()[0].getTagNo());
+                assertEquals("ds.example.org", sans.getNames()[0].getName().toString());
+                return null;
+            });
+        } finally {
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
+        }
+    }
+
+    @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ)
+    void orderFailsWithAnUnknownCertificationAuthority(CsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        given("vault GET mock registered with the stored key", () ->
+                seeder.mockExpectation(VAULT_SECRET_KEY_ONLY_MOCK));
+        try {
+            then("ordering from a CA that is not a designated, ACME-capable DS TLS CA returns 400", () ->
+                    client.orderCertificate("Unknown CA", "CN=ds.example.org", "ds.example.org")
+                            .statusCode(400)
+                            .body("error.code", equalTo("ds_tls_ca_not_found")));
+        } finally {
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
+        }
+    }
+
+    @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ)
+    void orderFailsWithABlankSubjectAltName(CsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        given("vault GET mock registered with the stored key", () ->
+                seeder.mockExpectation(VAULT_SECRET_KEY_ONLY_MOCK));
+        try {
+            then("ordering with a blank subject alternative name returns 400", () ->
+                    client.orderCertificate("Test DS TLS CA", "CN=ds.example.org", " ")
+                            .statusCode(400)
+                            .body("error.code", equalTo("ds_tls_invalid_subject_alt_name")));
+        } finally {
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
+        }
+    }
+
+    @Test
+    @ResourceLock(value = VAULT_RESOURCE_LOCK, mode = ResourceAccessMode.READ_WRITE)
+    void orderFailsWhenNoKeyGenerated(CsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newSession());
+
+        given("vault GET mock registered to return 404 (empty slot)", () ->
+                seeder.mockExpectation(VAULT_SECRET_NOT_FOUND_MOCK));
+        try {
+            then("ordering without a stored key returns 404 ds_tls_key_not_generated", () ->
+                    client.orderCertificate("Test DS TLS CA", "CN=ds.example.org", "ds.example.org")
+                            .statusCode(404)
+                            .body("error.code", equalTo("ds_tls_key_not_generated")));
+        } finally {
+            seeder.clearMockExpectations(VAULT_SECRET_PATH);
+        }
+    }
+
+    @Test
+    void orderForbiddenForNonPrivilegedUser(CsBaselineSeeder seeder) {
+        var client = new DsTlsCertificateAdminClient(seeder.newManagementServiceOnlySession());
+
+        when("management service role attempts to order a DS TLS certificate", () ->
+                client.orderCertificate("Test DS TLS CA", "CN=ds.example.org", "ds.example.org")
+                        .statusCode(403));
     }
 
     @Test

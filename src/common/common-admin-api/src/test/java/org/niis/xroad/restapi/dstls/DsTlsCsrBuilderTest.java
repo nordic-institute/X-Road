@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,19 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.acme.spring.dstls;
+package org.niis.xroad.restapi.dstls;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 
@@ -44,33 +50,39 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DsTlsCsrBuilderTest {
 
+    private static final String MULTI_ATTRIBUTE_DN = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ds.example.org";
+
     @Test
-    void buildShouldCarryTheHostnameAsSubjectCommonName() throws Exception {
+    void buildDerShouldCarryTheDistinguishedNameAsSubjectWithNoSanExtensionWhenAbsent() throws Exception {
         KeyPair keyPair = generateRsaKeyPair();
 
-        PKCS10CertificationRequest csr = parse(DsTlsCsrBuilder.build(keyPair, "ss.example.org"));
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(
+                DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), MULTI_ATTRIBUTE_DN, null));
 
-        assertThat(csr.getSubject().toString()).isEqualTo("CN=ss.example.org");
+        assertThat(csr.getSubject()).isEqualTo(new X500Name(MULTI_ATTRIBUTE_DN));
+        assertThat(csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest)).isEmpty();
     }
 
     @Test
-    void buildShouldCarryTheHostnameAsADnsSubjectAlternativeName() throws Exception {
+    void buildDerShouldCarrySubjectAndSingleDnsSanWhenPresent() throws Exception {
         KeyPair keyPair = generateRsaKeyPair();
 
-        PKCS10CertificationRequest csr = parse(DsTlsCsrBuilder.build(keyPair, "ss.example.org"));
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(
+                DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), MULTI_ATTRIBUTE_DN, "ds.example.org"));
 
-        Extensions extensions = extractExtensions(csr);
-        GeneralNames sans = GeneralNames.fromExtensions(extensions, org.bouncycastle.asn1.x509.Extension.subjectAlternativeName);
+        assertThat(csr.getSubject()).isEqualTo(new X500Name(MULTI_ATTRIBUTE_DN));
+        GeneralNames sans = extractSans(csr);
         assertThat(sans.getNames()).hasSize(1);
         assertThat(sans.getNames()[0].getTagNo()).isEqualTo(GeneralName.dNSName);
-        assertThat(sans.getNames()[0].getName().toString()).isEqualTo("ss.example.org");
+        assertThat(sans.getNames()[0].getName().toString()).isEqualTo("ds.example.org");
     }
 
     @Test
-    void buildShouldSignTheRequestWithTheGivenKeyPair() throws Exception {
+    void buildDerShouldSignTheRequestWithTheGivenKey() throws Exception {
         KeyPair keyPair = generateRsaKeyPair();
 
-        PKCS10CertificationRequest csr = parse(DsTlsCsrBuilder.build(keyPair, "ss.example.org"));
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(
+                DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), "CN=ds.example.org", "ds.example.org"));
 
         var publicKeyFromCsr = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
         assertThat(publicKeyFromCsr).isEqualTo(keyPair.getPublic());
@@ -79,22 +91,45 @@ class DsTlsCsrBuilderTest {
     }
 
     @Test
-    void buildShouldFailFastOnAnUnusableKeyPair() {
-        KeyPair brokenKeyPair = new KeyPair(null, null);
+    void buildDerShouldRejectAMalformedDistinguishedName() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
 
-        assertThatThrownBy(() -> DsTlsCsrBuilder.build(brokenKeyPair, "ss.example.org"))
-                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> DsTlsCsrBuilder.buildDer(keyPair.getPrivate(), keyPair.getPublic(), "not a dn", "ds.example.org"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
-    private static Extensions extractExtensions(PKCS10CertificationRequest csr) {
+    @Test
+    void buildPemShouldEncodeTheSameRequestAsPem() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+
+        byte[] pemBytes = DsTlsCsrBuilder.buildPem(keyPair.getPrivate(), keyPair.getPublic(), MULTI_ATTRIBUTE_DN, "ds.example.org");
+
+        PKCS10CertificationRequest csr = parsePem(pemBytes);
+        assertThat(csr.getSubject()).isEqualTo(new X500Name(MULTI_ATTRIBUTE_DN));
+        assertThat(extractSans(csr).getNames()).hasSize(1);
+    }
+
+    @Test
+    void buildPemShouldRejectAMalformedDistinguishedName() throws Exception {
+        KeyPair keyPair = generateRsaKeyPair();
+
+        assertThatThrownBy(() -> DsTlsCsrBuilder.buildPem(keyPair.getPrivate(), keyPair.getPublic(), "not a dn", null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static GeneralNames extractSans(PKCS10CertificationRequest csr) {
         var attributes = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
         assertThat(attributes).hasSize(1);
         ASN1Encodable[] values = attributes[0].getAttrValues().toArray();
-        return Extensions.getInstance(values[0]);
+        Extensions extensions = Extensions.getInstance(values[0]);
+        return GeneralNames.fromExtensions(extensions, org.bouncycastle.asn1.x509.Extension.subjectAlternativeName);
     }
 
-    private static PKCS10CertificationRequest parse(byte[] derEncodedCsr) throws Exception {
-        return new PKCS10CertificationRequest(derEncodedCsr);
+    private static PKCS10CertificationRequest parsePem(byte[] pemBytes) throws Exception {
+        try (PEMParser pemParser = new PEMParser(
+                new InputStreamReader(new ByteArrayInputStream(pemBytes), StandardCharsets.UTF_8))) {
+            return (PKCS10CertificationRequest) pemParser.readObject();
+        }
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {

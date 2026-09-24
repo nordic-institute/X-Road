@@ -320,7 +320,7 @@ export const useDsTlsIntermediateCasService = defineStore('dsTlsIntermediateCasS
     },
     async addIntermediateCa(certificate: File) {
       if (!this.currentCa) {
-        throw new Error('DS TLS certification authority not selected');
+        throw new Error('Dataspace TLS certification authority not selected');
       }
       const formData = new FormData();
       formData.append('certificate', certificate);

@@ -1,0 +1,10 @@
+---
+# Renders the Central Server Helm values with the role's own template search
+# path and variable precedence (role defaults + inventory group_vars + any
+# vars passed to this include), but writes to a local file instead of calling
+# `kubernetes.core.helm` — no cluster required. Used by playbooks/render_check.yml.
+- name: Render Central Server Helm values (no cluster required)
+  ansible.builtin.template:
+    src: central-server-values.yaml.j2
+    dest: "{{ render_values_dest }}"
+    mode: "0644"

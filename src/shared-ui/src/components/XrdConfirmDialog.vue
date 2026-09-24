@@ -41,7 +41,7 @@
       <div class="alert-slot pl-6 pr-6">
         <XrdErrorNotifications :manager="errorManager" />
       </div>
-      <v-card-text class="pt-0 pr-6 pl-6 pb-2" :class="{'pb-4':hideActions}">
+      <v-card-text class="pt-0 pr-6 pl-6 pb-2" :class="{ 'pb-4': hideActions }">
         <slot name="text">
           <span class="font-weight-regular body-regular">
             {{ $t(text, data) }}
@@ -146,7 +146,7 @@ const hideActions = computed(() => props.hideCancelButton && props.hideAcceptBut
 const acceptButton = useTemplateRef<{ focus: () => void }>('acceptButton');
 
 const errorManager = useLocalErrorManager();
-const handler = {addError: errorManager.addError} as DialogSaveHandler;
+const handler = { addError: errorManager.addError } as DialogSaveHandler;
 
 function blur() {
   const activeElement = document.activeElement as HTMLElement | undefined;

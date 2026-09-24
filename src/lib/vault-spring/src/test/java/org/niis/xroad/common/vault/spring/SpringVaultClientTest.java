@@ -160,6 +160,17 @@ class SpringVaultClientTest {
         assertThat(retrieved).isEmpty();
     }
 
+    @Test
+    void shouldStoreAndRetrieveADsTlsEnrollmentStatusWithNoMethodRecorded() {
+        var stored = new DsTlsEnrollmentStatus(null, null, null);
+
+        vaultClient.createDsTlsEnrollmentStatus(stored);
+        var retrieved = vaultClient.getDsTlsEnrollmentStatus().orElseThrow();
+
+        assertThat(retrieved).isEqualTo(stored);
+        assertThat(retrieved.method()).isNull();
+    }
+
     private static KeyPair generateRsaKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);

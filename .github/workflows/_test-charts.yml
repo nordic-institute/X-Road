@@ -16,7 +16,7 @@ jobs:
   chart-lint-smoke:
     name: chart-lint-smoke
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -27,6 +27,13 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           version: 'v3.21.3'
+
+      # Static k8s Ansible checks (yamllint, ansible-playbook --syntax-check) plus a
+      # cluster-free Helm values render + `helm template` check, across all four
+      # inventories (dev/e2e/test/eks) — see scripts/env-k8s/lint.sh and
+      # development/k8s/playbooks/render_check.yml.
+      - name: k8s Ansible lint + cluster-free render check (all inventories)
+        run: ./scripts/env-k8s/lint.sh
 
       # non-blocking: helm lint chokes on multi-document templates; render assertions below are the real gate
       - name: Helm lint (informational)

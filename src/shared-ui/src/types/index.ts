@@ -32,5 +32,6 @@ export * from './routing';
 export * from './theme';
 export * from './api-keys';
 export * from './tls-certificates';
+export * from './ds-tls-certificate';
 export * from './admin-users';
 export * from './configurable-properties';

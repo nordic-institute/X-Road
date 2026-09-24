@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.application.dstls;
 
+import ee.ria.xroad.common.util.CertUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.spring.dstls.DsTlsAcmeHostContext;
@@ -34,6 +36,7 @@ import org.niis.xroad.cs.admin.core.dataspace.DataspaceIssuerProperties;
 import org.niis.xroad.globalconf.model.ApprovedDsTlsCaInfo;
 import org.springframework.stereotype.Component;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -97,13 +100,17 @@ public class CentralServerDsTlsAcmeHostContext implements DsTlsAcmeHostContext {
     }
 
     /**
-     * The shared ACME worker and {@code DsTlsAcmeService} only read {@code name}, {@code
-     * acmeServerDirectoryUrl} and {@code dsTlsCertificateProfileId} off {@link ApprovedDsTlsCaInfo} — the
-     * certificate-chain and ACME-server-IP fields exist solely for globalconf distribution and member-side
-     * trust validation, neither of which this adapter feeds, so they are left unset here.
+     * The renewal worker resolves a stored certificate's issuing CA by matching it against the designated CAs'
+     * certificate chains, so the top and intermediate certificates are carried across here too, the same way the
+     * Security Server's own adapter reads them off globalconf. The ACME-server-IP field is not part of the
+     * Central Server's own DS TLS CA model, so it is left unset here.
      */
     private static ApprovedDsTlsCaInfo toApprovedDsTlsCaInfo(DsTlsCertificationAuthority ca) {
-        return new ApprovedDsTlsCaInfo(ca.getName(), null, List.of(), ca.getAcmeServerDirectoryUrl(), null,
+        X509Certificate topCaCert = CertUtils.readCertificateChain(ca.getCertificate())[0];
+        List<X509Certificate> intermediateCaCerts = ca.getIntermediateCas().stream()
+                .map(intermediateCa -> CertUtils.readCertificateChain(intermediateCa.getCaCertificate().getEncoded())[0])
+                .toList();
+        return new ApprovedDsTlsCaInfo(ca.getName(), topCaCert, intermediateCaCerts, ca.getAcmeServerDirectoryUrl(), null,
                 ca.getDsTlsCertificateProfileId());
     }
 

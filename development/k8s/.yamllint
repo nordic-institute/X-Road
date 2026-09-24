@@ -16,4 +16,8 @@ rules:
     forbid-explicit-octal: false
 ignore: |
   .state/
+  .venv/
   collections/
+  # Helm chart templates (Go template syntax, not plain YAML) — validated by
+  # helm lint/template instead (scripts/charts/render-assert.sh).
+  charts/*/templates/

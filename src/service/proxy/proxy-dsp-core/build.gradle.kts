@@ -13,6 +13,7 @@ dependencies {
   implementation(project(":lib:ds-identity-core"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:serverconf-core"))
+  implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:rpc-core"))
   implementation(project(":service:ds-control-plane:ds-xroad-asset-access-protocol"))
   implementation(project(":service:op-monitor:op-monitor-api"))
@@ -36,4 +37,10 @@ dependencies {
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mockito.core)
   testImplementation(libs.wiremock.standalone)
+
+  testImplementation(project(":tool:liquibase-executor"))
+  testImplementation(libs.liquibase.core)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.hibernate.hikaricp)
+  testImplementation(libs.testcontainers.postgresql)
 }

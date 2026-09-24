@@ -36,6 +36,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.niis.xroad.ss.test.api.Port;
 import org.niis.xroad.ss.test.api.SsApiTestContainerSetup;
 import org.niis.xroad.ss.test.api.admin.AdminApiSession;
@@ -57,6 +59,7 @@ import java.util.zip.GZIPInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
@@ -160,6 +163,98 @@ class DsTlsCertificateLifecycleDestructiveTest extends SsSharedStackDestructiveT
             assertThat(entries).isNotEmpty();
             entries.values().forEach(DsTlsCertificateLifecycleDestructiveTest::parseX509Certificate);
         });
+    }
+
+    @Test
+    @DisplayName("Ordering the DS TLS certificate synchronously stores a chain whose subject and SAN equal the input")
+    // See ServiceRestartSmokeTest for why this ACME order against testca holds a READ lock on "testca-acme-server".
+    @ResourceLock(value = "testca-acme-server", mode = ResourceAccessMode.READ)
+    void orderStoresACertificateFromTheNamedAcmeCapableCa(SsApiTestContainerSetup stack) {
+        var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var caName = "Test DS TLS CA";
+        // The real test ACME server validates this over HTTP-01, so it must resolve on the compose network -
+        // "ui" (the admin-service container) is the only name it actually gives this stack, the same reasoning
+        // DsTlsAcmeEnrollmentTest's own ACME order already relies on.
+        var multiAttributeDn = "C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=ui";
+        var subjectAltName = "ui";
+
+        given("a fresh DS TLS key is generated", () ->
+                client.generateKey().statusCode(201));
+
+        then("ordering from the designated test DS TLS CA with a multi-attribute DN and a SAN returns the "
+                + "issued certificate's subject", () ->
+                client.orderCertificate(caName, multiAttributeDn, subjectAltName)
+                        .statusCode(200)
+                        .body("subject_distinguished_name", equalTo(multiAttributeDn))
+                        .body("hash", notNullValue()));
+
+        and("the DS TLS certificate status reports the stored certificate's SAN equal to the input", () ->
+                client.getStatus()
+                        .statusCode(200)
+                        .body("certificate.subject_alternative_names", equalTo("DNS:" + subjectAltName)));
+
+        and("the enrollment status reports ACME availability with the ordering CA listed, a scheduled next "
+                + "renewal and no error", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("ACME"))
+                        .body("next_renewal_time", notNullValue())
+                        .body("last_error", nullValue())
+                        .body("acme_available", equalTo(true))
+                        .body("acme_cas.name", hasItem(caName)));
+    }
+
+    @Test
+    @DisplayName("Manual upload records enrollment method MANUAL and clears the renewal schedule; regenerating "
+            + "the key then clears the recorded status entirely")
+    // See ServiceRestartSmokeTest for why this ACME order against testca holds a READ lock on "testca-acme-server".
+    @ResourceLock(value = "testca-acme-server", mode = ResourceAccessMode.READ)
+    @SneakyThrows
+    void manualUploadRecordsManualAndKeyRegenerationClearsTheRecordedStatus(SsApiTestContainerSetup stack) {
+        var client = new DsTlsCertificateAdminClient(adminSession(stack));
+        var testCaMapping = stack.getContainerMapping(SsApiTestContainerSetup.TESTCA, Port.TEST_CA);
+        var testCaBaseUrl = "http://%s:%d/testca".formatted(testCaMapping.host(), testCaMapping.port());
+
+        // Real HTTP-01 validation against the test ACME server, so the SAN has to resolve on the compose network -
+        // "ui" is the only name it actually gives this stack. The CSR below is signed out of band by the test CA
+        // directly (not via ACME), so its own subject never needs to be resolvable.
+        given("a fresh DS TLS key is generated and ordered via ACME, so the recorded method starts as ACME", () -> {
+            client.generateKey().statusCode(201);
+            client.orderCertificate("Test DS TLS CA", "CN=ui", "ui")
+                    .statusCode(200);
+        });
+
+        and("the enrollment status confirms ACME with a scheduled next renewal", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("ACME"))
+                        .body("next_renewal_time", notNullValue()));
+
+        var csrBytes = given("a CSR is generated for the same key", () ->
+                client.generateCsr("CN=ds-bookkeeping.example.org"));
+
+        var signedCert = given("the CSR is signed out of band by the test CA", () ->
+                signCsrAtTestCa(testCaBaseUrl, csrBytes));
+
+        when("the manually signed certificate is uploaded over the existing ACME-enrolled one", () ->
+                client.uploadCertificate(signedCert).statusCode(200));
+
+        then("the enrollment status now reports MANUAL with no next renewal time and no error", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("MANUAL"))
+                        .body("next_renewal_time", nullValue())
+                        .body("last_error", nullValue()));
+
+        when("the key is re-created", () ->
+                client.generateKey().statusCode(201));
+
+        then("the enrollment status reports no method configured and no renewal schedule", () ->
+                client.getEnrollmentStatus()
+                        .statusCode(200)
+                        .body("enrollment_method", equalTo("NONE"))
+                        .body("next_renewal_time", nullValue())
+                        .body("last_error", nullValue()));
     }
 
     @Test

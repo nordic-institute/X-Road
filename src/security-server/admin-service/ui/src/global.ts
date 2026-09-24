@@ -141,6 +141,7 @@ export enum Permissions {
   IMPORT_AUTH_CERT = 'IMPORT_AUTH_CERT',
   IMPORT_INTERNAL_TLS_CERT = 'IMPORT_INTERNAL_TLS_CERT', // Import security server TLS certificate
   UPLOAD_DS_TLS_CERT = 'UPLOAD_DS_TLS_CERT', // Upload the DataSpace TLS certificate
+  ORDER_DS_TLS_CERT = 'ORDER_DS_TLS_CERT', // Order the DataSpace TLS certificate via ACME
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
   IMPORT_UNKNOWN_CERT = 'IMPORT_UNKNOWN_CERT', // Import hardware token certificate from token
   INIT_CONFIG = 'INIT_CONFIG', // can initialise security server
