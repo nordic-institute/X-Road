@@ -42,6 +42,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -262,6 +263,22 @@ class ServiceContextResolver {
         return serverConfProvider.serviceExists(serviceId)
                 && serverConfProvider.getDisabledNotice(serviceId) == null
                 && serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
+    }
+
+    /**
+     * Whether a catalog enumeration pass should publish the unrestricted SYSTEM entry for an
+     * already-eligible service: true only when no admin-configured access rights gate it, so it
+     * stays usable federation-wide under SYSTEM like every other SYSTEM-published
+     * synthetic/built-in entry. Once access rights are configured, SYSTEM is gated the same as
+     * every other context instead, via the per-subject entries.
+     *
+     * <p>Takes {@code systemEligible} and {@code accessRights} as parameters rather than
+     * resolving them itself: an enumerating caller has both in hand a few lines earlier, and
+     * re-deriving them here — as {@link #isSystemUnrestrictedById} does for the by-id path — would
+     * mean redundant {@code serverConfProvider} calls.
+     */
+    boolean shouldPublishUnrestrictedSystemEntry(boolean systemEligible, List<AccessRight> accessRights) {
+        return systemEligible && accessRights.isEmpty();
     }
 
     /**

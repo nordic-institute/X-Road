@@ -281,7 +281,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
-        if (systemEligible && accessRights.isEmpty() && serverConfProvider.getDisabledNotice(serviceId) == null) {
+        if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)
+                && serverConfProvider.getDisabledNotice(serviceId) == null) {
             // No admin-configured access rights: keep the service usable federation-wide under
             // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
             // rights ARE configured, they must gate SYSTEM the same as every other context —
