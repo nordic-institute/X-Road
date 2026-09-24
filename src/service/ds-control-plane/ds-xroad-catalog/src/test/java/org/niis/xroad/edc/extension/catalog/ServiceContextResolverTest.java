@@ -323,6 +323,21 @@ class ServiceContextResolverTest {
     }
 
     @Test
+    void shouldPublishUnrestrictedSystemEntryTrueWhenEligibleAndNoAccessRights() {
+        assertThat(resolver().shouldPublishUnrestrictedSystemEntry(true, List.of())).isTrue();
+    }
+
+    @Test
+    void shouldPublishUnrestrictedSystemEntryFalseWhenNotEligible() {
+        assertThat(resolver().shouldPublishUnrestrictedSystemEntry(false, List.of())).isFalse();
+    }
+
+    @Test
+    void shouldPublishUnrestrictedSystemEntryFalseWhenAccessRightsConfigured() {
+        assertThat(resolver().shouldPublishUnrestrictedSystemEntry(true, List.of(new AccessRight()))).isFalse();
+    }
+
+    @Test
     void resolveSyntheticServicesResolvesManagementSubsystemOnceForBothLists() {
         stubEligibleManagementSubsystem();
 

@@ -276,11 +276,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
-        if (systemEligible && accessRights.isEmpty()) {
-            // No admin-configured access rights: keep the service usable federation-wide under
-            // SYSTEM, matching every other SYSTEM-published synthetic/built-in entry. Once access
-            // rights ARE configured, they must gate SYSTEM the same as every other context —
-            // handled below via the per-subject loop, not here.
+        if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)) {
             definitions.add(toBuiltinContractDefinition(serviceId, contextIds.system()));
         }
         if (accessRights.isEmpty()) {
