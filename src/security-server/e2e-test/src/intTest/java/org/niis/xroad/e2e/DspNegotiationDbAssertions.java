@@ -80,8 +80,8 @@ final class DspNegotiationDbAssertions {
     /**
      * Excludes management and builtin-service negotiations: the consumer side by its counterparty's SYSTEM-DID
      * suffix, the provider side by its own {@code system} participant context. The {@code -mgmt}/{@code :mgmt}
-     * clauses predate the SYSTEM-context retarget and should no longer match anything this Security Server
-     * itself negotiates; they stay as a harmless check against a federation peer still running pre-retarget code.
+     * clauses do not match anything this Security Server itself negotiates; they stay as a harmless defensive
+     * check against a federation peer whose management negotiations still use the legacy suffixed context.
      */
     private static final String ORDINARY_NEGOTIATION_FILTER =
             "n.participant_context_id NOT LIKE '%-mgmt' AND n.counterparty_id NOT LIKE '%:mgmt' "

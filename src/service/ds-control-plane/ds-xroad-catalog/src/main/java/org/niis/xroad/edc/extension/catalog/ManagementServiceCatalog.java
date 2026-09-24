@@ -27,16 +27,15 @@
 package org.niis.xroad.edc.extension.catalog;
 
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.ManagementServiceCodes;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Service codes for the synthetic management WSDL services hosted by the federation's management
- * subsystem. The list mirrors {@code org.niis.xroad.common.managementrequest.model.ManagementRequestType}
- * — duplicated here to avoid pulling the management-request module's Spring Web transitive deps
- * into the control-plane catalog.
+ * subsystem, read from {@link ManagementServiceCodes} — the single definition also used by the
+ * proxy's consumer-side SYSTEM-context routing check, so the two cannot drift apart.
  *
  * <p>Resolution and SYSTEM-eligibility of these codes against the live management subsystem is
  * owned by {@link ServiceContextResolver}, shared by the three ServerConf-backed catalog stores.
@@ -44,28 +43,12 @@ import java.util.stream.Collectors;
 @UtilityClass
 class ManagementServiceCatalog {
 
-    private static final String AUTH_CERT_REG = "authCertReg";
-
-    static final List<String> SERVICE_CODES = List.of(
-            AUTH_CERT_REG,
-            "clientReg",
-            "ownerChange",
-            "clientDeletion",
-            "authCertDeletion",
-            "addressChange",
-            "clientDisable",
-            "clientEnable",
-            "clientRename",
-            "maintenanceModeEnable",
-            "maintenanceModeDisable"
-    );
+    static final List<String> SERVICE_CODES = ManagementServiceCodes.ALL;
 
     /**
      * {@link #SERVICE_CODES} minus {@code authCertReg}: it is never negotiated over the
      * dataspace protocol (it goes as direct HTTPS to the Central Server), so the SYSTEM
      * publication excludes it while the {@code -mgmt} mirror keeps its full list.
      */
-    static final Set<String> SYSTEM_SERVICE_CODES = SERVICE_CODES.stream()
-            .filter(code -> !AUTH_CERT_REG.equals(code))
-            .collect(Collectors.toUnmodifiableSet());
+    static final Set<String> SYSTEM_SERVICE_CODES = ManagementServiceCodes.DSP_NEGOTIATED;
 }
