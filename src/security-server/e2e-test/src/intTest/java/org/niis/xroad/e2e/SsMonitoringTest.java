@@ -65,6 +65,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
@@ -99,6 +100,9 @@ class SsMonitoringTest extends E2eTest {
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
     private static final Duration OP_MONITOR_SETTLE_DELAY = Duration.ofSeconds(2);
     private static final Duration OP_MONITOR_SETTLE_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration CONNECTION_TYPE_PROPAGATION_TIMEOUT = Duration.ofSeconds(90);
+    private static final Duration CONNECTION_TYPE_PROPAGATION_POLL_INTERVAL = Duration.ofSeconds(5);
+    private static final String SSL_AUTH_FAILED_FAULT_CODE = "server.clientproxy.ssl_authentication_failed";
     private static final String ADMIN_USERNAME = "xrd";
     private static final String ADMIN_PASSWORD = "secret123!";
 
@@ -289,16 +293,46 @@ class SsMonitoringTest extends E2eTest {
 
         var xsrfToken = loginResponse.getCookie("XSRF-TOKEN");
         var sessionCookies = loginResponse.getCookies();
+        var clientUrl = baseUrl + "/api/v1/clients/" + ownerClientId;
+
+        var currentResponse = RestAssuredFactory.given()
+                .cookies(sessionCookies)
+                .get(clientUrl);
+        assertThat(currentResponse.getStatusCode()).isEqualTo(200);
+        if (connectionType.equals(currentResponse.jsonPath().getString("connection_type"))) {
+            return;
+        }
 
         var patchResponse = RestAssuredFactory.given()
                 .cookies(sessionCookies)
                 .header("X-XSRF-TOKEN", xsrfToken)
                 .header("Content-Type", "application/json")
                 .body("{\"connection_type\": \"%s\"}".formatted(connectionType))
-                .patch(baseUrl + "/api/v1/clients/" + ownerClientId);
+                .patch(clientUrl);
         assertThat(patchResponse.getStatusCode())
                 .as("update owner client connection type to %s", connectionType)
                 .isBetween(200, 299);
+
+        awaitOwnerPlaintextAccepted(env, envName);
+    }
+
+    /**
+     * The proxy caches a client's IS authentication setting for the serverconf cache period, and every
+     * management request the Security Server sends refreshes that entry for its owner member. A
+     * connection-type change made through the admin API therefore reaches the proxy only once the cached
+     * value expires; until then a plaintext call is answered with an {@code ssl_authentication_failed} fault.
+     */
+    private void awaitOwnerPlaintextAccepted(E2eEnvironment env, String envName) {
+        try {
+            Awaitility.await()
+                    .pollInterval(CONNECTION_TYPE_PROPAGATION_POLL_INTERVAL)
+                    .timeout(CONNECTION_TYPE_PROPAGATION_TIMEOUT)
+                    .until(() -> !sendProxymonitorRequest(env, envName, "CONNTYPE-PROBE-" + UUID.randomUUID(), null)
+                            .asString().contains(SSL_AUTH_FAILED_FAULT_CODE));
+        } catch (ConditionTimeoutException e) {
+            throw new ConditionTimeoutException(
+                    "Timed out waiting for %s's proxy to accept plaintext calls from its owner member".formatted(envName), e);
+        }
     }
 
     private String ownerMemberCode(String envName) {
