@@ -38,6 +38,11 @@ import static org.niis.xroad.common.properties.config.keys.ProxyConfigKeys.DSP_P
 /**
  * Config that DSP request processing cannot run without is checked at startup, so a missing
  * value surfaces as a boot failure instead of an error on the first proxied request.
+ *
+ * <p>{@code xroad.proxy.dsp.participant-context-id} is currently unused by any consumer-side DSP path
+ * (see {@link AssetAccessClientProperties#participantContextId()}), but this check keeps requiring it: it
+ * guards the deployed config against declaring the property without a value, and stays in place until the
+ * property itself is removed once the legacy {@code -mgmt} machinery is retired.
  */
 @Startup
 @ApplicationScoped

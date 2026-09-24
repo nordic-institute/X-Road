@@ -35,16 +35,18 @@ import jakarta.annotation.Nullable;
 
 /**
  * DSP request. Carries the per-request context that {@link DspRequestProcessor} needs to resolve
- * asset access from the control plane. When {@code managementSubsystem} is {@code true} the request
- * is routed to the MANAGEMENT subsystem participant context instead of the sender's member context.
+ * asset access from the control plane. When {@code managementSubsystem} is {@code true}, the request
+ * is routed to the provider's SYSTEM-context identity instead of the provider member's context — the
+ * same SYSTEM target that a detected builtin service also resolves to downstream. The consumer's own
+ * participant context is always the sender's derived member context, independent of this flag.
  *
  * @param serviceId            the target service's identifier (non-null after SOAP/REST decoding)
  * @param sender               the consumer client that initiated the request; its member part
  *                             determines the participant context the consumer negotiates as
  * @param targetSecurityServer optional caller-sent security-server hint; when non-null the
  *                             resolver restricts provider candidates to this exact SS
- * @param managementSubsystem  {@code true} when the request targets the MANAGEMENT subsystem
- *                             participant context
+ * @param managementSubsystem  {@code true} when the request is routed to the provider's SYSTEM-context
+ *                             identity instead of the provider member's context
  */
 public record DspRequest(ServiceId serviceId, @Nonnull ClientId sender, @Nullable SecurityServerId targetSecurityServer,
                          boolean managementSubsystem) {
