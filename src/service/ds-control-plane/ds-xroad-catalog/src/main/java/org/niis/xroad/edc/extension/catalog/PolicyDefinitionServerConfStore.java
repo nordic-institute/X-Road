@@ -92,7 +92,8 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                     serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
 
-        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
+        var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
+        if (systemAddressed) {
             var systemResult = findSystemPolicyDefinition(policyId);
             if (systemResult != null) {
                 return systemResult;
@@ -114,12 +115,18 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
 
         var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, policyId);
-        if (result != null) {
-            log.trace("findById policyId={} found (6-part serviceId)", policyId);
-            return result;
+        if (result == null) {
+            result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
         }
-        result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
-        log.trace("findById policyId={} result={}", policyId, result != null ? "found (5-part serviceId)" : "not found");
+        if (systemAddressed && result != null && !contextIds.system().equals(result.getParticipantContextId())) {
+            // A SYSTEM-addressed request must never resolve to a compound id whose only match is
+            // under a different context (select()'s host-context fallback) — that would grant a
+            // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
+            // context and cached under the SYSTEM key.
+            log.trace("findById policyId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null", policyId);
+            return null;
+        }
+        log.trace("findById policyId={} result={}", policyId, result != null ? "found" : "not found");
         return result;
     }
 
@@ -144,15 +151,11 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             log.trace("findById policyId={} not published under SYSTEM", policyId);
             return null;
         }
-        if (serverConfProvider.serviceExists(systemServiceId) && serverConfProvider.getDisabledNotice(systemServiceId) != null) {
-            log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
-            return null;
-        }
-        if (!serverConfProvider.getServiceAccessRights(systemServiceId).isEmpty()) {
-            // Access rights are configured: this plain, unrestricted id must not resolve — the
-            // per-subject compound id (collectPoliciesForService's system-scoped entry) is the
-            // one that carries the actual grant.
-            log.trace("findById policyId={} has configured access rights, plain SYSTEM id not granted", policyId);
+        if (!serviceContextResolver.isSystemUnrestrictedById(systemServiceId)) {
+            // Not published unrestricted under SYSTEM: never configured, disabled, or gated by
+            // access rights, in which case the per-subject compound id
+            // (collectPoliciesForService's system-scoped entry) carries the actual grant.
+            log.trace("findById policyId={} not unrestricted under SYSTEM", policyId);
             return null;
         }
         return toBuiltinPolicyDefinition(policyId, contextIds.system());

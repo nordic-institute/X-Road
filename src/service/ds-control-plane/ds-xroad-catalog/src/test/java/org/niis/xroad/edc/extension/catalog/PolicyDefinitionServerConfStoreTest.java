@@ -651,6 +651,7 @@ class PolicyDefinitionServerConfStoreTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
 
         var policyId = MGMT_SERVICE.asEncodedId();
@@ -669,10 +670,40 @@ class PolicyDefinitionServerConfStoreTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(List.of(arMgmt));
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
 
         var result = store.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findByIdMgmtServicePlainIdNotFoundUnderSystemWhenNoRealServiceConfigured() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(false);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var result = store.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findByIdOrdinaryServiceCompoundIdNotFoundUnderSystemContextEvenWithValidHostAcl() {
+        var ep = new Endpoint("svc1", "GET", "/api/data", false);
+        var ar = createAccessRight(SUBJECT_CLIENT, ep);
+        when(serverConfProvider.serviceExists(SERVICE_1)).thenReturn(true);
+        when(serverConfProvider.getServiceAccessRights(SERVICE_1)).thenReturn(List.of(ar));
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var policyId = AssetMapper.encodeAssetId(SERVICE_1)
+                + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId();
+
+        var result = store.findById(policyId);
 
         assertThat(result).isNull();
     }

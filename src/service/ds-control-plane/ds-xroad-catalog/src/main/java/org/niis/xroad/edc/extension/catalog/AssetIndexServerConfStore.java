@@ -133,7 +133,11 @@ class AssetIndexServerConfStore implements AssetIndex {
             if (systemServiceId == null) {
                 return null;
             }
-            if (serverConfProvider.serviceExists(systemServiceId) && serverConfProvider.getDisabledNotice(systemServiceId) != null) {
+            if (!serverConfProvider.serviceExists(systemServiceId)) {
+                log.trace("findById assetId={} SYSTEM-eligible service code but not configured, returning null", assetId);
+                return null;
+            }
+            if (serverConfProvider.getDisabledNotice(systemServiceId) != null) {
                 log.trace("findById assetId={} SYSTEM-eligible but disabled, returning null", assetId);
                 return null;
             }

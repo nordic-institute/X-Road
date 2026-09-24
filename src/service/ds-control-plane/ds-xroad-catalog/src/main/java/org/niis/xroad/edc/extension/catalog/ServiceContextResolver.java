@@ -145,7 +145,9 @@ class ServiceContextResolver {
     /**
      * Same as {@link #resolveSystemService}, for the owner-only policy and contract-definition ids
      * that carry {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}. An id without that suffix
-     * resolves to {@code null}: under SYSTEM only owner-only entries are ever published.
+     * resolves to {@code null} here — {@link #resolveSystemService} resolves the plain, unrestricted
+     * form SYSTEM also publishes for a real, SYSTEM-eligible service with no configured access
+     * rights.
      */
     @Nullable
     ServiceId.Conf resolveSystemOwnerOnlyService(String ownerOnlyId) {
@@ -247,6 +249,19 @@ class ServiceContextResolver {
             log.warn("Failed to resolve SYSTEM eligibility for service '{}': {}", serviceId, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Whether {@code serviceId} — already known to be {@link #isSystemEligible} — resolves to the
+     * unrestricted SYSTEM entry: a real, enabled {@code ServiceDescription} with no admin-configured
+     * access rights. {@code false} when the service was never configured, is disabled, or has access
+     * rights configured, in which case only its per-subject entry, if any, is published under
+     * SYSTEM.
+     */
+    boolean isSystemUnrestrictedById(ServiceId serviceId) {
+        return serverConfProvider.serviceExists(serviceId)
+                && serverConfProvider.getDisabledNotice(serviceId) == null
+                && serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
     }
 
     /**
