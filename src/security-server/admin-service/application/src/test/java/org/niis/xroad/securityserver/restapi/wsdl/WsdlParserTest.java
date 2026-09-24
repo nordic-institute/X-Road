@@ -99,12 +99,13 @@ public class WsdlParserTest {
     }
 
     /**
-     * Test if a valid WSDL parsing fails due to an external entity.
+     * Test that an external entity is not resolved: resolving it would fail on the missing target file.
      *
      * @throws Exception in case of any errors
      */
-    @Test(expected = WsdlParser.WsdlParseException.class)
+    @Test
     public void readValidWsdlWithExternalEntity() throws Exception {
-        wsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
+        Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
+        assertEquals(0, si.size());
     }
 }
