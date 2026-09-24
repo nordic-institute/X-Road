@@ -31,6 +31,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Collection;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -38,12 +39,14 @@ import static org.mockito.Mockito.mock;
  * Tests correctness of the WSDL parser.
  */
 public class WsdlParserTest {
+    private static final String ACCESS_EXTERNAL_DTD = "javax.xml.accessExternalDTD";
+
     private static WsdlParser wsdlParser;
 
     @BeforeClass
     public static void setup() throws Exception {
         // restrict access to external entities
-        System.setProperty("javax.xml.accessExternalDTD", "");
+        System.setProperty(ACCESS_EXTERNAL_DTD, "");
         wsdlParser = new WsdlParser(mock(ServerConfProvider.class));
     }
 
@@ -99,13 +102,20 @@ public class WsdlParserTest {
     }
 
     /**
-     * Test that an external entity is not resolved: resolving it would fail on the missing target file.
+     * Test that the parser does not resolve an external entity on its own, without the JVM-wide
+     * {@code javax.xml.accessExternalDTD} restriction.
      *
      * @throws Exception in case of any errors
      */
     @Test
     public void readValidWsdlWithExternalEntity() throws Exception {
-        Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
-        assertEquals(0, si.size());
+        String accessExternalDtd = System.clearProperty(ACCESS_EXTERNAL_DTD);
+        try {
+            Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
+            assertEquals(1, si.size());
+            assertThat(si.iterator().next().title).isNull();
+        } finally {
+            System.setProperty(ACCESS_EXTERNAL_DTD, accessExternalDtd);
+        }
     }
 }

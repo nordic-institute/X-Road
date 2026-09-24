@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE foo [<!ENTITY data SYSTEM "file:src/test/resources/wsdl/xxe-entity-target-does-not-exist.xml">]>
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
-  &data;
+<!DOCTYPE wsdl:definitions [<!ENTITY data SYSTEM "file:src/test/resources/wsdl/xxe-entity-target.txt">]>
+<wsdl:definitions
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:xrd="http://x-road.eu/xsd/x-road.xsd"
+    xmlns:tns="http://test.x-road.eu/producer"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    name="xxe"
+    targetNamespace="http://test.x-road.eu/producer">
+  <wsdl:message name="request"/>
+  <wsdl:message name="response"/>
+  <wsdl:portType name="xxePortType">
+    <wsdl:operation name="xxeOperation">
+      <wsdl:documentation>
+        <xrd:title>&data;</xrd:title>
+      </wsdl:documentation>
+      <wsdl:input message="tns:request"/>
+      <wsdl:output message="tns:response"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="xxeBinding" type="tns:xxePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="xxeOperation">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="xxeService">
+    <wsdl:port name="xxePort" binding="tns:xxeBinding">
+      <soap:address location="http://example.org/xxe"/>
+    </wsdl:port>
+  </wsdl:service>
 </wsdl:definitions>
