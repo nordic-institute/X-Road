@@ -200,6 +200,18 @@ resolutions:
       reason: "SCANNER_ISSUE"
       comment: "Error is caused by the Scanner not being able to scan the JavaScript source map for Apache ECharts’ ES module bundle."
 
+curations:
+  packages:
+    - id: "Maven:org.jline:jansi:4.2.1"
+      curations:
+        declared_license_mapping:
+          "The BSD License": "BSD-3-Clause"
+        comment: "The declared licence name is inherited from the org.jline:jline-parent:4.2.1
+          POM, which declares <name>The BSD License</name> with
+          <url>https://opensource.org/licenses/BSD-3-Clause</url>. The name alone is ambiguous
+          (2-, 3- or 4-clause) so ORT cannot map it; the URL resolves it unambiguously to
+          BSD-3-Clause."
+
 license_choices:
   repository_license_choices:
     - given: "GPL-2.0-only OR Apache-2.0"
