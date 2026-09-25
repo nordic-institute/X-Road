@@ -131,11 +131,11 @@ class ServiceContextResolver {
     }
 
     /**
-     * The synthetic service a SYSTEM-addressed by-id lookup resolves {@code assetId} to, or
-     * {@code null} when nothing eligible is published there. A SYSTEM-addressed lookup only ever
-     * resolves to a synthetic entry eligible under SYSTEM ({@link #isSystemEligible}) — never to a
-     * real service, so a SYSTEM request for anything else is a clean not-found rather than a
-     * fallback to the legacy host context.
+     * The service a SYSTEM-addressed by-id lookup resolves {@code assetId} to, or {@code null} when
+     * nothing SYSTEM-eligible is published there. Resolves a real, SYSTEM-eligible service just as
+     * often as a synthetic one ({@link #isSystemEligible} does not distinguish the two) — whether the
+     * result is actually published under SYSTEM without also being disabled is the caller's
+     * responsibility, via {@link #isSystemPublished} or {@link #isSystemUnrestrictedById}.
      */
     @Nullable
     ServiceId.Conf resolveSystemService(String assetId) {
@@ -148,12 +148,43 @@ class ServiceContextResolver {
      * that carry {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}. An id without that suffix
      * resolves to {@code null} here — {@link #resolveSystemService} resolves the plain, unrestricted
      * form SYSTEM also publishes for a real, SYSTEM-eligible service with no configured access
-     * rights.
+     * rights. Owner-only ids are only ever minted for the no-real-services synthetic fallback, so a
+     * real service — even one that is otherwise {@link #isSystemEligible} — never resolves here;
+     * only {@link #isSystemSyntheticEligible} does.
      */
     @Nullable
     ServiceId.Conf resolveSystemOwnerOnlyService(String ownerOnlyId) {
         var serviceId = decodeOwnerOnlyId(ownerOnlyId);
-        return serviceId != null && isSystemEligible(serviceId) ? serviceId : null;
+        if (serviceId == null || !isSystemEligible(serviceId)) {
+            return null;
+        }
+        return isSystemSyntheticEligible(serviceId) ? serviceId : null;
+    }
+
+    /**
+     * Whether an already-{@link #isSystemEligible} service should actually resolve under SYSTEM: a
+     * real, enabled service, or — when it isn't real — one the no-real-services synthetic fallback
+     * currently covers. Narrower than {@link #isSystemEligible} alone, so a by-id lookup never
+     * disagrees with what {@code buildAssetList}/{@code collectContractDefinitionsForService}/
+     * {@code collectPoliciesForService} actually enumerate.
+     */
+    boolean isSystemPublished(ServiceId serviceId) {
+        if (serverConfProvider.serviceExists(serviceId)) {
+            return serverConfProvider.getDisabledNotice(serviceId) == null;
+        }
+        return isSystemSyntheticEligible(serviceId);
+    }
+
+    /**
+     * Whether {@code serviceId} is specifically covered by the no-real-services synthetic
+     * fallback — implies it is not a real service, since
+     * {@link #resolveManagementSubsystemWithoutRealServices()} only returns non-null when the whole
+     * subsystem has none. Used where a caller must distinguish the synthetic case from the real one
+     * (the owner-only by-id path), not just "is it published at all" ({@link #isSystemPublished}).
+     */
+    boolean isSystemSyntheticEligible(ServiceId serviceId) {
+        var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
+        return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
     }
 
     /**
@@ -238,6 +269,9 @@ class ServiceContextResolver {
      * synthetic one. Whether it is actually published under SYSTEM without also being disabled is
      * the caller's responsibility.
      */
+    // Called once per management-coded service per enumeration pass, so resolveLiveManagementSubsystem()
+    // below re-runs per service rather than once per pass; bounded by the small number of
+    // management-coded services and the 60s catalog cache TTL, so left as is.
     boolean isSystemEligible(ServiceId serviceId) {
         if (serviceId.getServiceVersion() != null
                 || !ManagementServiceCatalog.SYSTEM_SERVICE_CODES.contains(serviceId.getServiceCode())) {

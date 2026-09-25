@@ -54,8 +54,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -320,6 +318,7 @@ class AssetIndexServerConfStoreTest {
 
     @Test
     void findByIdRealManagementServiceResolvesSystemContextWhenSystemRequested() {
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn(null);
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -334,6 +333,7 @@ class AssetIndexServerConfStoreTest {
 
     @Test
     void findByIdDisabledRealManagementServiceNotFoundUnderSystemContext() {
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
         when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn("Maintenance");
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
@@ -644,13 +644,32 @@ class AssetIndexServerConfStoreTest {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
         when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
         when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(false);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of());
         requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
 
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
 
         assertThat(result).isNotNull();
         assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CONTEXT_ID);
-        verify(serverConfProvider, never()).serviceExists(any());
+    }
+
+    @Test
+    void findByIdUnconfiguredEligibleCodeNotFoundUnderSystemWhenSiblingCodeIsReal() {
+        // Partial migration: clientReg is real, so the whole subsystem no longer qualifies for the
+        // no-real-services synthetic fallback, but maintenanceModeEnable was never configured —
+        // buildAssetList never enumerates it either, so findById must agree.
+        var unconfiguredService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "maintenanceModeEnable");
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.serviceExists(unconfiguredService)).thenReturn(false);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(unconfiguredService.asEncodedId());
+
+        assertThat(result).isNull();
     }
 
     @Test

@@ -139,11 +139,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
     private PolicyDefinition findSystemPolicyDefinition(String policyId) {
         var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
         if (ownerOnlyServiceId != null) {
-            if (serverConfProvider.serviceExists(ownerOnlyServiceId)
-                    && serverConfProvider.getDisabledNotice(ownerOnlyServiceId) != null) {
-                log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
-                return null;
-            }
             return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(), contextIds.system());
         }
         var systemServiceId = serviceContextResolver.resolveSystemService(policyId);

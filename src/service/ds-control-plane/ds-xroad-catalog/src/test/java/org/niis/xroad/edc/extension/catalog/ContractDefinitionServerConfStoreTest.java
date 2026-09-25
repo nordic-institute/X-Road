@@ -764,6 +764,43 @@ class ContractDefinitionServerConfStoreTest {
     }
 
     @Test
+    void findByIdMgmtServiceOwnerOnlyNotFoundUnderSystemWhenServiceIsReal() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var contractId = MGMT_SERVICE.asEncodedId()
+                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+        var result = store.findById(contractId);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findByIdUnconfiguredEligibleCodeOwnerOnlyNotFoundUnderSystemWhenSiblingCodeIsReal() {
+        // Partial migration: clientReg is real, so the whole subsystem no longer qualifies for the
+        // no-real-services synthetic fallback, but maintenanceModeEnable was never configured —
+        // findAll never enumerates it either, so findById must agree.
+        var unconfiguredService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "maintenanceModeEnable");
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CTX);
+
+        var ownerOnlyContractId = unconfiguredService.asEncodedId()
+                + ContractDefinitionMapper.OWNER_ONLY_SUFFIX
+                + ContractDefinitionMapper.getContractDefinitionSuffix();
+        var plainContractId = unconfiguredService.asEncodedId() + ContractDefinitionMapper.getContractDefinitionSuffix();
+
+        assertThat(store.findById(ownerOnlyContractId)).isNull();
+        assertThat(store.findById(plainContractId)).isNull();
+    }
+
+    @Test
     void findByIdOrdinaryServiceCompoundIdNotFoundUnderSystemContextEvenWithValidHostAcl() {
         var ep = new Endpoint("svc1", "GET", "/api/data", false);
         var ar = createAccessRight(SUBJECT_CLIENT, ep);

@@ -130,6 +130,20 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
+    void versionedManagementServiceUnderManagementSubsystemUsesMemberTargetNotSystem() {
+        var versionedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg", "v1");
+        when(providerSecurityServerResolver.resolve(versionedService, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(versionedService, SENDER, null, true));
+
+        verify(assetAccessAcquisitionService)
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A), any());
+    }
+
+    @Test
     void builtinServiceTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
         var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "listMethods");
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))

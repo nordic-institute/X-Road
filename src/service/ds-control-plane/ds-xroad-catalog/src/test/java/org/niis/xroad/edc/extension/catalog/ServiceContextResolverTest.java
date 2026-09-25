@@ -369,6 +369,68 @@ class ServiceContextResolverTest {
         assertThat(result.systemEntries()).isEmpty();
     }
 
+    // --- isSystemPublished / isSystemSyntheticEligible ---
+
+    private static final ServiceId.Conf OTHER_MGMT_ELIGIBLE_SERVICE =
+            ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "maintenanceModeEnable");
+
+    @Test
+    void isSystemPublishedTrueForRealEnabledService() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn(null);
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemPublishedFalseForRealDisabledService() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemPublishedTrueForSyntheticFallbackCoveredService() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(false);
+        stubEligibleManagementSubsystem();
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemPublishedFalseWhenNeitherRealNorSyntheticallyCovered() {
+        // Partial migration: MGMT_ELIGIBLE_SERVICE is real, so the whole subsystem no longer
+        // qualifies for the synthetic fallback, but OTHER_MGMT_ELIGIBLE_SERVICE was never configured.
+        when(serverConfProvider.serviceExists(OTHER_MGMT_ELIGIBLE_SERVICE)).thenReturn(false);
+        stubLiveManagementSubsystem();
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
+
+        assertThat(resolver().isSystemPublished(OTHER_MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemSyntheticEligibleTrueWhenSubsystemHasNoRealServices() {
+        stubEligibleManagementSubsystem();
+
+        assertThat(resolver().isSystemSyntheticEligible(MGMT_ELIGIBLE_SERVICE)).isTrue();
+    }
+
+    @Test
+    void isSystemSyntheticEligibleFalseWhenSubsystemHasRealServices() {
+        stubLiveManagementSubsystem();
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_ELIGIBLE_SERVICE));
+
+        assertThat(resolver().isSystemSyntheticEligible(OTHER_MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemSyntheticEligibleFalseWhenNoManagementSubsystem() {
+        when(globalConfProvider.getManagementRequestService()).thenReturn(null);
+
+        assertThat(resolver().isSystemSyntheticEligible(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
     @Test
     void selectBuiltinContextIdReturnsSystemWhenSystemRequested() {
         assertThat(resolver().selectBuiltinContextId(SYSTEM_CTX)).isEqualTo(SYSTEM_CTX);

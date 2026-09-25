@@ -129,11 +129,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
-            if (systemServiceId == null) {
-                return null;
-            }
-            if (serverConfProvider.getDisabledNotice(systemServiceId) != null) {
-                log.trace("findById assetId={} SYSTEM-eligible but disabled, returning null", assetId);
+            if (systemServiceId == null || !serviceContextResolver.isSystemPublished(systemServiceId)) {
                 return null;
             }
             return AssetMapper.toAsset(systemServiceId, contextIds.system());

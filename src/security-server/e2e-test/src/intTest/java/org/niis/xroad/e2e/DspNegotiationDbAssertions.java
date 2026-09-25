@@ -82,6 +82,12 @@ final class DspNegotiationDbAssertions {
      * suffix, the provider side by its own {@code system} participant context. The {@code -mgmt}/{@code :mgmt}
      * clauses do not match anything this Security Server itself negotiates; they stay as a harmless defensive
      * check against a federation peer whose management negotiations still use the legacy suffixed context.
+     *
+     * <p>Because of this exclusion, this filter — and therefore {@link DspNegotiationDbAssertions} as a
+     * whole, since every query in this class applies it — cannot be reused to assert on a real SYSTEM-routed
+     * negotiation: such a negotiation would match zero rows here and any caller polling for it would time out
+     * even on a successful negotiation. A test verifying SYSTEM-routed negotiations end-to-end needs a
+     * different DB-assertion helper.
      */
     private static final String ORDINARY_NEGOTIATION_FILTER =
             "n.participant_context_id NOT LIKE '%-mgmt' AND n.counterparty_id NOT LIKE '%:mgmt' "

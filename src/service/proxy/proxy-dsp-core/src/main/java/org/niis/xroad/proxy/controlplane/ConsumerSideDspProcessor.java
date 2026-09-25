@@ -168,7 +168,9 @@ public class ConsumerSideDspProcessor implements DspRequestProcessor {
      * to the ordinary member target instead.
      */
     private static boolean isSystemEligibleManagementService(DspRequest request, ServiceId serviceId) {
-        return request.managementSubsystem() && ManagementServiceCodes.DSP_NEGOTIATED.contains(serviceId.getServiceCode());
+        return request.managementSubsystem()
+                && serviceId.getServiceVersion() == null
+                && ManagementServiceCodes.DSP_NEGOTIATED.contains(serviceId.getServiceCode());
     }
 
     private RuntimeException buildFinalException(List<RuntimeException> remoteFailures,
