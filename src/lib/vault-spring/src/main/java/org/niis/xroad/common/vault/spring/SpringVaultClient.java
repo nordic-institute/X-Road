@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.AcmeAccountKey;
+import org.niis.xroad.common.vault.AgreementTokenVaultDataUtils;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
 import org.niis.xroad.common.vault.MessageLogVaultDataUtils;
 import org.niis.xroad.common.vault.VaultClient;
@@ -49,6 +50,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -220,6 +222,33 @@ public class SpringVaultClient implements VaultClient {
         } catch (IOException | GeneralSecurityException e) {
             throw XrdRuntimeException.systemException(e);
         }
+    }
+
+    @Override
+    public void createAgreementTokenSigningKey(String keyId, String keyPairJwk) {
+        var secret = AgreementTokenVaultDataUtils.createSigningKeySecret(keyPairJwk);
+        String path = AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId);
+        vaultClient.put(path, secret);
+        log.info("Stored agreement-token signing key in Vault at path: {}", path);
+    }
+
+    @Override
+    public Map<String, String> getAgreementTokenSigningKeys() {
+        return AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(
+                this::listAgreementTokenSigningKeyIds,
+                this::readSecret
+        );
+    }
+
+    /**
+     * Spring Vault's {@code list} already resolves a missing path to an empty list rather than throwing —
+     * matching {@link #readSecret(String)}'s contract where a missing secret comes back as {@code null}
+     * rather than an exception — so this only guards a possible {@code null} return; any exception it does
+     * raise is a genuine infrastructure failure and is left to propagate, never swallowed into "no keys yet".
+     */
+    private List<String> listAgreementTokenSigningKeyIds(String path) {
+        var keys = vaultClient.list(path);
+        return keys == null ? List.of() : keys;
     }
 
     private Optional<Map<String, Object>> readSecret(String path) {

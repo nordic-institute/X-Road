@@ -85,6 +85,8 @@ public interface VaultClient {
 
     String ACME_ACCOUNT_KEYS_BASE_PATH = "acme/account-keys";
 
+    String AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH = "agreement-token/signing-keys";
+
     InternalSSLKey getInternalTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
 
     InternalSSLKey getOpmonitorTlsCredentials() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException;
@@ -188,6 +190,25 @@ public interface VaultClient {
      * @return the stored key pair and its rotation-expiry timestamp, or empty if none exists yet for this alias
      */
     Optional<AcmeAccountKey> getAcmeAccountKey(String alias);
+
+    /**
+     * Stores an agreement-token signing key pair, serialised as a JWK including its private part, under its
+     * key id. Key ids are versioned ("1", "2", ...) rather than reused, so rotation never overwrites a key
+     * a still-outstanding token might have been signed with; the OpenBao policy for this path grants no
+     * delete either.
+     *
+     * @param keyId the key's id, as later carried in a minted token's header
+     * @param keyPairJwk the key pair as JWK JSON, private part included
+     */
+    void createAgreementTokenSigningKey(String keyId, String keyPairJwk);
+
+    /**
+     * Retrieves every agreement-token signing key currently stored, keyed by key id. Includes keys
+     * superseded by rotation, so a verifier can still resolve the key a not-yet-expired token names.
+     *
+     * @return map of key id to key pair JWK JSON
+     */
+    Map<String, String> getAgreementTokenSigningKeys();
 
     default String toPem(PrivateKey privateKey) throws IOException {
         StringWriter stringWriter = new StringWriter();
