@@ -90,10 +90,9 @@ class AssetIndexServerConfStore implements AssetIndex {
         for (var member : serverConfProvider.getMembers()) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
-                if (serverConfProvider.getDisabledNotice(serviceId) == null) {
-                    for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds)) {
-                        assets.add(AssetMapper.toAsset(serviceId, ctxId));
-                    }
+                var contexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
+                for (var ctxId : contexts) {
+                    assets.add(AssetMapper.toAsset(serviceId, ctxId));
                 }
             }
         }
@@ -145,16 +144,14 @@ class AssetIndexServerConfStore implements AssetIndex {
             log.trace("findById assetId={} service does not exist, returning null", assetId);
             return null;
         }
-        var ctxId = serverConfProvider.getDisabledNotice(serviceId) != null
-                ? contextIds.management()
-                : selectContextId(serviceId);
+        var ctxId = selectContextId(serviceId);
         return AssetMapper.toAsset(serviceId, ctxId);
     }
 
     /**
-     * Every enabled service also carries an owner-only copy under the management context (added
+     * Every service also carries an owner-only copy under the management context (added
      * unconditionally in {@link #buildAssetList()}), so the management context is always a valid
-     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveEnabled}
+     * selection target here, in addition to whatever {@link ServiceContextResolver#resolveContextsById}
      * resolves for the service itself.
      */
     private String selectContextId(ServiceId serviceId) {
@@ -162,7 +159,7 @@ class AssetIndexServerConfStore implements AssetIndex {
         if (contextIds.management().equals(requested)) {
             return contextIds.management();
         }
-        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
         return ServiceContextResolver.select(resolvedContexts, requested);
     }
 
@@ -189,10 +186,6 @@ class AssetIndexServerConfStore implements AssetIndex {
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {
             log.trace("resolveForAsset assetId={} decode failed, returning null", assetId);
-            return null;
-        }
-        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-            log.trace("resolveForAsset assetId={} service disabled, returning null", assetId);
             return null;
         }
         String serviceAddress;

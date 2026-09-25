@@ -89,15 +89,15 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveEnabledReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of());
+    void resolveContextsReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of());
 
         assertThat(result).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveEnabledIncludesOwningMemberContextWhenProvisioned() {
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
+    void resolveContextsIncludesOwningMemberContextWhenProvisioned() {
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX));
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
@@ -106,7 +106,7 @@ class ServiceContextResolverTest {
     void subsystemScopedServiceCollapsesToOwningMemberContextNeverASubsystemDerivedOne() {
         var subsystemDerivedCtx = MEMBER_CTX + ":not-a-real-member-ctx";
 
-        var result = resolver().resolveEnabled(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
+        var result = resolver().resolveContexts(SUBSYSTEM_SERVICE, Set.of(MEMBER_CTX, subsystemDerivedCtx));
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
@@ -115,7 +115,7 @@ class ServiceContextResolverTest {
     void managementRequestServiceLegacyPublicationContextIsManagementNotHost() {
         when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
 
-        var result = resolver().resolveEnabled(MGMT_SERVICE, Set.of());
+        var result = resolver().resolveContexts(MGMT_SERVICE, Set.of());
 
         assertThat(result).containsExactly(MGMT_CTX);
     }
@@ -168,50 +168,50 @@ class ServiceContextResolverTest {
     }
 
     @Test
-    void resolveEnabledByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
+    void resolveContextsByIdReturnsOnlyLegacyHostContextWhenOwningMemberHasNoProvisionedContext() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.notFound("no such context"));
 
-        var result = resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+        var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
         assertThat(result).containsExactly(HOST_CTX);
     }
 
     @Test
-    void resolveEnabledByIdIncludesOwningMemberContextWhenProvisioned() {
+    void resolveContextsByIdIncludesOwningMemberContextWhenProvisioned() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.success(participantContext(MEMBER_CTX)));
 
-        var result = resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+        var result = resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
         assertThat(result).containsExactly(HOST_CTX, MEMBER_CTX);
     }
 
     @Test
-    void resolveEnabledByIdDoesNotPerformFullEnumeration() {
+    void resolveContextsByIdDoesNotPerformFullEnumeration() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.notFound("no such context"));
 
-        resolver().resolveEnabledById(SUBSYSTEM_SERVICE);
+        resolver().resolveContextsById(SUBSYSTEM_SERVICE);
 
         verify(participantContextService, never()).search(any());
     }
 
     @Test
-    void resolveEnabledByIdPropagatesOnUnexpectedFailure() {
+    void resolveContextsByIdPropagatesOnUnexpectedFailure() {
         when(participantContextService.getParticipantContext(MEMBER_CTX))
                 .thenReturn(ServiceResult.unexpected("boom"));
 
-        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+        assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
-    void resolveEnabledByIdPropagatesWhenServiceThrows() {
+    void resolveContextsByIdPropagatesWhenServiceThrows() {
         when(participantContextService.getParticipantContext(eq(MEMBER_CTX)))
                 .thenThrow(new IllegalStateException("boom"));
 
-        assertThatThrownBy(() -> resolver().resolveEnabledById(SUBSYSTEM_SERVICE))
+        assertThatThrownBy(() -> resolver().resolveContextsById(SUBSYSTEM_SERVICE))
                 .isInstanceOf(XrdRuntimeException.class);
     }
 

@@ -25,16 +25,14 @@
  */
 package org.niis.xroad.e2e;
 
-import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.e2e.container.SsStackSetup;
-import org.niis.xroad.test.apitest.core.restassured.RestAssuredFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.Mock1Fixture.callMock1;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
 import static org.niis.xroad.test.apitest.core.junit.Step.then;
@@ -75,15 +73,10 @@ import static org.niis.xroad.test.apitest.core.junit.Step.then;
 class SsProxyDspSelfCallTest extends E2eTest {
 
     private static final String SELF_CALL_ENV = "ss0";
-    private static final String SELF_CALL_X_ROAD_CLIENT = "DEV/COM/1234/TestService";
-    private static final String SELF_CALL_SERVICE_PATH = "/r1/DEV/COM/1234/TestService/mock1";
-    private static final String REST_REQUEST_BODY = """
-            {"data": 1.0, "service": "random"}
-            """;
 
     /**
-     * The DSP asset id for this scenario's call: {@link #SELF_CALL_X_ROAD_CLIENT}'s service identifier plus
-     * {@link #SELF_CALL_SERVICE_PATH}'s endpoint, colon-joined — the full deterministic form confirmed live
+     * The DSP asset id for this scenario's call: {@link Mock1Fixture#MOCK1_X_ROAD_CLIENT}'s service identifier
+     * plus {@link Mock1Fixture#MOCK1_SERVICE_PATH}'s endpoint, colon-joined — the full deterministic form confirmed live
      * against {@code edc_contract_agreement.asset_id}. Matched with full-string equality so the same service
      * name under another member or instance can never satisfy the group query.
      */
@@ -104,7 +97,7 @@ class SsProxyDspSelfCallTest extends E2eTest {
         given("the environment is initialized", () -> assertThat(env.isInitialized()).isTrue());
 
         var response = given("a REST request is sent from TestService to itself via the ss0 proxy", () ->
-                sendSelfCallRequest(env));
+                callMock1(env, SELF_CALL_ENV));
 
         then("the response is 200 with the expected POST service message", () ->
                 response.statusCode(200).body("message", equalTo("Hello, world from POST service!")));
@@ -118,16 +111,6 @@ class SsProxyDspSelfCallTest extends E2eTest {
 
         and("the transfer over that agreement succeeds", () ->
                 dspAssertions.awaitTransferSucceeded(wireAgreementId));
-    }
-
-    private ValidatableResponse sendSelfCallRequest(E2eEnvironment env) {
-        var mapping = env.getContainerMapping(SELF_CALL_ENV, SsStackSetup.PROXY, SsStackSetup.Port.PROXY);
-        return RestAssuredFactory.given()
-                .body(REST_REQUEST_BODY)
-                .header("Content-Type", "application/json")
-                .header("x-road-client", SELF_CALL_X_ROAD_CLIENT)
-                .post("http://%s:%s%s".formatted(mapping.host(), mapping.port(), SELF_CALL_SERVICE_PATH))
-                .then();
     }
 
 }
