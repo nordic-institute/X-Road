@@ -31,10 +31,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +50,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -72,9 +69,6 @@ class AssetIndexServerConfStoreTest {
 
     @Mock
     private GlobalConfProvider globalConfProvider;
-
-    @Mock
-    private ParticipantContextService participantContextService;
 
     private ServiceContextResolver serviceContextResolver;
     private final ThreadLocalRequestedParticipantContext requestedParticipantContext = new ThreadLocalRequestedParticipantContext();
@@ -100,11 +94,9 @@ class AssetIndexServerConfStoreTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(participantContextService.search(any())).thenReturn(ServiceResult.success(List.of()));
-        lenient().when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.notFound("no such context"));
         serviceContextResolver = new ServiceContextResolver(
                 CONTEXT_IDS,
-                globalConfProvider, serverConfProvider, participantContextService);
+                globalConfProvider, serverConfProvider);
         requestedParticipantContext.clear();
         assetIndex = new AssetIndexServerConfStore(
                 serverConfProvider, CONTEXT_IDS,

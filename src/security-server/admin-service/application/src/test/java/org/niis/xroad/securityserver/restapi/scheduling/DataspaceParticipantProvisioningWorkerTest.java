@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import com.apicatalog.did.Did;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,18 +40,29 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.CredentialStatus;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.IdentityStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContextStatus;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -78,6 +91,12 @@ class DataspaceParticipantProvisioningWorkerTest {
     @Mock
     private DataspaceParticipantBindingService participantBindingService;
 
+    private static final Did HUB_DID = Did.parse("did:web:ss.example.test%3A7183:xrd-ss0");
+    private static final Did DRIFTED_INTENDED_DID = Did.parse("did:web:ss.moved.test%3A7183:xrd-ss0");
+
+    private static final ParticipantContextStatus NOT_CONVERGED =
+            statusOf(false, CredentialStatus.ABSENT, null);
+
     @InjectMocks
     private DataspaceParticipantProvisioningWorker worker;
 
@@ -85,6 +104,20 @@ class DataspaceParticipantProvisioningWorkerTest {
     void setUp() {
         when(dataspaceProvisioningService.registeredAddressKnown()).thenReturn(true);
         when(dataspaceProvisioningService.ensureParticipantContext(any())).thenReturn(true);
+        when(dataspaceProvisioningService.readContextStatus(any())).thenReturn(NOT_CONVERGED);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    private static ParticipantContextStatus statusOf(boolean contextCreated, CredentialStatus credentialStatus,
+            IdentityStatus identityStatus) {
+        return new ParticipantContextStatus("irrelevant", ParticipantKind.HOST, contextCreated ? HUB_DID : null, HUB_DID,
+                credentialStatus, identityStatus);
     }
 
     @Test
@@ -257,5 +290,151 @@ class DataspaceParticipantProvisioningWorkerTest {
         worker.provisionParticipant();
 
         verify(dataspaceProvisioningService).ensureMembershipCredential(SYSTEM_CONTEXT);
+    }
+
+
+    @Test
+    void provisionParticipantOnlyReappliesControlPlaneRecordsOnAFullyConvergedTick() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true))
+                .thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
+        var converged = statusOf(true, CredentialStatus.ISSUED, null);
+        var convergedMember = statusOf(true, CredentialStatus.ISSUED, IdentityStatus.OK);
+        when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT)).thenReturn(converged);
+        when(dataspaceProvisioningService.readContextStatus(MGMT_CONTEXT)).thenReturn(converged);
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT)).thenReturn(convergedMember);
+
+        worker.provisionParticipant();
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService, times(2)).ensureControlPlaneContext(HOST_CONTEXT, HUB_DID);
+        verify(dataspaceProvisioningService, times(2)).ensureControlPlaneContext(MGMT_CONTEXT, HUB_DID);
+        verify(dataspaceProvisioningService, times(2)).ensureControlPlaneContext(MEMBER_CONTEXT, HUB_DID);
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(any());
+        verify(dataspaceProvisioningService, never()).ensureMembershipCredential(any());
+        verify(participantBindingService, never()).bindMembersIfAbsent(any(), anyBoolean());
+    }
+
+    @Test
+    void provisionParticipantReappliesControlPlaneRecordsOnlyForConvergedContexts() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT, MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, null));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureControlPlaneContext(HOST_CONTEXT, HUB_DID);
+        verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(eq(MEMBER_CONTEXT), any());
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureParticipantContext(HOST_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantEnsuresAHostContextWhoseHubDidDriftedInsteadOfReapplyingIt() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT)).thenReturn(new ParticipantContextStatus(
+                HOST_ID, ParticipantKind.HOST, HUB_DID, DRIFTED_INTENDED_DID, CredentialStatus.ISSUED, null));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(HOST_CONTEXT);
+        verify(dataspaceProvisioningService, never()).ensureControlPlaneContext(any(), any());
+    }
+
+    @Test
+    void provisionParticipantContinuesWhenControlPlaneRefreshOfOneConvergedContextFails() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true))
+                .thenReturn(List.of(HOST_CONTEXT, MGMT_CONTEXT, MEMBER_CONTEXT));
+        var converged = statusOf(true, CredentialStatus.ISSUED, null);
+        when(dataspaceProvisioningService.readContextStatus(HOST_CONTEXT)).thenReturn(converged);
+        when(dataspaceProvisioningService.readContextStatus(MGMT_CONTEXT)).thenReturn(converged);
+        doThrow(new RuntimeException("control plane down"))
+                .when(dataspaceProvisioningService).ensureControlPlaneContext(HOST_CONTEXT, HUB_DID);
+
+        assertThatCode(() -> worker.provisionParticipant()).doesNotThrowAnyException();
+
+        verify(dataspaceProvisioningService).ensureControlPlaneContext(MGMT_CONTEXT, HUB_DID);
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantKeepsRecheckingAMemberWhoseIdentityCouldNotBeRead() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.UNKNOWN));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+    }
+
+    @Test
+    void provisionParticipantEnsuresAndBindsAMemberConvergedExceptForItsIdentity() {
+        when(readinessPredicates.hasRegisteredAuthCert()).thenReturn(true);
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(MEMBER_CONTEXT));
+        when(dataspaceProvisioningService.readContextStatus(MEMBER_CONTEXT))
+                .thenReturn(statusOf(true, CredentialStatus.ISSUED, IdentityStatus.UNBOUND));
+
+        worker.provisionParticipant();
+
+        verify(dataspaceProvisioningService).ensureParticipantContext(MEMBER_CONTEXT);
+        verify(participantBindingService).bindMembersIfAbsent(List.of(MEMBER), true);
+    }
+
+    @Test
+    void provisionParticipantAsyncRunsImmediatelyWithoutActiveTransaction() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+
+        worker.provisionParticipantAsync();
+
+        verify(dataspaceProvisioningService, timeout(1000)).participantContexts(true);
+    }
+
+    @Test
+    void provisionParticipantAsyncCoalescesTriggersArrivingWhileARunIsQueued() throws InterruptedException {
+        var firstRunStarted = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        when(dataspaceProvisioningService.participantContexts(true)).thenAnswer(invocation -> {
+            firstRunStarted.countDown();
+            release.await(5, TimeUnit.SECONDS);
+            return List.of(HOST_CONTEXT);
+        });
+
+        worker.provisionParticipantAsync();
+        assertThat(firstRunStarted.await(5, TimeUnit.SECONDS)).isTrue();
+        worker.provisionParticipantAsync();
+        worker.provisionParticipantAsync();
+        release.countDown();
+
+        verify(dataspaceProvisioningService, after(500).times(2)).participantContexts(true);
+    }
+
+    @Test
+    void provisionParticipantAsyncSchedulesASingleRunPerTransaction() {
+        TransactionSynchronizationManager.initSynchronization();
+
+        worker.provisionParticipantAsync();
+        worker.provisionParticipantAsync();
+
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).hasSize(1);
+    }
+
+    @Test
+    void provisionParticipantAsyncDefersUntilTransactionCommitsWhenTransactionActive() {
+        when(dataspaceProvisioningService.participantContexts(true)).thenReturn(List.of(HOST_CONTEXT));
+        TransactionSynchronizationManager.initSynchronization();
+
+        worker.provisionParticipantAsync();
+
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).hasSize(1);
+        verify(dataspaceProvisioningService, never()).participantContexts(anyBoolean());
+
+        TransactionSynchronizationManager.getSynchronizations().forEach(sync -> sync.afterCommit());
+
+        verify(dataspaceProvisioningService, timeout(1000)).participantContexts(true);
     }
 }

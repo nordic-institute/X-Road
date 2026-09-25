@@ -86,12 +86,13 @@ class AssetIndexServerConfStore implements AssetIndex {
 
     private List<Asset> buildAssetList() {
         var assets = new ArrayList<Asset>();
-        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
-        for (var member : serverConfProvider.getMembers()) {
+        var localClients = serverConfProvider.getMembers();
+        var hostedMemberContextIds = serviceContextResolver.hostedMemberContextIds(localClients);
+        for (var member : localClients) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
                 assets.add(AssetMapper.toAsset(serviceId, contextIds.management()));
                 if (serverConfProvider.getDisabledNotice(serviceId) == null) {
-                    for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds)) {
+                    for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, hostedMemberContextIds)) {
                         assets.add(AssetMapper.toAsset(serviceId, ctxId));
                     }
                 }

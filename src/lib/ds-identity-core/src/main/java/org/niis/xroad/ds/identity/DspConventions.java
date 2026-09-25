@@ -29,6 +29,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.apicatalog.did.Did;
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.core.exception.XrdRuntimeException;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
 
 /**
  * Ecosystem-wide DSP conventions that are not distributed via GlobalConf: the fixed ports of the
@@ -65,6 +71,14 @@ public class DspConventions {
      * Interim: dies with the SYSTEM-context migration.
      */
     public static final String MANAGEMENT_CONTEXT_SUFFIX = "-mgmt";
+    /**
+     * DID-document service type under which a participant's DCP credential service is published.
+     */
+    public static final String CREDENTIAL_SERVICE_TYPE = "CredentialService";
+
+    private static final String CREDENTIAL_SERVICE_ID_SUFFIX = "-credential-service";
+    @SuppressWarnings("java:S1075")
+    private static final String CREDENTIALS_API_PARTICIPANTS_PATH = "/api/credentials/v1/participants/";
 
     /**
      * The {@code host:port} authority under which a Security Server's participant DIDs are minted
@@ -123,6 +137,35 @@ public class DspConventions {
         var ctxIdPathSegment = ParticipantIdentifierScheme.memberCtxId(member).replace("%", "%25");
         return "https://%s:%d/api/dsp/%s/%s"
                 .formatted(uriHost(ssAddress), DSP_PORT, ctxIdPathSegment, DSP_PROFILE_ID);
+    }
+
+    /**
+     * The id of a participant's credential-service entry in its DID document.
+     *
+     * @param participantContextId the participant context id
+     * @return the service id, {@code {ctx-id}-credential-service}
+     */
+    public static String credentialServiceId(String participantContextId) {
+        return participantContextId + CREDENTIAL_SERVICE_ID_SUFFIX;
+    }
+
+    /**
+     * The endpoint of a participant's credential-service entry: the identity hub's DCP credentials
+     * API scoped to the participant context.
+     *
+     * @param identityHubHost      host the identity hub is reached at; an IPv6 literal may be bare or bracketed
+     * @param credentialsPort      the identity hub's credentials API port
+     * @param participantContextId the participant context id, percent-encoded as one path segment
+     * @return the credential-service URL
+     */
+    public static String credentialServiceUrl(String identityHubHost, int credentialsPort, String participantContextId) {
+        try {
+            return new URI("https", null, uriHost(identityHubHost), credentialsPort,
+                    CREDENTIALS_API_PARTICIPANTS_PATH + participantContextId, null, null).toASCIIString();
+        } catch (URISyntaxException e) {
+            throw XrdRuntimeException.systemException(VALIDATION_ERROR, e,
+                    "cannot build a credential-service URL for host '%s' and participant '%s'", identityHubHost, participantContextId);
+        }
     }
 
     /**

@@ -58,7 +58,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class K8sEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, DidResolutionOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
 
@@ -124,6 +124,16 @@ public class K8sEnvSetup extends BaseComposeSetup
         var namespace = resolveNamespace(env);
         var pod = resolvePrimaryPod(namespace, MESSAGELOG_PRIMARY_SELECTOR, MESSAGELOG_CLUSTER);
         return execPsql(namespace, pod, "messagelog", sql);
+    }
+
+    /**
+     * Fetched from the auxiliary-service pod, whose image ships curl: an in-cluster peer that dials
+     * the proxy Service's DID port exactly as a counter-party derives it from the registered address.
+     */
+    @Override
+    public DidDocumentResponse resolveDidDocument(String env, String url) {
+        var result = execInAuxiliaryServiceChecked(resolveNamespace(env), "curl", "-sS", "-k", "-o", "-", "-w", "\n%{http_code}", url);
+        return DidDocumentResponse.fromCurlOutput(result.stdout());
     }
 
     @Override

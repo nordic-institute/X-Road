@@ -155,10 +155,11 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
 
     private List<ContractDefinition> buildContractDefinitionList() {
         var definitions = new ArrayList<ContractDefinition>();
-        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
-        for (var member : serverConfProvider.getMembers()) {
+        var localClients = serverConfProvider.getMembers();
+        var hostedMemberContextIds = serviceContextResolver.hostedMemberContextIds(localClients);
+        for (var member : localClients) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                collectContractDefinitionsForService(serviceId, definitions, provisionedMemberContextIds);
+                collectContractDefinitionsForService(serviceId, definitions, hostedMemberContextIds);
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -226,7 +227,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
      * context the service is published under.
      */
     private void collectContractDefinitionsForService(ServiceId serviceId, List<ContractDefinition> definitions,
-                                                       Set<String> provisionedMemberContextIds) {
+                                                       Set<String> hostedMemberContextIds) {
         definitions.add(ContractDefinitionMapper.toOwnerOnlyContractDefinition(
                 serviceId, contextIds.management()));
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
@@ -238,7 +239,7 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
         }
         var grouped = accessRights.stream()
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, hostedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectAccessRights = entry.getValue();

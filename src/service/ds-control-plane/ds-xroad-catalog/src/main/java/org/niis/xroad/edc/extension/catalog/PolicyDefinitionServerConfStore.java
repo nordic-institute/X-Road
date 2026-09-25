@@ -153,10 +153,11 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
 
     private List<PolicyDefinition> buildPolicyList() {
         var policies = new ArrayList<PolicyDefinition>();
-        var provisionedMemberContextIds = serviceContextResolver.provisionedMemberContextIds();
-        for (var member : serverConfProvider.getMembers()) {
+        var localClients = serverConfProvider.getMembers();
+        var hostedMemberContextIds = serviceContextResolver.hostedMemberContextIds(localClients);
+        for (var member : localClients) {
             for (var serviceId : serverConfProvider.getAllServices(member)) {
-                collectPoliciesForService(serviceId, policies, provisionedMemberContextIds);
+                collectPoliciesForService(serviceId, policies, hostedMemberContextIds);
             }
         }
         for (var serviceId : builtinServiceCatalog.activeServiceIds()) {
@@ -237,7 +238,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
      * service is published under.
      */
     private void collectPoliciesForService(ServiceId serviceId, List<PolicyDefinition> policies,
-                                           Set<String> provisionedMemberContextIds) {
+                                           Set<String> hostedMemberContextIds) {
         var ownerOnlyPolicyId = ContractDefinitionMapper.ownerOnlyPolicyId(serviceId);
         policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
                 serviceId.getClientId(), contextIds.management()));
@@ -254,7 +255,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, hostedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();

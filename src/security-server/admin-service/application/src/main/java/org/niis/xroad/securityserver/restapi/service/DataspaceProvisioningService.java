@@ -45,14 +45,13 @@ import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_DID_DRIFT;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_IDENTIFIER_MISMATCH;
@@ -140,7 +139,11 @@ public class DataspaceProvisioningService {
      *
      * @param participantId    the participant context id
      * @param kind             HOST, MANAGEMENT, SYSTEM or MEMBER
-     * @param contextCreated   whether the participant context exists in IdentityHub
+     * @param contextDid       the DID the identity hub serves for the participant context;
+     *                         {@code null} when the context does not exist there or could not be read
+     * @param intendedDid      the DID this server derives for the participant context today;
+     *                         {@code null} when it cannot be derived (DID authority unknown, unreadable
+     *                         or broken member binding)
      * @param credentialStatus the membership credential state
      * @param identityStatus   the bound-identity state for a MEMBER context; {@code null} for HOST
      *                         and MANAGEMENT
@@ -148,16 +151,29 @@ public class DataspaceProvisioningService {
     public record ParticipantContextStatus(
             String participantId,
             ParticipantKind kind,
-            boolean contextCreated,
+            @Nullable Did contextDid,
+            @Nullable Did intendedDid,
             CredentialStatus credentialStatus,
             @Nullable IdentityStatus identityStatus
     ) {
+        public boolean contextCreated() {
+            return contextDid != null;
+        }
+
+        /**
+         * Whether the identity hub serves exactly the DID this server would provision today. False
+         * when the context is missing, when the DID could not be derived, and on DID drift.
+         */
+        public boolean contextDidMatchesIntended() {
+            return contextDid != null && contextDid.equals(intendedDid);
+        }
     }
 
     private static final String HOLDER_PID_BASE = "xroad-membership-credential-request";
     private static final String CREDENTIAL_FORMAT = "VC1_0_JWT";
     private static final String CREDENTIAL_TYPE = "XRoadMembershipCredential";
     private static final Set<String> IN_FLIGHT_EDC_STATES = Set.of("CREATED", "REQUESTING", "REQUESTED");
+    private static final MemberIdentity UNREADABLE_IDENTITY = new MemberIdentity(IdentityStatus.UNKNOWN, null);
 
     private final AdminServiceProperties adminServiceProperties;
     private final IdentityHubProvisioningClient identityHubClient;
@@ -189,25 +205,47 @@ public class DataspaceProvisioningService {
      */
     public boolean ensureParticipantContext(ParticipantContext context) {
         var identityHubHost = didAuthority.identityHubHost();
+        var participantId = context.participantId();
 
         var did = didFor(context.kind(), context.memberId());
-        requireNoHubDidDrift(context.participantId(), did);
+        var existingDid = identityHubClient.contextDid(participantId);
+        requireNoHubDidDrift(participantId, existingDid, did);
 
         var anchorConfirmed = createIdentityHubContext(context, did, identityHubHost);
-        controlPlaneClient.createParticipantContext(context.participantId(), did);
-        controlPlaneClient.putParticipantContextConfig(context.participantId(), did, stsTokenUrl(identityHubHost));
+        ensureControlPlaneContext(participantId, did, identityHubHost);
+        if (existingDid.isEmpty()) {
+            log.info("Data space provisioning: participant context {} created", participantId);
+        }
         return anchorConfirmed;
     }
 
-    private void requireNoHubDidDrift(String participantId, Did intendedDid) {
-        identityHubClient.contextDid(participantId)
-                .filter(hubDid -> !hubDid.equals(intendedDid))
-                .ifPresent(hubDid -> {
+    /**
+     * Re-applies only the Control Plane half of {@link #ensureParticipantContext}: the participant
+     * context and its STS-bound config. The Control Plane exposes no status to read, so a context
+     * whose identity hub state has already converged still gets its Control Plane records re-put
+     * each tick; that is what heals a lost Control Plane database or a changed identity hub address.
+     * Writes only — no DID derivation, no binding check.
+     *
+     * @param context the participant context whose Control Plane records to re-apply
+     * @param did     the DID the identity hub serves for it, as read by {@link #readContextStatus}
+     */
+    public void ensureControlPlaneContext(ParticipantContext context, Did did) {
+        ensureControlPlaneContext(context.participantId(), did, didAuthority.identityHubHost());
+    }
+
+    private void ensureControlPlaneContext(String participantId, Did did, String identityHubHost) {
+        controlPlaneClient.createParticipantContext(participantId, did);
+        controlPlaneClient.putParticipantContextConfig(participantId, did, stsTokenUrl(identityHubHost));
+    }
+
+    private void requireNoHubDidDrift(String participantId, Optional<Did> hubDid, Did intendedDid) {
+        hubDid.filter(existing -> !existing.equals(intendedDid))
+                .ifPresent(drifted -> {
                     throw XrdRuntimeException.systemException(DSP_PARTICIPANT_DID_DRIFT)
-                            .metadataItems(hubDid, intendedDid)
+                            .metadataItems(drifted, intendedDid)
                             .details(("identity hub serves DID '%s' for participant context '%s', but the DID to "
                                     + "provision is '%s'; refusing to touch the context until the drift is resolved")
-                                    .formatted(hubDid, participantId, intendedDid))
+                                    .formatted(drifted, participantId, intendedDid))
                             .build();
                 });
     }
@@ -403,24 +441,53 @@ public class DataspaceProvisioningService {
 
     /**
      * Returns a read-only snapshot of one participant context's provisioning status. Does not
-     * trigger provisioning, poll, or sleep. Tolerates dataspace-backend unavailability — those
-     * errors are reported as {@code UNKNOWN} status rather than thrown; database failures propagate.
+     * trigger provisioning, poll, or sleep. Never throws. The bound-identity assessment, the
+     * participant context DID and the credential status are read independently, so a failure in
+     * one is reported as {@code UNKNOWN} in its own field and leaves the others as observed. An
+     * unreadable context DID additionally leaves the credential status {@code UNKNOWN}: without a
+     * context there is nothing to resolve a credential against.
      *
      * @param context the participant context to report on
      */
     public ParticipantContextStatus readContextStatus(ParticipantContext context) {
         var participantId = context.participantId();
-        var assessment = context.kind() == ParticipantKind.MEMBER ? assessMemberIdentity(context.memberId()) : null;
+
+        var assessment = context.kind() == ParticipantKind.MEMBER
+                ? readOrFallback(participantId, "bound identity",
+                        () -> assessMemberIdentity(context.memberId()), UNREADABLE_IDENTITY)
+                : null;
+        var intendedDid = assessment != null ? assessment.intendedDid() : derivedDidOrNull(context);
+
+        Optional<Did> hubDid = Optional.empty();
+        var credentialStatus = CredentialStatus.UNKNOWN;
         try {
-            var hubDid = identityHubClient.contextDid(participantId);
-            var contextCreated = hubDid.isPresent();
-            var credentialStatus = resolveCredentialStatus(context, contextCreated);
-            return new ParticipantContextStatus(participantId, context.kind(), contextCreated, credentialStatus,
-                    identityStatusOf(assessment, hubDid));
+            var did = identityHubClient.contextDid(participantId);
+            hubDid = did;
+            credentialStatus = readOrFallback(participantId, "credential status",
+                    () -> resolveCredentialStatus(context, did.isPresent()), CredentialStatus.UNKNOWN);
         } catch (Exception e) {
-            log.warn("Data space: could not read provisioning status for participant {}", participantId, e);
-            return new ParticipantContextStatus(participantId, context.kind(), false, CredentialStatus.UNKNOWN,
-                    identityStatusOf(assessment, Optional.empty()));
+            log.warn("Data space: could not read the participant context DID of {}", participantId, e);
+        }
+
+        return new ParticipantContextStatus(participantId, context.kind(), hubDid.orElse(null), intendedDid,
+                credentialStatus, identityStatusOf(assessment, hubDid));
+    }
+
+    @Nullable
+    private Did derivedDidOrNull(ParticipantContext context) {
+        if (!didAuthority.isKnown()) {
+            return null;
+        }
+        return readOrFallback(context.participantId(), "derived DID",
+                () -> didFor(context.kind(), context.memberId()), (Did) null);
+    }
+
+    private <T> T readOrFallback(String participantId, String what, Supplier<T> read, T fallback) {
+        try {
+            return read.get();
+        } catch (Exception e) {
+            log.warn("Data space: could not read the {} of participant {}", what, participantId, e);
+            return fallback;
         }
     }
 
@@ -532,9 +599,8 @@ public class DataspaceProvisioningService {
 
     private boolean createIdentityHubContext(ParticipantContext context, Did did, String identityHubHost) {
         var participantId = context.participantId();
-        var credentialServiceUrl = "https://%s:%d/api/credentials/v1/participants/%s".formatted(identityHubHost,
-                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(),
-                UriUtils.encodePathSegment(participantId, StandardCharsets.UTF_8));
+        var credentialServiceUrl = DspConventions.credentialServiceUrl(identityHubHost,
+                adminServiceProperties.getDataspace().getIdentityHubCredentialsPort(), participantId);
         var keyId = did + "#key-1";
         var privateKeyAlias = participantId + "-key";
         var reanchor = context.kind() == ParticipantKind.SYSTEM;
