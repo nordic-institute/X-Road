@@ -101,11 +101,6 @@ rpmbuild \
 warn "Pass 2: $CROSS_TARGET cross-build finished."
 
 # Both passes succeeded: replace the served package set with the staged one.
-mkdir -p "$RPM_OUT"
-rm -f "$RPM_OUT"/*/*.rpm
-for arch_dir in "$RPM_STAGE"/*/; do
-    arch="$(basename "$arch_dir")"
-    mkdir -p "$RPM_OUT/$arch"
-    mv "$arch_dir"*.rpm "$RPM_OUT/$arch/"
-done
-rm -rf "$RPM_STAGE"
+mkdir -p "$(dirname "$RPM_OUT")"
+rm -rf "$RPM_OUT"
+mv "$RPM_STAGE" "$RPM_OUT"
