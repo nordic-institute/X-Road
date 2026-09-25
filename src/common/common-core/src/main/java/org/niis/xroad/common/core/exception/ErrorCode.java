@@ -338,7 +338,12 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     DS_TLS_CERTIFICATE_NOT_CONFIGURED("ds_tls_certificate_not_configured"),
     DS_TLS_CA_NOT_FOUND("ds_tls_ca_not_found"),
     DS_TLS_INVALID_SUBJECT_ALT_NAME("ds_tls_invalid_subject_alt_name"),
-    DS_TLS_ACME_ORDER_FAILED("ds_tls_acme_order_failed");
+    DS_TLS_ACME_ORDER_FAILED("ds_tls_acme_order_failed"),
+
+    // ===== AGREEMENT TOKEN ERRORS =====
+    AGREEMENT_TOKEN_KEY_NOT_AVAILABLE("agreement_token_key_not_available"),
+    AGREEMENT_TOKEN_SIGNING_FAILED("agreement_token_signing_failed"),
+    AGREEMENT_TOKEN_KEY_STORE_FAILED("agreement_token_key_store_failed");
 
     private final String code;
 

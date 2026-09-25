@@ -34,6 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.vault.AcmeAccountKey;
 import org.niis.xroad.common.vault.DsTlsEnrollmentMethod;
 import org.niis.xroad.common.vault.DsTlsEnrollmentStatus;
+import org.niis.xroad.common.vault.VaultClient;
+import org.springframework.vault.VaultException;
 import org.springframework.vault.core.VaultKeyValueOperations;
 import org.springframework.vault.support.VaultResponse;
 
@@ -41,12 +43,20 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SpringVaultClientTest {
@@ -79,6 +89,15 @@ class SpringVaultClientTest {
             var response = new VaultResponse();
             response.setData(data);
             return response;
+        });
+
+        lenient().when(vaultKeyValueOperations.list(any())).thenAnswer(invocation -> {
+            String basePath = invocation.getArgument(0);
+            String prefix = basePath + "/";
+            return secretsByPath.keySet().stream()
+                    .filter(path -> path.startsWith(prefix))
+                    .map(path -> path.substring(prefix.length()))
+                    .collect(Collectors.toList());
         });
     }
 
@@ -169,6 +188,56 @@ class SpringVaultClientTest {
 
         assertThat(retrieved).isEqualTo(stored);
         assertThat(retrieved.method()).isNull();
+    }
+
+    @Test
+    void shouldStoreAndRetrieveAgreementTokenSigningKeys() {
+        String secretOne = Base64.getEncoder().encodeToString("secret-one-32-bytes-padding-here".getBytes());
+        String secretTwo = Base64.getEncoder().encodeToString("secret-two-32-bytes-padding-here".getBytes());
+
+        vaultClient.createAgreementTokenSigningKey("1", secretOne);
+        vaultClient.createAgreementTokenSigningKey("2", secretTwo);
+
+        var retrieved = vaultClient.getAgreementTokenSigningKeys();
+
+        assertThat(retrieved).containsExactlyInAnyOrderEntriesOf(Map.of("1", secretOne, "2", secretTwo));
+    }
+
+    @Test
+    void shouldReturnEmptyMapWhenNoAgreementTokenSigningKeyHasEverBeenStored() {
+        var retrieved = vaultClient.getAgreementTokenSigningKeys();
+
+        assertThat(retrieved).isEmpty();
+    }
+
+    @Test
+    void shouldPropagateAgreementTokenSigningKeyListingFailureRatherThanReturningEmpty() {
+        when(vaultKeyValueOperations.list(any())).thenThrow(new VaultException("vault sealed"));
+
+        assertThatThrownBy(() -> vaultClient.getAgreementTokenSigningKeys())
+                .isInstanceOf(VaultException.class);
+    }
+
+    @Test
+    void shouldWriteAgreementTokenSigningKeyToTheKvV1PathWithNoDataOrCasWrapping() {
+        vaultClient.createAgreementTokenSigningKey("1", "some-base64-secret");
+
+        var expectedPath = VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1";
+        assertThat(secretsByPath).containsKey(expectedPath);
+        assertThat(expectedPath).doesNotContain("/data/").doesNotContain("cas");
+
+        var written = secretsByPath.get(expectedPath);
+        assertThat(written).isNotEmpty();
+        assertThat(written).containsEntry(VaultClient.PAYLOAD_KEY, "some-base64-secret");
+    }
+
+    @Test
+    void shouldNeverDeleteAnAgreementTokenSigningKey() {
+        vaultClient.createAgreementTokenSigningKey("1", "some-base64-secret");
+        vaultClient.getAgreementTokenSigningKeys();
+
+        verify(vaultKeyValueOperations, never()).delete(eq(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1"));
+        verify(vaultKeyValueOperations, never()).delete(anyString());
     }
 
     private static KeyPair generateRsaKeyPair() throws Exception {
