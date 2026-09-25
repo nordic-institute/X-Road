@@ -12,6 +12,7 @@ dependencies {
   intTestImplementation(project(":common:common-message"))
   intTestImplementation(project(":lib:globalconf-impl"))
   intTestImplementation(project(":lib:vault-core"))
+  intTestImplementation(project(":lib:ds-identity-core"))
   intTestImplementation(project(":service:op-monitor:op-monitor-core")) {
     exclude(group = "org.jboss.slf4j", module = "slf4j-jboss-logmanager")
   }
@@ -117,6 +118,12 @@ tasks.register<Test>("e2eTest") {
   systemProperty("test-framework.ss0-stack", e2eSs0Stack)
 
   jvmArgs("-XX:MaxMetaspaceSize=200m")
+
+  // The JDK's own InetAddress resolver ignores platform-specific DNS configuration (e.g. macOS
+  // /etc/resolver), so *.lxd names are otherwise unresolvable from a locally run test JVM.
+  providers.gradleProperty("e2e.lxd-hosts-file").orNull?.let {
+    jvmArgs("-Djdk.net.hosts.file=$it")
+  }
 
   maxHeapSize = "256m"
 

@@ -62,6 +62,13 @@ public interface IdentityHubProvisioningClient {
     boolean createParticipantContext(CreateParticipantContextRequest request);
 
     /**
+     * Deletes (idempotently) the IdentityHub participant context for the given participant, along with
+     * its DID document, key material, STS account and stored credential and credential-request records.
+     * Deleting an already-absent context is a success.
+     */
+    void deleteParticipantContext(String participantContextId);
+
+    /**
      * Submits a membership credential request for the given participant and holder request id, targeting
      * whichever DID in {@code issuerDids} the identity hub resolves to a reachable issuer at request time.
      *

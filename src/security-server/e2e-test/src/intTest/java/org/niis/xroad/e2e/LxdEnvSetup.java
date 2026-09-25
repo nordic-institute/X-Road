@@ -52,7 +52,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 public class LxdEnvSetup extends BaseComposeSetup
-        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps {
+        implements E2eEnvironment, MessagelogDbOps, MessagelogArchiveOps, DsControlPlaneDbOps, CsIssuerDbOps {
 
     private static final int PROBE_TIMEOUT_MS = 5000;
     private static final String MESSAGELOG_SEARCH_PATH = "--search_path=messagelog,public";
@@ -60,6 +60,8 @@ public class LxdEnvSetup extends BaseComposeSetup
     // The schema is named identically to the database, "ds-control-plane" — its dash means it is not a bare SQL
     // identifier, so it must be double-quoted in the search_path GUC value or postgres rejects/misparses it.
     private static final String DS_CONTROL_PLANE_SEARCH_PATH = "--search_path=\"ds-control-plane\",public";
+    private static final String CS_ISSUER_DB = "centerui_production";
+    private static final String CS_ISSUER_SEARCH_PATH = "--search_path=\"ds-issuer-service\",public";
     private static final String ARCHIVE_DIR = "/var/lib/xroad";
     private static final String ARCHIVER_LOG = "/var/log/xroad/message-log-archiver.log";
     private static final String ARCHIVER_CLI = "/usr/share/xroad/bin/xroad-message-log-archiver";
@@ -104,25 +106,34 @@ public class LxdEnvSetup extends BaseComposeSetup
     @Override
     @SneakyThrows
     public String execMessagelogSql(String env, String sql) {
-        return execPsql(env, "messagelog", sql, "PGOPTIONS=" + MESSAGELOG_SEARCH_PATH);
+        return execPsql(resolveContainer(env), "messagelog", sql, "PGOPTIONS=" + MESSAGELOG_SEARCH_PATH);
     }
 
     @Override
     @SneakyThrows
     public String execDsControlPlaneSql(String env, String sql) {
-        return execPsql(env, DS_CONTROL_PLANE_DB, sql, "PGOPTIONS=" + DS_CONTROL_PLANE_SEARCH_PATH);
+        return execPsql(resolveContainer(env), DS_CONTROL_PLANE_DB, sql, "PGOPTIONS=" + DS_CONTROL_PLANE_SEARCH_PATH);
     }
 
     /**
-     * Runs a query against the given database's local postgres instance on the {@code env} container
-     * via {@code lxc exec}, mirroring {@link K8sEnvSetup}'s {@code kubectl exec} equivalent.
-     * {@code extraEnv} carries any {@code KEY=value} pairs the {@code sudo} invocation should forward —
-     * both messagelog's and ds-control-plane's EDC tables live in a non-default, same-named schema, so
-     * each needs its own search path.
+     * The issuer's credential store lives inside the Central Server's own database, so every call
+     * targets the {@code aux} container regardless of which Security Server the caller is investigating.
+     */
+    @Override
+    @SneakyThrows
+    public String execCsIssuerSql(String env, String sql) {
+        return execPsql(resolveContainer(env), CS_ISSUER_DB, sql, "PGOPTIONS=" + CS_ISSUER_SEARCH_PATH);
+    }
+
+    /**
+     * Runs a query against the given database's local postgres instance on the resolved container via
+     * {@code lxc exec}, mirroring {@link K8sEnvSetup}'s {@code kubectl exec} equivalent. {@code extraEnv}
+     * carries any {@code KEY=value} pairs the {@code sudo} invocation should forward — messagelog's,
+     * ds-control-plane's and the Central Server's ds-issuer-service tables all live in a non-default
+     * schema, so each needs its own search path.
      */
     @SneakyThrows
-    private String execPsql(String env, String database, String sql, String... extraEnv) {
-        var container = "xrd-" + env;
+    private String execPsql(String container, String database, String sql, String... extraEnv) {
         var commandArgs = new ArrayList<String>(List.of(
                 lxdProperties.lxcCommand(), "exec", container, "--",
                 "sudo", "-u", "postgres"));
@@ -359,6 +370,20 @@ public class LxdEnvSetup extends BaseComposeSetup
             case "ss1" -> lxdProperties.ss1Host();
             case "aux" -> lxdProperties.csHost();
             case "ca" -> lxdProperties.caHost();
+            default -> throw new IllegalArgumentException("Unknown LXD environment: " + env);
+        };
+    }
+
+    /**
+     * Resolves an environment name to its LXD container name, for {@code lxc exec}. Not simply
+     * {@code "xrd-" + env}: the Central Server's container is named {@code xrd-cs}, while its logical
+     * environment name in this suite is {@code aux}.
+     */
+    private String resolveContainer(String env) {
+        return switch (env) {
+            case "ss0" -> "xrd-ss0";
+            case "ss1" -> "xrd-ss1";
+            case "aux" -> "xrd-cs";
             default -> throw new IllegalArgumentException("Unknown LXD environment: " + env);
         };
     }

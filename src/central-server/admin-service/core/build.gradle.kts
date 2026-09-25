@@ -21,9 +21,11 @@ dependencies {
 
   implementation(libs.apache.commonsCompress)
   implementation(libs.mapstruct)
+  implementation("org.springframework:spring-tx")
   implementation(project(":lib:rpc-spring"))
   implementation(project(":lib:properties-core"))
   implementation(project(":lib:properties-spring"))
+  implementation(project(":lib:ds-identity-core"))
   implementation(project(":service:ds-issuer-service:ds-issuer-service-provisioning-protocol"))
   implementation(project(":service:signer:signer-common"))
 

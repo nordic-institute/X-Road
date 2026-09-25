@@ -34,6 +34,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.IdentityHubProvisioningServiceGrpc;
@@ -107,6 +108,12 @@ public class IdentityHubProvisioningRpcClient extends AbstractRpcClient implemen
                 .setReanchorMemberIdOnConflict(request.reanchorMemberIdOnConflict())
                 .build()));
         return !request.reanchorMemberIdOnConflict() || response.getMemberIdReanchored();
+    }
+
+    public void deleteIdentityHubParticipantContext(String participantContextId) {
+        exec(() -> stub.deleteParticipantContext(DeleteParticipantContextReq.newBuilder()
+                .setParticipantContextId(participantContextId)
+                .build()));
     }
 
     public String requestMembershipCredential(String participantContextId, Collection<String> issuerDids, String holderPid,

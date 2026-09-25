@@ -26,8 +26,22 @@
  */
 package org.niis.xroad.cs.admin.core.repository;
 
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 
+import java.util.Collection;
+
 public interface ServerClientRepository extends GenericRepository<ServerClientEntity, Integer> {
+
+    /**
+     * Counts the security server's registered client rows for any of the given clients.
+     *
+     * @param securityServer         the security server
+     * @param securityServerClients  the clients to count registrations for
+     * @return the number of matching {@code server_clients} rows
+     */
+    long countBySecurityServerAndSecurityServerClientIn(SecurityServerEntity securityServer,
+                                                         Collection<SecurityServerClientEntity> securityServerClients);
 
 }

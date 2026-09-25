@@ -45,6 +45,8 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.DeleteParticipantContextReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.DeleteParticipantContextResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
@@ -68,6 +70,8 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @Mock
     private ParticipantContextConfigService participantContextConfigService;
     @Mock
+    private ParticipantContextConfigDeleter participantContextConfigDeleter;
+    @Mock
     private DataPlaneContextRegistrar dataPlaneContextRegistrar;
     @Mock
     private CatalogCacheInvalidator catalogCacheInvalidator;
@@ -76,6 +80,8 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @Mock
     private StreamObserver<PutParticipantContextConfigResp> configObserver;
     @Mock
+    private StreamObserver<DeleteParticipantContextResp> deleteObserver;
+    @Mock
     private StreamObserver<InvalidateCatalogCachesResp> invalidateObserver;
 
     private ControlPlaneProvisioningGrpcService service;
@@ -83,8 +89,8 @@ class ControlPlaneProvisioningGrpcServiceTest {
     @BeforeEach
     void setUp() {
         service = new ControlPlaneProvisioningGrpcService(
-                participantContextService, participantContextConfigService, dataPlaneContextRegistrar,
-                catalogCacheInvalidator, new RpcResponseHandler());
+                participantContextService, participantContextConfigService, participantContextConfigDeleter,
+                dataPlaneContextRegistrar, catalogCacheInvalidator, new RpcResponseHandler());
     }
 
     @ParameterizedTest
@@ -256,6 +262,49 @@ class ControlPlaneProvisioningGrpcServiceTest {
 
         verify(configObserver).onError(any(StatusRuntimeException.class));
         verify(configObserver, never()).onCompleted();
+    }
+
+    @Test
+    void deleteParticipantContextDeletesContextAndConfig() {
+        when(participantContextService.deleteParticipantContext("ctx-1")).thenReturn(ServiceResult.success());
+
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, deleteObserver);
+
+        verify(deleteObserver).onNext(any());
+        verify(deleteObserver).onCompleted();
+        verify(deleteObserver, never()).onError(any());
+        verify(participantContextConfigDeleter).deleteByParticipantContextId("ctx-1");
+    }
+
+    @Test
+    void deleteParticipantContextOfAbsentContextIsIdempotentAndStillCleansUpConfig() {
+        when(participantContextService.deleteParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.notFound("no such context"));
+
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, deleteObserver);
+
+        verify(deleteObserver).onNext(any());
+        verify(deleteObserver).onCompleted();
+        verify(deleteObserver, never()).onError(any());
+        verify(participantContextConfigDeleter).deleteByParticipantContextId("ctx-1");
+    }
+
+    @Test
+    void deleteParticipantContextPropagatesUnexpectedFailureWithoutDeletingConfig() {
+        when(participantContextService.deleteParticipantContext("ctx-1"))
+                .thenReturn(ServiceResult.unexpected("db down"));
+
+        var request = DeleteParticipantContextReq.newBuilder().setParticipantContextId("ctx-1").build();
+
+        service.deleteParticipantContext(request, deleteObserver);
+
+        verify(deleteObserver).onError(any(StatusRuntimeException.class));
+        verify(deleteObserver, never()).onCompleted();
+        verify(participantContextConfigDeleter, never()).deleteByParticipantContextId(any());
     }
 
     @Test

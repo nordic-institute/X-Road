@@ -12,6 +12,10 @@ dependencies {
   implementation(libs.edc.spi.core)
   implementation(libs.edc.spi.participantcontext)
   implementation(libs.edc.spi.participantcontext.config)
+  implementation(libs.edc.spi.transaction)
+  implementation(libs.edc.spi.transaction.datasource)
+  implementation(libs.edc.lib.sql)
+  implementation(libs.edc.store.participantcontext.config.sql)
 
   testImplementation(libs.assertj.core)
   testImplementation(libs.junit.jupiter.params)

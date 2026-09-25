@@ -36,10 +36,13 @@ import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipant
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.CredentialRequestManager;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.niis.xroad.common.rpc.server.RpcResponseHandler;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextReq;
+import org.niis.xroad.edc.identityhub.provisioning.proto.DeleteParticipantContextResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateReq;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetCredentialRequestStateResp;
 import org.niis.xroad.edc.identityhub.provisioning.proto.GetParticipantContextDidReq;
@@ -65,6 +68,7 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PARTICIPANT_CON
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_PROVISIONING_FAILED;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.failure;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrConflict;
+import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.requireSuccessOrNotFound;
 import static org.niis.xroad.edc.extension.rpc.EdcProvisioningHelper.validateManifestFields;
 
 /**
@@ -86,8 +90,10 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
     private final IdentityHubParticipantContextService participantContextService;
     private final CredentialRequestManager credentialRequestManager;
+    private final ParticipantCredentialRecordsPurger recordsPurger;
     private final DidResolverRegistry didResolverRegistry;
     private final RpcResponseHandler responseHandler;
+    private final Monitor monitor;
 
     private final ExecutorService resolveExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private final Map<String, Instant> unreachableUntil = new ConcurrentHashMap<>();
@@ -101,6 +107,12 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
     public void createParticipantContext(CreateParticipantContextReq request,
                                          StreamObserver<CreateParticipantContextResp> responseObserver) {
         responseHandler.handleRequest(responseObserver, () -> createParticipantContextInternal(request));
+    }
+
+    @Override
+    public void deleteParticipantContext(DeleteParticipantContextReq request,
+                                         StreamObserver<DeleteParticipantContextResp> responseObserver) {
+        responseHandler.handleRequest(responseObserver, () -> deleteParticipantContextInternal(request));
     }
 
     @Override
@@ -182,6 +194,23 @@ class IdentityHubProvisioningGrpcService extends IdentityHubProvisioningServiceG
 
     private void logReanchorFailure(String participantContextId, String detail) {
         log.warn("Failed to re-anchor member id for participant context '{}': {}", participantContextId, detail);
+    }
+
+    private DeleteParticipantContextResp deleteParticipantContextInternal(DeleteParticipantContextReq request) {
+        var participantContextId = request.getParticipantContextId();
+        var result = participantContextService.deleteParticipantContext(participantContextId);
+        requireSuccessOrNotFound(result, DSP_PARTICIPANT_CONTEXT_FAILED, participantContextId);
+
+        var purged = recordsPurger.purge(participantContextId);
+        if (!result.succeeded() && purged.credentialCount() == 0 && purged.holderRequestCount() == 0) {
+            monitor.debug("Identity hub: delete requested for already-absent participant context %s"
+                    .formatted(participantContextId));
+        } else {
+            monitor.info(("Identity hub: deleted participant context %s (context %s, purged %d credential(s), "
+                    + "%d holder request(s))").formatted(participantContextId,
+                    result.succeeded() ? "removed" : "already absent", purged.credentialCount(), purged.holderRequestCount()));
+        }
+        return DeleteParticipantContextResp.getDefaultInstance();
     }
 
     private RequestCredentialResp requestCredentialInternal(RequestCredentialReq request) {

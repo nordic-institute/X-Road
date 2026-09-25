@@ -29,7 +29,12 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.apicatalog.did.Did;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +64,7 @@ import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
@@ -71,6 +77,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -124,8 +131,14 @@ class DataspaceProvisioningServiceTest {
 
     private DataspaceProvisioningService service;
 
+    private final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    private final Logger logger = (Logger) LoggerFactory.getLogger(DataspaceProvisioningService.class);
+
     @BeforeEach
     void setUp() {
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.DEBUG);
         lenient().when(dataspace.getParticipantId()).thenReturn(PARTICIPANT_ID);
         lenient().when(dataspace.getIdentityHubUrl()).thenReturn("https://ih.example.test");
         lenient().when(dataspace.getCredentialDefinitionId()).thenReturn("xroad-membership-credential-definition");
@@ -149,6 +162,13 @@ class DataspaceProvisioningServiceTest {
         service = new DataspaceProvisioningService(adminServiceProperties, identityHubClient, controlPlaneClient,
                 clientRepository, ownSecurityServerResolver, dsParticipantRepository, globalConfProvider,
                 new DataspaceDidAuthority(ownSecurityServerResolver, adminServiceProperties));
+    }
+
+    @AfterEach
+    void tearDownLogging() {
+        logger.detachAppender(appender);
+        appender.stop();
+        logger.setLevel(null);
     }
 
     // --- ensureMembershipCredential ---
@@ -399,6 +419,24 @@ class DataspaceProvisioningServiceTest {
                 .containsExactly(ParticipantKind.HOST, ParticipantKind.SYSTEM, ParticipantKind.MEMBER, ParticipantKind.MEMBER);
         assertThat(contexts).extracting(DataspaceProvisioningService.ParticipantContext::participantId)
                 .contains(ParticipantIdentifierScheme.memberCtxId(OWNER), ParticipantIdentifierScheme.memberCtxId(MEMBER));
+    }
+
+    @Test
+    void participantContextsExcludesMemberWithUnconvergedTombstone() {
+        givenServerConfWithOwner(OWNER);
+        var ownerClient = clientWith(OWNER);
+        var memberClient = clientWith(MEMBER);
+        when(clientRepository.getAllLocalClients()).thenReturn(List.of(ownerClient, memberClient));
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
+        lenient().when(dsParticipantRepository.findByMemberIdentifier(OWNER)).thenReturn(Optional.empty());
+
+        var contexts = service.participantContexts(false);
+
+        assertThat(contexts).filteredOn(ctx -> ctx.kind() == ParticipantKind.MEMBER)
+                .extracting(DataspaceProvisioningService.ParticipantContext::participantId)
+                .containsExactly(ParticipantIdentifierScheme.memberCtxId(OWNER));
     }
 
     @Test
@@ -874,6 +912,31 @@ class DataspaceProvisioningServiceTest {
                 + ParticipantIdentifierScheme.memberCtxId(owner);
     }
 
+    // --- decommissioned bindings are treated as unbound ---
+
+    @Test
+    void ensureParticipantContextDerivesUnboundDidWhenBoundRowIsDecommissioned() {
+        var decommissioned = boundParticipant(MEMBER, "ih.other.test:7183");
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
+        var expectedDid = ParticipantIdentifierScheme.memberDid(MEMBER, SS_HOST);
+
+        service.ensureParticipantContext(MEMBER_CONTEXT);
+
+        var request = capturedIhCreateRequest();
+        assertThat(request.did()).isEqualTo(expectedDid);
+        assertThat(request.memberId()).isEqualTo(slashForm(MEMBER));
+    }
+
+    @Test
+    void readIdentityStatusReportsUnboundWhenBoundRowIsDecommissioned() {
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        when(dsParticipantRepository.findByMemberIdentifier(MEMBER)).thenReturn(Optional.of(decommissioned));
+
+        assertThat(service.readIdentityStatus(MEMBER)).isEqualTo(IdentityStatus.UNBOUND);
+    }
+
     // --- readIdentityStatus ---
 
     @Test
@@ -954,6 +1017,49 @@ class DataspaceProvisioningServiceTest {
     @Test
     void registeredAddressKnownIsTrueForRegisteredServer() {
         assertThat(service.registeredAddressKnown()).isTrue();
+    }
+
+    // --- decommissionedParticipants / teardownParticipant ---
+
+    @Test
+    void decommissionedParticipantsReturnsBoundRowsMarkedDecommissioned() {
+        var decommissioned = boundParticipant(MEMBER, SS_HOST);
+        decommissioned.setState(ParticipantState.DECOMMISSIONED);
+        decommissioned.setId(42L);
+        when(dsParticipantRepository.findDecommissioned()).thenReturn(List.of(decommissioned));
+
+        var tombstones = service.decommissionedParticipants();
+
+        assertThat(tombstones).containsExactly(
+                new DataspaceProvisioningService.TombstonedParticipant(42L, ParticipantIdentifierScheme.memberCtxId(MEMBER)));
+    }
+
+    @Test
+    void teardownParticipantDeletesControlPlaneThenHubThenRow() {
+        var tombstone = new DataspaceProvisioningService.TombstonedParticipant(7L, PARTICIPANT_ID);
+
+        service.teardownParticipant(tombstone);
+
+        var order = inOrder(controlPlaneClient, identityHubClient, dsParticipantRepository);
+        order.verify(controlPlaneClient).deleteParticipantContext(PARTICIPANT_ID);
+        order.verify(identityHubClient).deleteParticipantContext(PARTICIPANT_ID);
+        order.verify(dsParticipantRepository).delete(7L);
+    }
+
+    @Test
+    void teardownParticipantLogsConvergenceOutcome() {
+        var tombstone = new DataspaceProvisioningService.TombstonedParticipant(7L, PARTICIPANT_ID);
+
+        service.teardownParticipant(tombstone);
+
+        assertThat(appender.list)
+                .filteredOn(event -> event.getLevel() == Level.INFO)
+                .extracting(ILoggingEvent::getFormattedMessage)
+                .anySatisfy(message -> assertThat(message)
+                        .contains(PARTICIPANT_ID)
+                        .containsIgnoringCase("control plane")
+                        .containsIgnoringCase("identity hub")
+                        .containsIgnoringCase("row"));
     }
 
     private void givenServerConfWithOwner(ClientId owner) {

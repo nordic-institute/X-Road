@@ -42,7 +42,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataspaceIssuerProvisioningServiceImpl implements DataspaceIssuerProvisioningService {
 
-    private static final String ISSUER_PARTICIPANT_ID = "issuer";
+    static final String ISSUER_PARTICIPANT_ID = "issuer";
     private static final String ISSUER_KEY_ALIAS = "issuer-key";
     private static final String ATTESTATION_DEFINITION_ID = "xroad-membership-attestation-definition";
     private static final String ATTESTATION_TYPE = "holder";

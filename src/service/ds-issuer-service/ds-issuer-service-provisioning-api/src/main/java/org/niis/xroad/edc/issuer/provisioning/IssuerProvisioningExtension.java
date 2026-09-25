@@ -73,7 +73,7 @@ public class IssuerProvisioningExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var grpcService = new IssuerProvisioningGrpcService(
                 participantContextService, attestationDefinitionService, credentialDefinitionService,
-                credentialStatusService, new RpcResponseHandler());
+                credentialStatusService, new RpcResponseHandler(), monitor);
         grpcServiceRegistry.register(grpcService);
         monitor.info("Initialized extension: " + EXTENSION_NAME);
     }

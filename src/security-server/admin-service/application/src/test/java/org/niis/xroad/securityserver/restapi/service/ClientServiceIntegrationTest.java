@@ -35,19 +35,26 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
+import org.hibernate.Session;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
+import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.GroupMember;
 import org.niis.xroad.serverconf.model.LocalGroup;
+import org.niis.xroad.serverconf.model.ParticipantState;
+import org.niis.xroad.serverconf.model.ParticipantType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -126,6 +133,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Autowired
     PersistenceUtils persistenceUtils;
 
+    @Autowired
+    DsParticipantRepository dsParticipantRepository;
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -403,6 +412,49 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         clientService.deleteLocalClient(memberId);
 
         verify(catalogInvalidationNotifier).invalidateCatalogCaches();
+    }
+
+    /**
+     * A member's identifier stays in the {@code identifier} table as long as a dataspace participant
+     * binding references it, even once nothing else (local group, access right) does — otherwise the
+     * binding's foreign key would dangle. Deleting the member's last client also flips that binding
+     * to decommissioned.
+     */
+    @Test
+    public void deleteLocalClientPreservesIdentifierStillBoundToDataspaceParticipant() throws Exception {
+        ClientId memberId = getClientId("FI:GOV:M3");
+        clientService.addLocalClient(memberId.getMemberClass(), memberId.getMemberCode(),
+                memberId.getSubsystemCode(), null, IsAuthentication.SSLAUTH, false);
+        bindActiveDataspaceParticipant(memberId);
+        persistenceUtils.flush();
+        int startIdentifiers = countIdentifiers();
+
+        clientService.deleteLocalClient(memberId);
+        persistenceUtils.flush();
+
+        assertEquals(startIdentifiers, countIdentifiers());
+        assertNull(clientService.getLocalClient(memberId));
+        var binding = dsParticipantRepository.findByMemberIdentifier(memberId);
+        assertTrue(binding.isPresent());
+        assertEquals(ParticipantState.DECOMMISSIONED, binding.get().getState());
+    }
+
+    /**
+     * Binds an {@code ACTIVE} dataspace participant row directly, simulating the provisioning-time
+     * binding that a future story writes — this test module has no such writer yet.
+     */
+    private void bindActiveDataspaceParticipant(ClientId member) {
+        Session session = persistenceUtils.getCurrentSession();
+        ClientIdEntity identifier = new IdentifierDAOImpl().findOrCreateClientId(session, member);
+
+        DsParticipantEntity participant = new DsParticipantEntity();
+        participant.setParticipantType(ParticipantType.MEMBER);
+        participant.setMemberIdentifier(identifier);
+        participant.setCtxId("FI:GOV:M3");
+        participant.setDid("did:web:ss.example.test:v1:FI:GOV:M3");
+        participant.setSchemeVersion("v1");
+        participant.setState(ParticipantState.ACTIVE);
+        session.persist(participant);
     }
 
     /**

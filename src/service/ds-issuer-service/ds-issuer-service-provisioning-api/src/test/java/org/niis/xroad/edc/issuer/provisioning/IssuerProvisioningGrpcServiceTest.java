@@ -38,6 +38,7 @@ import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCre
 import org.eclipse.edc.issuerservice.spi.credentials.CredentialStatusService;
 import org.eclipse.edc.issuerservice.spi.issuance.attestation.AttestationDefinitionService;
 import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.CredentialDefinitionService;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -57,11 +58,13 @@ import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialResp;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,6 +81,8 @@ class IssuerProvisioningGrpcServiceTest {
     @Mock
     private CredentialStatusService credentialStatusService;
     @Mock
+    private Monitor monitor;
+    @Mock
     private StreamObserver<CreateParticipantContextResp> participantContextResponseObserver;
     @Mock
     private StreamObserver<RevokeCredentialResp> revokeResponseObserver;
@@ -89,7 +94,7 @@ class IssuerProvisioningGrpcServiceTest {
     @BeforeEach
     void setUp() {
         service = new IssuerProvisioningGrpcService(participantContextService, attestationDefinitionService,
-                credentialDefinitionService, credentialStatusService, new RpcResponseHandler());
+                credentialDefinitionService, credentialStatusService, new RpcResponseHandler(), monitor);
     }
 
     @ParameterizedTest
@@ -122,94 +127,173 @@ class IssuerProvisioningGrpcServiceTest {
 
     @Test
     void revokeCredentialHappyPath() {
-        var resource = hostCredentialResource("cred-id-1", "issuer", "EE", "ORG", "12345678",
-                "did:web:ss1.example.com");
-        when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
-                .thenReturn(ServiceResult.success(List.of(resource)));
+        var resource = hostCredentialResource("cred-id-1", "issuer", "did:web:ss1.example.com", 1_000L);
+        stubStore(resource);
         when(credentialStatusService.revokeCredential("cred-id-1"))
                 .thenReturn(ServiceResult.success(null));
 
-        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "12345678"), revokeResponseObserver);
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
         verify(credentialStatusService).revokeCredential(eq("cred-id-1"));
-        verify(revokeResponseObserver).onNext(any(RevokeCredentialResp.class));
+        verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
         verify(revokeResponseObserver).onCompleted();
     }
 
     @Test
     void revokeCredentialBuildsPushedDownQuerySpec() {
-        var resource = hostCredentialResource("cred-id-1", "issuer", "EE", "ORG", "12345678",
-                "did:web:ss1.example.com");
+        var resource = hostCredentialResource("cred-id-1", "issuer", "did:web:ss1.example.com", 1_000L);
         when(credentialStatusService.queryCredentials(querySpecCaptor.capture()))
                 .thenReturn(ServiceResult.success(List.of(resource)));
         when(credentialStatusService.revokeCredential("cred-id-1"))
                 .thenReturn(ServiceResult.success(null));
 
-        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "12345678"), revokeResponseObserver);
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
         var querySpec = querySpecCaptor.getValue();
         assertThat(querySpec.getLimit()).isEqualTo(Integer.MAX_VALUE);
         assertThat(querySpec.getFilterExpression()).containsExactlyInAnyOrder(
                 Criterion.criterion("participantContextId", "=", "issuer"),
-                Criterion.criterion("verifiableCredential.credential.credentialSubject.xroadInstance", "=", "EE"),
-                Criterion.criterion("verifiableCredential.credential.credentialSubject.memberClass", "=", "ORG"),
-                Criterion.criterion("verifiableCredential.credential.credentialSubject.memberCode", "=", "12345678"));
+                Criterion.criterion("holderId", "=", "did:web:ss1.example.com"),
+                Criterion.criterion("timestamp", "<", 2_000L));
+    }
+
+    @Test
+    void revokeCredentialRevokesAllMatches() {
+        var first = hostCredentialResource("cred-id-1", "issuer", "did:web:ss1.example.com", 1_000L);
+        var second = hostCredentialResource("cred-id-2", "issuer", "did:web:ss1.example.com", 1_500L);
+        stubStore(first, second);
+        when(credentialStatusService.revokeCredential(any())).thenReturn(ServiceResult.success(null));
+
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
+
+        verify(credentialStatusService).revokeCredential("cred-id-1");
+        verify(credentialStatusService).revokeCredential("cred-id-2");
+        verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(2).build());
+    }
+
+    @Test
+    void revokeCredentialIsolatesByHolderAcrossServers() {
+        var server1Credential = hostCredentialResource("cred-ss1", "issuer", "did:web:ss1.example.com", 1_000L);
+        var server2Credential = hostCredentialResource("cred-ss2", "issuer", "did:web:ss2.example.com", 1_000L);
+        stubStore(server1Credential, server2Credential);
+        when(credentialStatusService.revokeCredential("cred-ss1")).thenReturn(ServiceResult.success(null));
+
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
+
+        verify(credentialStatusService).revokeCredential("cred-ss1");
+        verify(credentialStatusService, never()).revokeCredential("cred-ss2");
+        verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
+    }
+
+    @Test
+    void revokeCredentialAppliesIssuedBeforeCutoff() {
+        var beforeCutoff = hostCredentialResource("cred-old", "issuer", "did:web:ss1.example.com", 1_000L);
+        var atCutoff = hostCredentialResource("cred-new", "issuer", "did:web:ss1.example.com", 2_000L);
+        stubStore(beforeCutoff, atCutoff);
+        when(credentialStatusService.revokeCredential("cred-old")).thenReturn(ServiceResult.success(null));
+
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
+
+        verify(credentialStatusService).revokeCredential("cred-old");
+        verify(credentialStatusService, never()).revokeCredential("cred-new");
+        verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(1).build());
     }
 
     @Test
     void revokeCredentialSkipsMgmtHolder() {
-        var mgmtResource = hostCredentialResource("mgmt-id", "issuer", "EE", "ORG", "12345678",
-                "did:web:ss1.example.com:mgmt");
-        var hostResource = hostCredentialResource("host-id", "issuer", "EE", "ORG", "12345678",
-                "did:web:ss1.example.com");
+        var mgmtResource = hostCredentialResource("mgmt-id", "issuer", "did:web:ss1.example.com:mgmt", 1_000L);
+        var hostResource = hostCredentialResource("host-id", "issuer", "did:web:ss1.example.com", 1_000L);
         when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
                 .thenReturn(ServiceResult.success(List.of(mgmtResource, hostResource)));
         when(credentialStatusService.revokeCredential("host-id"))
                 .thenReturn(ServiceResult.success(null));
 
-        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "12345678"), revokeResponseObserver);
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
         verify(credentialStatusService).revokeCredential(eq("host-id"));
         verify(credentialStatusService, never()).revokeCredential(eq("mgmt-id"));
     }
 
     @Test
-    void revokeCredentialThrowsWhenNoMatchFound() {
-        when(credentialStatusService.queryCredentials(any(QuerySpec.class)))
-                .thenReturn(ServiceResult.success(List.of()));
+    void revokeCredentialZeroMatchesIsIdempotentSuccess() {
+        stubStore();
 
-        service.revokeCredential(revokeReq("issuer", "EE", "ORG", "99999999"), revokeResponseObserver);
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
-        verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
         verify(credentialStatusService, never()).revokeCredential(any());
+        verify(revokeResponseObserver).onNext(RevokeCredentialResp.newBuilder().setRevokedCount(0).build());
+        verify(revokeResponseObserver).onCompleted();
+        verify(revokeResponseObserver, never()).onError(any());
+
+        ArgumentCaptor<String> infoMessages = ArgumentCaptor.forClass(String.class);
+        verify(monitor, atLeastOnce()).info(infoMessages.capture());
+        assertThat(infoMessages.getAllValues())
+                .anySatisfy(message -> assertThat(message).contains("no credentials matched holder did:web:ss1.example.com"));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "   "})
     void revokeCredentialRejectsBlankParticipantContextId(String blank) {
-        service.revokeCredential(revokeReq(blank, "EE", "ORG", "12345678"), revokeResponseObserver);
+        service.revokeCredential(revokeReq(blank, "did:web:ss1.example.com", 2_000L), revokeResponseObserver);
 
         verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
         verify(credentialStatusService, never()).queryCredentials(any());
     }
 
-    private RevokeCredentialReq revokeReq(String ctx, String instance, String memberClass, String memberCode) {
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   "})
+    void revokeCredentialRejectsBlankHolderDid(String blank) {
+        service.revokeCredential(revokeReq("issuer", blank, 2_000L), revokeResponseObserver);
+
+        verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
+        verify(credentialStatusService, never()).queryCredentials(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {0L, -1L})
+    void revokeCredentialRejectsNonPositiveIssuedBefore(long nonPositive) {
+        service.revokeCredential(revokeReq("issuer", "did:web:ss1.example.com", nonPositive), revokeResponseObserver);
+
+        verify(revokeResponseObserver).onError(any(StatusRuntimeException.class));
+        verify(credentialStatusService, never()).queryCredentials(any());
+    }
+
+    private void stubStore(VerifiableCredentialResource... seed) {
+        when(credentialStatusService.queryCredentials(any(QuerySpec.class))).thenAnswer(invocation -> {
+            QuerySpec spec = invocation.getArgument(0);
+            var matches = Arrays.stream(seed).filter(resource -> matchesAll(resource, spec)).toList();
+            return ServiceResult.success(matches);
+        });
+    }
+
+    private boolean matchesAll(VerifiableCredentialResource resource, QuerySpec spec) {
+        return spec.getFilterExpression().stream().allMatch(criterion -> matches(resource, criterion));
+    }
+
+    private boolean matches(VerifiableCredentialResource resource, Criterion criterion) {
+        var field = (String) criterion.getOperandLeft();
+        var value = criterion.getOperandRight();
+        return switch (field) {
+            case "participantContextId" -> resource.getParticipantContextId().equals(value);
+            case "holderId" -> resource.getHolderId().equals(value);
+            case "timestamp" -> resource.getTimestamp() < (Long) value;
+            default -> throw new IllegalStateException("Unexpected filter field: " + field);
+        };
+    }
+
+    private RevokeCredentialReq revokeReq(String ctx, String holderDid, long issuedBefore) {
         return RevokeCredentialReq.newBuilder()
                 .setParticipantContextId(ctx)
-                .setXroadInstance(instance)
-                .setMemberClass(memberClass)
-                .setMemberCode(memberCode)
+                .setHolderDid(holderDid)
+                .setIssuedBefore(issuedBefore)
                 .build();
     }
 
     private VerifiableCredentialResource hostCredentialResource(String id, String participantContextId,
-                                                                String xroadInstance, String memberClass,
-                                                                String memberCode, String subjectDid) {
+                                                                String subjectDid, long timestamp) {
         var subject = CredentialSubject.Builder.newInstance()
                 .id(subjectDid)
-                .claim("xroadInstance", xroadInstance)
-                .claim("memberClass", memberClass)
-                .claim("memberCode", memberCode)
+                .claim("subjectDid", subjectDid)
                 .build();
         var vc = VerifiableCredential.Builder.newInstance()
                 .type("MembershipCredential")
@@ -223,6 +307,7 @@ class IssuerProvisioningGrpcServiceTest {
                 .participantContextId(participantContextId)
                 .issuerId("did:web:issuer.example.com")
                 .holderId(subjectDid)
+                .timestamp(timestamp)
                 .credential(container)
                 .build();
     }

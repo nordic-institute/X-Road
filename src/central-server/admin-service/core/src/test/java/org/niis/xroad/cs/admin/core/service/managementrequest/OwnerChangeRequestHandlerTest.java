@@ -68,8 +68,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -328,6 +330,7 @@ class OwnerChangeRequestHandlerTest {
         when(requestMapper.toDto(savedOwnerChangeRequestEntity)).thenReturn(ownerChangeRequestDto);
 
         when(securityServerEntity.getOwner()).thenReturn(currentOwnerMock);
+        when(securityServerEntity.getServerId()).thenReturn(securityServerIdEntity);
 
         final Set<SecurityServerEntity> ownedServersMock = mock(HashSet.class);
         final ClientIdEntity currentOwnerIdentifier = MemberIdEntity.create("x", "y", "z");
@@ -361,6 +364,36 @@ class OwnerChangeRequestHandlerTest {
         verify(groupMemberService).removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP, MemberId.create("x", "y", "z"));
         verify(groupMemberService).addMemberToGlobalGroup(
                 MemberId.create(xRoadMemberEntity.getIdentifier()), DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+    }
+
+    @Test
+    void approveDoesNotRemoveServerClientWhenNewOwnerHasNoExistingClientRow() {
+        final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
+        request.setId(ID);
+
+        when(ownerChangeRequestRepository.findById(ID)).thenReturn(Optional.of(ownerChangeRequestEntity));
+        when(ownerChangeRequestEntity.getProcessingStatus()).thenReturn(WAITING);
+        when(ownerChangeRequestEntity.getSecurityServerId()).thenReturn(securityServerIdEntity);
+        when(ownerChangeRequestEntity.getClientId()).thenReturn(clientIdEntity);
+        when(servers.findBy(securityServerIdEntity)).thenReturn(Optional.of(securityServerEntity));
+        when(members.findOneBy(clientIdEntity)).thenReturn(Optional.of(xRoadMemberEntity));
+
+        when(ownerChangeRequestRepository.save(ownerChangeRequestEntity)).thenReturn(savedOwnerChangeRequestEntity);
+        when(requestMapper.toDto(savedOwnerChangeRequestEntity)).thenReturn(ownerChangeRequestDto);
+
+        when(securityServerEntity.getOwner()).thenReturn(currentOwnerMock);
+
+        final Set<SecurityServerEntity> ownedServersMock = mock(HashSet.class);
+        final ClientIdEntity currentOwnerIdentifier = MemberIdEntity.create("x", "y", "z");
+        when(currentOwnerMock.getOwnedServers()).thenReturn(ownedServersMock);
+        when(currentOwnerMock.getIdentifier()).thenReturn(currentOwnerIdentifier);
+        when(securityServerEntity.getServerClients()).thenReturn(Set.of());
+        when(members.findOneBy(currentOwnerMock.getIdentifier())).thenReturn(Optional.of(currentOwnerMock));
+        when(ownedServersMock.isEmpty()).thenReturn(true);
+
+        ownerChangeRequestHandler.approve(request);
+
+        verify(serverClients, never()).delete(any());
     }
 
     @Test

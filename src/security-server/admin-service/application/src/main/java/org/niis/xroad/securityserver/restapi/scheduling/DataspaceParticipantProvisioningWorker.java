@@ -35,6 +35,7 @@ import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBinding
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantKind;
+import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.TombstonedParticipant;
 import org.niis.xroad.securityserver.restapi.service.DataspaceReadinessPredicates;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -48,8 +49,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Level-triggered provisioning worker that drives dataspace participant context provisioning
- * from real lifecycle state. One idempotent, non-blocking step is performed per tick.
+ * Level-triggered provisioning worker that drives dataspace participant context provisioning and
+ * teardown from real lifecycle state. One idempotent, non-blocking step is performed per tick; no
+ * success is cached, so convergence is re-derived every tick from serverconf and the binding table.
+ * Every tick — whether from {@link #scheduledProvision()} or {@link #provisionParticipantAsync()} —
+ * runs through {@link #provisionParticipantBestEffort()}, which is {@code synchronized} so at most
+ * one tick converges at a time within this node.
  */
 @Slf4j
 @Component
@@ -98,10 +103,13 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     }
 
     /**
-     * Executes one idempotent provisioning step. A failure in one participant context is logged and
-     * does not block the remaining contexts; a context whose creation failed, or whose SYSTEM member-id
-     * re-anchor the identity hub has not confirmed, is skipped in the credential pass of the same tick
-     * — see {@link #ensureContexts}.
+     * Executes one idempotent provisioning and teardown step. A failure in one participant context
+     * (or one tombstone) is logged and does not block the remaining ones; a context whose creation
+     * failed, or whose SYSTEM member-id re-anchor the identity hub has not confirmed, is skipped in
+     * the credential pass of the same tick — see {@link #ensureContexts}.
+     *
+     * <p>Teardown runs first and is gated on nothing: a decommissioned binding must keep converging
+     * toward absence even while the owner or the registered address is unknown.
      *
      * <p>Members are bound only after their participant context has been ensured, so the DID written
      * to {@code ds_participant} is one the identity hub has just confirmed or been created with. A
@@ -109,6 +117,8 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
      * configuration the DID is derived from.
      */
     public void provisionParticipant() {
+        teardownDecommissioned();
+
         var contexts = dataspaceProvisioningService.participantContexts(true);
         if (ownerUnknown(contexts)) {
             log.debug("Dataspace provisioning: SS owner not yet known, skipping");
@@ -143,6 +153,25 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
 
     private static boolean ownerUnknown(List<ParticipantContext> contexts) {
         return contexts.stream().anyMatch(context -> context.memberId() == null);
+    }
+
+    /**
+     * Converges every decommissioned binding one step closer to absence. A failure tearing down one
+     * tombstone is logged and does not block the rest; the row (and whichever steps did not complete)
+     * is left for the next tick.
+     */
+    private void teardownDecommissioned() {
+        List<TombstonedParticipant> tombstones = dataspaceProvisioningService.decommissionedParticipants();
+        for (var tombstone : tombstones) {
+            log.debug("Dataspace provisioning: tearing down tombstoned participant {} (row id {})",
+                    tombstone.participantContextId(), tombstone.id());
+            try {
+                dataspaceProvisioningService.teardownParticipant(tombstone);
+            } catch (Exception e) {
+                log.error("Dataspace provisioning: failed to tear down participant {}, continuing with the rest",
+                        tombstone.participantContextId(), e);
+            }
+        }
     }
 
     /**

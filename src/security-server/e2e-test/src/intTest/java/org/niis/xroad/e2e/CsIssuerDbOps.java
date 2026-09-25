@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,32 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
-
-import com.apicatalog.did.Did;
+package org.niis.xroad.e2e;
 
 /**
- * Transport-agnostic client for Control Plane provisioning operations.
+ * Access to the issuer's {@code credential_resource} table, which lives in the {@code ds-issuer-service}
+ * schema inside the Central Server's own database. Unlike {@link DsControlPlaneDbOps} and
+ * {@link MessagelogDbOps} — which reach a Security Server's own, per-environment database — this always
+ * targets the single Central Server database regardless of which environment name is passed.
+ *
+ * <p>Implemented only by the LXD adapter for now: the k8s dev topology has no plumbing into the Central
+ * Server's own database at all (unlike the Security Server side, where each dataspace database runs as
+ * its own CNPG cluster), so a scenario needing this must fall back or self-skip there.
  */
-public interface ControlPlaneProvisioningClient {
+public interface CsIssuerDbOps {
 
     /**
-     * Creates (idempotently) the Control Plane participant context for the given participant.
+     * Runs an SQL statement against the Central Server database's {@code ds-issuer-service} schema
+     * and returns psql's unaligned tuple-only output, trimmed.
      */
-    void createParticipantContext(String participantContextId, Did did);
-
-    /**
-     * Saves the STS-bound config for the Control Plane participant context.
-     */
-    void putParticipantContextConfig(String participantContextId, Did did, String stsTokenUrl);
-
-    /**
-     * Deletes (idempotently) the Control Plane participant context and its configuration for the given participant.
-     */
-    void deleteParticipantContext(String participantContextId);
-
-    /**
-     * Flushes the Control Plane's catalog caches.
-     */
-    void invalidateCatalogCaches();
+    String execCsIssuerSql(String env, String sql);
 }

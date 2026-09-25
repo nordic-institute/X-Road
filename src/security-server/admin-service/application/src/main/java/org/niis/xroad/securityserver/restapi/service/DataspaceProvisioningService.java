@@ -41,8 +41,10 @@ import org.niis.xroad.securityserver.restapi.config.AdminServiceProperties;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.DsParticipantRepository;
 import org.niis.xroad.securityserver.restapi.service.IdentityHubProvisioningClient.CreateParticipantContextRequest;
+import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.impl.participant.ParticipantBindingCheck;
 import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
@@ -83,6 +85,11 @@ import static org.niis.xroad.common.core.exception.ErrorCode.VALIDATION_ERROR;
  *   <li>{@link #readCredentialStatus(ParticipantContext)} — returns the current credential
  *       status ({@code ISSUED}, {@code PENDING}, {@code ERROR}, or {@code null} when none is active)
  *       without polling. Same SYSTEM-with-no-owner short-circuit as {@link #ensureMembershipCredential}.</li>
+ *   <li>{@link #decommissionedParticipants()} — enumerates the bound rows awaiting teardown
+ *       convergence.</li>
+ *   <li>{@link #teardownParticipant(TombstonedParticipant)} — idempotently deletes one tombstoned
+ *       participant's CP context, then its IH context, then its binding row; row deletion is the
+ *       convergence marker.</li>
  * </ul>
  *
  * <p>Slot semantics: each participant holds up to {@code maxHolderPidSlots} sequentially named holder-request
@@ -136,6 +143,15 @@ public class DataspaceProvisioningService {
     }
 
     /**
+     * One bound participant row awaiting teardown convergence.
+     *
+     * @param id                   the {@code ds_participant} row id, the target of the convergence-marking delete
+     * @param participantContextId the participant context id to tear down in Control Plane and IdentityHub
+     */
+    public record TombstonedParticipant(Long id, String participantContextId) {
+    }
+
+    /**
      * Read-only snapshot of one participant context's provisioning state.
      *
      * @param participantId    the participant context id
@@ -173,8 +189,9 @@ public class DataspaceProvisioningService {
      *
      * <p>For a {@link ParticipantKind#MEMBER} or {@link ParticipantKind#SYSTEM} context with a bound
      * {@code ds_participant} row, the row is verified against a fresh derivation and its DID is used —
-     * the bound row is never written or overwritten here. Without a row the DID is derived on the fly
-     * and not bound; binding is {@link DataspaceParticipantBindingService}'s job.
+     * the bound row is never written or overwritten here. A MEMBER row that has been decommissioned
+     * is treated as no row at all. Without a usable row the DID is derived on the fly and not bound;
+     * binding is {@link DataspaceParticipantBindingService}'s job.
      *
      * @param context the participant context to create
      * @return whether it is safe to issue a membership credential for this context in the same tick.
@@ -210,6 +227,36 @@ public class DataspaceProvisioningService {
                                     .formatted(hubDid, participantId, intendedDid))
                             .build();
                 });
+    }
+
+    /**
+     * Enumerates the bound participant rows awaiting teardown convergence: every {@code ds_participant}
+     * row currently marked {@link ParticipantState#DECOMMISSIONED}. A member with an entry here is
+     * excluded from {@link #participantContexts(boolean)} until its row is gone.
+     */
+    @Transactional(readOnly = true)
+    public List<TombstonedParticipant> decommissionedParticipants() {
+        return dsParticipantRepository.findDecommissioned().stream()
+                .map(row -> new TombstonedParticipant(row.getId(), row.getCtxId()))
+                .toList();
+    }
+
+    /**
+     * Converges one decommissioned binding toward absence: deletes the Control Plane participant
+     * context, then the IdentityHub participant context, then the binding row. Row deletion is the
+     * convergence marker; every step is idempotent, so a failure here simply leaves the row (and
+     * whichever steps did not complete) for the next tick to retry.
+     *
+     * @param participant the tombstoned participant row to tear down
+     */
+    public void teardownParticipant(TombstonedParticipant participant) {
+        controlPlaneClient.deleteParticipantContext(participant.participantContextId());
+        log.debug("Data space provisioning: control plane context deleted for participant {}", participant.participantContextId());
+        identityHubClient.deleteParticipantContext(participant.participantContextId());
+        log.debug("Data space provisioning: identity hub context deleted for participant {}", participant.participantContextId());
+        dsParticipantRepository.delete(participant.id());
+        log.info("Data space provisioning: teardown converged for participant {} (control plane, identity hub and binding row deleted)",
+                participant.participantContextId());
     }
 
     /**
@@ -357,6 +404,9 @@ public class DataspaceProvisioningService {
      * appears once it has a registered local client, the SS owner included. The SYSTEM context is
      * unconditional, gated on nothing. Member ctx-ids follow the v1 scheme
      * ({@link ParticipantIdentifierScheme}); they are derived, not read from {@code ds_participant}.
+     * A member with an unconverged {@link ParticipantState#DECOMMISSIONED} row is excluded — it is
+     * never provisioned until that tombstone is gone, which prevents provision/teardown flapping on
+     * a rapid remove-then-re-add.
      *
      * <p>The SYSTEM context carries the current SS owner as its credential subject (the member the
      * credential is issued to), which is distinct from the SYSTEM identifier itself: the DID and ctx-id
@@ -385,8 +435,10 @@ public class DataspaceProvisioningService {
             return contexts;
         }
 
-        hostedMembers().forEach(member -> contexts.add(
-                new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
+        hostedMembers().stream()
+                .filter(member -> !isTombstoned(member))
+                .forEach(member -> contexts.add(
+                        new ParticipantContext(ParticipantIdentifierScheme.memberCtxId(member), ParticipantKind.MEMBER, member)));
 
         return contexts;
     }
@@ -399,6 +451,16 @@ public class DataspaceProvisioningService {
             }
         }
         return members;
+    }
+
+    private boolean isTombstoned(ClientId member) {
+        boolean tombstoned = dsParticipantRepository.findByMemberIdentifier(member)
+                .map(row -> row.getState() == ParticipantState.DECOMMISSIONED)
+                .orElse(false);
+        if (tombstoned) {
+            log.debug("Data space provisioning: member {} blocked from provisioning by an unconverged tombstone", member);
+        }
+        return tombstoned;
     }
 
     /**
@@ -460,12 +522,21 @@ public class DataspaceProvisioningService {
     }
 
     private Did boundOrDerivedMemberDid(ClientId member) {
-        var bound = dsParticipantRepository.findByMemberIdentifier(member);
+        var bound = activeBinding(member);
         if (bound.isPresent()) {
             ParticipantBindingCheck.verify(bound.get(), didAuthority.current());
             return ParticipantIdentifierScheme.parseDid(bound.get().getDid());
         }
         return didAuthority.memberDid(member);
+    }
+
+    /**
+     * Finds the member's bound participant row, ignored (treated as unbound) once it has been
+     * decommissioned: a tombstone is not a live binding.
+     */
+    private Optional<DsParticipantEntity> activeBinding(ClientId member) {
+        return dsParticipantRepository.findByMemberIdentifier(member)
+                .filter(bound -> bound.getState() == ParticipantState.ACTIVE);
     }
 
     /**
@@ -504,7 +575,7 @@ public class DataspaceProvisioningService {
     }
 
     private MemberIdentity assessMemberIdentity(ClientId memberId) {
-        var bound = dsParticipantRepository.findByMemberIdentifier(memberId);
+        var bound = activeBinding(memberId);
         if (!didAuthority.isKnown()) {
             if (bound.isEmpty()) {
                 return new MemberIdentity(IdentityStatus.UNBOUND, null);

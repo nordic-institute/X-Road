@@ -28,9 +28,11 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
@@ -40,6 +42,7 @@ import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.core.dataspace.ServerClientRemovedEvent;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -52,13 +55,17 @@ import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
@@ -72,6 +79,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLA
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -89,6 +97,7 @@ public class MemberServiceImpl implements MemberService {
     private final SecurityServerClientMapper securityServerClientMapper;
     private final GlobalGroupMemberMapper globalGroupMemberMapper;
     private final AuditDataHelper auditData;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public XRoadMember add(MemberCreationRequest request) {
@@ -128,9 +137,30 @@ public class MemberServiceImpl implements MemberService {
 
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
+        var registeredOn = securityServersHosting(member);
+
         globalGroupMemberService.removeClientFromGlobalGroups(clientId);
         // other dependant entities are removed by cascading database constraints
         xRoadMemberRepository.delete(member);
+
+        var removedAt = TimeUtils.getEpochMillisecond();
+        registeredOn.forEach(serverId -> {
+            var event = new ServerClientRemovedEvent(serverId, clientId.getMemberId(), removedAt);
+            log.debug("Publishing server-client-removed event for member {} on security server {}",
+                    event.memberId(), event.securityServerId());
+            eventPublisher.publishEvent(event);
+        });
+    }
+
+    /**
+     * Every Security Server the member is registered on, directly or through any of its subsystems.
+     * Collected before the delete cascades the registration rows away.
+     */
+    private static Set<SecurityServerId> securityServersHosting(XRoadMemberEntity member) {
+        return Stream.concat(Stream.of(member), member.getSubsystems().stream())
+                .flatMap(client -> client.getServerClients().stream())
+                .map(serverClient -> serverClient.getSecurityServer().getServerId())
+                .collect(toCollection(LinkedHashSet::new));
     }
 
     @Override
@@ -189,6 +219,10 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.build()));
 
         serverClientRepository.delete(serverClient);
+        var event = new ServerClientRemovedEvent(securityServerId, memberId.getMemberId(), TimeUtils.getEpochMillisecond());
+        log.debug("Publishing server-client-removed event for member {} on security server {}",
+                event.memberId(), event.securityServerId());
+        eventPublisher.publishEvent(event);
     }
 
     @Override

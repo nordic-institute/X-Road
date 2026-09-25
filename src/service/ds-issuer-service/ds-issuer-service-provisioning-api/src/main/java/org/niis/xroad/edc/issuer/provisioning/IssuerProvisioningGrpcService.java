@@ -39,6 +39,7 @@ import org.eclipse.edc.issuerservice.spi.issuance.credentialdefinition.Credentia
 import org.eclipse.edc.issuerservice.spi.issuance.model.AttestationDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.CredentialDefinition;
 import org.eclipse.edc.issuerservice.spi.issuance.model.MappingDefinition;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
@@ -79,14 +80,15 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
     private static final String KEY_ALGORITHM_PARAM = "algorithm";
     private static final String KEY_ALGORITHM = "EdDSA";
     private static final String MGMT_HOLDER_DID_SUFFIX = ":mgmt";
-    private static final String CREDENTIAL_SUBJECT_PATH = "verifiableCredential.credential.credentialSubject.";
     private static final String EQ_OPERATOR = "=";
+    private static final String LT_OPERATOR = "<";
 
     private final IdentityHubParticipantContextService participantContextService;
     private final AttestationDefinitionService attestationDefinitionService;
     private final CredentialDefinitionService credentialDefinitionService;
     private final CredentialStatusService credentialStatusService;
     private final RpcResponseHandler responseHandler;
+    private final Monitor monitor;
 
     @Override
     public void createParticipantContext(CreateParticipantContextReq request,
@@ -171,49 +173,55 @@ class IssuerProvisioningGrpcService extends IssuerProvisioningServiceGrpc.Issuer
 
     private RevokeCredentialResp revokeCredentialInternal(RevokeCredentialReq request) {
         validateRevokeFields(request);
+        monitor.info("Issuer: revoke request received for holder %s issued before %d"
+                .formatted(request.getHolderDid(), request.getIssuedBefore()));
 
         var queryResult = credentialStatusService.queryCredentials(hostCredentialQuery(request));
         requireSuccessOrConflict(queryResult, DSP_PROVISIONING_FAILED, request.getParticipantContextId());
 
-        var credentialId = queryResult.getContent().stream()
+        var credentialIds = queryResult.getContent().stream()
                 .filter(resource -> resource.getVerifiableCredential() != null
                         && resource.getVerifiableCredential().credential() != null)
                 .filter(resource -> resource.getVerifiableCredential().credential().getCredentialSubject().stream()
                         .noneMatch(subject -> subject.getId() != null && subject.getId().endsWith(MGMT_HOLDER_DID_SUFFIX)))
                 .map(VerifiableCredentialResource::getId)
-                .findFirst()
-                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED,
-                        "No HOST credential found for member %s/%s/%s".formatted(
-                                request.getXroadInstance(), request.getMemberClass(), request.getMemberCode())));
+                .toList();
 
-        var revokeResult = credentialStatusService.revokeCredential(credentialId);
-        requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
+        for (var credentialId : credentialIds) {
+            var revokeResult = credentialStatusService.revokeCredential(credentialId);
+            requireSuccessOrConflict(revokeResult, DSP_PROVISIONING_FAILED, credentialId);
+            monitor.debug("Issuer: revoked credential %s".formatted(credentialId));
+        }
 
-        return RevokeCredentialResp.newBuilder().setRevoked(true).build();
+        if (credentialIds.isEmpty()) {
+            monitor.info("Issuer: no credentials matched holder %s".formatted(request.getHolderDid()));
+        } else {
+            monitor.info("Issuer: revoked %d credential(s) for holder %s".formatted(credentialIds.size(), request.getHolderDid()));
+        }
+
+        return RevokeCredentialResp.newBuilder().setRevokedCount(credentialIds.size()).build();
     }
 
     private QuerySpec hostCredentialQuery(RevokeCredentialReq request) {
         return QuerySpec.Builder.newInstance()
                 .filter(Criterion.criterion("participantContextId", EQ_OPERATOR, request.getParticipantContextId()))
-                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "xroadInstance", EQ_OPERATOR, request.getXroadInstance()))
-                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberClass", EQ_OPERATOR, request.getMemberClass()))
-                .filter(Criterion.criterion(CREDENTIAL_SUBJECT_PATH + "memberCode", EQ_OPERATOR, request.getMemberCode()))
+                .filter(Criterion.criterion("holderId", EQ_OPERATOR, request.getHolderDid()))
+                .filter(Criterion.criterion("timestamp", LT_OPERATOR, request.getIssuedBefore()))
                 .limit(Integer.MAX_VALUE)
                 .build();
     }
 
     private void validateRevokeFields(RevokeCredentialReq request) {
-        if (request.getParticipantContextId() == null || request.getParticipantContextId().isBlank()) {
+        request.getParticipantContextId();
+        if (request.getParticipantContextId().isBlank()) {
             throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "participantContextId must not be blank");
         }
-        if (request.getXroadInstance() == null || request.getXroadInstance().isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "xroadInstance must not be blank");
+        request.getHolderDid();
+        if (request.getHolderDid().isBlank()) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "holderDid must not be blank");
         }
-        if (request.getMemberClass() == null || request.getMemberClass().isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "memberClass must not be blank");
-        }
-        if (request.getMemberCode() == null || request.getMemberCode().isBlank()) {
-            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "memberCode must not be blank");
+        if (request.getIssuedBefore() <= 0) {
+            throw XrdRuntimeException.systemException(DSP_PROVISIONING_FAILED, "issuedBefore must be positive");
         }
     }
 

@@ -41,6 +41,8 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.edc.controlplane.provisioning.proto.ControlPlaneProvisioningServiceGrpc;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.CreateParticipantContextResp;
+import org.niis.xroad.edc.controlplane.provisioning.proto.DeleteParticipantContextReq;
+import org.niis.xroad.edc.controlplane.provisioning.proto.DeleteParticipantContextResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesReq;
 import org.niis.xroad.edc.controlplane.provisioning.proto.InvalidateCatalogCachesResp;
 import org.niis.xroad.edc.controlplane.provisioning.proto.PutParticipantContextConfigReq;
@@ -65,6 +67,7 @@ class ControlPlaneProvisioningRpcClientTest {
 
     private final AtomicReference<CreateParticipantContextReq> capturedCreateReq = new AtomicReference<>();
     private final AtomicReference<PutParticipantContextConfigReq> capturedPutConfigReq = new AtomicReference<>();
+    private final AtomicReference<DeleteParticipantContextReq> capturedDeleteReq = new AtomicReference<>();
     private final AtomicReference<InvalidateCatalogCachesReq> capturedInvalidateReq = new AtomicReference<>();
 
     @BeforeEach
@@ -83,6 +86,14 @@ class ControlPlaneProvisioningRpcClientTest {
                                                     StreamObserver<PutParticipantContextConfigResp> responseObserver) {
                 capturedPutConfigReq.set(request);
                 responseObserver.onNext(PutParticipantContextConfigResp.newBuilder().build());
+                responseObserver.onCompleted();
+            }
+
+            @Override
+            public void deleteParticipantContext(DeleteParticipantContextReq request,
+                                                 StreamObserver<DeleteParticipantContextResp> responseObserver) {
+                capturedDeleteReq.set(request);
+                responseObserver.onNext(DeleteParticipantContextResp.newBuilder().build());
                 responseObserver.onCompleted();
             }
 
@@ -131,6 +142,14 @@ class ControlPlaneProvisioningRpcClientTest {
         assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
         assertThat(req.getDid()).isEqualTo("did:web:example");
         assertThat(req.getStsTokenUrl()).isEqualTo("https://sts.example/token");
+    }
+
+    @Test
+    void deleteParticipantContextForwardsParticipantId() {
+        client.deleteParticipantContext("ctx-id");
+
+        var req = capturedDeleteReq.get();
+        assertThat(req.getParticipantContextId()).isEqualTo("ctx-id");
     }
 
     @Test
