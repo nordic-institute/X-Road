@@ -29,7 +29,7 @@ package org.niis.xroad.common.agreementtoken;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
@@ -50,7 +50,7 @@ import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.enc
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.encodeService;
 
 /**
- * Mints agreement tokens: a compact, HMAC-signed JWS (see {@code XRDADR-40} and the key-trust slice's
+ * Mints agreement tokens: a compact, ES256-signed JWS (see {@code XRDADR-40} and the key-trust slice's
  * signing-scheme decision) stating exactly one grant, with the protocol envelope (issuer, audience, expiry)
  * derived from {@link AgreementTokenProtocolProperties} rather than hardcoded here.
  */
@@ -92,13 +92,13 @@ public final class AgreementTokenMinter {
                 .claim(CLAIM_SCOPE, encodeScope(grant.scope()))
                 .build();
 
-        var header = new JWSHeader.Builder(JWSAlgorithm.HS256)
+        var header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .keyID(activeKey.keyId())
                 .build();
 
         var signedJwt = new SignedJWT(header, claimsSet);
         try {
-            signedJwt.sign(new MACSigner(activeKey.secret()));
+            signedJwt.sign(new ECDSASigner(activeKey.keyPair()));
         } catch (JOSEException e) {
             throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_SIGNING_FAILED)
                     .cause(e)

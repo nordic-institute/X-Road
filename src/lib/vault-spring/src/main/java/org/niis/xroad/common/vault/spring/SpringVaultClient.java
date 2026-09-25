@@ -225,8 +225,8 @@ public class SpringVaultClient implements VaultClient {
     }
 
     @Override
-    public void createAgreementTokenSigningKey(String keyId, String base64Secret) {
-        var secret = AgreementTokenVaultDataUtils.createSigningKeySecret(base64Secret);
+    public void createAgreementTokenSigningKey(String keyId, String keyPairJwk) {
+        var secret = AgreementTokenVaultDataUtils.createSigningKeySecret(keyPairJwk);
         String path = AgreementTokenVaultDataUtils.buildSigningKeyPath(keyId);
         vaultClient.put(path, secret);
         log.info("Stored agreement-token signing key in Vault at path: {}", path);

@@ -26,36 +26,24 @@
  */
 package org.niis.xroad.common.agreementtoken.key;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
-
-import java.util.Objects;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 
 /**
- * One ES256 signing key pair together with the key id carried in a minted token's {@code kid} header. Key
- * ids are assigned by {@link AgreementTokenKeyProvider} and are never reused, so a token's {@code kid}
- * always resolves to the exact key it was signed with, even after rotation.
- * <p>
- * The pair is a P-256 JWK holding the private part: the minter signs with it, while the verifier checks
- * against {@link #publicKey()} alone, so a verify-only consumer of these tokens never needs the private
- * part. {@link ECKey} is immutable, so the record hands out the same instance without copying.
+ * Fresh P-256 key pairs for tests that need real, distinct signing keys.
  */
-public record AgreementTokenSigningKey(String keyId, ECKey keyPair) {
+public final class TestKeyPairs {
 
-    public AgreementTokenSigningKey {
-        if (keyId == null || keyId.isBlank()) {
-            throw new IllegalArgumentException("keyId must not be blank");
-        }
-        Objects.requireNonNull(keyPair, "keyPair must not be null");
-        if (!Curve.P_256.equals(keyPair.getCurve())) {
-            throw new IllegalArgumentException("keyPair must be a P-256 key, got " + keyPair.getCurve());
-        }
-        if (!keyPair.isPrivate()) {
-            throw new IllegalArgumentException("keyPair must include the private key");
-        }
+    private TestKeyPairs() {
     }
 
-    public ECKey publicKey() {
-        return keyPair.toPublicJWK();
+    public static ECKey generate() {
+        try {
+            return new ECKeyGenerator(Curve.P_256).generate();
+        } catch (JOSEException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

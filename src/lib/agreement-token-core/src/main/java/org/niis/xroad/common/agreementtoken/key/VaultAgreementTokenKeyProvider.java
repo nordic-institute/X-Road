@@ -26,13 +26,17 @@
  */
 package org.niis.xroad.common.agreementtoken.key;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.security.SecureRandom;
-import java.util.Base64;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -40,11 +44,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Provisions and caches the agreement-token signing key in OpenBao, following the same only-if-absent
+ * Provisions and caches the agreement-token signing key pairs in OpenBao, following the same only-if-absent
  * provisioning shape as {@code AcmeClient}'s account key: read what is there, and generate one only if
- * nothing exists yet. Key ids are the base-10 string of a monotonically increasing version ("1", "2", ...),
- * so the active key is simply the highest id currently in the cache — no separate "current key" pointer
- * record is needed, and nothing is ever deleted from the store.
+ * nothing exists yet. Each key is stored as a P-256 JWK including its private part. Key ids are the base-10
+ * string of an ever-increasing version ("1", "2", ...), so the active key is simply the highest id currently
+ * in the cache — no separate "current key" pointer record is needed, and nothing is ever deleted from the
+ * store.
  * <p>
  * {@link #activeKey()} and {@link #keyById(String)} read a single, atomically swapped snapshot populated by
  * {@link #refresh()}; they never call {@link VaultClient} themselves, so verifying a token is always
@@ -52,8 +57,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Slf4j
 public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyProvider {
-
-    private static final int SECRET_KEY_BYTES = 32;
 
     private final VaultClient vaultClient;
     private final SecureRandom secureRandom;
@@ -116,7 +119,7 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         long maxVersion = -1;
         for (var entry : stored.entrySet()) {
             var keyId = entry.getKey();
-            keysById.put(keyId, new AgreementTokenSigningKey(keyId, decode(entry.getValue())));
+            keysById.put(keyId, toSigningKey(keyId, entry.getValue()));
             var version = parseVersion(keyId);
             if (version > maxVersion) {
                 maxVersion = version;
@@ -142,10 +145,9 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
     }
 
     private AgreementTokenSigningKey generateAndStore(String keyId) {
-        var secretBytes = new byte[SECRET_KEY_BYTES];
-        secureRandom.nextBytes(secretBytes);
+        var keyPair = generateKeyPair(keyId);
         try {
-            vaultClient.createAgreementTokenSigningKey(keyId, Base64.getEncoder().encodeToString(secretBytes));
+            vaultClient.createAgreementTokenSigningKey(keyId, keyPair.toJSONString());
         } catch (Exception e) {
             throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_KEY_STORE_FAILED)
                     .cause(e)
@@ -153,7 +155,32 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
                     .build();
         }
         log.info("Generated agreement-token signing key '{}'", keyId);
-        return new AgreementTokenSigningKey(keyId, secretBytes);
+        return new AgreementTokenSigningKey(keyId, keyPair);
+    }
+
+    private ECKey generateKeyPair(String keyId) {
+        try {
+            return new ECKeyGenerator(Curve.P_256)
+                    .keyID(keyId)
+                    .secureRandom(secureRandom)
+                    .generate();
+        } catch (JOSEException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_KEY_GENERATION_FAILED)
+                    .cause(e)
+                    .details("Failed to generate agreement-token signing key pair")
+                    .build();
+        }
+    }
+
+    private static AgreementTokenSigningKey toSigningKey(String keyId, String keyPairJwk) {
+        try {
+            return new AgreementTokenSigningKey(keyId, ECKey.parse(keyPairJwk));
+        } catch (ParseException | IllegalArgumentException e) {
+            throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_KEY_STORE_FAILED)
+                    .cause(e)
+                    .details("Stored agreement-token signing key '" + keyId + "' is not a P-256 key pair")
+                    .build();
+        }
     }
 
     private Set<String> listKeyIdsOrFail() {
@@ -185,10 +212,6 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         } catch (NumberFormatException e) {
             return 0;
         }
-    }
-
-    private static byte[] decode(String base64Secret) {
-        return Base64.getDecoder().decode(base64Secret);
     }
 
     private record Snapshot(Map<String, AgreementTokenSigningKey> keysById, String activeKeyId) {

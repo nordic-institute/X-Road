@@ -343,7 +343,8 @@ public enum ErrorCode implements DeviationBuilder.ErrorDeviationBuilder {
     // ===== AGREEMENT TOKEN ERRORS =====
     AGREEMENT_TOKEN_KEY_NOT_AVAILABLE("agreement_token_key_not_available"),
     AGREEMENT_TOKEN_SIGNING_FAILED("agreement_token_signing_failed"),
-    AGREEMENT_TOKEN_KEY_STORE_FAILED("agreement_token_key_store_failed");
+    AGREEMENT_TOKEN_KEY_STORE_FAILED("agreement_token_key_store_failed"),
+    AGREEMENT_TOKEN_KEY_GENERATION_FAILED("agreement_token_key_generation_failed");
 
     private final String code;
 

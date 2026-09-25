@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.common.agreementtoken.key;
 
+import com.nimbusds.jose.jwk.Curve;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +36,6 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.common.vault.VaultClient;
 
 import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,15 +56,15 @@ class VaultAgreementTokenKeyProviderTest {
     @Mock
     private VaultClient vaultClient;
 
-    private final Map<String, String> secretsByKeyId = new HashMap<>();
+    private final Map<String, String> keyPairsByKeyId = new HashMap<>();
 
     @BeforeEach
     void setUp() {
-        lenient().when(vaultClient.getAgreementTokenSigningKeys()).thenAnswer(invocation -> new HashMap<>(secretsByKeyId));
+        lenient().when(vaultClient.getAgreementTokenSigningKeys()).thenAnswer(invocation -> new HashMap<>(keyPairsByKeyId));
         lenient().doAnswer(invocation -> {
             String keyId = invocation.getArgument(0);
-            String base64Secret = invocation.getArgument(1);
-            secretsByKeyId.put(keyId, base64Secret);
+            String keyPairJwk = invocation.getArgument(1);
+            keyPairsByKeyId.put(keyId, keyPairJwk);
             return null;
         }).when(vaultClient).createAgreementTokenSigningKey(anyString(), anyString());
     }
@@ -74,13 +74,15 @@ class VaultAgreementTokenKeyProviderTest {
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
 
         assertThat(provider.activeKey().keyId()).isEqualTo("1");
-        assertThat(provider.activeKey().secret()).hasSize(32);
+        assertThat(provider.activeKey().keyPair().getCurve()).isEqualTo(Curve.P_256);
+        assertThat(provider.activeKey().keyPair().isPrivate()).isTrue();
+        assertThat(keyPairsByKeyId).containsKey("1");
         verify(vaultClient).createAgreementTokenSigningKey(anyString(), anyString());
     }
 
     @Test
     void shouldNotBootstrapWhenVaultAlreadyHasAKey() {
-        putStoredKey("1", new byte[32]);
+        putStoredKey("1");
 
         new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
 
@@ -89,9 +91,9 @@ class VaultAgreementTokenKeyProviderTest {
 
     @Test
     void shouldTreatTheHighestVersionedKeyIdAsActive() {
-        putStoredKey("1", new byte[32]);
-        putStoredKey("2", new byte[32]);
-        putStoredKey("10", new byte[32]);
+        putStoredKey("1");
+        putStoredKey("2");
+        putStoredKey("10");
 
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
 
@@ -100,7 +102,7 @@ class VaultAgreementTokenKeyProviderTest {
 
     @Test
     void shouldKeepPreviousKeysReadableAfterRotation() {
-        putStoredKey("1", new byte[32]);
+        putStoredKey("1");
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
         var previousKeyId = provider.activeKey().keyId();
 
@@ -113,8 +115,21 @@ class VaultAgreementTokenKeyProviderTest {
     }
 
     @Test
+    void shouldFailRatherThanCacheAStoredValueThatIsNotAP256KeyPair() {
+        keyPairsByKeyId.put("1", "not-a-jwk");
+        assertThatThrownBy(() -> new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom()))
+                .isInstanceOf(XrdRuntimeException.class);
+
+        keyPairsByKeyId.put("1", TestKeyPairs.generate().toPublicJWK().toJSONString());
+        assertThatThrownBy(() -> new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom()))
+                .isInstanceOf(XrdRuntimeException.class);
+
+        verify(vaultClient, never()).createAgreementTokenSigningKey(anyString(), anyString());
+    }
+
+    @Test
     void shouldReturnEmptyForUnknownKeyId() {
-        putStoredKey("1", new byte[32]);
+        putStoredKey("1");
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
 
         assertThat(provider.keyById("does-not-exist")).isEmpty();
@@ -142,7 +157,7 @@ class VaultAgreementTokenKeyProviderTest {
 
     @Test
     void shouldKeepThePreviousSnapshotAndRaiseWhenARefreshFails() {
-        putStoredKey("1", new byte[32]);
+        putStoredKey("1");
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
         var goodKey = provider.activeKey();
 
@@ -159,7 +174,7 @@ class VaultAgreementTokenKeyProviderTest {
         // constructor must fail fast rather than read that failure as "no keys yet" and bootstrap one.
         when(vaultClient.getAgreementTokenSigningKeys())
                 .thenThrow(new IllegalStateException("vault sealed"))
-                .thenAnswer(invocation -> new HashMap<>(secretsByKeyId));
+                .thenAnswer(invocation -> new HashMap<>(keyPairsByKeyId));
 
         assertThatThrownBy(() -> new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom()))
                 .isInstanceOf(XrdRuntimeException.class);
@@ -169,12 +184,12 @@ class VaultAgreementTokenKeyProviderTest {
 
     @Test
     void shouldReListVaultBeforeRotatingAndSkipAnIdThatAppearedMeanwhile() {
-        putStoredKey("1", new byte[32]);
+        putStoredKey("1");
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
 
         // Another replica creates key "2" after our constructor's refresh() but before rotate() runs; the
         // provider's cached snapshot still only knows about "1".
-        putStoredKey("2", new byte[32]);
+        putStoredKey("2");
 
         var rotated = provider.rotate();
 
@@ -193,10 +208,10 @@ class VaultAgreementTokenKeyProviderTest {
         when(vaultClient.getAgreementTokenSigningKeys())
                 .thenReturn(Map.of())
                 .thenAnswer(invocation -> {
-                    putStoredKey("1", new byte[32]);
-                    return new HashMap<>(secretsByKeyId);
+                    putStoredKey("1");
+                    return new HashMap<>(keyPairsByKeyId);
                 })
-                .thenAnswer(invocation -> new HashMap<>(secretsByKeyId));
+                .thenAnswer(invocation -> new HashMap<>(keyPairsByKeyId));
 
         var provider = new VaultAgreementTokenKeyProvider(vaultClient, new SecureRandom());
 
@@ -204,7 +219,7 @@ class VaultAgreementTokenKeyProviderTest {
         verify(vaultClient, never()).createAgreementTokenSigningKey(anyString(), anyString());
     }
 
-    private void putStoredKey(String keyId, byte[] secret) {
-        secretsByKeyId.put(keyId, Base64.getEncoder().encodeToString(secret));
+    private void putStoredKey(String keyId) {
+        keyPairsByKeyId.put(keyId, TestKeyPairs.generate().toJSONString());
     }
 }

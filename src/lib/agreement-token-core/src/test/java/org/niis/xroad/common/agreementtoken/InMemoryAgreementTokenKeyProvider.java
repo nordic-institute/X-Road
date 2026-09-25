@@ -26,12 +26,13 @@
  */
 package org.niis.xroad.common.agreementtoken;
 
+import com.nimbusds.jose.jwk.ECKey;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
+import org.niis.xroad.common.agreementtoken.key.TestKeyPairs;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
-import java.security.SecureRandom;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -43,12 +44,11 @@ import java.util.Optional;
  */
 final class InMemoryAgreementTokenKeyProvider implements AgreementTokenKeyProvider {
 
-    private final SecureRandom secureRandom = new SecureRandom();
     private final Map<String, AgreementTokenSigningKey> keysById = new LinkedHashMap<>();
     private String activeKeyId;
 
-    AgreementTokenSigningKey addKey(String keyId, byte[] secret) {
-        var key = new AgreementTokenSigningKey(keyId, secret);
+    AgreementTokenSigningKey addKey(String keyId, ECKey keyPair) {
+        var key = new AgreementTokenSigningKey(keyId, keyPair);
         keysById.put(keyId, key);
         activeKeyId = keyId;
         return key;
@@ -71,9 +71,7 @@ final class InMemoryAgreementTokenKeyProvider implements AgreementTokenKeyProvid
 
     @Override
     public AgreementTokenSigningKey rotate() {
-        var secret = new byte[32];
-        secureRandom.nextBytes(secret);
-        return addKey(String.valueOf(keysById.size() + 1), secret);
+        return addKey(String.valueOf(keysById.size() + 1), TestKeyPairs.generate());
     }
 
     @Override

@@ -159,7 +159,7 @@ public class NoopVaultClient implements VaultClient {
     }
 
     @Override
-    public void createAgreementTokenSigningKey(String keyId, String base64Secret) {
+    public void createAgreementTokenSigningKey(String keyId, String keyPairJwk) {
         throw new UnsupportedOperationException("Not supported");
     }
 

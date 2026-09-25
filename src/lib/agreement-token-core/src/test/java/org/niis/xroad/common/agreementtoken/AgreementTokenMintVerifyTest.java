@@ -31,12 +31,15 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenSigningKey;
+import org.niis.xroad.common.agreementtoken.key.TestKeyPairs;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 
 import java.security.SecureRandom;
@@ -84,7 +87,7 @@ class AgreementTokenMintVerifyTest {
     @BeforeEach
     void setUp() {
         keyProvider = new InMemoryAgreementTokenKeyProvider();
-        activeKey = keyProvider.addKey("1", randomSecret());
+        activeKey = keyProvider.addKey("1", randomKeyPair());
         minter = new AgreementTokenMinter(keyProvider, PROPERTIES, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
@@ -159,8 +162,8 @@ class AgreementTokenMintVerifyTest {
     @Test
     void shouldRejectTokenWithNoKeyIdHeader() throws Exception {
         var claimsSet = defaultClaimsSetBuilder().build();
-        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.HS256).build(), claimsSet);
-        jwt.sign(new MACSigner(activeKey.secret()));
+        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).build(), claimsSet);
+        jwt.sign(new ECDSASigner(activeKey.keyPair()));
 
         assertRejected(verifierAt(NOW.plusSeconds(1)).verify(jwt.serialize(), restContext()), MALFORMED_TOKEN);
     }
@@ -177,10 +180,31 @@ class AgreementTokenMintVerifyTest {
                 // service_id claim deliberately omitted
                 .claim(CLAIM_SCOPE, encodeScope(List.of(new AgreementTokenScope("*", "**"))))
                 .build();
-        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(activeKey.keyId()).build(), claimsSet);
-        jwt.sign(new MACSigner(activeKey.secret()));
+        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(activeKey.keyId()).build(), claimsSet);
+        jwt.sign(new ECDSASigner(activeKey.keyPair()));
 
         assertRejected(verifierAt(NOW.plusSeconds(1)).verify(jwt.serialize(), restContext()), MALFORMED_TOKEN);
+    }
+
+    @Test
+    void shouldMintAnEs256TokenNamingTheActiveKey() throws Exception {
+        var token = mintDefaultGrant();
+
+        var header = SignedJWT.parse(token).getHeader();
+
+        assertThat(header.getAlgorithm()).isEqualTo(JWSAlgorithm.ES256);
+        assertThat(header.getKeyID()).isEqualTo(activeKey.keyId());
+    }
+
+    @Test
+    void shouldRejectTokenSignedWithAnotherAlgorithmUnderAKnownKeyId() throws Exception {
+        var hmacHeader = new JWSHeader.Builder(JWSAlgorithm.HS256).keyID(activeKey.keyId()).build();
+        var jwt = new SignedJWT(hmacHeader, defaultClaimsSetBuilder().build());
+        var hmacSecret = new byte[32];
+        new SecureRandom().nextBytes(hmacSecret);
+        jwt.sign(new MACSigner(hmacSecret));
+
+        assertRejected(verifierAt(NOW.plusSeconds(1)).verify(jwt.serialize(), restContext()), INVALID_SIGNATURE);
     }
 
     @Test
@@ -188,7 +212,7 @@ class AgreementTokenMintVerifyTest {
         var token = mintDefaultGrant();
 
         var strangerKeyProvider = new InMemoryAgreementTokenKeyProvider();
-        strangerKeyProvider.addKey("other-key", randomSecret());
+        strangerKeyProvider.addKey("other-key", randomKeyPair());
         var verifier = new AgreementTokenVerifier(strangerKeyProvider, PROPERTIES, Clock.fixed(NOW.plusSeconds(1), ZoneOffset.UTC));
 
         assertRejected(verifier.verify(token, restContext()), UNKNOWN_KEY_ID);
@@ -198,9 +222,9 @@ class AgreementTokenMintVerifyTest {
     void shouldRejectInvalidSignature() {
         var token = mintDefaultGrant();
 
-        var wrongSecretProvider = new InMemoryAgreementTokenKeyProvider();
-        wrongSecretProvider.addKey("1", randomSecret());
-        var verifier = new AgreementTokenVerifier(wrongSecretProvider, PROPERTIES, Clock.fixed(NOW.plusSeconds(1), ZoneOffset.UTC));
+        var wrongKeyProvider = new InMemoryAgreementTokenKeyProvider();
+        wrongKeyProvider.addKey("1", randomKeyPair());
+        var verifier = new AgreementTokenVerifier(wrongKeyProvider, PROPERTIES, Clock.fixed(NOW.plusSeconds(1), ZoneOffset.UTC));
 
         assertRejected(verifier.verify(token, restContext()), INVALID_SIGNATURE);
     }
@@ -329,10 +353,8 @@ class AgreementTokenMintVerifyTest {
         assertThat(((AgreementTokenVerificationResult.Rejected) result).reason()).isEqualTo(reason);
     }
 
-    private static byte[] randomSecret() {
-        var secret = new byte[32];
-        new SecureRandom().nextBytes(secret);
-        return secret;
+    private static ECKey randomKeyPair() {
+        return TestKeyPairs.generate();
     }
 
     private record TestProtocolProperties(String issuer, String audience, Duration tokenTtl) implements AgreementTokenProtocolProperties {

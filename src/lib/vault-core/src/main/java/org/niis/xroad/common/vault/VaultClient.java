@@ -192,20 +192,21 @@ public interface VaultClient {
     Optional<AcmeAccountKey> getAcmeAccountKey(String alias);
 
     /**
-     * Stores a base64-encoded agreement-token signing key under its key id. Key ids are versioned
-     * ("1", "2", ...) rather than reused, so rotation never overwrites a key a still-outstanding token
-     * might have been signed with; the OpenBao policy for this path grants no delete either.
+     * Stores an agreement-token signing key pair, serialised as a JWK including its private part, under its
+     * key id. Key ids are versioned ("1", "2", ...) rather than reused, so rotation never overwrites a key
+     * a still-outstanding token might have been signed with; the OpenBao policy for this path grants no
+     * delete either.
      *
      * @param keyId the key's id, as later carried in a minted token's header
-     * @param base64Secret the base64-encoded HMAC secret
+     * @param keyPairJwk the key pair as JWK JSON, private part included
      */
-    void createAgreementTokenSigningKey(String keyId, String base64Secret);
+    void createAgreementTokenSigningKey(String keyId, String keyPairJwk);
 
     /**
      * Retrieves every agreement-token signing key currently stored, keyed by key id. Includes keys
      * superseded by rotation, so a verifier can still resolve the key a not-yet-expired token names.
      *
-     * @return map of key id to base64-encoded HMAC secret
+     * @return map of key id to key pair JWK JSON
      */
     Map<String, String> getAgreementTokenSigningKeys();
 

@@ -42,7 +42,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -184,15 +183,15 @@ class QuarkusVaultClientTest {
 
     @Test
     void shouldStoreAndRetrieveAgreementTokenSigningKeys() {
-        String secretOne = Base64.getEncoder().encodeToString("secret-one-32-bytes-padding-here".getBytes());
-        String secretTwo = Base64.getEncoder().encodeToString("secret-two-32-bytes-padding-here".getBytes());
+        String keyPairOne = "{\"kty\":\"EC\",\"kid\":\"1\"}";
+        String keyPairTwo = "{\"kty\":\"EC\",\"kid\":\"2\"}";
 
-        vaultClient.createAgreementTokenSigningKey("1", secretOne);
-        vaultClient.createAgreementTokenSigningKey("2", secretTwo);
+        vaultClient.createAgreementTokenSigningKey("1", keyPairOne);
+        vaultClient.createAgreementTokenSigningKey("2", keyPairTwo);
 
         var retrieved = vaultClient.getAgreementTokenSigningKeys();
 
-        assertThat(retrieved).containsExactlyInAnyOrderEntriesOf(Map.of("1", secretOne, "2", secretTwo));
+        assertThat(retrieved).containsExactlyInAnyOrderEntriesOf(Map.of("1", keyPairOne, "2", keyPairTwo));
     }
 
     @Test
@@ -223,7 +222,7 @@ class QuarkusVaultClientTest {
 
     @Test
     void shouldWriteAgreementTokenSigningKeyToTheKvV1PathWithNoDataOrCasWrapping() {
-        vaultClient.createAgreementTokenSigningKey("1", "some-base64-secret");
+        vaultClient.createAgreementTokenSigningKey("1", "some-key-pair-jwk");
 
         var expectedPath = VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1";
         assertThat(secretsByPath).containsKey(expectedPath);
@@ -231,12 +230,12 @@ class QuarkusVaultClientTest {
 
         var written = secretsByPath.get(expectedPath);
         assertThat(written).isNotEmpty();
-        assertThat(written).containsEntry(VaultClient.PAYLOAD_KEY, "some-base64-secret");
+        assertThat(written).containsEntry(VaultClient.PAYLOAD_KEY, "some-key-pair-jwk");
     }
 
     @Test
     void shouldNeverDeleteAnAgreementTokenSigningKey() {
-        vaultClient.createAgreementTokenSigningKey("1", "some-base64-secret");
+        vaultClient.createAgreementTokenSigningKey("1", "some-key-pair-jwk");
         vaultClient.getAgreementTokenSigningKeys();
 
         verify(kvSecretEngine, never()).deleteSecret(eq(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1"));

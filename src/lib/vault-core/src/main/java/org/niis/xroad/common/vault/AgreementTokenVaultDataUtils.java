@@ -47,9 +47,9 @@ public class AgreementTokenVaultDataUtils {
         return VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/" + keyId;
     }
 
-    public static Map<String, String> createSigningKeySecret(String base64Secret) {
+    public static Map<String, String> createSigningKeySecret(String keyPairJwk) {
         var secret = new HashMap<String, String>();
-        secret.put(VaultClient.PAYLOAD_KEY, base64Secret);
+        secret.put(VaultClient.PAYLOAD_KEY, keyPairJwk);
         return secret;
     }
 
@@ -62,7 +62,7 @@ public class AgreementTokenVaultDataUtils {
      * @param listKeysFunction   function that lists all key ids under the base path; a genuine "nothing
      *                           written yet" must return an empty list, not throw
      * @param readSecretFunction function that reads a secret from a given path
-     * @return map of key id to base64-encoded HMAC secret; empty only when the listing itself succeeded and
+     * @return map of key id to key pair JWK JSON; empty only when the listing itself succeeded and
      *         found no keys
      */
     public static Map<String, String> getAgreementTokenSigningKeys(
@@ -78,9 +78,9 @@ public class AgreementTokenVaultDataUtils {
         for (String keyId : keyList) {
             String path = buildSigningKeyPath(keyId);
             readSecretFunction.apply(path).ifPresent(secret -> {
-                Object base64SecretObj = secret.get(VaultClient.PAYLOAD_KEY);
-                if (base64SecretObj != null) {
-                    keys.put(keyId, base64SecretObj.toString());
+                Object keyPairJwk = secret.get(VaultClient.PAYLOAD_KEY);
+                if (keyPairJwk != null) {
+                    keys.put(keyId, keyPairJwk.toString());
                     log.debug("Loaded agreement-token signing key from Vault: {}", keyId);
                 }
             });

@@ -27,7 +27,8 @@
 package org.niis.xroad.common.agreementtoken;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
@@ -59,6 +60,9 @@ import static org.niis.xroad.common.agreementtoken.AgreementTokenRejectionReason
  * claims against what the caller actually observed for the request. Every failure — malformed input included —
  * comes back as an {@link AgreementTokenVerificationResult.Rejected} value with a reason, never as a thrown
  * exception, so a caller can always fall back to the ACL with one {@code switch}.
+ * <p>
+ * The signature check accepts ES256 only: a token re-signed under any other algorithm but naming a known
+ * key id is rejected outright instead of being checked against the wrong primitive.
  */
 public final class AgreementTokenVerifier {
 
@@ -99,9 +103,14 @@ public final class AgreementTokenVerifier {
             return rejected(UNKNOWN_KEY_ID, "no signing key known for key id '" + keyId + "'");
         }
 
+        var algorithm = signedJwt.getHeader().getAlgorithm();
+        if (!JWSAlgorithm.ES256.equals(algorithm)) {
+            return rejected(INVALID_SIGNATURE, "expected signature algorithm ES256, got '" + algorithm + "'");
+        }
+
         boolean signatureValid;
         try {
-            signatureValid = signedJwt.verify(new MACVerifier(signingKey.get().secret()));
+            signatureValid = signedJwt.verify(new ECDSAVerifier(signingKey.get().publicKey()));
         } catch (JOSEException e) {
             return rejected(INVALID_SIGNATURE, "signature verification failed: " + e.getMessage());
         }
