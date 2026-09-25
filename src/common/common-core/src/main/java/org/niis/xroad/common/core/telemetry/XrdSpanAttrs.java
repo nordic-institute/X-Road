@@ -46,6 +46,7 @@ public final class XrdSpanAttrs {
         public static final AttributeKey<String> COUNTERPARTY_ADDRESS = AttributeKey.stringKey("xroad.counterparty.address");
         public static final AttributeKey<String> PARTICIPANT_CONTEXT_ID = AttributeKey.stringKey("xroad.participant.context.id");
         public static final AttributeKey<String> PROTOCOL = AttributeKey.stringKey("xroad.protocol");
+        public static final AttributeKey<String> CLIENT_ID = AttributeKey.stringKey("xroad.client.id");
 
         private AssetAccess() {
             throw new AssertionError();

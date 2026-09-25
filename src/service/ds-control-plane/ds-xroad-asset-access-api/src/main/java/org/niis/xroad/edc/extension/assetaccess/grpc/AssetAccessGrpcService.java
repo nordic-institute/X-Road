@@ -99,6 +99,7 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                 .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ID, request.getCounterPartyId())
                 .set(XrdSpanAttrs.AssetAccess.COUNTERPARTY_ADDRESS, request.getCounterPartyAddress())
                 .set(XrdSpanAttrs.AssetAccess.PROTOCOL, request.getProtocol().isEmpty() ? null : request.getProtocol())
+                .set(XrdSpanAttrs.AssetAccess.CLIENT_ID, request.hasClientId() ? request.getClientId() : null)
                 .apply();
     }
 
@@ -119,7 +120,8 @@ class AssetAccessGrpcService extends AssetAccessServiceGrpc.AssetAccessServiceIm
                 request.getAssetId(),
                 request.getCounterPartyId(),
                 request.getCounterPartyAddress(),
-                request.getProtocol().isEmpty() ? null : request.getProtocol());
+                request.getProtocol().isEmpty() ? null : request.getProtocol(),
+                request.hasClientId() ? request.getClientId() : null);
     }
 
     private DataAddress awaitAcquireResult(ParticipantContext participantContext, AssetAccessRequest assetAccessRequest) {

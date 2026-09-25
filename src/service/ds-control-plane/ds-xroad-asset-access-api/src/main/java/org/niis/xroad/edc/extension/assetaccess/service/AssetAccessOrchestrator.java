@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.assetaccess.service;
 
+import jakarta.annotation.Nullable;
 import jakarta.json.Json;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
@@ -43,6 +44,11 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.Constraint;
+import org.eclipse.edc.policy.model.Expression;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
@@ -58,12 +64,17 @@ import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.listener.NegotiationCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.listener.TransferCompletionListener;
 import org.niis.xroad.edc.extension.assetaccess.service.AssetAccessStateStore.AgreementContext;
+import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
+import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_CATALOG_FETCH_FAILED;
@@ -97,14 +108,20 @@ public class AssetAccessOrchestrator {
     private final Duration transferTimeout;
 
     /**
-     * Acquires access to an asset, de-duplicating concurrent requests for the same participant+asset+counterparty key.
+     * Acquires access to an asset, de-duplicating concurrent requests for the same
+     * participant+asset+counterparty(+client) key.
      */
     public CompletableFuture<ServiceResult<DataAddress>> acquireAssetAccess(ParticipantContext participantContext,
                                                                             AssetAccessRequest request) {
-        var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
+        var key = registryKey(participantContext, request);
         monitor.info("%s acquireAssetAccess entered: counterPartyAddress=%s protocol=%s"
                 .formatted(key, request.counterPartyAddress(), request.protocolOrDefault()));
         return stateStore.loadOrStartInFlight(key, () -> buildAcquisitionFuture(key, participantContext, request));
+    }
+
+    private static String registryKey(ParticipantContext participantContext, AssetAccessRequest request) {
+        var key = participantContext.getParticipantContextId() + "::" + request.assetId() + "::" + request.counterPartyId();
+        return request.clientId() == null ? key : key + "::" + request.clientId();
     }
 
     private CompletableFuture<ServiceResult<DataAddress>> buildAcquisitionFuture(
@@ -123,7 +140,7 @@ public class AssetAccessOrchestrator {
     private CompletableFuture<ServiceResult<DataAddress>> executeAcquisition(
             ParticipantContext participantContext, AssetAccessRequest request, String registryKey) {
         return fetchCatalog(registryKey, participantContext, request)
-                .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId()))
+                .thenApply(catalog -> findOffer(registryKey, catalog, request.assetId(), request.clientId()))
                 .thenCompose(offer -> negotiateContract(registryKey, participantContext, request, offer)
                         .thenApply(agreement -> {
                             stateStore.recordAgreement(registryKey, agreement, offer.transferType());
@@ -187,7 +204,7 @@ public class AssetAccessOrchestrator {
         }
     }
 
-    private OfferContext findOffer(String key, Catalog catalog, String assetId) {
+    private OfferContext findOffer(String key, Catalog catalog, String assetId, @Nullable String clientId) {
         var dataset = catalog.getDatasets().stream()
                 .filter(ds -> assetId.equals(ds.getId()))
                 .findFirst()
@@ -203,7 +220,7 @@ public class AssetAccessOrchestrator {
                     .build();
         }
 
-        var firstOffer = dataset.getOffers().entrySet().iterator().next();
+        var offer = selectOffer(dataset.getOffers(), clientId, assetId);
 
         var transferType = dataset.getDistributions().stream()
                 .map(Distribution::getFormat)
@@ -214,9 +231,64 @@ public class AssetAccessOrchestrator {
                         .metadataItems(assetId)
                         .build());
 
-        monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s"
-                .formatted(key, assetId, firstOffer.getKey(), transferType));
-        return new OfferContext(firstOffer.getKey(), firstOffer.getValue(), dataset, transferType);
+        monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s namesClient=%s"
+                .formatted(key, assetId, offer.getKey(), transferType,
+                        clientId != null && namesClient(offer.getValue(), clientId)));
+        return new OfferContext(offer.getKey(), offer.getValue(), dataset, transferType);
+    }
+
+    /**
+     * The provider publishes one offer per ACL subject. A known caller takes the offer written for its
+     * subsystem, else one that applies to its member as a whole (member-level or group subject); an offer
+     * written for another subsystem is never negotiated on its behalf. An unknown caller takes the first offer.
+     */
+    private static Map.Entry<String, Policy> selectOffer(Map<String, Policy> offers, @Nullable String clientId,
+                                                         String assetId) {
+        if (clientId == null) {
+            return offers.entrySet().iterator().next();
+        }
+        var memberId = PolicyContextHelper.parseClientId(clientId).getMemberId().asEncodedId();
+        return firstOffer(offers, policy -> namesClient(policy, clientId))
+                .or(() -> firstOffer(offers, policy -> appliesToMember(policy, memberId)))
+                .orElseThrow(() -> XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
+                        .origin(ErrorOrigin.DATASPACE)
+                        .metadataItems(assetId, clientId)
+                        .build());
+    }
+
+    private static Optional<Map.Entry<String, Policy>> firstOffer(Map<String, Policy> offers, Predicate<Policy> matches) {
+        return offers.entrySet().stream().filter(entry -> matches.test(entry.getValue())).findFirst();
+    }
+
+    private static boolean namesClient(Policy policy, String encodedClientId) {
+        return anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
+                && isLiteral(atomic.getRightExpression(), encodedClientId));
+    }
+
+    private static boolean appliesToMember(Policy policy, String encodedMemberId) {
+        return namesClient(policy, encodedMemberId)
+                || anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
+                        || isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
+    }
+
+    private static boolean anyConstraint(Policy policy, Predicate<AtomicConstraint> matches) {
+        return policy.getPermissions().stream()
+                .flatMap(permission -> permission.getConstraints().stream())
+                .anyMatch(constraint -> anyConstraint(constraint, matches));
+    }
+
+    private static boolean anyConstraint(Constraint constraint, Predicate<AtomicConstraint> matches) {
+        if (constraint instanceof AtomicConstraint atomic) {
+            return matches.test(atomic);
+        }
+        if (constraint instanceof MultiplicityConstraint multiplicity) {
+            return multiplicity.getConstraints().stream().anyMatch(child -> anyConstraint(child, matches));
+        }
+        return false;
+    }
+
+    private static boolean isLiteral(Expression expression, String value) {
+        return expression instanceof LiteralExpression literal && value.equals(literal.getValue());
     }
 
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,
