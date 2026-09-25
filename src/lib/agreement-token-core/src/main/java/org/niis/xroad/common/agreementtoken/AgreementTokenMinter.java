@@ -78,6 +78,11 @@ public final class AgreementTokenMinter {
         Objects.requireNonNull(grant, "grant must not be null");
 
         var activeKey = keyProvider.activeKey();
+        if (!activeKey.keyPair().isPrivate()) {
+            throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_KEY_NOT_AVAILABLE)
+                    .details("Active agreement-token signing key '" + activeKey.keyId() + "' has no private part")
+                    .build();
+        }
         var now = Instant.now(clock);
         var expiresAt = now.plus(properties.tokenTtl());
 

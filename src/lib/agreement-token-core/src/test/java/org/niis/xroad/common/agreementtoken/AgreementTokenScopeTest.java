@@ -65,4 +65,10 @@ class AgreementTokenScopeTest {
         assertThatThrownBy(() -> new AgreementTokenScope("GET", ""))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void shouldRejectAPathPatternThatDoesNotCompile() {
+        assertThatThrownBy(() -> new AgreementTokenScope("GET", "/foo/*?"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }

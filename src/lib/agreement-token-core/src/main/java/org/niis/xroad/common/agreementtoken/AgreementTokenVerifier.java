@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.common.agreementtoken;
 
+import ee.ria.xroad.common.util.UriUtils;
+
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -37,6 +39,7 @@ import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_AGREEMENT_ID;
 import static org.niis.xroad.common.agreementtoken.AgreementTokenClaimsCodec.CLAIM_CLIENT;
@@ -157,14 +160,35 @@ public final class AgreementTokenVerifier {
             return rejected(SERVICE_MISMATCH, "token service does not match the requested service");
         }
         if (context.isRest()) {
+            var requestPath = normalizeLikeAcl(context.requestPath());
+            if (requestPath.isEmpty()) {
+                return rejected(SCOPE_MISMATCH, "request path cannot be normalised: " + context.requestPath());
+            }
             var scopeMatches = claims.scope().stream()
-                    .anyMatch(entry -> entry.matches(context.requestMethod(), context.requestPath()));
+                    .anyMatch(entry -> entry.matches(context.requestMethod(), requestPath.get()));
             if (!scopeMatches) {
-                return rejected(SCOPE_MISMATCH, "no scope entry matches " + context.requestMethod() + " " + context.requestPath());
+                return rejected(SCOPE_MISMATCH, "no scope entry matches " + context.requestMethod() + " " + requestPath.get());
             }
         }
 
         return new AgreementTokenVerificationResult.Valid(claims);
+    }
+
+    /**
+     * Mirrors the serverconf ACL check: percent-decode and normalise the request path, and treat anything
+     * that still contains a traversal sequence afterwards as unmatchable, so a token can never authorise a
+     * path the ACL would have refused.
+     */
+    private static Optional<String> normalizeLikeAcl(String requestPath) {
+        try {
+            var normalized = UriUtils.decodeAndNormalize(requestPath);
+            if (normalized == null || normalized.contains("..")) {
+                return Optional.empty();
+            }
+            return Optional.of(normalized);
+        } catch (RuntimeException e) {
+            return Optional.empty();
+        }
     }
 
     private AgreementTokenClaims decodeClaims(JWTClaimsSet claimsSet, Instant expiresAt) {

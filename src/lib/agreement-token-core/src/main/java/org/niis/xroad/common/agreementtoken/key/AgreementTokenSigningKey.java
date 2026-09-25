@@ -36,9 +36,10 @@ import java.util.Objects;
  * ids are assigned by {@link AgreementTokenKeyProvider} and are never reused, so a token's {@code kid}
  * always resolves to the exact key it was signed with, even after rotation.
  * <p>
- * The pair is a P-256 JWK holding the private part: the minter signs with it, while the verifier checks
- * against {@link #publicKey()} alone, so a verify-only consumer of these tokens never needs the private
- * part. {@link ECKey} is immutable, so the record hands out the same instance without copying.
+ * The key is a P-256 JWK. Keys served by the vault-backed provider carry the private part, which the minter
+ * signs with; the verifier checks against {@link #publicKey()} alone, so a provider handing out public-only
+ * keys is valid for verification and can never mint. {@link ECKey} is immutable, so the record hands out the
+ * same instance without copying.
  */
 public record AgreementTokenSigningKey(String keyId, ECKey keyPair) {
 
@@ -49,9 +50,6 @@ public record AgreementTokenSigningKey(String keyId, ECKey keyPair) {
         Objects.requireNonNull(keyPair, "keyPair must not be null");
         if (!Curve.P_256.equals(keyPair.getCurve())) {
             throw new IllegalArgumentException("keyPair must be a P-256 key, got " + keyPair.getCurve());
-        }
-        if (!keyPair.isPrivate()) {
-            throw new IllegalArgumentException("keyPair must include the private key");
         }
     }
 

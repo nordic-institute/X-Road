@@ -36,7 +36,8 @@ import java.util.Objects;
  * signature (never the token itself — a leaked token must not authenticate anyone) and the requested service.
  * {@code requestMethod}/{@code requestPath} carry the REST verb and path so {@link AgreementTokenVerifier} can
  * also check scope; both are {@code null} for SOAP, where the ACL — and so the token — only ever discriminates
- * on client and service.
+ * on client and service. {@code requestPath} is the raw service path as received; the verifier normalises it
+ * exactly as the ACL does before matching.
  */
 public record AgreementTokenRequestContext(
         ClientId expectedClient,

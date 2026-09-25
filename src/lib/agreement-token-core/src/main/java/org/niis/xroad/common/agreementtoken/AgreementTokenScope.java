@@ -32,7 +32,9 @@ import org.niis.xroad.serverconf.model.BaseEndpoint;
 /**
  * One allowed HTTP method and path pattern, using the exact same glob syntax and sentinel values
  * ({@link BaseEndpoint#ANY_METHOD}, {@link BaseEndpoint#ANY_PATH}) as the security server's ACL endpoints, so a
- * token restates an ACL grant without a second, drifting notion of "matches".
+ * token restates an ACL grant without a second, drifting notion of "matches". The path must compile as a
+ * glob; checking it here means a token carrying an uncompilable pattern is rejected as malformed when its
+ * claims are decoded, instead of throwing out of the match.
  */
 public record AgreementTokenScope(String method, String path) {
 
@@ -42,6 +44,11 @@ public record AgreementTokenScope(String method, String path) {
         }
         if (path == null || path.isBlank()) {
             throw new IllegalArgumentException("path must not be blank");
+        }
+        try {
+            PathGlob.compile(path);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("path is not a valid path glob: " + path, e);
         }
     }
 

@@ -110,8 +110,12 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         return newKey;
     }
 
+    /**
+     * Serialised with {@link #rotate()} and bootstrap so a refresh that read Vault before a local write can
+     * never publish its older view over the snapshot that write produced.
+     */
     @Override
-    public void refresh() {
+    public synchronized void refresh() {
         var stored = loadFromVaultOrFail();
 
         var keysById = new HashMap<String, AgreementTokenSigningKey>();
@@ -136,7 +140,9 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
         var freshKeyIds = listKeyIdsOrFail();
         if (!freshKeyIds.isEmpty()) {
             // Another replica bootstrapped a key between our constructor's first refresh() and now;
-            // adopt it instead of writing a second one.
+            // adopt it instead of writing a second one. Two replicas can still pass this listing together
+            // and both write key "1": the later write wins, the earlier replica adopts it on its next
+            // refresh(), and until then tokens it minted fall back to the ACL on the other replicas.
             refresh();
             return;
         }
@@ -174,7 +180,11 @@ public final class VaultAgreementTokenKeyProvider implements AgreementTokenKeyPr
 
     private static AgreementTokenSigningKey toSigningKey(String keyId, String keyPairJwk) {
         try {
-            return new AgreementTokenSigningKey(keyId, ECKey.parse(keyPairJwk));
+            var keyPair = ECKey.parse(keyPairJwk);
+            if (!keyPair.isPrivate()) {
+                throw new IllegalArgumentException("stored key has no private part");
+            }
+            return new AgreementTokenSigningKey(keyId, keyPair);
         } catch (ParseException | IllegalArgumentException e) {
             throw XrdRuntimeException.systemException(ErrorCode.AGREEMENT_TOKEN_KEY_STORE_FAILED)
                     .cause(e)

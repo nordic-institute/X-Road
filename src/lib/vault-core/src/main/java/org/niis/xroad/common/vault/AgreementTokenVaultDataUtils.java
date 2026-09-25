@@ -57,7 +57,9 @@ public class AgreementTokenVaultDataUtils {
      * Retrieves every agreement-token signing key from Vault, keyed by key id. Deliberately does not catch
      * anything: a caller bootstraps a new key whenever this returns an empty map, so a listing or read
      * failure must propagate as a thrown exception — never come back disguised as "no keys yet" — or a
-     * transient outage would make every replica mint its own key.
+     * transient outage would make every replica mint its own key. A key the listing names but whose secret
+     * cannot be read, or carries no payload, is thrown for the same reason: a snapshot missing that one key
+     * would reject every unexpired token signed with it, or demote the active key if it was the newest.
      *
      * @param listKeysFunction   function that lists all key ids under the base path; a genuine "nothing
      *                           written yet" must return an empty list, not throw
@@ -77,13 +79,15 @@ public class AgreementTokenVaultDataUtils {
 
         for (String keyId : keyList) {
             String path = buildSigningKeyPath(keyId);
-            readSecretFunction.apply(path).ifPresent(secret -> {
-                Object keyPairJwk = secret.get(VaultClient.PAYLOAD_KEY);
-                if (keyPairJwk != null) {
-                    keys.put(keyId, keyPairJwk.toString());
-                    log.debug("Loaded agreement-token signing key from Vault: {}", keyId);
-                }
-            });
+            Object keyPairJwk = readSecretFunction.apply(path)
+                    .map(secret -> secret.get(VaultClient.PAYLOAD_KEY))
+                    .orElse(null);
+            if (keyPairJwk == null) {
+                throw new IllegalStateException(
+                        "Agreement-token signing key '" + keyId + "' is listed in Vault but has no readable payload at " + path);
+            }
+            keys.put(keyId, keyPairJwk.toString());
+            log.debug("Loaded agreement-token signing key from Vault: {}", keyId);
         }
 
         log.info("Loaded {} agreement-token signing key(s) from Vault", keys.size());

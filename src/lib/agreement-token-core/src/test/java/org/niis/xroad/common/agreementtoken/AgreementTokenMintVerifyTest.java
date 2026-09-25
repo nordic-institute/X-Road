@@ -49,6 +49,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -205,6 +206,60 @@ class AgreementTokenMintVerifyTest {
         jwt.sign(new MACSigner(hmacSecret));
 
         assertRejected(verifierAt(NOW.plusSeconds(1)).verify(jwt.serialize(), restContext()), INVALID_SIGNATURE);
+    }
+
+    @Test
+    void shouldNormalizeTheRequestPathLikeTheAclBeforeMatchingScope() {
+        var token = mintDefaultGrant();
+
+        var result = verifierAt(NOW.plusSeconds(1))
+                .verify(token, AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/./bar"));
+
+        assertThat(result).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+    }
+
+    @Test
+    void shouldRejectPathTraversalThatEscapesTheGrantedScope() {
+        var grant = new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("GET", "/foo/**")));
+        var token = minter.mint(grant);
+        var verifier = verifierAt(NOW.plusSeconds(1));
+
+        assertRejected(verifier.verify(token, AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/../admin")),
+                SCOPE_MISMATCH);
+        assertRejected(verifier.verify(token, AgreementTokenRequestContext.forRest(CONSUMER, SERVICE, "GET", "/foo/%2e%2e/admin")),
+                SCOPE_MISMATCH);
+    }
+
+    @Test
+    void shouldRejectASignedTokenWhoseScopePatternDoesNotCompile() throws Exception {
+        var claimsSet = new JWTClaimsSet.Builder()
+                .issuer(PROPERTIES.issuer())
+                .audience(PROPERTIES.audience())
+                .issueTime(Date.from(NOW))
+                .expirationTime(Date.from(NOW.plusSeconds(60)))
+                .claim(CLAIM_AGREEMENT_ID, "agreement-1")
+                .claim(CLAIM_CLIENT, encodeClient(CONSUMER))
+                .claim(AgreementTokenClaimsCodec.CLAIM_SERVICE, AgreementTokenClaimsCodec.encodeService(SERVICE))
+                .claim(CLAIM_SCOPE, List.of(Map.of("method", "GET", "path", "/foo/*?")))
+                .build();
+        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(activeKey.keyId()).build(), claimsSet);
+        jwt.sign(new ECDSASigner(activeKey.keyPair()));
+
+        assertRejected(verifierAt(NOW.plusSeconds(1)).verify(jwt.serialize(), restContext()), MALFORMED_TOKEN);
+    }
+
+    @Test
+    void shouldVerifyWithAPublicOnlyKeyAndRefuseToMintWithIt() {
+        var token = mintDefaultGrant();
+
+        var publicOnlyProvider = new InMemoryAgreementTokenKeyProvider();
+        publicOnlyProvider.addKey(activeKey.keyId(), activeKey.publicKey());
+        var verifier = new AgreementTokenVerifier(publicOnlyProvider, PROPERTIES, Clock.fixed(NOW.plusSeconds(1), ZoneOffset.UTC));
+        var publicOnlyMinter = new AgreementTokenMinter(publicOnlyProvider, PROPERTIES, Clock.fixed(NOW, ZoneOffset.UTC));
+        var grant = new AgreementTokenGrant("agreement-1", CONSUMER, SERVICE, List.of(new AgreementTokenScope("*", "**")));
+
+        assertThat(verifier.verify(token, restContext())).isInstanceOf(AgreementTokenVerificationResult.Valid.class);
+        assertThatThrownBy(() -> publicOnlyMinter.mint(grant)).isInstanceOf(XrdRuntimeException.class);
     }
 
     @Test
