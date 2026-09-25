@@ -451,12 +451,14 @@
         "title": "Howpsuzlyk serweriň salgysyny üýtget"
       }
     },
+    "declined": "Ret edilen",
     "disabled": "Wagtlaýynça öçürilen",
     "ownerClass": "Eýesiniň klassy",
     "ownerCode": "Eýesiniň kody",
     "ownerName": "Eýesiniň kody",
     "pending": "Tassyklanmaga garaşýar",
     "registered": "Hasaba alnan",
+    "revoked": "Yatyrylan",
     "securityServer": {
       "certificationAuthority": "Şahadatnama berýän merkez",
       "deleteSecurityServer": "Howpsuzlyk serweri poz",

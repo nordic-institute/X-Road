@@ -466,6 +466,7 @@
         "title": "Editar endereço do servidor seguro"
       }
     },
+    "declined": "Recusado",
     "disabled": "Temporariamente desativado",
     "maintenanceMode": "Em modo de manutenção",
     "ownerClass": "Classe do Proprietário",
@@ -473,6 +474,7 @@
     "ownerName": "Nome do Proprietário",
     "pending": "Aguardando aprovação",
     "registered": "Registrado",
+    "revoked": "Revogado",
     "securityServer": {
       "certificationAuthority": "Autoridade Certificadora",
       "deleteSecurityServer": "Excluir Servidor Seguro",
