@@ -11,6 +11,7 @@ dependencies {
   implementation(libs.edc.spi.dsp.v2025)
   implementation(libs.edc.spi.jsonld)
   implementation(libs.edc.spi.transfer)
+  implementation(libs.edc.spi.transaction)
   implementation(libs.edc.spi.web)
   implementation(libs.jakarta.annotationApi)
 
@@ -26,4 +27,21 @@ dependencies {
   testImplementation(libs.assertj.core)
   testImplementation(libs.awaitility)
   testImplementation(libs.junit.jupiter.params)
+
+  testImplementation(project(":service:ds-control-plane:ds-xroad-contract-negotiation-store"))
+
+  testImplementation(libs.edc.junit)
+  testImplementation(libs.edc.lib.json)
+  testImplementation(libs.edc.sql.contract.negotiation)
+  testImplementation(libs.edc.sql.transfer.process)
+  testImplementation(libs.edc.core.controlplane.transfer)
+  testImplementation(libs.edc.spi.transaction.datasource)
+  testImplementation(libs.edc.transaction.local)
+  testImplementation(libs.edc.lib.sql)
+  testImplementation(libs.edc.sql.lease)
+  testImplementation(libs.edc.sql.lease.spi)
+  testImplementation(libs.postgresql)
+  testImplementation(libs.testcontainers.junit)
+  testImplementation(libs.testcontainers.postgresql)
+  testImplementation(testFixtures(libs.edc.sql.test.fixtures))
 }
