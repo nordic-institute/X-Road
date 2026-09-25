@@ -42,6 +42,7 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.ds.identity.ParticipantIdentifierScheme;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.AccessRight;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -145,7 +146,9 @@ class ServiceContextResolver {
     /**
      * Same as {@link #resolveSystemService}, for the owner-only policy and contract-definition ids
      * that carry {@link ContractDefinitionMapper#OWNER_ONLY_SUFFIX}. An id without that suffix
-     * resolves to {@code null}: under SYSTEM only owner-only entries are ever published.
+     * resolves to {@code null} here — {@link #resolveSystemService} resolves the plain, unrestricted
+     * form SYSTEM also publishes for a real, SYSTEM-eligible service with no configured access
+     * rights.
      */
     @Nullable
     ServiceId.Conf resolveSystemOwnerOnlyService(String ownerOnlyId) {
@@ -202,7 +205,7 @@ class ServiceContextResolver {
      * subsystem resolution so a rebuild that needs both never resolves it twice.
      */
     SyntheticServices resolveSyntheticServices() {
-        var managementSubsystem = resolveManagementSubsystem();
+        var managementSubsystem = resolveManagementSubsystemWithoutRealServices();
         if (managementSubsystem == null) {
             return new SyntheticServices(List.of(), List.of());
         }
@@ -227,8 +230,13 @@ class ServiceContextResolver {
      * resolve to it either.
      *
      * <p>Cheap checks (version, service code) run before the globalconf/serverconf resolution
-     * behind {@link #resolveManagementSubsystem()}, and a resolution failure degrades to
+     * behind {@link #resolveLiveManagementSubsystem()}, and a resolution failure degrades to
      * not-eligible rather than propagating — a by-id lookup must fail closed, not throw.
+     *
+     * <p>Eligibility does not depend on whether the management subsystem has real configured
+     * services: a normally-configured management service is just as SYSTEM-eligible as a
+     * synthetic one. Whether it is actually published under SYSTEM without also being disabled is
+     * the caller's responsibility.
      */
     boolean isSystemEligible(ServiceId serviceId) {
         if (serviceId.getServiceVersion() != null
@@ -236,7 +244,7 @@ class ServiceContextResolver {
             return false;
         }
         try {
-            var managementSubsystem = resolveManagementSubsystem();
+            var managementSubsystem = resolveLiveManagementSubsystem();
             return managementSubsystem != null && managementSubsystem.equals(serviceId.getClientId());
         } catch (RuntimeException e) {
             log.warn("Failed to resolve SYSTEM eligibility for service '{}': {}", serviceId, e.getMessage());
@@ -244,8 +252,43 @@ class ServiceContextResolver {
         }
     }
 
+    /**
+     * Whether {@code serviceId} — already known to be {@link #isSystemEligible} — resolves to the
+     * unrestricted SYSTEM entry: a real, enabled {@code ServiceDescription} with no admin-configured
+     * access rights. {@code false} when the service was never configured, is disabled, or has access
+     * rights configured, in which case only its per-subject entry, if any, is published under
+     * SYSTEM.
+     */
+    boolean isSystemUnrestrictedById(ServiceId serviceId) {
+        return serverConfProvider.serviceExists(serviceId)
+                && serverConfProvider.getDisabledNotice(serviceId) == null
+                && serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
+    }
+
+    /**
+     * Whether a catalog enumeration pass should publish the unrestricted SYSTEM entry for an
+     * already-eligible service: true only when no admin-configured access rights gate it, so it
+     * stays usable federation-wide under SYSTEM like every other SYSTEM-published
+     * synthetic/built-in entry. Once access rights are configured, SYSTEM is gated the same as
+     * every other context instead, via the per-subject entries.
+     *
+     * <p>Takes {@code systemEligible} and {@code accessRights} as parameters rather than
+     * resolving them itself: an enumerating caller has both in hand a few lines earlier, and
+     * re-deriving them here — as {@link #isSystemUnrestrictedById} does for the by-id path — would
+     * mean redundant {@code serverConfProvider} calls.
+     */
+    boolean shouldPublishUnrestrictedSystemEntry(boolean systemEligible, List<AccessRight> accessRights) {
+        return systemEligible && accessRights.isEmpty();
+    }
+
+    /**
+     * The live management-request-service subsystem hosted on this server, regardless of whether
+     * it has real configured services. The one place both {@link #isSystemEligible} and
+     * {@link #resolveManagementSubsystemWithoutRealServices()} resolve this from, so the
+     * globalconf/serverconf lookups are never duplicated.
+     */
     @Nullable
-    private ClientId resolveManagementSubsystem() {
+    private ClientId resolveLiveManagementSubsystem() {
         ClientId managementSubsystem = globalConfProvider.getManagementRequestService();
         if (managementSubsystem == null || managementSubsystem.getSubsystemCode() == null) {
             return null;
@@ -257,7 +300,19 @@ class ServiceContextResolver {
         if (!globalConfProvider.isSecurityServerClient(managementSubsystem, thisServer)) {
             return null;
         }
-        if (!serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
+        return managementSubsystem;
+    }
+
+    /**
+     * The live management subsystem, but only when it has no real configured services —
+     * the case the {@code -mgmt} synthetic entries exist to cover. A real per-member catalog
+     * entry already covers {@code -mgmt} publication once real services exist, so returning
+     * non-null here in that case would double-publish.
+     */
+    @Nullable
+    private ClientId resolveManagementSubsystemWithoutRealServices() {
+        var managementSubsystem = resolveLiveManagementSubsystem();
+        if (managementSubsystem == null || !serverConfProvider.getAllServices(managementSubsystem).isEmpty()) {
             return null;
         }
         return managementSubsystem;

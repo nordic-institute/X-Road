@@ -94,6 +94,9 @@ class AssetIndexServerConfStore implements AssetIndex {
                     for (var ctxId : serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds)) {
                         assets.add(AssetMapper.toAsset(serviceId, ctxId));
                     }
+                    if (serviceContextResolver.isSystemEligible(serviceId)) {
+                        assets.add(AssetMapper.toAsset(serviceId, contextIds.system()));
+                    }
                 }
             }
         }
@@ -127,7 +130,14 @@ class AssetIndexServerConfStore implements AssetIndex {
         }
         if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
             var systemServiceId = serviceContextResolver.resolveSystemService(assetId);
-            return systemServiceId == null ? null : AssetMapper.toAsset(systemServiceId, contextIds.system());
+            if (systemServiceId == null) {
+                return null;
+            }
+            if (serverConfProvider.getDisabledNotice(systemServiceId) != null) {
+                log.trace("findById assetId={} SYSTEM-eligible but disabled, returning null", assetId);
+                return null;
+            }
+            return AssetMapper.toAsset(systemServiceId, contextIds.system());
         }
         var serviceId = AssetMapper.decodeAssetId(assetId);
         if (serviceId == null) {

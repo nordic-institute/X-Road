@@ -52,7 +52,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,27 +66,25 @@ class ConsumerSideDspProcessorTest {
     private static final String DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:" + PROVIDER_MEMBER_CTX_ID;
     private static final String URL_A = "https://xrd-ss0.lxd:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1";
     private static final String URL_B = "https://xrd-ss1.lxd:8183/api/dsp/" + PROVIDER_MEMBER_CTX_ID + "/http-dsp-profile-2025-1";
-    private static final String MGMT_DID_A = "did:web:xrd-ss0.lxd%3A7183:mgmt";
-    private static final String MGMT_URL_A = "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/http-dsp-profile-2025-1";
+    private static final String SYSTEM_DID_A = "did:web:xrd-ss0.lxd%3A7183:v1:system";
+    private static final String SYSTEM_DID_B = "did:web:xrd-ss1.lxd%3A7183:v1:system";
+    private static final String SYSTEM_URL_A = "https://xrd-ss0.lxd:8183/api/dsp/system/http-dsp-profile-2025-1";
+    private static final String SYSTEM_URL_B = "https://xrd-ss1.lxd:8183/api/dsp/system/http-dsp-profile-2025-1";
     private static final String UNKNOWN_HOST = "unknown.example.com";
     private static final ClientId SENDER = ClientId.Conf.create(INSTANCE, "COM", "4321", "SenderSub");
     private static final String SENDER_MEMBER_CTX_ID = "DEV:COM:4321";
-    private static final String CONFIGURED_CTX_ID = "configured-legacy-ctx";
 
     @Mock
     private AssetAccessAcquisitionService assetAccessAcquisitionService;
     @Mock
     private ProviderSecurityServerResolver providerSecurityServerResolver;
-    @Mock
-    private AssetAccessClientProperties clientProperties;
 
     private ConsumerSideDspProcessor processor;
     private ServiceId serviceId;
 
     @BeforeEach
     void setUp() {
-        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver,
-                clientProperties);
+        processor = new ConsumerSideDspProcessor(assetAccessAcquisitionService, providerSecurityServerResolver);
         serviceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "TestClient", "testService", "v1");
     }
 
@@ -105,23 +102,36 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void managementRequestNegotiatesAsConfiguredLegacyContext() {
-        when(clientProperties.participantContextId()).thenReturn(CONFIGURED_CTX_ID);
-        when(providerSecurityServerResolver.resolve(serviceId, null))
+    void managementRequestTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
+        var managementServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg");
+        when(providerSecurityServerResolver.resolve(managementServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
                 .thenReturn(new AssetAccessResponse("http://dp/e", null));
 
-        processor.execute(new DspRequest(serviceId, SENDER, null, true));
+        processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(CONFIGURED_CTX_ID), any(), eq(MGMT_DID_A), eq(MGMT_URL_A));
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A));
     }
 
     @Test
-    void builtinServiceNegotiatesAsConfiguredLegacyContext() {
+    void nonWhitelistedServiceUnderManagementSubsystemUsesMemberTargetNotSystem() {
+        var nonWhitelistedService = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "listMethods");
+        when(providerSecurityServerResolver.resolve(nonWhitelistedService, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(nonWhitelistedService, SENDER, null, true));
+
+        verify(assetAccessAcquisitionService)
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(DID_A), eq(URL_A));
+    }
+
+    @Test
+    void builtinServiceTargetsDerivedSystemDidAndUrlAndNegotiatesAsSenderMemberContext() {
         var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "listMethods");
-        when(clientProperties.participantContextId()).thenReturn(CONFIGURED_CTX_ID);
         when(providerSecurityServerResolver.resolve(builtinServiceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
         when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
@@ -130,7 +140,35 @@ class ConsumerSideDspProcessorTest {
         processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
 
         verify(assetAccessAcquisitionService)
-                .acquireAssetAccess(eq(CONFIGURED_CTX_ID), any(), eq(MGMT_DID_A), eq(MGMT_URL_A));
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_A), eq(SYSTEM_URL_A));
+    }
+
+    @Test
+    void managementRequestTargetsDerivedSystemDidAndUrlForCrossServerCandidate() {
+        var managementServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", "ManagementSub", "clientReg");
+        when(providerSecurityServerResolver.resolve(managementServiceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(managementServiceId, SENDER, null, true));
+
+        verify(assetAccessAcquisitionService)
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_B), eq(SYSTEM_URL_B));
+    }
+
+    @Test
+    void builtinServiceTargetsDerivedSystemDidAndUrlForCrossServerCandidate() {
+        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerHealthData");
+        when(providerSecurityServerResolver.resolve(builtinServiceId, null))
+                .thenReturn(List.of(new ProviderAddress(null, HOST_B)));
+        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
+                .thenReturn(new AssetAccessResponse("http://dp/e", null));
+
+        processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
+
+        verify(assetAccessAcquisitionService)
+                .acquireAssetAccess(eq(SENDER_MEMBER_CTX_ID), any(), eq(SYSTEM_DID_B), eq(SYSTEM_URL_B));
     }
 
     @Test
@@ -327,57 +365,6 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void unmappedHostAddressIsSkippedForManagementRequestAndOtherCandidateUsed() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, UNKNOWN_HOST),
-                        new ProviderAddress(null, HOST_A)));
-        var expected = new AssetAccessResponse("http://dp.a/e", null);
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(MGMT_DID_A), eq(MGMT_URL_A)))
-                .thenReturn(expected);
-
-        var result = processor.execute(new DspRequest(serviceId, SENDER, null, true));
-
-        assertThat(result).isSameAs(expected);
-        verify(assetAccessAcquisitionService, times(1)).acquireAssetAccess(any(), any(), any(), any());
-    }
-
-    @Test
-    void allCandidatesUnmappedForManagementRequestThrowsIoError() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, true)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.getCode()).isEqualTo(ErrorCode.IO_ERROR.code());
-                    assertThat(xrd.getDetails())
-                            .doesNotContain("candidate security servers failed")
-                            .doesNotContainIgnoringCase("dsp_")
-                            .doesNotContain(UNKNOWN_HOST);
-                });
-
-        verify(assetAccessAcquisitionService, never()).acquireAssetAccess(any(), any(), any(), any());
-    }
-
-    @Test
-    void managementRequestTargetsMgmtCtxDidAndUrl() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
-
-        processor.execute(new DspRequest(serviceId, SENDER, null, true));
-
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
-        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
-    }
-
-    @Test
     void allCandidatesHomogeneousUnknownMemberPreservesCode() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(
@@ -449,21 +436,6 @@ class ConsumerSideDspProcessorTest {
     }
 
     @Test
-    void localRoutingFailureMixedWithRemoteFailureFallsBackToIoError() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(
-                        new ProviderAddress(null, UNKNOWN_HOST),
-                        new ProviderAddress(null, HOST_A)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), eq(MGMT_DID_A), eq(MGMT_URL_A)))
-                .thenThrow(XrdRuntimeException.systemException(ErrorCode.UNKNOWN_MEMBER, "catalog miss"));
-
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, true)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> assertThat(((XrdRuntimeException) ex).getCode())
-                        .isEqualTo(ErrorCode.IO_ERROR.code()));
-    }
-
-    @Test
     void nonManagementRequestTargetsDerivedMemberDidAndUrl() {
         when(providerSecurityServerResolver.resolve(serviceId, null))
                 .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
@@ -477,23 +449,6 @@ class ConsumerSideDspProcessorTest {
         verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
         assertThat(idCaptor.getValue()).isEqualTo(DID_A);
         assertThat(addrCaptor.getValue()).isEqualTo(URL_A);
-    }
-
-    @Test
-    void builtinServiceRequestTargetsMgmtCtxDidAndUrl() {
-        var builtinServiceId = ServiceId.Conf.create(INSTANCE, "COM", "1234", null, "getSecurityServerMetrics");
-        when(providerSecurityServerResolver.resolve(builtinServiceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, HOST_A)));
-        when(assetAccessAcquisitionService.acquireAssetAccess(any(), any(), any(), any()))
-                .thenReturn(new AssetAccessResponse("http://dp/e", null));
-
-        processor.execute(new DspRequest(builtinServiceId, SENDER, null, false));
-
-        var idCaptor = ArgumentCaptor.forClass(String.class);
-        var addrCaptor = ArgumentCaptor.forClass(String.class);
-        verify(assetAccessAcquisitionService).acquireAssetAccess(any(), any(), idCaptor.capture(), addrCaptor.capture());
-        assertThat(idCaptor.getValue()).isEqualTo(MGMT_DID_A);
-        assertThat(addrCaptor.getValue()).isEqualTo(MGMT_URL_A);
     }
 
     @Test
@@ -599,25 +554,6 @@ class ConsumerSideDspProcessorTest {
                             .isEqualTo("originalCode=" + ErrorCode.DSP_DATASET_NOT_FOUND.code());
                     assertThat(xrd.getDetails())
                             .isNotBlank()
-                            .doesNotContain(serviceId.asEncodedId())
-                            .doesNotContainIgnoringCase("dsp_");
-                });
-    }
-    @Test
-    void missingManagementCounterPartyTargetYieldsIoErrorWithOriginalDspCode() {
-        when(providerSecurityServerResolver.resolve(serviceId, null))
-                .thenReturn(List.of(new ProviderAddress(null, UNKNOWN_HOST)));
-        assertThatThrownBy(() -> processor.execute(new DspRequest(serviceId, SENDER, null, true)))
-                .isInstanceOf(XrdRuntimeException.class)
-                .satisfies(ex -> {
-                    var xrd = (XrdRuntimeException) ex;
-                    assertThat(xrd.isCausedBy(ErrorCode.IO_ERROR)).isTrue();
-                    assertThat(xrd.getErrorCodeMetadata()).hasSize(1);
-                    assertThat(xrd.getErrorCodeMetadata().getFirst())
-                            .isEqualTo("originalCode=" + ErrorCode.DSP_ACQUISITION_FAILED.code());
-                    assertThat(xrd.getDetails())
-                            .isNotBlank()
-                            .doesNotContain(UNKNOWN_HOST)
                             .doesNotContain(serviceId.asEncodedId())
                             .doesNotContainIgnoringCase("dsp_");
                 });

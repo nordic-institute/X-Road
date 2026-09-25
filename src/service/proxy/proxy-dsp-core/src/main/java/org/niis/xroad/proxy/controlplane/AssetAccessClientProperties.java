@@ -44,9 +44,10 @@ public class AssetAccessClientProperties {
     private final XRoadConfig xRoadConfig;
 
     /**
-     * @return participant context ID used for management and builtin-service consumer paths;
-     * ordinary member traffic derives its context from the sender instead.
-     * No default — must be set explicitly per SS.
+     * @return the configured {@code xroad.proxy.dsp.participant-context-id} value. Unused by any
+     * consumer-side DSP path — {@code ConsumerSideDspProcessor} always derives the participant context from
+     * the request sender. Retained because the underlying config property is still required, pending its
+     * removal once the legacy {@code -mgmt} machinery is retired.
      */
     public String participantContextId() {
         return xRoadConfig.value(DSP_PARTICIPANT_CONTEXT_ID);

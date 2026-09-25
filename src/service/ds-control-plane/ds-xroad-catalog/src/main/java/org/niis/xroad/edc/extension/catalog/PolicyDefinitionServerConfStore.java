@@ -92,11 +92,19 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                     serviceContextResolver.selectBuiltinContextId(requestedParticipantContext.get()));
         }
 
-        if (serviceContextResolver.isSystemAddressed(requestedParticipantContext.get())) {
-            return findSystemPolicyDefinition(policyId);
-        }
-
-        if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+        var systemAddressed = serviceContextResolver.isSystemAddressed(requestedParticipantContext.get());
+        if (systemAddressed) {
+            var systemResult = findSystemPolicyDefinition(policyId);
+            if (systemResult != null) {
+                return systemResult;
+            }
+            if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
+                log.trace("findById policyId={} SYSTEM owner-only candidate did not resolve", policyId);
+                return null;
+            }
+            // Fall through: a SYSTEM-eligible real service with configured access rights
+            // publishes its per-subject compound id there instead of the plain/owner-only forms.
+        } else if (policyId.endsWith(ContractDefinitionMapper.OWNER_ONLY_SUFFIX)) {
             return findOwnerOnlyPolicyDefinition(policyId);
         }
 
@@ -107,24 +115,50 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         }
 
         var result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITH_VERSION, policyId);
-        if (result != null) {
-            log.trace("findById policyId={} found (6-part serviceId)", policyId);
-            return result;
+        if (result == null) {
+            result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
         }
-        result = tryDecodeAndMatch(parts, AssetMapper.SERVICE_ID_PARTS_WITHOUT_VERSION, policyId);
-        log.trace("findById policyId={} result={}", policyId, result != null ? "found (5-part serviceId)" : "not found");
+        if (systemAddressed && result != null && !contextIds.system().equals(result.getParticipantContextId())) {
+            // A SYSTEM-addressed request must never resolve to a compound id whose only match is
+            // under a different context (select()'s host-context fallback) — that would grant a
+            // SYSTEM-addressed lookup access it was never eligible for, mislabeled with the wrong
+            // context and cached under the SYSTEM key.
+            log.trace("findById policyId={} resolved outside SYSTEM under a SYSTEM-addressed request, returning null", policyId);
+            return null;
+        }
+        log.trace("findById policyId={} result={}", policyId, result != null ? "found" : "not found");
         return result;
     }
 
-    /** The SYSTEM-context owner-only policy {@code policyId} names, if one is published there. */
+    /**
+     * The SYSTEM-context policy {@code policyId} names, if one is published there — either the
+     * owner-only synthetic form, or the unrestricted form for a real, SYSTEM-eligible management
+     * service (accessible to any federation member, not just the owner).
+     */
     @Nullable
     private PolicyDefinition findSystemPolicyDefinition(String policyId) {
-        var serviceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
-        if (serviceId == null) {
+        var ownerOnlyServiceId = serviceContextResolver.resolveSystemOwnerOnlyService(policyId);
+        if (ownerOnlyServiceId != null) {
+            if (serverConfProvider.serviceExists(ownerOnlyServiceId)
+                    && serverConfProvider.getDisabledNotice(ownerOnlyServiceId) != null) {
+                log.trace("findById policyId={} SYSTEM-eligible but disabled", policyId);
+                return null;
+            }
+            return policyMapper.toOwnerOnlyPolicyDefinition(policyId, ownerOnlyServiceId.getClientId(), contextIds.system());
+        }
+        var systemServiceId = serviceContextResolver.resolveSystemService(policyId);
+        if (systemServiceId == null) {
             log.trace("findById policyId={} not published under SYSTEM", policyId);
             return null;
         }
-        return policyMapper.toOwnerOnlyPolicyDefinition(policyId, serviceId.getClientId(), contextIds.system());
+        if (!serviceContextResolver.isSystemUnrestrictedById(systemServiceId)) {
+            // Not published unrestricted under SYSTEM: never configured, disabled, or gated by
+            // access rights, in which case the per-subject compound id
+            // (collectPoliciesForService's system-scoped entry) carries the actual grant.
+            log.trace("findById policyId={} not unrestricted under SYSTEM", policyId);
+            return null;
+        }
+        return toBuiltinPolicyDefinition(policyId, contextIds.system());
     }
 
     /** The management-context owner-only policy {@code policyId} names, if this server serves it. */
@@ -211,6 +245,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
             return null;
         }
 
+        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
+            return null;
+        }
+
         var subjectIdStr = joinParts(parts, servicePartCount, parts.length);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
 
@@ -226,7 +264,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveEnabledById(serviceId));
+        if (serviceContextResolver.isSystemEligible(serviceId)) {
+            resolvedContexts.add(contextIds.system());
+        }
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
@@ -245,7 +286,11 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         if (serverConfProvider.getDisabledNotice(serviceId) != null) {
             return;
         }
+        var systemEligible = serviceContextResolver.isSystemEligible(serviceId);
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
+        if (serviceContextResolver.shouldPublishUnrestrictedSystemEntry(systemEligible, accessRights)) {
+            policies.add(toBuiltinPolicyDefinition(AssetMapper.encodeAssetId(serviceId), contextIds.system()));
+        }
         if (accessRights.isEmpty()) {
             return;
         }
@@ -254,7 +299,10 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = new ArrayList<>(serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds));
+        if (systemEligible) {
+            resolvedContexts.add(contextIds.system());
+        }
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();
