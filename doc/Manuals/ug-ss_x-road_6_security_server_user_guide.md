@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.109
+Version: 2.111
 Doc. ID: UG-SS
 
 ---
@@ -139,6 +139,7 @@ Doc. ID: UG-SS
 | 13.05.2026 | 2.108   | Correct tab placement for managing services                                                                                                                                                                                                                                                                                                                                                                 | Urmet Jänes          |
 | 22.05.2026 | 2.109   | Added ACME automatic certificate renewal clarification in a clustered setup                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
 | 24.08.2026 | 2.110   | Removed the ACME account keystore password: the account key pair is now generated and stored in OpenBao automatically                                                                                                                                                                                                                                                                                      | Stefan Cvetkovski    |
+| 25.09.2026 | 2.111   | Message log archive upload example script demo-upload.pl is no longer included in the Security Server packages                                                                                                                                                                                                                                                                                             | Eneli Reimets        |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -2203,7 +2204,7 @@ Override the configuration parameter archive-transfer-command (create or edit th
 archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
 ```
 
-The message log package contains the CGI script `/usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl` for a demo archiving server for the purpose of testing or development.
+An example CGI script for a demo archiving server, for testing or development purposes, is available as [`demo-upload.pl`](https://github.com/nordic-institute/X-Road/blob/develop/src/service/message-log-archiver/scripts/demo-upload.pl) on GitHub. It is not included in the Security Server packages.
 
 
 ### 11.3 Using a Remote Database

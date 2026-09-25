@@ -1,7 +1,7 @@
 # Signed Document Download and Verification Manual
 **X-ROAD 7**
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: UG-SIGDOC
 
 ---
@@ -25,6 +25,7 @@ Doc. ID: UG-SIGDOC
  25.08.2021 | 1.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
  03.09.2021 | 1.9     | Minor updates | Ilkka Seppälä
  08.10.2021 | 1.10    | Updates about encryption | Jarkko Hyöty
+ 25.09.2026 | 1.11    | Asicverifier is downloaded from the NIIS Artifactory instead of being bundled with the Security Server | Eneli Reimets
 
 ## Table of Contents
 
@@ -148,11 +149,13 @@ The *asic* service responds with the HTTP error code and plain text error messag
 
 Verification of signed documents is done by the asicverifier utility tool. The tool is written in the Java programming language and therefore requires Java 8 Runtime Environment (JRE) to be installed on the user's workstation. On Unix-like operating systems the JRE can be installed using package management software or downloaded from the Oracle website.
 
-The asicverifier utility is shipped with security server and it is located in the following directory:
+The asicverifier utility is no longer bundled with the Security Server. Download the version matching your X-Road release from the NIIS Artifactory:
 
 ```
-/usr/share/xroad/jlib/asicverifier.jar
+https://artifactory.niis.org/artifactory/xroad-maven-releases/org/niis/xroad/asicverifier/
 ```
+
+The downloaded file is named `asicverifier-<version>.jar`, for example `asicverifier-8.0.0.jar` for the X-Road 8.0.0 release.
 
 ### 3.1 Usage
 
