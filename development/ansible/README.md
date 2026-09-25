@@ -31,10 +31,11 @@ inventory files. For example, the group `[rhel_ss]` for RHEL-based security serv
 #### Variant
 
 When installing security servers, the Ansible playbooks use the configuration variable `variant`
-to select one of the available security server variants for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant. The three currently supported variants are:
+to select one of the available security server variants for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant. The four currently supported variants are:
 - `vanilla` - the basic non-country-specific version of X-Road
 - `ee` - the Estonian country variant, no RHEL variant package available
 - `fi` - the Finnish country variant
+- `is` - the Icelandic country variant
 
 Country variants provide country-specific configuration options and dependencies in order to suit the X-Road instances and policies of their host countries.
 The vanilla variant provides an operational X-Road installation without any country-specific configurations. Vanilla configurations can be considered the default X-Road configurations.
