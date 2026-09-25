@@ -46,9 +46,11 @@ if ! [[ "$RHEL_VER" =~ ^[0-9]+$ ]]; then
   RHEL_VER="$(. /etc/os-release && echo "${VERSION_ID%%.*}")"
 fi
 REDHAT_BUILD="build/xroad/redhat-el${RHEL_VER}"
+RPM_STAGE="${DIR}/build/xroad/rpm-el${RHEL_VER}"
+RPM_OUT="${DIR}/build/rhel/${RHEL_VER}"
 
 mkdir -p build/xroad
-rm -rf "$REDHAT_BUILD"
+rm -rf "$REDHAT_BUILD" "$RPM_STAGE"
 cp -a src/xroad/redhat "$REDHAT_BUILD"
 
 if [[ -z "$SNAPSHOT" ]]; then
@@ -77,7 +79,7 @@ rpmbuild \
     "${macro_snapshot[@]}" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad" \
-    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
+    --define "_rpmdir ${RPM_STAGE}" \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
 warn "Pass 1: $HOST_ARCH build finished."
@@ -91,10 +93,14 @@ rpmbuild \
     "${macro_snapshot[@]}" \
     --define "_topdir $ROOT" \
     --define "srcdir $DIR/src/xroad" \
-    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
+    --define "_rpmdir ${RPM_STAGE}" \
     --define "_binary_payload $compress" \
     --define "__strip /bin/true" \
     --target "$CROSS_TARGET" \
     -bb "${ROOT}/SPECS/xroad-signer.spec"
 warn "Pass 2: $CROSS_TARGET cross-build finished."
 
+# Both passes succeeded: replace the served package set with the staged one.
+mkdir -p "$(dirname "$RPM_OUT")"
+rm -rf "$RPM_OUT"
+mv "$RPM_STAGE" "$RPM_OUT"
