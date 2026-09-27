@@ -25,7 +25,7 @@ Doc. ID: UG-SIGDOC
  25.08.2021 | 1.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
  03.09.2021 | 1.9     | Minor updates | Ilkka Seppälä
  08.10.2021 | 1.10    | Updates about encryption | Jarkko Hyöty
- 25.09.2026 | 1.11    | Asicverifier is downloaded from the NIIS Artifactory instead of being bundled with the Security Server | Eneli Reimets
+ 28.09.2026 | 1.11    | ASIC verifier moved to NIIS Artifactory; usage example updated to use the versioned filename | Eneli Reimets
 
 ## Table of Contents
 
@@ -162,10 +162,10 @@ The downloaded file is named `asicverifier-<version>.jar`, for example `asicveri
 The asicverifier utility is run as follows:
 
 ```bash
-java -jar asicverifier.jar ( --version | <configuration path> <signed document> )
+java -jar asicverifier-<version>.jar ( --version | <configuration path> <signed document> )
 ```
 
-where `<signed document>` is the path to the signed document being verified and `<configuration path>` is the path to the verification configuration for this container (see Section 3.2 ). You can check the version of the asicverifier tool with the `--version` option.
+where `<version>` is the version of the downloaded asicverifier jar (e.g. `8.0.0`), `<signed document>` is the path to the signed document being verified and `<configuration path>` is the path to the verification configuration for this container (see Section 3.2 ). You can check the version of the asicverifier tool with the `--version` option.
 
 If verification is successful the output will be similar to:
 
