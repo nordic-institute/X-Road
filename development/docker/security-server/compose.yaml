@@ -317,7 +317,7 @@ services:
         reservations:
           memory: 64M
         limits:
-          memory: 512M
+          memory: 640M
   ui:
     image: ${PROXY_UI_IMG}
     pull_policy: always
