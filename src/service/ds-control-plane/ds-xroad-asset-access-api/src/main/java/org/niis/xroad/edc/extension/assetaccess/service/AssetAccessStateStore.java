@@ -44,24 +44,33 @@ public class AssetAccessStateStore {
     private final ConcurrentHashMap<String, CompletableFuture<ServiceResult<DataAddress>>> inFlightRequests = new ConcurrentHashMap<>();
 
     /**
-     * Returns the existing in-flight future for {@code key} if one exists; otherwise calls {@code supplier}
-     * to create a new future, registers it, and returns it. The registered future removes itself from the
-     * map on completion.
+     * Returns the existing in-flight future for {@code key} if one exists; otherwise claims the slot with
+     * a new future, then calls {@code supplier} outside the map to produce the result. The claimed future
+     * removes itself from the map on completion and, once the supplier's future completes, adopts its outcome.
      *
-     * <p>The self-removal callback is attached only after {@code computeIfAbsent} has inserted the entry.
-     * A supplier may return an already-completed future (the assembly itself failed synchronously); attaching
-     * the callback inside the mapping function would run the removal before the entry exists, leaving the
-     * dead future cached under the key forever. Callers that join an existing future attach a redundant
-     * callback; the value-conditional remove makes that harmless.
-     *
-     * <p>The supplier must be non-blocking: it runs under a {@link ConcurrentHashMap} bin lock
-     * and is expected only to assemble (not await) the async pipeline.
+     * <p>The slot is claimed before {@code supplier} runs, so the supplier may block; a supplier that throws
+     * synchronously fails the claimed future and leaves no entry behind.
      */
     public CompletableFuture<ServiceResult<DataAddress>> loadOrStartInFlight(
             String key,
             Supplier<CompletableFuture<ServiceResult<DataAddress>>> supplier) {
-        var future = inFlightRequests.computeIfAbsent(key, k -> supplier.get());
-        future.whenComplete((result, throwable) -> inFlightRequests.remove(key, future));
-        return future;
+        var claimed = new CompletableFuture<ServiceResult<DataAddress>>();
+        var existing = inFlightRequests.putIfAbsent(key, claimed);
+        if (existing != null) {
+            return existing;
+        }
+        claimed.whenComplete((result, throwable) -> inFlightRequests.remove(key, claimed));
+        try {
+            supplier.get().whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    claimed.completeExceptionally(throwable);
+                } else {
+                    claimed.complete(result);
+                }
+            });
+        } catch (Exception e) {
+            claimed.completeExceptionally(e);
+        }
+        return claimed;
     }
 }

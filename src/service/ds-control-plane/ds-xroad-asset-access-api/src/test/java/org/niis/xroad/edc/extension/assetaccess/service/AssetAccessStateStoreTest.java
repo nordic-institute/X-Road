@@ -32,11 +32,16 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 class AssetAccessStateStoreTest {
 
@@ -141,5 +146,91 @@ class AssetAccessStateStoreTest {
         var future2 = store.loadOrStartInFlight("key-b", CompletableFuture::new);
 
         assertThat(future1).isNotSameAs(future2);
+    }
+
+    @Test
+    void supplierBlockingForOneKeyDoesNotBlockAnotherKey() throws Exception {
+        var supplierStarted = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var executor = Executors.newSingleThreadExecutor();
+        try {
+            var addressA = DataAddress.Builder.newInstance().type("HttpData").build();
+            var taskA = executor.submit(() -> store.loadOrStartInFlight("key-a", () -> {
+                supplierStarted.countDown();
+                awaitLatch(release);
+                return CompletableFuture.completedFuture(ServiceResult.success(addressA));
+            }));
+
+            assertThat(supplierStarted.await(2, TimeUnit.SECONDS)).isTrue();
+
+            var addressB = DataAddress.Builder.newInstance().type("HttpData").build();
+            var futureB = assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
+                    store.loadOrStartInFlight("key-b", () -> CompletableFuture.completedFuture(ServiceResult.success(addressB))));
+            assertThat(futureB.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(addressB);
+
+            release.countDown();
+            var futureA = taskA.get(2, TimeUnit.SECONDS);
+            assertThat(futureA.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(addressA);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void synchronouslyThrowingSupplierFailsFutureAndLeavesNoEntry() {
+        var cause = new IllegalStateException("boom");
+
+        var first = store.loadOrStartInFlight("k", () -> {
+            throw cause;
+        });
+
+        assertThat(first).isCompletedExceptionally();
+        assertThatThrownBy(first::get).hasCause(cause);
+
+        var supplierCalled = new AtomicInteger(0);
+        store.loadOrStartInFlight("k", () -> {
+            supplierCalled.incrementAndGet();
+            return new CompletableFuture<>();
+        });
+        assertThat(supplierCalled.get()).isEqualTo(1);
+    }
+
+    @Test
+    void secondCallerDuringBlockedSupplierSharesTheClaimedFuture() throws Exception {
+        var supplierStarted = new CountDownLatch(1);
+        var release = new CountDownLatch(1);
+        var executor = Executors.newSingleThreadExecutor();
+        try {
+            var address = DataAddress.Builder.newInstance().type("HttpData").build();
+            var taskA = executor.submit(() -> store.loadOrStartInFlight("key-a", () -> {
+                supplierStarted.countDown();
+                awaitLatch(release);
+                return CompletableFuture.completedFuture(ServiceResult.success(address));
+            }));
+
+            assertThat(supplierStarted.await(2, TimeUnit.SECONDS)).isTrue();
+
+            var second = assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
+                    store.loadOrStartInFlight("key-a", () -> {
+                        throw new AssertionError("supplier must not run for a caller joining an in-flight request");
+                    }));
+
+            release.countDown();
+            var first = taskA.get(2, TimeUnit.SECONDS);
+
+            assertThat(second).isSameAs(first);
+            assertThat(first.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(address);
+            assertThat(second.get(2, TimeUnit.SECONDS).getContent()).isEqualTo(address);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private static void awaitLatch(CountDownLatch latch) {
+        try {
+            assertThat(latch.await(2, TimeUnit.SECONDS)).isTrue();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
