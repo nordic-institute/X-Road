@@ -139,7 +139,7 @@ class AgreementTokenMintVerifyTest {
 
     @Test
     void defaultTokenTtlShouldBeSixtySeconds() {
-        assertThat(AgreementTokenProtocolProperties.DEFAULT_TOKEN_TTL).isEqualTo(Duration.ofSeconds(60));
+        assertThat(AgreementTokenProtocolProperties.DEFAULT_TOKEN_TTL).hasSeconds(60);
     }
 
     @Test

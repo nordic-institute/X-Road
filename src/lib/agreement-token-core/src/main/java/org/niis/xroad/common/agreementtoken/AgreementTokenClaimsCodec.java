@@ -65,7 +65,7 @@ final class AgreementTokenClaimsCodec {
     }
 
     static ClientId decodeClient(String encoded) {
-        var parts = splitEncodedId(encoded, "client_id");
+        var parts = splitEncodedId(encoded, CLAIM_CLIENT);
         if (parts.length != MEMBER_CLIENT_ID_PARTS && parts.length != SUBSYSTEM_CLIENT_ID_PARTS) {
             throw new IllegalArgumentException("invalid client_id claim: " + encoded);
         }

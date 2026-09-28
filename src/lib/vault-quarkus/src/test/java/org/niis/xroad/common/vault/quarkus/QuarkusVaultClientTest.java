@@ -44,13 +44,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -88,7 +86,7 @@ class QuarkusVaultClientTest {
             return secretsByPath.keySet().stream()
                     .filter(path -> path.startsWith(prefix))
                     .map(path -> path.substring(prefix.length()))
-                    .collect(Collectors.toList());
+                    .toList();
         });
     }
 
@@ -229,8 +227,7 @@ class QuarkusVaultClientTest {
         assertThat(expectedPath).doesNotContain("/data/").doesNotContain("cas");
 
         var written = secretsByPath.get(expectedPath);
-        assertThat(written).isNotEmpty();
-        assertThat(written).containsEntry(VaultClient.PAYLOAD_KEY, "some-key-pair-jwk");
+        assertThat(written).isNotEmpty().containsEntry(VaultClient.PAYLOAD_KEY, "some-key-pair-jwk");
     }
 
     @Test
@@ -238,7 +235,7 @@ class QuarkusVaultClientTest {
         vaultClient.createAgreementTokenSigningKey("1", "some-key-pair-jwk");
         vaultClient.getAgreementTokenSigningKeys();
 
-        verify(kvSecretEngine, never()).deleteSecret(eq(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1"));
+        verify(kvSecretEngine, never()).deleteSecret(VaultClient.AGREEMENT_TOKEN_SIGNING_KEYS_BASE_PATH + "/1");
         verify(kvSecretEngine, never()).deleteSecret(anyString());
     }
 

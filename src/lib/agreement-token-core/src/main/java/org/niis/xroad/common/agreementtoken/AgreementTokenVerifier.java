@@ -96,29 +96,9 @@ public final class AgreementTokenVerifier {
             return rejected(MALFORMED_TOKEN, "token is not a well-formed JWS: " + e.getMessage());
         }
 
-        var keyId = signedJwt.getHeader().getKeyID();
-        if (keyId == null || keyId.isBlank()) {
-            return rejected(MALFORMED_TOKEN, "token header carries no key id");
-        }
-
-        var signingKey = keyProvider.keyById(keyId);
-        if (signingKey.isEmpty()) {
-            return rejected(UNKNOWN_KEY_ID, "no signing key known for key id '" + keyId + "'");
-        }
-
-        var algorithm = signedJwt.getHeader().getAlgorithm();
-        if (!JWSAlgorithm.ES256.equals(algorithm)) {
-            return rejected(INVALID_SIGNATURE, "expected signature algorithm ES256, got '" + algorithm + "'");
-        }
-
-        boolean signatureValid;
-        try {
-            signatureValid = signedJwt.verify(new ECDSAVerifier(signingKey.get().publicKey()));
-        } catch (JOSEException e) {
-            return rejected(INVALID_SIGNATURE, "signature verification failed: " + e.getMessage());
-        }
-        if (!signatureValid) {
-            return rejected(INVALID_SIGNATURE, "signature does not match");
+        var signatureRejection = checkSignature(signedJwt);
+        if (signatureRejection.isPresent()) {
+            return signatureRejection.get();
         }
 
         JWTClaimsSet claimsSet;
@@ -128,50 +108,96 @@ public final class AgreementTokenVerifier {
             return rejected(MALFORMED_TOKEN, "token payload is not a valid claims set: " + e.getMessage());
         }
 
-        var expirationTime = claimsSet.getExpirationTime();
-        if (expirationTime == null) {
-            return rejected(MALFORMED_TOKEN, "token carries no expiry");
-        }
-        var expiresAt = expirationTime.toInstant();
-        if (!Instant.now(clock).isBefore(expiresAt)) {
-            return rejected(EXPIRED, "token expired at " + expiresAt);
-        }
-
-        if (!Objects.equals(properties.issuer(), claimsSet.getIssuer())) {
-            return rejected(ISSUER_MISMATCH, "expected issuer '" + properties.issuer() + "', got '" + claimsSet.getIssuer() + "'");
-        }
-
-        var audience = claimsSet.getAudience();
-        if (audience == null || !audience.contains(properties.audience())) {
-            return rejected(AUDIENCE_MISMATCH, "expected audience '" + properties.audience() + "', got " + audience);
+        var envelopeRejection = checkEnvelope(claimsSet);
+        if (envelopeRejection.isPresent()) {
+            return envelopeRejection.get();
         }
 
         AgreementTokenClaims claims;
         try {
-            claims = decodeClaims(claimsSet, expiresAt);
+            claims = decodeClaims(claimsSet);
         } catch (IllegalArgumentException e) {
             return rejected(MALFORMED_TOKEN, "token claims are malformed: " + e.getMessage());
         }
 
-        if (!claims.client().equals(context.expectedClient())) {
-            return rejected(CLIENT_MISMATCH, "token client does not match the signature-proven client");
+        var grantRejection = checkGrant(claims, context);
+        if (grantRejection.isPresent()) {
+            return grantRejection.get();
         }
-        if (!claims.service().equals(context.expectedService())) {
-            return rejected(SERVICE_MISMATCH, "token service does not match the requested service");
-        }
-        if (context.isRest()) {
-            var requestPath = normalizeLikeAcl(context.requestPath());
-            if (requestPath.isEmpty()) {
-                return rejected(SCOPE_MISMATCH, "request path cannot be normalised: " + context.requestPath());
-            }
-            var scopeMatches = claims.scope().stream()
-                    .anyMatch(entry -> entry.matches(context.requestMethod(), requestPath.get()));
-            if (!scopeMatches) {
-                return rejected(SCOPE_MISMATCH, "no scope entry matches " + context.requestMethod() + " " + requestPath.get());
-            }
+        return new AgreementTokenVerificationResult.Valid(claims);
+    }
+
+    private Optional<AgreementTokenVerificationResult.Rejected> checkSignature(SignedJWT signedJwt) {
+        var keyId = signedJwt.getHeader().getKeyID();
+        if (keyId == null || keyId.isBlank()) {
+            return Optional.of(rejected(MALFORMED_TOKEN, "token header carries no key id"));
         }
 
-        return new AgreementTokenVerificationResult.Valid(claims);
+        var signingKey = keyProvider.keyById(keyId);
+        if (signingKey.isEmpty()) {
+            return Optional.of(rejected(UNKNOWN_KEY_ID, "no signing key known for key id '" + keyId + "'"));
+        }
+
+        var algorithm = signedJwt.getHeader().getAlgorithm();
+        if (!JWSAlgorithm.ES256.equals(algorithm)) {
+            return Optional.of(rejected(INVALID_SIGNATURE, "expected signature algorithm ES256, got '" + algorithm + "'"));
+        }
+
+        try {
+            if (!signedJwt.verify(new ECDSAVerifier(signingKey.get().publicKey()))) {
+                return Optional.of(rejected(INVALID_SIGNATURE, "signature does not match"));
+            }
+        } catch (JOSEException e) {
+            return Optional.of(rejected(INVALID_SIGNATURE, "signature verification failed: " + e.getMessage()));
+        }
+        return Optional.empty();
+    }
+
+    private Optional<AgreementTokenVerificationResult.Rejected> checkEnvelope(JWTClaimsSet claimsSet) {
+        var expirationTime = claimsSet.getExpirationTime();
+        if (expirationTime == null) {
+            return Optional.of(rejected(MALFORMED_TOKEN, "token carries no expiry"));
+        }
+        var expiresAt = expirationTime.toInstant();
+        if (!Instant.now(clock).isBefore(expiresAt)) {
+            return Optional.of(rejected(EXPIRED, "token expired at " + expiresAt));
+        }
+
+        if (!Objects.equals(properties.issuer(), claimsSet.getIssuer())) {
+            return Optional.of(rejected(ISSUER_MISMATCH,
+                    "expected issuer '" + properties.issuer() + "', got '" + claimsSet.getIssuer() + "'"));
+        }
+
+        var audience = claimsSet.getAudience();
+        if (audience == null || !audience.contains(properties.audience())) {
+            return Optional.of(rejected(AUDIENCE_MISMATCH, "expected audience '" + properties.audience() + "', got " + audience));
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<AgreementTokenVerificationResult.Rejected> checkGrant(AgreementTokenClaims claims,
+                                                                                  AgreementTokenRequestContext context) {
+        if (!claims.client().equals(context.expectedClient())) {
+            return Optional.of(rejected(CLIENT_MISMATCH, "token client does not match the signature-proven client"));
+        }
+        if (!claims.service().equals(context.expectedService())) {
+            return Optional.of(rejected(SERVICE_MISMATCH, "token service does not match the requested service"));
+        }
+        if (!context.isRest()) {
+            return Optional.empty();
+        }
+
+        var requestPath = normalizeLikeAcl(context.requestPath());
+        if (requestPath.isEmpty()) {
+            return Optional.of(rejected(SCOPE_MISMATCH, "request path cannot be normalised: " + context.requestPath()));
+        }
+        var scopeMatches = claims.scope().stream()
+                .anyMatch(entry -> entry.matches(context.requestMethod(), requestPath.get()));
+        if (!scopeMatches) {
+            return Optional.of(rejected(SCOPE_MISMATCH,
+                    "no scope entry matches " + context.requestMethod() + " " + requestPath.get()));
+        }
+        return Optional.empty();
     }
 
     /**
@@ -191,11 +217,12 @@ public final class AgreementTokenVerifier {
         }
     }
 
-    private AgreementTokenClaims decodeClaims(JWTClaimsSet claimsSet, Instant expiresAt) {
+    private AgreementTokenClaims decodeClaims(JWTClaimsSet claimsSet) {
         var agreementId = requireStringClaim(claimsSet, CLAIM_AGREEMENT_ID);
         var client = decodeClient(requireStringClaim(claimsSet, CLAIM_CLIENT));
         var service = decodeService(requireStringClaim(claimsSet, CLAIM_SERVICE));
         var scope = decodeScope(claimsSet);
+        var expiresAt = claimsSet.getExpirationTime().toInstant();
         return new AgreementTokenClaims(agreementId, client, service, scope, claimsSet.getIssuer(), properties.audience(), expiresAt);
     }
 

@@ -62,21 +62,25 @@ class AgreementTokenVaultDataUtilsTest {
 
     @Test
     void shouldFailWhenAListedKeyCannotBeRead() {
-        Function<String, Optional<? extends Map<String, ?>>> reads = path ->
-                path.endsWith("/2") ? Optional.empty() : Optional.of(Map.of(VaultClient.PAYLOAD_KEY, "jwk"));
+        var stored = Map.of(AgreementTokenVaultDataUtils.buildSigningKeyPath("1"), Map.of(VaultClient.PAYLOAD_KEY, "jwk"));
 
-        assertThatThrownBy(() -> AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, reads))
+        assertThatThrownBy(() -> AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, readsFrom(stored)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("'2'");
     }
 
     @Test
     void shouldFailWhenAListedKeyHasNoPayload() {
-        Function<String, Optional<? extends Map<String, ?>>> reads = path ->
-                path.endsWith("/2") ? Optional.of(Map.of("unrelated", "x")) : Optional.of(Map.of(VaultClient.PAYLOAD_KEY, "jwk"));
+        var stored = Map.of(
+                AgreementTokenVaultDataUtils.buildSigningKeyPath("1"), Map.of(VaultClient.PAYLOAD_KEY, "jwk"),
+                AgreementTokenVaultDataUtils.buildSigningKeyPath("2"), Map.of("unrelated", "x"));
 
-        assertThatThrownBy(() -> AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, reads))
+        assertThatThrownBy(() -> AgreementTokenVaultDataUtils.getAgreementTokenSigningKeys(LISTS_ONE_AND_TWO, readsFrom(stored)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("'2'");
+    }
+
+    private static Function<String, Optional<? extends Map<String, ?>>> readsFrom(Map<String, Map<String, String>> stored) {
+        return path -> Optional.ofNullable(stored.get(path));
     }
 }
