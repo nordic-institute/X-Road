@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.NodeProperties;
+import org.niis.xroad.common.properties.config.keys.AdminServiceConfigKeys;
+import org.niis.xroad.common.properties.spring.SpringConditionConfig;
 import org.niis.xroad.securityserver.restapi.service.DataspaceParticipantBindingService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService;
 import org.niis.xroad.securityserver.restapi.service.DataspaceProvisioningService.ParticipantContext;
@@ -213,11 +215,15 @@ public final class DataspaceParticipantProvisioningWorker implements DataspacePa
     static class IsActive implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return isActive();
+            var config = SpringConditionConfig.resolve(context.getEnvironment(), AdminServiceConfigKeys.instance());
+            return isActive(config.value(AdminServiceConfigKeys.DATASPACE_PARTICIPANT_PROVISIONING_ENABLED));
         }
 
-        static boolean isActive() {
-            return !NodeProperties.isSecondaryNode();
+        static boolean isActive(boolean participantProvisioningEnabled) {
+            if (NodeProperties.isSecondaryNode()) {
+                return false;
+            }
+            return participantProvisioningEnabled;
         }
     }
 }

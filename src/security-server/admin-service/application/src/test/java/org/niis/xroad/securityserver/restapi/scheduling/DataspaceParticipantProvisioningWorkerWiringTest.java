@@ -86,4 +86,35 @@ class DataspaceParticipantProvisioningWorkerWiringTest {
                     .isInstanceOf(DataspaceParticipantProvisioningWorker.class);
         });
     }
+
+    /**
+     * {@code SpringConditionConfig} resolves {@code xroad.*} values from the DSL (stored overrides
+     * plus packaged defaults), never from the Spring {@code Environment} — so, like
+     * {@code DsTlsAcmeCertificateRenewalSchedulingConfigTest}, the switch's effect on each condition is
+     * exercised directly against the static decision method; only the node type still comes from the
+     * environment via {@link #variables}.
+     */
+    @Test
+    void theWorkerIsInactiveAndTheNoopTriggerIsActiveWhenTheSwitchIsOff() {
+        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.PRIMARY.name().toLowerCase());
+
+        assertThat(DataspaceParticipantProvisioningWorker.IsActive.isActive(false)).isFalse();
+        assertThat(NoopDataspaceParticipantProvisioningTrigger.IsActive.isActive(false)).isTrue();
+    }
+
+    @Test
+    void theNoopTriggerStaysActiveOnASecondaryNodeEvenWithTheSwitchOn() {
+        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.SECONDARY.name().toLowerCase());
+
+        assertThat(DataspaceParticipantProvisioningWorker.IsActive.isActive(true)).isFalse();
+        assertThat(NoopDataspaceParticipantProvisioningTrigger.IsActive.isActive(true)).isTrue();
+    }
+
+    @Test
+    void theNoopTriggerStaysActiveOnASecondaryNodeWithTheSwitchOff() {
+        variables.set(NODE_TYPE_ENV_VARIABLE, NodeProperties.NodeType.SECONDARY.name().toLowerCase());
+
+        assertThat(DataspaceParticipantProvisioningWorker.IsActive.isActive(false)).isFalse();
+        assertThat(NoopDataspaceParticipantProvisioningTrigger.IsActive.isActive(false)).isTrue();
+    }
 }
