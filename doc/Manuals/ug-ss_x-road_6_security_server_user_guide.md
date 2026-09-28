@@ -2204,7 +2204,7 @@ Override the configuration parameter archive-transfer-command (create or edit th
 archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
 ```
 
-An example CGI script for a demo archiving server, for testing or development purposes, is available as [`demo-upload.pl`](https://github.com/nordic-institute/X-Road/blob/develop/src/service/message-log-archiver/scripts/demo-upload.pl) on GitHub. It is not included in the Security Server packages.
+An example CGI script for a demo archiving server, for testing or development purposes, is available as [`demo-upload.pl`](https://github.com/nordic-institute/X-Road/blob/develop/src/service/message-log-archiver/scripts/demo-upload.pl) on GitHub.
 
 
 ### 11.3 Using a Remote Database
