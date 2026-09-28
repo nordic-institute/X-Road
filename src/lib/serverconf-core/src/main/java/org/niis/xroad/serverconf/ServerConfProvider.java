@@ -232,6 +232,10 @@ public interface ServerConfProvider {
      * type its matching logic uses (method/path glob, {@link org.niis.xroad.serverconf.model.BaseEndpoint}).
      * Includes entries granted to the client directly, through a local group, or through a global group;
      * excludes anything only implicitly allowed.
+     * <p>
+     * Always reads the current configuration rather than an implementation's ACL cache, unlike
+     * {@link #isQueryAllowed(ClientId, ServiceId, String, String)}. Meant for infrequent decisions where a
+     * stale answer would matter, such as minting a token, not for the per-message access check.
      *
      * @param clientId  the client identifier
      * @param serviceId the service identifier

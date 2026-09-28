@@ -38,6 +38,7 @@ import org.niis.xroad.common.agreementtoken.AgreementTokenRequestContext;
 import org.niis.xroad.common.agreementtoken.AgreementTokenScope;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerificationResult;
 import org.niis.xroad.common.agreementtoken.AgreementTokenVerifier;
+import org.niis.xroad.common.agreementtoken.key.AgreementTokenKeyProvider;
 import org.niis.xroad.proxy.controlplane.AgreementGrant;
 import org.niis.xroad.proxy.controlplane.AgreementGrantRpcClient;
 import org.niis.xroad.proxy.core.configuration.AgreementTokenKeyMaterial;
@@ -111,6 +112,28 @@ class AgreementTokenIssuerTest {
     @Test
     void returnsEmptyWhenGrantLookupThrows() {
         when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenThrow(new RuntimeException("boom"));
+
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+    }
+
+    @Test
+    void returnsEmptyWhenAclEnumerationThrows() {
+        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE)).thenThrow(new RuntimeException("boom"));
+
+        assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
+    }
+
+    @Test
+    void returnsEmptyWhenMintingThrows() {
+        var scope = List.of(new AgreementTokenScope("GET", "/foo/*"));
+        when(grantRpcClient.resolveAgreementGrant(AGREEMENT_ID)).thenReturn(Optional.of(new AgreementGrant(CONSUMER, SERVICE, scope)));
+        when(serverConfProvider.getAclEndpoints(CONSUMER, SERVICE))
+                .thenReturn(List.of(new Endpoint("getData", "GET", "/foo/*", false)));
+        var throwingKeyProvider = mock(AgreementTokenKeyProvider.class);
+        when(throwingKeyProvider.activeKey()).thenThrow(new RuntimeException("boom"));
+        when(keyMaterial.provider()).thenReturn(Optional.of(throwingKeyProvider));
 
         assertThat(issuer.issueToken(AGREEMENT_ID)).isEmpty();
     }

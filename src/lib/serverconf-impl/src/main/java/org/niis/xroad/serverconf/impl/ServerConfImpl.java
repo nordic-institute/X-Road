@@ -435,7 +435,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<Endpoint> getAclEndpoints(ClientId clientId, ServiceId serviceId) {
-        return tx(session -> getAclEndpoints(session, clientId, serviceId));
+        return tx(session -> loadAclEndpoints(session, clientId, serviceId));
     }
 
     @Override
@@ -539,6 +539,15 @@ public class ServerConfImpl implements ServerConfProvider {
      * Includes only endpoints the client has a direct acl entry for, does not check for implicitly allowed endpoints.
      */
     protected List<Endpoint> getAclEndpoints(Session session, ClientId clientId, ServiceId serviceId) {
+        return loadAclEndpoints(session, clientId, serviceId);
+    }
+
+    /**
+     * Uncached ACL endpoint load. Called directly by {@link #getAclEndpoints(ClientId, ServiceId)} so that
+     * call always reads the current configuration, and by {@link #getAclEndpoints(Session, ClientId, ServiceId)},
+     * which a caching subclass overrides to serve a cached answer instead.
+     */
+    private List<Endpoint> loadAclEndpoints(Session session, ClientId clientId, ServiceId serviceId) {
         log.debug("getAcl, session = {}", session);
 
         final ClientEntity serviceOwner = clientDao.getClient(session, serviceId.getClientId());
