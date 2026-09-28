@@ -36,6 +36,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStor
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -48,6 +50,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -59,6 +62,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_ACQUISITION_FAILED;
 import static org.niis.xroad.common.core.exception.ErrorCode.DSP_NEGOTIATION_FAILED;
@@ -70,16 +75,17 @@ import static org.niis.xroad.common.core.exception.ErrorCode.DSP_TRANSFER_FAILED
  * listener. A terminal state is visible in the store before any listener anywhere would fire, so
  * the same mechanism serves a single instance and several instances sharing one database.
  *
- * <p>Each poll pass reads and classifies every registered waiter inside one transaction; the
- * transaction covers reads only. Completion - removing the waiter and finishing its future, resolving
- * a started transfer's data address - happens after the transaction has returned, on a dedicated
- * completion executor. The poll thread never completes a future or runs a caller continuation
- * directly, and never holds a transaction while resolving a data address.
+ * <p>Each poll pass reads the registered ids that reached a terminal state and classifies every
+ * registered waiter inside one transaction; the transaction covers reads only. Completion - removing
+ * the waiter and finishing its future, resolving a started transfer's data address - happens after
+ * the transaction has returned, on a dedicated completion executor. The poll thread never completes
+ * a future or runs a caller continuation directly, and never holds a transaction while resolving a
+ * data address.
  *
- * <p>A waiter's deadline is enforced independently of the database: a read that throws for one
- * waiter is logged and treated the same as a read that returns nothing, falling through to the
- * deadline check; if the pass's transaction itself fails, a deadline-only sweep over both waiter
- * maps still runs, since comparing the clock against a deadline needs no store access.
+ * <p>A waiter's deadline is enforced independently of the database: a batch read that throws is
+ * logged once and every waiter in it is treated the same as a read that returned nothing, falling
+ * through to the deadline check; if the pass's transaction itself fails, a deadline-only sweep over
+ * both waiter maps still runs, since comparing the clock against a deadline needs no store access.
  */
 public class AssetAccessCompletionPoller {
 
@@ -87,6 +93,11 @@ public class AssetAccessCompletionPoller {
     private static final String COMPLETION_THREAD_NAME = "AssetAccessCompletionPoller-completion";
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 5;
     private static final String DEFAULT_TERMINATION_DETAIL = "provider terminated";
+    private static final int READ_BATCH_SIZE = 500;
+    private static final List<String> NEGOTIATION_TERMINAL_STATES =
+            List.of(ContractNegotiationStates.FINALIZED.name(), ContractNegotiationStates.TERMINATED.name());
+    private static final List<String> TRANSFER_TERMINAL_STATES =
+            List.of(TransferProcessStates.STARTED.name(), TransferProcessStates.TERMINATED.name());
 
     private final ContractNegotiationStore negotiationStore;
     private final TransferProcessStore transferProcessStore;
@@ -218,10 +229,12 @@ public class AssetAccessCompletionPoller {
             return;
         }
         List<Runnable> completions = new ArrayList<>();
+        var negotiationSnapshot = Map.copyOf(negotiationWaiters);
+        var transferSnapshot = Map.copyOf(transferWaiters);
         try {
             transactionContext.execute(() -> {
-                negotiationWaiters.forEach((id, waiter) -> pollNegotiation(completions, id, waiter));
-                transferWaiters.forEach((id, waiter) -> pollTransfer(completions, id, waiter));
+                pollNegotiations(completions, negotiationSnapshot);
+                pollTransfers(completions, transferSnapshot);
             });
         } catch (Exception e) {
             monitor.severe("Asset access completion poll transaction failed, sweeping deadlines only", e);
@@ -232,13 +245,59 @@ public class AssetAccessCompletionPoller {
         completions.forEach(Runnable::run);
     }
 
-    private void pollNegotiation(List<Runnable> completions, String id, Waiter<ContractAgreement> waiter) {
-        ContractNegotiation negotiation = null;
-        try {
-            negotiation = negotiationStore.findById(id);
-        } catch (Exception e) {
-            monitor.warning("Reading negotiation %s failed, leaving it pending".formatted(id), e);
+    private void pollNegotiations(List<Runnable> completions, Map<String, Waiter<ContractAgreement>> waiters) {
+        for (List<String> chunk : chunkIds(waiters.keySet())) {
+            var negotiations = readNegotiationChunk(chunk);
+            chunk.forEach(id -> processNegotiation(completions, id, waiters.get(id), negotiations.get(id)));
         }
+    }
+
+    private void pollTransfers(List<Runnable> completions, Map<String, Waiter<DataAddress>> waiters) {
+        for (List<String> chunk : chunkIds(waiters.keySet())) {
+            var transferProcesses = readTransferChunk(chunk);
+            chunk.forEach(id -> processTransfer(completions, id, waiters.get(id), transferProcesses.get(id)));
+        }
+    }
+
+    private static List<List<String>> chunkIds(Set<String> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        var idList = List.copyOf(ids);
+        List<List<String>> chunks = new ArrayList<>();
+        for (int start = 0; start < idList.size(); start += READ_BATCH_SIZE) {
+            chunks.add(idList.subList(start, Math.min(start + READ_BATCH_SIZE, idList.size())));
+        }
+        return chunks;
+    }
+
+    private static QuerySpec idBatchQuerySpec(List<String> ids, List<String> terminalStateNames) {
+        return QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("id", "in", ids), new Criterion("state", "in", terminalStateNames)))
+                .limit(ids.size())
+                .build();
+    }
+
+    private Map<String, ContractNegotiation> readNegotiationChunk(List<String> ids) {
+        try (var stream = negotiationStore.queryNegotiations(idBatchQuerySpec(ids, NEGOTIATION_TERMINAL_STATES))) {
+            return stream.collect(Collectors.toMap(ContractNegotiation::getId, Function.identity()));
+        } catch (Exception e) {
+            monitor.warning("Reading a batch of %d negotiations failed, leaving them pending".formatted(ids.size()), e);
+            return Map.of();
+        }
+    }
+
+    private Map<String, TransferProcess> readTransferChunk(List<String> ids) {
+        try (var stream = transferProcessStore.findAll(idBatchQuerySpec(ids, TRANSFER_TERMINAL_STATES))) {
+            return stream.collect(Collectors.toMap(TransferProcess::getId, Function.identity()));
+        } catch (Exception e) {
+            monitor.warning("Reading a batch of %d transfer processes failed, leaving them pending".formatted(ids.size()), e);
+            return Map.of();
+        }
+    }
+
+    private void processNegotiation(List<Runnable> completions, String id, Waiter<ContractAgreement> waiter,
+                                  ContractNegotiation negotiation) {
         if (negotiation != null) {
             var state = ContractNegotiationStates.from(negotiation.getState());
             if (state == ContractNegotiationStates.FINALIZED) {
@@ -257,24 +316,17 @@ public class AssetAccessCompletionPoller {
         checkDeadline(negotiationWaiters, completions, id, waiter);
     }
 
-    private void pollTransfer(List<Runnable> completions, String id, Waiter<DataAddress> waiter) {
-        TransferProcess transferProcess = null;
-        try {
-            transferProcess = transferProcessStore.findById(id);
-        } catch (Exception e) {
-            monitor.warning("Reading transfer process %s failed, leaving it pending".formatted(id), e);
-        }
+    private void processTransfer(List<Runnable> completions, String id, Waiter<DataAddress> waiter, TransferProcess transferProcess) {
         if (transferProcess != null) {
-            var resolvedTransferProcess = transferProcess;
-            var state = TransferProcessStates.from(resolvedTransferProcess.getState());
+            var state = TransferProcessStates.from(transferProcess.getState());
             if (state == TransferProcessStates.STARTED) {
                 monitor.debug("Transfer process %s reached STARTED".formatted(id));
-                completions.add(() -> resolveAndCompleteTransfer(id, waiter, resolvedTransferProcess));
+                completions.add(() -> resolveAndCompleteTransfer(id, waiter, transferProcess));
                 return;
             }
             if (state == TransferProcessStates.TERMINATED) {
                 monitor.debug("Transfer process %s reached TERMINATED".formatted(id));
-                var failure = transferFailure(id, errorDetailOrDefault(resolvedTransferProcess.getErrorDetail()));
+                var failure = transferFailure(id, errorDetailOrDefault(transferProcess.getErrorDetail()));
                 completions.add(() -> failWaiter(transferWaiters, id, waiter, failure));
                 return;
             }

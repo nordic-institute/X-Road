@@ -37,6 +37,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.core.exception.ErrorOrigin;
@@ -57,6 +59,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -66,11 +69,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -85,6 +89,7 @@ class AssetAccessCompletionPollerTest {
     private static final Duration LONG_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration ASYNC_AWAIT = Duration.ofSeconds(2);
     private static final String DEFAULT_TERMINATION_DETAIL = "provider terminated";
+    private static final int BATCH_SIZE = 500;
 
     @Mock
     ContractNegotiationStore negotiationStore;
@@ -102,6 +107,8 @@ class AssetAccessCompletionPollerTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> Stream.empty());
+        lenient().when(transferProcessStore.findAll(any())).thenAnswer(invocation -> Stream.empty());
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
             TransferProcess transferProcess = invocation.getArgument(0);
             var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
@@ -119,7 +126,8 @@ class AssetAccessCompletionPollerTest {
     @Test
     void awaitNegotiationCompletesWithAgreementWhenFinalized() throws Exception {
         var agreement = buildAgreement();
-        when(negotiationStore.findById("neg-1")).thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null)));
 
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
@@ -129,8 +137,8 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitNegotiationFailsWithStoredErrorDetailWhenTerminated() {
-        when(negotiationStore.findById("neg-1"))
-                .thenReturn(buildNegotiation(ContractNegotiationStates.TERMINATED, null, "provider refused"));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.TERMINATED, null, "provider refused")));
 
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
@@ -148,8 +156,8 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitNegotiationKeepsPendingForNonTerminalState() {
-        when(negotiationStore.findById("neg-1"))
-                .thenReturn(buildNegotiation(ContractNegotiationStates.REQUESTED, null, null));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.REQUESTED, null, null)));
 
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
@@ -159,8 +167,8 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitNegotiationFailsWithDefaultDetailWhenTerminatedWithoutErrorDetail() {
-        when(negotiationStore.findById("neg-1"))
-                .thenReturn(buildNegotiation(ContractNegotiationStates.TERMINATED, null, null));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.TERMINATED, null, null)));
 
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
@@ -173,8 +181,6 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitNegotiationFailsWithTimeoutWhenDeadlinePasses() {
-        when(negotiationStore.findById("neg-1")).thenReturn(null);
-
         var future = poller.awaitNegotiation("neg-1", Duration.ofMillis(10));
         clock.advanceTo(clock.instant().plusMillis(20));
         poller.poll();
@@ -185,8 +191,8 @@ class AssetAccessCompletionPollerTest {
     @Test
     void awaitTransferCompletesWithDataAddressWhenStarted() throws Exception {
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
-        when(transferProcessStore.findById("tp-1"))
-                .thenReturn(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null)));
 
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
@@ -196,8 +202,8 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitTransferFailsWithStoredErrorDetailWhenTerminated() {
-        when(transferProcessStore.findById("tp-1"))
-                .thenReturn(buildTransferProcess(TransferProcessStates.TERMINATED, null, "provider terminated the transfer"));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.TERMINATED, null, "provider terminated the transfer")));
 
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
@@ -215,8 +221,8 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitTransferFailsWithDefaultDetailWhenTerminatedWithoutErrorDetail() {
-        when(transferProcessStore.findById("tp-1"))
-                .thenReturn(buildTransferProcess(TransferProcessStates.TERMINATED, null, null));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.TERMINATED, null, null)));
 
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
@@ -230,8 +236,8 @@ class AssetAccessCompletionPollerTest {
     @Test
     void awaitTransferFailsWhenResolveFails() {
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
-        when(transferProcessStore.findById("tp-1"))
-                .thenReturn(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null)));
         when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("no data address stored"));
 
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
@@ -249,8 +255,8 @@ class AssetAccessCompletionPollerTest {
     @Test
     void awaitTransferDoesNotCompleteWhenCompleted() {
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
-        when(transferProcessStore.findById("tp-1"))
-                .thenReturn(buildTransferProcess(TransferProcessStates.COMPLETED, dataAddress, null));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.COMPLETED, dataAddress, null)));
 
         var future = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
         poller.poll();
@@ -260,8 +266,6 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void awaitTransferFailsWithTimeoutWhenDeadlinePasses() {
-        when(transferProcessStore.findById("tp-1")).thenReturn(null);
-
         var future = poller.awaitTransfer("tp-1", Duration.ofMillis(10));
         clock.advanceTo(clock.instant().plusMillis(20));
         poller.poll();
@@ -295,7 +299,7 @@ class AssetAccessCompletionPollerTest {
         var future = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         poller.poll();
 
-        verify(negotiationStore, never()).findById(anyString());
+        verify(negotiationStore, never()).queryNegotiations(any());
         assertThat(future).isDone();
         assertThatThrownBy(future::join).hasCauseInstanceOf(XrdRuntimeException.class);
     }
@@ -323,11 +327,11 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void negotiationReadFailureDoesNotPreventTransferWaiterFromCompletingInSamePass() throws Exception {
-        when(negotiationStore.findById("neg-1")).thenThrow(new RuntimeException("store unavailable"));
+        when(negotiationStore.queryNegotiations(any())).thenThrow(new RuntimeException("store unavailable"));
 
         var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
-        when(transferProcessStore.findById("tp-1"))
-                .thenReturn(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                Stream.of(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null)));
 
         var negotiationFuture = poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
         var transferFuture = poller.awaitTransfer("tp-1", LONG_TIMEOUT);
@@ -345,8 +349,8 @@ class AssetAccessCompletionPollerTest {
                 recordingContext, ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
         try {
             var agreement = buildAgreement();
-            when(negotiationStore.findById("neg-1"))
-                    .thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
+            when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                    Stream.of(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null)));
 
             var pollThread = Thread.currentThread();
             var future = localPoller.awaitNegotiation("neg-1", LONG_TIMEOUT);
@@ -373,18 +377,19 @@ class AssetAccessCompletionPollerTest {
         var localPoller = new AssetAccessCompletionPoller(negotiationStore, transferProcessStore, dataAddressStore,
                 recordingContext, ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
         try {
-            var agreement = buildAgreement();
-            when(negotiationStore.findById("neg-a"))
-                    .thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
-            when(negotiationStore.findById("neg-b")).thenThrow(new RuntimeException("connection reset"));
+            when(negotiationStore.queryNegotiations(any())).thenThrow(new RuntimeException("connection reset"));
 
-            var futureA = localPoller.awaitNegotiation("neg-a", LONG_TIMEOUT);
-            var futureB = localPoller.awaitNegotiation("neg-b", LONG_TIMEOUT);
+            var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
+            when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                    Stream.of(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null)));
+
+            var negotiationFuture = localPoller.awaitNegotiation("neg-a", LONG_TIMEOUT);
+            var transferFuture = localPoller.awaitTransfer("tp-1", LONG_TIMEOUT);
 
             localPoller.poll();
 
-            assertThat(futureA.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(agreement);
-            assertThat(futureB).isNotDone();
+            assertThat(transferFuture.get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isEqualTo(dataAddress);
+            assertThat(negotiationFuture).isNotDone();
             assertThat(recordingContext.outcomes()).containsExactly(RecordingTransactionContext.Outcome.COMMITTED);
         } finally {
             localPoller.stop();
@@ -398,8 +403,8 @@ class AssetAccessCompletionPollerTest {
                 recordingContext, ExecutorInstrumentation.noop(), clock, monitor, Duration.ofDays(1));
         try {
             var dataAddress = DataAddress.Builder.newInstance().type("HttpData").build();
-            when(transferProcessStore.findById("tp-1"))
-                    .thenReturn(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null));
+            when(transferProcessStore.findAll(specWithId("tp-1"))).thenAnswer(invocation ->
+                    Stream.of(buildTransferProcess(TransferProcessStates.STARTED, dataAddress, null)));
             var resolveDepth = new CompletableFuture<Integer>();
             when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
                 resolveDepth.complete(recordingContext.currentDepth());
@@ -425,8 +430,8 @@ class AssetAccessCompletionPollerTest {
 
     @Test
     void bothStoresThrowingOnEveryReadStillFailWaitersAtDeadlineAndStopReadingAfterward() throws Exception {
-        when(negotiationStore.findById("neg-1")).thenThrow(new RuntimeException("store unavailable"));
-        when(transferProcessStore.findById("tp-1")).thenThrow(new RuntimeException("store unavailable"));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenThrow(new RuntimeException("store unavailable"));
+        when(transferProcessStore.findAll(specWithId("tp-1"))).thenThrow(new RuntimeException("store unavailable"));
 
         var negotiationFuture = poller.awaitNegotiation("neg-1", Duration.ofMillis(10));
         var transferFuture = poller.awaitTransfer("tp-1", Duration.ofMillis(10));
@@ -441,8 +446,8 @@ class AssetAccessCompletionPollerTest {
 
         assertThatThrownBy(negotiationFuture::join).hasCauseInstanceOf(TimeoutException.class);
         assertThatThrownBy(transferFuture::join).hasCauseInstanceOf(TimeoutException.class);
-        verify(negotiationStore, times(3)).findById("neg-1");
-        verify(transferProcessStore, times(3)).findById("tp-1");
+        verify(negotiationStore, times(3)).queryNegotiations(specWithId("neg-1"));
+        verify(transferProcessStore, times(3)).findAll(specWithId("tp-1"));
 
         poller.poll();
         verifyNoMoreInteractions(negotiationStore, transferProcessStore);
@@ -470,7 +475,8 @@ class AssetAccessCompletionPollerTest {
     @Test
     void completionRegisteringTransferWaiterDuringStopDrainIsFailedByTheTimeStopReturns() throws Exception {
         var agreement = buildAgreement();
-        when(negotiationStore.findById("neg-1")).thenReturn(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null));
+        when(negotiationStore.queryNegotiations(specWithId("neg-1"))).thenAnswer(invocation ->
+                Stream.of(buildNegotiation(ContractNegotiationStates.FINALIZED, agreement, null)));
 
         var registrationAttempted = new CountDownLatch(1);
         var releaseRegistration = new CountDownLatch(1);
@@ -503,6 +509,93 @@ class AssetAccessCompletionPollerTest {
                         .isEqualTo("dataspace.dsp_acquisition_failed"));
     }
 
+    @Test
+    void pollWithNoWaitersMakesNoStoreCalls() {
+        poller.poll();
+
+        verifyNoInteractions(negotiationStore, transferProcessStore);
+    }
+
+    @Test
+    void pollWithMoreThanBatchSizeNegotiationWaitersQueriesInChunksOfBatchSize() throws Exception {
+        var waiterCount = BATCH_SIZE + 1;
+        var futures = new HashMap<String, CompletableFuture<ContractAgreement>>();
+        var agreements = new HashMap<String, ContractAgreement>();
+        for (int i = 0; i < waiterCount; i++) {
+            var id = "neg-" + i;
+            futures.put(id, poller.awaitNegotiation(id, LONG_TIMEOUT));
+            agreements.put(id, buildAgreement());
+        }
+
+        when(negotiationStore.queryNegotiations(any())).thenAnswer(invocation -> {
+            QuerySpec spec = invocation.getArgument(0);
+            return idsOf(spec).stream()
+                    .map(Object::toString)
+                    .map(id -> buildNegotiation(id, ContractNegotiationStates.FINALIZED, agreements.get(id), null));
+        });
+
+        poller.poll();
+
+        var specCaptor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(negotiationStore, times(2)).queryNegotiations(specCaptor.capture());
+        var chunkSizes = specCaptor.getAllValues().stream().map(spec -> idsOf(spec).size()).sorted().toList();
+        assertThat(chunkSizes).containsExactly(1, BATCH_SIZE);
+
+        for (var entry : futures.entrySet()) {
+            assertThat(entry.getValue().get(ASYNC_AWAIT.toSeconds(), TimeUnit.SECONDS)).isSameAs(agreements.get(entry.getKey()));
+        }
+    }
+
+    @Test
+    void pollSetsQuerySpecLimitToChunkSize() {
+        poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        poller.awaitNegotiation("neg-2", LONG_TIMEOUT);
+        poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+
+        poller.poll();
+
+        var negotiationSpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(negotiationStore).queryNegotiations(negotiationSpecCaptor.capture());
+        assertThat(negotiationSpecCaptor.getValue().getLimit()).isEqualTo(2);
+        assertThat(idsOf(negotiationSpecCaptor.getValue()).stream().map(Object::toString).toList())
+                .containsExactlyInAnyOrder("neg-1", "neg-2");
+
+        var transferSpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(transferProcessStore).findAll(transferSpecCaptor.capture());
+        assertThat(transferSpecCaptor.getValue().getLimit()).isEqualTo(1);
+    }
+
+    @Test
+    void pollSetsStateInCriterionToTerminalStatesPerStore() {
+        poller.awaitNegotiation("neg-1", LONG_TIMEOUT);
+        poller.awaitTransfer("tp-1", LONG_TIMEOUT);
+
+        poller.poll();
+
+        var negotiationSpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(negotiationStore).queryNegotiations(negotiationSpecCaptor.capture());
+        assertThat(statesOf(negotiationSpecCaptor.getValue()))
+                .containsExactlyInAnyOrder(ContractNegotiationStates.FINALIZED.name(), ContractNegotiationStates.TERMINATED.name());
+
+        var transferSpecCaptor = ArgumentCaptor.forClass(QuerySpec.class);
+        verify(transferProcessStore).findAll(transferSpecCaptor.capture());
+        assertThat(statesOf(transferSpecCaptor.getValue()))
+                .containsExactlyInAnyOrder(TransferProcessStates.STARTED.name(), TransferProcessStates.TERMINATED.name());
+    }
+
+    @Test
+    void idAbsentFromBatchResultFallsThroughToDeadlineCheck() {
+        var future = poller.awaitNegotiation("neg-1", Duration.ofMillis(10));
+
+        poller.poll();
+        assertThat(future).isNotDone();
+
+        clock.advanceTo(clock.instant().plusMillis(20));
+        poller.poll();
+
+        assertThatThrownBy(future::join).hasCauseInstanceOf(TimeoutException.class);
+    }
+
     private ContractAgreement buildAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id("agreement-1")
@@ -515,8 +608,13 @@ class AssetAccessCompletionPollerTest {
     }
 
     private ContractNegotiation buildNegotiation(ContractNegotiationStates state, ContractAgreement agreement, String errorDetail) {
+        return buildNegotiation("neg-1", state, agreement, errorDetail);
+    }
+
+    private ContractNegotiation buildNegotiation(String id, ContractNegotiationStates state, ContractAgreement agreement,
+                                                  String errorDetail) {
         return ContractNegotiation.Builder.newInstance()
-                .id("neg-1")
+                .id(id)
                 .protocol("http-dsp-profile-2025-1")
                 .counterPartyId("provider-1")
                 .counterPartyAddress("http://provider/dsp")
@@ -535,6 +633,27 @@ class AssetAccessCompletionPollerTest {
                 .state(state.code())
                 .errorDetail(errorDetail)
                 .build();
+    }
+
+    private static QuerySpec specWithId(String id) {
+        return argThat(spec -> spec != null && idsOf(spec).contains(id));
+    }
+
+    private static Collection<?> idsOf(QuerySpec spec) {
+        return spec.getFilterExpression().stream()
+                .filter(criterion -> "id".equals(criterion.getOperandLeft()))
+                .map(criterion -> (Collection<?>) criterion.getOperandRight())
+                .findFirst()
+                .orElseThrow();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Collection<String> statesOf(QuerySpec spec) {
+        return spec.getFilterExpression().stream()
+                .filter(criterion -> "state".equals(criterion.getOperandLeft()))
+                .map(criterion -> (Collection<String>) criterion.getOperandRight())
+                .findFirst()
+                .orElseThrow();
     }
 
     private static final class MutableClock extends Clock {

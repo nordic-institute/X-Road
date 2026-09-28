@@ -79,6 +79,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -268,6 +269,47 @@ class TwoInstanceCompletionPostgresTest {
     }
 
     @Test
+    void nonTerminalNegotiationAndTransferProcessStayPendingWhileTerminalOnesCompleteInSamePoll() throws Exception {
+        var a = buildInstance(Clock.systemUTC());
+
+        var participantContextId = "participant-" + UUID.randomUUID();
+        var pendingNegotiationId = "neg-pending-" + UUID.randomUUID();
+        var finalizedNegotiationId = "neg-finalized-" + UUID.randomUUID();
+        var pendingTransferProcessId = "tp-pending-" + UUID.randomUUID();
+        var startedTransferProcessId = "tp-started-" + UUID.randomUUID();
+
+        assertThat(a.negotiationStore().save(negotiation(pendingNegotiationId, participantContextId,
+                ContractNegotiationStates.REQUESTED, null, null)).succeeded()).isTrue();
+        var agreement = agreement("agreement-" + finalizedNegotiationId, participantContextId, "asset-1", "provider-1");
+        assertThat(a.negotiationStore().save(negotiation(finalizedNegotiationId, participantContextId,
+                ContractNegotiationStates.FINALIZED, agreement, null)).succeeded()).isTrue();
+
+        assertThat(a.transferProcessStore().save(transferProcess(pendingTransferProcessId, participantContextId,
+                TransferProcessStates.REQUESTED, null)).succeeded()).isTrue();
+        var address = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property("baseUrl", "https://provider.example/data")
+                .build();
+        var startedTransferProcess = transferProcess(startedTransferProcessId, participantContextId,
+                TransferProcessStates.STARTED, null);
+        assertThat(a.dataAddressStore().store(address, startedTransferProcess).succeeded()).isTrue();
+        assertThat(a.transferProcessStore().save(startedTransferProcess).succeeded()).isTrue();
+
+        var pendingNegotiationFuture = a.poller().awaitNegotiation(pendingNegotiationId, LONG_TIMEOUT);
+        var finalizedNegotiationFuture = a.poller().awaitNegotiation(finalizedNegotiationId, LONG_TIMEOUT);
+        var pendingTransferFuture = a.poller().awaitTransfer(pendingTransferProcessId, LONG_TIMEOUT);
+        var startedTransferFuture = a.poller().awaitTransfer(startedTransferProcessId, LONG_TIMEOUT);
+
+        a.poller().poll();
+
+        assertThat(finalizedNegotiationFuture.get(10, TimeUnit.SECONDS).getAgreementId()).isEqualTo(agreement.getAgreementId());
+        assertThat(startedTransferFuture.get(10, TimeUnit.SECONDS).getStringProperty("baseUrl"))
+                .isEqualTo("https://provider.example/data");
+        assertThat(pendingNegotiationFuture).isNotDone();
+        assertThat(pendingTransferFuture).isNotDone();
+    }
+
+    @Test
     void reusableAgreementLookupFindsAgreementNegotiatedThroughOtherInstance() throws IOException {
         var a = buildInstance(Clock.systemUTC());
         var b = buildInstance(Clock.systemUTC());
@@ -338,6 +380,10 @@ class TwoInstanceCompletionPostgresTest {
             }
             writeCompleted.complete(null);
         });
+
+        poller.poll();
+        assertThat(goodFuture).isNotDone();
+        assertThat(badFuture).isNotDone();
 
         poller.poll();
         writeCompleted.get(10, TimeUnit.SECONDS);
@@ -459,9 +505,9 @@ class TwoInstanceCompletionPostgresTest {
     }
 
     /**
-     * Decorates a real {@link TransferProcessStore}, throwing once when {@link #findById} is called for a
-     * chosen id, to simulate a connection blip on one waiter's read within a poll pass. Every other call,
-     * including subsequent reads of the same id, is delegated unchanged.
+     * Decorates a real {@link TransferProcessStore}, throwing once when {@link #findAll} is queried for a
+     * batch whose ids include a chosen id, to simulate a connection blip on one waiter's read within a poll
+     * pass. Every other call, including a subsequent query for the same id, is delegated unchanged.
      */
     private static final class ThrowOnceTransferProcessStore implements TransferProcessStore {
         private final TransferProcessStore delegate;
@@ -475,9 +521,6 @@ class TwoInstanceCompletionPostgresTest {
 
         @Override
         public TransferProcess findById(String id) {
-            if (throwingId.equals(id) && thrown.compareAndSet(false, true)) {
-                throw new RuntimeException("simulated connection blip");
-            }
             return delegate.findById(id);
         }
 
@@ -493,7 +536,19 @@ class TwoInstanceCompletionPostgresTest {
 
         @Override
         public Stream<TransferProcess> findAll(QuerySpec querySpec) {
+            if (containsId(querySpec, throwingId) && thrown.compareAndSet(false, true)) {
+                throw new RuntimeException("simulated connection blip");
+            }
             return delegate.findAll(querySpec);
+        }
+
+        private static boolean containsId(QuerySpec querySpec, String id) {
+            return querySpec.getFilterExpression().stream()
+                    .filter(criterion -> "id".equals(criterion.getOperandLeft()))
+                    .map(criterion -> (Collection<?>) criterion.getOperandRight())
+                    .findFirst()
+                    .orElseThrow()
+                    .contains(id);
         }
 
         @Override
