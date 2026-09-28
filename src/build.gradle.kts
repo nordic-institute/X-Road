@@ -46,16 +46,12 @@ allprojects {
   configurations.all {
     resolutionStrategy {
       eachDependency {
-        if (requested.group == "jakarta.xml.bind" && requested.name == "jakarta.xml.bind-api") {
-          useVersion("4.0.2")
-          because("newer version will fail decoding base64 strings with white space. https://github.com/jakartaee/jaxb-api/issues/325")
-        }
         if (requested.group == "org.eclipse.jetty.ee10" && requested.name == "jetty-ee10-servlet") {
-          useVersion("12.1.9")
+          useVersion(libs.jetty.ee10.servlet.get().version ?: "12.1.9")
           because("XRDDEV-3176: EDC ds-* modules pull jetty-ee10-servlet 12.1.6 via transitive (CVE-2026-2332, CVE-2026-5795); align with rest of Jetty pinned at 12.1.9.")
         }
         if (requested.group == "org.apache.httpcomponents.client5" && requested.name == "httpclient5") {
-          useVersion("5.6.1")
+          useVersion(libs.apache.httpclient5.get().version ?: "5.6.1")
           because("XRDDEV-3176: transitive 5.6 vulnerable to CVE-2026-40542; align with libs.versions.toml apache-httpclient5 = 5.6.1.")
         }
         if (requested.group == "org.bouncycastle" && requested.name.endsWith("-jdk18on")) {
