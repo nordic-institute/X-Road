@@ -120,7 +120,8 @@ public class AssetAccessCompletionPoller {
         this.executor = executorInstrumentation.instrument(
                 Executors.newSingleThreadScheduledExecutor(namedDaemonThreadFactory(POLL_THREAD_NAME)), POLL_THREAD_NAME);
         this.completionExecutor = executorInstrumentation.instrument(
-                Executors.newCachedThreadPool(namedDaemonThreadFactory(COMPLETION_THREAD_NAME)), COMPLETION_THREAD_NAME);
+                Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(COMPLETION_THREAD_NAME + "-", 1).factory()),
+                COMPLETION_THREAD_NAME);
     }
 
     private static ThreadFactory namedDaemonThreadFactory(String name) {
