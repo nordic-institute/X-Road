@@ -226,7 +226,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .map(AccessRight::getEndpoint)
                 .toList();
 
-        var resolvedContexts = serviceContextResolver.resolveEnabledById(serviceId);
+        var resolvedContexts = serviceContextResolver.resolveContextsById(serviceId);
         var ctxId = ServiceContextResolver.select(resolvedContexts, requestedParticipantContext.get());
         return policyMapper.toPolicyDefinition(policyId, matchedEntries.getFirst().getSubjectId(), endpoints, ctxId);
     }
@@ -242,9 +242,6 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
         policies.add(policyMapper.toOwnerOnlyPolicyDefinition(ownerOnlyPolicyId,
                 serviceId.getClientId(), contextIds.management()));
 
-        if (serverConfProvider.getDisabledNotice(serviceId) != null) {
-            return;
-        }
         var accessRights = serverConfProvider.getServiceAccessRights(serviceId);
         if (accessRights.isEmpty()) {
             return;
@@ -254,7 +251,7 @@ class PolicyDefinitionServerConfStore implements PolicyDefinitionStore {
                 .collect(Collectors.groupingBy(ar -> ar.getSubjectId().asEncodedId()));
 
         var assetId = AssetMapper.encodeAssetId(serviceId);
-        var resolvedContexts = serviceContextResolver.resolveEnabled(serviceId, provisionedMemberContextIds);
+        var resolvedContexts = serviceContextResolver.resolveContexts(serviceId, provisionedMemberContextIds);
 
         for (var entry : grouped.entrySet()) {
             var subjectIdEncoded = entry.getKey();

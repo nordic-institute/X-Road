@@ -44,8 +44,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.niis.xroad.e2e.AdminApi.addRestServiceDescription;
 import static org.niis.xroad.e2e.AdminApi.adminBaseUrl;
 import static org.niis.xroad.e2e.AdminApi.authed;
+import static org.niis.xroad.e2e.AdminApi.discoverBackendUrl;
+import static org.niis.xroad.e2e.AdminApi.enableServiceDescription;
+import static org.niis.xroad.e2e.AdminApi.grantConsumerAccessRights;
 import static org.niis.xroad.e2e.AdminApi.login;
 import static org.niis.xroad.test.apitest.core.junit.Step.and;
 import static org.niis.xroad.test.apitest.core.junit.Step.given;
@@ -154,7 +158,7 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
     private static final String CONSUMER_X_ROAD_ID = "DEV/COM/1234/TestService";
 
     /** ss0's pre-existing TestService/mock1 REST service, whose backend URL is reused for the new client. */
-    private static final String EXISTING_SERVICE_ID = "DEV:COM:1234:TestService:mock1";
+    private static final String EXISTING_SERVICE_ID = Mock1Fixture.MOCK1_SERVICE_ID;
 
     /**
      * The DSP asset id for the new client's service — its full client id and the REST service code,
@@ -236,16 +240,16 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
                 awaitClientRegistered(ss0BaseUrl, ss0Session, csBaseUrl, csSession, clientId));
 
         var backendUrl = and("the backend URL of ss0's existing TestService mock1 service is discovered", () ->
-                discoverExistingBackendUrl(ss0BaseUrl, ss0Session));
+                discoverBackendUrl(ss0BaseUrl, ss0Session, EXISTING_SERVICE_ID));
 
         var serviceDescriptionId = and("a REST service description reusing that backend is added for the new client", () ->
-                addRestServiceDescription(ss0BaseUrl, ss0Session, clientId, backendUrl));
+                addRestServiceDescription(ss0BaseUrl, ss0Session, clientId, backendUrl, REST_SERVICE_CODE));
 
         and("the new service description is enabled", () ->
                 enableServiceDescription(ss0BaseUrl, ss0Session, serviceDescriptionId));
 
         and("the established consumer TestService is granted access to the new client's service", () ->
-                grantConsumerAccessRights(ss0BaseUrl, ss0Session, clientId, CONSUMER_CLIENT_ID));
+                grantConsumerAccessRights(ss0BaseUrl, ss0Session, clientId, CONSUMER_CLIENT_ID, REST_SERVICE_CODE));
 
         then("the new member's own participant context and membership credential are provisioned, independent of "
                 + "which context the transfer below ends up riding, with no restart", () ->
@@ -537,92 +541,6 @@ class SsProxyDspRuntimeMemberTest extends E2eTest {
         assertThat(approval.getStatusCode())
                 .as("approve client registration request %s (409 if a prior tick already approved it)", requestId)
                 .isIn(200, 409);
-    }
-
-    private String discoverExistingBackendUrl(String ss0BaseUrl, AdminSession ss0) {
-        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/services/" + EXISTING_SERVICE_ID);
-        assertThat(response.getStatusCode()).as("look up ss0's existing TestService mock1 service").isEqualTo(200);
-        return response.jsonPath().getString("url");
-    }
-
-    /**
-     * Adds the REST service description, tolerating a warm rerun where one with {@link #REST_SERVICE_CODE}
-     * already exists on this client: {@code ServiceDescriptionService} rejects the duplicate service code
-     * with {@code ServiceCodeAlreadyExistsException} (checked ahead of the URL-duplicate case, so a rerun
-     * always hits this one), a {@code ConflictException} mapped to 409. Unlike the client-id case, the
-     * service description's id is not deterministic, so a 409 falls back to
-     * {@link #findExistingServiceDescriptionId} instead of returning one.
-     */
-    private String addRestServiceDescription(String ss0BaseUrl, AdminSession ss0, String clientId, String backendUrl) {
-        var body = """
-                {
-                  "url": "%s",
-                  "type": "REST",
-                  "rest_service_code": "%s"
-                }
-                """.formatted(backendUrl, REST_SERVICE_CODE);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
-        if (response.getStatusCode() == 409) {
-            log.info("REST service description '{}' already exists for {}; looking up its id instead of adding it again",
-                    REST_SERVICE_CODE, clientId);
-            return findExistingServiceDescriptionId(ss0BaseUrl, ss0, clientId, backendUrl);
-        }
-        assertThat(response.getStatusCode()).as("add REST service description for %s", clientId).isEqualTo(201);
-        return response.jsonPath().getString("id");
-    }
-
-    /**
-     * Recovers the service description id a 409 from {@link #addRestServiceDescription} could not return:
-     * there is no get-by-url endpoint, so the client's service descriptions are listed and matched by the
-     * backend URL this scenario always uses.
-     */
-    private String findExistingServiceDescriptionId(String ss0BaseUrl, AdminSession ss0, String clientId, String backendUrl) {
-        var response = authed(ss0).get(ss0BaseUrl + "/api/v1/clients/" + clientId + "/service-descriptions");
-        assertThat(response.getStatusCode()).as("list service descriptions for %s", clientId).isEqualTo(200);
-
-        var id = response.jsonPath().getString("find { it.url == '" + backendUrl + "' }.id");
-        assertThat(id)
-                .as("an existing service description for %s with backend url %s", clientId, backendUrl)
-                .isNotBlank();
-        return id;
-    }
-
-    /**
-     * Enables the service description. Unlike the earlier steps, this one needs no rerun tolerance:
-     * {@code ServiceDescriptionService.toggleServices} has no already-enabled check and unconditionally
-     * flips the disabled flag, so calling it again on an already-enabled description is a plain,
-     * idempotent 200.
-     */
-    private void enableServiceDescription(String ss0BaseUrl, AdminSession ss0, String serviceDescriptionId) {
-        var response = authed(ss0).put(ss0BaseUrl + "/api/v1/service-descriptions/" + serviceDescriptionId + "/enable");
-        assertThat(response.getStatusCode()).as("enable service description %s", serviceDescriptionId).isEqualTo(200);
-    }
-
-    /**
-     * Grants the established consumer ({@link #CONSUMER_CLIENT_ID}) access to the new provider
-     * client's service — the new client cannot legitimately call its own service (see the class doc),
-     * so this is an access right onto a different subject than the environment bring-up's own
-     * {@code TestService} self-access grant. Tolerates 409 so this stays safe to run against a
-     * substrate where the grant already exists.
-     */
-    private void grantConsumerAccessRights(String ss0BaseUrl, AdminSession ss0, String providerClientId, String consumerClientId) {
-        var body = """
-                {
-                  "items": [
-                    { "service_code": "%s" }
-                  ]
-                }
-                """.formatted(REST_SERVICE_CODE);
-        var response = authed(ss0)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .post(ss0BaseUrl + "/api/v1/clients/" + providerClientId + "/service-clients/" + consumerClientId + "/access-rights");
-        assertThat(response.getStatusCode())
-                .as("grant %s access to %s's service", consumerClientId, providerClientId)
-                .isIn(201, 409);
     }
 
     /**

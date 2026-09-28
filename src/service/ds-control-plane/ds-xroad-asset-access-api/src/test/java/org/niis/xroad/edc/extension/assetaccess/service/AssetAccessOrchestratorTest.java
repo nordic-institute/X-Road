@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
@@ -46,6 +47,11 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.policy.model.AndConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -70,11 +76,13 @@ import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
+import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.protocol.assetaccess.XRoadTransferType;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -149,7 +157,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void acquireAssetAccessReuseHitSkipsCatalogAndNegotiationAndUsesPullTransferType() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         var agreement = buildAgreement("agreement-1");
         when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
@@ -180,7 +188,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void acquireAssetAccessReusedAgreementTerminatedTransferFailsWithoutRenegotiation() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         var agreement = buildAgreement("agreement-1");
         when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
@@ -210,7 +218,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void acquireAssetAccessFullHappyPathReturnsResponseFromTransferData() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         stubCatalogAndTransformChain("asset-1");
 
@@ -251,7 +259,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void catalogFetchFailureThrowsDspCatalogFetchFailed() {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(
@@ -272,7 +280,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void catalogFetchEdcExceptionThrowsDspCatalogFetchFailed() {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
         var edcException = new EdcException("upstream failure");
 
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
@@ -294,7 +302,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void catalogParseFailureThrowsDspCatalogParseFailed() {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
@@ -316,7 +324,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void datasetNotFoundThrowsDspDatasetNotFound() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         stubCatalogAndTransformChain("other-asset");
 
@@ -336,7 +344,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void offersNotFoundThrowsDspOffersNotFound() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         var catalog = buildCatalogWithNoOffers("asset-1");
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
@@ -360,7 +368,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void pullDistributionMissingThrowsDspPullDistributionMissing() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         var catalog = buildCatalog("asset-1", "offer-1", "JSON-LD");
         when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
@@ -384,7 +392,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void negotiationTerminatedThrowsDspNegotiationFailed() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         stubCatalogAndTransformChain("asset-1");
 
@@ -417,7 +425,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void transferInitiationFailureThrowsDspTransferFailed() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         stubCatalogAndTransformChain("asset-1");
 
@@ -451,7 +459,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void acquireAssetAccessConcurrentIdenticalRequestsReturnSameFuture() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         stubCatalogAndTransformChain("asset-1");
 
@@ -491,7 +499,7 @@ class AssetAccessOrchestratorTest {
     @Test
     void transferTerminatedThrowsDspTransferFailed() throws Exception {
         var participantContext = buildParticipantContext();
-        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null);
+        var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         stubCatalogAndTransformChain("asset-1");
 
@@ -613,5 +621,159 @@ class AssetAccessOrchestratorTest {
                 .distribution(distribution)
                 .build();
         return Catalog.Builder.newInstance().dataset(dataset).build();
+    }
+
+    @Test
+    void offerNamingTheCallingSubsystemIsPreferredOverOtherOffers() {
+        var offers = Map.of(
+                "offer-other", clientPolicy("DEV:COM:222:OTHER"),
+                "offer-test", clientPolicy("DEV:COM:222:TESTCLIENT"),
+                "offer-member", clientPolicy("DEV:COM:222"));
+
+        var chosen = acquireAndCaptureOfferId(offers, "DEV:COM:222:TESTCLIENT");
+
+        assertThat(chosen).isEqualTo("offer-test");
+    }
+
+    @Test
+    void memberLevelOfferIsTakenWhenNoOfferNamesTheCallingSubsystem() {
+        var offers = Map.of(
+                "offer-other", clientPolicy("DEV:COM:222:OTHER"),
+                "offer-member", clientPolicy("DEV:COM:222"));
+
+        var chosen = acquireAndCaptureOfferId(offers, "DEV:COM:222:TESTCLIENT");
+
+        assertThat(chosen).isEqualTo("offer-member");
+    }
+
+    @Test
+    void groupOfferIsTakenWhenNoOfferNamesTheCallingSubsystem() {
+        var offers = Map.of(
+                "offer-other", clientPolicy("DEV:COM:222:OTHER"),
+                "offer-group", groupPolicy("DEV:security-server-owners"));
+
+        var chosen = acquireAndCaptureOfferId(offers, "DEV:COM:222:TESTCLIENT");
+
+        assertThat(chosen).isEqualTo("offer-group");
+    }
+
+    @Test
+    void offersWrittenForOtherSubsystemsOnlyAreNotNegotiated() {
+        var offers = Map.of(
+                "offer-a", clientPolicy("DEV:COM:222:A"),
+                "offer-b", clientPolicy("DEV:COM:222:B"));
+        stubCatalog(buildCatalogWithOffers("asset-1", offers));
+
+        var future = orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, "DEV:COM:222:C"));
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(XrdRuntimeException.class)
+                .satisfies(e -> {
+                    var cause = (XrdRuntimeException) e.getCause();
+                    assertThat(cause.getErrorCode()).isEqualTo("dataspace.dsp_offers_not_found");
+                    assertThat(cause.getErrorCodeMetadata()).contains("asset-1", "DEV:COM:222:C");
+                });
+        verifyNoInteractions(contractNegotiationService);
+    }
+
+    @Test
+    void withoutAClientIdTheOnlyOfferIsNegotiated() {
+        var chosen = acquireAndCaptureOfferId(Map.of("offer-only", clientPolicy("DEV:COM:222:A")), null);
+
+        assertThat(chosen).isEqualTo("offer-only");
+    }
+
+    @Test
+    void requestsFromDifferentSubsystemsNegotiateSeparately() {
+        var offers = Map.of(
+                "offer-a", clientPolicy("DEV:COM:222:A"),
+                "offer-b", clientPolicy("DEV:COM:222:B"));
+        stubCatalog(buildCatalogWithOffers("asset-1", offers));
+        stubNegotiationInitiation();
+        var participantContext = buildParticipantContext();
+
+        orchestrator.acquireAssetAccess(participantContext,
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, "DEV:COM:222:A"));
+        orchestrator.acquireAssetAccess(participantContext,
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, "DEV:COM:222:B"));
+        orchestrator.acquireAssetAccess(participantContext,
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, "DEV:COM:222:A"));
+
+        verify(contractNegotiationService, times(2)).initiateNegotiation(any(), any());
+    }
+
+    private String acquireAndCaptureOfferId(Map<String, Policy> offers, String clientId) {
+        stubCatalog(buildCatalogWithOffers("asset-1", offers));
+        var requestCaptor = ArgumentCaptor.forClass(ContractRequest.class);
+        when(contractNegotiationService.initiateNegotiation(any(), requestCaptor.capture()))
+                .thenReturn(ServiceResult.success(buildNegotiation()));
+
+        orchestrator.acquireAssetAccess(buildParticipantContext(),
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, clientId));
+
+        return requestCaptor.getValue().getContractOffer().getId();
+    }
+
+    private void stubNegotiationInitiation() {
+        when(contractNegotiationService.initiateNegotiation(any(), any()))
+                .thenReturn(ServiceResult.success(buildNegotiation()));
+    }
+
+    private void stubCatalog(Catalog catalog) {
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(jsonLd.expand(any())).thenReturn(Result.success(mock(JsonObject.class)));
+        when(transformerRegistry.transform(any(), eq(Catalog.class))).thenReturn(Result.success(catalog));
+    }
+
+    private static ContractNegotiation buildNegotiation() {
+        return ContractNegotiation.Builder.newInstance()
+                .id("neg-1")
+                .protocol("http-dsp-profile-2025-1")
+                .counterPartyId("provider-1")
+                .counterPartyAddress("http://provider/dsp")
+                .build();
+    }
+
+    private static Policy clientPolicy(String encodedClientId) {
+        var clientConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_CLIENT_ID))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(encodedClientId))
+                .build();
+        var pathConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_DATAPATH))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("GET /pets"))
+                .build();
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .constraint(AndConstraint.Builder.newInstance()
+                                .constraints(List.of(clientConstraint, pathConstraint))
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private static Policy groupPolicy(String encodedGroupId) {
+        var groupConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(encodedGroupId))
+                .build();
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance().constraint(groupConstraint).build())
+                .build();
+    }
+
+    private static Catalog buildCatalogWithOffers(String assetId, Map<String, Policy> offers) {
+        var dataService = DataService.Builder.newInstance().build();
+        var distribution = Distribution.Builder.newInstance()
+                .format(XRoadTransferType.PULL.wireValue()).dataService(dataService).build();
+        var dataset = Dataset.Builder.newInstance().id(assetId).distribution(distribution);
+        offers.forEach(dataset::offer);
+        return Catalog.Builder.newInstance().dataset(dataset.build()).build();
     }
 }

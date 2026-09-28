@@ -26,7 +26,10 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import io.grpc.ManagedChannel;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -99,13 +102,14 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
 
     @Override
     public AssetAccessResponse acquireAssetAccess(String participantContextId, String assetId, String counterPartyId,
-                                                  String counterPartyAddress) {
+                                                  String counterPartyAddress, @Nullable ClientId consumerClientId) {
         var cacheKey = new AssetAccessCache.CacheKey(
                 participantContextId,
                 assetId,
                 counterPartyId,
                 counterPartyAddress,
-                clientProperties.protocol());
+                clientProperties.protocol(),
+                consumerClientId != null ? consumerClientId.asEncodedId() : null);
         if (cache == null) {
             return loadAssetAccess(cacheKey).response();
         }
@@ -118,9 +122,11 @@ public class AssetAccessRpcClient extends AbstractRpcClient implements AssetAcce
                 .setAssetId(cacheKey.assetId())
                 .setCounterPartyId(cacheKey.counterPartyId())
                 .setCounterPartyAddress(cacheKey.counterPartyAddress())
-                .setProtocol(cacheKey.protocol())
-                .build();
-        var response = exec(() -> accessServiceBlockingStub.acquire(request));
+                .setProtocol(cacheKey.protocol());
+        if (cacheKey.consumerClientId() != null) {
+            request.setClientId(cacheKey.consumerClientId());
+        }
+        var response = exec(() -> accessServiceBlockingStub.acquire(request.build()));
         long expiresAt = response.hasExpiresAtEpochSeconds() ? response.getExpiresAtEpochSeconds() : 0;
         var assetAccessResponse = new AssetAccessResponse(
                 response.getEndpoint(),

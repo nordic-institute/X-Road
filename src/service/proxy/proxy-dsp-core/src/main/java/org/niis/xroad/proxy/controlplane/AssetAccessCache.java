@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.controlplane;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
+import jakarta.annotation.Nullable;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
 import java.time.Instant;
@@ -49,7 +50,7 @@ class AssetAccessCache {
      * {@code protocol} versions are foreseeable.
      */
     record CacheKey(String participantContextId, String assetId, String counterPartyId,
-                    String counterPartyAddress, String protocol) { }
+                    String counterPartyAddress, String protocol, @Nullable String consumerClientId) { }
 
     record CachedEntry(AssetAccessResponse response, long expiresAtEpochSeconds) { }
 
