@@ -44,7 +44,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 @Slf4j
 @UtilityClass
-class AssetMapper {
+public class AssetMapper {
 
     static final int SERVICE_ID_PARTS_WITH_VERSION = 6;
     static final int SERVICE_ID_PARTS_WITHOUT_VERSION = 5;
@@ -58,10 +58,14 @@ class AssetMapper {
     }
 
     /**
+     * Decodes an EDC asset id back into the X-Road {@link ServiceId} it was encoded from. Public so callers
+     * outside the catalog extension (agreement-grant resolution) can decode an asset id without duplicating
+     * the parsing rules.
+     *
      * @return decoded ServiceId.Conf, or null for malformed IDs
      */
     @Nullable
-    static ServiceId.Conf decodeAssetId(String assetId) {
+    public static ServiceId.Conf decodeAssetId(String assetId) {
         if (assetId == null || assetId.isBlank()) {
             return null;
         }
