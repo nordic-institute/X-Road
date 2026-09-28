@@ -44,11 +44,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.Constraint;
-import org.eclipse.edc.policy.model.Expression;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
@@ -62,6 +57,7 @@ import org.niis.xroad.common.core.exception.ErrorOrigin;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.edc.extension.assetaccess.AssetAccessRequest;
 import org.niis.xroad.edc.extension.assetaccess.agreement.ReusableAgreementLookup;
+import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 import org.niis.xroad.edc.extension.assetaccess.poller.AssetAccessCompletionPoller;
 import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
@@ -131,10 +127,11 @@ public class AssetAccessOrchestrator {
             String key, ParticipantContext participantContext, AssetAccessRequest request) {
         var reusableAgreement = reusableAgreementLookup.find(
                 participantContext.getParticipantContextId(), participantContext.getIdentity(),
-                request.assetId(), request.counterPartyId());
+                request.assetId(), request.counterPartyId(), request.clientId());
         if (reusableAgreement.isPresent()) {
             var agreement = reusableAgreement.get();
-            monitor.info("%s reusing agreement: agreementId=%s".formatted(key, agreement.getId()));
+            monitor.info("%s reusing agreement: agreementId=%s matchedByClientId=%s"
+                    .formatted(key, agreement.getId(), request.clientId() != null));
             return transferAndAwaitDataAddress(key, participantContext, agreement, XRoadTransferType.PULL.wireValue(),
                     request.counterPartyAddress(), request.protocolOrDefault())
                     .thenApply(ServiceResult::success);
@@ -235,7 +232,7 @@ public class AssetAccessOrchestrator {
 
         monitor.info("%s offer found: assetId=%s offerId=%s transferType=%s namesClient=%s"
                 .formatted(key, assetId, offer.getKey(), transferType,
-                        clientId != null && namesClient(offer.getValue(), clientId)));
+                        clientId != null && PolicySubjectMatcher.namesClient(offer.getValue(), clientId)));
         return new OfferContext(offer.getKey(), offer.getValue(), dataset, transferType);
     }
 
@@ -250,7 +247,7 @@ public class AssetAccessOrchestrator {
             return offers.entrySet().iterator().next();
         }
         var memberId = PolicyContextHelper.parseClientId(clientId).getMemberId().asEncodedId();
-        return firstOffer(offers, policy -> namesClient(policy, clientId))
+        return firstOffer(offers, policy -> PolicySubjectMatcher.namesClient(policy, clientId))
                 .or(() -> firstOffer(offers, policy -> appliesToMember(policy, memberId)))
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
                         .origin(ErrorOrigin.DATASPACE)
@@ -262,35 +259,11 @@ public class AssetAccessOrchestrator {
         return offers.entrySet().stream().filter(entry -> matches.test(entry.getValue())).findFirst();
     }
 
-    private static boolean namesClient(Policy policy, String encodedClientId) {
-        return anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_CLIENT_ID)
-                && isLiteral(atomic.getRightExpression(), encodedClientId));
-    }
-
     private static boolean appliesToMember(Policy policy, String encodedMemberId) {
-        return namesClient(policy, encodedMemberId)
-                || anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
-                        || isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
-    }
-
-    private static boolean anyConstraint(Policy policy, Predicate<AtomicConstraint> matches) {
-        return policy.getPermissions().stream()
-                .flatMap(permission -> permission.getConstraints().stream())
-                .anyMatch(constraint -> anyConstraint(constraint, matches));
-    }
-
-    private static boolean anyConstraint(Constraint constraint, Predicate<AtomicConstraint> matches) {
-        if (constraint instanceof AtomicConstraint atomic) {
-            return matches.test(atomic);
-        }
-        if (constraint instanceof MultiplicityConstraint multiplicity) {
-            return multiplicity.getConstraints().stream().anyMatch(child -> anyConstraint(child, matches));
-        }
-        return false;
-    }
-
-    private static boolean isLiteral(Expression expression, String value) {
-        return expression instanceof LiteralExpression literal && value.equals(literal.getValue());
+        return PolicySubjectMatcher.namesClient(policy, encodedMemberId)
+                || PolicySubjectMatcher.anyConstraint(policy, atomic ->
+                        PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_LOCAL_GROUP)
+                                || PolicySubjectMatcher.isLiteral(atomic.getLeftExpression(), XRoadPolicyNamespace.XROAD_GLOBAL_GROUP));
     }
 
     private CompletableFuture<ContractAgreement> negotiateContract(String key, ParticipantContext participantContext,

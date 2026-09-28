@@ -36,6 +36,10 @@ import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.stor
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AndConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
@@ -48,10 +52,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.niis.xroad.edc.extension.policy.controlplane.XRoadPolicyNamespace;
 
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,7 +100,7 @@ class ReusableAgreementLookupPostgresTest {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-1");
@@ -109,7 +115,7 @@ class ReusableAgreementLookupPostgresTest {
         saveAgreement(store, "neg-old", participantContextId, "asset-1", "provider-1", older);
         saveAgreement(store, "neg-new", participantContextId, "asset-1", "provider-1", newer);
 
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-new");
@@ -117,7 +123,7 @@ class ReusableAgreementLookupPostgresTest {
 
     @Test
     void returnsEmptyWhenNoAgreementExists() {
-        var result = lookup.find("participant-" + UUID.randomUUID(), "consumer", "asset-1", "provider-1");
+        var result = lookup.find("participant-" + UUID.randomUUID(), "consumer", "asset-1", "provider-1", null);
 
         assertThat(result).isEmpty();
     }
@@ -127,7 +133,7 @@ class ReusableAgreementLookupPostgresTest {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "consumer", "other-asset", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "other-asset", "provider-1", null);
 
         assertThat(result).isEmpty();
     }
@@ -137,7 +143,7 @@ class ReusableAgreementLookupPostgresTest {
         var participantContextId = "participant-" + UUID.randomUUID();
         saveAgreement(store, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "other-provider");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "other-provider", null);
 
         assertThat(result).isEmpty();
     }
@@ -148,7 +154,7 @@ class ReusableAgreementLookupPostgresTest {
         saveAgreement(store, "neg-provider-role", participantContextId, "other-consumer", "asset-1", "provider-1",
                 ContractNegotiation.Type.PROVIDER, Instant.now());
 
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
 
         assertThat(result).isEmpty();
     }
@@ -161,7 +167,7 @@ class ReusableAgreementLookupPostgresTest {
         saveAgreement(store, "neg-other", participantContextId, "other-consumer", "asset-1", "provider-1",
                 ContractNegotiation.Type.PROVIDER, Instant.now());
 
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-own");
@@ -174,10 +180,89 @@ class ReusableAgreementLookupPostgresTest {
 
         saveAgreement(secondStore, "neg-1", participantContextId, "asset-1", "provider-1", Instant.now());
 
-        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1");
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
 
         assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo("agreement-neg-1");
+    }
+
+    @Test
+    void clientScopedLookupReturnsTheAgreementNamingTheCallingSubsystem() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        var clientA = "DEV:COM:222:A";
+        var clientB = "DEV:COM:222:B";
+
+        saveAgreement(store, "neg-a", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy(clientA));
+        saveAgreement(store, "neg-b", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(60), clientPolicy(clientB));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", clientB);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-b");
+    }
+
+    @Test
+    void clientScopedLookupReturnsEmptyWhenOnlyAnotherSubsystemsAgreementExists() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-a", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy("DEV:COM:222:A"));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", "DEV:COM:222:B");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void clientScopedLookupIgnoresMemberLevelAndGroupAgreementsWhenNoneNamesTheClient() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-member", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy("DEV:COM:222"));
+        saveAgreement(store, "neg-group", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(30), groupPolicy("DEV:security-server-owners"));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", "DEV:COM:222:B");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void clientScopedLookupPrefersClientNamedAgreementOverNewerMemberLevelAgreement() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        var clientB = "DEV:COM:222:B";
+        saveAgreement(store, "neg-client", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(60), clientPolicy(clientB));
+        saveAgreement(store, "neg-member", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy("DEV:COM:222"));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", clientB);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-client");
+    }
+
+    @Test
+    void clientScopedLookupNewestContractSigningDateWinsAmongClientNamedAgreements() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        var clientA = "DEV:COM:222:A";
+        saveAgreement(store, "neg-old", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(120), clientPolicy(clientA));
+        saveAgreement(store, "neg-new", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy(clientA));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", clientA);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-new");
+    }
+
+    @Test
+    void nullClientIdReturnsNewestAgreementRegardlessOfPolicy() {
+        var participantContextId = "participant-" + UUID.randomUUID();
+        saveAgreement(store, "neg-old", participantContextId, "asset-1", "provider-1",
+                Instant.now().minusSeconds(120), clientPolicy("DEV:COM:222:A"));
+        saveAgreement(store, "neg-new", participantContextId, "asset-1", "provider-1", Instant.now(), clientPolicy("DEV:COM:222:B"));
+
+        var result = lookup.find(participantContextId, "consumer", "asset-1", "provider-1", null);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo("agreement-neg-new");
     }
 
     private ContractNegotiationStore buildStore() throws IOException {
@@ -194,12 +279,25 @@ class ReusableAgreementLookupPostgresTest {
     private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
                                 String assetId, String providerId, Instant signingDate) {
         saveAgreement(targetStore, negotiationId, participantContextId, "consumer", assetId, providerId,
-                ContractNegotiation.Type.CONSUMER, signingDate);
+                ContractNegotiation.Type.CONSUMER, signingDate, policy());
+    }
+
+    private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
+                                String assetId, String providerId, Instant signingDate, Policy policy) {
+        saveAgreement(targetStore, negotiationId, participantContextId, "consumer", assetId, providerId,
+                ContractNegotiation.Type.CONSUMER, signingDate, policy);
     }
 
     private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
                                 String consumerId, String assetId, String providerId, ContractNegotiation.Type type,
                                 Instant signingDate) {
+        saveAgreement(targetStore, negotiationId, participantContextId, consumerId, assetId, providerId, type,
+                signingDate, policy());
+    }
+
+    private void saveAgreement(ContractNegotiationStore targetStore, String negotiationId, String participantContextId,
+                                String consumerId, String assetId, String providerId, ContractNegotiation.Type type,
+                                Instant signingDate, Policy policy) {
         var agreement = ContractAgreement.Builder.newInstance()
                 .id("agreement-" + negotiationId)
                 .agreementId("wire-" + negotiationId)
@@ -208,7 +306,7 @@ class ReusableAgreementLookupPostgresTest {
                 .assetId(assetId)
                 .contractSigningDate(signingDate.getEpochSecond())
                 .participantContextId(participantContextId)
-                .policy(policy())
+                .policy(policy)
                 .build();
 
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -230,6 +328,41 @@ class ReusableAgreementLookupPostgresTest {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance().type("use").build())
+                        .build())
+                .build();
+    }
+
+    private Policy clientPolicy(String encodedClientId) {
+        var clientConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_CLIENT_ID))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(encodedClientId))
+                .build();
+        var pathConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_DATAPATH))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("GET /pets"))
+                .build();
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance().type("use").build())
+                        .constraint(AndConstraint.Builder.newInstance()
+                                .constraints(List.of(clientConstraint, pathConstraint))
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private Policy groupPolicy(String encodedGroupId) {
+        var groupConstraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_GLOBAL_GROUP))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(encodedGroupId))
+                .build();
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance().type("use").build())
+                        .constraint(groupConstraint)
                         .build())
                 .build();
     }

@@ -135,7 +135,7 @@ class AssetAccessOrchestratorTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(reusableAgreementLookup.find(any(), any(), any(), any())).thenReturn(Optional.empty());
+        lenient().when(reusableAgreementLookup.find(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
         lenient().when(dataAddressStore.resolve(any())).thenAnswer(invocation -> {
             TransferProcess transferProcess = invocation.getArgument(0);
             var address = transferProcess == null ? null : resolvableAddresses.get(transferProcess.getId());
@@ -160,7 +160,8 @@ class AssetAccessOrchestratorTest {
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
+                .thenReturn(Optional.of(agreement));
 
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
@@ -183,6 +184,12 @@ class AssetAccessOrchestratorTest {
         verify(transferProcessService).initiateTransfer(any(), transferRequestCaptor.capture());
         assertThat(transferRequestCaptor.getValue().getTransferType()).isEqualTo(XRoadTransferType.PULL.wireValue());
         assertThat(transferRequestCaptor.getValue().getContractId()).isEqualTo("agreement-1");
+
+        var logCaptor = ArgumentCaptor.forClass(String.class);
+        verify(monitor, atLeastOnce()).info(logCaptor.capture());
+        assertThat(logCaptor.getAllValues())
+                .anyMatch(message -> message.contains("reusing agreement") && message.contains("agreementId=agreement-1")
+                        && message.contains("matchedByClientId=false"));
     }
 
     @Test
@@ -191,7 +198,8 @@ class AssetAccessOrchestratorTest {
         var assetAccessRequest = new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, null);
 
         var agreement = buildAgreement("agreement-1");
-        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1")).thenReturn(Optional.of(agreement));
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", null))
+                .thenReturn(Optional.of(agreement));
 
         var transferProcess = TransferProcess.Builder.newInstance().id("tp-1").build();
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
@@ -702,6 +710,59 @@ class AssetAccessOrchestratorTest {
                 new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, "DEV:COM:222:A"));
 
         verify(contractNegotiationService, times(2)).initiateNegotiation(any(), any());
+    }
+
+    @Test
+    void subsystemWithReusableAgreementTransfersOnItWhileTheOtherSubsystemNegotiates() throws Exception {
+        var participantContext = buildParticipantContext();
+        var clientWithAgreement = "DEV:COM:222:A";
+        var clientWithoutAgreement = "DEV:COM:222:B";
+
+        var reusedAgreement = buildAgreement("agreement-a");
+        when(reusableAgreementLookup.find("participant1", "participant1", "asset-1", "provider-1", clientWithAgreement))
+                .thenReturn(Optional.of(reusedAgreement));
+
+        stubCatalog(buildCatalogWithOffers("asset-1", Map.of("offer-b", clientPolicy(clientWithoutAgreement))));
+        when(contractNegotiationService.initiateNegotiation(any(), any())).thenReturn(ServiceResult.success(buildNegotiation()));
+
+        var transferProcessA = TransferProcess.Builder.newInstance().id("tp-a").build();
+        var transferProcessB = TransferProcess.Builder.newInstance().id("tp-b").build();
+        when(transferProcessService.initiateTransfer(any(), any()))
+                .thenReturn(ServiceResult.success(transferProcessA))
+                .thenReturn(ServiceResult.success(transferProcessB));
+
+        var futureA = orchestrator.acquireAssetAccess(participantContext,
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, clientWithAgreement));
+        var futureB = orchestrator.acquireAssetAccess(participantContext,
+                new AssetAccessRequest("asset-1", "provider-1", "http://provider/dsp", null, clientWithoutAgreement));
+
+        var negotiatedAgreement = buildAgreement("agreement-b");
+        when(negotiationStore.findById("neg-1")).thenReturn(finalizedNegotiation("neg-1", negotiatedAgreement));
+
+        var dataAddressA = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data-a").build();
+        when(transferProcessStore.findById("tp-a")).thenReturn(startedTransfer("tp-a", dataAddressA));
+        var dataAddressB = DataAddress.Builder.newInstance().type("HttpData")
+                .property("endpoint", "http://provider/data-b").build();
+        when(transferProcessStore.findById("tp-b")).thenReturn(startedTransfer("tp-b", dataAddressB));
+
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            completionPoller.poll();
+            assertThat(futureA).isDone();
+            assertThat(futureB).isDone();
+        });
+
+        assertThat(futureA.get(5, TimeUnit.SECONDS).getContent()).isSameAs(dataAddressA);
+        assertThat(futureB.get(5, TimeUnit.SECONDS).getContent()).isSameAs(dataAddressB);
+
+        verify(catalogService, times(1)).requestCatalog(any(), any(), any(), any(), any());
+        verify(contractNegotiationService, times(1)).initiateNegotiation(any(), any());
+        verify(transferProcessService, times(2)).initiateTransfer(any(), any());
+
+        var clientIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(reusableAgreementLookup, times(2))
+                .find(eq("participant1"), eq("participant1"), eq("asset-1"), eq("provider-1"), clientIdCaptor.capture());
+        assertThat(clientIdCaptor.getAllValues()).containsExactly(clientWithAgreement, clientWithoutAgreement);
     }
 
     private String acquireAndCaptureOfferId(Map<String, Policy> offers, String clientId) {

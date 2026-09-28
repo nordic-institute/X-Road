@@ -27,12 +27,14 @@
 
 package org.niis.xroad.edc.extension.assetaccess.agreement;
 
+import jakarta.annotation.Nullable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.niis.xroad.edc.extension.assetaccess.policy.PolicySubjectMatcher;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,13 +44,30 @@ import java.util.Optional;
  * negotiated through any ds-control-plane instance is reused by every instance sharing the same
  * database, in place of a per-instance agreement registry.
  *
- * <p>Two or more instances may each miss this lookup for the same participant context, consumer, asset
- * and provider at the same moment and negotiate independently; every resulting agreement lands in the
- * shared store, none of them collide, and none are cleaned up here. The next lookup for that key sees
+ * <p>The provider publishes one offer per ACL subject, so an agreement negotiated on a subsystem's
+ * behalf carries a policy naming only that subsystem. For an <b>Asset access acquisition</b> with a
+ * client id, this lookup honours the same subsystem scoping: among the agreements matching participant
+ * context, consumer, asset and provider, it returns the newest one whose policy names that client, or
+ * empty when none does. There is no fallback to an agreement applying to the member as a whole or to a
+ * group here; that fallback exists only in offer selection, because the consumer cannot verify a
+ * subsystem's grant on such an agreement and a request under it fails the provider's own check. With a
+ * null client id (the management-context and builtin-service route), <b>Agreement reuse</b> falls back
+ * to today's behaviour: the newest candidate is returned regardless of policy.
+ *
+ * <p>Two or more instances may each miss this lookup for the same participant context, consumer, asset,
+ * provider and client at the same moment and negotiate independently; every resulting agreement lands in
+ * the shared store, none of them collide, and none are cleaned up here. The next lookup for that key sees
  * all of them and returns the one with the newest contract signing date, so concurrent duplicates are
  * harmless and self-resolving rather than prevented.
  */
 public class ReusableAgreementLookup {
+
+    /**
+     * Upper bound on candidates fetched per lookup: participant context, consumer, asset and provider
+     * narrow the query to one row per ACL subject the provider publishes for the asset, plus any
+     * duplicates left behind by concurrent negotiations; this comfortably covers both.
+     */
+    private static final int MAX_CANDIDATES = 500;
 
     private final ContractNegotiationStore negotiationStore;
     private final TransactionContext transactionContext;
@@ -59,8 +78,9 @@ public class ReusableAgreementLookup {
     }
 
     /**
-     * Returns the newest contract agreement the given participant context negotiated as consumer for the
-     * given asset and provider, or empty if none has been negotiated yet.
+     * Returns the reusable contract agreement the given participant context negotiated as consumer for
+     * the given asset and provider, or empty if none applies. See the class description for the
+     * client-id precedence.
      *
      * <p>{@code consumerId} is the participant context's own identity. The shared store also holds the
      * agreements this context granted as provider to other consumers of the same asset, and on a self-call
@@ -68,7 +88,7 @@ public class ReusableAgreementLookup {
      * context itself. Only an agreement whose consumer is this context can back a transfer it initiates.
      */
     public Optional<ContractAgreement> find(String participantContextId, String consumerId, String assetId,
-                                            String providerId) {
+                                            String providerId, @Nullable String clientId) {
         var query = QuerySpec.Builder.newInstance()
                 .filter(List.of(
                         Criterion.criterion("participantContextId", "=", participantContextId),
@@ -77,13 +97,20 @@ public class ReusableAgreementLookup {
                         Criterion.criterion("providerId", "=", providerId)))
                 .sortField("contractSigningDate")
                 .sortOrder(SortOrder.DESC)
-                .limit(1)
+                .limit(MAX_CANDIDATES)
                 .build();
 
-        return transactionContext.execute(() -> {
+        var candidates = transactionContext.execute(() -> {
             try (var agreements = negotiationStore.queryAgreements(query)) {
-                return agreements.findFirst();
+                return agreements.toList();
             }
         });
+
+        if (clientId == null) {
+            return candidates.stream().findFirst();
+        }
+        return candidates.stream()
+                .filter(agreement -> PolicySubjectMatcher.namesClient(agreement.getPolicy(), clientId))
+                .findFirst();
     }
 }
