@@ -227,6 +227,19 @@ public interface ServerConfProvider {
     List<Endpoint> getServiceEndpoints(ServiceId serviceId);
 
     /**
+     * The ACL endpoint entries {@code clientId} directly holds for {@code serviceId} — the same entries
+     * {@link #isQueryAllowed(ClientId, ServiceId, String, String)} matches a request against, in the model
+     * type its matching logic uses (method/path glob, {@link org.niis.xroad.serverconf.model.BaseEndpoint}).
+     * Includes entries granted to the client directly, through a local group, or through a global group;
+     * excludes anything only implicitly allowed.
+     *
+     * @param clientId  the client identifier
+     * @param serviceId the service identifier
+     * @return the client's current ACL endpoint entries for the service (may be empty, never null)
+     */
+    List<org.niis.xroad.serverconf.model.Endpoint> getAclEndpoints(ClientId clientId, ServiceId serviceId);
+
+    /**
      * @return access rights for the service across all subjects (may be empty, never null)
      */
     List<AccessRight> getServiceAccessRights(ServiceId serviceId);

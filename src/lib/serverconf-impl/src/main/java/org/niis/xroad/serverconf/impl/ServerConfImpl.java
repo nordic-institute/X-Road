@@ -434,6 +434,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public List<Endpoint> getAclEndpoints(ClientId clientId, ServiceId serviceId) {
+        return tx(session -> getAclEndpoints(session, clientId, serviceId));
+    }
+
+    @Override
     public List<AccessRight> getServiceAccessRights(ServiceId serviceId) {
         return tx(session -> {
             var serviceOwner = clientDao.getClient(session, serviceId.getClientId());

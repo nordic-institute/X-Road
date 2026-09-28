@@ -34,6 +34,7 @@ import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
+import org.eclipse.edc.spi.constants.CoreConstants;
 import org.niis.xroad.common.core.exception.ErrorCode;
 import org.niis.xroad.common.core.exception.XrdRuntimeException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -61,11 +62,16 @@ public class XRoadDataPlaneManager {
     /** Full transfer-type string for Xrd-PULL flows (matches the wire value). */
     static final String XRD_PULL_TRANSFER_TYPE = "Xrd-PULL";
 
+    private static final String AUTHORIZATION_PROPERTY = CoreConstants.EDC_NAMESPACE + "authorization";
+    private static final String AUTH_TYPE_PROPERTY = CoreConstants.EDC_NAMESPACE + "authType";
+    private static final String BEARER_AUTH_TYPE = "bearer";
+
     private final DataPlaneServerProperties dspProperties;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties proxyProperties;
     private final DataFlowStateStore flowStateStore;
+    private final AgreementTokenIssuer agreementTokenIssuer;
 
     /**
      * Handles a prepare request. For {@code Xrd-PULL} there is no async provisioning —
@@ -77,7 +83,7 @@ public class XRoadDataPlaneManager {
     public DataFlowStatusMessage prepare(DataFlowPrepareMessage message) {
         log.info("Preparing data flow for process {}", message.getProcessId());
         storeState(message.getProcessId(), DataFlowStates.PROVISIONED);
-        return buildStatusMessage(DataFlowStates.PROVISIONED);
+        return buildStatusMessage(DataFlowStates.PROVISIONED, message.getAgreementId());
     }
 
     /**
@@ -93,7 +99,7 @@ public class XRoadDataPlaneManager {
         validateXrdPull(message);
         log.info("Starting Xrd-PULL data flow for process {}", message.getProcessId());
         storeState(message.getProcessId(), DataFlowStates.STARTED);
-        return buildStatusMessage(DataFlowStates.STARTED);
+        return buildStatusMessage(DataFlowStates.STARTED, message.getAgreementId());
     }
 
     /**
@@ -160,15 +166,17 @@ public class XRoadDataPlaneManager {
         }
     }
 
-    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state) {
+    private DataFlowStatusMessage buildStatusMessage(DataFlowStates state, String agreementId) {
         var protocol = proxyProperties.sslEnabled() ? "https" : "http";
         var endpoint = resolveServerproxyEndpoint(protocol);
-        var dataAddress = DspDataAddress.Builder.newInstance()
+        var dataAddressBuilder = DspDataAddress.Builder.newInstance()
                 .endpointType(protocol)
-                .endpoint(endpoint)
-                .build();
+                .endpoint(endpoint);
+        agreementTokenIssuer.issueToken(agreementId).ifPresent(token -> dataAddressBuilder
+                .property(AUTHORIZATION_PROPERTY, token)
+                .property(AUTH_TYPE_PROPERTY, BEARER_AUTH_TYPE));
         return DataFlowStatusMessage.Builder.newInstance()
-                .dataAddress(dataAddress)
+                .dataAddress(dataAddressBuilder.build())
                 .state(state.toString())
                 .build();
     }

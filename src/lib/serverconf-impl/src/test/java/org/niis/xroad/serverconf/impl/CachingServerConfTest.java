@@ -269,6 +269,25 @@ public class CachingServerConfTest {
     }
 
     /**
+     * Tests getting the ACL endpoint entries a client holds for a service through the caching wrapper — the
+     * same entries {@link #isQueryAllowed()} matches a request against.
+     */
+    @Test
+    public void getAclEndpoints() {
+        ClientId client1 = createTestClientId(client(1));
+        ClientId clientX = createTestClientId(CLIENT_CODE + "X");
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+
+        List<org.niis.xroad.serverconf.model.Endpoint> endpoints = serverConfProvider.getAclEndpoints(client1, serviceRest);
+
+        assertEquals(2, endpoints.size());
+        assertTrue(endpoints.stream().anyMatch(e -> "GET".equals(e.getMethod()) && "/api/**".equals(e.getPath())));
+        assertTrue(endpoints.stream().anyMatch(e -> "POST".equals(e.getMethod()) && "/api/test/*".equals(e.getPath())));
+
+        assertTrue(serverConfProvider.getAclEndpoints(clientX, serviceRest).isEmpty());
+    }
+
+    /**
      * Tests getting IS authentication.
      */
     @Test
