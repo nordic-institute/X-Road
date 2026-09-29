@@ -17,7 +17,7 @@ To use the script, make sure you have the matching Java version installed.
 The script can be invoked using the following command:
 
 ```
-java -jar messagelog-archive-verifier.jar <pathToArchiveFile.zip> <(lastHashStepResult) or (-f) or (--first)>
+java -jar messagelog-archive-verifier-<version>.jar <pathToArchiveFile.zip> <(lastHashStepResult) or (-f) or (--first)>
 ```
 
 **NB!** If the value of the second argument is `-f` or `--first` (both case insensitive), it is assumed that the first archive file in the chain is being verified, and no previous hash steps have been calculated.
