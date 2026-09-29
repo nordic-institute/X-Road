@@ -132,6 +132,10 @@ public class HttpSender extends AbstractHttpSender {
         doRequest(get);
     }
 
+    static String loggableValue(Header header) {
+        return MimeUtils.HEADER_AGREEMENT_TOKEN.equalsIgnoreCase(header.getName()) ? "<redacted>" : header.getValue();
+    }
+
     private void doRequest(HttpRequestBase request) throws Exception {
         this.request = request;
 
@@ -140,7 +144,7 @@ public class HttpSender extends AbstractHttpSender {
         if (log.isTraceEnabled()) {
             log.trace("Log request headers");
             for (Header header : request.getAllHeaders()) {
-                log.trace(String.format("%s : %s", header.getName(), header.getValue()));
+                log.trace(String.format("%s : %s", header.getName(), loggableValue(header)));
             }
         }
 

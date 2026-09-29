@@ -39,6 +39,7 @@ import org.niis.xroad.common.properties.config.impl.XRoadConfigCommonProperties;
 import org.niis.xroad.common.properties.config.keys.CommonConfigKeys;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierFactory;
+import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageProcessor.ReplaySoapProxyMessageEntity;
 import org.niis.xroad.proxy.core.configuration.ProxyProperties;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 import org.niis.xroad.proxy.core.dsp.DspRequest;
@@ -189,13 +190,14 @@ class ClientSoapMessageProcessorTest {
         var firstAttemptSender = mock(HttpSender.class);
         var replayedAttemptSender = mock(HttpSender.class);
 
-        // executeWithRetry invokes sendRequest fresh on every attempt (streamed or replayed) with the
-        // same asset-access result, so two direct calls reproduce a first attempt and a replay.
+        var replayEntity = mock(ReplaySoapProxyMessageEntity.class);
+
         harness.processor().sendRequest(firstAttemptSender, ctx, decoder, "req-1", null, assetAccess, null);
-        harness.processor().sendRequest(replayedAttemptSender, ctx, decoder, "req-1", null, assetAccess, null);
+        harness.processor().sendRequest(replayedAttemptSender, ctx, decoder, "req-1", null, assetAccess, replayEntity);
 
         verify(firstAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
         verify(replayedAttemptSender).addHeader(HEADER_AGREEMENT_TOKEN, AGREEMENT_TOKEN);
+        verify(replayedAttemptSender).doPost(any(URI.class), eq(replayEntity));
     }
 
     private static ClientSoapRequestContext newSoapRequestContext() throws Exception {
