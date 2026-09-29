@@ -57,11 +57,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -129,20 +127,11 @@ public class AssetAccessCompletionPoller {
         this.monitor = monitor;
         this.pollInterval = pollInterval;
         this.executor = executorInstrumentation.instrument(
-                Executors.newSingleThreadScheduledExecutor(namedDaemonThreadFactory(POLL_THREAD_NAME)), POLL_THREAD_NAME);
+                Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name(POLL_THREAD_NAME + "-", 1).daemon().factory()),
+                POLL_THREAD_NAME);
         this.completionExecutor = executorInstrumentation.instrument(
                 Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name(COMPLETION_THREAD_NAME + "-", 1).factory()),
                 COMPLETION_THREAD_NAME);
-    }
-
-    private static ThreadFactory namedDaemonThreadFactory(String name) {
-        var counter = new AtomicInteger();
-        return runnable -> {
-            var thread = Executors.defaultThreadFactory().newThread(runnable);
-            thread.setName(name + "-" + counter.incrementAndGet());
-            thread.setDaemon(true);
-            return thread;
-        };
     }
 
     /**
