@@ -37,6 +37,7 @@ import org.niis.xroad.edc.issuer.provisioning.proto.CreateCredentialDefinitionRe
 import org.niis.xroad.edc.issuer.provisioning.proto.CreateParticipantContextReq;
 import org.niis.xroad.edc.issuer.provisioning.proto.CredentialMapping;
 import org.niis.xroad.edc.issuer.provisioning.proto.IssuerProvisioningServiceGrpc;
+import org.niis.xroad.edc.issuer.provisioning.proto.RevokeCredentialReq;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -118,5 +119,20 @@ public class IssuerProvisioningRpcClient extends AbstractRpcClient implements In
                 .addAllAttestations(attestations)
                 .addAllMappings(mappings)
                 .build()));
+    }
+
+    /**
+     * Revokes every credential at the issuer matching the given participant context and holder DID that was
+     * issued before the given cut-off timestamp (POSIX milliseconds).
+     *
+     * @return the number of credentials revoked
+     */
+    public int revokeCredential(String participantContextId, String holderDid, long issuedBefore) {
+        var response = exec(() -> stub.revokeCredential(RevokeCredentialReq.newBuilder()
+                .setParticipantContextId(participantContextId)
+                .setHolderDid(holderDid)
+                .setIssuedBefore(issuedBefore)
+                .build()));
+        return response.getRevokedCount();
     }
 }

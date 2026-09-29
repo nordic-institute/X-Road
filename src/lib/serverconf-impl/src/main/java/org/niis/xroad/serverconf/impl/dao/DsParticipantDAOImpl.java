@@ -36,8 +36,10 @@ import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
+import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -59,14 +61,7 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         if (identifier == null) {
             return Optional.empty();
         }
-
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
-        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
-
-        query.select(root).where(cb.equal(root.get("memberIdentifier"), identifier));
-
-        return session.createQuery(query).uniqueResultOptional();
+        return findByMemberIdentifier(session, identifier);
     }
 
     /**
@@ -81,6 +76,63 @@ public class DsParticipantDAOImpl extends AbstractDAOImpl<DsParticipantEntity> {
         final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
 
         query.select(root).where(cb.equal(root.get("participantType"), ParticipantType.SYSTEM));
+
+        return session.createQuery(query).uniqueResultOptional();
+    }
+
+    /**
+     * Flips the member's bound participant row to {@link ParticipantState#DECOMMISSIONED}, whatever
+     * its current state — a no-op if it already is. Does nothing when the member has no bound row:
+     * every bound member is provisioned with an {@code ACTIVE} row up front, so a missing row means
+     * there was never a published identity to tear down.
+     *
+     * @param session the Hibernate session
+     * @param member  the member identifier
+     * @return {@code true} if the member had a bound row, {@code false} if it had none
+     */
+    public boolean decommissionMember(Session session, ClientId member) {
+        Optional<DsParticipantEntity> existing = findByMemberIdentifier(session, member);
+        if (existing.isEmpty()) {
+            return false;
+        }
+        existing.get().setState(ParticipantState.DECOMMISSIONED);
+        return true;
+    }
+
+    /**
+     * Finds every bound participant row currently marked {@link ParticipantState#DECOMMISSIONED},
+     * i.e. awaiting teardown convergence.
+     *
+     * @param session the Hibernate session
+     * @return the decommissioned rows
+     */
+    public List<DsParticipantEntity> findDecommissioned(Session session) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+
+        query.select(root).where(cb.equal(root.get("state"), ParticipantState.DECOMMISSIONED));
+
+        return session.createQuery(query).list();
+    }
+
+    /**
+     * Deletes the given participant row by id. Idempotent: a missing row is not an error.
+     *
+     * @param session the Hibernate session
+     * @param id      the participant row id
+     * @return {@code true} if a row was deleted, {@code false} if none existed
+     */
+    public boolean delete(Session session, Long id) {
+        return deleteById(session, DsParticipantEntity.class, id);
+    }
+
+    private Optional<DsParticipantEntity> findByMemberIdentifier(Session session, ClientIdEntity identifier) {
+        final CriteriaBuilder cb = session.getCriteriaBuilder();
+        final CriteriaQuery<DsParticipantEntity> query = cb.createQuery(DsParticipantEntity.class);
+        final Root<DsParticipantEntity> root = query.from(DsParticipantEntity.class);
+
+        query.select(root).where(cb.equal(root.get("memberIdentifier"), identifier));
 
         return session.createQuery(query).uniqueResultOptional();
     }

@@ -42,6 +42,7 @@ import org.niis.xroad.serverconf.impl.entity.DsParticipantEntity;
 import org.niis.xroad.serverconf.model.ParticipantState;
 import org.niis.xroad.serverconf.model.ParticipantType;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -193,6 +194,92 @@ public class DsParticipantDAOImplTest {
         } finally {
             DATABASE_CTX.rollbackTransaction();
         }
+    }
+
+    @Test
+    public void decommissionMemberFlipsExistingActiveRow() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-decom-flip");
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.save(session, memberParticipant(session, member));
+            return null;
+        });
+        String originalCtxId = ParticipantIdentifierScheme.memberCtxId(member);
+        String originalDid = ParticipantIdentifierScheme.memberDid(member, SS_HOST).toString();
+
+        boolean flipped = DATABASE_CTX.doInTransaction(session -> dao.decommissionMember(session, member));
+
+        assertTrue(flipped);
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantState.DECOMMISSIONED, loaded.get().getState());
+        assertEquals(originalCtxId, loaded.get().getCtxId());
+        assertEquals(originalDid, loaded.get().getDid());
+    }
+
+    @Test
+    public void decommissionMemberOnAlreadyDecommissionedRowIsNoOp() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-decom-idempotent");
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.save(session, memberParticipant(session, member));
+            return null;
+        });
+
+        boolean firstFlip = DATABASE_CTX.doInTransaction(session -> dao.decommissionMember(session, member));
+        boolean secondFlip = DATABASE_CTX.doInTransaction(session -> dao.decommissionMember(session, member));
+
+        assertTrue(firstFlip);
+        assertTrue(secondFlip);
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+        assertTrue(loaded.isPresent());
+        assertEquals(ParticipantState.DECOMMISSIONED, loaded.get().getState());
+    }
+
+    @Test
+    public void decommissionMemberOnUnboundMemberDoesNothing() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-decom-unbound");
+
+        boolean flipped = DATABASE_CTX.doInTransaction(session -> dao.decommissionMember(session, member));
+
+        assertFalse(flipped);
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+        assertFalse(loaded.isPresent());
+    }
+
+    @Test
+    public void findDecommissionedReturnsOnlyDecommissionedRows() {
+        ClientId decommissionedMember = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-find-decom");
+        ClientId activeMember = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-find-active");
+        DATABASE_CTX.doInTransaction(session -> {
+            dao.save(session, memberParticipant(session, decommissionedMember));
+            dao.save(session, memberParticipant(session, activeMember));
+            return null;
+        });
+
+        DATABASE_CTX.doInTransaction(session -> dao.decommissionMember(session, decommissionedMember));
+        List<DsParticipantEntity> decommissioned = DATABASE_CTX.doInTransaction(dao::findDecommissioned);
+
+        assertTrue(decommissioned.stream().allMatch(row -> row.getState() == ParticipantState.DECOMMISSIONED));
+        assertTrue(decommissioned.stream().anyMatch(row -> decommissionedMember.equals(row.getMemberIdentifier())));
+        assertTrue(decommissioned.stream().noneMatch(row -> activeMember.equals(row.getMemberIdentifier())));
+    }
+
+    @Test
+    public void deleteRemovesRow() {
+        ClientId member = ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, "participant-member-delete");
+        Long id = DATABASE_CTX.doInTransaction(session -> dao.save(session, memberParticipant(session, member)).getId());
+
+        boolean deleted = DATABASE_CTX.doInTransaction(session -> dao.delete(session, id));
+
+        assertTrue(deleted);
+        Optional<DsParticipantEntity> loaded = DATABASE_CTX.doInTransaction(session -> dao.findByMemberIdentifier(session, member));
+        assertFalse(loaded.isPresent());
+    }
+
+    @Test
+    public void deleteOfAbsentRowIsNotAnError() {
+        boolean deleted = DATABASE_CTX.doInTransaction(session -> dao.delete(session, Long.MAX_VALUE));
+
+        assertFalse(deleted);
     }
 
     @Test

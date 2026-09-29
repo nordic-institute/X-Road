@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("com.gradleup.shadow")
+  id("xroad.maven-publish-conventions")
 }
 
 dependencies {
@@ -22,5 +23,15 @@ tasks.shadowJar {
   archiveBaseName.set("asicverifier")
   archiveClassifier.set("")
   archiveVersion.set("")
+  from(rootProject.file("3RD-PARTY-NOTICES.txt")) { into("META-INF/xroad") }
+}
 
+publishing {
+  publications {
+    create<MavenPublication>("shadow") {
+      from(components["shadow"])
+
+      artifactId = "asicverifier"
+    }
+  }
 }

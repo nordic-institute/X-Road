@@ -196,7 +196,7 @@ export const useClient = defineStore('client', {
     },
 
     async deleteClient(clientId: string) {
-      return api.remove(clientBaseUrl(clientId, '/register'));
+      return api.remove(clientBaseUrl(clientId));
     },
 
     async checkOrphans(clientId: string) {

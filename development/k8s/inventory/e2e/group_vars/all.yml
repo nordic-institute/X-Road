@@ -166,6 +166,7 @@ port_forwards:
   - {name: proxy-ocsp, namespace: ss0, resource: svc/proxy, ports: "5577:5577"}
   - {name: proxy-8080, namespace: ss0, resource: svc/proxy, ports: "8080:8080"}
   - {name: proxy-8443, namespace: ss0, resource: svc/proxy, ports: "8443:8443"}
+  - {name: ds-identity-hub-did, namespace: ss0, resource: svc/ds-identity-hub, ports: "7183:7183"}
   - {name: ss1-proxy-ui-api, namespace: ss1, resource: svc/proxy-ui-api, ports: "4001:4000"}
   - {name: ss1-proxy-http, namespace: ss1, resource: svc/proxy, ports: "5501:5500"}
   - {name: ss1-proxy-ocsp, namespace: ss1, resource: svc/proxy, ports: "5578:5577"}

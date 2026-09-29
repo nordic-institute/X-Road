@@ -41,6 +41,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -65,6 +66,37 @@ public class DsParticipantRepository {
      */
     public Optional<DsParticipantEntity> findByMemberIdentifier(ClientId member) {
         return dsParticipantDAO.findByMemberIdentifier(persistenceUtils.getCurrentSession(), member);
+    }
+
+    /**
+     * Flips the member's bound participant row to decommissioned, in the caller's transaction — a
+     * no-op if it already is. Does nothing when the member has no bound row.
+     *
+     * @param member the member identifier
+     * @return {@code true} if the member had a bound row, {@code false} if it had none
+     */
+    public boolean decommissionMember(ClientId member) {
+        return dsParticipantDAO.decommissionMember(persistenceUtils.getCurrentSession(), member);
+    }
+
+    /**
+     * Finds every bound participant row currently marked decommissioned, awaiting teardown convergence.
+     *
+     * @return the decommissioned rows
+     */
+    public List<DsParticipantEntity> findDecommissioned() {
+        return dsParticipantDAO.findDecommissioned(persistenceUtils.getCurrentSession());
+    }
+
+    /**
+     * Deletes the given participant row by id, in the caller's transaction. Idempotent: deleting an
+     * already-absent row is not an error.
+     *
+     * @param id the participant row id
+     * @return {@code true} if a row was deleted, {@code false} if none existed
+     */
+    public boolean delete(Long id) {
+        return dsParticipantDAO.delete(persistenceUtils.getCurrentSession(), id);
     }
 
     /**

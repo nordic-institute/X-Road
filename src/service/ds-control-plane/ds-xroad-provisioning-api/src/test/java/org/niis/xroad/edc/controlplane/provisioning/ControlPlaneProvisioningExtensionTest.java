@@ -30,6 +30,9 @@ import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextC
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +59,12 @@ class ControlPlaneProvisioningExtensionTest {
     @Mock
     private GrpcServiceRegistry grpcServiceRegistry;
     @Mock
+    private DataSourceRegistry dataSourceRegistry;
+    @Mock
+    private TransactionContext transactionContext;
+    @Mock
+    private QueryExecutor queryExecutor;
+    @Mock
     private Monitor monitor;
     @Mock
     private ServiceExtensionContext context;
@@ -70,6 +79,10 @@ class ControlPlaneProvisioningExtensionTest {
         setField(extension, "dataPlaneContextRegistrar", dataPlaneContextRegistrar);
         setField(extension, "catalogCacheInvalidator", catalogCacheInvalidator);
         setField(extension, "grpcServiceRegistry", grpcServiceRegistry);
+        setField(extension, "participantContextConfigDataSourceName", DataSourceRegistry.DEFAULT_DATASOURCE);
+        setField(extension, "dataSourceRegistry", dataSourceRegistry);
+        setField(extension, "transactionContext", transactionContext);
+        setField(extension, "queryExecutor", queryExecutor);
         setField(extension, "monitor", monitor);
     }
 
