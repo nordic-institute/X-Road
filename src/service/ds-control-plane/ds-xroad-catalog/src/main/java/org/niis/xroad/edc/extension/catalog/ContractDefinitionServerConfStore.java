@@ -129,8 +129,12 @@ class ContractDefinitionServerConfStore implements ContractDefinitionStore {
                     definitionId);
             return null;
         }
-        log.trace("findById definitionId={} result={}", definitionId, result != null ? "found" : "not found");
+        logFindByIdResult(definitionId, result);
         return result;
+    }
+
+    private void logFindByIdResult(String definitionId, @Nullable ContractDefinition result) {
+        log.trace("findById definitionId={} result={}", definitionId, result != null ? "found" : "not found");
     }
 
     /**

@@ -426,12 +426,11 @@ class ContractDefinitionServerConfStoreTest {
         var systemDefinitions = result.stream()
                 .filter(d -> SYSTEM_PARTICIPANT_CTX.equals(d.getParticipantContextId()))
                 .toList();
-        // No unrestricted (plain assetId) grant once access rights are configured.
-        assertThat(systemDefinitions).noneSatisfy(d ->
-                assertThat(d.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId()));
-        // The authorized subject still gets a SYSTEM-scoped, ACL-matching entry.
-        assertThat(systemDefinitions).anySatisfy(d ->
-                assertThat(d.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId()
+        assertThat(systemDefinitions)
+                // No unrestricted (plain assetId) grant once access rights are configured.
+                .noneSatisfy(d -> assertThat(d.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId()))
+                // The authorized subject still gets a SYSTEM-scoped, ACL-matching entry.
+                .anySatisfy(d -> assertThat(d.getAccessPolicyId()).isEqualTo(MGMT_SERVICE.asEncodedId()
                         + XRoadId.ENCODED_ID_SEPARATOR + SUBJECT_CLIENT.asEncodedId()));
     }
 
