@@ -299,6 +299,25 @@ class AssetIndexServerConfStoreTest {
     }
 
     @Test
+    void queryAssetsIncludesDisabledRealManagementServiceWithConfiguredAccessRightsUnderSystemContext() {
+        when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT));
+        when(serverConfProvider.getAllServices(MGMT_CLIENT)).thenReturn(List.of(MGMT_SERVICE));
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(nonEmptyAcl());
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+
+        var result = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        var systemEntry = result.stream()
+                .filter(a -> a.getId().equals(MGMT_SERVICE.asEncodedId())
+                        && SYSTEM_PARTICIPANT_CONTEXT_ID.equals(a.getParticipantContextId()))
+                .toList();
+        assertThat(systemEntry).hasSize(1);
+    }
+
+    @Test
     void queryAssetsExcludesRealAuthCertRegFromSystemContext() {
         var authCertRegService = ServiceId.Conf.create("DEV", "COM", "3333", "MANAGEMENT", "authCertReg");
         when(serverConfProvider.getMembers()).thenReturn(List.of(MGMT_CLIENT));
@@ -343,6 +362,22 @@ class AssetIndexServerConfStoreTest {
         var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void findByIdDisabledRealManagementServiceWithConfiguredAccessRightsFoundUnderSystemContext() {
+        when(serverConfProvider.serviceExists(MGMT_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_SERVICE)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(MGMT_SERVICE)).thenReturn(nonEmptyAcl());
+        when(globalConfProvider.getManagementRequestService()).thenReturn(MGMT_CLIENT);
+        when(serverConfProvider.getIdentifier()).thenReturn(SS_ID);
+        when(globalConfProvider.isSecurityServerClient(MGMT_CLIENT, SS_ID)).thenReturn(true);
+        requestedParticipantContext.set(SYSTEM_PARTICIPANT_CONTEXT_ID);
+
+        var result = assetIndex.findById(MGMT_SERVICE.asEncodedId());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getParticipantContextId()).isEqualTo(SYSTEM_PARTICIPANT_CONTEXT_ID);
     }
 
     @Test

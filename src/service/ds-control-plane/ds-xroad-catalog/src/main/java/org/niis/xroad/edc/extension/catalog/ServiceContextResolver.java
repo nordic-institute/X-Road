@@ -163,14 +163,16 @@ class ServiceContextResolver {
 
     /**
      * Whether an already-{@link #isSystemEligible} service should actually resolve under SYSTEM: a
-     * real, enabled service, or — when it isn't real — one the no-real-services synthetic fallback
-     * currently covers. Narrower than {@link #isSystemEligible} alone, so a by-id lookup never
-     * disagrees with what {@code buildAssetList}/{@code collectContractDefinitionsForService}/
+     * real, enabled service, a real disabled one with admin-configured access rights, or — when it
+     * isn't real — one the no-real-services synthetic fallback currently covers. Narrower than
+     * {@link #isSystemEligible} alone, so a by-id lookup never disagrees with what
+     * {@code buildAssetList}/{@code collectContractDefinitionsForService}/
      * {@code collectPoliciesForService} actually enumerate.
      */
     boolean isSystemPublished(ServiceId serviceId) {
         if (serverConfProvider.serviceExists(serviceId)) {
-            return serverConfProvider.getDisabledNotice(serviceId) == null;
+            return serverConfProvider.getDisabledNotice(serviceId) == null
+                    || !serverConfProvider.getServiceAccessRights(serviceId).isEmpty();
         }
         return isSystemSyntheticEligible(serviceId);
     }

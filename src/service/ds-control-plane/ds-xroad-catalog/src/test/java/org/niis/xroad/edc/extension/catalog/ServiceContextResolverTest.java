@@ -386,8 +386,18 @@ class ServiceContextResolverTest {
     void isSystemPublishedFalseForRealDisabledService() {
         when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
         when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of());
 
         assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isFalse();
+    }
+
+    @Test
+    void isSystemPublishedTrueForRealDisabledServiceWithConfiguredAccessRights() {
+        when(serverConfProvider.serviceExists(MGMT_ELIGIBLE_SERVICE)).thenReturn(true);
+        when(serverConfProvider.getDisabledNotice(MGMT_ELIGIBLE_SERVICE)).thenReturn("Maintenance");
+        when(serverConfProvider.getServiceAccessRights(MGMT_ELIGIBLE_SERVICE)).thenReturn(List.of(new AccessRight()));
+
+        assertThat(resolver().isSystemPublished(MGMT_ELIGIBLE_SERVICE)).isTrue();
     }
 
     @Test
