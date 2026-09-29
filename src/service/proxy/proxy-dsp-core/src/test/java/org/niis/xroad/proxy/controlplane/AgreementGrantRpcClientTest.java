@@ -39,6 +39,7 @@ import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,7 +55,9 @@ import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantRequest;
 import org.niis.xroad.edc.agreementgrant.proto.ResolveAgreementGrantResponse;
 import org.niis.xroad.edc.agreementgrant.proto.Scope;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,7 +72,7 @@ class AgreementGrantRpcClientTest {
     @Mock
     private RpcChannelFactory rpcChannelFactory;
     @Mock
-    private AssetAccessRpcChannelProperties channelProperties;
+    private AgreementGrantRpcChannelProperties channelProperties;
 
     private Server server;
     private ManagedChannel channel;
@@ -139,6 +142,20 @@ class AgreementGrantRpcClientTest {
                 .build());
 
         assertThat(client.resolveAgreementGrant("agreement-1")).isEmpty();
+    }
+
+    @Test
+    @Timeout(10)
+    void resolveReturnsEmptyPromptlyWhenTheControlPlaneIsUnreachable() throws Exception {
+        server.shutdownNow();
+        server.awaitTermination(5, TimeUnit.SECONDS);
+
+        var started = System.nanoTime();
+        var result = client.resolveAgreementGrant("agreement-1");
+        var elapsed = Duration.ofNanos(System.nanoTime() - started);
+
+        assertThat(result).isEmpty();
+        assertThat(elapsed).isLessThan(Duration.ofSeconds(2));
     }
 
     @Test

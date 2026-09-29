@@ -40,6 +40,7 @@ import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
@@ -96,7 +97,7 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
 
         var pieces = flatten(permissions.get(0).getConstraints());
         var subjectAtomic = findSubjectConstraint(pieces);
-        if (subjectAtomic == null) {
+        if (subjectAtomic == null || subjectAtomic.getOperator() != Operator.EQ) {
             return noGrant(NoGrantReason.POLICY_NOT_UNDERSTOOD);
         }
 
@@ -220,7 +221,8 @@ class AgreementGrantGrpcService extends AgreementGrantServiceGrpc.AgreementGrant
     }
 
     private static Scope parsePathScope(AtomicConstraint atomic) {
-        if (!XRoadPolicyNamespace.XROAD_DATAPATH.equals(literalValue(atomic.getLeftExpression()))) {
+        if (!XRoadPolicyNamespace.XROAD_DATAPATH.equals(literalValue(atomic.getLeftExpression()))
+                || atomic.getOperator() != Operator.EQ) {
             return null;
         }
         var value = literalValue(atomic.getRightExpression());

@@ -56,7 +56,7 @@ import java.util.Optional;
 public class AgreementGrantRpcClient extends AbstractRpcClient {
 
     private final RpcChannelFactory rpcChannelFactory;
-    private final AssetAccessRpcChannelProperties channelProperties;
+    private final AgreementGrantRpcChannelProperties channelProperties;
 
     private ManagedChannel channel;
     private AgreementGrantServiceGrpc.AgreementGrantServiceBlockingStub grantServiceBlockingStub;
@@ -76,7 +76,7 @@ public class AgreementGrantRpcClient extends AbstractRpcClient {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(),
                 channelProperties.host(), channelProperties.port());
         channel = rpcChannelFactory.createChannel(channelProperties);
-        grantServiceBlockingStub = AgreementGrantServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        grantServiceBlockingStub = AgreementGrantServiceGrpc.newBlockingStub(channel);
     }
 
     @Override

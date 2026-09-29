@@ -234,6 +234,30 @@ class AgreementGrantGrpcServiceTest {
     }
 
     @Test
+    void subjectConstraintWithNonEqualityOperatorYieldsNoGrantPolicyNotUnderstood() {
+        var policy = policy(subjectConstraint(XRoadPolicyNamespace.XROAD_CLIENT_ID, CONSUMER.asEncodedId(), Operator.NEQ));
+        stubAgreement("agreement-neq-subject", policy, SERVICE_WITH_VERSION);
+
+        var response = stub.resolveAgreementGrant(request("agreement-neq-subject"));
+
+        assertThat(response.hasNoGrant()).isTrue();
+        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+    }
+
+    @Test
+    void pathConstraintWithNonEqualityOperatorYieldsNoGrantPolicyNotUnderstood() {
+        var subject = subjectConstraint(XRoadPolicyNamespace.XROAD_CLIENT_ID, CONSUMER.asEncodedId());
+        var path = pathConstraint("GET /random/**", Operator.IN);
+        var policy = policy(AndConstraint.Builder.newInstance().constraints(List.of(subject, path)).build());
+        stubAgreement("agreement-in-path", policy, SERVICE_WITH_VERSION);
+
+        var response = stub.resolveAgreementGrant(request("agreement-in-path"));
+
+        assertThat(response.hasNoGrant()).isTrue();
+        assertThat(response.getNoGrant().getReason()).isEqualTo(NoGrantReason.POLICY_NOT_UNDERSTOOD);
+    }
+
+    @Test
     void storeThrowingBecomesGrpcInternalError() {
         when(contractNegotiationStore.findContractAgreement(eq("boom")))
                 .thenThrow(new RuntimeException("store unavailable"));
@@ -283,17 +307,25 @@ class AgreementGrantGrpcServiceTest {
     }
 
     private static AtomicConstraint subjectConstraint(String key, String value) {
+        return subjectConstraint(key, value, Operator.EQ);
+    }
+
+    private static AtomicConstraint subjectConstraint(String key, String value, Operator operator) {
         return AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression(key))
-                .operator(Operator.EQ)
+                .operator(operator)
                 .rightExpression(new LiteralExpression(value))
                 .build();
     }
 
     private static AtomicConstraint pathConstraint(String methodAndPath) {
+        return pathConstraint(methodAndPath, Operator.EQ);
+    }
+
+    private static AtomicConstraint pathConstraint(String methodAndPath, Operator operator) {
         return AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression(XRoadPolicyNamespace.XROAD_DATAPATH))
-                .operator(Operator.EQ)
+                .operator(operator)
                 .rightExpression(new LiteralExpression(methodAndPath))
                 .build();
     }

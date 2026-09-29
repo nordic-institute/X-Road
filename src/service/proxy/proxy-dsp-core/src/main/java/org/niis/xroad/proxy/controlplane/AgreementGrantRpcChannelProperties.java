@@ -26,30 +26,26 @@
  */
 package org.niis.xroad.proxy.controlplane;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.properties.config.XRoadConfig;
-import org.niis.xroad.proxy.dataplane.DataPlaneServerProperties;
+import org.niis.xroad.common.properties.config.keys.CommonRpcConfigKeys;
+import org.niis.xroad.common.rpc.client.XRoadRpcChannelProperties;
 
-class DspCoreConfig {
+/** gRPC channel configuration for the asset access service connection. */
+/**
+ * The control plane's agreement-grant lookup lives on the same gRPC server as asset access, so host and port are
+ * shared; only the deadline differs, because this lookup runs on the data-flow start path where the token is
+ * optional and must fail fast.
+ */
+public class AgreementGrantRpcChannelProperties extends XRoadRpcChannelProperties {
 
-    @ApplicationScoped
-    AssetAccessRpcChannelProperties assetAccessRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new AssetAccessRpcChannelProperties(xRoadConfig);
+    public AgreementGrantRpcChannelProperties(XRoadConfig config) {
+        super(config,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_HOST,
+                CommonRpcConfigKeys.CHANNEL_ASSET_ACCESS_PORT,
+                CommonRpcConfigKeys.CHANNEL_AGREEMENT_GRANT_DEADLINE_AFTER);
     }
 
-    @ApplicationScoped
-    AgreementGrantRpcChannelProperties agreementGrantRpcChannelProperties(XRoadConfig xRoadConfig) {
-        return new AgreementGrantRpcChannelProperties(xRoadConfig);
+    public AgreementGrantRpcChannelProperties() {
+        this(null);
     }
-
-    @ApplicationScoped
-    AssetAccessClientProperties assetAccessClientProperties(XRoadConfig xRoadConfig) {
-        return new AssetAccessClientProperties(xRoadConfig);
-    }
-
-    @ApplicationScoped
-    DataPlaneServerProperties dataPlaneServerProperties(XRoadConfig xRoadConfig) {
-        return new DataPlaneServerProperties(xRoadConfig);
-    }
-
 }
