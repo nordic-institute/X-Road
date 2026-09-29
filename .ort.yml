@@ -195,6 +195,14 @@ resolutions:
     - message: "proprietary-free license LicenseRef-scancode-efsl-2.0 in Maven:jakarta.resource:jakarta.resource-api:.*"
       reason: "NOT_MODIFIED_EXCEPTION"
       comment: "The LicenseRef-scancode-efsl-2.0 license allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "source-available license FSL-1.1-ALv2 in Maven:org.liquibase:liquibase-core:.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "Liquibase relicensed at 5.0 from Apache-2.0 to FSL-1.1-ALv2 (Functional Source
+        License 1.1, Apache-2.0 Future License). NIIS accepts the FSL terms for this dependency.
+        FSL is source-available, not OSI-approved open source: it permits use, modification and
+        redistribution but prohibits use to provide a competing product or service, and each
+        release converts to Apache-2.0 two years after publication. X-Road embeds Liquibase for 
+        database migrations and does not compete with it, so the non-compete condition is satisfied."
   issues:
     - message: "ERROR: Timeout after 1200 seconds while scanning file 'package/dist/echarts.esm.mjs.map'."
       reason: "SCANNER_ISSUE"
