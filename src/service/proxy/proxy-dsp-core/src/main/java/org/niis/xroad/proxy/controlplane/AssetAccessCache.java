@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.controlplane;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.Ticker;
 import jakarta.annotation.Nullable;
 import org.niis.xroad.proxy.core.dsp.AssetAccessResponse;
 
@@ -57,9 +58,18 @@ class AssetAccessCache {
     private final Cache<CacheKey, CachedEntry> cache;
 
     AssetAccessCache(AssetAccessClientProperties.Cache cacheProps) {
+        this(cacheProps, Ticker.systemTicker());
+    }
+
+    /**
+     * @param ticker the cache's time source; overridable so a test can fast-forward past an entry's
+     *               expiry without waiting on the wall clock. Production callers get the system ticker.
+     */
+    AssetAccessCache(AssetAccessClientProperties.Cache cacheProps, Ticker ticker) {
         this.cache = Caffeine.newBuilder()
                 .maximumSize(cacheProps.maximumSize())
                 .expireAfter(new EntryExpiry(cacheProps.defaultTtl().toNanos()))
+                .ticker(ticker)
                 .build();
     }
 

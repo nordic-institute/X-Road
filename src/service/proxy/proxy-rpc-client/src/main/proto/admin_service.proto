@@ -39,6 +39,7 @@ service AdminService {
   rpc ClearConfCache(Empty) returns (Empty) {}
   rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
   rpc GetTimestampingPrioritizationStrategy(Empty) returns (TimestampingPrioritizationStrategyResp) {}
+  rpc RotateAgreementTokenSigningKey(Empty) returns (RotateAgreementTokenSigningKeyResp) {}
 }
 
 message AddOnStatusResp {
@@ -74,4 +75,8 @@ message ProxyMemoryStatusResp {
 
 message TimestampingPrioritizationStrategyResp {
   ServicePrioritizationStrategy strategy = 1;
+}
+
+message RotateAgreementTokenSigningKeyResp {
+  string key_id = 1;
 }
