@@ -123,4 +123,42 @@ class DspConventionsTest {
         assertThatThrownBy(() -> DspConventions.memberCounterPartyAddress(subsystem, "ss0.example.org"))
                 .isInstanceOf(XrdRuntimeException.class);
     }
+
+    @Test
+    void shouldDeriveSystemCounterPartyId() {
+        assertThat(DspConventions.systemCounterPartyId("ss0.example.org"))
+                .hasToString("did:web:ss0.example.org%3A7183:v1:system");
+    }
+
+    @Test
+    void shouldDeriveSystemCounterPartyAddress() {
+        assertThat(DspConventions.systemCounterPartyAddress("ss0.example.org"))
+                .isEqualTo("https://ss0.example.org:8183/api/dsp/system/http-dsp-profile-2025-1");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "xrd-ss0,     did:web:xrd-ss0%3A7183:v1:system,     https://xrd-ss0:8183/api/dsp/system/http-dsp-profile-2025-1",
+            "xrd-ss0.lxd, did:web:xrd-ss0.lxd%3A7183:v1:system, https://xrd-ss0.lxd:8183/api/dsp/system/http-dsp-profile-2025-1",
+            "ss0,         did:web:ss0%3A7183:v1:system,         https://ss0:8183/api/dsp/system/http-dsp-profile-2025-1",
+            "proxy.ss0,   did:web:proxy.ss0%3A7183:v1:system,   https://proxy.ss0:8183/api/dsp/system/http-dsp-profile-2025-1"
+    })
+    void shouldDeriveSystemCoordinatesForEachDevSubstrateAddress(String ssAddress, String expectedDid, String expectedAddress) {
+        assertThat(DspConventions.systemCounterPartyId(ssAddress)).hasToString(expectedDid);
+        assertThat(DspConventions.systemCounterPartyAddress(ssAddress)).isEqualTo(expectedAddress);
+    }
+
+    @Test
+    void shouldBracketIpv6RegisteredAddressForSystemCoordinates() {
+        assertThat(DspConventions.systemCounterPartyId("2001:db8::8"))
+                .hasToString("did:web:%5B2001%3Adb8%3A%3A8%5D%3A7183:v1:system");
+        assertThat(DspConventions.systemCounterPartyAddress("2001:db8::8"))
+                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/system/http-dsp-profile-2025-1");
+    }
+
+    @Test
+    void shouldNotDoubleBracketAlreadyBracketedIpv6AddressForSystemCoordinates() {
+        assertThat(DspConventions.systemCounterPartyAddress("[2001:db8::8]"))
+                .isEqualTo("https://[2001:db8::8]:8183/api/dsp/system/http-dsp-profile-2025-1");
+    }
 }

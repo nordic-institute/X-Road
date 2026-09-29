@@ -240,7 +240,9 @@ public class AssetAccessOrchestrator {
     /**
      * The provider publishes one offer per ACL subject. A known caller takes the offer written for its
      * subsystem, else one that applies to its member as a whole (member-level or group subject); an offer
-     * written for another subsystem is never negotiated on its behalf. An unknown caller takes the first offer.
+     * written for another subsystem is never negotiated on its behalf. Failing both, a known caller falls
+     * back to an unrestricted offer (no permissions at all, as published for builtin/unrestricted-SYSTEM
+     * services) since such an offer applies to any caller. An unknown caller takes the first offer.
      */
     private static Map.Entry<String, Policy> selectOffer(Map<String, Policy> offers, @Nullable String clientId,
                                                          String assetId) {
@@ -250,6 +252,7 @@ public class AssetAccessOrchestrator {
         var memberId = PolicyContextHelper.parseClientId(clientId).getMemberId().asEncodedId();
         return firstOffer(offers, policy -> namesClient(policy, clientId))
                 .or(() -> firstOffer(offers, policy -> appliesToMember(policy, memberId)))
+                .or(() -> firstOffer(offers, AssetAccessOrchestrator::isUnrestricted))
                 .orElseThrow(() -> XrdRuntimeException.systemException(DSP_OFFERS_NOT_FOUND)
                         .origin(ErrorOrigin.DATASPACE)
                         .metadataItems(assetId, clientId)
@@ -258,6 +261,10 @@ public class AssetAccessOrchestrator {
 
     private static Optional<Map.Entry<String, Policy>> firstOffer(Map<String, Policy> offers, Predicate<Policy> matches) {
         return offers.entrySet().stream().filter(entry -> matches.test(entry.getValue())).findFirst();
+    }
+
+    private static boolean isUnrestricted(Policy policy) {
+        return policy.getPermissions().isEmpty();
     }
 
     private static boolean namesClient(Policy policy, String encodedClientId) {

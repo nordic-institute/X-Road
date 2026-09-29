@@ -24,30 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.controlplane;
+package org.niis.xroad.common.core;
 
-import com.apicatalog.did.Did;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-class CounterPartyTargetTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class ManagementServiceCodesTest {
 
     @Test
-    void managementMapTargetsRegisteredAddressWithSubstrateLocalContextId() {
-        var map = CounterPartyTarget.managementMap();
+    void allShouldMatchManagementRequestTypeServiceCodes() {
+        Set<String> managementServiceCodes = Set.copyOf(ManagementServiceCodes.ALL);
+        Set<String> managementRequestTypeCodes = Arrays.stream(ManagementRequestType.values())
+                .map(ManagementRequestType::getServiceCode)
+                .collect(Collectors.toUnmodifiableSet());
 
-        assertThat(map.get("xrd-ss0")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:xrd-ss0%3A7183:mgmt"),
-                "https://xrd-ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
-        assertThat(map.get("xrd-ss0.lxd")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:xrd-ss0.lxd%3A7183:mgmt"),
-                "https://xrd-ss0.lxd:8183/api/dsp/xrd-ss0.lxd-mgmt/http-dsp-profile-2025-1"));
-        assertThat(map.get("ss0")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:ss0%3A7183:mgmt"),
-                "https://ss0:8183/api/dsp/ss0-mgmt/http-dsp-profile-2025-1"));
-        assertThat(map.get("proxy.ss0")).isEqualTo(new CounterPartyTarget(
-                Did.parse("did:web:proxy.ss0%3A7183:mgmt"),
-                "https://proxy.ss0:8183/api/dsp/xrd-ss0-mgmt/http-dsp-profile-2025-1"));
+        assertEquals(managementRequestTypeCodes, managementServiceCodes);
     }
 }
