@@ -32,6 +32,7 @@ import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Expression;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.MultiplicityConstraint;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.util.function.Predicate;
@@ -50,11 +51,12 @@ public final class PolicySubjectMatcher {
     }
 
     /**
-     * Whether any permission constraint of {@code policy} names {@code encodedClientId} as the
-     * {@code XROAD_CLIENT_ID} subject.
+     * Whether any permission constraint of {@code policy} is an EQ constraint that names
+     * {@code encodedClientId} as the {@code XROAD_CLIENT_ID} subject.
      */
     public static boolean namesClient(Policy policy, String encodedClientId) {
-        return anyConstraint(policy, atomic -> isLiteral(atomic.getLeftExpression(), XROAD_CLIENT_ID)
+        return anyConstraint(policy, atomic -> atomic.getOperator() == Operator.EQ
+                && isLiteral(atomic.getLeftExpression(), XROAD_CLIENT_ID)
                 && isLiteral(atomic.getRightExpression(), encodedClientId));
     }
 
