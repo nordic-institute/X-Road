@@ -1,7 +1,7 @@
 # Signed Document Download and Verification Manual
 **X-ROAD 7**
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: UG-SIGDOC
 
 ---
@@ -25,6 +25,7 @@ Doc. ID: UG-SIGDOC
  25.08.2021 | 1.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
  03.09.2021 | 1.9     | Minor updates | Ilkka Seppälä
  08.10.2021 | 1.10    | Updates about encryption | Jarkko Hyöty
+ 29.09.2026 | 1.11    | ASIC verifier moved to NIIS Artifactory; usage example updated to use the versioned filename | Eneli Reimets
 
 ## Table of Contents
 
@@ -146,23 +147,25 @@ The *asic* service responds with the HTTP error code and plain text error messag
 
 ## 3 Signed Document Verification Tool
 
-Verification of signed documents is done by the asicverifier utility tool. The tool is written in the Java programming language and therefore requires Java 8 Runtime Environment (JRE) to be installed on the user's workstation. On Unix-like operating systems the JRE can be installed using package management software or downloaded from the Oracle website.
+Verification of signed documents is done by the asicverifier utility tool. The tool is written in the Java programming language and therefore requires Java 25 Runtime Environment (JRE) or newer to be installed on the user's workstation. On Unix-like operating systems the JRE can be installed using package management software or downloaded from the Oracle website.
 
-The asicverifier utility is shipped with security server and it is located in the following directory:
+The asicverifier utility is no longer bundled with the Security Server. Download the version matching your X-Road release from the NIIS Artifactory:
 
 ```
-/usr/share/xroad/jlib/asicverifier.jar
+https://artifactory.niis.org/artifactory/xroad-maven-releases/org/niis/xroad/asicverifier/
 ```
+
+The downloaded file is named `asicverifier-<version>.jar`, for example `asicverifier-8.0.0.jar` for the X-Road 8.0.0 release.
 
 ### 3.1 Usage
 
 The asicverifier utility is run as follows:
 
 ```bash
-java -jar asicverifier.jar ( --version | <configuration path> <signed document> )
+java -jar asicverifier-<version>.jar ( --version | <configuration path> <signed document> )
 ```
 
-where `<signed document>` is the path to the signed document being verified and `<configuration path>` is the path to the verification configuration for this container (see Section 3.2 ). You can check the version of the asicverifier tool with the `--version` option.
+where `<version>` is the version of the downloaded asicverifier jar (e.g. `8.0.0`), `<signed document>` is the path to the signed document being verified and `<configuration path>` is the path to the verification configuration for this container (see Section 3.2 ). You can check the version of the asicverifier tool with the `--version` option.
 
 If verification is successful the output will be similar to:
 

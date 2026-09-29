@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("com.gradleup.shadow")
+  id("xroad.maven-publish-conventions")
 }
 
 dependencies {
@@ -21,5 +22,16 @@ tasks {
     archiveVersion.set("")
     archiveClassifier.set("")
     from(rootProject.file("LICENSE.txt"))
+    from(rootProject.file("3RD-PARTY-NOTICES.txt")) { into("META-INF/xroad") }
+  }
+}
+
+publishing {
+  publications {
+    create<MavenPublication>("shadow") {
+      from(components["shadow"])
+
+      artifactId = "messagelog-archive-verifier"
+    }
   }
 }

@@ -4,12 +4,20 @@ This code verifies the correctness of the hash chain related to the log archive.
 
 If there are previous archived files, the script also takes into consideration the last hash step result of the previous archive file.
 
+## Download
+
+Pre-built releases are published to the NIIS Artifactory instead of being bundled with the Security Server:
+
+https://artifactory.niis.org/artifactory/xroad-maven-releases/org/niis/xroad/messagelog-archive-verifier/
+
+The downloaded file is named `messagelog-archive-verifier-<version>.jar`, for example `messagelog-archive-verifier-8.0.0.jar` for the X-Road 8.0.0 release.
+
 To use the script, make sure you have the matching Java version installed.
 
 The script can be invoked using the following command:
 
 ```
-java -jar messagelog-archive-verifier.jar <pathToArchiveFile.zip> <(lastHashStepResult) or (-f) or (--first)>
+java -jar messagelog-archive-verifier-<version>.jar <pathToArchiveFile.zip> <(lastHashStepResult) or (-f) or (--first)>
 ```
 
 **NB!** If the value of the second argument is `-f` or `--first` (both case insensitive), it is assumed that the first archive file in the chain is being verified, and no previous hash steps have been calculated.
